@@ -1,0 +1,15 @@
+cache/
+out/
+.env
+build/*
+node_modules
+broadcast/
+
+# JetBrains
+.idea
+
+# Vscode
+.vscode
+
+# OS generated
+.DS_STORE
