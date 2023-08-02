@@ -145,13 +145,17 @@ contract Vault is IVault {
      * @param vaultVersion_ The version of the vault logic.
      * @param baseCurrency_ The Base-currency in which the vault is denominated.
      */
-    function initialize(address owner_, address registry_, uint16 vaultVersion_, address baseCurrency_) external {
+    function initialize(address owner_, address registry_, uint16 vaultVersion_, address baseCurrency_, address creditor) external {
         require(vaultVersion == 0 && owner == address(0), "V_I: Already initialized!");
         require(vaultVersion_ != 0, "V_I: Invalid vault version");
         owner = owner_;
         registry = registry_;
         vaultVersion = vaultVersion_;
         baseCurrency = baseCurrency_;
+
+        if (creditor != address(0)) {
+            _openTrustedMarginAccount(creditor);
+        }
 
         emit BaseCurrencySet(baseCurrency_);
     }
@@ -285,6 +289,14 @@ contract Vault is IVault {
     function openTrustedMarginAccount(address creditor) external onlyOwner {
         require(!isTrustedCreditorSet, "V_OTMA: ALREADY SET");
 
+        _openTrustedMarginAccount(creditor);
+    }
+
+    /**
+     * @notice Internal function: Opens a margin account on the vault for a trusted Creditor.
+     * @param creditor The contract address of the trusted Creditor.
+     */
+    function _openTrustedMarginAccount(address creditor) internal {
         //openMarginAccount() is a view function, cannot modify state.
         (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_) =
             ITrustedCreditor(creditor).openMarginAccount(vaultVersion);
