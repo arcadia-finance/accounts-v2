@@ -4,9 +4,7 @@
  */
 pragma solidity ^0.8.13;
 
-import { TrustedCreditor } from "../../lib/arcadia-lending/src/TrustedCreditor.sol";
-
-contract TrustedCreditorMock is TrustedCreditor {
+contract TrustedCreditorMock {
     bool isCallSuccesfull = true;
 
     uint256 public fixedLiquidationCost;
@@ -16,12 +14,11 @@ contract TrustedCreditorMock is TrustedCreditor {
 
     mapping(address => uint256) openPosition;
 
-    constructor() TrustedCreditor() { }
+    constructor() { }
 
     function openMarginAccount(uint256)
         external
         view
-        override
         returns (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_)
     {
         if (isCallSuccesfull) {
@@ -37,7 +34,7 @@ contract TrustedCreditorMock is TrustedCreditor {
         }
     }
 
-    function getOpenPosition(address vault) external view override returns (uint256 openPosition_) {
+    function getOpenPosition(address vault) external view returns (uint256 openPosition_) {
         openPosition_ = openPosition[vault];
     }
 
