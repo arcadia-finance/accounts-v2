@@ -144,8 +144,15 @@ contract Vault is IVault {
      * @param registry_ The 'beacon' contract with the external logic.
      * @param vaultVersion_ The version of the vault logic.
      * @param baseCurrency_ The Base-currency in which the vault is denominated.
+     * @param creditor The contract address of the trusted creditor.
      */
-    function initialize(address owner_, address registry_, uint16 vaultVersion_, address baseCurrency_, address creditor) external {
+    function initialize(
+        address owner_,
+        address registry_,
+        uint16 vaultVersion_,
+        address baseCurrency_,
+        address creditor
+    ) external {
         require(vaultVersion == 0 && owner == address(0), "V_I: Already initialized!");
         require(vaultVersion_ != 0, "V_I: Invalid vault version");
         owner = owner_;

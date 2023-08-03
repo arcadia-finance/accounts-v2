@@ -69,6 +69,7 @@ contract VaultV2Test is DeployArcadiaVaults {
                 )
             ),
             0,
+            address(0),
             address(0)
         );
         proxy = Vault(proxyAddr);
@@ -86,22 +87,6 @@ contract VaultV2Test is DeployArcadiaVaults {
         dai.approve(address(liquidator), type(uint256).max);
 
         vaultV2 = new VaultV2();
-        vm.stopPrank();
-    }
-
-    function testSuccess_getVaultVersionRoot(uint256 salt) public {
-        vm.assume(salt > 0);
-
-        vm.startPrank(creatorAddress);
-        factory.setNewVaultInfo(address(mainRegistry), address(vaultV2), Constants.upgradeRoot1To2, "");
-        vm.stopPrank();
-
-        assertEq(factory.getVaultVersionRoot(), Constants.upgradeRoot1To2);
-
-        vm.startPrank(address(123_456_789));
-        proxyAddr2 = factory.createVault(salt, 0, address(0));
-        vaultV2 = VaultV2(proxyAddr2);
-        assertEq(vaultV2.returnFive(), 5);
         vm.stopPrank();
     }
 

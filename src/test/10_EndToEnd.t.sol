@@ -64,6 +64,7 @@ abstract contract EndToEndTest is DeployArcadiaVaults {
                 )
             ),
             0,
+            address(0),
             address(0)
         );
         proxy = Vault(proxyAddr);

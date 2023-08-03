@@ -185,6 +185,7 @@ contract LiquidatorEndToEnd is DeployArcadiaVaults {
                     )
                 ),
                 0,
+                address(0),
                 address(0)
             )
         );
@@ -218,7 +219,8 @@ contract LiquidatorEndToEnd is DeployArcadiaVaults {
                     )
                 ),
                 0,
-                address(dai)
+                address(dai),
+                address(0)
             )
         );
         link.approve(address(proxy2), type(uint256).max);

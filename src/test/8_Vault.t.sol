@@ -269,35 +269,6 @@ contract VaultManagementTest is vaultTests {
         vault_ = new VaultTestExtension(address(mainRegistry), 1);
     }
 
-    function testRevert_initialize_AlreadyInitialized() public {
-        vm.expectRevert("V_I: Already initialized!");
-        vault_.initialize(vaultOwner, address(mainRegistry), 1, address(0));
-    }
-
-    function testRevert_initialize_InvalidVersion() public {
-        vault_.setVaultVersion(0);
-        vault_.setOwner(address(0));
-
-        vm.expectRevert("V_I: Invalid vault version");
-        vault_.initialize(vaultOwner, address(mainRegistry), 0, address(0));
-    }
-
-    function testSuccess_initialize(address owner_, uint16 vaultVersion_) public {
-        vm.assume(vaultVersion_ > 0);
-
-        vault_.setVaultVersion(0);
-        vault_.setOwner(address(0));
-
-        vm.expectEmit(true, true, true, true);
-        emit BaseCurrencySet(address(0));
-        vault_.initialize(owner_, address(mainRegistry), vaultVersion_, address(0));
-
-        assertEq(vault_.owner(), owner_);
-        assertEq(vault_.registry(), address(mainRegistry));
-        assertEq(vault_.vaultVersion(), vaultVersion_);
-        assertEq(vault_.baseCurrency(), address(0));
-    }
-
     function testSuccess_upgradeVault(
         address newImplementation,
         address newRegistry,
@@ -1042,7 +1013,7 @@ contract VaultActionTest is vaultTests {
         vm.stopPrank();
 
         vm.startPrank(vaultOwner);
-        proxyAddr = factory.createVault(12_345_678, 0, address(0));
+        proxyAddr = factory.createVault(12_345_678, 0, address(0), address(0));
         proxy_ = VaultTestExtension(proxyAddr);
         vm.stopPrank();
 

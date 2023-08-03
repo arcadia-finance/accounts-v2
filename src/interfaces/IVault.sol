@@ -17,8 +17,10 @@ interface IVault {
      * @param registry The 'beacon' contract with the external logic.
      * @param vaultVersion The version of the vault logic.
      * @param baseCurrency The Base-currency in which the vault is denominated.
+     * @param creditor The contract address of the trusted creditor.
      */
-    function initialize(address owner, address registry, uint16 vaultVersion, address baseCurrency) external;
+    function initialize(address owner, address registry, uint16 vaultVersion, address baseCurrency, address creditor)
+        external;
 
     /**
      * @notice Updates the vault version and stores a new address in the EIP1967 implementation slot.

@@ -73,10 +73,11 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param salt A salt to be used to generate the hash.
      * @param vaultVersion The Vault version.
      * @param baseCurrency The Base-currency in which the vault is denominated.
+     * @param creditor The contract address of the trusted creditor.
      * @return vault The contract address of the proxy contract of the newly deployed vault.
      * @dev Safe to cast a uint256 to a bytes32 since the space of both is 2^256.
      */
-    function createVault(uint256 salt, uint16 vaultVersion, address baseCurrency)
+    function createVault(uint256 salt, uint16 vaultVersion, address baseCurrency, address creditor)
         external
         whenCreateNotPaused
         returns (address vault)
@@ -90,7 +91,9 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         // We use tx.origin instead of msg.sender so that deployments through a third party contract is not vulnerable to front-running.
         vault = address(new Proxy{salt: keccak256(abi.encodePacked(salt, tx.origin))}(vaultDetails[vaultVersion].logic));
 
-        IVault(vault).initialize(msg.sender, vaultDetails[vaultVersion].registry, uint16(vaultVersion), baseCurrency);
+        IVault(vault).initialize(
+            msg.sender, vaultDetails[vaultVersion].registry, uint16(vaultVersion), baseCurrency, creditor
+        );
 
         allVaults.push(vault);
         vaultIndex[vault] = allVaults.length;

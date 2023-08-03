@@ -19,7 +19,7 @@ contract gasProxyDeploy is GasTestFixture {
 
     function testCreateProxyVault() public {
         uint256 salt = 123_456_789;
-        factory.createVault(salt, 0, address(0));
+        factory.createVault(salt, 0, address(0), address(0));
     }
 
     //This test should probably be deleted

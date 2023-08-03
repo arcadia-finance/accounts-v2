@@ -500,6 +500,7 @@ contract AssetManagementTest is MainRegistryTest {
                 )
             ),
             0,
+            address(0),
             address(0)
         );
         proxy = Vault(proxyAddr);
