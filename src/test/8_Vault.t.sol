@@ -7,9 +7,7 @@ pragma solidity ^0.8.13;
 import "./fixtures/ArcadiaVaultsFixture.f.sol";
 
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
-import { LendingPool, DebtToken, ERC20 } from "../../lib/arcadia-lending/src/LendingPool.sol";
-import { Tranche } from "../../lib/arcadia-lending/src/Tranche.sol";
-
+import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
 import { ActionMultiCall } from "../actions/MultiCall.sol";
 import "../actions/utils/ActionData.sol";
 import { MultiActionMock } from "../mockups/MultiActionMock.sol";
@@ -50,9 +48,7 @@ abstract contract vaultTests is DeployArcadiaVaults {
 
     VaultTestExtension public vault_;
 
-    LendingPool pool;
-    Tranche tranche;
-    DebtToken debt;
+    TrustedCreditorMock trustedCreditor;
 
     bytes3 public emptyBytes3;
 
@@ -67,22 +63,11 @@ abstract contract vaultTests is DeployArcadiaVaults {
 
     //this is a before
     constructor() DeployArcadiaVaults() {
-        vm.startPrank(creatorAddress);
         liquidator = new Liquidator(address(factory));
 
-        pool = new LendingPool(ERC20(address(dai)), creatorAddress, address(factory), address(liquidator));
-        pool.setVaultVersion(1, true);
-        debt = DebtToken(address(pool));
-
-        tranche = new Tranche(address(pool), "Senior", "SR");
-        pool.addTranche(address(tranche), 50, 0);
-        vm.stopPrank();
-
-        vm.prank(liquidityProvider);
-        dai.approve(address(pool), type(uint256).max);
-
-        vm.prank(address(tranche));
-        pool.depositInLendingPool(type(uint128).max, liquidityProvider);
+        trustedCreditor = new TrustedCreditorMock();
+        trustedCreditor.setBaseCurrency(address(dai));
+        trustedCreditor.setLiquidator(address(liquidator));
     }
 
     //this is a before each
@@ -90,6 +75,10 @@ abstract contract vaultTests is DeployArcadiaVaults {
         vm.prank(vaultOwner);
         vault_ = new VaultTestExtension(address(mainRegistry), 1);
     }
+
+    /* ///////////////////////////////////////////////////////////////
+                    HELPER FUNCTIONS
+    /////////////////////////////////////////////////////////////// */
 
     function deployFactory() internal {
         vm.startPrank(creatorAddress);
@@ -103,7 +92,7 @@ abstract contract vaultTests is DeployArcadiaVaults {
 
     function openMarginAccount() internal {
         vm.startPrank(vaultOwner);
-        vault_.openTrustedMarginAccount(address(pool));
+        vault_.openTrustedMarginAccount(address(trustedCreditor));
         dai.approve(address(vault_), type(uint256).max);
         bayc.setApprovalForAll(address(vault_), true);
         mayc.setApprovalForAll(address(vault_), true);
@@ -116,16 +105,10 @@ abstract contract vaultTests is DeployArcadiaVaults {
         vm.stopPrank();
     }
 
-    /* ///////////////////////////////////////////////////////////////
-                    HELPER FUNCTIONS
-    /////////////////////////////////////////////////////////////// */
-
     function depositEthAndTakeMaxCredit(uint128 amountEth) public returns (uint256) {
         depositERC20InVault(eth, amountEth, vaultOwner);
-        vm.startPrank(vaultOwner);
         uint256 remainingCredit = vault_.getFreeMargin();
-        pool.borrow(uint128(remainingCredit), address(vault_), vaultOwner, emptyBytes3);
-        vm.stopPrank();
+        trustedCreditor.setOpenPosition(address(vault_), amountEth);
 
         return remainingCredit;
     }
@@ -306,10 +289,7 @@ contract VaultManagementTest is vaultTests {
     ) public {
         //TrustedCreditor is set
         vm.prank(vaultOwner);
-        vault_.openTrustedMarginAccount(address(pool));
-
-        vm.prank(creatorAddress);
-        pool.setVaultVersion(newVersion, true);
+        vault_.openTrustedMarginAccount(address(trustedCreditor));
 
         vm.prank(address(factory));
         vault_.upgradeVault(newImplementation, newRegistry, newVersion, data);
@@ -344,7 +324,10 @@ contract VaultManagementTest is vaultTests {
 
         //TrustedCreditor is set
         vm.prank(vaultOwner);
-        vault_.openTrustedMarginAccount(address(pool));
+        vault_.openTrustedMarginAccount(address(trustedCreditor));
+
+        //Check in creditor if new version is allowed should fail
+        trustedCreditor.setCallResult(false);
 
         vm.startPrank(address(factory));
         vm.expectRevert("V_UV: Invalid vault version");
@@ -459,8 +442,6 @@ contract BaseCurrencyLogicTest is vaultTests {
 contract MarginAccountSettingsTest is vaultTests {
     using stdStorage for StdStorage;
 
-    TrustedCreditorMock trustedCreditor;
-
     event BaseCurrencySet(address baseCurrency);
     event TrustedMarginAccountChanged(address indexed protocol, address indexed liquidator);
 
@@ -482,7 +463,7 @@ contract MarginAccountSettingsTest is vaultTests {
 
     function testRevert_openTrustedMarginAccount_AlreadySet(address trustedCreditor_) public {
         vm.prank(vaultOwner);
-        vault_.openTrustedMarginAccount(address(pool));
+        vault_.openTrustedMarginAccount(address(trustedCreditor));
 
         vm.startPrank(vaultOwner);
         vm.expectRevert("V_OTMA: ALREADY SET");
@@ -491,7 +472,7 @@ contract MarginAccountSettingsTest is vaultTests {
     }
 
     function testRevert_openTrustedMarginAccount_OpeningMarginAccountFails() public {
-        trustedCreditor = new TrustedCreditorMock();
+        trustedCreditor.setCallResult(false);
 
         vm.startPrank(vaultOwner);
         vm.expectRevert("V_OTMA: Invalid Version");
@@ -499,41 +480,56 @@ contract MarginAccountSettingsTest is vaultTests {
         vm.stopPrank();
     }
 
-    function testSuccess_openTrustedMarginAccount_DifferentBaseCurrency(uint96 fixedLiquidationCost) public {
+    function testSuccess_openTrustedMarginAccount_DifferentBaseCurrency(
+        address liquidator_,
+        uint96 fixedLiquidationCost
+    ) public {
         assertEq(vault_.baseCurrency(), address(0));
 
-        vm.prank(creatorAddress);
-        pool.setFixedLiquidationCost(fixedLiquidationCost);
+        stdstore.target(address(trustedCreditor)).sig(trustedCreditor.baseCurrency.selector).checked_write(address(dai));
+        stdstore.target(address(trustedCreditor)).sig(trustedCreditor.liquidator.selector).checked_write(liquidator_);
+        stdstore.target(address(trustedCreditor)).sig(trustedCreditor.fixedLiquidationCost.selector).checked_write(
+            fixedLiquidationCost
+        );
 
         vm.startPrank(vaultOwner);
         vm.expectEmit(true, true, true, true);
         emit BaseCurrencySet(address(dai));
         vm.expectEmit(true, true, true, true);
-        emit TrustedMarginAccountChanged(address(pool), address(liquidator));
-        vault_.openTrustedMarginAccount(address(pool));
+        emit TrustedMarginAccountChanged(address(trustedCreditor), liquidator_);
+        vault_.openTrustedMarginAccount(address(trustedCreditor));
         vm.stopPrank();
 
-        assertEq(vault_.liquidator(), address(liquidator));
-        assertEq(vault_.trustedCreditor(), address(pool));
+        assertEq(vault_.liquidator(), liquidator_);
+        assertEq(vault_.trustedCreditor(), address(trustedCreditor));
         assertEq(vault_.baseCurrency(), address(dai));
         assertEq(vault_.fixedLiquidationCost(), fixedLiquidationCost);
         assertTrue(vault_.isTrustedCreditorSet());
     }
 
-    function testSuccess_openTrustedMarginAccount_SameBaseCurrency() public {
+    function testSuccess_openTrustedMarginAccount_SameBaseCurrency(address liquidator_, uint96 fixedLiquidationCost)
+        public
+    {
         //Set BaseCurrency to dai
         stdstore.target(address(vault_)).sig(vault_.baseCurrency.selector).checked_write(address(dai));
         assertEq(vault_.baseCurrency(), address(dai));
 
+        stdstore.target(address(trustedCreditor)).sig(trustedCreditor.baseCurrency.selector).checked_write(address(dai));
+        stdstore.target(address(trustedCreditor)).sig(trustedCreditor.liquidator.selector).checked_write(liquidator_);
+        stdstore.target(address(trustedCreditor)).sig(trustedCreditor.fixedLiquidationCost.selector).checked_write(
+            fixedLiquidationCost
+        );
+
         vm.startPrank(vaultOwner);
         vm.expectEmit(true, true, true, true);
-        emit TrustedMarginAccountChanged(address(pool), address(liquidator));
-        vault_.openTrustedMarginAccount(address(pool));
+        emit TrustedMarginAccountChanged(address(trustedCreditor), liquidator_);
+        vault_.openTrustedMarginAccount(address(trustedCreditor));
         vm.stopPrank();
 
-        assertEq(vault_.liquidator(), address(liquidator));
-        assertEq(vault_.trustedCreditor(), address(pool));
+        assertEq(vault_.liquidator(), liquidator_);
+        assertEq(vault_.trustedCreditor(), address(trustedCreditor));
         assertEq(vault_.baseCurrency(), address(dai));
+        assertEq(vault_.fixedLiquidationCost(), fixedLiquidationCost);
         assertTrue(vault_.isTrustedCreditorSet());
     }
 
@@ -553,14 +549,13 @@ contract MarginAccountSettingsTest is vaultTests {
         vm.stopPrank();
     }
 
-    function testRevert_closeTrustedMarginAccount_OpenPosition() public {
+    function testRevert_closeTrustedMarginAccount_OpenPosition(uint256 debt_) public {
         vm.prank(vaultOwner);
-        vault_.openTrustedMarginAccount(address(pool));
+        vault_.openTrustedMarginAccount(address(trustedCreditor));
 
-        bytes32 addDebt = bytes32(abi.encode(1));
-        stdstore.target(address(debt)).sig(debt.totalSupply.selector).checked_write(addDebt);
-        stdstore.target(address(debt)).sig(debt.realisedDebt.selector).checked_write(addDebt);
-        stdstore.target(address(debt)).sig(debt.balanceOf.selector).with_key(address(vault_)).checked_write(addDebt);
+        // Mock debt.
+        vm.assume(debt_ > 0);
+        trustedCreditor.setOpenPosition(address(vault_), debt_);
 
         vm.startPrank(vaultOwner);
         vm.expectRevert("V_CTMA: NON-ZERO OPEN POSITION");
@@ -570,7 +565,7 @@ contract MarginAccountSettingsTest is vaultTests {
 
     function testSuccess_closeTrustedMarginAccount() public {
         vm.prank(vaultOwner);
-        vault_.openTrustedMarginAccount(address(pool));
+        vault_.openTrustedMarginAccount(address(trustedCreditor));
 
         vm.startPrank(vaultOwner);
         vm.expectEmit(true, true, true, true);
@@ -619,7 +614,7 @@ contract MarginRequirementsTest is vaultTests {
         standardERC20PricingModule.setBatchRiskVariables(riskVars_);
 
         // And: Vault has already used margin
-        stdstore.target(address(debt)).sig(debt.balanceOf.selector).with_key(address(vault_)).checked_write(openDebt);
+        trustedCreditor.setOpenPosition(address(vault_), openDebt);
         vault_.setFixedLiquidationCost(fixedLiquidationCost);
 
         // And: Eth is deposited in the Vault
@@ -632,12 +627,11 @@ contract MarginRequirementsTest is vaultTests {
         vm.assume(depositAmount > 0); // Division by 0
 
         // When: An Authorised protocol tries to take more margin against the vault
-        vm.prank(address(pool));
         (bool success, address creditor, uint256 version) = vault_.isVaultHealthy(marginIncrease, 0);
 
         // Then: The action is not successful
         assertTrue(!success);
-        assertEq(creditor, address(pool));
+        assertEq(creditor, address(trustedCreditor));
         assertEq(version, 1);
     }
 
@@ -664,7 +658,7 @@ contract MarginRequirementsTest is vaultTests {
         standardERC20PricingModule.setBatchRiskVariables(riskVars_);
 
         // And: Vault has already used margin
-        stdstore.target(address(debt)).sig(debt.balanceOf.selector).with_key(address(vault_)).checked_write(openDebt);
+        trustedCreditor.setOpenPosition(address(vault_), openDebt);
         vault_.setFixedLiquidationCost(fixedLiquidationCost);
 
         // And: Eth is deposited in the Vault
@@ -677,12 +671,11 @@ contract MarginRequirementsTest is vaultTests {
         vm.assume(depositAmount > 0); // Division by 0
 
         // When: An Authorised protocol tries to take more margin against the vault
-        vm.prank(address(pool));
         (bool success, address creditor, uint256 version) = vault_.isVaultHealthy(marginIncrease, 0);
 
         // Then: The action is successful
         assertTrue(success);
-        assertEq(creditor, address(pool));
+        assertEq(creditor, address(trustedCreditor));
         assertEq(version, 1);
     }
 
@@ -719,12 +712,11 @@ contract MarginRequirementsTest is vaultTests {
         vm.assume(depositAmount > 0); // Division by 0
 
         // When: An Authorised protocol tries to take more margin against the vault
-        vm.prank(address(pool));
         (bool success, address creditor, uint256 version) = vault_.isVaultHealthy(0, totalOpenDebt);
 
         // Then: The action is not successful
         assertTrue(!success);
-        assertEq(creditor, address(pool));
+        assertEq(creditor, address(trustedCreditor));
         assertEq(version, 1);
     }
 
@@ -761,12 +753,11 @@ contract MarginRequirementsTest is vaultTests {
         vm.assume(depositAmount > 0); // Division by 0
 
         // When: An Authorised protocol tries to take more margin against the vault
-        vm.prank(address(pool));
         (bool success, address creditor, uint256 version) = vault_.isVaultHealthy(0, totalOpenDebt);
 
         // Then: The action is successful
         assertTrue(success);
-        assertEq(creditor, address(pool));
+        assertEq(creditor, address(trustedCreditor));
         assertEq(version, 1);
     }
 
@@ -820,7 +811,8 @@ contract MarginRequirementsTest is vaultTests {
 
     function testSuccess_getUsedMargin(uint256 openDebt, uint96 fixedLiquidationCost) public {
         vm.assume(openDebt <= type(uint256).max - fixedLiquidationCost);
-        stdstore.target(address(debt)).sig(debt.balanceOf.selector).with_key(address(vault_)).checked_write(openDebt);
+
+        trustedCreditor.setOpenPosition(address(vault_), openDebt);
         vault_.setFixedLiquidationCost(fixedLiquidationCost);
 
         assertEq(openDebt + fixedLiquidationCost, vault_.getUsedMargin());
@@ -886,8 +878,7 @@ contract MarginRequirementsTest is vaultTests {
         vault_.setFixedLiquidationCost(fixedLiquidationCost);
         depositEthInVault(amountEth, vaultOwner);
 
-        vm.prank(vaultOwner);
-        pool.borrow(amountCredit, address(vault_), vaultOwner, emptyBytes3);
+        trustedCreditor.setOpenPosition(address(vault_), amountCredit);
 
         uint256 actualRemainingCredit = vault_.getFreeMargin();
         uint256 expectedRemainingCredit = (depositValue * collFactor_) / 100 - amountCredit - fixedLiquidationCost;
@@ -901,8 +892,8 @@ contract MarginRequirementsTest is vaultTests {
 
         depositERC20InVault(eth, amountEth, vaultOwner);
         uint16 collFactor_ = RiskConstants.DEFAULT_COLLATERAL_FACTOR;
-        vm.prank(vaultOwner);
-        pool.borrow((((amountEth * collFactor_) / 100) * factor) / 255, address(vault_), vaultOwner, emptyBytes3);
+        uint256 amountCredit = (((amountEth * collFactor_) / 100) * factor) / 255;
+        trustedCreditor.setOpenPosition(address(vault_), amountCredit);
 
         uint256 currentValue = vault_.getVaultValue(address(dai));
         uint256 openDebt = vault_.getUsedMargin();
@@ -965,22 +956,19 @@ contract LiquidationLogicTest is vaultTests {
         vm.assume((depositValue * liqFactor_) / 100 < uint256(openDebt) + fixedLiquidationCost);
         depositEthInVault(amountEth, vaultOwner);
 
-        bytes32 addDebt = bytes32(abi.encode(openDebt));
-        stdstore.target(address(debt)).sig(debt.totalSupply.selector).checked_write(addDebt);
-        stdstore.target(address(debt)).sig(debt.realisedDebt.selector).checked_write(addDebt);
-        stdstore.target(address(debt)).sig(debt.balanceOf.selector).with_key(address(vault_)).checked_write(addDebt);
+        trustedCreditor.setOpenPosition(address(vault_), openDebt);
 
         vault_.setFixedLiquidationCost(fixedLiquidationCost);
 
         vm.startPrank(address(liquidator));
         vm.expectEmit(true, true, true, true);
         emit TrustedMarginAccountChanged(address(0), address(0));
-        (address originalOwner, address baseCurrency, address trustedCreditor) = vault_.liquidateVault(openDebt);
+        (address originalOwner, address baseCurrency, address trustedCreditor_) = vault_.liquidateVault(openDebt);
         vm.stopPrank();
 
         assertEq(originalOwner, vaultOwner);
         assertEq(baseCurrency, address(dai));
-        assertEq(trustedCreditor, address(pool));
+        assertEq(trustedCreditor_, address(trustedCreditor));
 
         assertEq(vault_.owner(), address(liquidator));
         assertEq(vault_.isTrustedCreditorSet(), false);
@@ -1000,7 +988,6 @@ contract VaultActionTest is vaultTests {
     MultiActionMock public multiActionMock;
 
     VaultTestExtension public proxy_;
-    TrustedCreditorMock public trustedCreditor;
 
     event AssetManagerSet(address indexed owner, address indexed assetManager, bool value);
 
@@ -1049,8 +1036,6 @@ contract VaultActionTest is vaultTests {
         depositERC20InVault(eth, 1000 * 10 ** 18, vaultOwner);
         vm.startPrank(creatorAddress);
         mainRegistry.setAllowedAction(address(action), true);
-
-        trustedCreditor = new TrustedCreditorMock();
 
         vm.stopPrank();
     }
@@ -1474,7 +1459,6 @@ contract AssetManagementTest is vaultTests {
 
         vm.prank(vaultOwner);
         vault_.deposit(assetAddresses, assetIds, assetAmounts);
-        vm.stopPrank();
 
         assertEq(vault_.erc20Stored(0), address(eth));
         assertEq(vault_.erc20Balances(address(eth)), eth.balanceOf(address(vault_)));
@@ -1597,7 +1581,6 @@ contract AssetManagementTest is vaultTests {
 
         vm.prank(vaultOwner);
         vault_.deposit(assetAddresses, assetIds, assetAmounts);
-        vm.stopPrank();
 
         (uint256 erc20Len,,,) = vault_.getLengths();
 
@@ -1617,7 +1600,6 @@ contract AssetManagementTest is vaultTests {
 
         vm.prank(vaultOwner);
         vault_.deposit(assetAddresses, assetIds, assetAmounts);
-        vm.stopPrank();
 
         assertEq(vault_.erc20Stored(0), address(eth));
         assertEq(vault_.erc20Balances(address(eth)), eth.balanceOf(address(vault_)));
@@ -1951,10 +1933,11 @@ contract AssetManagementTest is vaultTests {
 
         vault_.setFixedLiquidationCost(fixedLiquidationCost);
 
-        vm.startPrank(vaultOwner);
-        pool.borrow(amountCredit, address(vault_), vaultOwner, emptyBytes3);
+        trustedCreditor.setOpenPosition(address(vault_), amountCredit);
 
         assetInfo.assetAmounts[0] = amountWithdraw;
+
+        vm.startPrank(vaultOwner);
         vm.expectRevert("V_W: Vault Unhealthy");
         vault_.withdraw(assetInfo.assetAddresses, assetInfo.assetIds, assetInfo.assetAmounts);
         vm.stopPrank();
@@ -1975,8 +1958,7 @@ contract AssetManagementTest is vaultTests {
 
         uint128 maxAmountCredit = uint128(((assetIds.length - amountsWithdrawn) * rateInUsd * collFactor_) / 100);
 
-        vm.startPrank(vaultOwner);
-        pool.borrow(maxAmountCredit + 1, address(vault_), vaultOwner, emptyBytes3);
+        trustedCreditor.setOpenPosition(address(vault_), maxAmountCredit + 1);
 
         uint256[] memory withdrawalIds = new uint256[](amountsWithdrawn);
         address[] memory withdrawalAddresses = new address[](amountsWithdrawn);
@@ -1987,8 +1969,10 @@ contract AssetManagementTest is vaultTests {
             withdrawalAmounts[i] = 1;
         }
 
+        vm.startPrank(vaultOwner);
         vm.expectRevert("V_W: Vault Unhealthy");
         vault_.withdraw(withdrawalAddresses, withdrawalIds, withdrawalAmounts);
+        vm.stopPrank();
     }
 
     function testSuccess_withdraw_ERC20NoDebt(uint8 baseAmountDeposit, uint32 fixedLiquidationCost) public {
@@ -2039,12 +2023,13 @@ contract AssetManagementTest is vaultTests {
 
         vault_.setFixedLiquidationCost(fixedLiquidationCost);
 
+        trustedCreditor.setOpenPosition(address(vault_), amountCredit);
+
         Assets memory assetInfo = depositEthInVault(baseAmountDeposit, vaultOwner);
-        vm.startPrank(vaultOwner);
-        pool.borrow(amountCredit, address(vault_), vaultOwner, emptyBytes3);
         assetInfo.assetAmounts[0] = amountWithdraw;
+
+        vm.prank(vaultOwner);
         vault_.withdraw(assetInfo.assetAddresses, assetInfo.assetIds, assetInfo.assetAmounts);
-        vm.stopPrank();
 
         uint256 actualValue = vault_.getVaultValue(address(dai));
         uint256 expectedValue = valueDeposit - valueWithdraw;
@@ -2082,8 +2067,7 @@ contract AssetManagementTest is vaultTests {
         vm.assume(valueOfWithdrawal < valueOfDeposit);
         vm.assume(amountCredit < ((valueOfDeposit - valueOfWithdrawal) * collFactor_) / 100);
 
-        vm.startPrank(vaultOwner);
-        pool.borrow(amountCredit, address(vault_), vaultOwner, emptyBytes3);
+        trustedCreditor.setOpenPosition(address(vault_), amountCredit);
 
         uint256[] memory withdrawalIds = new uint256[](randomAmounts);
         address[] memory withdrawalAddresses = new address[](randomAmounts);
@@ -2094,6 +2078,7 @@ contract AssetManagementTest is vaultTests {
             withdrawalAmounts[i] = 1;
         }
 
+        vm.prank(vaultOwner);
         vault_.withdraw(withdrawalAddresses, withdrawalIds, withdrawalAmounts);
 
         uint256 actualValue = vault_.getVaultValue(address(dai));
@@ -2250,189 +2235,5 @@ contract AssetManagementTest is vaultTests {
         uint256 balanceOwnerAfter = vaultOwner.balance;
 
         assertEq(balanceOwnerBefore + 1e21, balanceOwnerAfter);
-    }
-}
-
-/* ///////////////////////////////////////////////////////////////
-                DEPRECIATED TESTS
-/////////////////////////////////////////////////////////////// */
-//ToDo: All depreciated tests should be moved to Arcadia Lending, to double check that everything is covered there
-contract DepreciatedTest is vaultTests {
-    using stdStorage for StdStorage;
-
-    function setUp() public override {
-        super.setUp();
-        deployFactory();
-        openMarginAccount();
-    }
-
-    struct debtInfo {
-        uint16 collFactor_; //factor 100
-        uint8 liqFac; //factor 100
-        uint8 baseCurrency;
-    }
-
-    function testSuccess_borrow(uint8 baseAmountDeposit, uint8 baseAmountCredit) public {
-        uint256 amountDeposit = baseAmountDeposit * 10 ** Constants.daiDecimals;
-        vm.assume(amountDeposit > 0);
-        uint128 amountCredit = uint128(baseAmountCredit * 10 ** Constants.daiDecimals);
-
-        uint16 collFactor_ = RiskConstants.DEFAULT_COLLATERAL_FACTOR;
-
-        vm.assume((amountDeposit * collFactor_) / 100 >= amountCredit);
-        depositEthInVault(baseAmountDeposit, vaultOwner);
-
-        vm.startPrank(vaultOwner);
-        pool.borrow(amountCredit, address(vault_), vaultOwner, emptyBytes3);
-
-        assertEq(dai.balanceOf(vaultOwner), amountCredit);
-        assertEq(vault_.getUsedMargin(), amountCredit); //no blocks have passed
-    }
-
-    function testRevert_borrow_AsNonOwner(uint8 amountEth, uint128 amountCredit) public {
-        vm.assume(amountCredit > 0);
-        vm.assume(unprivilegedAddress != vaultOwner);
-        uint256 depositValue = ((Constants.WAD * rateEthToUsd) / 10 ** Constants.oracleEthToUsdDecimals) * amountEth;
-        uint16 collFactor_ = RiskConstants.DEFAULT_COLLATERAL_FACTOR;
-        vm.assume((depositValue * collFactor_) / 100 > amountCredit);
-        depositEthInVault(amountEth, vaultOwner);
-
-        vm.startPrank(unprivilegedAddress);
-        vm.expectRevert(stdError.arithmeticError);
-        pool.borrow(amountCredit, address(vault_), vaultOwner, emptyBytes3);
-    }
-
-    function testSuccess_MinCollValueUnchecked() public {
-        //uint256 minCollValue;
-        //unchecked {minCollValue = uint256(debt._usedMargin) * debt.collFactor_ / 100;}
-        assertTrue(uint256(type(uint128).max) * type(uint16).max < type(uint256).max);
-    }
-
-    function testSuccess_CheckBaseUnchecked() public {
-        uint256 base256 = uint128(1e18) + type(uint64).max + 1;
-        uint128 base128 = uint128(uint128(1e18) + type(uint64).max + 1);
-
-        //assert that 1e18 + uint64 < uint128 can't overflow
-        assertTrue(base256 == base128);
-    }
-
-    //overflows from deltaTimestamp = 894262060268226281981748468
-    function testSuccess_CheckExponentUnchecked() public {
-        uint256 yearlySeconds = 31_536_000;
-        uint256 maxDeltaTimestamp = (uint256(type(uint128).max) * uint256(yearlySeconds)) / 10 ** 18;
-
-        uint256 exponent256 = (maxDeltaTimestamp * 1e18) / yearlySeconds;
-        uint128 exponent128 = uint128((maxDeltaTimestamp * uint256(1e18)) / yearlySeconds);
-
-        assertTrue(exponent256 == exponent128);
-
-        uint256 exponent256Overflow = (((maxDeltaTimestamp + 1) * 1e18) / yearlySeconds);
-        uint128 exponent128Overflow = uint128(((maxDeltaTimestamp + 1) * 1e18) / yearlySeconds);
-
-        assertTrue(exponent256Overflow != exponent128Overflow);
-        assertTrue(exponent128Overflow == exponent256Overflow - type(uint128).max - 1);
-    }
-
-    function testSuccess_CheckUnrealisedDebtUnchecked(uint64 base, uint24 deltaTimestamp, uint128 openDebt) public {
-        vm.assume(base <= 10 * 10 ** 18); //1000%
-        vm.assume(base >= 10 ** 18);
-        vm.assume(deltaTimestamp <= 5 * 365 * 24 * 60 * 60); //5 year
-        vm.assume(openDebt <= type(uint128).max / (10 ** 5)); //highest possible debt at 1000% over 5 years: 3402823669209384912995114146594816
-
-        uint256 yearlySeconds = 31_536_000;
-        uint128 exponent = uint128(((uint256(deltaTimestamp)) * 1e18) / yearlySeconds);
-        vm.assume(LogExpMath.pow(base, exponent) > 0);
-
-        uint256 unRealisedDebt256 = (uint256(openDebt) * (LogExpMath.pow(base, exponent) - 1e18)) / 1e18;
-        uint128 unRealisedDebt128 = uint128((openDebt * (LogExpMath.pow(base, exponent) - 1e18)) / 1e18);
-
-        assertEq(unRealisedDebt256, unRealisedDebt128);
-    }
-
-    /*
-    We assume a situation where the base and exponent are within "logical" (yet extreme) boundries.
-    Within this assumption, we let the open debt vary over all possible values within the assumption.
-    We then check whether checked uint256 calculations will be equal to unchecked uint128 calcs.
-    The assumptions are:
-      * 1000% interest rate
-      * never synced any debt during 5 years
-    **/
-    function testSuccess_syncInterests_SyncDebtUnchecked(
-        uint64 base,
-        uint24 deltaTimestamp,
-        uint128 openDebt,
-        uint16 additionalDeposit
-    ) public {
-        vm.assume(base <= 10 * 10 ** 18); //1000%
-        vm.assume(base >= 10 ** 18); //No negative interest rate possible
-        vm.assume(deltaTimestamp <= 5 * 365 * 24 * 60 * 60); //5 year
-        vm.assume(additionalDeposit > 0);
-        //        vm.assume(additionalDeposit < 10);
-        vm.assume(openDebt <= type(uint128).max / (10 ** 5)); //highest possible debt at 1000% over 5 years: 3402823669209384912995114146594816
-
-        uint16 collFactor_ = RiskConstants.DEFAULT_COLLATERAL_FACTOR;
-        uint128 amountEthToDeposit = uint128(
-            (
-                (openDebt / rateEthToUsd / 10 ** 18) * 10 ** (Constants.oracleEthToUsdDecimals + Constants.ethDecimals)
-                    * collFactor_
-            ) / 100
-        ); // This is always zero
-        amountEthToDeposit += uint128(additionalDeposit);
-
-        uint256 yearlySeconds = 31_536_000;
-        uint128 exponent = uint128(((uint256(deltaTimestamp)) * 1e18) / yearlySeconds);
-
-        uint256 remainingCredit = depositEthAndTakeMaxCredit(amountEthToDeposit);
-
-        //Set interest rate
-        stdstore.target(address(pool)).sig(pool.interestRate.selector).checked_write(base - 1e18);
-
-        vm.warp(block.timestamp + deltaTimestamp);
-
-        uint128 unRealisedDebt = uint128((remainingCredit * (LogExpMath.pow(base, exponent) - 1e18)) / 1e18);
-
-        uint256 usedMarginExpected = remainingCredit + unRealisedDebt;
-
-        uint256 usedMarginActual = vault_.getUsedMargin();
-
-        assertEq(usedMarginActual, usedMarginExpected);
-    }
-
-    function testSuccess_syncInterests_GetOpenDebtUnchecked(uint32 blocksToRoll, uint128 baseAmountEthToDeposit)
-        public
-    {
-        vm.assume(blocksToRoll <= 255_555_555); //up to the year 2122
-        vm.assume(baseAmountEthToDeposit > 0);
-        vm.assume(baseAmountEthToDeposit < 10);
-        uint16 collFactor_ = RiskConstants.DEFAULT_COLLATERAL_FACTOR;
-        uint128 amountEthToDeposit = uint128(
-            (
-                ((10 * 10 ** 9 * 10 ** 18) / rateEthToUsd / 10 ** 18)
-                    * 10 ** (Constants.oracleEthToUsdDecimals + Constants.ethDecimals) * collFactor_
-            ) / 100
-        ); //equivalent to 10bn USD debt // This is always zero
-        amountEthToDeposit += baseAmountEthToDeposit;
-        uint256 remainingCredit = depositEthAndTakeMaxCredit(amountEthToDeposit); //10bn USD debt
-        uint256 _lastBlock = block.number;
-
-        uint64 _yearlyInterestRate = uint64(pool.interestRate());
-
-        vm.roll(block.number + blocksToRoll);
-
-        uint256 base;
-        uint256 exponent;
-
-        //gas: can't overflow as long as interest remains < 3.4*10**20 %/yr
-        //gas: can't overflow: 1e18 + uint64 <<< uint128
-        base = 1e18 + _yearlyInterestRate;
-
-        //gas: only overflows when blocks.number > ~10**20
-        exponent = ((block.number - uint32(_lastBlock)) * 1e18) / pool.YEARLY_SECONDS();
-
-        uint256 usedMarginExpected = (remainingCredit * LogExpMath.pow(base, exponent)) / 1e18;
-
-        uint256 usedMarginActual = vault_.getUsedMargin();
-
-        assertEq(usedMarginExpected, usedMarginActual);
     }
 }

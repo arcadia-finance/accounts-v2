@@ -7,10 +7,12 @@ pragma solidity ^0.8.13;
 import { TrustedCreditor } from "../../lib/arcadia-lending/src/TrustedCreditor.sol";
 
 contract TrustedCreditorMock is TrustedCreditor {
-    bool isCallSuccesfull;
+    bool isCallSuccesfull = true;
 
-    address baseCurrency;
-    address liquidator;
+    uint256 public fixedLiquidationCost;
+
+    address public baseCurrency;
+    address public liquidator;
 
     mapping(address => uint256) openPosition;
 
@@ -20,18 +22,18 @@ contract TrustedCreditorMock is TrustedCreditor {
         external
         view
         override
-        returns (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost)
+        returns (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_)
     {
         if (isCallSuccesfull) {
             success = true;
             baseCurrency_ = baseCurrency;
             liquidator_ = liquidator;
-            fixedLiquidationCost = 0;
+            fixedLiquidationCost_ = fixedLiquidationCost;
         } else {
             success = false;
             baseCurrency_ = address(0);
             liquidator_ = address(0);
-            fixedLiquidationCost = 0;
+            fixedLiquidationCost_ = 0;
         }
     }
 
