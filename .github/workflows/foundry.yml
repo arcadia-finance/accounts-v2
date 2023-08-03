@@ -38,9 +38,6 @@ jobs:
             TENDERLY_ACCESS_KEY: ${{ secrets.TENDERLY_ACCESS_KEY }}
             TENDERLY_ACCOUNT_ID: ${{ secrets.TENDERLY_ACCOUNT_ID }}
 
-      - name: Run snapshot
-        run: forge snapshot --match-contract gas
-
 concurrency:
   group: ${{ github.head_ref }}
   cancel-in-progress: true
