@@ -16,9 +16,9 @@ import "../../MainRegistry.sol";
 import { PricingModule, StandardERC20PricingModule } from "../../PricingModules/StandardERC20PricingModule.sol";
 import { FloorERC721PricingModule } from "../../PricingModules/FloorERC721PricingModule.sol";
 import { FloorERC1155PricingModule } from "../../PricingModules/FloorERC1155PricingModule.sol";
-import { Liquidator, LogExpMath } from "../../Liquidator.sol";
 import "../../OracleHub.sol";
 import "../../utils/Constants.sol";
+import { LogExpMath } from "../../utils/LogExpMath.sol";
 import "../../mockups/ArcadiaOracle.sol";
 import { RiskConstants } from "../../utils/RiskConstants.sol";
 import ".././fixtures/ArcadiaOracleFixture.f.sol";
@@ -65,7 +65,6 @@ contract DeployArcadiaVaults is Test {
     StandardERC20PricingModule public standardERC20PricingModule;
     FloorERC721PricingModule public floorERC721PricingModule;
     FloorERC1155PricingModule public floorERC1155PricingModule;
-    Liquidator public liquidator;
 
     address public creatorAddress = address(1);
     address public tokenCreatorAddress = address(2);
