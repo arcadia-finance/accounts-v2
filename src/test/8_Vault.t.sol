@@ -47,10 +47,11 @@ abstract contract vaultTests is DeployArcadiaVaults {
     using stdStorage for StdStorage;
 
     VaultTestExtension public vault_;
-
     TrustedCreditorMock trustedCreditor;
 
     bytes3 public emptyBytes3;
+
+    address public liquidator = address(8);
 
     struct Assets {
         address[] assetAddresses;
@@ -63,11 +64,9 @@ abstract contract vaultTests is DeployArcadiaVaults {
 
     //this is a before
     constructor() DeployArcadiaVaults() {
-        liquidator = new Liquidator(address(factory));
-
         trustedCreditor = new TrustedCreditorMock();
         trustedCreditor.setBaseCurrency(address(dai));
-        trustedCreditor.setLiquidator(address(liquidator));
+        trustedCreditor.setLiquidator(liquidator);
     }
 
     //this is a before each
@@ -930,7 +929,7 @@ contract LiquidationLogicTest is vaultTests {
     }
 
     function testRevert_liquidateVault_NotAuthorized(address unprivilegedAddress_, uint128 openDebt) public {
-        vm.assume(unprivilegedAddress_ != address(liquidator));
+        vm.assume(unprivilegedAddress_ != liquidator);
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("V_LV: Only Liquidator");
@@ -939,7 +938,7 @@ contract LiquidationLogicTest is vaultTests {
     }
 
     function testRevert_liquidateVault_VaultIsHealthy() public {
-        vm.startPrank(address(liquidator));
+        vm.startPrank(liquidator);
         vm.expectRevert("V_LV: liqValue above usedMargin");
         vault_.liquidateVault(0);
         vm.stopPrank();
@@ -960,7 +959,7 @@ contract LiquidationLogicTest is vaultTests {
 
         vault_.setFixedLiquidationCost(fixedLiquidationCost);
 
-        vm.startPrank(address(liquidator));
+        vm.startPrank(liquidator);
         vm.expectEmit(true, true, true, true);
         emit TrustedMarginAccountChanged(address(0), address(0));
         (address originalOwner, address baseCurrency, address trustedCreditor_) = vault_.liquidateVault(openDebt);
@@ -970,13 +969,13 @@ contract LiquidationLogicTest is vaultTests {
         assertEq(baseCurrency, address(dai));
         assertEq(trustedCreditor_, address(trustedCreditor));
 
-        assertEq(vault_.owner(), address(liquidator));
+        assertEq(vault_.owner(), liquidator);
         assertEq(vault_.isTrustedCreditorSet(), false);
         assertEq(vault_.trustedCreditor(), address(0));
         assertEq(vault_.fixedLiquidationCost(), 0);
 
         uint256 index = factory.vaultIndex(address(vault_));
-        assertEq(factory.ownerOf(index), address(liquidator));
+        assertEq(factory.ownerOf(index), liquidator);
     }
 }
 

@@ -6,6 +6,7 @@ pragma solidity ^0.8.13;
 
 import "./fixtures/ArcadiaVaultsFixture.f.sol";
 
+import { Liquidator } from "../Liquidator.sol";
 import { LendingPool, DebtToken, ERC20, InterestRateModule } from "../../lib/arcadia-lending/src/LendingPool.sol";
 import { Tranche } from "../../lib/arcadia-lending/src/Tranche.sol";
 import { ActionMultiCall } from "../actions/MultiCall.sol";
@@ -15,6 +16,7 @@ import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib
 abstract contract EndToEndTest is DeployArcadiaVaults {
     using stdStorage for StdStorage;
 
+    Liquidator liquidator;
     LendingPool pool;
     Tranche tranche;
     DebtToken debt;
