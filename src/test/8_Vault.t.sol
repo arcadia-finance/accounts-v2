@@ -15,9 +15,8 @@ import "../actions/utils/ActionData.sol";
 import { MultiActionMock } from "../mockups/MultiActionMock.sol";
 
 contract VaultTestExtension is Vault {
-    constructor(address mainReg_, uint16 vaultVersion_) Vault() {
+    constructor(address mainReg_) Vault() {
         registry = mainReg_;
-        vaultVersion = vaultVersion_;
     }
 
     function getLengths() external view returns (uint256, uint256, uint256, uint256) {
@@ -30,10 +29,6 @@ contract VaultTestExtension is Vault {
 
     function setIsTrustedCreditorSet(bool set) public {
         isTrustedCreditorSet = set;
-    }
-
-    function setVaultVersion(uint16 version) public {
-        vaultVersion = version;
     }
 
     function setFixedLiquidationCost(uint96 fixedLiquidationCost_) public {
@@ -88,7 +83,7 @@ abstract contract vaultTests is DeployArcadiaVaults {
     //this is a before each
     function setUp() public virtual {
         vm.prank(vaultOwner);
-        vault_ = new VaultTestExtension(address(mainRegistry), 1);
+        vault_ = new VaultTestExtension(address(mainRegistry));
     }
 
     function deployFactory() internal {
@@ -266,35 +261,31 @@ contract VaultManagementTest is vaultTests {
 
     function setUp() public override {
         vm.prank(vaultOwner);
-        vault_ = new VaultTestExtension(address(mainRegistry), 1);
+        vault_ = new VaultTestExtension(address(mainRegistry));
     }
 
     function testRevert_initialize_AlreadyInitialized() public {
         vm.expectRevert("V_I: Already initialized!");
-        vault_.initialize(vaultOwner, address(mainRegistry), 1, address(0));
+        vault_.initialize(vaultOwner, address(mainRegistry), address(0));
     }
 
-    function testRevert_initialize_InvalidVersion() public {
-        vault_.setVaultVersion(0);
+    function testRevert_initialize_InvalidMainreg() public {
         vault_.setOwner(address(0));
 
-        vm.expectRevert("V_I: Invalid vault version");
-        vault_.initialize(vaultOwner, address(mainRegistry), 0, address(0));
+        vm.expectRevert("V_I: Registry cannot be 0!");
+        vault_.initialize(vaultOwner, address(0), address(0));
     }
 
-    function testSuccess_initialize(address owner_, uint16 vaultVersion_) public {
-        vm.assume(vaultVersion_ > 0);
-
-        vault_.setVaultVersion(0);
+    function testSuccess_initialize(address owner_) public {
         vault_.setOwner(address(0));
 
         vm.expectEmit(true, true, true, true);
         emit BaseCurrencySet(address(0));
-        vault_.initialize(owner_, address(mainRegistry), vaultVersion_, address(0));
+        vault_.initialize(owner_, address(mainRegistry), address(0));
 
         assertEq(vault_.owner(), owner_);
         assertEq(vault_.registry(), address(mainRegistry));
-        assertEq(vault_.vaultVersion(), vaultVersion_);
+        assertEq(vault_.vaultVersion(), 2); // @test might need to be adapted for each vault version as it's a constant on vault level
         assertEq(vault_.baseCurrency(), address(0));
     }
 
@@ -1037,7 +1028,7 @@ contract VaultActionTest is vaultTests {
         deal(address(eth), address(action), 1000 * 10 ** 20, false);
 
         vm.startPrank(creatorAddress);
-        vault = new VaultTestExtension(address(mainRegistry), 1);
+        vault = new VaultTestExtension(address(mainRegistry));
         factory.setNewVaultInfo(address(mainRegistry), address(vault), Constants.upgradeProof1To2, "");
         vm.stopPrank();
 
@@ -1860,7 +1851,7 @@ contract AssetManagementTest is vaultTests {
         vm.stopPrank();
 
         vm.prank(vaultOwner);
-        vault2 = new VaultTestExtension(address(mainRegistry), 2);
+        vault2 = new VaultTestExtension(address(mainRegistry));
         stdstore.target(address(factory)).sig(factory.isVault.selector).with_key(address(vault2)).checked_write(true);
         stdstore.target(address(factory)).sig(factory.vaultIndex.selector).with_key(address(vault2)).checked_write(11);
         factory.setOwnerOf(vaultOwner, 11);
@@ -1894,7 +1885,7 @@ contract AssetManagementTest is vaultTests {
         depositBaycInVault(tokenIdsDeposit, vaultOwner);
 
         vm.prank(vaultOwner);
-        vault2 = new VaultTestExtension(address(mainRegistry), 2);
+        vault2 = new VaultTestExtension(address(mainRegistry));
         stdstore.target(address(factory)).sig(factory.isVault.selector).with_key(address(vault2)).checked_write(true);
         stdstore.target(address(factory)).sig(factory.vaultIndex.selector).with_key(address(vault2)).checked_write(11);
         factory.setOwnerOf(vaultOwner, 11);

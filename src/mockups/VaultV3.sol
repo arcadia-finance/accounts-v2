@@ -29,7 +29,7 @@ import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransfer
  * Arcadia's vault functions will guarantee you a certain value of the vault.
  * For whitelists or liquidation strategies specific to your protocol, contact: dev at arcadia.finance
  */
-contract VaultV2 {
+contract VaultV3 {
     using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////
@@ -41,10 +41,11 @@ contract VaultV2 {
     bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
     // The maximum amount of different assets that can be used as collateral within an Arcadia Vault.
     uint256 public constant ASSET_LIMIT = 15;
+    // The current Vault Version.
+    uint16 public constant vaultVersion = 3;
+
     // Flag that indicates if a trusted creditor is set.
     bool public isTrustedCreditorSet;
-    // The current Vault Version.
-    uint16 public vaultVersion;
     // The contract address of the liquidator, address 0 if no trusted creditor is set.
     address public liquidator;
     // The estimated maximum cost to liquidate a Vault, will count as Used Margin when a trusted creditor is set.
@@ -135,21 +136,20 @@ contract VaultV2 {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Initiates the variables of the vault
+     * @notice Initiates the variables of the vault.
      * @dev A proxy will be used to interact with the vault logic.
      * Therefore everything is initialised through an init function.
      * This function will only be called (once) in the same transaction as the proxy vault creation through the factory.
      * @param owner_ The sender of the 'createVault' on the factory
      * @param registry_ The 'beacon' contract with the external logic.
-     * @param vaultVersion_ The version of the vault logic.
      * @param baseCurrency_ The Base-currency in which the vault is denominated.
      */
-    function initialize(address owner_, address registry_, uint16 vaultVersion_, address baseCurrency_) external {
-        require(vaultVersion == 0 && owner == address(0), "V_I: Already initialized!");
-        require(vaultVersion_ != 0, "V_I: Invalid vault version");
+    function initialize(address owner_, address registry_, address baseCurrency_) external {
+        require(owner == address(0), "V_I: Already initialized!");
+        require(registry == address(0), "V_I: Already initialized!");
+        require(registry_ != address(0), "V_I: Registry cannot be 0!");
         owner = owner_;
         registry = registry_;
-        vaultVersion = vaultVersion_;
         baseCurrency = baseCurrency_;
 
         emit BaseCurrencySet(baseCurrency_);
@@ -158,8 +158,8 @@ contract VaultV2 {
     /**
      * @notice Updates the vault version and stores a new address in the EIP1967 implementation slot.
      * @param newImplementation The contract with the new vault logic.
-     * @param newRegistry The MainRegistry for this specific implementation (might be identical as the old registry)
-     * @param data Arbitrary data, can contain instructions to execute when updating Vault to new logic
+     * @param newRegistry The MainRegistry for this specific implementation (might be identical as the old registry).
+     * @param data Arbitrary data, can contain instructions to execute when updating Vault to new logic.
      * @param newVersion The new version of the vault logic.
      */
     function upgradeVault(address newImplementation, address newRegistry, uint16 newVersion, bytes calldata data)
@@ -179,7 +179,6 @@ contract VaultV2 {
         uint16 oldVersion = vaultVersion;
         _getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
-        vaultVersion = newVersion;
 
         //Hook on the new logic to finalize upgrade.
         //Used to eg. Remove exposure from old Registry and Add exposure to the new Registry.

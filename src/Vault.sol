@@ -30,12 +30,8 @@ import { ERC20, SafeTransferLib } from "../lib/solmate/src/utils/SafeTransferLib
  * Arcadia's vault functions will guarantee you a certain value of the vault.
  * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
  */
-contract Vault is IVault, VaultStorageV1 {
+contract Vault is VaultStorageV1 {
     using SafeTransferLib for ERC20;
-
-    function vaultVersion() public view override returns (uint16) {
-        return super.vaultVersion;
-    }
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -46,6 +42,8 @@ contract Vault is IVault, VaultStorageV1 {
     bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
     // The maximum amount of different assets that can be used as collateral within an Arcadia Vault.
     uint256 public constant ASSET_LIMIT = 15;
+    // The current Vault Version.
+    uint16 public constant vaultVersion = 2;
 
     // Storage slot for the Vault logic, a struct to avoid storage conflict when dealing with upgradeable contracts.
     struct AddressSlot {
@@ -112,15 +110,14 @@ contract Vault is IVault, VaultStorageV1 {
      * This function will only be called (once) in the same transaction as the proxy vault creation through the factory.
      * @param owner_ The sender of the 'createVault' on the factory
      * @param registry_ The 'beacon' contract with the external logic.
-     * @param vaultVersion_ The version of the vault logic.
      * @param baseCurrency_ The Base-currency in which the vault is denominated.
      */
-    function initialize(address owner_, address registry_, uint16 vaultVersion_, address baseCurrency_) external {
-        require(vaultVersion == 0 && owner == address(0), "V_I: Already initialized!");
-        require(vaultVersion_ != 0, "V_I: Invalid vault version");
+    function initialize(address owner_, address registry_, address baseCurrency_) external {
+        require(owner == address(0), "V_I: Already initialized!");
+        require(registry == address(0), "V_I: Already initialized!");
+        require(registry_ != address(0), "V_I: Registry cannot be 0!");
         owner = owner_;
         registry = registry_;
-        vaultVersion = vaultVersion_;
         baseCurrency = baseCurrency_;
 
         emit BaseCurrencySet(baseCurrency_);
@@ -150,7 +147,6 @@ contract Vault is IVault, VaultStorageV1 {
         uint16 oldVersion = vaultVersion;
         _getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
-        vaultVersion = newVersion;
 
         //Hook on the new logic to finalize upgrade.
         //Used to eg. Remove exposure from old Registry and Add exposure to the new Registry.

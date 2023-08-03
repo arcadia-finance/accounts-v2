@@ -6,16 +6,16 @@ pragma solidity ^0.8.13;
 
 import "./fixtures/ArcadiaVaultsFixture.f.sol";
 
-import { VaultV2 } from "../mockups/VaultV2.sol";
+import { VaultV3 } from "../mockups/VaultV3.sol";
 
 import { LendingPool, DebtToken, ERC20 } from "../../lib/arcadia-lending/src/LendingPool.sol";
 import { Tranche } from "../../lib/arcadia-lending/src/Tranche.sol";
 
-contract VaultV2Test is DeployArcadiaVaults {
+contract VaultV3Test is DeployArcadiaVaults {
     using stdStorage for StdStorage;
 
-    VaultV2 private vaultV2;
-    address private proxyAddr2;
+    VaultV3 private vaultV3;
+    address private proxyAddr3;
 
     LendingPool pool;
     Tranche tranche;
@@ -85,7 +85,7 @@ contract VaultV2Test is DeployArcadiaVaults {
         safemoon.approve(address(proxy), type(uint256).max);
         dai.approve(address(liquidator), type(uint256).max);
 
-        vaultV2 = new VaultV2();
+        vaultV3 = new VaultV3();
         vm.stopPrank();
     }
 
@@ -93,15 +93,15 @@ contract VaultV2Test is DeployArcadiaVaults {
         vm.assume(salt > 0);
 
         vm.startPrank(creatorAddress);
-        factory.setNewVaultInfo(address(mainRegistry), address(vaultV2), Constants.upgradeRoot1To2, "");
+        factory.setNewVaultInfo(address(mainRegistry), address(vaultV3), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
 
         assertEq(factory.getVaultVersionRoot(), Constants.upgradeRoot1To2);
 
         vm.startPrank(address(123_456_789));
-        proxyAddr2 = factory.createVault(salt, 0, address(0));
-        vaultV2 = VaultV2(proxyAddr2);
-        assertEq(vaultV2.returnFive(), 5);
+        proxyAddr3 = factory.createVault(salt, 0, address(0));
+        vaultV3 = VaultV3(proxyAddr3);
+        assertEq(vaultV3.returnFive(), 5);
         vm.stopPrank();
     }
 
@@ -118,7 +118,7 @@ contract VaultV2Test is DeployArcadiaVaults {
         Checks memory checkBefore = createCompareStruct();
 
         vm.startPrank(creatorAddress);
-        factory.setNewVaultInfo(address(mainRegistry), address(vaultV2), Constants.upgradeRoot1To2, "");
+        factory.setNewVaultInfo(address(mainRegistry), address(vaultV3), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
 
         bytes32[] memory proofs = new bytes32[](1);
@@ -134,7 +134,7 @@ contract VaultV2Test is DeployArcadiaVaults {
         factory.upgradeVaultVersion(address(proxy), factory.latestVaultVersion(), proofs);
         vm.stopPrank();
 
-        assertEq(VaultV2(proxyAddr).check(), 5);
+        assertEq(VaultV3(proxyAddr).check(), 5);
 
         Checks memory checkAfter = createCompareStruct();
 
@@ -156,7 +156,7 @@ contract VaultV2Test is DeployArcadiaVaults {
         Checks memory checkBefore = createCompareStruct();
 
         vm.startPrank(creatorAddress);
-        factory.setNewVaultInfo(address(mainRegistry), address(vaultV2), Constants.upgradeRoot1To2, "");
+        factory.setNewVaultInfo(address(mainRegistry), address(vaultV3), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
 
         bytes32[] memory proofs = new bytes32[](1);
@@ -183,7 +183,7 @@ contract VaultV2Test is DeployArcadiaVaults {
         vm.assume(sender != address(6));
 
         vm.startPrank(creatorAddress);
-        factory.setNewVaultInfo(address(mainRegistry), address(vaultV2), Constants.upgradeRoot1To2, "");
+        factory.setNewVaultInfo(address(mainRegistry), address(vaultV3), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
 
         bytes32[] memory proofs = new bytes32[](1);
@@ -216,7 +216,7 @@ contract VaultV2Test is DeployArcadiaVaults {
         vm.stopPrank();
     }
 
-    function depositERC20InVaultV2(ERC20Mock token, uint128 amount, address sender)
+    function depositERC20InVaultV3(ERC20Mock token, uint128 amount, address sender)
         public
         returns (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts)
     {
@@ -233,7 +233,7 @@ contract VaultV2Test is DeployArcadiaVaults {
         token.mint(sender, amount);
 
         vm.startPrank(sender);
-        vaultV2.deposit(assetAddresses, assetIds, assetAmounts);
+        vaultV3.deposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
 

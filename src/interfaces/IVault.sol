@@ -15,10 +15,9 @@ interface IVault {
      * @notice Initiates the variables of the vault.
      * @param owner The sender of the 'createVault' on the factory
      * @param registry The 'beacon' contract with the external logic.
-     * @param vaultVersion The version of the vault logic.
      * @param baseCurrency The Base-currency in which the vault is denominated.
      */
-    function initialize(address owner, address registry, uint16 vaultVersion, address baseCurrency) external;
+    function initialize(address owner, address registry, address baseCurrency) external;
 
     /**
      * @notice Updates the vault version and stores a new address in the EIP1967 implementation slot.
