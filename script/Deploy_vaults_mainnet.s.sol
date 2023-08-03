@@ -14,14 +14,13 @@ import { Proxy } from "../src/Proxy.sol";
 import { Vault } from "../src/Vault.sol";
 import { MainRegistry } from "../src/MainRegistry.sol";
 import { PricingModule, StandardERC20PricingModule } from "../src/PricingModules/StandardERC20PricingModule.sol";
-import { Liquidator } from "../src/Liquidator.sol";
 import { OracleHub } from "../src/OracleHub.sol";
 import { RiskConstants } from "../src/utils/RiskConstants.sol";
 
 import { ActionMultiCall } from "../src/actions/MultiCall.sol";
 
-import { ERC20 } from "../lib/arcadia-lending/src/DebtToken.sol";
-import { LendingPool } from "../lib/arcadia-lending/src/LendingPool.sol";
+import { ILendingPool } from "./interfaces/ILendingPool.sol";
+import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
 
 contract ArcadiaVaultDeployerMainnet is Test {
     Factory public factory;
@@ -43,11 +42,10 @@ contract ArcadiaVaultDeployerMainnet is Test {
     OracleHub public oracleHub;
     MainRegistry public mainRegistry;
     StandardERC20PricingModule public standardERC20PricingModule;
-    Liquidator public liquidator;
     ActionMultiCall public actionMultiCall;
 
-    LendingPool public wethLendingPool = LendingPool(0xD417c28aF20884088F600e724441a3baB38b22cc);
-    LendingPool public usdcLendingPool = LendingPool(0x9aa024D3fd962701ED17F76c17CaB22d3dc9D92d);
+    ILendingPool public wethLendingPool = ILendingPool(0xD417c28aF20884088F600e724441a3baB38b22cc);
+    ILendingPool public usdcLendingPool = ILendingPool(0x9aa024D3fd962701ED17F76c17CaB22d3dc9D92d);
 
     address[] public oracleCrvToUsdArr = new address[](1);
     address[] public oracleDaiToUsdArr = new address[](1);
@@ -507,7 +505,6 @@ contract ArcadiaVaultDeployerMainnet is Test {
 
         vm.startBroadcast(deployerPrivateKey);
         factory = Factory(0x00CB53780Ea58503D3059FC02dDd596D0Be926cB);
-        liquidator = Liquidator(0xD2A34731586bD10B645f870f4C9DcAF4F9e3823C);
 
         mainRegistry = new MainRegistry(address(factory));
         oracleHub = new OracleHub();

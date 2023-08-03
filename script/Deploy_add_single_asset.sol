@@ -13,7 +13,7 @@ import { PricingModule, StandardERC20PricingModule } from "../src/PricingModules
 import { OracleHub } from "../src/OracleHub.sol";
 import { RiskConstants } from "../src/utils/RiskConstants.sol";
 
-import { ERC20 } from "../lib/arcadia-lending/src/DebtToken.sol";
+import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
 
 contract AddSingleAssetMainnet is Test {
     ERC20 public reth;
