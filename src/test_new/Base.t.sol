@@ -33,7 +33,7 @@ abstract contract Base_Test is StdCheats {
     Users internal users;
     MockOracles internal mockOracles;
     MockERC20 internal mockERC20;
-    MockERC721 internal mockERC721;
+    MockERC721 internal mockNFT;
     Rates internal rates;
     Factory public factory;
     Vault public vault;
@@ -66,6 +66,7 @@ abstract contract Base_Test is StdCheats {
         // Label the base test contracts.
 
         // Create users for testing
+        vm.startPrank(users.tokenCreatorAddress);
         users = Users({
             creatorAddress: createUser("creatorAddress"),
             tokenCreatorAddress: createUser("creatorAddress"),
@@ -101,7 +102,7 @@ abstract contract Base_Test is StdCheats {
         });
 
         // Create mock ERC721 tokens for testing
-        mockERC721 = MockERC721({
+        mockNFT = MockERC721({
             nft1: new ERC721Mock("NFT1", "NFT1"),
             nft2: new ERC721Mock("NFT2", "NFT2"),
             nft3: new ERC721Mock("NFT3", "NFT3")
@@ -119,6 +120,30 @@ abstract contract Base_Test is StdCheats {
             nft2ToETH: 7 * 10 ** Constants.nftOracleDecimals,
             nft3ToETH: 1 * 10 ** (Constants.nftOracleDecimals - 1)
         });
+
+        // Mint tokens
+        mockERC20.stable1.mint(users.liquidityProvider, 10_000_000 * 10 ** Constants.stableDecimals);
+        mockERC20.stable2.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.stableDecimals);
+        mockERC20.token1.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.tokenDecimals);
+        mockERC20.token2.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.tokenDecimals);
+        mockERC20.token3.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.tokenDecimals);
+        mockERC20.token4.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.tokenDecimals);
+
+        for (uint8 i = 0; i <= 5; i++) {
+            mockNFT.nft1.mint(users.tokenCreatorAddress, i);
+            mockNFT.nft2.mint(users.tokenCreatorAddress, i);
+            mockNFT.nft3.mint(users.tokenCreatorAddress, i);
+        }
+
+        // Transfer tokens
+        mockERC20.stable1.transfer(users.vaultOwner, 100_000 * 10 ** Constants.stableDecimals);
+        mockERC20.stable2.transfer(users.vaultOwner, 100_000 * 10 ** Constants.stableDecimals);
+        mockERC20.token1.transfer(users.vaultOwner, 100_000 * 10 ** Constants.tokenDecimals);
+        mockERC20.token2.transfer(users.vaultOwner, 100_000 * 10 ** Constants.tokenDecimals);
+        mockERC20.token3.transfer(users.vaultOwner, 100_000 * 10 ** Constants.tokenDecimals);
+        mockERC20.token4.transfer(users.vaultOwner, 100_000 * 10 ** Constants.tokenDecimals);
+
+        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////////////////
