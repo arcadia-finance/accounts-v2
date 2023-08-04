@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.13;
 
-import { StdCheats } from "forge-std/StdCheats.sol";
+import { Test } from "forge-std/Test.sol";
 import { PricingModule, StandardERC20PricingModule } from "../PricingModules/StandardERC20PricingModule.sol";
 import { FloorERC721PricingModule } from "../PricingModules/FloorERC721PricingModule.sol";
 import { FloorERC1155PricingModule } from "../PricingModules/FloorERC1155PricingModule.sol";
@@ -22,9 +22,10 @@ import "../MainRegistry.sol";
 import "../OracleHub.sol";
 import "../mockups/ArcadiaOracle.sol";
 import "./utils/Constants.sol";
+import "./utils/Events.sol";
 
 /// @notice Base test contract with common logic needed by all tests.
-abstract contract Base_Global_Test is StdCheats {
+abstract contract Base_Global_Test is Test, Events {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -36,12 +37,15 @@ abstract contract Base_Global_Test is StdCheats {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
+    Factory internal factory;
+
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
 
     function setUp() public virtual {
         /// Deploy the base test contracts.
+        factory = new Factory();
 
         // Label the base test contracts.
 
