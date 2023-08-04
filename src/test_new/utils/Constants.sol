@@ -14,4 +14,5 @@ library Constants {
     uint256 internal constant stableOracleDecimals = 18;
     uint256 internal constant tokenOracleDecimals = 8;
     uint256 internal constant nftOracleDecimals = 8;
+    uint256 internal constant erc1155OracleDecimals = 10;
 }

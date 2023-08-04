@@ -4,52 +4,30 @@
  */
 pragma solidity ^0.8.13;
 
-import { StdCheats } from "forge-std/StdCheats.sol";
-import { PricingModule, StandardERC20PricingModule } from "../PricingModules/StandardERC20PricingModule.sol";
-import { FloorERC721PricingModule } from "../PricingModules/FloorERC721PricingModule.sol";
-import { FloorERC1155PricingModule } from "../PricingModules/FloorERC1155PricingModule.sol";
-import { LogExpMath } from "../utils/LogExpMath.sol";
-import { Vault, ActionData } from "../Vault.sol";
-import { RiskConstants } from "../utils/RiskConstants.sol";
-import { Users, MockOracles, MockERC20, MockERC721, Rates } from "./utils/Types.sol";
+import { Base_Global_Test } from "./Base_Global.t.sol";
+import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "./utils/Types.sol";
 import { Vm } from "../../lib/forge-std/src/Vm.sol";
 import "../Factory.sol";
 import "../Proxy.sol";
 import "../mockups/ERC20SolmateMock.sol";
 import "../mockups/ERC721SolmateMock.sol";
 import "../mockups/ERC1155SolmateMock.sol";
-import "../MainRegistry.sol";
 import "../OracleHub.sol";
 import "../mockups/ArcadiaOracle.sol";
 import "./utils/Constants.sol";
 
-/// @notice Base test contract with common logic needed by all tests.
-abstract contract Base_Test is StdCheats {
+/// @notice Common logic needed by all integration tests.
+abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
     Vm internal constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
-    Users internal users;
     MockOracles internal mockOracles;
     MockERC20 internal mockERC20;
-    MockERC721 internal mockNFT;
+    MockERC721 internal mockERC721;
+    MockERC1155 internal mockERC1155;
     Rates internal rates;
-    Factory public factory;
-    Vault public vault;
-    Vault public proxy;
-    address public proxyAddr;
-    ERC1155Mock public interleave;
-    OracleHub public oracleHub;
-    StandardERC20PricingModule public standardERC20PricingModule;
-    FloorERC721PricingModule public floorERC721PricingModule;
-    FloorERC1155PricingModule public floorERC1155PricingModule;
-
-    uint16 public collateralFactor = RiskConstants.DEFAULT_COLLATERAL_FACTOR;
-    uint16 public liquidationFactor = RiskConstants.DEFAULT_LIQUIDATION_FACTOR;
-
-    PricingModule.RiskVarInput[] emptyRiskVarInput;
-    PricingModule.RiskVarInput[] riskVars;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -59,38 +37,15 @@ abstract contract Base_Test is StdCheats {
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
 
-    function setUp() public virtual {
+    function setUp() public virtual override {
+        Base_Global_Test.setUp();
         /// Deploy the base test contracts.
 
         // Label the base test contracts.
 
-        // Create users for testing
-        vm.startPrank(users.tokenCreatorAddress);
-        users = Users({
-            creatorAddress: createUser("creatorAddress"),
-            tokenCreatorAddress: createUser("creatorAddress"),
-            oracleOwner: createUser("oracleOwner"),
-            unprivilegedAddress: createUser("unprivilegedAddress"),
-            vaultOwner: createUser("vaultOwner"),
-            liquidityProvider: createUser("liquidityProvider"),
-            defaultCreatorAddress: createUser("defaultCreatorAddress"),
-            defaultTransmitter: createUser("defaultTransmitter")
-        });
-
-        // Create oracles for testing
-        mockOracles = MockOracles({
-            stable1ToUsd: initMockedOracle(uint8(Constants.stableOracleDecimals), "STABLE1 / USD"),
-            stable2ToUsd: initMockedOracle(uint8(Constants.stableOracleDecimals), "STABLE2 / USD"),
-            token1ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN1 / USD"),
-            token2ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN2 / USD"),
-            token3ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN1 / USD"),
-            token4ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN2 / USD"),
-            nft1ToEth: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT1 / ETH"),
-            nft2ToEth: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT2 / ETH"),
-            nft3ToEth: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT3 / ETH")
-        });
-
         // Create mock ERC20 tokens for testing
+        vm.startPrank(users.tokenCreatorAddress);
+
         mockERC20 = MockERC20({
             stable1: new ERC20Mock("STABLE1", "S1", uint8(Constants.stableDecimals)),
             stable2: new ERC20Mock("STABLE2", "S2", uint8(Constants.stableDecimals)),
@@ -101,11 +56,14 @@ abstract contract Base_Test is StdCheats {
         });
 
         // Create mock ERC721 tokens for testing
-        mockNFT = MockERC721({
+        mockERC721 = MockERC721({
             nft1: new ERC721Mock("NFT1", "NFT1"),
             nft2: new ERC721Mock("NFT2", "NFT2"),
             nft3: new ERC721Mock("NFT3", "NFT3")
         });
+
+        // Create a mock ERC1155 token for testing
+        mockERC1155 = MockERC1155({ erc1155: new ERC1155Mock("Hybrid", "HYB") });
 
         // Set rates
         rates = Rates({
@@ -113,11 +71,12 @@ abstract contract Base_Test is StdCheats {
             stable2ToUsd: 1 * 10 ** Constants.stableOracleDecimals,
             token1ToUsd: 6000 * 10 ** Constants.tokenOracleDecimals,
             token2ToUsd: 50 * 10 ** Constants.tokenOracleDecimals,
-            token3ToUsd: 4 * 10 ** Constants.tokenOracleDecimals,
+            token3ToToken1: 4 * 10 ** Constants.tokenOracleDecimals,
             token4ToUsd: 3 * 10 ** (Constants.tokenOracleDecimals - 2),
-            nft1ToETH: 50 * 10 ** Constants.nftOracleDecimals,
-            nft2ToETH: 7 * 10 ** Constants.nftOracleDecimals,
-            nft3ToETH: 1 * 10 ** (Constants.nftOracleDecimals - 1)
+            nft1ToToken1: 50 * 10 ** Constants.nftOracleDecimals,
+            nft2ToUsd: 7 * 10 ** Constants.nftOracleDecimals,
+            nft3ToToken1: 1 * 10 ** (Constants.nftOracleDecimals - 1),
+            erc1155ToToken1: 1 * 10 ** (Constants.erc1155OracleDecimals - 2)
         });
 
         // Mint tokens
@@ -129,10 +88,12 @@ abstract contract Base_Test is StdCheats {
         mockERC20.token4.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.tokenDecimals);
 
         for (uint8 i = 0; i <= 5; i++) {
-            mockNFT.nft1.mint(users.tokenCreatorAddress, i);
-            mockNFT.nft2.mint(users.tokenCreatorAddress, i);
-            mockNFT.nft3.mint(users.tokenCreatorAddress, i);
+            mockERC721.nft1.mint(users.tokenCreatorAddress, i);
+            mockERC721.nft2.mint(users.tokenCreatorAddress, i);
+            mockERC721.nft3.mint(users.tokenCreatorAddress, i);
         }
+
+        mockERC1155.erc1155.mint(users.tokenCreatorAddress, 1, 100_000);
 
         // Transfer tokens
         mockERC20.stable1.transfer(users.vaultOwner, 100_000 * 10 ** Constants.stableDecimals);
@@ -142,52 +103,44 @@ abstract contract Base_Test is StdCheats {
         mockERC20.token3.transfer(users.vaultOwner, 100_000 * 10 ** Constants.tokenDecimals);
         mockERC20.token4.transfer(users.vaultOwner, 100_000 * 10 ** Constants.tokenDecimals);
 
+        // Transfer mock ERC20 token to the unprivileged address
+        mockERC20.token1.transfer(users.unprivilegedAddress, 1000 * 10 ** Constants.tokenDecimals);
+
+        // Transfer 3 first token ID's from each ERC721 contract to the vaultOwner
+        for (uint8 i = 0; i <= 2; i++) {
+            mockERC721.nft1.transferFrom(users.tokenCreatorAddress, users.vaultOwner, i);
+            mockERC721.nft2.transferFrom(users.tokenCreatorAddress, users.vaultOwner, i);
+            mockERC721.nft3.transferFrom(users.tokenCreatorAddress, users.vaultOwner, i);
+        }
+
+        mockERC1155.erc1155.safeTransferFrom(
+            users.tokenCreatorAddress,
+            users.vaultOwner,
+            1,
+            100_000,
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+        );
+
         vm.stopPrank();
+
+        // Deploy Oracles
+        mockOracles = MockOracles({
+            stable1ToUsd: initMockedOracle(uint8(Constants.stableOracleDecimals), "STABLE1 / USD"),
+            stable2ToUsd: initMockedOracle(uint8(Constants.stableOracleDecimals), "STABLE2 / USD"),
+            token1ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN1 / USD"),
+            token2ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN2 / USD"),
+            token3ToToken1: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN3 / TOKEN1"),
+            token4ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN4 / USD"),
+            nft1ToToken1: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT1 / TOKEN1"),
+            nft2ToUsd: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT2 / USD"),
+            nft3ToToken1: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT3 / TOKEN1"),
+            erc1155ToToken1: initMockedOracle(uint8(Constants.erc1155OracleDecimals), "ERC1155 / TOKEN1")
+        });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
                                       HELPERS
     //////////////////////////////////////////////////////////////////////////*/
-
-    /// @dev Generates a user, labels its address, and funds it with test assets.
-    function createUser(string memory name) internal returns (address payable) {
-        address payable user = payable(makeAddr(name));
-        vm.deal({ account: user, newBalance: 100 ether });
-        return user;
-    }
-
-    function initOracle(uint8 decimals, string memory description, address asset_address)
-        public
-        returns (ArcadiaOracle)
-    {
-        vm.startPrank(users.defaultCreatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(
-            uint8(decimals),
-            description,
-            asset_address
-        );
-        oracle.setOffchainTransmitter(users.defaultTransmitter);
-        vm.stopPrank();
-        return oracle;
-    }
-
-    function initOracle(
-        address creatorAddress,
-        uint8 decimals,
-        string memory description,
-        address asset_address,
-        address transmitterAddress
-    ) public returns (ArcadiaOracle) {
-        vm.startPrank(creatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(
-            uint8(decimals),
-            description,
-            asset_address
-        );
-        oracle.setOffchainTransmitter(transmitterAddress);
-        vm.stopPrank();
-        return oracle;
-    }
 
     function initMockedOracle(uint8 decimals, string memory description, uint256 answer)
         public

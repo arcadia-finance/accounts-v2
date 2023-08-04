@@ -7,6 +7,7 @@ pragma solidity ^0.8.13;
 import "../../mockups/ArcadiaOracle.sol";
 import "../../mockups/ERC20SolmateMock.sol";
 import "../../mockups/ERC721SolmateMock.sol";
+import "../../mockups/ERC1155SolmateMock.sol";
 
 struct Users {
     address payable creatorAddress;
@@ -24,11 +25,12 @@ struct MockOracles {
     ArcadiaOracle stable2ToUsd;
     ArcadiaOracle token1ToUsd;
     ArcadiaOracle token2ToUsd;
-    ArcadiaOracle token3ToUsd;
+    ArcadiaOracle token3ToToken1;
     ArcadiaOracle token4ToUsd;
-    ArcadiaOracle nft1ToEth;
-    ArcadiaOracle nft2ToEth;
-    ArcadiaOracle nft3ToEth;
+    ArcadiaOracle nft1ToToken1;
+    ArcadiaOracle nft2ToUsd;
+    ArcadiaOracle nft3ToToken1;
+    ArcadiaOracle erc1155ToToken1;
 }
 
 struct MockERC20 {
@@ -46,14 +48,19 @@ struct MockERC721 {
     ERC721Mock nft3;
 }
 
+struct MockERC1155 {
+    ERC1155Mock erc1155;
+}
+
 struct Rates {
     uint256 stable1ToUsd;
     uint256 stable2ToUsd;
     uint256 token1ToUsd;
     uint256 token2ToUsd;
-    uint256 token3ToUsd;
+    uint256 token3ToToken1;
     uint256 token4ToUsd;
-    uint256 nft1ToETH;
-    uint256 nft2ToETH;
-    uint256 nft3ToETH;
+    uint256 nft1ToToken1;
+    uint256 nft2ToUsd;
+    uint256 nft3ToToken1;
+    uint256 erc1155ToToken1;
 }
