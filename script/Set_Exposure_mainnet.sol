@@ -11,8 +11,8 @@ import {
 
 import { StandardERC20PricingModule } from "../src/PricingModules/StandardERC20PricingModule.sol";
 
-import { ERC20 } from "../lib/arcadia-lending/src/DebtToken.sol";
-import { LendingPool, InterestRateModule } from "../lib/arcadia-lending/src/LendingPool.sol";
+import { ILendingPool } from "./interfaces/ILendingPool.sol";
+import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
 
 contract ExposureSetterMainnet is Test {
     ERC20 public crv;
@@ -30,8 +30,8 @@ contract ExposureSetterMainnet is Test {
 
     StandardERC20PricingModule public standardERC20PricingModule =
         StandardERC20PricingModule(0xC000d75D4221Ba9D7A788C81DCc0A4714B4aE9e5);
-    LendingPool public wethLendingPool = LendingPool(0xD417c28aF20884088F600e724441a3baB38b22cc);
-    LendingPool public usdcLendingPool = LendingPool(0x9aa024D3fd962701ED17F76c17CaB22d3dc9D92d);
+    ILendingPool public wethLendingPool = ILendingPool(0xD417c28aF20884088F600e724441a3baB38b22cc);
+    ILendingPool public usdcLendingPool = ILendingPool(0x9aa024D3fd962701ED17F76c17CaB22d3dc9D92d);
 
     constructor() {
         /*///////////////////////////////////////////////////////////////
@@ -85,7 +85,7 @@ contract ExposureSetterMainnet is Test {
         usdcLendingPool.setBorrowCap(uint128(1_000_000 * 10 ** DeployNumbers.usdcDecimals));
 
         wethLendingPool.setInterestConfig(
-            InterestRateModule.InterestRateConfiguration({
+            ILendingPool.InterestRateConfiguration({
                 baseRatePerYear: 45_000_000_000_000_000,
                 lowSlopePerYear: 131_250_000_000_000_000,
                 highSlopePerYear: 1_250_000_000_000_000_000,
@@ -93,7 +93,7 @@ contract ExposureSetterMainnet is Test {
             })
         );
         usdcLendingPool.setInterestConfig(
-            InterestRateModule.InterestRateConfiguration({
+            ILendingPool.InterestRateConfiguration({
                 baseRatePerYear: 30_000_000_000_000_000,
                 lowSlopePerYear: 112_500_000_000_000_000,
                 highSlopePerYear: 1_000_000_000_000_000_000,

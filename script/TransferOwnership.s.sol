@@ -10,7 +10,7 @@ import { ArcadiaAddresses, ArcadiaContractAddresses } from "./Constants/Transfer
 import "../src/Factory.sol";
 import "../src/MainRegistry.sol";
 import { StandardERC20PricingModule } from "../src/PricingModules/StandardERC20PricingModule.sol";
-import "../src/Liquidator.sol";
+import { ILiquidator } from "./interfaces/ILiquidator.sol";
 import "../src/OracleHub.sol";
 
 contract ArcadiaVaultTransferOwnership is Test {
@@ -18,14 +18,14 @@ contract ArcadiaVaultTransferOwnership is Test {
     OracleHub public oracleHub;
     MainRegistry public mainRegistry;
     StandardERC20PricingModule public standardERC20PricingModule;
-    Liquidator public liquidator;
+    ILiquidator public liquidator;
 
     constructor() {
         factory = Factory(ArcadiaContractAddresses.factory);
         oracleHub = OracleHub(ArcadiaContractAddresses.oracleHub);
         mainRegistry = MainRegistry(ArcadiaContractAddresses.mainRegistry);
         standardERC20PricingModule = StandardERC20PricingModule(ArcadiaContractAddresses.standardERC20PricingModule);
-        liquidator = Liquidator(ArcadiaContractAddresses.liquidator);
+        liquidator = ILiquidator(ArcadiaContractAddresses.liquidator);
     }
 
     function run() public {
