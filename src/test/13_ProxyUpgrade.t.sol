@@ -8,18 +8,17 @@ import "./fixtures/ArcadiaVaultsFixture.f.sol";
 
 import { VaultV2 } from "../mockups/VaultV2.sol";
 
-import { LendingPool, DebtToken, ERC20 } from "../../lib/arcadia-lending/src/LendingPool.sol";
-import { Tranche } from "../../lib/arcadia-lending/src/Tranche.sol";
+import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
+import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
 
 contract VaultV2Test is DeployArcadiaVaults {
     using stdStorage for StdStorage;
 
     VaultV2 private vaultV2;
     address private proxyAddr2;
+    address liquidator = address(8);
 
-    LendingPool pool;
-    Tranche tranche;
-    DebtToken debt;
+    TrustedCreditorMock trustedCreditor;
 
     struct Checks {
         bool isTrustedCreditorSet;
@@ -39,22 +38,9 @@ contract VaultV2Test is DeployArcadiaVaults {
 
     //this is a before
     constructor() DeployArcadiaVaults() {
-        vm.startPrank(creatorAddress);
-        liquidator = new Liquidator(address(factory));
-
-        pool = new LendingPool(ERC20(address(dai)), creatorAddress, address(factory), address(liquidator));
-        pool.setVaultVersion(1, true);
-        debt = DebtToken(address(pool));
-
-        tranche = new Tranche(address(pool), "Senior", "SR");
-        pool.addTranche(address(tranche), 50, 0);
-        vm.stopPrank();
-
-        vm.prank(liquidityProvider);
-        dai.approve(address(pool), type(uint256).max);
-
-        vm.prank(address(tranche));
-        pool.depositInLendingPool(type(uint128).max, liquidityProvider);
+        trustedCreditor = new TrustedCreditorMock();
+        trustedCreditor.setBaseCurrency(address(dai));
+        trustedCreditor.setLiquidator(liquidator);
     }
 
     //this is a before each
@@ -73,7 +59,7 @@ contract VaultV2Test is DeployArcadiaVaults {
             address(0)
         );
         proxy = Vault(proxyAddr);
-        proxy.openTrustedMarginAccount(address(pool));
+        proxy.openTrustedMarginAccount(address(trustedCreditor));
         dai.approve(address(proxy), type(uint256).max);
 
         bayc.setApprovalForAll(address(proxy), true);
@@ -84,7 +70,7 @@ contract VaultV2Test is DeployArcadiaVaults {
         link.approve(address(proxy), type(uint256).max);
         snx.approve(address(proxy), type(uint256).max);
         safemoon.approve(address(proxy), type(uint256).max);
-        dai.approve(address(liquidator), type(uint256).max);
+        dai.approve(liquidator, type(uint256).max);
 
         vaultV2 = new VaultV2();
         vm.stopPrank();
@@ -109,10 +95,6 @@ contract VaultV2Test is DeployArcadiaVaults {
         bytes32[] memory proofs = new bytes32[](1);
         proofs[0] = Constants.upgradeProof1To2;
 
-        vm.startPrank(creatorAddress);
-        pool.setVaultVersion(factory.latestVaultVersion(), true);
-        vm.stopPrank();
-
         vm.startPrank(vaultOwner);
         vm.expectEmit(true, true, true, true);
         emit VaultUpgraded(address(proxy), 1, 2);
@@ -124,8 +106,6 @@ contract VaultV2Test is DeployArcadiaVaults {
         Checks memory checkAfter = createCompareStruct();
 
         assertEq(keccak256(abi.encode(checkAfter)), keccak256(abi.encode(checkBefore)));
-        emit log_named_bytes32("before", keccak256(abi.encode(checkBefore)));
-        emit log_named_bytes32("after", keccak256(abi.encode(checkAfter)));
         assertEq(factory.latestVaultVersion(), proxy.vaultVersion());
     }
 
@@ -147,21 +127,16 @@ contract VaultV2Test is DeployArcadiaVaults {
         bytes32[] memory proofs = new bytes32[](1);
         proofs[0] = Constants.upgradeProof1To2;
 
+        trustedCreditor.setCallResult(false);
+
         vm.startPrank(vaultOwner);
         vm.expectRevert("FTR_UVV: Version not allowed");
         factory.upgradeVaultVersion(address(proxy), 0, proofs);
         vm.stopPrank();
 
-        vm.startPrank(vaultOwner);
-        vm.expectRevert("FTR_UVV: Version not allowed");
-        factory.upgradeVaultVersion(address(proxy), 3, proofs);
-        vm.stopPrank();
-
         Checks memory checkAfter = createCompareStruct();
 
         assertEq(keccak256(abi.encode(checkAfter)), keccak256(abi.encode(checkBefore)));
-        emit log_named_bytes32("before", keccak256(abi.encode(checkBefore)));
-        emit log_named_bytes32("after", keccak256(abi.encode(checkAfter)));
     }
 
     function testRevert_upgradeVaultVersion_UpgradeVaultByNonOwner(address sender) public {

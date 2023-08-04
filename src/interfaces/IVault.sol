@@ -37,13 +37,4 @@ interface IVault {
      * @param newOwner The new owner of the Vault.
      */
     function transferOwnership(address newOwner) external;
-
-    /**
-     * @notice Function called by Liquidator to start liquidation of the Vault.
-     * @param openDebt The open debt taken by `originalOwner` at moment of liquidation at trustedCreditor
-     * @return originalOwner The original owner of this vault.
-     * @return baseCurrency The baseCurrency in which the vault is denominated.
-     * @return trustedCreditor The account or contract that is owed the debt.
-     */
-    function liquidateVault(uint256 openDebt) external returns (address, address, address);
 }

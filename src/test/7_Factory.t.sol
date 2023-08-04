@@ -29,8 +29,6 @@ contract FactoryTest is DeployArcadiaVaults {
         vm.startPrank(creatorAddress);
         factory = new FactoryExtension();
         mainRegistry = new mainRegistryExtension(address(factory));
-        liquidator = new Liquidator(address(factory));
-
         factory.setNewVaultInfo(address(mainRegistry), address(vault), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
     }
