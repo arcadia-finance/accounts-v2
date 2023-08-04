@@ -8,7 +8,7 @@ import { StdCheats } from "forge-std/StdCheats.sol";
 import { PricingModule, StandardERC20PricingModule } from "../PricingModules/StandardERC20PricingModule.sol";
 import { FloorERC721PricingModule } from "../PricingModules/FloorERC721PricingModule.sol";
 import { FloorERC1155PricingModule } from "../PricingModules/FloorERC1155PricingModule.sol";
-import { Liquidator, LogExpMath } from "../Liquidator.sol";
+import { LogExpMath } from "../utils/LogExpMath.sol";
 import { Vault, ActionData } from "../Vault.sol";
 import { RiskConstants } from "../utils/RiskConstants.sol";
 import { Users, MockOracles, MockERC20, MockERC721, Rates } from "./utils/Types.sol";
@@ -44,7 +44,6 @@ abstract contract Base_Test is StdCheats {
     StandardERC20PricingModule public standardERC20PricingModule;
     FloorERC721PricingModule public floorERC721PricingModule;
     FloorERC1155PricingModule public floorERC1155PricingModule;
-    Liquidator public liquidator;
 
     uint16 public collateralFactor = RiskConstants.DEFAULT_COLLATERAL_FACTOR;
     uint16 public liquidationFactor = RiskConstants.DEFAULT_LIQUIDATION_FACTOR;
