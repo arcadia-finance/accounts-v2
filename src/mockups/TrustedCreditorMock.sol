@@ -53,4 +53,8 @@ contract TrustedCreditorMock {
     function setLiquidator(address liquidator_) external {
         liquidator = liquidator_;
     }
+
+    function setFixedLiquidationCost(uint256 fixedLiquidationCost_) external {
+        fixedLiquidationCost = fixedLiquidationCost_;
+    }
 }
