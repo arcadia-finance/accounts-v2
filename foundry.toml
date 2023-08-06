@@ -1,7 +1,6 @@
 [profile.default]
 src = 'src'
 out = 'out'
-test = 'test_new'
 libs = ['lib']
 fuzz_max_local_rejects = 1000000000
 optimizer = true

@@ -6,10 +6,10 @@ pragma solidity ^0.8.13;
 
 import { StdInvariant } from "forge-std/StdInvariant.sol";
 
-import { Base_Test } from "../Base.t.sol";
+import { Base_Global_Test } from "../Base_Global.t.sol";
 
 /// @notice Common logic needed by all invariant tests.
-abstract contract Invariant_Test is Base_Test, StdInvariant {
+abstract contract Invariant_Test is Base_Global_Test {
 /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/

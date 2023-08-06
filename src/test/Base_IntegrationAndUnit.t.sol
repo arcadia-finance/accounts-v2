@@ -6,8 +6,6 @@ pragma solidity ^0.8.13;
 
 import { Base_Global_Test } from "./Base_Global.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "./utils/Types.sol";
-import { Vm } from "../../lib/forge-std/src/Vm.sol";
-import "../Factory.sol";
 import "../Proxy.sol";
 import "../mockups/ERC20SolmateMock.sol";
 import "../mockups/ERC721SolmateMock.sol";
@@ -22,7 +20,6 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
-    Vm internal constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
     MockOracles internal mockOracles;
     MockERC20 internal mockERC20;
     MockERC721 internal mockERC721;
@@ -80,7 +77,9 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         });
 
         // Mint tokens
+        // Mint STABLE1 to Liquidity Provider
         mockERC20.stable1.mint(users.liquidityProvider, 10_000_000 * 10 ** Constants.stableDecimals);
+        // Mint next tokens to tokenCreatorAddress
         mockERC20.stable2.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.stableDecimals);
         mockERC20.token1.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.tokenDecimals);
         mockERC20.token2.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.tokenDecimals);
@@ -96,7 +95,6 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         mockERC1155.erc1155.mint(users.tokenCreatorAddress, 1, 100_000);
 
         // Transfer tokens
-        mockERC20.stable1.transfer(users.vaultOwner, 100_000 * 10 ** Constants.stableDecimals);
         mockERC20.stable2.transfer(users.vaultOwner, 100_000 * 10 ** Constants.stableDecimals);
         mockERC20.token1.transfer(users.vaultOwner, 100_000 * 10 ** Constants.tokenDecimals);
         mockERC20.token2.transfer(users.vaultOwner, 100_000 * 10 ** Constants.tokenDecimals);

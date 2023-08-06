@@ -1,0 +1,18 @@
+/**
+ * Created by Pragma Labs
+ * SPDX-License-Identifier: BUSL-1.1
+ */
+pragma solidity ^0.8.13;
+
+import { MainRegistry } from "../../MainRegistry.sol";
+import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+
+contract MainRegistryExtension is MainRegistry {
+    using FixedPointMathLib for uint256;
+
+    constructor(address factory_) MainRegistry(factory_) { }
+
+    function setAssetType(address asset, uint96 assetType) public {
+        assetToAssetInformation[asset].assetType = assetType;
+    }
+}

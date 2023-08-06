@@ -5,22 +5,14 @@
 pragma solidity ^0.8.13;
 
 import { Test } from "forge-std/Test.sol";
-import { PricingModule, StandardERC20PricingModule } from "../PricingModules/StandardERC20PricingModule.sol";
-import { FloorERC721PricingModule } from "../PricingModules/FloorERC721PricingModule.sol";
-import { FloorERC1155PricingModule } from "../PricingModules/FloorERC1155PricingModule.sol";
-import { LogExpMath } from "../utils/LogExpMath.sol";
-import { Vault, ActionData } from "../Vault.sol";
-import { RiskConstants } from "../utils/RiskConstants.sol";
 import { Users, MockOracles, MockERC20, MockERC721, Rates } from "./utils/Types.sol";
-import { Vm } from "../../lib/forge-std/src/Vm.sol";
-import "../Factory.sol";
-import "../Proxy.sol";
+import { Factory } from "../Factory.sol";
+import { Vault } from "../Vault.sol";
+import { MainRegistryExtension } from "./utils/Extensions.sol";
+import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import "../mockups/ERC20SolmateMock.sol";
 import "../mockups/ERC721SolmateMock.sol";
 import "../mockups/ERC1155SolmateMock.sol";
-import "../MainRegistry.sol";
-import "../OracleHub.sol";
-import "../mockups/ArcadiaOracle.sol";
 import "./utils/Constants.sol";
 import "./utils/Events.sol";
 
@@ -30,7 +22,6 @@ abstract contract Base_Global_Test is Test, Events {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
-    Vm private constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
     Users internal users;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -38,6 +29,9 @@ abstract contract Base_Global_Test is Test, Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     Factory internal factory;
+    MainRegistryExtension internal mainRegistryExtension;
+    Vault internal vault;
+    TrustedCreditorMock internal trustedCreditor;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -45,13 +39,19 @@ abstract contract Base_Global_Test is Test, Events {
 
     function setUp() public virtual {
         /// Deploy the base test contracts.
+        vm.startPrank(users.creatorAddress);
         factory = new Factory();
+        mainRegistryExtension = new MainRegistryExtension(address(factory));
+        vault = new Vault();
+        factory.setNewVaultInfo(address(mainRegistryExtension), address(vault), Constants.upgradeProof1To2, "");
+        trustedCreditor = new TrustedCreditorMock();
+        vm.stopPrank();
 
         // Label the base test contracts.
 
         // Create users for testing
         vm.startPrank(users.tokenCreatorAddress);
-        
+
         users = Users({
             creatorAddress: createUser("creatorAddress"),
             tokenCreatorAddress: createUser("creatorAddress"),
