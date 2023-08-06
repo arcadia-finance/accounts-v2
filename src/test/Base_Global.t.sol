@@ -48,6 +48,10 @@ abstract contract Base_Global_Test is Test, Events {
         vm.stopPrank();
 
         // Label the base test contracts.
+        vm.label({ account: address(factory), newLabel: "Factory" });
+        vm.label({ account: address(mainRegistryExtension), newLabel: "Main Registry Extension" });
+        vm.label({ account: address(vault), newLabel: "Vault" });
+        vm.label({ account: address(trustedCreditor), newLabel: "Trusted Creditor Mock" });
 
         // Create users for testing
         vm.startPrank(users.tokenCreatorAddress);

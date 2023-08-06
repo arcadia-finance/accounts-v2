@@ -36,9 +36,6 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
 
     function setUp() public virtual override {
         Base_Global_Test.setUp();
-        /// Deploy the base test contracts.
-
-        // Label the base test contracts.
 
         // Create mock ERC20 tokens for testing
         vm.startPrank(users.tokenCreatorAddress);
@@ -60,7 +57,19 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         });
 
         // Create a mock ERC1155 token for testing
-        mockERC1155 = MockERC1155({ erc1155: new ERC1155Mock("Hybrid", "HYB") });
+        mockERC1155 = MockERC1155({ erc1155: new ERC1155Mock("ERC1155", "1155") });
+
+        // Label the deployed tokens
+        vm.label({ account: address(mockERC20.stable1), newLabel: "STABLE1" });
+        vm.label({ account: address(mockERC20.stable2), newLabel: "STABLE2" });
+        vm.label({ account: address(mockERC20.token1), newLabel: "TOKEN1" });
+        vm.label({ account: address(mockERC20.token2), newLabel: "TOKEN2" });
+        vm.label({ account: address(mockERC20.token3), newLabel: "TOKEN3" });
+        vm.label({ account: address(mockERC20.token3), newLabel: "TOKEN4" });
+        vm.label({ account: address(mockERC721.nft1), newLabel: "NFT1" });
+        vm.label({ account: address(mockERC721.nft2), newLabel: "NFT2" });
+        vm.label({ account: address(mockERC721.nft3), newLabel: "NFT3" });
+        vm.label({ account: address(mockERC1155.erc1155), newLabel: "ERC1155" });
 
         // Set rates
         rates = Rates({
