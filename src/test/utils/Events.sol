@@ -29,4 +29,5 @@ abstract contract Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     event TrustedMarginAccountChanged(address indexed protocol, address indexed liquidator);
+    event BaseCurrencySet(address baseCurrency);
 }

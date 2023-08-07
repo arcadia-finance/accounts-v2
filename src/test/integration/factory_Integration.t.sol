@@ -4,10 +4,10 @@
  */
 pragma solidity ^0.8.13;
 
-import { Base_IntegrationAndUnit_Test } from "../../Base_IntegrationAndUnit.t.sol";
-import { IVault } from "../../utils/Interfaces.sol";
+import { Base_IntegrationAndUnit_Test } from "../Base_IntegrationAndUnit.t.sol";
+import { Vault } from "../../Vault.sol";
 
-contract Factory_Int_Fuzz_Test is Base_IntegrationAndUnit_Test {
+contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -29,7 +29,7 @@ contract Factory_Int_Fuzz_Test is Base_IntegrationAndUnit_Test {
                           VAULT MANAGEMENT
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_createVault_DeployVaultContractMappings(uint256 salt) public {
+    function testFuzz_createVault_DeployVaultWithNoCreditor(uint256 salt) public {
         uint256 amountBefore = factory.allVaultsLength();
 
         vm.expectEmit();
@@ -39,14 +39,16 @@ contract Factory_Int_Fuzz_Test is Base_IntegrationAndUnit_Test {
 
         // Here we create a vault with no specific trusted creditor
         address actualDeployed = factory.createVault(salt, 0, address(0), address(0));
+
         assertEq(amountBefore + 1, factory.allVaultsLength());
         assertEq(actualDeployed, factory.allVaults(factory.allVaultsLength() - 1));
         assertEq(factory.vaultIndex(actualDeployed), (factory.allVaultsLength()));
-        assertEq(IVault(actualDeployed).trustedCreditor(), address(0));
-        assertEq(IVault(actualDeployed).isTrustedCreditorSet(), false);
+        assertEq(Vault(actualDeployed).trustedCreditor(), address(0));
+        assertEq(Vault(actualDeployed).isTrustedCreditorSet(), false);
+        assertEq(Vault(actualDeployed).owner(), address(this));
     }
 
-    function testFuzz_createVault_DeployVaultContractMappingsWithCreditor(uint256 salt) public {
+    function testFuzz_createVault_DeployVaultWithCreditor(uint256 salt) public {
         uint256 amountBefore = factory.allVaultsLength();
 
         vm.expectEmit();
@@ -58,10 +60,11 @@ contract Factory_Int_Fuzz_Test is Base_IntegrationAndUnit_Test {
 
         // Here we create a vault by specifying the trusted creditor address
         address actualDeployed = factory.createVault(salt, 0, address(0), address(trustedCreditor));
+
         assertEq(amountBefore + 1, factory.allVaultsLength());
         assertEq(actualDeployed, factory.allVaults(factory.allVaultsLength() - 1));
         assertEq(factory.vaultIndex(actualDeployed), (factory.allVaultsLength()));
-        assertEq(IVault(actualDeployed).trustedCreditor(), address(trustedCreditor));
-        assertEq(IVault(actualDeployed).isTrustedCreditorSet(), true);
+        assertEq(Vault(actualDeployed).trustedCreditor(), address(trustedCreditor));
+        assertEq(Vault(actualDeployed).isTrustedCreditorSet(), true);
     }
 }

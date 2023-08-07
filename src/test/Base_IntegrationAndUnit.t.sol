@@ -6,6 +6,7 @@ pragma solidity ^0.8.13;
 
 import { Base_Global_Test } from "./Base_Global.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "./utils/Types.sol";
+import { MainRegistry } from "../MainRegistry.sol";
 import "../Proxy.sol";
 import "../mockups/ERC20SolmateMock.sol";
 import "../mockups/ERC721SolmateMock.sol";
@@ -143,6 +144,50 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
             nft3ToToken1: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT3 / TOKEN1"),
             erc1155ToToken1: initMockedOracle(uint8(Constants.erc1155OracleDecimals), "ERC1155 / TOKEN1")
         });
+
+        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 as baseCurrencies in MainRegistry
+        vm.startPrank(mainRegistryExtension.owner());
+        mainRegistryExtension.addBaseCurrency(
+            MainRegistry.BaseCurrencyInformation({
+                baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
+                assetAddress: address(mockERC20.stable1),
+                baseCurrencyToUsdOracle: address(mockOracles.stable1ToUsd),
+                baseCurrencyLabel: "STABLE1",
+                baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.stableDecimals))
+            })
+        );
+
+        mainRegistryExtension.addBaseCurrency(
+        MainRegistry.BaseCurrencyInformation({
+            baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
+            assetAddress: address(mockERC20.stable2),
+            baseCurrencyToUsdOracle: address(mockOracles.stable2ToUsd),
+            baseCurrencyLabel: "STABLE2",
+            baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.stableDecimals))
+            })
+        );
+
+        mainRegistryExtension.addBaseCurrency(
+        MainRegistry.BaseCurrencyInformation({
+            baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
+            assetAddress: address(mockERC20.token1),
+            baseCurrencyToUsdOracle: address(mockOracles.token1ToUsd),
+            baseCurrencyLabel: "TOKEN1",
+            baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.tokenDecimals))
+            })
+        );
+
+        mainRegistryExtension.addBaseCurrency(
+        MainRegistry.BaseCurrencyInformation({
+            baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
+            assetAddress: address(mockERC20.token2),
+            baseCurrencyToUsdOracle: address(mockOracles.token2ToUsd),
+            baseCurrencyLabel: "TOKEN2",
+            baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.tokenDecimals))
+            })
+        );
+
+        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////////////////

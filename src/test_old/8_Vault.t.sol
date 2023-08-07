@@ -420,7 +420,8 @@ contract MarginAccountSettingsTest is vaultTests {
         deployFactory();
     }
 
-    function testRevert_openTrustedMarginAccount_NonOwner(address unprivilegedAddress_, address trustedCreditor_)
+    /// Migrated to new test suite
+    /*     function testRevert_openTrustedMarginAccount_NonOwner(address unprivilegedAddress_, address trustedCreditor_)
         public
     {
         vm.assume(unprivilegedAddress_ != vaultOwner);
@@ -429,9 +430,10 @@ contract MarginAccountSettingsTest is vaultTests {
         vm.expectRevert("V: Only Owner");
         vault_.openTrustedMarginAccount(trustedCreditor_);
         vm.stopPrank();
-    }
+    } */
 
-    function testRevert_openTrustedMarginAccount_AlreadySet(address trustedCreditor_) public {
+    /// Migrated to new test suite
+    /*     function testRevert_openTrustedMarginAccount_AlreadySet(address trustedCreditor_) public {
         vm.prank(vaultOwner);
         vault_.openTrustedMarginAccount(address(trustedCreditor));
 
@@ -439,18 +441,20 @@ contract MarginAccountSettingsTest is vaultTests {
         vm.expectRevert("V_OTMA: ALREADY SET");
         vault_.openTrustedMarginAccount(trustedCreditor_);
         vm.stopPrank();
-    }
-
-    function testRevert_openTrustedMarginAccount_OpeningMarginAccountFails() public {
+    } */
+    
+    /// Migrated to new test suite
+    /*     function testRevert_openTrustedMarginAccount_OpeningMarginAccountFails() public {
         trustedCreditor.setCallResult(false);
 
         vm.startPrank(vaultOwner);
         vm.expectRevert("V_OTMA: Invalid Version");
         vault_.openTrustedMarginAccount(address(trustedCreditor));
         vm.stopPrank();
-    }
+    } */
 
-    function testSuccess_openTrustedMarginAccount_DifferentBaseCurrency(
+    /// Migrated to new test suite
+    /*     function testSuccess_openTrustedMarginAccount_DifferentBaseCurrency(
         address liquidator_,
         uint96 fixedLiquidationCost
     ) public {
@@ -475,9 +479,9 @@ contract MarginAccountSettingsTest is vaultTests {
         assertEq(vault_.baseCurrency(), address(dai));
         assertEq(vault_.fixedLiquidationCost(), fixedLiquidationCost);
         assertTrue(vault_.isTrustedCreditorSet());
-    }
+    } */
 
-    function testSuccess_openTrustedMarginAccount_SameBaseCurrency(address liquidator_, uint96 fixedLiquidationCost)
+/*     function testSuccess_openTrustedMarginAccount_SameBaseCurrency(address liquidator_, uint96 fixedLiquidationCost)
         public
     {
         //Set BaseCurrency to dai
@@ -501,7 +505,7 @@ contract MarginAccountSettingsTest is vaultTests {
         assertEq(vault_.baseCurrency(), address(dai));
         assertEq(vault_.fixedLiquidationCost(), fixedLiquidationCost);
         assertTrue(vault_.isTrustedCreditorSet());
-    }
+    } */
 
     function testRevert_closeTrustedMarginAccount_NonOwner(address nonOwner) public {
         vm.assume(nonOwner != vaultOwner);

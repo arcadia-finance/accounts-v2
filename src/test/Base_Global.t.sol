@@ -18,6 +18,7 @@ import "./utils/Events.sol";
 
 /// @notice Base test contract with common logic needed by all tests.
 abstract contract Base_Global_Test is Test, Events {
+
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/

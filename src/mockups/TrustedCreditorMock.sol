@@ -7,7 +7,7 @@ pragma solidity ^0.8.13;
 contract TrustedCreditorMock {
     bool isCallSuccesfull = true;
 
-    uint256 public fixedLiquidationCost;
+    uint96 public fixedLiquidationCost;
 
     address public baseCurrency;
     address public liquidator;
@@ -54,7 +54,7 @@ contract TrustedCreditorMock {
         liquidator = liquidator_;
     }
 
-    function setFixedLiquidationCost(uint256 fixedLiquidationCost_) external {
+    function setFixedLiquidationCost(uint96 fixedLiquidationCost_) external {
         fixedLiquidationCost = fixedLiquidationCost_;
     }
 }
