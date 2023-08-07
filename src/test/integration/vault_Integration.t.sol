@@ -6,11 +6,8 @@ pragma solidity ^0.8.13;
 
 import { Base_IntegrationAndUnit_Test } from "../Base_IntegrationAndUnit.t.sol";
 import { Vault } from "../../Vault.sol";
-import { TrustedCreditorMock } from "../../mockups/TrustedCreditorMock.sol";
-import "../../../lib/forge-std/src/Test.sol";
 
 contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
-    using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
