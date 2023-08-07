@@ -8,8 +8,8 @@ import { StdInvariant } from "forge-std/StdInvariant.sol";
 
 import { Base_Global_Test } from "../Base_Global.t.sol";
 
-/// @notice Common logic needed by all invariant tests.
-abstract contract Invariant_Test is Base_Global_Test {
+/// @notice Common logic needed by all fork tests.
+abstract contract Base_Fork_Test is Base_Global_Test {
 /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
 //////////////////////////////////////////////////////////////////////////*/

@@ -12,6 +12,10 @@ contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
+    address internal initLiquidator;
+    address internal initBaseCurrency;
+    uint96 internal initLiquidationCost;
+
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -19,10 +23,15 @@ contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
     function setUp() public virtual override(Base_IntegrationAndUnit_Test) {
         Base_IntegrationAndUnit_Test.setUp();
 
+        // Set variables
+        initLiquidator = address(666);
+        initBaseCurrency = address(mockERC20.stable1);
+        initLiquidationCost = 100;
+
         // Initialize storage variables for the trusted creditor mock contract
         trustedCreditor.setBaseCurrency(address(mockERC20.stable1));
-        trustedCreditor.setLiquidator(address(666));
-        trustedCreditor.setFixedLiquidationCost(100);
+        trustedCreditor.setLiquidator(initLiquidator);
+        trustedCreditor.setFixedLiquidationCost(initLiquidationCost);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -52,7 +61,7 @@ contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
         uint256 amountBefore = factory.allVaultsLength();
 
         vm.expectEmit();
-        emit TrustedMarginAccountChanged(address(trustedCreditor), address(0));
+        emit TrustedMarginAccountChanged(address(trustedCreditor), initLiquidator);
         vm.expectEmit();
         emit Transfer(address(0), address(this), 1);
         vm.expectEmit(false, true, true, true);

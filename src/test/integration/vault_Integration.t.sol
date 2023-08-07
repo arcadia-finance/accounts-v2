@@ -16,9 +16,9 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
     /////////////////////////////////////////////////////////////// */
 
     address internal deployedVaultInputs0;
-    address internal initLiquidator = address(666);
-    address internal initBaseCurrency = address(mockERC20.stable1);
-    uint96 internal initLiquidationCosts = 100;
+    address internal initLiquidator;
+    address internal initBaseCurrency;
+    uint96 internal initLiquidationCost;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -32,13 +32,17 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         deployedVaultInputs0 = factory.createVault(0, 0, address(0), address(0));
         vm.stopPrank();
 
+        // Set variables
+        initLiquidator = address(666);
+        initBaseCurrency = address(mockERC20.stable1);
+        initLiquidationCost = 100;
+
         // Initialize storage variables for the trusted creditor mock contract
-        // todo : why does it not work without the interface here ??
-        TrustedCreditorMock(address(trustedCreditor)).setBaseCurrency(address(mockERC20.stable1));
+        trustedCreditor.setBaseCurrency(address(mockERC20.stable1));
         emit log_named_address("trusted creditor base currency", trustedCreditor.baseCurrency());
         trustedCreditor.setLiquidator(initLiquidator);
-        emit log_named_address("init liquidator base currency", trustedCreditor.liquidator());
-        trustedCreditor.setFixedLiquidationCost(initLiquidationCosts);
+        emit log_named_address("init liquidator", trustedCreditor.liquidator());
+        trustedCreditor.setFixedLiquidationCost(initLiquidationCost);
         emit log_named_uint("init liquidaton costs", trustedCreditor.fixedLiquidationCost());
     }
 
@@ -66,7 +70,7 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         assertEq(Vault(deployedVaultInputs0).trustedCreditor(), address(trustedCreditor));
         assertEq(Vault(deployedVaultInputs0).isTrustedCreditorSet(), true);
         assertEq(Vault(deployedVaultInputs0).liquidator(), initLiquidator);
-        assertEq(Vault(deployedVaultInputs0).fixedLiquidationCost(), initLiquidationCosts);
+        assertEq(Vault(deployedVaultInputs0).fixedLiquidationCost(), initLiquidationCost);
         assertEq(Vault(deployedVaultInputs0).baseCurrency(), initBaseCurrency);
     }
 
@@ -136,7 +140,7 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         assertEq(Vault(deployedVault).liquidator(), initLiquidator);
         assertEq(Vault(deployedVault).trustedCreditor(), address(trustedCreditor));
         assertEq(Vault(deployedVault).baseCurrency(), address(mockERC20.stable1));
-        assertEq(Vault(deployedVault).fixedLiquidationCost(), initLiquidationCosts);
+        assertEq(Vault(deployedVault).fixedLiquidationCost(), initLiquidationCost);
         assertTrue(Vault(deployedVault).isTrustedCreditorSet());
     }
 }
