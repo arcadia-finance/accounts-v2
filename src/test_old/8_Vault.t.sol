@@ -442,7 +442,7 @@ contract MarginAccountSettingsTest is vaultTests {
         vault_.openTrustedMarginAccount(trustedCreditor_);
         vm.stopPrank();
     } */
-    
+
     /// Migrated to new test suite
     /*     function testRevert_openTrustedMarginAccount_OpeningMarginAccountFails() public {
         trustedCreditor.setCallResult(false);
@@ -481,7 +481,7 @@ contract MarginAccountSettingsTest is vaultTests {
         assertTrue(vault_.isTrustedCreditorSet());
     } */
 
-/*     function testSuccess_openTrustedMarginAccount_SameBaseCurrency(address liquidator_, uint96 fixedLiquidationCost)
+    /*     function testSuccess_openTrustedMarginAccount_SameBaseCurrency(address liquidator_, uint96 fixedLiquidationCost)
         public
     {
         //Set BaseCurrency to dai

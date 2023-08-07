@@ -37,9 +37,9 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         TrustedCreditorMock(address(trustedCreditor)).setBaseCurrency(address(mockERC20.stable1));
         emit log_named_address("trusted creditor base currency", trustedCreditor.baseCurrency());
         trustedCreditor.setLiquidator(initLiquidator);
-        emit log_named_address("tinit liquidator base currency", trustedCreditor.liquidator());
+        emit log_named_address("init liquidator base currency", trustedCreditor.liquidator());
         trustedCreditor.setFixedLiquidationCost(initLiquidationCosts);
-        emit log_named_uint("tinit liquidaton costs", trustedCreditor.fixedLiquidationCost());
+        emit log_named_uint("init liquidaton costs", trustedCreditor.fixedLiquidationCost());
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -95,13 +95,12 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_openTrustedMarginAccount_DifferentBaseCurrency(
-        address liquidator,
-        uint96 fixedLiquidationCost
-    ) public {
+    function testFuzz_openTrustedMarginAccount_DifferentBaseCurrency(address liquidator, uint96 fixedLiquidationCost)
+        public
+    {
         // Confirm initial base currency is not set for the vault
         assertEq(Vault(deployedVaultInputs0).baseCurrency(), address(0));
-        
+
         // Update base currency of the trusted creditor to TOKEN1
         trustedCreditor.setBaseCurrency(address(mockERC20.token1));
         // Update liquidation costs in trusted creditor
@@ -122,11 +121,9 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         assertEq(Vault(deployedVaultInputs0).liquidator(), liquidator);
         assertEq(Vault(deployedVaultInputs0).baseCurrency(), address(mockERC20.token1));
         assertEq(Vault(deployedVaultInputs0).fixedLiquidationCost(), fixedLiquidationCost);
-    }  
+    }
 
-    function test_openTrustedMarginAccount_SameBaseCurrency()
-        public
-    {
+    function test_openTrustedMarginAccount_SameBaseCurrency() public {
         // Deploy a vault with baseCurrency set to STABLE1
         address deployedVault = factory.createVault(1111, 0, address(mockERC20.stable1), address(0));
         assertEq(Vault(deployedVault).baseCurrency(), address(mockERC20.stable1));
@@ -140,6 +137,6 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         assertEq(Vault(deployedVault).trustedCreditor(), address(trustedCreditor));
         assertEq(Vault(deployedVault).baseCurrency(), address(mockERC20.stable1));
         assertEq(Vault(deployedVault).fixedLiquidationCost(), initLiquidationCosts);
-        assertTrue(Vault(deployedVault).isTrustedCreditorSet()); 
+        assertTrue(Vault(deployedVault).isTrustedCreditorSet());
     }
 }
