@@ -423,34 +423,14 @@ contract MarginAccountSettingsTest is vaultTests {
     /// Migrated to new test suite
     /*     function testRevert_openTrustedMarginAccount_NonOwner(address unprivilegedAddress_, address trustedCreditor_)
         public
-    {
-        vm.assume(unprivilegedAddress_ != vaultOwner);
-
-        vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("V: Only Owner");
-        vault_.openTrustedMarginAccount(trustedCreditor_);
-        vm.stopPrank();
-    } */
+    {} */
 
     /// Migrated to new test suite
     /*     function testRevert_openTrustedMarginAccount_AlreadySet(address trustedCreditor_) public {
-        vm.prank(vaultOwner);
-        vault_.openTrustedMarginAccount(address(trustedCreditor));
-
-        vm.startPrank(vaultOwner);
-        vm.expectRevert("V_OTMA: ALREADY SET");
-        vault_.openTrustedMarginAccount(trustedCreditor_);
-        vm.stopPrank();
     } */
 
     /// Migrated to new test suite
     /*     function testRevert_openTrustedMarginAccount_OpeningMarginAccountFails() public {
-        trustedCreditor.setCallResult(false);
-
-        vm.startPrank(vaultOwner);
-        vm.expectRevert("V_OTMA: Invalid Version");
-        vault_.openTrustedMarginAccount(address(trustedCreditor));
-        vm.stopPrank();
     } */
 
     /// Migrated to new test suite
@@ -458,54 +438,12 @@ contract MarginAccountSettingsTest is vaultTests {
         address liquidator_,
         uint96 fixedLiquidationCost
     ) public {
-        assertEq(vault_.baseCurrency(), address(0));
-
-        stdstore.target(address(trustedCreditor)).sig(trustedCreditor.baseCurrency.selector).checked_write(address(dai));
-        stdstore.target(address(trustedCreditor)).sig(trustedCreditor.liquidator.selector).checked_write(liquidator_);
-        stdstore.target(address(trustedCreditor)).sig(trustedCreditor.fixedLiquidationCost.selector).checked_write(
-            fixedLiquidationCost
-        );
-
-        vm.startPrank(vaultOwner);
-        vm.expectEmit(true, true, true, true);
-        emit BaseCurrencySet(address(dai));
-        vm.expectEmit(true, true, true, true);
-        emit TrustedMarginAccountChanged(address(trustedCreditor), liquidator_);
-        vault_.openTrustedMarginAccount(address(trustedCreditor));
-        vm.stopPrank();
-
-        assertEq(vault_.liquidator(), liquidator_);
-        assertEq(vault_.trustedCreditor(), address(trustedCreditor));
-        assertEq(vault_.baseCurrency(), address(dai));
-        assertEq(vault_.fixedLiquidationCost(), fixedLiquidationCost);
-        assertTrue(vault_.isTrustedCreditorSet());
     } */
 
+    /// Migrated to new test suite
     /*     function testSuccess_openTrustedMarginAccount_SameBaseCurrency(address liquidator_, uint96 fixedLiquidationCost)
         public
-    {
-        //Set BaseCurrency to dai
-        stdstore.target(address(vault_)).sig(vault_.baseCurrency.selector).checked_write(address(dai));
-        assertEq(vault_.baseCurrency(), address(dai));
-
-        stdstore.target(address(trustedCreditor)).sig(trustedCreditor.baseCurrency.selector).checked_write(address(dai));
-        stdstore.target(address(trustedCreditor)).sig(trustedCreditor.liquidator.selector).checked_write(liquidator_);
-        stdstore.target(address(trustedCreditor)).sig(trustedCreditor.fixedLiquidationCost.selector).checked_write(
-            fixedLiquidationCost
-        );
-
-        vm.startPrank(vaultOwner);
-        vm.expectEmit(true, true, true, true);
-        emit TrustedMarginAccountChanged(address(trustedCreditor), liquidator_);
-        vault_.openTrustedMarginAccount(address(trustedCreditor));
-        vm.stopPrank();
-
-        assertEq(vault_.liquidator(), liquidator_);
-        assertEq(vault_.trustedCreditor(), address(trustedCreditor));
-        assertEq(vault_.baseCurrency(), address(dai));
-        assertEq(vault_.fixedLiquidationCost(), fixedLiquidationCost);
-        assertTrue(vault_.isTrustedCreditorSet());
-    } */
+    {} */
 
     function testRevert_closeTrustedMarginAccount_NonOwner(address nonOwner) public {
         vm.assume(nonOwner != vaultOwner);
