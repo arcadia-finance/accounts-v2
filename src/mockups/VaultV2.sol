@@ -14,6 +14,7 @@ import "../interfaces/IActionBase.sol";
 import { IFactory } from "../interfaces/IFactory.sol";
 import { ActionData } from "../actions/utils/ActionData.sol";
 import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
+import { VaultStorageV2 } from "./VaultStorageV2.sol";
 
 /**
  * @title An Arcadia Vault used to deposit a combination of all kinds of assets
@@ -29,7 +30,7 @@ import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransfer
  * Arcadia's vault functions will guarantee you a certain value of the vault.
  * For whitelists or liquidation strategies specific to your protocol, contact: dev at arcadia.finance
  */
-contract VaultV3 {
+contract VaultV2 is VaultStorageV2 {
     using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////
@@ -42,40 +43,7 @@ contract VaultV3 {
     // The maximum amount of different assets that can be used as collateral within an Arcadia Vault.
     uint256 public constant ASSET_LIMIT = 15;
     // The current Vault Version.
-    uint16 public constant vaultVersion = 3;
-
-    // Flag that indicates if a trusted creditor is set.
-    bool public isTrustedCreditorSet;
-    // The contract address of the liquidator, address 0 if no trusted creditor is set.
-    address public liquidator;
-    // The estimated maximum cost to liquidate a Vault, will count as Used Margin when a trusted creditor is set.
-    uint96 public fixedLiquidationCost;
-    // The owner of the Vault.
-    address public owner;
-    // The contract address of the MainRegistry.
-    address public registry;
-    // The trusted creditor, address 0 if no trusted creditor is set.
-    address public trustedCreditor;
-    // The baseCurrency of the Vault in which all assets and liabilities are denominated.
-    address public baseCurrency;
-
-    // Array with all the contract address of ERC20 tokens in the vault.
-    address[] public erc20Stored;
-    // Array with all the contract address of ERC721 tokens in the vault.
-    address[] public erc721Stored;
-    // Array with all the contract address of ERC1155 tokens in the vault.
-    address[] public erc1155Stored;
-    // Array with all the corresponding id's for each ERC721 token in the vault.
-    uint256[] public erc721TokenIds;
-    // Array with all the corresponding id's for each ERC1155 token in the vault.
-    uint256[] public erc1155TokenIds;
-
-    // Map asset => balance.
-    mapping(address => uint256) public erc20Balances;
-    // Map asset => id => balance.
-    mapping(address => mapping(uint256 => uint256)) public erc1155Balances;
-    // Map owner => assetManager => flag.
-    mapping(address => mapping(address => bool)) public isAssetManager;
+    uint16 public constant vaultVersion = 2;
 
     // Storage slot for the Vault logic, a struct to avoid storage conflict when dealing with upgradeable contracts.
     struct AddressSlot {
@@ -1010,8 +978,6 @@ contract VaultV3 {
         IMainRegistry(oldRegistry).batchProcessWithdrawal(new address[](0), new uint256[](0), new uint256[](0));
         IMainRegistry(registry).batchProcessDeposit(new address[](0), new uint256[](0), new uint256[](0));
 
-        check = returnFive();
+        storageV2 = returnFive();
     }
-
-    uint256 public check;
 }

@@ -30,7 +30,7 @@ import { ERC20, SafeTransferLib } from "../lib/solmate/src/utils/SafeTransferLib
  * Arcadia's vault functions will guarantee you a certain value of the vault.
  * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
  */
-contract Vault is VaultStorageV1 {
+contract Vault is VaultStorageV1, IVault {
     using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@ contract Vault is VaultStorageV1 {
     // The maximum amount of different assets that can be used as collateral within an Arcadia Vault.
     uint256 public constant ASSET_LIMIT = 15;
     // The current Vault Version.
-    uint16 public constant vaultVersion = 2;
+    uint16 public constant vaultVersion = 1;
 
     // Storage slot for the Vault logic, a struct to avoid storage conflict when dealing with upgradeable contracts.
     struct AddressSlot {
