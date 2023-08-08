@@ -21,14 +21,15 @@ contract Factory_Invariant_Test is Base_Invariant_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     FactoryHandler internal factoryHandler;
+    Vault internal vaultV2;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
-
     function setUp() public virtual override {
         Base_Invariant_Test.setUp();
-        factoryHandler = new FactoryHandler(factory, mainRegistryExtension, vault);
+        vaultV2 = new Vault();
+        factoryHandler = new FactoryHandler(factory, mainRegistryExtension, vault, vaultV2);
         targetContract(address(factoryHandler));
         initialVaultDeployed = factory.createVault(0, 0, address(0), address(0));
     }
@@ -37,9 +38,12 @@ contract Factory_Invariant_Test is Base_Invariant_Test {
                                      INVARIANTS
     //////////////////////////////////////////////////////////////////////////*/
     function invariant_latestVaultVersion() public {
-        uint256 numberOfVaults = factoryHandler.numberOfCallsToCreateVault();
-        address latestDeployedVault = factory.allVaults(numberOfVaults);
+        uint256 numberOfVaults = factory.allVaultsLength();
+        address latestDeployedVault = factory.allVaults(numberOfVaults - 1);
         uint16 latestDeployedVaultVersion = Vault(latestDeployedVault).vaultVersion();
+
+        // Assert that the vault version of latest vault deployed with input
+        // vaultVersion = 0 is always <= latest vault version in factory
         assertGe(factory.latestVaultVersion(), latestDeployedVaultVersion);
     }
 }
