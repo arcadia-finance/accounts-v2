@@ -11,7 +11,16 @@ import { MainRegistryExtension } from "../../utils/Extensions.sol";
 import { TrustedCreditorMock } from "../../../mockups/TrustedCreditorMock.sol";
 import "../../utils/Constants.sol";
 
+/// @dev This contract and not { Factory } is exposed to Foundry for invariant testing. The point is
+/// to bound and restrict the inputs that get passed to the real-world contract to avoid getting reverts.
 contract FactoryHandler is BaseHandler {
+    /*//////////////////////////////////////////////////////////////////////////
+                                     VARIABLES
+    //////////////////////////////////////////////////////////////////////////*/
+
+    // Track number of calls to functions
+    uint256 public callsToSetNewVaultInfo;
+
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -20,10 +29,6 @@ contract FactoryHandler is BaseHandler {
     MainRegistryExtension internal mainRegistryExtension;
     Vault internal vault;
     Vault internal vaultV2;
-
-    // Track number of calls to functions
-    uint256 public callsToCreateVault;
-    uint256 public callsToSetNewVaultInfo;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTRUCTOR
@@ -42,7 +47,6 @@ contract FactoryHandler is BaseHandler {
         address creditor = address(0);
         uint16 vaultVersion = 0;
         factory.createVault(salt, vaultVersion, baseCurrency, creditor);
-        callsToCreateVault++;
     }
 
     function setNewVaultInfo() public {

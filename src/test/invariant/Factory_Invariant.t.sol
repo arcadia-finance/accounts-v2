@@ -9,9 +9,10 @@ import { FactoryHandler } from "./handlers/FactoryHandler.sol";
 import { Factory } from "../../Factory.sol";
 import { Vault } from "../../Vault.sol";
 
+/// @dev Invariant tests for { Factory }.
 contract Factory_Invariant_Test is Base_Invariant_Test {
     /*//////////////////////////////////////////////////////////////////////////
-                                   TEST CONTRACTS
+                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
     address internal initialVaultDeployed;
@@ -30,8 +31,9 @@ contract Factory_Invariant_Test is Base_Invariant_Test {
         Base_Invariant_Test.setUp();
         vaultV2 = new Vault();
         factoryHandler = new FactoryHandler(factory, mainRegistryExtension, vault, vaultV2);
-        targetContract(address(factoryHandler));
         initialVaultDeployed = factory.createVault(0, 0, address(0), address(0));
+        // We only want to target function calls inside the FactoryHandler contract
+        targetContract(address(factoryHandler));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
