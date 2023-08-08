@@ -36,6 +36,10 @@ contract VaultTestExtension is Vault {
     function setOwner(address newOwner) public {
         owner = newOwner;
     }
+
+    function setRegistry(address registry_) public {
+        registry = registry_;
+    }
 }
 
 abstract contract vaultTests is DeployArcadiaVaults {
@@ -251,8 +255,16 @@ contract VaultManagementTest is vaultTests {
         vault_.initialize(vaultOwner, address(mainRegistry), address(0));
     }
 
+    function testRevert_initialize_AlreadyInitialized2() public {
+        vault_.setOwner(address(0));
+
+        vm.expectRevert("V_I: Already initialized!");
+        vault_.initialize(vaultOwner, address(mainRegistry), address(0));
+    }
+
     function testRevert_initialize_InvalidMainreg() public {
         vault_.setOwner(address(0));
+        vault_.setRegistry(address(0));
 
         vm.expectRevert("V_I: Registry cannot be 0!");
         vault_.initialize(vaultOwner, address(0), address(0));
@@ -260,6 +272,7 @@ contract VaultManagementTest is vaultTests {
 
     function testSuccess_initialize(address owner_) public {
         vault_.setOwner(address(0));
+        vault_.setRegistry(address(0));
 
         vm.expectEmit(true, true, true, true);
         emit BaseCurrencySet(address(0));
@@ -267,26 +280,8 @@ contract VaultManagementTest is vaultTests {
 
         assertEq(vault_.owner(), owner_);
         assertEq(vault_.registry(), address(mainRegistry));
-        assertEq(vault_.vaultVersion(), 2); // @test might need to be adapted for each vault version as it's a constant on vault level
+        assertEq(vault_.vaultVersion(), 1); // @test might need to be adapted for each vault version as it's a constant on vault level
         assertEq(vault_.baseCurrency(), address(0));
-    }
-
-    function testSuccess_upgradeVault(
-        address newImplementation,
-        address newRegistry,
-        uint16 newVersion,
-        bytes calldata data
-    ) public {
-        //TrustedCreditor is set
-        vm.prank(vaultOwner);
-        vault_.openTrustedMarginAccount(address(trustedCreditor));
-
-        vm.prank(address(factory));
-        vault_.upgradeVault(newImplementation, newRegistry, newVersion, data);
-
-        uint16 expectedVersion = vault_.vaultVersion();
-
-        assertEq(expectedVersion, newVersion);
     }
 
     function testRevert_upgradeVault_byNonFactory(
