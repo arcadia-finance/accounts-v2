@@ -34,7 +34,7 @@ contract Vault is VaultStorageV1, IVault {
     using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////
-                                STORAGE
+                                CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
     // Storage slot with the address of the current implementation.

@@ -34,7 +34,7 @@ contract VaultV2 is VaultStorageV2 {
     using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////
-                                STORAGE
+                                CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
     // Storage slot with the address of the current implementation.
