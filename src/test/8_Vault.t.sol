@@ -969,6 +969,8 @@ contract LiquidationLogicTest is vaultTests {
                 ASSET MANAGEMENT LOGIC
 ///////////////////////////////////////////////////////////////*/
 contract VaultActionTest is vaultTests {
+    using stdStorage for StdStorage;
+
     ActionMultiCall public action;
     MultiActionMock public multiActionMock;
 
@@ -1010,6 +1012,7 @@ contract VaultActionTest is vaultTests {
 
         vm.startPrank(creatorAddress);
         vault = new VaultTestExtension(address(mainRegistry));
+        factory.setLatestVaultversion(0);
         factory.setNewVaultInfo(address(mainRegistry), address(vault), Constants.upgradeProof1To2, "");
         vm.stopPrank();
 
