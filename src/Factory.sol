@@ -250,6 +250,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
             ++latestVaultVersion;
         }
 
+        require(IVault(logic).vaultVersion() == latestVaultVersion, "FTRY_SNVI: vault version mismatch");
+
         vaultDetails[latestVaultVersion].registry = registry;
         vaultDetails[latestVaultVersion].logic = logic;
         vaultDetails[latestVaultVersion].versionRoot = versionRoot;

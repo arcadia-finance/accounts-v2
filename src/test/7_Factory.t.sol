@@ -5,6 +5,7 @@
 pragma solidity ^0.8.13;
 
 import "./fixtures/ArcadiaVaultsFixture.f.sol";
+import { VaultV2 } from "../mockups/VaultV2.sol";
 
 contract FactoryTest is DeployArcadiaVaults {
     using stdStorage for StdStorage;
@@ -543,6 +544,15 @@ contract FactoryTest is DeployArcadiaVaults {
         );
         vm.expectRevert("FTRY_SNVI: no baseCurrency match");
         factory.setNewVaultInfo(address(mainRegistry2), logic, Constants.upgradeProof1To2, "");
+        vm.stopPrank();
+    }
+
+    function testRevert_setNewVaultInfo_InvalidVaultVersion() public {
+        VaultV2 newVaultV2 = new VaultV2();
+
+        vm.startPrank(creatorAddress);
+        vm.expectRevert("FTRY_SNVI: vault version mismatch");
+        factory.setNewVaultInfo(address(mainRegistry), address(newVaultV2), bytes32(0), "");
         vm.stopPrank();
     }
 
