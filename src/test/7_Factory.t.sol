@@ -144,7 +144,7 @@ contract FactoryTest is DeployArcadiaVaults {
         vm.assume(vaultVersion <= versionsToMake + 1);
         for (uint256 i; i < versionsToMake; ++i) {
             //create vault logic with the right version
-            //the first vault version to add 2, so we add 2 to the index
+            //the first vault version to add is 2, so we add 2 to the index
             vault_.setVaultVersion(uint16(i + 2));
 
             vm.prank(creatorAddress);
