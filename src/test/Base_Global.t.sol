@@ -8,7 +8,7 @@ import { Test } from "forge-std/Test.sol";
 import { Users, MockOracles, MockERC20, MockERC721, Rates } from "./utils/Types.sol";
 import { Factory } from "../Factory.sol";
 import { Vault } from "../Vault.sol";
-import { MainRegistryExtension } from "./utils/Extensions.sol";
+import { MainRegistryExtension, VaultExtension } from "./utils/Extensions.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import "./utils/Constants.sol";
 import "../mockups/ERC20SolmateMock.sol";
@@ -36,8 +36,10 @@ abstract contract Base_Global_Test is Test, Events, Errors {
     MainRegistryExtension internal mainRegistryExtension;
     Vault internal vault;
     Vault internal vaultV2;
+    VaultExtension internal vaultExtension;
     TrustedCreditorMock internal trustedCreditorWithParamsInit;
     TrustedCreditorMock internal defaultTrustedCreditor;
+
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -62,6 +64,7 @@ abstract contract Base_Global_Test is Test, Events, Errors {
         mainRegistryExtension = new MainRegistryExtension(address(factory));
         vault = new Vault();
         vaultV2 = new Vault();
+        vaultExtension = new VaultExtension(address(mainRegistryExtension), 1);
         factory.setNewVaultInfo(address(mainRegistryExtension), address(vault), Constants.upgradeProof1To2, "");
         trustedCreditorWithParamsInit = new TrustedCreditorMock();
         defaultTrustedCreditor = new TrustedCreditorMock();

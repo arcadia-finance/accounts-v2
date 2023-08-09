@@ -49,13 +49,13 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         assertEq(Vault(deployedVaultInputs0).baseCurrency(), initBaseCurrency);
     }
 
-    function test_Revert_openTrustedMarginAccount_NotOwner() public {
+    function testRevert_openTrustedMarginAccount_NotOwner() public {
         // Should revert if not called by the owner
         vm.expectRevert("V: Only Owner");
         Vault(deployedVaultInputs0).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
     }
 
-    function test_Revert_openTrustedMarginAccount_AlreadySet() public {
+    function testRevert_openTrustedMarginAccount_AlreadySet() public {
         // Open a margin account => will set a trusted creditor
         vm.startPrank(users.vaultOwner);
         Vault(deployedVaultInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
@@ -65,7 +65,7 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         Vault(deployedVaultInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
     }
 
-    function test_Revert_openTrustedMarginAccount_InvalidVaultVersion() public {
+    function testRevert_openTrustedMarginAccount_InvalidVaultVersion() public {
         // set a different vault version on the trusted creditor
         defaultTrustedCreditor.setCallResult(false);
         vm.startPrank(users.vaultOwner);
@@ -117,5 +117,34 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         assertEq(Vault(deployedVault).baseCurrency(), address(mockERC20.stable1));
         assertEq(Vault(deployedVault).fixedLiquidationCost(), Constants.initLiquidationCost);
         assertTrue(Vault(deployedVault).isTrustedCreditorSet());
+    }
+
+    function testRevert_initialize_AlreadyInitialized() public {
+        vm.expectRevert("V_I: Already initialized!");
+        vault.initialize(users.vaultOwner, address(mainRegistryExtension), 1, address(0), address(0));
+    }
+
+    function testRevert_initialize_InvalidVersion() public {
+        vaultExtension.setVaultVersion(0);
+        vaultExtension.setOwner(address(0));
+
+        vm.expectRevert("V_I: Invalid vault version");
+        vaultExtension.initialize(users.vaultOwner, address(mainRegistryExtension), 0, address(0), address(0));
+    }
+
+    function test_initialize(address owner_, uint16 vaultVersion_) public {
+        vm.assume(vaultVersion_ > 0);
+
+        vaultExtension.setVaultVersion(0);
+        vaultExtension.setOwner(address(0));
+
+        vm.expectEmit(true, true, true, true);
+        emit BaseCurrencySet(address(0));
+        vaultExtension.initialize(owner_, address(mainRegistryExtension), vaultVersion_, address(0), address(0));
+
+        assertEq(vaultExtension.owner(), owner_);
+        assertEq(vaultExtension.registry(), address(mainRegistryExtension));
+        assertEq(vaultExtension.vaultVersion(), vaultVersion_);
+        assertEq(vaultExtension.baseCurrency(), address(0));
     }
 }
