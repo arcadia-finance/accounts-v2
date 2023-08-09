@@ -7,6 +7,7 @@ pragma solidity ^0.8.13;
 import { Base_Global_Test } from "./Base_Global.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "./utils/Types.sol";
 import { MainRegistry } from "../MainRegistry.sol";
+import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import "../Proxy.sol";
 import "../mockups/ERC20SolmateMock.sol";
 import "../mockups/ERC721SolmateMock.sol";
@@ -85,6 +86,10 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
             nft3ToToken1: 1 * 10 ** (Constants.nftOracleDecimals - 1),
             erc1155ToToken1: 1 * 10 ** (Constants.erc1155OracleDecimals - 2)
         });
+
+        // Set a trusted creditor with initialized params to use accross tests
+        initBaseCurrency = address(mockERC20.stable1);
+        trustedCreditorWithParamsInit.setBaseCurrency(initBaseCurrency);
 
         // Mint tokens
         // Mint STABLE1 to Liquidity Provider

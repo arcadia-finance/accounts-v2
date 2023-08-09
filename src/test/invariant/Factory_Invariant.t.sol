@@ -15,23 +15,18 @@ contract Factory_Invariant_Test is Base_Invariant_Test {
                                       VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
-    address internal initialVaultDeployed;
-
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
     FactoryHandler internal factoryHandler;
-    Vault internal vaultV2;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
         Base_Invariant_Test.setUp();
-        vaultV2 = new Vault();
         factoryHandler = new FactoryHandler(factory, mainRegistryExtension, vault, vaultV2);
-        initialVaultDeployed = factory.createVault(0, 0, address(0), address(0));
         // We only want to target function calls inside the FactoryHandler contract
         targetContract(address(factoryHandler));
     }

@@ -6,16 +6,12 @@ pragma solidity ^0.8.13;
 
 import { Base_IntegrationAndUnit_Test } from "../Base_IntegrationAndUnit.t.sol";
 import { Vault } from "../../Vault.sol";
+import "../utils/Constants.sol";
 
 contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
-
-    address internal deployedVaultInputs0;
-    address internal initLiquidator;
-    address internal initBaseCurrency;
-    uint96 internal initLiquidationCost;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -23,24 +19,6 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
 
     function setUp() public virtual override(Base_IntegrationAndUnit_Test) {
         Base_IntegrationAndUnit_Test.setUp();
-
-        // Deploy a Vault with all input params to 0
-        vm.startPrank(users.vaultOwner);
-        deployedVaultInputs0 = factory.createVault(0, 0, address(0), address(0));
-        vm.stopPrank();
-
-        // Set variables
-        initLiquidator = address(666);
-        initBaseCurrency = address(mockERC20.stable1);
-        initLiquidationCost = 100;
-
-        // Initialize storage variables for the trusted creditor mock contract
-        trustedCreditor.setBaseCurrency(address(mockERC20.stable1));
-        emit log_named_address("trusted creditor base currency", trustedCreditor.baseCurrency());
-        trustedCreditor.setLiquidator(initLiquidator);
-        emit log_named_address("init liquidator", trustedCreditor.liquidator());
-        trustedCreditor.setFixedLiquidationCost(initLiquidationCost);
-        emit log_named_uint("init liquidaton costs", trustedCreditor.fixedLiquidationCost());
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -59,40 +37,40 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         // Open a margin account
         vm.startPrank(users.vaultOwner);
         vm.expectEmit();
-        emit TrustedMarginAccountChanged(address(trustedCreditor), initLiquidator);
-        Vault(deployedVaultInputs0).openTrustedMarginAccount(address(trustedCreditor));
+        emit TrustedMarginAccountChanged(address(trustedCreditorWithParamsInit), Constants.initLiquidator);
+        Vault(deployedVaultInputs0).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
         vm.stopPrank();
 
         // Assert a creditor has been set and other variables updated
-        assertEq(Vault(deployedVaultInputs0).trustedCreditor(), address(trustedCreditor));
+        assertEq(Vault(deployedVaultInputs0).trustedCreditor(), address(trustedCreditorWithParamsInit));
         assertEq(Vault(deployedVaultInputs0).isTrustedCreditorSet(), true);
-        assertEq(Vault(deployedVaultInputs0).liquidator(), initLiquidator);
-        assertEq(Vault(deployedVaultInputs0).fixedLiquidationCost(), initLiquidationCost);
+        assertEq(Vault(deployedVaultInputs0).liquidator(), Constants.initLiquidator);
+        assertEq(Vault(deployedVaultInputs0).fixedLiquidationCost(), Constants.initLiquidationCost);
         assertEq(Vault(deployedVaultInputs0).baseCurrency(), initBaseCurrency);
     }
 
     function test_RevertWhen_openTrustedMarginAccount_NotOwner() public {
         // Should revert if not called by the owner
         vm.expectRevert("V: Only Owner");
-        Vault(deployedVaultInputs0).openTrustedMarginAccount(address(trustedCreditor));
+        Vault(deployedVaultInputs0).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
     }
 
     function test_RevertWhen_openTrustedMarginAccount_AlreadySet() public {
-        // Open a margin account (no creditor has been set yet)
+        // Open a margin account => will set a trusted creditor
         vm.startPrank(users.vaultOwner);
-        Vault(deployedVaultInputs0).openTrustedMarginAccount(address(trustedCreditor));
+        Vault(deployedVaultInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
 
         // Should revert if a trusted creditor is already set
         vm.expectRevert("V_OTMA: ALREADY SET");
-        Vault(deployedVaultInputs0).openTrustedMarginAccount(address(trustedCreditor));
+        Vault(deployedVaultInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
     }
 
     function test_RevertWhen_openTrustedMarginAccount_InvalidVaultVersion() public {
         // set a different vault version on the trusted creditor
-        trustedCreditor.setCallResult(false);
+        defaultTrustedCreditor.setCallResult(false);
         vm.startPrank(users.vaultOwner);
         vm.expectRevert("V_OTMA: Invalid Version");
-        Vault(deployedVaultInputs0).openTrustedMarginAccount((address(trustedCreditor)));
+        Vault(deployedVaultInputs0).openTrustedMarginAccount((address(defaultTrustedCreditor)));
         vm.stopPrank();
     }
 
@@ -103,21 +81,21 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         assertEq(Vault(deployedVaultInputs0).baseCurrency(), address(0));
 
         // Update base currency of the trusted creditor to TOKEN1
-        trustedCreditor.setBaseCurrency(address(mockERC20.token1));
+        defaultTrustedCreditor.setBaseCurrency(address(mockERC20.token1));
         // Update liquidation costs in trusted creditor
-        trustedCreditor.setFixedLiquidationCost(fixedLiquidationCost);
+        defaultTrustedCreditor.setFixedLiquidationCost(fixedLiquidationCost);
         // Update liquidator in trusted creditor
-        trustedCreditor.setLiquidator(liquidator);
+        defaultTrustedCreditor.setLiquidator(liquidator);
 
         vm.startPrank(users.vaultOwner);
         vm.expectEmit();
         emit BaseCurrencySet(address(mockERC20.token1));
         vm.expectEmit();
-        emit TrustedMarginAccountChanged(address(trustedCreditor), liquidator);
-        Vault(deployedVaultInputs0).openTrustedMarginAccount(address(trustedCreditor));
+        emit TrustedMarginAccountChanged(address(defaultTrustedCreditor), liquidator);
+        Vault(deployedVaultInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
         vm.stopPrank();
 
-        assertEq(Vault(deployedVaultInputs0).trustedCreditor(), address(trustedCreditor));
+        assertEq(Vault(deployedVaultInputs0).trustedCreditor(), address(defaultTrustedCreditor));
         assertEq(Vault(deployedVaultInputs0).isTrustedCreditorSet(), true);
         assertEq(Vault(deployedVaultInputs0).liquidator(), liquidator);
         assertEq(Vault(deployedVaultInputs0).baseCurrency(), address(mockERC20.token1));
@@ -128,16 +106,16 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         // Deploy a vault with baseCurrency set to STABLE1
         address deployedVault = factory.createVault(1111, 0, address(mockERC20.stable1), address(0));
         assertEq(Vault(deployedVault).baseCurrency(), address(mockERC20.stable1));
-        assertEq(trustedCreditor.baseCurrency(), address(mockERC20.stable1));
+        assertEq(trustedCreditorWithParamsInit.baseCurrency(), address(mockERC20.stable1));
 
         vm.expectEmit();
-        emit TrustedMarginAccountChanged(address(trustedCreditor), initLiquidator);
-        Vault(deployedVault).openTrustedMarginAccount(address(trustedCreditor));
+        emit TrustedMarginAccountChanged(address(trustedCreditorWithParamsInit), Constants.initLiquidator);
+        Vault(deployedVault).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
 
-        assertEq(Vault(deployedVault).liquidator(), initLiquidator);
-        assertEq(Vault(deployedVault).trustedCreditor(), address(trustedCreditor));
+        assertEq(Vault(deployedVault).liquidator(), Constants.initLiquidator);
+        assertEq(Vault(deployedVault).trustedCreditor(), address(trustedCreditorWithParamsInit));
         assertEq(Vault(deployedVault).baseCurrency(), address(mockERC20.stable1));
-        assertEq(Vault(deployedVault).fixedLiquidationCost(), initLiquidationCost);
+        assertEq(Vault(deployedVault).fixedLiquidationCost(), Constants.initLiquidationCost);
         assertTrue(Vault(deployedVault).isTrustedCreditorSet());
     }
 }
