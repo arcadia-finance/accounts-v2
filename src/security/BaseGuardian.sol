@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.13;
 
-import { Owned } from "lib/solmate/src/auth/Owned.sol";
+import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 
 /**
  * @title Guardian

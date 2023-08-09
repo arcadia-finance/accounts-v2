@@ -49,13 +49,13 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         assertEq(Vault(deployedVaultInputs0).baseCurrency(), initBaseCurrency);
     }
 
-    function test_RevertWhen_openTrustedMarginAccount_NotOwner() public {
+    function test_Revert_openTrustedMarginAccount_NotOwner() public {
         // Should revert if not called by the owner
         vm.expectRevert("V: Only Owner");
         Vault(deployedVaultInputs0).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
     }
 
-    function test_RevertWhen_openTrustedMarginAccount_AlreadySet() public {
+    function test_Revert_openTrustedMarginAccount_AlreadySet() public {
         // Open a margin account => will set a trusted creditor
         vm.startPrank(users.vaultOwner);
         Vault(deployedVaultInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
@@ -65,7 +65,7 @@ contract Vault_Integration_Test is Base_IntegrationAndUnit_Test {
         Vault(deployedVaultInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
     }
 
-    function test_RevertWhen_openTrustedMarginAccount_InvalidVaultVersion() public {
+    function test_Revert_openTrustedMarginAccount_InvalidVaultVersion() public {
         // set a different vault version on the trusted creditor
         defaultTrustedCreditor.setCallResult(false);
         vm.startPrank(users.vaultOwner);
