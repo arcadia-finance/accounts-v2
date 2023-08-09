@@ -69,39 +69,39 @@ contract FactoryTest is DeployArcadiaVaults {
     /////////////////////////////////////////////////////////////// */
 
     // Test migrated to new test
-/*     function testSuccess_createVault_DeployVaultContractMappings(uint256 salt) public {
+    /*     function testSuccess_createVault_DeployVaultContractMappings(uint256 salt) public {
     } */
 
     // Test migrated to new test suite
-/*     function testSuccess_createVault_DeployNewProxyWithLogic(uint256 salt) public {
+    /*     function testSuccess_createVault_DeployNewProxyWithLogic(uint256 salt) public {
     } */
 
     // Test migrated to new test suite
-/*     function testSuccess_createVault_DeployNewProxyWithLogicOwner(uint256 salt, address sender) public {
+    /*     function testSuccess_createVault_DeployNewProxyWithLogicOwner(uint256 salt, address sender) public {
     } */
 
     // Test migrated to new test suite
-/*     function testSuccess_createVault_CreationCannotBeFrontRunnedWithIdenticalSalt(
+    /*     function testSuccess_createVault_CreationCannotBeFrontRunnedWithIdenticalSalt(
         uint256 salt,
         address sender0,
         address sender1
     ) public {} */
 
     // Test migrated to new test suite
-/*     function testRevert_createVault_CreateNonExistingVaultVersion(uint16 vaultVersion) public {} */
+    /*     function testRevert_createVault_CreateNonExistingVaultVersion(uint16 vaultVersion) public {} */
 
     // Test migrated to new test suite
-/*     function testRevert_createVault_FromBlockedVersion(
+    /*     function testRevert_createVault_FromBlockedVersion(
         uint16 vaultVersion,
         uint16 versionsToMake,
         uint16[] calldata versionsToBlock
     ) public {} */
 
     // Test migrated to new test suite
-/*     function testRevert_createVault_Paused(uint256 salt, address sender, address guardian) public {} */
+    /*     function testRevert_createVault_Paused(uint256 salt, address sender, address guardian) public {} */
 
     // Test migrated to new test suite
-/*     function testSuccess_isVault_positive() public {} */
+    /*     function testSuccess_isVault_positive() public {} */
 
     function testSuccess_isVault_negative(address random) public {
         bool expectedReturn = factory.isVault(random);

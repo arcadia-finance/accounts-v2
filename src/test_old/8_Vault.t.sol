@@ -250,6 +250,14 @@ contract VaultManagementTest is vaultTests {
         vm.prank(vaultOwner);
         vault_ = new VaultTestExtension(address(mainRegistry), 1);
     }
+    // Test migrated to new test suite
+    // function testRevert_initialize_AlreadyInitialized() public {}
+
+    // Test migrated to new test suite
+    // function testRevert_initialize_InvalidVersion() public {}
+
+    // Test migrated to new test suite
+    // function testSuccess_initialize(address owner_, uint16 vaultVersion_) public {}
 
     function testSuccess_upgradeVault(
         address newImplementation,

@@ -40,7 +40,6 @@ abstract contract Base_Global_Test is Test, Events, Errors {
     TrustedCreditorMock internal trustedCreditorWithParamsInit;
     TrustedCreditorMock internal defaultTrustedCreditor;
 
-
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
@@ -78,8 +77,8 @@ abstract contract Base_Global_Test is Test, Events, Errors {
         vm.label({ account: address(defaultTrustedCreditor), newLabel: "Trusted Creditor Mock Not Initialized" });
         vm.label({ account: address(trustedCreditorWithParamsInit), newLabel: "Trusted Creditor Mock Initialized" });
 
-        // Initialize the default base currency and liquidator of trusted creditor
-        // The base currency on initialization will depend on the type of test
+        // Initialize the default liquidation cost and liquidator of trusted creditor
+        // The base currency on initialization will depend on the type of test and set at a lower level
         trustedCreditorWithParamsInit.setFixedLiquidationCost(Constants.initLiquidationCost);
         trustedCreditorWithParamsInit.setLiquidator(Constants.initLiquidator);
 
