@@ -79,9 +79,9 @@ abstract contract vaultTests is DeployArcadiaVaults {
     /////////////////////////////////////////////////////////////// */
 
     function deployFactory() internal {
-        vm.startPrank(creatorAddress);
-        factory.setNewVaultInfo(address(mainRegistry), address(vault_), Constants.upgradeProof1To2, "");
-        vm.stopPrank();
+        // vm.startPrank(creatorAddress);
+        // factory.setNewVaultInfo(address(mainRegistry), address(vault_), Constants.upgradeProof1To2, "");
+        // vm.stopPrank();
 
         stdstore.target(address(factory)).sig(factory.isVault.selector).with_key(address(vault_)).checked_write(true);
         stdstore.target(address(factory)).sig(factory.vaultIndex.selector).with_key(address(vault_)).checked_write(10);
@@ -375,7 +375,7 @@ contract BaseCurrencyLogicTest is vaultTests {
 
     function setUp() public override {
         super.setUp();
-        deployFactory();
+        //deployFactory();
         //openMarginAccount();
     }
 
@@ -432,7 +432,7 @@ contract MarginAccountSettingsTest is vaultTests {
 
     function setUp() public override {
         super.setUp();
-        deployFactory();
+        //deployFactory();
     }
 
     function testRevert_openTrustedMarginAccount_NonOwner(address unprivilegedAddress_, address trustedCreditor_)
