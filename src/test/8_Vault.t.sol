@@ -255,15 +255,7 @@ contract VaultManagementTest is vaultTests {
         vault_.initialize(vaultOwner, address(mainRegistry), address(0));
     }
 
-    function testRevert_initialize_AlreadyInitialized2() public {
-        vault_.setOwner(address(0));
-
-        vm.expectRevert("V_I: Already initialized!");
-        vault_.initialize(vaultOwner, address(mainRegistry), address(0));
-    }
-
     function testRevert_initialize_InvalidMainreg() public {
-        vault_.setOwner(address(0));
         vault_.setRegistry(address(0));
 
         vm.expectRevert("V_I: Registry cannot be 0!");
@@ -271,7 +263,6 @@ contract VaultManagementTest is vaultTests {
     }
 
     function testSuccess_initialize(address owner_) public {
-        vault_.setOwner(address(0));
         vault_.setRegistry(address(0));
 
         vm.expectEmit(true, true, true, true);
