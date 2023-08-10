@@ -19,9 +19,8 @@ contract MainRegistryExtension is MainRegistry {
 }
 
 contract AccountExtension is AccountV1 {
-    constructor(address mainReg_, uint16 accountVersion_) AccountV1() {
+    constructor(address mainReg_) AccountV1() {
         registry = mainReg_;
-        accountVersion = accountVersion_;
     }
 
     function getLengths() external view returns (uint256, uint256, uint256, uint256) {
@@ -36,15 +35,15 @@ contract AccountExtension is AccountV1 {
         isTrustedCreditorSet = set;
     }
 
-    function setAccountVersion(uint16 version) public {
-        accountVersion = version;
-    }
-
     function setFixedLiquidationCost(uint96 fixedLiquidationCost_) public {
         fixedLiquidationCost = fixedLiquidationCost_;
     }
 
     function setOwner(address newOwner) public {
         owner = newOwner;
+    }
+
+    function setRegistry(address registry_) public {
+        registry = registry_;
     }
 }

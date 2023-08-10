@@ -101,12 +101,12 @@ contract AccountV2Test is DeployArcadiaAccounts {
         factory.upgradeAccountVersion(address(proxy), factory.latestAccountVersion(), proofs);
         vm.stopPrank();
 
-        assertEq(AccountV2(proxyAddr).check(), 5);
+        assertEq(AccountV2(proxyAddr).storageV2(), 5);
 
         Checks memory checkAfter = createCompareStruct();
 
         assertEq(keccak256(abi.encode(checkAfter)), keccak256(abi.encode(checkBefore)));
-        assertEq(factory.latestAccountVersion(), proxy.accountVersion());
+        assertEq(factory.latestAccountVersion(), proxy.ACCOUNT_VERSION());
     }
 
     function testRevert_upgradeAccountVersion_IncompatibleVersionWithCurrentAccount(uint128 amount) public {

@@ -5,11 +5,14 @@
 pragma solidity ^0.8.13;
 
 import "./fixtures/ArcadiaAccountsFixture.f.sol";
+import { AccountV2 } from "../mockups/AccountV2.sol";
+import { AccountVariableVersion } from "../mockups/AccountVariableVersion.sol";
 
 contract FactoryTest is DeployArcadiaAccounts {
     using stdStorage for StdStorage;
 
     MainRegistry internal mainRegistry2;
+    AccountVariableVersion internal accountVarVersion;
 
     //events
     event Transfer(address indexed from, address indexed to, uint256 indexed id);
@@ -31,6 +34,8 @@ contract FactoryTest is DeployArcadiaAccounts {
         mainRegistry = new mainRegistryExtension(address(factory));
         factory.setNewAccountInfo(address(mainRegistry), address(account), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
+
+        accountVarVersion = new AccountVariableVersion(1);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -203,14 +208,30 @@ contract FactoryTest is DeployArcadiaAccounts {
         vm.stopPrank();
     }
 
+    function testRevert_setNewAccountInfo_InvalidAccountVersion() public {
+        AccountV2 newAccountV2 = new AccountV2();
+        AccountV2 newAccountV2_2 = new AccountV2();
+
+        vm.startPrank(creatorAddress);
+        //first set an actual version 2
+        factory.setNewAccountInfo(address(mainRegistry), address(newAccountV2), Constants.upgradeRoot1To2, "");
+        //then try to register another vault logic address which has version 2 in its bytecode
+        vm.expectRevert("FTRY_SNVI: vault version mismatch");
+        factory.setNewAccountInfo(address(mainRegistry), address(newAccountV2_2), Constants.upgradeRoot1To2, "");
+        vm.stopPrank();
+    }
+
     function testSuccess_setNewAccountInfo(address mainRegistry_, address logic, bytes calldata data) public {
-        vm.assume(logic != address(0));
+        vm.assume(logic > address(10));
 
         vm.prank(creatorAddress);
         factory = new FactoryExtension();
         assertTrue(factory.getAccountVersionRoot() == bytes32(0));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();
+        bytes memory code = address(accountVarVersion).code;
+        vm.etch(logic, code);
+        AccountVariableVersion(logic).setAccountVersion(latestAccountVersionPre + 1);
 
         vm.startPrank(creatorAddress);
         vm.expectEmit(true, true, true, true);
@@ -232,10 +253,13 @@ contract FactoryTest is DeployArcadiaAccounts {
         address logic,
         bytes calldata data
     ) public {
-        vm.assume(logic != address(0));
+        vm.assume(logic > address(10));
         vm.assume(newAssetAddress != address(0));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();
+        bytes memory code = address(accountVarVersion).code;
+        vm.etch(logic, code);
+        AccountVariableVersion(logic).setAccountVersion(latestAccountVersionPre + 1);
 
         vm.startPrank(creatorAddress);
         mainRegistry.addBaseCurrency(
@@ -269,10 +293,13 @@ contract FactoryTest is DeployArcadiaAccounts {
         address logic,
         bytes calldata data
     ) public {
-        vm.assume(logic != address(0));
+        vm.assume(logic != address(10));
         vm.assume(newAssetAddress != address(0));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();
+        bytes memory code = address(accountVarVersion).code;
+        vm.etch(logic, code);
+        AccountVariableVersion(logic).setAccountVersion(latestAccountVersionPre + 1);
 
         vm.startPrank(creatorAddress);
         mainRegistry2 = new mainRegistryExtension(address(factory));

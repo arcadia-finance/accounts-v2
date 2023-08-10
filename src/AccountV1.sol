@@ -11,9 +11,10 @@ import { ITrustedCreditor } from "./interfaces/ITrustedCreditor.sol";
 import { IActionBase, ActionData } from "./interfaces/IActionBase.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IAccount } from "./interfaces/IAccount.sol";
-import { IOraclesHub } from "./PricingModules/interfaces/IOraclesHub.sol";
 import { ActionData } from "./actions/utils/ActionData.sol";
 import { ERC20, SafeTransferLib } from "../lib/solmate/src/utils/SafeTransferLib.sol";
+
+import { AccountStorageV1 } from "./AccountStorageV1.sol";
 
 /**
  * @title Acadia Accounts.
@@ -30,52 +31,20 @@ import { ERC20, SafeTransferLib } from "../lib/solmate/src/utils/SafeTransferLib
  * Arcadia's Account functions will guarantee you a certain value of the Account.
  * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
  */
-contract AccountV1 is IAccount {
+contract AccountV1 is AccountStorageV1, IAccount {
     using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////
-                                STORAGE
+                                CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
     // Storage slot with the address of the current implementation.
     // This is the hardcoded keccak-256 hash of: "eip1967.proxy.implementation" subtracted by 1.
     bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
-    // The maximum amount of different assets that can be used as collateral within an Arcadia Account.
+    // The maximum amount of different assets that can be used as collateral within an Arcadia Vault.
     uint256 public constant ASSET_LIMIT = 15;
-    // Flag that indicates if a trusted creditor is set.
-    bool public isTrustedCreditorSet;
-    // The current Account Version.
-    uint16 public accountVersion;
-    // The contract address of the liquidator, address 0 if no trusted creditor is set.
-    address public liquidator;
-    // The estimated maximum cost to liquidate a Account, will count as Used Margin when a trusted creditor is set.
-    uint96 public fixedLiquidationCost;
-    // The owner of the Account.
-    address public owner;
-    // The contract address of the MainRegistry.
-    address public registry;
-    // The trusted creditor, address 0 if no trusted creditor is set.
-    address public trustedCreditor;
-    // The baseCurrency of the Account in which all assets and liabilities are denominated.
-    address public baseCurrency;
-
-    // Array with all the contract address of ERC20 tokens in the Account.
-    address[] public erc20Stored;
-    // Array with all the contract address of ERC721 tokens in the Account.
-    address[] public erc721Stored;
-    // Array with all the contract address of ERC1155 tokens in the Account.
-    address[] public erc1155Stored;
-    // Array with all the corresponding id's for each ERC721 token in the Account.
-    uint256[] public erc721TokenIds;
-    // Array with all the corresponding id's for each ERC1155 token in the Account.
-    uint256[] public erc1155TokenIds;
-
-    // Map asset => balance.
-    mapping(address => uint256) public erc20Balances;
-    // Map asset => id => balance.
-    mapping(address => mapping(uint256 => uint256)) public erc1155Balances;
-    // Map owner => assetManager => flag.
-    mapping(address => mapping(address => bool)) public isAssetManager;
+    // The current Vault Version.
+    uint16 public constant ACCOUNT_VERSION = 1;
 
     // Storage slot for the Account logic, a struct to avoid storage conflict when dealing with upgradeable contracts.
     struct AddressSlot {
@@ -142,22 +111,14 @@ contract AccountV1 is IAccount {
      * This function will only be called (once) in the same transaction as the proxy Account creation through the factory.
      * @param owner_ The sender of the 'createAccount' on the factory
      * @param registry_ The 'beacon' contract with the external logic.
-     * @param accountVersion_ The version of the Account logic.
      * @param baseCurrency_ The Base-currency in which the Account is denominated.
      * @param creditor The contract address of the trusted creditor.
      */
-    function initialize(
-        address owner_,
-        address registry_,
-        uint16 accountVersion_,
-        address baseCurrency_,
-        address creditor
-    ) external {
-        require(accountVersion == 0 && owner == address(0), "V_I: Already initialized!");
-        require(accountVersion_ != 0, "V_I: Invalid Account version");
+    function initialize(address owner_, address registry_, address baseCurrency_, address creditor) external {
+        require(registry == address(0), "V_I: Already initialized!");
+        require(registry_ != address(0), "V_I: Registry cannot be 0!");
         owner = owner_;
         registry = registry_;
-        accountVersion = accountVersion_;
         baseCurrency = baseCurrency_;
 
         if (creditor != address(0)) {
@@ -188,10 +149,9 @@ contract AccountV1 is IAccount {
         //Cache old parameters
         address oldImplementation = _getAddressSlot(_IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
-        uint16 oldVersion = accountVersion;
+        uint16 oldVersion = ACCOUNT_VERSION;
         _getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
-        accountVersion = newVersion;
 
         //Hook on the new logic to finalize upgrade.
         //Used to eg. Remove exposure from old Registry and Add exposure to the new Registry.
@@ -306,7 +266,7 @@ contract AccountV1 is IAccount {
     function _openTrustedMarginAccount(address creditor) internal {
         //openMarginAccount() is a view function, cannot modify state.
         (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_) =
-            ITrustedCreditor(creditor).openMarginAccount(accountVersion);
+            ITrustedCreditor(creditor).openMarginAccount(ACCOUNT_VERSION);
         require(success, "V_OTMA: Invalid Version");
 
         liquidator = liquidator_;
@@ -367,7 +327,7 @@ contract AccountV1 is IAccount {
             success = getCollateralValue() >= getUsedMargin() + debtIncrease;
         }
 
-        return (success, trustedCreditor, accountVersion);
+        return (success, trustedCreditor, ACCOUNT_VERSION);
     }
 
     /**
@@ -570,7 +530,7 @@ contract AccountV1 is IAccount {
             require(getCollateralValue() >= usedMargin, "V_VMA: Account Unhealthy");
         }
 
-        return (trustedCreditor, accountVersion);
+        return (trustedCreditor, ACCOUNT_VERSION);
     }
 
     /* ///////////////////////////////////////////////////////////////

@@ -13,9 +13,8 @@ import "../actions/utils/ActionData.sol";
 import { MultiActionMock } from "../mockups/MultiActionMock.sol";
 
 contract AccountTestExtension is AccountV1 {
-    constructor(address mainReg_, uint16 accountVersion_) AccountV1() {
+    constructor(address mainReg_) AccountV1() {
         registry = mainReg_;
-        accountVersion = accountVersion_;
     }
 
     function getLengths() external view returns (uint256, uint256, uint256, uint256) {
@@ -30,16 +29,16 @@ contract AccountTestExtension is AccountV1 {
         isTrustedCreditorSet = set;
     }
 
-    function setAccountVersion(uint16 version) public {
-        accountVersion = version;
-    }
-
     function setFixedLiquidationCost(uint96 fixedLiquidationCost_) public {
         fixedLiquidationCost = fixedLiquidationCost_;
     }
 
     function setOwner(address newOwner) public {
         owner = newOwner;
+    }
+
+    function setRegistry(address registry_) public {
+        registry = registry_;
     }
 }
 
@@ -72,7 +71,7 @@ abstract contract accountTests is DeployArcadiaAccounts {
     //this is a before each
     function setUp() public virtual {
         vm.prank(accountOwner);
-        account_ = new AccountTestExtension(address(mainRegistry), 1);
+        account_ = new AccountTestExtension(address(mainRegistry));
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -80,10 +79,6 @@ abstract contract accountTests is DeployArcadiaAccounts {
     /////////////////////////////////////////////////////////////// */
 
     function deployFactory() internal {
-        vm.startPrank(creatorAddress);
-        factory.setNewAccountInfo(address(mainRegistry), address(account_), Constants.upgradeProof1To2, "");
-        vm.stopPrank();
-
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(account_)).checked_write(
             true
         );
@@ -237,7 +232,7 @@ contract DeploymentTest is accountTests {
     function testSuccess_deployment() public {
         assertEq(account_.owner(), accountOwner);
         assertEq(account_.registry(), address(mainRegistry));
-        assertEq(account_.accountVersion(), 1);
+        assertEq(account_.ACCOUNT_VERSION(), 1);
         assertEq(account_.baseCurrency(), address(0));
     }
 }
@@ -252,7 +247,7 @@ contract AccountManagementTest is accountTests {
 
     function setUp() public override {
         vm.prank(accountOwner);
-        account_ = new AccountTestExtension(address(mainRegistry), 1);
+        account_ = new AccountTestExtension(address(mainRegistry));
     }
     // Test migrated to new test suite
     // function testRevert_initialize_AlreadyInitialized() public {}
@@ -263,23 +258,13 @@ contract AccountManagementTest is accountTests {
     // Test migrated to new test suite
     // function testSuccess_initialize(address owner_, uint16 accountVersion_) public {}
 
-    function testSuccess_upgradeAccount(
-        address newImplementation,
-        address newRegistry,
-        uint16 newVersion,
-        bytes calldata data
-    ) public {
-        //TrustedCreditor is set
-        vm.prank(accountOwner);
-        account_.openTrustedMarginAccount(address(trustedCreditor));
-
-        vm.prank(address(factory));
-        account_.upgradeAccount(newImplementation, newRegistry, newVersion, data);
-
-        uint16 expectedVersion = account_.accountVersion();
-
-        assertEq(expectedVersion, newVersion);
-    }
+    // Test available in proxyUpgrade testfile
+    // function testSuccess_upgradeAccount(
+    //     address newImplementation,
+    //     address newRegistry,
+    //     uint16 newVersion,
+    //     bytes calldata data
+    // ) public
 
     function testRevert_upgradeAccount_byNonFactory(
         address newImplementation,
@@ -372,7 +357,6 @@ contract BaseCurrencyLogicTest is accountTests {
 
     function setUp() public override {
         super.setUp();
-        deployFactory();
         //openMarginAccount();
     }
 
@@ -908,6 +892,8 @@ contract LiquidationLogicTest is accountTests {
                 ASSET MANAGEMENT LOGIC
 ///////////////////////////////////////////////////////////////*/
 contract AccountActionTest is accountTests {
+    using stdStorage for StdStorage;
+
     ActionMultiCall public action;
     MultiActionMock public multiActionMock;
 
@@ -948,7 +934,8 @@ contract AccountActionTest is accountTests {
         deal(address(eth), address(action), 1000 * 10 ** 20, false);
 
         vm.startPrank(creatorAddress);
-        account = new AccountTestExtension(address(mainRegistry), 1);
+        account = new AccountTestExtension(address(mainRegistry));
+        factory.setLatestAccountversion(0);
         factory.setNewAccountInfo(address(mainRegistry), address(account), Constants.upgradeProof1To2, "");
         vm.stopPrank();
 
@@ -1768,7 +1755,7 @@ contract AssetManagementTest is accountTests {
         vm.stopPrank();
 
         vm.prank(accountOwner);
-        account2 = new AccountTestExtension(address(mainRegistry), 2);
+        account2 = new AccountTestExtension(address(mainRegistry));
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(account2)).checked_write(
             true
         );
@@ -1806,7 +1793,7 @@ contract AssetManagementTest is accountTests {
         depositBaycInAccount(tokenIdsDeposit, accountOwner);
 
         vm.prank(accountOwner);
-        account2 = new AccountTestExtension(address(mainRegistry), 2);
+        account2 = new AccountTestExtension(address(mainRegistry));
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(account2)).checked_write(
             true
         );

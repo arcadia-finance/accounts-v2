@@ -64,7 +64,7 @@ abstract contract Base_Global_Test is Test, Events, Errors {
         mainRegistryExtension = new MainRegistryExtension(address(factory));
         account = new AccountV1();
         accountV2 = new AccountV2();
-        accountExtension = new AccountExtension(address(mainRegistryExtension), 1);
+        accountExtension = new AccountExtension(address(mainRegistryExtension));
         factory.setNewAccountInfo(address(mainRegistryExtension), address(account), Constants.upgradeProof1To2, "");
         trustedCreditorWithParamsInit = new TrustedCreditorMock();
         defaultTrustedCreditor = new TrustedCreditorMock();
