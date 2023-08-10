@@ -7,7 +7,7 @@ pragma solidity ^0.8.13;
 import { Base_Invariant_Test } from "./Base_Invariant.t.sol";
 import { FactoryHandler } from "./handlers/FactoryHandler.sol";
 import { Factory } from "../../Factory.sol";
-import { Vault } from "../../Vault.sol";
+import { Account } from "../../Account.sol";
 
 /// @dev Invariant tests for { Factory }.
 contract Factory_Invariant_Test is Base_Invariant_Test {
@@ -26,7 +26,7 @@ contract Factory_Invariant_Test is Base_Invariant_Test {
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
         Base_Invariant_Test.setUp();
-        factoryHandler = new FactoryHandler(factory, mainRegistryExtension, vault, vaultV2);
+        factoryHandler = new FactoryHandler(factory, mainRegistryExtension, account, accountV2);
         // We only want to target function calls inside the FactoryHandler contract
         targetContract(address(factoryHandler));
     }
@@ -34,13 +34,13 @@ contract Factory_Invariant_Test is Base_Invariant_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                      INVARIANTS
     //////////////////////////////////////////////////////////////////////////*/
-    function invariant_latestVaultVersion() public {
-        uint256 numberOfVaults = factory.allVaultsLength();
-        address latestDeployedVault = factory.allVaults(numberOfVaults - 1);
-        uint16 latestDeployedVaultVersion = Vault(latestDeployedVault).vaultVersion();
+    function invariant_latestAccountVersion() public {
+        uint256 numberOfAccounts = factory.allAccountsLength();
+        address latestDeployedAccount = factory.allAccounts(numberOfAccounts - 1);
+        uint16 latestDeployedAccountVersion = Account(latestDeployedAccount).accountVersion();
 
-        // Assert that the vault version of latest vault deployed with input
-        // vaultVersion = 0 is always <= latest vault version in factory
-        assertGe(factory.latestVaultVersion(), latestDeployedVaultVersion);
+        // Assert that the Account version of latest Account deployed with input
+        // accountVersion = 0 is always <= latest Account version in factory
+        assertGe(factory.latestAccountVersion(), latestDeployedAccountVersion);
     }
 }

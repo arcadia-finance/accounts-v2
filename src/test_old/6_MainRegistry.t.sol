@@ -4,11 +4,11 @@
  */
 pragma solidity ^0.8.13;
 
-import "./fixtures/ArcadiaVaultsFixture.f.sol";
+import "./fixtures/ArcadiaAccountsFixture.f.sol";
 import "../utils/StringHelpers.sol";
 import "../utils/CompareArrays.sol";
 
-abstract contract MainRegistryTest is DeployArcadiaVaults {
+abstract contract MainRegistryTest is DeployArcadiaAccounts {
     using stdStorage for StdStorage;
 
     event AllowedActionSet(address indexed action, bool allowed);
@@ -17,7 +17,7 @@ abstract contract MainRegistryTest is DeployArcadiaVaults {
     event AssetAdded(address indexed assetAddress, address indexed pricingModule, uint8 assetType);
 
     //this is a before
-    constructor() DeployArcadiaVaults() { }
+    constructor() DeployArcadiaAccounts() { }
 
     //this is a before each
     function setUp() public virtual {
@@ -490,8 +490,8 @@ contract AssetManagementTest is MainRegistryTest {
 
         vm.stopPrank();
 
-        vm.startPrank(vaultOwner);
-        proxyAddr = factory.createVault(
+        vm.startPrank(accountOwner);
+        proxyAddr = factory.createAccount(
             uint256(
                 keccak256(
                     abi.encodeWithSignature(
@@ -503,7 +503,7 @@ contract AssetManagementTest is MainRegistryTest {
             address(0),
             address(0)
         );
-        proxy = Vault(proxyAddr);
+        proxy = Account(proxyAddr);
         vm.stopPrank();
     }
 
@@ -564,7 +564,7 @@ contract AssetManagementTest is MainRegistryTest {
         assertEq(pricingModule, address(standardERC20PricingModule));
     }
 
-    function testRevert_batchProcessDeposit_NonVault(address unprivilegedAddress_) public {
+    function testRevert_batchProcessDeposit_NonAccount(address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != proxyAddr);
 
         address[] memory assetAddresses = new address[](1);
@@ -577,7 +577,7 @@ contract AssetManagementTest is MainRegistryTest {
         assetAmounts[0] = 1;
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("MR: Only Vaults.");
+        vm.expectRevert("MR: Only Accounts.");
         mainRegistry.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -755,7 +755,7 @@ contract AssetManagementTest is MainRegistryTest {
         success; //avoid warning
     }
 
-    function testRevert_batchProcessWithdrawal_NonVault(address unprivilegedAddress_) public {
+    function testRevert_batchProcessWithdrawal_NonAccount(address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != proxyAddr);
 
         address[] memory assetAddresses = new address[](1);
@@ -768,7 +768,7 @@ contract AssetManagementTest is MainRegistryTest {
         assetAmounts[0] = 1;
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("MR: Only Vaults.");
+        vm.expectRevert("MR: Only Accounts.");
         mainRegistry.batchProcessWithdrawal(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }

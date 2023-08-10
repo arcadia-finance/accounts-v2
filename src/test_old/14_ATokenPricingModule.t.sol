@@ -4,12 +4,12 @@
  */
 pragma solidity ^0.8.13;
 
-import "./fixtures/ArcadiaVaultsFixture.f.sol";
+import "./fixtures/ArcadiaAccountsFixture.f.sol";
 
 import { ATokenMock } from "../mockups/ATokenMock.sol";
 import { ATokenPricingModule } from "../PricingModules/ATokenPricingModule.sol";
 
-contract aTokenPricingModuleTest is DeployArcadiaVaults {
+contract aTokenPricingModuleTest is DeployArcadiaAccounts {
     using stdStorage for StdStorage;
 
     ATokenMock public aEth;
@@ -18,7 +18,7 @@ contract aTokenPricingModuleTest is DeployArcadiaVaults {
     ATokenPricingModule public aTokenPricingModule;
 
     //this is a before
-    constructor() DeployArcadiaVaults() {
+    constructor() DeployArcadiaAccounts() {
         vm.prank(tokenCreatorAddress);
         aEth = new ATokenMock(address(eth), "aETH Mock", "maETH", uint8(Constants.ethDecimals));
     }

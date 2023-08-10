@@ -43,8 +43,8 @@ abstract contract FactoryGuardian is BaseGuardian {
     */
 
     /**
-     * @dev This modifier is used to restrict access to certain functions when the contract is paused for create vault.
-     * It throws if create vault is paused.
+     * @dev This modifier is used to restrict access to certain functions when the contract is paused for create Accounts.
+     * It throws if create Account is paused.
      */
     modifier whenCreateNotPaused() {
         if (createPaused) revert FunctionIsPaused();
@@ -52,8 +52,8 @@ abstract contract FactoryGuardian is BaseGuardian {
     }
 
     /**
-     * @dev This modifier is used to restrict access to certain functions when the contract is paused for liquidate vaultq.
-     * It throws if liquidate vault is paused.
+     * @dev This modifier is used to restrict access to certain functions when the contract is paused for liquidate Account.
+     * It throws if liquidate Account is paused.
      */
     modifier whenLiquidateNotPaused() {
         if (liquidatePaused) revert FunctionIsPaused();

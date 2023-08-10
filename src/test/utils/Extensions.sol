@@ -6,7 +6,7 @@ pragma solidity ^0.8.13;
 
 import { MainRegistry } from "../../MainRegistry.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { Vault } from "../../Vault.sol";
+import { Account } from "../../Account.sol";
 
 contract MainRegistryExtension is MainRegistry {
     using FixedPointMathLib for uint256;
@@ -18,10 +18,10 @@ contract MainRegistryExtension is MainRegistry {
     }
 }
 
-contract VaultExtension is Vault {
-    constructor(address mainReg_, uint16 vaultVersion_) Vault() {
+contract AccountExtension is Account {
+    constructor(address mainReg_, uint16 accountVersion_) Account() {
         registry = mainReg_;
-        vaultVersion = vaultVersion_;
+        accountVersion = accountVersion_;
     }
 
     function getLengths() external view returns (uint256, uint256, uint256, uint256) {
@@ -36,8 +36,8 @@ contract VaultExtension is Vault {
         isTrustedCreditorSet = set;
     }
 
-    function setVaultVersion(uint16 version) public {
-        vaultVersion = version;
+    function setAccountVersion(uint16 version) public {
+        accountVersion = version;
     }
 
     function setFixedLiquidationCost(uint96 fixedLiquidationCost_) public {

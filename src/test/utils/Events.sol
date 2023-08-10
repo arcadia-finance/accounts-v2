@@ -22,10 +22,10 @@ abstract contract Events {
                                      Factory
     //////////////////////////////////////////////////////////////////////////*/
 
-    event VaultUpgraded(address indexed vaultAddress, uint16 oldVersion, uint16 indexed newVersion);
+    event AccountUpgraded(address indexed accountAddress, uint16 oldVersion, uint16 indexed newVersion);
 
     /*//////////////////////////////////////////////////////////////////////////
-                                      Vault
+                                      ACCOUNT
     //////////////////////////////////////////////////////////////////////////*/
 
     event TrustedMarginAccountChanged(address indexed protocol, address indexed liquidator);

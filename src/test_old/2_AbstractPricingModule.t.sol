@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.13;
 
-import "./fixtures/ArcadiaVaultsFixture.f.sol";
+import "./fixtures/ArcadiaAccountsFixture.f.sol";
 
 contract AbstractPricingModuleExtension is PricingModule {
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
@@ -25,7 +25,7 @@ contract AbstractPricingModuleExtension is PricingModule {
     }
 }
 
-contract AbstractPricingModuleTest is DeployArcadiaVaults {
+contract AbstractPricingModuleTest is DeployArcadiaAccounts {
     using stdStorage for StdStorage;
 
     AbstractPricingModuleExtension public abstractPricingModule;
@@ -39,7 +39,7 @@ contract AbstractPricingModuleTest is DeployArcadiaVaults {
     event MaxExposureSet(address indexed asset, uint128 maxExposure);
 
     //this is a before
-    constructor() DeployArcadiaVaults() { }
+    constructor() DeployArcadiaAccounts() { }
 
     //this is a before each
     function setUp() public {
@@ -349,13 +349,13 @@ contract AbstractPricingModuleTest is DeployArcadiaVaults {
         address unprivilegedAddress_,
         address asset,
         uint128 amount,
-        address vault_
+        address account_
     ) public {
         vm.assume(unprivilegedAddress_ != address(mainRegistry));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        abstractPricingModule.processDeposit(vault_, asset, 0, amount);
+        abstractPricingModule.processDeposit(account_, asset, 0, amount);
         vm.stopPrank();
     }
 
@@ -364,7 +364,7 @@ contract AbstractPricingModuleTest is DeployArcadiaVaults {
         uint128 exposure,
         uint128 amount,
         uint128 maxExposure,
-        address vault_
+        address account_
     ) public {
         vm.assume(exposure <= type(uint128).max - amount);
         vm.assume(exposure + amount > maxExposure);
@@ -372,7 +372,7 @@ contract AbstractPricingModuleTest is DeployArcadiaVaults {
 
         vm.startPrank(address(mainRegistry));
         vm.expectRevert("APM_PD: Exposure not in limits");
-        abstractPricingModule.processDeposit(vault_, address(asset), 0, amount);
+        abstractPricingModule.processDeposit(account_, address(asset), 0, amount);
         vm.stopPrank();
     }
 
@@ -381,14 +381,14 @@ contract AbstractPricingModuleTest is DeployArcadiaVaults {
         uint128 exposure,
         uint128 amount,
         uint128 maxExposure,
-        address vault_
+        address account_
     ) public {
         vm.assume(exposure <= type(uint128).max - amount);
         vm.assume(exposure + amount <= maxExposure);
         abstractPricingModule.setExposure(asset, exposure, maxExposure);
 
         vm.prank(address(mainRegistry));
-        abstractPricingModule.processDeposit(vault_, address(asset), 0, amount);
+        abstractPricingModule.processDeposit(account_, address(asset), 0, amount);
 
         (, uint128 actualExposure) = abstractPricingModule.exposure(address(asset));
         uint128 expectedExposure = exposure + amount;
@@ -401,13 +401,13 @@ contract AbstractPricingModuleTest is DeployArcadiaVaults {
         address asset,
         uint128 id,
         uint128 amount,
-        address vault_
+        address account_
     ) public {
         vm.assume(unprivilegedAddress_ != address(mainRegistry));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        abstractPricingModule.processWithdrawal(vault_, asset, id, amount);
+        abstractPricingModule.processWithdrawal(account_, asset, id, amount);
         vm.stopPrank();
     }
 
@@ -417,14 +417,14 @@ contract AbstractPricingModuleTest is DeployArcadiaVaults {
         uint128 amount,
         uint128 maxExposure,
         uint128 id,
-        address vault_
+        address account_
     ) public {
         vm.assume(maxExposure >= exposure);
         vm.assume(exposure >= amount);
         abstractPricingModule.setExposure(asset, exposure, maxExposure);
 
         vm.prank(address(mainRegistry));
-        abstractPricingModule.processWithdrawal(vault_, asset, id, amount);
+        abstractPricingModule.processWithdrawal(account_, asset, id, amount);
 
         (, uint128 actualExposure) = abstractPricingModule.exposure(address(asset));
         uint128 expectedExposure = exposure - amount;

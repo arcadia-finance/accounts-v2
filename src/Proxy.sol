@@ -16,7 +16,7 @@ contract Proxy {
     // This is the hardcoded keccak-256 hash of: "eip1967.proxy.implementation" subtracted by 1.
     bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
 
-    // Storage slot for the Vault logic, a struct to avoid storage conflict when dealing with upgradeable contracts.
+    // Storage slot for the Account logic, a struct to avoid storage conflict when dealing with upgradeable contracts.
     struct AddressSlot {
         address value;
     }
@@ -32,7 +32,7 @@ contract Proxy {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param logic The contract address of the Vault logic.
+     * @param logic The contract address of the Account logic.
      */
     constructor(address logic) payable {
         _getAddressSlot(_IMPLEMENTATION_SLOT).value = logic;

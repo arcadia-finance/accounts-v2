@@ -13,7 +13,7 @@ import { StandardERC20PricingModule } from "../src/PricingModules/StandardERC20P
 import { ILiquidator } from "./interfaces/ILiquidator.sol";
 import "../src/OracleHub.sol";
 
-contract ArcadiaVaultTransferOwnership is Test {
+contract ArcadiaAccountTransferOwnership is Test {
     Factory public factory;
     OracleHub public oracleHub;
     MainRegistry public mainRegistry;

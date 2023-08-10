@@ -5,7 +5,7 @@
 pragma solidity ^0.8.13;
 
 import { Base_IntegrationAndUnit_Test } from "../Base_IntegrationAndUnit.t.sol";
-import { Vault } from "../../Vault.sol";
+import { Account } from "../../Account.sol";
 import "../utils/Constants.sol";
 
 contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
@@ -22,69 +22,69 @@ contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
     }
 
     /* ///////////////////////////////////////////////////////////////
-                          VAULT MANAGEMENT
+                          Account MANAGEMENT
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_createVault_DeployVaultWithNoCreditor(uint256 salt) public {
-        // We assume that salt > 0 as we already deployed a vault with all inputs to 0
+    function testFuzz_createAccount_DeployAccountWithNoCreditor(uint256 salt) public {
+        // We assume that salt > 0 as we already deployed a Account with all inputs to 0
         vm.assume(salt > 0);
-        uint256 amountBefore = factory.allVaultsLength();
+        uint256 amountBefore = factory.allAccountsLength();
 
         vm.expectEmit();
         emit Transfer(address(0), address(this), amountBefore + 1);
         vm.expectEmit(false, true, true, true);
-        emit VaultUpgraded(address(0), 0, 1);
+        emit AccountUpgraded(address(0), 0, 1);
 
-        // Here we create a vault with no specific trusted creditor
-        address actualDeployed = factory.createVault(salt, 0, address(0), address(0));
+        // Here we create a Account with no specific trusted creditor
+        address actualDeployed = factory.createAccount(salt, 0, address(0), address(0));
 
-        assertEq(amountBefore + 1, factory.allVaultsLength());
-        assertEq(actualDeployed, factory.allVaults(factory.allVaultsLength() - 1));
-        assertEq(factory.vaultIndex(actualDeployed), (factory.allVaultsLength()));
-        assertEq(Vault(actualDeployed).trustedCreditor(), address(0));
-        assertEq(Vault(actualDeployed).isTrustedCreditorSet(), false);
-        assertEq(Vault(actualDeployed).owner(), address(this));
+        assertEq(amountBefore + 1, factory.allAccountsLength());
+        assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
+        assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
+        assertEq(Account(actualDeployed).trustedCreditor(), address(0));
+        assertEq(Account(actualDeployed).isTrustedCreditorSet(), false);
+        assertEq(Account(actualDeployed).owner(), address(this));
     }
 
-    function testFuzz_createVault_DeployVaultWithCreditor(uint256 salt) public {
-        // We assume that salt > 0 as we already deployed a vault with all inputs to 0
+    function testFuzz_createAccount_DeployAccountWithCreditor(uint256 salt) public {
+        // We assume that salt > 0 as we already deployed a Account with all inputs to 0
         vm.assume(salt > 0);
-        uint256 amountBefore = factory.allVaultsLength();
+        uint256 amountBefore = factory.allAccountsLength();
 
         vm.expectEmit();
         emit TrustedMarginAccountChanged(address(trustedCreditorWithParamsInit), Constants.initLiquidator);
         vm.expectEmit();
         emit Transfer(address(0), address(this), amountBefore + 1);
         vm.expectEmit(false, true, true, true);
-        emit VaultUpgraded(address(0), 0, 1);
+        emit AccountUpgraded(address(0), 0, 1);
 
-        // Here we create a vault by specifying the trusted creditor address
-        address actualDeployed = factory.createVault(salt, 0, address(0), address(trustedCreditorWithParamsInit));
+        // Here we create a Account by specifying the trusted creditor address
+        address actualDeployed = factory.createAccount(salt, 0, address(0), address(trustedCreditorWithParamsInit));
 
-        assertEq(amountBefore + 1, factory.allVaultsLength());
-        assertEq(actualDeployed, factory.allVaults(factory.allVaultsLength() - 1));
-        assertEq(factory.vaultIndex(actualDeployed), (factory.allVaultsLength()));
-        assertEq(Vault(actualDeployed).trustedCreditor(), address(trustedCreditorWithParamsInit));
-        assertEq(Vault(actualDeployed).isTrustedCreditorSet(), true);
+        assertEq(amountBefore + 1, factory.allAccountsLength());
+        assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
+        assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
+        assertEq(Account(actualDeployed).trustedCreditor(), address(trustedCreditorWithParamsInit));
+        assertEq(Account(actualDeployed).isTrustedCreditorSet(), true);
     }
 
-    function testFuzz_createVault_DeployNewProxyWithLogicOwner(uint256 salt, address sender) public {
-        // We assume that salt > 0 as we already deployed a vault with all inputs to 0
+    function testFuzz_createAccount_DeployNewProxyWithLogicOwner(uint256 salt, address sender) public {
+        // We assume that salt > 0 as we already deployed a Account with all inputs to 0
         vm.assume(salt > 0);
         vm.assume(sender != address(0));
-        uint256 amountBefore = factory.allVaultsLength();
+        uint256 amountBefore = factory.allAccountsLength();
         vm.prank(sender);
-        address actualDeployed = factory.createVault(salt, 0, address(0), address(0));
-        assertEq(amountBefore + 1, factory.allVaultsLength());
-        assertEq(Vault(actualDeployed).owner(), address(sender));
+        address actualDeployed = factory.createAccount(salt, 0, address(0), address(0));
+        assertEq(amountBefore + 1, factory.allAccountsLength());
+        assertEq(Account(actualDeployed).owner(), address(sender));
     }
 
-    function testFuzz_createVault_CreationCannotBeFrontRunnedWithIdenticalSalt(
+    function testFuzz_createAccount_CreationCannotBeFrontRunnedWithIdenticalSalt(
         uint256 salt,
         address sender0,
         address sender1
     ) public {
-        // We assume that salt > 0 as we already deployed a vault with all inputs to 0
+        // We assume that salt > 0 as we already deployed a Account with all inputs to 0
         vm.assume(salt > 0);
         vm.assume(sender0 != sender1);
         vm.assume(sender0 != address(0));
@@ -92,51 +92,54 @@ contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
 
         //Broadcast changes the tx.origin, prank only changes the msg.sender, not tx.origin
         vm.broadcast(sender0);
-        address proxy0 = factory.createVault(salt, 0, address(0), address(0));
+        address proxy0 = factory.createAccount(salt, 0, address(0), address(0));
 
         vm.broadcast(sender1);
-        address proxy1 = factory.createVault(salt, 0, address(0), address(0));
+        address proxy1 = factory.createAccount(salt, 0, address(0), address(0));
 
         assertTrue(proxy0 != proxy1);
     }
 
-    function testFuzz_Revert_createVault_CreateNonExistingVaultVersion(uint16 vaultVersion) public {
-        uint256 currentVersion = factory.latestVaultVersion();
-        vm.assume(vaultVersion > currentVersion);
+    function testFuzz_Revert_createAccount_CreateNonExistingAccountVersion(uint16 accountVersion) public {
+        uint256 currentVersion = factory.latestAccountVersion();
+        vm.assume(accountVersion > currentVersion);
 
-        vm.expectRevert("FTRY_CV: Unknown vault version");
-        factory.createVault(
-            uint256(keccak256(abi.encodePacked(vaultVersion, block.timestamp))), vaultVersion, address(0), address(0)
+        vm.expectRevert("FTRY_CV: Unknown Account version");
+        factory.createAccount(
+            uint256(keccak256(abi.encodePacked(accountVersion, block.timestamp))),
+            accountVersion,
+            address(0),
+            address(0)
         );
     }
 
-    function testFuzz_Revert_createVault_FromBlockedVersion(
-        uint16 vaultVersion,
+    function testFuzz_Revert_createAccount_FromBlockedVersion(
+        uint16 accountVersion,
         uint16 versionsToMake,
         uint16[] calldata versionsToBlock
     ) public {
         vm.assume(versionsToBlock.length < 10 && versionsToBlock.length > 0);
         vm.assume(uint256(versionsToMake) + 1 < type(uint16).max);
-        vm.assume(vaultVersion <= versionsToMake + 1);
+        vm.assume(accountVersion <= versionsToMake + 1);
         for (uint256 i; i < versionsToMake; ++i) {
             vm.prank(users.creatorAddress);
-            factory.setNewVaultInfo(address(mainRegistryExtension), address(vault), Constants.upgradeRoot1To2, "");
+            factory.setNewAccountInfo(address(mainRegistryExtension), address(account), Constants.upgradeRoot1To2, "");
         }
 
         for (uint256 y; y < versionsToBlock.length; ++y) {
-            if (versionsToBlock[y] == 0 || versionsToBlock[y] > factory.latestVaultVersion()) {
+            if (versionsToBlock[y] == 0 || versionsToBlock[y] > factory.latestAccountVersion()) {
                 continue;
             }
             vm.prank(users.creatorAddress);
-            factory.blockVaultVersion(versionsToBlock[y]);
+            factory.blockAccountVersion(versionsToBlock[y]);
         }
 
         for (uint256 z; z < versionsToBlock.length; ++z) {
-            if (versionsToBlock[z] == 0 || versionsToBlock[z] > factory.latestVaultVersion()) {
+            if (versionsToBlock[z] == 0 || versionsToBlock[z] > factory.latestAccountVersion()) {
                 continue;
             }
-            vm.expectRevert("FTRY_CV: Vault version blocked");
-            factory.createVault(
+            vm.expectRevert("FTRY_CV: Account version blocked");
+            factory.createAccount(
                 uint256(keccak256(abi.encodePacked(versionsToBlock[z], block.timestamp))),
                 versionsToBlock[z],
                 address(0),
@@ -145,8 +148,8 @@ contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
         }
     }
 
-    function testFuzz_Revert_createVault_Paused(uint256 salt, address sender, address guardian) public {
-        // We assume that salt > 0 as we already deployed a vault with all inputs to 0
+    function testFuzz_Revert_createAccount_Paused(uint256 salt, address sender, address guardian) public {
+        // We assume that salt > 0 as we already deployed a Account with all inputs to 0
         vm.assume(salt > 0);
         vm.assume(sender != address(0));
         vm.assume(guardian != address(0));
@@ -165,13 +168,13 @@ contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
         // Then: Reverted
         vm.prank(sender);
         vm.expectRevert(FunctionIsPaused.selector);
-        factory.createVault(salt, 0, address(0), address(0));
+        factory.createAccount(salt, 0, address(0), address(0));
     }
 
-    function test_isVault_positive() public {
-        address newVault = factory.createVault(1, 0, address(0), address(0));
+    function test_isAccount_positive() public {
+        address newAccount = factory.createAccount(1, 0, address(0), address(0));
 
-        bool expectedReturn = factory.isVault(address(newVault));
+        bool expectedReturn = factory.isAccount(address(newAccount));
         bool actualReturn = true;
 
         assertEq(expectedReturn, actualReturn);

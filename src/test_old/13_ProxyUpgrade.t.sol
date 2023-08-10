@@ -4,17 +4,17 @@
  */
 pragma solidity ^0.8.13;
 
-import "./fixtures/ArcadiaVaultsFixture.f.sol";
+import "./fixtures/ArcadiaAccountsFixture.f.sol";
 
-import { VaultV2 } from "../mockups/VaultV2.sol";
+import { AccountV2 } from "../mockups/AccountV2.sol";
 
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
 
-contract VaultV2Test is DeployArcadiaVaults {
+contract AccountV2Test is DeployArcadiaAccounts {
     using stdStorage for StdStorage;
 
-    VaultV2 private vaultV2;
+    AccountV2 private accountV2;
     address private proxyAddr2;
     address liquidator = address(8);
 
@@ -22,7 +22,7 @@ contract VaultV2Test is DeployArcadiaVaults {
 
     struct Checks {
         bool isTrustedCreditorSet;
-        uint16 vaultVersion;
+        uint16 accountVersion;
         address baseCurrency;
         address owner;
         address liquidator;
@@ -34,10 +34,10 @@ contract VaultV2Test is DeployArcadiaVaults {
     }
 
     // EVENTS
-    event VaultUpgraded(address indexed vaultAddress, uint16 oldVersion, uint16 indexed newVersion);
+    event AccountUpgraded(address indexed accountAddress, uint16 oldVersion, uint16 indexed newVersion);
 
     //this is a before
-    constructor() DeployArcadiaVaults() {
+    constructor() DeployArcadiaAccounts() {
         trustedCreditor = new TrustedCreditorMock();
         trustedCreditor.setBaseCurrency(address(dai));
         trustedCreditor.setLiquidator(liquidator);
@@ -45,8 +45,8 @@ contract VaultV2Test is DeployArcadiaVaults {
 
     //this is a before each
     function setUp() public {
-        vm.startPrank(vaultOwner);
-        proxyAddr = factory.createVault(
+        vm.startPrank(accountOwner);
+        proxyAddr = factory.createAccount(
             uint256(
                 keccak256(
                     abi.encodeWithSignature(
@@ -58,7 +58,7 @@ contract VaultV2Test is DeployArcadiaVaults {
             address(0),
             address(0)
         );
-        proxy = Vault(proxyAddr);
+        proxy = Account(proxyAddr);
         proxy.openTrustedMarginAccount(address(trustedCreditor));
         dai.approve(address(proxy), type(uint256).max);
 
@@ -72,56 +72,56 @@ contract VaultV2Test is DeployArcadiaVaults {
         safemoon.approve(address(proxy), type(uint256).max);
         dai.approve(liquidator, type(uint256).max);
 
-        vaultV2 = new VaultV2();
+        accountV2 = new AccountV2();
         vm.stopPrank();
     }
 
-    function testSuccess_upgradeVaultVersion_StorageVariablesAfterUpgradeAreIdentical(uint128 amount) public {
+    function testSuccess_upgradeAccountVersion_StorageVariablesAfterUpgradeAreIdentical(uint128 amount) public {
         vm.assume(amount > 0);
-        depositERC20InVault(eth, amount, vaultOwner);
+        depositERC20InAccount(eth, amount, accountOwner);
         uint128[] memory tokenIds = new uint128[](3);
         tokenIds[0] = 1;
         tokenIds[1] = 2;
         tokenIds[2] = 3;
-        depositERC721InVault(bayc, tokenIds, vaultOwner);
-        depositERC1155InVault(interleave, 1, 1000, vaultOwner);
+        depositERC721InAccount(bayc, tokenIds, accountOwner);
+        depositERC1155InAccount(interleave, 1, 1000, accountOwner);
 
         Checks memory checkBefore = createCompareStruct();
 
         vm.startPrank(creatorAddress);
-        factory.setNewVaultInfo(address(mainRegistry), address(vaultV2), Constants.upgradeRoot1To2, "");
+        factory.setNewAccountInfo(address(mainRegistry), address(accountV2), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
 
         bytes32[] memory proofs = new bytes32[](1);
         proofs[0] = Constants.upgradeProof1To2;
 
-        vm.startPrank(vaultOwner);
+        vm.startPrank(accountOwner);
         vm.expectEmit(true, true, true, true);
-        emit VaultUpgraded(address(proxy), 1, 2);
-        factory.upgradeVaultVersion(address(proxy), factory.latestVaultVersion(), proofs);
+        emit AccountUpgraded(address(proxy), 1, 2);
+        factory.upgradeAccountVersion(address(proxy), factory.latestAccountVersion(), proofs);
         vm.stopPrank();
 
-        assertEq(VaultV2(proxyAddr).check(), 5);
+        assertEq(AccountV2(proxyAddr).check(), 5);
 
         Checks memory checkAfter = createCompareStruct();
 
         assertEq(keccak256(abi.encode(checkAfter)), keccak256(abi.encode(checkBefore)));
-        assertEq(factory.latestVaultVersion(), proxy.vaultVersion());
+        assertEq(factory.latestAccountVersion(), proxy.accountVersion());
     }
 
-    function testRevert_upgradeVaultVersion_IncompatibleVersionWithCurrentVault(uint128 amount) public {
-        depositERC20InVault(eth, amount, vaultOwner);
+    function testRevert_upgradeAccountVersion_IncompatibleVersionWithCurrentAccount(uint128 amount) public {
+        depositERC20InAccount(eth, amount, accountOwner);
         uint128[] memory tokenIds = new uint128[](3);
         tokenIds[0] = 1;
         tokenIds[1] = 2;
         tokenIds[2] = 3;
-        depositERC721InVault(bayc, tokenIds, vaultOwner);
-        depositERC1155InVault(interleave, 1, 1000, vaultOwner);
+        depositERC721InAccount(bayc, tokenIds, accountOwner);
+        depositERC1155InAccount(interleave, 1, 1000, accountOwner);
 
         Checks memory checkBefore = createCompareStruct();
 
         vm.startPrank(creatorAddress);
-        factory.setNewVaultInfo(address(mainRegistry), address(vaultV2), Constants.upgradeRoot1To2, "");
+        factory.setNewAccountInfo(address(mainRegistry), address(accountV2), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
 
         bytes32[] memory proofs = new bytes32[](1);
@@ -129,9 +129,9 @@ contract VaultV2Test is DeployArcadiaVaults {
 
         trustedCreditor.setCallResult(false);
 
-        vm.startPrank(vaultOwner);
+        vm.startPrank(accountOwner);
         vm.expectRevert("FTR_UVV: Version not allowed");
-        factory.upgradeVaultVersion(address(proxy), 0, proofs);
+        factory.upgradeAccountVersion(address(proxy), 0, proofs);
         vm.stopPrank();
 
         Checks memory checkAfter = createCompareStruct();
@@ -139,11 +139,11 @@ contract VaultV2Test is DeployArcadiaVaults {
         assertEq(keccak256(abi.encode(checkAfter)), keccak256(abi.encode(checkBefore)));
     }
 
-    function testRevert_upgradeVaultVersion_UpgradeVaultByNonOwner(address sender) public {
+    function testRevert_upgradeAccountVersion_UpgradeAccountByNonOwner(address sender) public {
         vm.assume(sender != address(6));
 
         vm.startPrank(creatorAddress);
-        factory.setNewVaultInfo(address(mainRegistry), address(vaultV2), Constants.upgradeRoot1To2, "");
+        factory.setNewAccountInfo(address(mainRegistry), address(accountV2), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
 
         bytes32[] memory proofs = new bytes32[](1);
@@ -151,11 +151,11 @@ contract VaultV2Test is DeployArcadiaVaults {
 
         vm.startPrank(sender);
         vm.expectRevert("FTRY_UVV: Only Owner");
-        factory.upgradeVaultVersion(address(proxy), 2, proofs);
+        factory.upgradeAccountVersion(address(proxy), 2, proofs);
         vm.stopPrank();
     }
 
-    function depositERC20InVault(ERC20Mock token, uint128 amount, address sender)
+    function depositERC20InAccount(ERC20Mock token, uint128 amount, address sender)
         public
         returns (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts)
     {
@@ -176,7 +176,7 @@ contract VaultV2Test is DeployArcadiaVaults {
         vm.stopPrank();
     }
 
-    function depositERC20InVaultV2(ERC20Mock token, uint128 amount, address sender)
+    function depositERC20InAccountV2(ERC20Mock token, uint128 amount, address sender)
         public
         returns (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts)
     {
@@ -193,11 +193,11 @@ contract VaultV2Test is DeployArcadiaVaults {
         token.mint(sender, amount);
 
         vm.startPrank(sender);
-        vaultV2.deposit(assetAddresses, assetIds, assetAmounts);
+        accountV2.deposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
 
-    function depositERC721InVault(ERC721Mock token, uint128[] memory tokenIds, address sender)
+    function depositERC721InAccount(ERC721Mock token, uint128[] memory tokenIds, address sender)
         public
         returns (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts)
     {
@@ -223,7 +223,7 @@ contract VaultV2Test is DeployArcadiaVaults {
         vm.stopPrank();
     }
 
-    function depositERC1155InVault(ERC1155Mock token, uint256 tokenId, uint256 amount, address sender)
+    function depositERC1155InAccount(ERC1155Mock token, uint256 tokenId, uint256 amount, address sender)
         public
         returns (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts)
     {

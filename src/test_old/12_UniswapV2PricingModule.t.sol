@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.13;
 
-import "./fixtures/ArcadiaVaultsFixture.f.sol";
+import "./fixtures/ArcadiaAccountsFixture.f.sol";
 import "../mockups/UniswapV2FactoryMock.sol";
 import "../mockups/UniswapV2PairMock.sol";
 import { UniswapV2PricingModule } from "../PricingModules/UniswapV2PricingModule.sol";
@@ -65,7 +65,7 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
     }
 }
 
-abstract contract UniswapV2PricingModuleTest is DeployArcadiaVaults {
+abstract contract UniswapV2PricingModuleTest is DeployArcadiaAccounts {
     using stdStorage for StdStorage;
 
     UniswapV2FactoryMock public uniswapV2Factory;
@@ -83,7 +83,7 @@ abstract contract UniswapV2PricingModuleTest is DeployArcadiaVaults {
     address[] public oracleSnxToUsdArr = new address[](1);
 
     //this is a before
-    constructor() DeployArcadiaVaults() {
+    constructor() DeployArcadiaAccounts() {
         vm.startPrank(haydenAdams);
         uniswapV2Factory = new UniswapV2FactoryMock();
         uniswapV2Pair = new UniswapV2PairMock();

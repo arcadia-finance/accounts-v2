@@ -4,32 +4,32 @@
  */
 pragma solidity ^0.8.13;
 
-import "./fixtures/ArcadiaVaultsFixture.f.sol";
+import "./fixtures/ArcadiaAccountsFixture.f.sol";
 
-contract FactoryTest is DeployArcadiaVaults {
+contract FactoryTest is DeployArcadiaAccounts {
     using stdStorage for StdStorage;
 
     MainRegistry internal mainRegistry2;
 
     //events
     event Transfer(address indexed from, address indexed to, uint256 indexed id);
-    event VaultUpgraded(address indexed vaultAddress, uint16 oldVersion, uint16 indexed newVersion);
-    event VaultVersionAdded(
+    event AccountUpgraded(address indexed accountAddress, uint16 oldVersion, uint16 indexed newVersion);
+    event AccountVersionAdded(
         uint16 indexed version, address indexed registry, address indexed logic, bytes32 versionRoot
     );
-    event VaultVersionBlocked(uint16 version);
+    event AccountVersionBlocked(uint16 version);
 
     error FunctionIsPaused();
 
     //this is a before
-    constructor() DeployArcadiaVaults() { }
+    constructor() DeployArcadiaAccounts() { }
 
     //this is a before each
     function setUp() public {
         vm.startPrank(creatorAddress);
         factory = new FactoryExtension();
         mainRegistry = new mainRegistryExtension(address(factory));
-        factory.setNewVaultInfo(address(mainRegistry), address(vault), Constants.upgradeRoot1To2, "");
+        factory.setNewAccountInfo(address(mainRegistry), address(account), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
     }
 
@@ -65,85 +65,85 @@ contract FactoryTest is DeployArcadiaVaults {
     }
 
     /* ///////////////////////////////////////////////////////////////
-                          VAULT MANAGEMENT
+                          ACCOUNT MANAGEMENT
     /////////////////////////////////////////////////////////////// */
 
     // Test migrated to new test
-    /*     function testSuccess_createVault_DeployVaultContractMappings(uint256 salt) public {
+    /*     function testSuccess_createAccount_DeployAccountContractMappings(uint256 salt) public {
     } */
 
     // Test migrated to new test suite
-    /*     function testSuccess_createVault_DeployNewProxyWithLogic(uint256 salt) public {
+    /*     function testSuccess_createAccount_DeployNewProxyWithLogic(uint256 salt) public {
     } */
 
     // Test migrated to new test suite
-    /*     function testSuccess_createVault_DeployNewProxyWithLogicOwner(uint256 salt, address sender) public {
+    /*     function testSuccess_createAccount_DeployNewProxyWithLogicOwner(uint256 salt, address sender) public {
     } */
 
     // Test migrated to new test suite
-    /*     function testSuccess_createVault_CreationCannotBeFrontRunnedWithIdenticalSalt(
+    /*     function testSuccess_createAccount_CreationCannotBeFrontRunnedWithIdenticalSalt(
         uint256 salt,
         address sender0,
         address sender1
     ) public {} */
 
     // Test migrated to new test suite
-    /*     function testRevert_createVault_CreateNonExistingVaultVersion(uint16 vaultVersion) public {} */
+    /*     function testRevert_createAccount_CreateNonExistingAccountVersion(uint16 accountVersion) public {} */
 
     // Test migrated to new test suite
-    /*     function testRevert_createVault_FromBlockedVersion(
-        uint16 vaultVersion,
+    /*     function testRevert_createAccount_FromBlockedVersion(
+        uint16 accountVersion,
         uint16 versionsToMake,
         uint16[] calldata versionsToBlock
     ) public {} */
 
     // Test migrated to new test suite
-    /*     function testRevert_createVault_Paused(uint256 salt, address sender, address guardian) public {} */
+    /*     function testRevert_createAccount_Paused(uint256 salt, address sender, address guardian) public {} */
 
     // Test migrated to new test suite
-    /*     function testSuccess_isVault_positive() public {} */
+    /*     function testSuccess_isAccount_positive() public {} */
 
-    function testSuccess_isVault_negative(address random) public {
-        bool expectedReturn = factory.isVault(random);
+    function testSuccess_isAccount_negative(address random) public {
+        bool expectedReturn = factory.isAccount(random);
         bool actualReturn = false;
 
         assertEq(expectedReturn, actualReturn);
     }
 
-    function testSuccess_ownerOfVault_NonVault(address nonVault) public {
-        assertEq(factory.ownerOfVault(nonVault), address(0));
+    function testSuccess_ownerOfAccount_NonAccount(address nonAccount) public {
+        assertEq(factory.ownerOfAccount(nonAccount), address(0));
     }
 
     /* ///////////////////////////////////////////////////////////////
-                    VAULT VERSION MANAGEMENT
+                    ACCOUNT VERSION MANAGEMENT
     /////////////////////////////////////////////////////////////// */
 
-    function testRevert_setNewVaultInfo_NonOwner(address unprivilegedAddress_) public {
+    function testRevert_setNewAccountInfo_NonOwner(address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != creatorAddress);
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
-        factory.setNewVaultInfo(address(mainRegistry), address(proxyAddr), Constants.upgradeRoot1To2, "");
+        factory.setNewAccountInfo(address(mainRegistry), address(proxyAddr), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
     }
 
-    function testRevert_setNewVaultInfo_VersionRootIsZero(address mainRegistry_, address logic) public {
+    function testRevert_setNewAccountInfo_VersionRootIsZero(address mainRegistry_, address logic) public {
         vm.startPrank(creatorAddress);
         vm.expectRevert("FTRY_SNVI: version root is zero");
-        factory.setNewVaultInfo(mainRegistry_, logic, bytes32(0), "");
+        factory.setNewAccountInfo(mainRegistry_, logic, bytes32(0), "");
         vm.stopPrank();
     }
 
-    function testRevert_setNewVaultInfo_LogicAddressIsZero(address mainRegistry_, bytes32 versionRoot) public {
+    function testRevert_setNewAccountInfo_LogicAddressIsZero(address mainRegistry_, bytes32 versionRoot) public {
         vm.assume(versionRoot != bytes32(0));
 
         vm.startPrank(creatorAddress);
         vm.expectRevert("FTRY_SNVI: logic address is zero");
-        factory.setNewVaultInfo(mainRegistry_, address(0), versionRoot, "");
+        factory.setNewAccountInfo(mainRegistry_, address(0), versionRoot, "");
         vm.stopPrank();
     }
 
-    function testRevert_setNewVaultInfo_OwnerSetsNewVaultWithInfoMissingBaseCurrencyInMainRegistry(
+    function testRevert_setNewAccountInfo_OwnerSetsNewAccountWithInfoMissingBaseCurrencyInMainRegistry(
         address newAssetAddress,
         address logic
     ) public {
@@ -163,11 +163,11 @@ contract FactoryTest is DeployArcadiaVaults {
 
         mainRegistry2 = new mainRegistryExtension(address(factory));
         vm.expectRevert("FTRY_SNVI: counter mismatch");
-        factory.setNewVaultInfo(address(mainRegistry2), logic, Constants.upgradeProof1To2, "");
+        factory.setNewAccountInfo(address(mainRegistry2), logic, Constants.upgradeProof1To2, "");
         vm.stopPrank();
     }
 
-    function testRevert_setNewVaultInfo_OwnerSetsNewVaultInfoWithDifferentBaseCurrencyInMainRegistry(
+    function testRevert_setNewAccountInfo_OwnerSetsNewAccountInfoWithDifferentBaseCurrencyInMainRegistry(
         address randomAssetAddress,
         address logic
     ) public {
@@ -199,35 +199,35 @@ contract FactoryTest is DeployArcadiaVaults {
             })
         );
         vm.expectRevert("FTRY_SNVI: no baseCurrency match");
-        factory.setNewVaultInfo(address(mainRegistry2), logic, Constants.upgradeProof1To2, "");
+        factory.setNewAccountInfo(address(mainRegistry2), logic, Constants.upgradeProof1To2, "");
         vm.stopPrank();
     }
 
-    function testSuccess_setNewVaultInfo(address mainRegistry_, address logic, bytes calldata data) public {
+    function testSuccess_setNewAccountInfo(address mainRegistry_, address logic, bytes calldata data) public {
         vm.assume(logic != address(0));
 
         vm.prank(creatorAddress);
         factory = new FactoryExtension();
-        assertTrue(factory.getVaultVersionRoot() == bytes32(0));
+        assertTrue(factory.getAccountVersionRoot() == bytes32(0));
 
-        uint256 latestVaultVersionPre = factory.latestVaultVersion();
+        uint256 latestAccountVersionPre = factory.latestAccountVersion();
 
         vm.startPrank(creatorAddress);
         vm.expectEmit(true, true, true, true);
-        emit VaultVersionAdded(uint16(latestVaultVersionPre + 1), mainRegistry_, logic, Constants.upgradeRoot1To2);
-        factory.setNewVaultInfo(mainRegistry_, logic, Constants.upgradeRoot1To2, data);
+        emit AccountVersionAdded(uint16(latestAccountVersionPre + 1), mainRegistry_, logic, Constants.upgradeRoot1To2);
+        factory.setNewAccountInfo(mainRegistry_, logic, Constants.upgradeRoot1To2, data);
         vm.stopPrank();
 
         (address registry_, address addresslogic_, bytes32 root, bytes memory data_) =
-            factory.vaultDetails(latestVaultVersionPre + 1);
+            factory.accountDetails(latestAccountVersionPre + 1);
         assertEq(registry_, mainRegistry_);
         assertEq(addresslogic_, logic);
         assertEq(root, Constants.upgradeRoot1To2);
         assertEq(data_, data);
-        assertEq(factory.latestVaultVersion(), latestVaultVersionPre + 1);
+        assertEq(factory.latestAccountVersion(), latestAccountVersionPre + 1);
     }
 
-    function testSuccess_setNewVaultInfo_OwnerSetsNewVaultWithIdenticalBaseCurrenciesInMainRegistry(
+    function testSuccess_setNewAccountInfo_OwnerSetsNewAccountWithIdenticalBaseCurrenciesInMainRegistry(
         address newAssetAddress,
         address logic,
         bytes calldata data
@@ -235,7 +235,7 @@ contract FactoryTest is DeployArcadiaVaults {
         vm.assume(logic != address(0));
         vm.assume(newAssetAddress != address(0));
 
-        uint256 latestVaultVersionPre = factory.latestVaultVersion();
+        uint256 latestAccountVersionPre = factory.latestAccountVersion();
 
         vm.startPrank(creatorAddress);
         mainRegistry.addBaseCurrency(
@@ -258,13 +258,13 @@ contract FactoryTest is DeployArcadiaVaults {
                 baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.ethDecimals))
             })
         );
-        factory.setNewVaultInfo(address(mainRegistry2), logic, Constants.upgradeProof1To2, data);
+        factory.setNewAccountInfo(address(mainRegistry2), logic, Constants.upgradeProof1To2, data);
         vm.stopPrank();
 
-        assertEq(factory.latestVaultVersion(), ++latestVaultVersionPre);
+        assertEq(factory.latestAccountVersion(), ++latestAccountVersionPre);
     }
 
-    function testSuccess_setNewVaultInfo_OwnerSetsNewVaultWithMoreBaseCurrenciesInMainRegistry(
+    function testSuccess_setNewAccountInfo_OwnerSetsNewAccountWithMoreBaseCurrenciesInMainRegistry(
         address newAssetAddress,
         address logic,
         bytes calldata data
@@ -272,7 +272,7 @@ contract FactoryTest is DeployArcadiaVaults {
         vm.assume(logic != address(0));
         vm.assume(newAssetAddress != address(0));
 
-        uint256 latestVaultVersionPre = factory.latestVaultVersion();
+        uint256 latestAccountVersionPre = factory.latestAccountVersion();
 
         vm.startPrank(creatorAddress);
         mainRegistry2 = new mainRegistryExtension(address(factory));
@@ -285,56 +285,56 @@ contract FactoryTest is DeployArcadiaVaults {
                 baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.ethDecimals))
             })
         );
-        factory.setNewVaultInfo(address(mainRegistry2), logic, Constants.upgradeProof1To2, data);
+        factory.setNewAccountInfo(address(mainRegistry2), logic, Constants.upgradeProof1To2, data);
         vm.stopPrank();
 
-        assertEq(factory.latestVaultVersion(), ++latestVaultVersionPre);
+        assertEq(factory.latestAccountVersion(), ++latestAccountVersionPre);
     }
 
-    function testRevert_blockVaultVersion_NonOwner(uint16 vaultVersion, address unprivilegedAddress_) public {
+    function testRevert_blockAccountVersion_NonOwner(uint16 accountVersion, address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != creatorAddress);
 
-        uint256 currentVersion = factory.latestVaultVersion();
-        vm.assume(vaultVersion <= currentVersion);
-        vm.assume(vaultVersion != 0);
+        uint256 currentVersion = factory.latestAccountVersion();
+        vm.assume(accountVersion <= currentVersion);
+        vm.assume(accountVersion != 0);
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
-        factory.blockVaultVersion(vaultVersion);
+        factory.blockAccountVersion(accountVersion);
         vm.stopPrank();
     }
 
-    function testRevert_blockVaultVersion_BlockNonExistingVaultVersion(uint16 vaultVersion) public {
-        uint256 currentVersion = factory.latestVaultVersion();
-        vm.assume(vaultVersion > currentVersion || vaultVersion == 0);
+    function testRevert_blockAccountVersion_BlockNonExistingAccountVersion(uint16 accountVersion) public {
+        uint256 currentVersion = factory.latestAccountVersion();
+        vm.assume(accountVersion > currentVersion || accountVersion == 0);
 
         vm.startPrank(creatorAddress);
         vm.expectRevert("FTRY_BVV: Invalid version");
-        factory.blockVaultVersion(vaultVersion);
+        factory.blockAccountVersion(accountVersion);
         vm.stopPrank();
     }
 
-    function testSuccess_blockVaultVersion(uint16 vaultVersion) public {
-        uint256 currentVersion = factory.latestVaultVersion();
-        vm.assume(vaultVersion <= currentVersion);
-        vm.assume(vaultVersion != 0);
+    function testSuccess_blockAccountVersion(uint16 accountVersion) public {
+        uint256 currentVersion = factory.latestAccountVersion();
+        vm.assume(accountVersion <= currentVersion);
+        vm.assume(accountVersion != 0);
 
         vm.startPrank(creatorAddress);
         vm.expectEmit(true, true, true, true);
-        emit VaultVersionBlocked(vaultVersion);
-        factory.blockVaultVersion(vaultVersion);
+        emit AccountVersionBlocked(accountVersion);
+        factory.blockAccountVersion(accountVersion);
         vm.stopPrank();
 
-        assertTrue(factory.vaultVersionBlocked(vaultVersion));
+        assertTrue(factory.accountVersionBlocked(accountVersion));
     }
 
     /* ///////////////////////////////////////////////////////////////
-                    VAULT LIQUIDATION LOGIC
+                    ACCOUNT LIQUIDATION LOGIC
     /////////////////////////////////////////////////////////////// */
 
-    function testRevert_liquidate_NonVault(address liquidator_, address nonVault) public {
-        vm.startPrank(nonVault);
-        vm.expectRevert("FTRY: Not a vault");
+    function testRevert_liquidate_NonAccount(address liquidator_, address nonAccount) public {
+        vm.startPrank(nonAccount);
+        vm.expectRevert("FTRY: Not a Account");
         factory.liquidate(liquidator_);
         vm.stopPrank();
     }
@@ -343,8 +343,8 @@ contract FactoryTest is DeployArcadiaVaults {
                         HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
-    function testSuccess_allVaultsLength_VaultIdStartFromZero() public {
-        assertEq(factory.allVaultsLength(), 0);
+    function testSuccess_allAccountsLength_AccountIdStartFromZero() public {
+        assertEq(factory.allAccountsLength(), 0);
     }
 
     /* ///////////////////////////////////////////////////////////////
