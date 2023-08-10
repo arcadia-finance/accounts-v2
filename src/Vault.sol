@@ -113,7 +113,6 @@ contract Vault is VaultStorageV1, IVault {
      * @param baseCurrency_ The Base-currency in which the vault is denominated.
      */
     function initialize(address owner_, address registry_, address baseCurrency_) external {
-        require(owner == address(0), "V_I: Already initialized!");
         require(registry == address(0), "V_I: Already initialized!");
         require(registry_ != address(0), "V_I: Registry cannot be 0!");
         owner = owner_;
