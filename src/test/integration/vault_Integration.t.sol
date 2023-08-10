@@ -5,7 +5,7 @@
 pragma solidity ^0.8.13;
 
 import { Base_IntegrationAndUnit_Test } from "../Base_IntegrationAndUnit.t.sol";
-import { Account } from "../../Account.sol";
+import { AccountV1 } from "../../AccountV1.sol";
 import "../utils/Constants.sol";
 
 contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
@@ -27,42 +27,42 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
 
     function test_openTrustedMarginAccount() public {
         // Assert no creditor has been set on deployment
-        assertEq(Account(deployedAccountInputs0).trustedCreditor(), address(0));
-        assertEq(Account(deployedAccountInputs0).isTrustedCreditorSet(), false);
+        assertEq(AccountV1(deployedAccountInputs0).trustedCreditor(), address(0));
+        assertEq(AccountV1(deployedAccountInputs0).isTrustedCreditorSet(), false);
         // Assert no liquidator, baseCurrency and liquidation costs have been defined on deployment
-        assertEq(Account(deployedAccountInputs0).liquidator(), address(0));
-        assertEq(Account(deployedAccountInputs0).fixedLiquidationCost(), 0);
-        assertEq(Account(deployedAccountInputs0).baseCurrency(), address(0));
+        assertEq(AccountV1(deployedAccountInputs0).liquidator(), address(0));
+        assertEq(AccountV1(deployedAccountInputs0).fixedLiquidationCost(), 0);
+        assertEq(AccountV1(deployedAccountInputs0).baseCurrency(), address(0));
 
         // Open a margin account
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
         emit TrustedMarginAccountChanged(address(trustedCreditorWithParamsInit), Constants.initLiquidator);
-        Account(deployedAccountInputs0).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
+        AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
         vm.stopPrank();
 
         // Assert a creditor has been set and other variables updated
-        assertEq(Account(deployedAccountInputs0).trustedCreditor(), address(trustedCreditorWithParamsInit));
-        assertEq(Account(deployedAccountInputs0).isTrustedCreditorSet(), true);
-        assertEq(Account(deployedAccountInputs0).liquidator(), Constants.initLiquidator);
-        assertEq(Account(deployedAccountInputs0).fixedLiquidationCost(), Constants.initLiquidationCost);
-        assertEq(Account(deployedAccountInputs0).baseCurrency(), initBaseCurrency);
+        assertEq(AccountV1(deployedAccountInputs0).trustedCreditor(), address(trustedCreditorWithParamsInit));
+        assertEq(AccountV1(deployedAccountInputs0).isTrustedCreditorSet(), true);
+        assertEq(AccountV1(deployedAccountInputs0).liquidator(), Constants.initLiquidator);
+        assertEq(AccountV1(deployedAccountInputs0).fixedLiquidationCost(), Constants.initLiquidationCost);
+        assertEq(AccountV1(deployedAccountInputs0).baseCurrency(), initBaseCurrency);
     }
 
     function testRevert_openTrustedMarginAccount_NotOwner() public {
         // Should revert if not called by the owner
         vm.expectRevert("V: Only Owner");
-        Account(deployedAccountInputs0).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
+        AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
     }
 
     function testRevert_openTrustedMarginAccount_AlreadySet() public {
         // Open a margin account => will set a trusted creditor
         vm.startPrank(users.accountOwner);
-        Account(deployedAccountInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
+        AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
 
         // Should revert if a trusted creditor is already set
         vm.expectRevert("V_OTMA: ALREADY SET");
-        Account(deployedAccountInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
+        AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
     }
 
     function testRevert_openTrustedMarginAccount_InvalidAccountVersion() public {
@@ -70,7 +70,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         defaultTrustedCreditor.setCallResult(false);
         vm.startPrank(users.accountOwner);
         vm.expectRevert("V_OTMA: Invalid Version");
-        Account(deployedAccountInputs0).openTrustedMarginAccount((address(defaultTrustedCreditor)));
+        AccountV1(deployedAccountInputs0).openTrustedMarginAccount((address(defaultTrustedCreditor)));
         vm.stopPrank();
     }
 
@@ -78,7 +78,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         public
     {
         // Confirm initial base currency is not set for the Account
-        assertEq(Account(deployedAccountInputs0).baseCurrency(), address(0));
+        assertEq(AccountV1(deployedAccountInputs0).baseCurrency(), address(0));
 
         // Update base currency of the trusted creditor to TOKEN1
         defaultTrustedCreditor.setBaseCurrency(address(mockERC20.token1));
@@ -92,31 +92,31 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         emit BaseCurrencySet(address(mockERC20.token1));
         vm.expectEmit();
         emit TrustedMarginAccountChanged(address(defaultTrustedCreditor), liquidator);
-        Account(deployedAccountInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
+        AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
         vm.stopPrank();
 
-        assertEq(Account(deployedAccountInputs0).trustedCreditor(), address(defaultTrustedCreditor));
-        assertEq(Account(deployedAccountInputs0).isTrustedCreditorSet(), true);
-        assertEq(Account(deployedAccountInputs0).liquidator(), liquidator);
-        assertEq(Account(deployedAccountInputs0).baseCurrency(), address(mockERC20.token1));
-        assertEq(Account(deployedAccountInputs0).fixedLiquidationCost(), fixedLiquidationCost);
+        assertEq(AccountV1(deployedAccountInputs0).trustedCreditor(), address(defaultTrustedCreditor));
+        assertEq(AccountV1(deployedAccountInputs0).isTrustedCreditorSet(), true);
+        assertEq(AccountV1(deployedAccountInputs0).liquidator(), liquidator);
+        assertEq(AccountV1(deployedAccountInputs0).baseCurrency(), address(mockERC20.token1));
+        assertEq(AccountV1(deployedAccountInputs0).fixedLiquidationCost(), fixedLiquidationCost);
     }
 
     function test_openTrustedMarginAccount_SameBaseCurrency() public {
         // Deploy a Account with baseCurrency set to STABLE1
         address deployedAccount = factory.createAccount(1111, 0, address(mockERC20.stable1), address(0));
-        assertEq(Account(deployedAccount).baseCurrency(), address(mockERC20.stable1));
+        assertEq(AccountV1(deployedAccount).baseCurrency(), address(mockERC20.stable1));
         assertEq(trustedCreditorWithParamsInit.baseCurrency(), address(mockERC20.stable1));
 
         vm.expectEmit();
         emit TrustedMarginAccountChanged(address(trustedCreditorWithParamsInit), Constants.initLiquidator);
-        Account(deployedAccount).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
+        AccountV1(deployedAccount).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
 
-        assertEq(Account(deployedAccount).liquidator(), Constants.initLiquidator);
-        assertEq(Account(deployedAccount).trustedCreditor(), address(trustedCreditorWithParamsInit));
-        assertEq(Account(deployedAccount).baseCurrency(), address(mockERC20.stable1));
-        assertEq(Account(deployedAccount).fixedLiquidationCost(), Constants.initLiquidationCost);
-        assertTrue(Account(deployedAccount).isTrustedCreditorSet());
+        assertEq(AccountV1(deployedAccount).liquidator(), Constants.initLiquidator);
+        assertEq(AccountV1(deployedAccount).trustedCreditor(), address(trustedCreditorWithParamsInit));
+        assertEq(AccountV1(deployedAccount).baseCurrency(), address(mockERC20.stable1));
+        assertEq(AccountV1(deployedAccount).fixedLiquidationCost(), Constants.initLiquidationCost);
+        assertTrue(AccountV1(deployedAccount).isTrustedCreditorSet());
     }
 
     function testRevert_initialize_AlreadyInitialized() public {

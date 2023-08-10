@@ -4,10 +4,11 @@
  */
 pragma solidity ^0.8.13;
 
-import { Test } from "forge-std/Test.sol";
+import { Test } from "../../lib/forge-std/src/Test.sol";
 import { Users, MockOracles, MockERC20, MockERC721, Rates } from "./utils/Types.sol";
 import { Factory } from "../Factory.sol";
-import { Account } from "../Account.sol";
+import { AccountV1 } from "../AccountV1.sol";
+import { AccountV2 } from "../mockups/AccountV2.sol";
 import { MainRegistryExtension, AccountExtension } from "./utils/Extensions.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import "./utils/Constants.sol";
@@ -34,8 +35,8 @@ abstract contract Base_Global_Test is Test, Events, Errors {
 
     Factory internal factory;
     MainRegistryExtension internal mainRegistryExtension;
-    Account internal account;
-    Account internal accountV2;
+    AccountV1 internal account;
+    AccountV2 internal accountV2;
     AccountExtension internal accountExtension;
     TrustedCreditorMock internal trustedCreditorWithParamsInit;
     TrustedCreditorMock internal defaultTrustedCreditor;
@@ -61,8 +62,8 @@ abstract contract Base_Global_Test is Test, Events, Errors {
         vm.startPrank(users.creatorAddress);
         factory = new Factory();
         mainRegistryExtension = new MainRegistryExtension(address(factory));
-        account = new Account();
-        accountV2 = new Account();
+        account = new AccountV1();
+        accountV2 = new AccountV2();
         accountExtension = new AccountExtension(address(mainRegistryExtension), 1);
         factory.setNewAccountInfo(address(mainRegistryExtension), address(account), Constants.upgradeProof1To2, "");
         trustedCreditorWithParamsInit = new TrustedCreditorMock();

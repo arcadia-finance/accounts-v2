@@ -7,7 +7,7 @@ pragma solidity ^0.8.13;
 import { Base_Invariant_Test } from "./Base_Invariant.t.sol";
 import { FactoryHandler } from "./handlers/FactoryHandler.sol";
 import { Factory } from "../../Factory.sol";
-import { Account } from "../../Account.sol";
+import { AccountV1 } from "../../AccountV1.sol";
 
 /// @dev Invariant tests for { Factory }.
 contract Factory_Invariant_Test is Base_Invariant_Test {
@@ -37,7 +37,7 @@ contract Factory_Invariant_Test is Base_Invariant_Test {
     function invariant_latestAccountVersion() public {
         uint256 numberOfAccounts = factory.allAccountsLength();
         address latestDeployedAccount = factory.allAccounts(numberOfAccounts - 1);
-        uint16 latestDeployedAccountVersion = Account(latestDeployedAccount).accountVersion();
+        uint16 latestDeployedAccountVersion = AccountV1(latestDeployedAccount).accountVersion();
 
         // Assert that the Account version of latest Account deployed with input
         // accountVersion = 0 is always <= latest Account version in factory

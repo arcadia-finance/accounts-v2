@@ -315,7 +315,7 @@ contract AccountV2 {
      * @param totalOpenDebt The total open Debt against the Account.
      * @return success Boolean indicating if there is sufficient margin to back a certain amount of Debt.
      * @return trustedCreditor_ The contract address of the trusted creditor.
-     * @return ccountVersion_ The Account version.
+     * @return accountVersion_ The Account version.
      * @dev An Account is healthy if the Collateral value is bigger than or equal to the Used Margin.
      * @dev Only one of the values can be non-zero, or we check on a certain increase of debt, or we check on a total amount of debt.
      * @dev If both values are zero, we check if the Account is currently healthy.
@@ -323,7 +323,7 @@ contract AccountV2 {
     function isVaultHealthy(uint256 debtIncrease, uint256 totalOpenDebt)
         external
         view
-        returns (bool success, address trustedCreditor_, uint256 vaultVersion_)
+        returns (bool success, address trustedCreditor_, uint256 accountVersion_)
     {
         if (totalOpenDebt > 0) {
             //Check if Account is healthy for a given amount of openDebt.

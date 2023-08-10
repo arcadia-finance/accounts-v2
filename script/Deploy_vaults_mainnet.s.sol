@@ -11,7 +11,7 @@ import {
 
 import { Factory } from "../src/Factory.sol";
 import { Proxy } from "../src/Proxy.sol";
-import { Account } from "../src/Account.sol";
+import { AccountV1 } from "../src/AccountV1.sol";
 import { MainRegistry } from "../src/MainRegistry.sol";
 import { PricingModule, StandardERC20PricingModule } from "../src/PricingModules/StandardERC20PricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
@@ -24,7 +24,7 @@ import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
 
 contract ArcadiaAccountDeployerMainnet is Test {
     Factory public factory;
-    Account public account;
+    AccountV1 public account;
 
     ERC20 public crv;
     ERC20 public dai;
@@ -514,7 +514,7 @@ contract ArcadiaAccountDeployerMainnet is Test {
             0
         );
 
-        account = new Account();
+        account = new AccountV1();
         actionMultiCall = new ActionMultiCall();
 
         oracleHub.addOracle(crvToUsdOracleInfo);

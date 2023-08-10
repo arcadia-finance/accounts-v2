@@ -8,7 +8,7 @@ import "../../../lib/forge-std/src/Test.sol";
 
 import "../../Factory.sol";
 import "../../Proxy.sol";
-import { Account, ActionData } from "../../Account.sol";
+import { AccountV1, ActionData } from "../../AccountV1.sol";
 import { ERC20Mock } from "../../mockups/ERC20SolmateMock.sol";
 import "../../mockups/ERC721SolmateMock.sol";
 import "../../mockups/ERC1155SolmateMock.sol";
@@ -41,8 +41,8 @@ contract FactoryExtension is Factory {
 
 contract DeployArcadiaAccounts is Test {
     FactoryExtension public factory;
-    Account public account;
-    Account public proxy;
+    AccountV1 public account;
+    AccountV1 public proxy;
     address public proxyAddr;
     ERC20Mock public dai;
     ERC20Mock public eth;
@@ -356,7 +356,7 @@ contract DeployArcadiaAccounts is Test {
             address(interleave), 1, oracleInterleaveToEthEthToUsd, riskVars_, type(uint128).max
         );
 
-        Account = new Account();
+        account = new AccountV1();
         factory.setNewAccountInfo(address(mainRegistry), address(account), Constants.upgradeProof1To2, "");
         vm.stopPrank();
     }

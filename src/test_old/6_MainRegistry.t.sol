@@ -503,7 +503,7 @@ contract AssetManagementTest is MainRegistryTest {
             address(0),
             address(0)
         );
-        proxy = Account(proxyAddr);
+        proxy = AccountV1(proxyAddr);
         vm.stopPrank();
     }
 

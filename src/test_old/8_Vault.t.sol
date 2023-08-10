@@ -12,8 +12,8 @@ import { ActionMultiCall } from "../actions/MultiCall.sol";
 import "../actions/utils/ActionData.sol";
 import { MultiActionMock } from "../mockups/MultiActionMock.sol";
 
-contract AccountTestExtension is Account {
-    constructor(address mainReg_, uint16 accountVersion_) Account() {
+contract AccountTestExtension is AccountV1 {
+    constructor(address mainReg_, uint16 accountVersion_) AccountV1() {
         registry = mainReg_;
         accountVersion = accountVersion_;
     }
@@ -281,7 +281,7 @@ contract AccountManagementTest is accountTests {
         assertEq(expectedVersion, newVersion);
     }
 
-    function testRevert_upgradeaccount_byNonFactory(
+    function testRevert_upgradeAccount_byNonFactory(
         address newImplementation,
         address newRegistry,
         uint16 newVersion,
@@ -296,7 +296,7 @@ contract AccountManagementTest is accountTests {
         vm.stopPrank();
     }
 
-    function testRevert_upgradeaccount_InvalidAccountVersion(
+    function testRevert_upgradeAccount_InvalidAccountVersion(
         address newImplementation,
         address newRegistry,
         uint16 newVersion,
@@ -312,7 +312,7 @@ contract AccountManagementTest is accountTests {
         trustedCreditor.setCallResult(false);
 
         vm.startPrank(address(factory));
-        vm.expectRevert("V_UV: Invalid account version");
+        vm.expectRevert("V_UV: Invalid Account version");
         account_.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
     }

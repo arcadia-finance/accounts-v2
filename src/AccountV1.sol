@@ -30,7 +30,7 @@ import { ERC20, SafeTransferLib } from "../lib/solmate/src/utils/SafeTransferLib
  * Arcadia's Account functions will guarantee you a certain value of the Account.
  * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
  */
-contract Account is IAccount {
+contract AccountV1 is IAccount {
     using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////

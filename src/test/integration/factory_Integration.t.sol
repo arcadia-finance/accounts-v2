@@ -5,7 +5,7 @@
 pragma solidity ^0.8.13;
 
 import { Base_IntegrationAndUnit_Test } from "../Base_IntegrationAndUnit.t.sol";
-import { Account } from "../../Account.sol";
+import { AccountV1 } from "../../AccountV1.sol";
 import "../utils/Constants.sol";
 
 contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
@@ -41,9 +41,9 @@ contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
         assertEq(amountBefore + 1, factory.allAccountsLength());
         assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
         assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
-        assertEq(Account(actualDeployed).trustedCreditor(), address(0));
-        assertEq(Account(actualDeployed).isTrustedCreditorSet(), false);
-        assertEq(Account(actualDeployed).owner(), address(this));
+        assertEq(AccountV1(actualDeployed).trustedCreditor(), address(0));
+        assertEq(AccountV1(actualDeployed).isTrustedCreditorSet(), false);
+        assertEq(AccountV1(actualDeployed).owner(), address(this));
     }
 
     function testFuzz_createAccount_DeployAccountWithCreditor(uint256 salt) public {
@@ -64,8 +64,8 @@ contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
         assertEq(amountBefore + 1, factory.allAccountsLength());
         assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
         assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
-        assertEq(Account(actualDeployed).trustedCreditor(), address(trustedCreditorWithParamsInit));
-        assertEq(Account(actualDeployed).isTrustedCreditorSet(), true);
+        assertEq(AccountV1(actualDeployed).trustedCreditor(), address(trustedCreditorWithParamsInit));
+        assertEq(AccountV1(actualDeployed).isTrustedCreditorSet(), true);
     }
 
     function testFuzz_createAccount_DeployNewProxyWithLogicOwner(uint256 salt, address sender) public {
@@ -76,7 +76,7 @@ contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
         vm.prank(sender);
         address actualDeployed = factory.createAccount(salt, 0, address(0), address(0));
         assertEq(amountBefore + 1, factory.allAccountsLength());
-        assertEq(Account(actualDeployed).owner(), address(sender));
+        assertEq(AccountV1(actualDeployed).owner(), address(sender));
     }
 
     function testFuzz_createAccount_CreationCannotBeFrontRunnedWithIdenticalSalt(

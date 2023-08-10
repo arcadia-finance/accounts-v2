@@ -58,7 +58,7 @@ contract AccountV2Test is DeployArcadiaAccounts {
             address(0),
             address(0)
         );
-        proxy = Account(proxyAddr);
+        proxy = AccountV1(proxyAddr);
         proxy.openTrustedMarginAccount(address(trustedCreditor));
         dai.approve(address(proxy), type(uint256).max);
 

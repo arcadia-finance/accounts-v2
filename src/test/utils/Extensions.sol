@@ -6,7 +6,7 @@ pragma solidity ^0.8.13;
 
 import { MainRegistry } from "../../MainRegistry.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { Account } from "../../Account.sol";
+import { AccountV1 } from "../../AccountV1.sol";
 
 contract MainRegistryExtension is MainRegistry {
     using FixedPointMathLib for uint256;
@@ -18,8 +18,8 @@ contract MainRegistryExtension is MainRegistry {
     }
 }
 
-contract AccountExtension is Account {
-    constructor(address mainReg_, uint16 accountVersion_) Account() {
+contract AccountExtension is AccountV1 {
+    constructor(address mainReg_, uint16 accountVersion_) AccountV1() {
         registry = mainReg_;
         accountVersion = accountVersion_;
     }

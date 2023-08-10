@@ -5,7 +5,7 @@
 pragma solidity ^0.8.13;
 
 import "../../lib/forge-std/src/Test.sol";
-import { DeployedContracts, OracleHub, Account } from "./fixtures/DeployedContracts.f.sol";
+import { DeployedContracts, OracleHub, AccountV1 } from "./fixtures/DeployedContracts.f.sol";
 import { ERC20Fixture } from "./fixtures/ERC20Fixture.f.sol";
 import { ArcadiaOracleFixture, ArcadiaOracle } from "./fixtures/ArcadiaOracleFixture.f.sol";
 import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
@@ -1608,7 +1608,7 @@ contract IntegrationTest is UniV3Test {
         // Create Account and deposit the Liquidity Position.
         vm.startPrank(user);
         address proxyAddr = factory.createAccount(200, 0, address(0), address(0));
-        Account proxy = Account(proxyAddr);
+        AccountV1 proxy = AccountV1(proxyAddr);
         ERC721(address(uniV3)).approve(proxyAddr, tokenId);
         {
             address[] memory assetAddress = new address[](1);

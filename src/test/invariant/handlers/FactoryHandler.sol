@@ -5,7 +5,8 @@
 pragma solidity ^0.8.13;
 
 import { BaseHandler } from "./BaseHandler.sol";
-import { Account } from "../../../Account.sol";
+import { AccountV1 } from "../../../AccountV1.sol";
+import { AccountV2 } from "../../../mockups/AccountV2.sol";
 import { Factory } from "../../../Factory.sol";
 import { MainRegistryExtension } from "../../utils/Extensions.sol";
 import { TrustedCreditorMock } from "../../../mockups/TrustedCreditorMock.sol";
@@ -27,14 +28,14 @@ contract FactoryHandler is BaseHandler {
 
     Factory internal factory;
     MainRegistryExtension internal mainRegistryExtension;
-    Account internal account;
-    Account internal accountV2;
+    AccountV1 internal account;
+    AccountV2 internal accountV2;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTRUCTOR
     //////////////////////////////////////////////////////////////////////////*/
     // Todo: Why do I have to add "memory" to the 2 account instances in the input
-    constructor(Factory factory_, MainRegistryExtension mainRegistryExtension_, Account memory account_, Account memory accountV2_) {
+    constructor(Factory factory_, MainRegistryExtension mainRegistryExtension_, AccountV1 account_, AccountV2 accountV2_) {
         factory = factory_;
         mainRegistryExtension = mainRegistryExtension_;
         account = account_;
