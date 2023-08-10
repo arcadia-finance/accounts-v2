@@ -263,7 +263,7 @@ abstract contract UniV3Test is DeployedContracts, Test {
 contract DeploymentTest is UniV3Test {
     function setUp() public override { }
 
-    function xtestSuccess_deployment(
+    function testSuccess_deployment(
         address mainRegistry_,
         address oracleHub_,
         address riskManager_,
@@ -297,7 +297,7 @@ contract AssetManagementTest is UniV3Test {
         vm.stopPrank();
     }
 
-    function xtestRevert_addAsset_NonOwner(address unprivilegedAddress_) public {
+    function testRevert_addAsset_NonOwner(address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != deployer);
         vm.startPrank(unprivilegedAddress_);
 
@@ -306,7 +306,7 @@ contract AssetManagementTest is UniV3Test {
         vm.stopPrank();
     }
 
-    function xtestRevert_addAsset_OverwriteExistingAsset() public {
+    function testRevert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(deployer);
         uniV3PricingModule.addAsset(address(uniV3));
         vm.expectRevert("PMUV3_AA: already added");
@@ -314,7 +314,7 @@ contract AssetManagementTest is UniV3Test {
         vm.stopPrank();
     }
 
-    function xtestRevert_addAsset_MainRegistryReverts() public {
+    function testRevert_addAsset_MainRegistryReverts() public {
         vm.prank(deployer);
         uniV3PricingModule =
         new UniswapV3PricingModuleExtension(address(mainRegistry), address(oracleHub), deployer, address(standardERC20PricingModule));
@@ -325,7 +325,7 @@ contract AssetManagementTest is UniV3Test {
         vm.stopPrank();
     }
 
-    function xtestSuccess_addAsset() public {
+    function testSuccess_addAsset() public {
         vm.prank(deployer);
         uniV3PricingModule.addAsset(address(uniV3));
 
@@ -356,25 +356,25 @@ contract AllowListManagementTest is UniV3Test {
         uniV3PricingModule.addAsset(address(uniV3));
     }
 
-    function xtestSuccess_isAllowListed_NegativeUnknownAsset(address asset, uint256 assetId) public {
+    function testSuccess_isAllowListed_NegativeUnknownAsset(address asset, uint256 assetId) public {
         vm.assume(asset != address(uniV3));
 
         assertFalse(uniV3PricingModule.isAllowListed(asset, assetId));
     }
 
-    function xtestSuccess_isAllowListed_NegativeNoExposure(uint256 assetId) public {
+    function testSuccess_isAllowListed_NegativeNoExposure(uint256 assetId) public {
         bound(assetId, 1, uniV3.totalSupply());
 
         assertFalse(uniV3PricingModule.isAllowListed(address(uniV3), assetId));
     }
 
-    function xtestSuccess_isAllowListed_NegativeUnknownId(uint256 assetId) public {
+    function testSuccess_isAllowListed_NegativeUnknownId(uint256 assetId) public {
         bound(assetId, 2 * uniV3.totalSupply(), type(uint256).max);
 
         assertFalse(uniV3PricingModule.isAllowListed(address(uniV3), assetId));
     }
 
-    function xtestSuccess_isAllowListed_Positive(address lp, uint128 maxExposureA, uint128 maxExposureB) public {
+    function testSuccess_isAllowListed_Positive(address lp, uint128 maxExposureA, uint128 maxExposureB) public {
         vm.assume(lp != address(0));
         vm.assume(maxExposureA > 0);
         vm.assume(maxExposureB > 0);
@@ -446,7 +446,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
     }
 
-    function xtestRevert_setExposureOfAsset_NonRiskManager(
+    function testRevert_setExposureOfAsset_NonRiskManager(
         address unprivilegedAddress_,
         address asset,
         uint128 maxExposure
@@ -459,7 +459,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         vm.stopPrank();
     }
 
-    function xtestRevert_setExposureOfAsset_UnknownAsset(uint128 maxExposure) public {
+    function testRevert_setExposureOfAsset_UnknownAsset(uint128 maxExposure) public {
         ERC20 token = erc20Fixture.createToken();
 
         vm.startPrank(deployer);
@@ -468,7 +468,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         vm.stopPrank();
     }
 
-    function xtestSuccess_setExposureOfAsset(uint128 maxExposure) public {
+    function testSuccess_setExposureOfAsset(uint128 maxExposure) public {
         ERC20 token = erc20Fixture.createToken();
         addUnderlyingTokenToArcadia(address(token), 1);
 
@@ -482,7 +482,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         assertEq(actualMaxExposure, maxExposure);
     }
 
-    function xtestRevert_getTrustedTickCurrent_OverflowPriceToken0(
+    function testRevert_getTrustedTickCurrent_OverflowPriceToken0(
         uint256 decimals0,
         uint256 decimals1,
         uint256 priceToken0,
@@ -513,7 +513,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         uniV3PricingModule.getTrustedTickCurrent(address(token0), address(token1));
     }
 
-    function xtestRevert_getTrustedTickCurrent_OverflowPriceToken1(
+    function testRevert_getTrustedTickCurrent_OverflowPriceToken1(
         uint256 decimals0,
         uint256 decimals1,
         uint256 priceToken0,
@@ -544,7 +544,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         uniV3PricingModule.getTrustedTickCurrent(address(token0), address(token1));
     }
 
-    function xtestRevert_getTrustedTickCurrent_sqrtPriceX96(
+    function testRevert_getTrustedTickCurrent_sqrtPriceX96(
         uint256 decimals0,
         uint256 decimals1,
         uint256 priceToken0,
@@ -584,7 +584,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         uniV3PricingModule.getTrustedTickCurrent(address(token0), address(token1));
     }
 
-    function xtestSuccess_getTrustedTickCurrent(
+    function testSuccess_getTrustedTickCurrent(
         uint256 decimals0,
         uint256 decimals1,
         uint256 priceToken0,
@@ -625,9 +625,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         assertEq(actualTickCurrent, expectedTickCurrent);
     }
 
-    function xtestRevert_processDeposit_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
-        public
-    {
+    function testRevert_processDeposit_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id) public {
         vm.assume(unprivilegedAddress != address(mainRegistry));
 
         vm.startPrank(unprivilegedAddress);
@@ -636,7 +634,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         vm.stopPrank();
     }
 
-    function xtestRevert_processDeposit_ZeroLiquidity() public {
+    function testRevert_processDeposit_ZeroLiquidity() public {
         // Create Uniswap V3 pool initiated at tick 0 with cardinality 300.
         pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(0), 300);
 
@@ -664,7 +662,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         vm.stopPrank();
     }
 
-    function xtestRevert_processDeposit_BelowAcceptedRange(
+    function testRevert_processDeposit_BelowAcceptedRange(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -712,7 +710,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         vm.stopPrank();
     }
 
-    function xtestRevert_processDeposit_AboveAcceptedRange(
+    function testRevert_processDeposit_AboveAcceptedRange(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -761,7 +759,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         vm.stopPrank();
     }
 
-    function xtestRevert_processDeposit_ExposureToken0ExceedingMax(
+    function testRevert_processDeposit_ExposureToken0ExceedingMax(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -826,7 +824,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         vm.stopPrank();
     }
 
-    function xtestRevert_processDeposit_ExposureToken1ExceedingMax(
+    function testRevert_processDeposit_ExposureToken1ExceedingMax(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -891,7 +889,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         vm.stopPrank();
     }
 
-    function xtestSuccess_processDeposit(
+    function testSuccess_processDeposit(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -965,7 +963,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         assertEq(exposure1, amount1 + initialExposure1);
     }
 
-    function xtestRevert_processWithdrawal_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
+    function testRevert_processWithdrawal_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
         public
     {
         vm.assume(unprivilegedAddress != address(mainRegistry));
@@ -976,7 +974,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         vm.stopPrank();
     }
 
-    function xtestSuccess_processWithdrawal(
+    function testSuccess_processWithdrawal(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -1060,7 +1058,7 @@ contract RiskVariablesManagementTest is UniV3Test {
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
-    function xtestSuccess_getSqrtPriceX96_Overflow(uint256 priceToken0, uint256 priceToken1) public {
+    function testSuccess_getSqrtPriceX96_Overflow(uint256 priceToken0, uint256 priceToken1) public {
         // Avoid divide by 0, which is already checked in earlier in function.
         vm.assume(priceToken1 > 0);
         // Function will overFlow, not realistic.
@@ -1077,7 +1075,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         assertLt(actualSqrtPriceX96, expectedSqrtPriceX96);
     }
 
-    function xtestSuccess_getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) public {
+    function testSuccess_getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) public {
         // Avoid divide by 0, which is already checked in earlier in function.
         vm.assume(priceToken1 > 0);
         // Function will overFlow, not realistic.
@@ -1094,7 +1092,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         assertEq(actualSqrtPriceX96, expectedSqrtPriceX96);
     }
 
-    function xtestSuccess_getPrincipalAmounts(
+    function testSuccess_getPrincipalAmounts(
         int24 tickLower,
         int24 tickUpper,
         uint128 liquidity,
@@ -1124,7 +1122,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         assertEq(actualAmount1, expectedAmount1);
     }
 
-    function xtestSuccess_getValue_valueInUsd(
+    function testSuccess_getValue_valueInUsd(
         uint256 decimals0,
         uint256 decimals1,
         uint80 liquidity,
@@ -1202,7 +1200,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         assertEq(actualValueInBaseCurrency, 0);
     }
 
-    function xtestSuccess_getValue_valueWithTokensOwed(
+    function testSuccess_getValue_valueWithTokensOwed(
         uint256 decimals0,
         uint256 decimals1,
         uint80 liquidity,
@@ -1326,7 +1324,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         assertInRange(actualFee1, expectedFee1, 3);
     }
 
-    function xtestSuccess_getValue_valueWithFeeGrowth(
+    function testSuccess_getValue_valueWithFeeGrowth(
         uint256 decimals0,
         uint256 decimals1,
         uint80 liquidity,
@@ -1485,7 +1483,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         assertInRange(actualFee1, expectedFee1, 3);
     }
 
-    function xtestSuccess_getValue_RiskFactors(
+    function testSuccess_getValue_RiskFactors(
         uint256 collFactor0,
         uint256 liqFactor0,
         uint256 collFactor1,
@@ -1550,7 +1548,7 @@ contract IntegrationTest is UniV3Test {
         vm.selectFork(fork);
     }
 
-    function xtestSuccess_deposit(uint128 liquidity, int24 tickLower, int24 tickUpper) public {
+    function testSuccess_deposit(uint128 liquidity, int24 tickLower, int24 tickUpper) public {
         vm.assume(liquidity > 10_000);
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
