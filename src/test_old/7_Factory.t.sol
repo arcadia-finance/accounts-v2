@@ -293,7 +293,7 @@ contract FactoryTest is DeployArcadiaAccounts {
         address logic,
         bytes calldata data
     ) public {
-        vm.assume(logic != address(10));
+        vm.assume(logic > address(10));
         vm.assume(newAssetAddress != address(0));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();
