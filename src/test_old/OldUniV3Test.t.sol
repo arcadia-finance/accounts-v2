@@ -5,7 +5,7 @@
 pragma solidity ^0.8.13;
 
 import "../../lib/forge-std/src/Test.sol";
-import { DeployedContracts, OracleHub, AccountV1 } from "./fixtures/DeployedContracts.f.sol";
+import { DeployedContracts, OracleHub, Vault } from "./fixtures/DeployedContracts.f.sol";
 import { ERC20Fixture } from "./fixtures/ERC20Fixture.f.sol";
 import { ArcadiaOracleFixture, ArcadiaOracle } from "./fixtures/ArcadiaOracleFixture.f.sol";
 import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
@@ -24,12 +24,6 @@ import { IUniswapV3Factory } from "./interfaces/IUniswapV3Factory.sol";
 import { ISwapRouter } from "./interfaces/ISwapRouter.sol";
 import { LiquidityAmountsExtension } from "./libraries/LiquidityAmountsExtension.sol";
 import { TickMathsExtension } from "./libraries/TickMathsExtension.sol";
-
-interface IOldFactory {
-    function createAccount(uint256 salt, uint16 accountVersion, address baseCurrency)
-        external
-        returns (address account);
-}
 
 contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
     constructor(address mainRegistry_, address oracleHub_, address riskManager_, address erc20PricingModule_)
@@ -1641,10 +1635,10 @@ contract IntegrationTest is UniV3Test {
         uniV3PricingModule.setExposureOfAsset(address(weth), type(uint128).max);
         vm.stopPrank();
 
-        // Create Account and deposit the Liquidity Position.
+        // Create vault and deposit the Liquidity Position.
         vm.startPrank(user);
-        address proxyAddr = IOldFactory(address(factory)).createAccount(200, 0, address(0));
-        AccountV1 proxy = AccountV1(proxyAddr);
+        address proxyAddr = factory.createVault(200, 0, address(0), address(0));
+        Vault proxy = Vault(proxyAddr);
         ERC721(address(uniV3)).approve(proxyAddr, tokenId);
         {
             address[] memory assetAddress = new address[](1);
@@ -1660,7 +1654,7 @@ contract IntegrationTest is UniV3Test {
         }
         vm.stopPrank();
 
-        uint256 actualValue = proxy.getAccountValue(address(0));
+        uint256 actualValue = proxy.getVaultValue(address(0));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(usdc);
