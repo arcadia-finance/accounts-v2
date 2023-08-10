@@ -119,32 +119,27 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         assertTrue(AccountV1(deployedAccount).isTrustedCreditorSet());
     }
 
+    function testRevert_initialize_InvalidMainreg() public {
+        account.setRegistry(address(0));
+
+        vm.expectRevert("V_I: Registry cannot be 0!");
+        account.initialize(users.accountOwner, address(0), address(0));
+    }
+
     function testRevert_initialize_AlreadyInitialized() public {
         vm.expectRevert("V_I: Already initialized!");
-        account.initialize(users.accountOwner, address(mainRegistryExtension), 1, address(0), address(0));
+        account.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
     }
 
-    function testRevert_initialize_InvalidVersion() public {
-        accountExtension.setAccountVersion(0);
-        accountExtension.setOwner(address(0));
-
-        vm.expectRevert("V_I: Invalid Account version");
-        accountExtension.initialize(users.accountOwner, address(mainRegistryExtension), 0, address(0), address(0));
-    }
-
-    function test_initialize(address owner_, uint16 accountVersion_) public {
-        vm.assume(accountVersion_ > 0);
-
-        accountExtension.setAccountVersion(0);
+    function test_initialize(address owner_) public {
         accountExtension.setOwner(address(0));
 
         vm.expectEmit(true, true, true, true);
         emit BaseCurrencySet(address(0));
-        accountExtension.initialize(owner_, address(mainRegistryExtension), accountVersion_, address(0), address(0));
+        accountExtension.initialize(owner_, address(mainRegistryExtension), address(0), address(0));
 
         assertEq(accountExtension.owner(), owner_);
         assertEq(accountExtension.registry(), address(mainRegistryExtension));
-        assertEq(accountExtension.accountVersion(), accountVersion_);
         assertEq(accountExtension.baseCurrency(), address(0));
     }
 }

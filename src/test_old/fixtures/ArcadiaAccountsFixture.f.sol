@@ -37,6 +37,10 @@ contract FactoryExtension is Factory {
     function setOwnerOf(address owner_, uint256 accountId) public {
         _ownerOf[accountId] = owner_;
     }
+
+    function setLatestVaultversion(uint16 latestVaultVersion_) public {
+        latestVaultVersion = latestVaultVersion_;
+    }
 }
 
 contract DeployArcadiaAccounts is Test {

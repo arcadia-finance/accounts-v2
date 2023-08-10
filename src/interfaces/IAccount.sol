@@ -9,18 +9,16 @@ interface IAccount {
      * @notice Returns the Account version.
      * @return version The Account version.
      */
-    function accountVersion() external view returns (uint16);
+    function ACCOUNT_VERSION() external view returns (uint16);
 
     /**
      * @notice Initiates the variables of the Account.
      * @param owner The sender of the 'createAccount' on the factory
      * @param registry The 'beacon' contract with the external logic.
-     * @param accountVersion The version of the Account logic.
      * @param baseCurrency The Base-currency in which the Account is denominated.
      * @param creditor The contract address of the trusted creditor.
      */
-    function initialize(address owner, address registry, uint16 accountVersion, address baseCurrency, address creditor)
-        external;
+    function initialize(address owner, address registry, address baseCurrency, address creditor) external;
 
     /**
      * @notice Updates the Account version and stores a new address in the EIP1967 implementation slot.

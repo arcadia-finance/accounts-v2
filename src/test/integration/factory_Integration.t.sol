@@ -114,16 +114,22 @@ contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
     }
 
     function testFuzz_Revert_createAccount_FromBlockedVersion(
-        uint16 accountVersion,
-        uint16 versionsToMake,
-        uint16[] calldata versionsToBlock
+        uint8 accountVersion,
+        uint8 versionsToMake,
+        uint8[] calldata versionsToBlock
     ) public {
+        AccountVariableVersion account_ = new AccountVariableVersion(0);
+
         vm.assume(versionsToBlock.length < 10 && versionsToBlock.length > 0);
-        vm.assume(uint256(versionsToMake) + 1 < type(uint16).max);
+        vm.assume(uint256(versionsToMake) + 1 < type(uint8).max);
         vm.assume(accountVersion <= versionsToMake + 1);
         for (uint256 i; i < versionsToMake; ++i) {
+            //create vault logic with the right version
+            //the first vault version to add is 2, so we add 2 to the index
+            account_.setAccountVersion(uint16(i + 2));
+
             vm.prank(users.creatorAddress);
-            factory.setNewAccountInfo(address(mainRegistryExtension), address(account), Constants.upgradeRoot1To2, "");
+            factory.setNewAccountInfo(address(mainRegistryExtension), address(account_), Constants.upgradeRoot1To2, "");
         }
 
         for (uint256 y; y < versionsToBlock.length; ++y) {

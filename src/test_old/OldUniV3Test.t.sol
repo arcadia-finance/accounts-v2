@@ -5,7 +5,7 @@
 pragma solidity ^0.8.13;
 
 import "../../lib/forge-std/src/Test.sol";
-import { DeployedContracts, OracleHub, Vault } from "./fixtures/DeployedContracts.f.sol";
+import { DeployedContracts, OracleHub, AccountV1 } from "./fixtures/DeployedContracts.f.sol";
 import { ERC20Fixture } from "./fixtures/ERC20Fixture.f.sol";
 import { ArcadiaOracleFixture, ArcadiaOracle } from "./fixtures/ArcadiaOracleFixture.f.sol";
 import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";

@@ -92,9 +92,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         account =
             address(new Proxy{salt: keccak256(abi.encodePacked(salt, tx.origin))}(accountDetails[accountVersion].logic));
 
-        IAccount(account).initialize(
-            msg.sender, accountDetails[accountVersion].registry, uint16(accountVersion), baseCurrency, creditor
-        );
+        IAccount(account).initialize(msg.sender, accountDetails[accountVersion].registry, baseCurrency, creditor);
 
         allAccounts.push(account);
         accountIndex[account] = allAccounts.length;
@@ -135,7 +133,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     function upgradeAccountVersion(address account, uint16 version, bytes32[] calldata proofs) external {
         require(_ownerOf[accountIndex[account]] == msg.sender, "FTRY_UVV: Only Owner");
         require(!accountVersionBlocked[version], "FTRY_UVV: Account version blocked");
-        uint256 currentVersion = IAccount(account).accountVersion();
+        uint256 currentVersion = IAccount(account).ACCOUNT_VERSION();
 
         bool canUpgrade = MerkleProofLib.verify(
             proofs, getAccountVersionRoot(), keccak256(abi.encodePacked(currentVersion, uint256(version)))
@@ -253,6 +251,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         unchecked {
             ++latestAccountVersion;
         }
+
+        require(IAccount(logic).ACCOUNT_VERSION() == latestAccountVersion, "FTRY_SNVI: vault version mismatch");
 
         accountDetails[latestAccountVersion].registry = registry;
         accountDetails[latestAccountVersion].logic = logic;
