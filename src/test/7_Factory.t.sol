@@ -5,11 +5,14 @@
 pragma solidity ^0.8.13;
 
 import "./fixtures/ArcadiaVaultsFixture.f.sol";
+import { VaultV2 } from "../mockups/VaultV2.sol";
+import { VaultVariableVersion } from "../mockups/VaultVariableVersion.sol";
 
 contract FactoryTest is DeployArcadiaVaults {
     using stdStorage for StdStorage;
 
     MainRegistry internal mainRegistry2;
+    VaultVariableVersion internal vaultVarVersion;
 
     //events
     event Transfer(address indexed from, address indexed to, uint256 indexed id);
@@ -31,6 +34,8 @@ contract FactoryTest is DeployArcadiaVaults {
         mainRegistry = new mainRegistryExtension(address(factory));
         factory.setNewVaultInfo(address(mainRegistry), address(vault), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
+
+        vaultVarVersion = new VaultVariableVersion(1);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -128,16 +133,22 @@ contract FactoryTest is DeployArcadiaVaults {
     }
 
     function testRevert_createVault_FromBlockedVersion(
-        uint16 vaultVersion,
-        uint16 versionsToMake,
-        uint16[] calldata versionsToBlock
+        uint8 vaultVersion,
+        uint8 versionsToMake,
+        uint8[] calldata versionsToBlock
     ) public {
+        VaultVariableVersion vault_ = new VaultVariableVersion(0);
+
         vm.assume(versionsToBlock.length < 10 && versionsToBlock.length > 0);
-        vm.assume(uint256(versionsToMake) + 1 < type(uint16).max);
+        vm.assume(uint256(versionsToMake) + 1 < type(uint8).max);
         vm.assume(vaultVersion <= versionsToMake + 1);
         for (uint256 i; i < versionsToMake; ++i) {
+            //create vault logic with the right version
+            //the first vault version to add is 2, so we add 2 to the index
+            vault_.setVaultVersion(uint16(i + 2));
+
             vm.prank(creatorAddress);
-            factory.setNewVaultInfo(address(mainRegistry), address(vault), Constants.upgradeRoot1To2, "");
+            factory.setNewVaultInfo(address(mainRegistry), address(vault_), Constants.upgradeRoot1To2, "");
         }
 
         for (uint256 y; y < versionsToBlock.length; ++y) {
@@ -546,14 +557,30 @@ contract FactoryTest is DeployArcadiaVaults {
         vm.stopPrank();
     }
 
+    function testRevert_setNewVaultInfo_InvalidVaultVersion() public {
+        VaultV2 newVaultV2 = new VaultV2();
+        VaultV2 newVaultV2_2 = new VaultV2();
+
+        vm.startPrank(creatorAddress);
+        //first set an actual version 2
+        factory.setNewVaultInfo(address(mainRegistry), address(newVaultV2), Constants.upgradeRoot1To2, "");
+        //then try to register another vault logic address which has version 2 in its bytecode
+        vm.expectRevert("FTRY_SNVI: vault version mismatch");
+        factory.setNewVaultInfo(address(mainRegistry), address(newVaultV2_2), Constants.upgradeRoot1To2, "");
+        vm.stopPrank();
+    }
+
     function testSuccess_setNewVaultInfo(address mainRegistry_, address logic, bytes calldata data) public {
-        vm.assume(logic != address(0));
+        vm.assume(logic > address(10));
+        bytes memory code = address(vaultVarVersion).code;
+        vm.etch(logic, code);
 
         vm.prank(creatorAddress);
         factory = new FactoryExtension();
         assertTrue(factory.getVaultVersionRoot() == bytes32(0));
 
         uint256 latestVaultVersionPre = factory.latestVaultVersion();
+        VaultVariableVersion(logic).setVaultVersion(latestVaultVersionPre + 1);
 
         vm.startPrank(creatorAddress);
         vm.expectEmit(true, true, true, true);
@@ -575,10 +602,14 @@ contract FactoryTest is DeployArcadiaVaults {
         address logic,
         bytes calldata data
     ) public {
-        vm.assume(logic != address(0));
+        vm.assume(logic > address(10));
         vm.assume(newAssetAddress != address(0));
 
         uint256 latestVaultVersionPre = factory.latestVaultVersion();
+
+        bytes memory code = address(vaultVarVersion).code;
+        vm.etch(logic, code);
+        VaultVariableVersion(logic).setVaultVersion(latestVaultVersionPre + 1);
 
         vm.startPrank(creatorAddress);
         mainRegistry.addBaseCurrency(
@@ -612,10 +643,14 @@ contract FactoryTest is DeployArcadiaVaults {
         address logic,
         bytes calldata data
     ) public {
-        vm.assume(logic != address(0));
+        vm.assume(logic > address(10));
         vm.assume(newAssetAddress != address(0));
 
         uint256 latestVaultVersionPre = factory.latestVaultVersion();
+
+        bytes memory code = address(vaultVarVersion).code;
+        vm.etch(logic, code);
+        VaultVariableVersion(logic).setVaultVersion(latestVaultVersionPre + 1);
 
         vm.startPrank(creatorAddress);
         mainRegistry2 = new mainRegistryExtension(address(factory));

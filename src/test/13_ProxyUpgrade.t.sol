@@ -9,7 +9,6 @@ import "./fixtures/ArcadiaVaultsFixture.f.sol";
 import { VaultV2 } from "../mockups/VaultV2.sol";
 
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
-import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
 
 contract VaultV2Test is DeployArcadiaVaults {
     using stdStorage for StdStorage;
@@ -116,7 +115,7 @@ contract VaultV2Test is DeployArcadiaVaults {
         factory.upgradeVaultVersion(address(proxy), factory.latestVaultVersion(), proofs);
         vm.stopPrank();
 
-        assertEq(VaultV2(proxyAddr).check(), 5);
+        assertEq(VaultV2(proxyAddr).storageV2(), 5);
 
         Checks memory checkAfter = createCompareStruct();
 

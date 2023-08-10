@@ -90,7 +90,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         // We use tx.origin instead of msg.sender so that deployments through a third party contract is not vulnerable to front-running.
         vault = address(new Proxy{salt: keccak256(abi.encodePacked(salt, tx.origin))}(vaultDetails[vaultVersion].logic));
 
-        IVault(vault).initialize(msg.sender, vaultDetails[vaultVersion].registry, uint16(vaultVersion), baseCurrency);
+        IVault(vault).initialize(msg.sender, vaultDetails[vaultVersion].registry, baseCurrency);
 
         allVaults.push(vault);
         vaultIndex[vault] = allVaults.length;
@@ -249,6 +249,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         unchecked {
             ++latestVaultVersion;
         }
+
+        require(IVault(logic).vaultVersion() == latestVaultVersion, "FTRY_SNVI: vault version mismatch");
 
         vaultDetails[latestVaultVersion].registry = registry;
         vaultDetails[latestVaultVersion].logic = logic;
