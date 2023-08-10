@@ -25,6 +25,12 @@ import { ISwapRouter } from "./interfaces/ISwapRouter.sol";
 import { LiquidityAmountsExtension } from "./libraries/LiquidityAmountsExtension.sol";
 import { TickMathsExtension } from "./libraries/TickMathsExtension.sol";
 
+interface IOldFactory {
+    function createAccount(uint256 salt, uint16 accountVersion, address baseCurrency)
+        external
+        returns (address account);
+}
+
 contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
     constructor(address mainRegistry_, address oracleHub_, address riskManager_, address erc20PricingModule_)
         UniswapV3PricingModule(mainRegistry_, oracleHub_, riskManager_, erc20PricingModule_)
@@ -1637,7 +1643,7 @@ contract IntegrationTest is UniV3Test {
 
         // Create Account and deposit the Liquidity Position.
         vm.startPrank(user);
-        address proxyAddr = factory.createAccount(200, 0, address(0), address(0));
+        address proxyAddr = IOldFactory(address(factory)).createAccount(200, 0, address(0));
         AccountV1 proxy = AccountV1(proxyAddr);
         ERC721(address(uniV3)).approve(proxyAddr, tokenId);
         {

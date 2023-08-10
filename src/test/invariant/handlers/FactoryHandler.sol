@@ -35,7 +35,12 @@ contract FactoryHandler is BaseHandler {
                                     CONSTRUCTOR
     //////////////////////////////////////////////////////////////////////////*/
     // Todo: Why do I have to add "memory" to the 2 account instances in the input
-    constructor(Factory factory_, MainRegistryExtension mainRegistryExtension_, AccountV1 account_, AccountV2 accountV2_) {
+    constructor(
+        Factory factory_,
+        MainRegistryExtension mainRegistryExtension_,
+        AccountV1 account_,
+        AccountV2 accountV2_
+    ) {
         factory = factory_;
         mainRegistryExtension = mainRegistryExtension_;
         account = account_;
