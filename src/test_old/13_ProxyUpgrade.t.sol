@@ -9,7 +9,6 @@ import "./fixtures/ArcadiaAccountsFixture.f.sol";
 import { AccountV2 } from "../mockups/AccountV2.sol";
 
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
-import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
 
 contract AccountV2Test is DeployArcadiaAccounts {
     using stdStorage for StdStorage;

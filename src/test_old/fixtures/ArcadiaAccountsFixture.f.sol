@@ -41,6 +41,10 @@ contract FactoryExtension is Factory {
     function setLatestAccountversion(uint16 latestAccountVersion_) public {
         latestAccountVersion = latestAccountVersion_;
     }
+
+    function setLatestVaultversion(uint16 latestVaultVersion_) public {
+        latestVaultVersion = latestVaultVersion_;
+    }
 }
 
 contract DeployArcadiaAccounts is Test {
