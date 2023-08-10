@@ -34,12 +34,12 @@ contract TrustedCreditorMock {
         }
     }
 
-    function getOpenPosition(address vault) external view returns (uint256 openPosition_) {
-        openPosition_ = openPosition[vault];
+    function getOpenPosition(address account) external view returns (uint256 openPosition_) {
+        openPosition_ = openPosition[account];
     }
 
-    function setOpenPosition(address vault, uint256 openPosition_) external {
-        openPosition[vault] = openPosition_;
+    function setOpenPosition(address account, uint256 openPosition_) external {
+        openPosition[account] = openPosition_;
     }
 
     function setCallResult(bool success) external {

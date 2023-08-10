@@ -73,17 +73,17 @@ contract ActionMultiCall is ActionBase {
      * @notice Repays an exact amount to a creditor.
      * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset that is being repaid.
-     * @param vault The contract address of the vault for which the debt is being repaid.
+     * @param account The contract address of the Account for which the debt is being repaid.
      * @param amount The amount of debt to.
      * @dev Can be called as one of the calls in executeAction, but fetches the actual contract balance after other DeFi interactions.
      */
-    function executeRepay(address creditor, address asset, address vault, uint256 amount) external {
+    function executeRepay(address creditor, address asset, address account, uint256 amount) external {
         if (amount < 1) {
             amount = IERC20(asset).balanceOf(address(this));
         }
 
         (bool success, bytes memory data) =
-            creditor.call(abi.encodeWithSignature("repay(uint256,address)", amount, vault));
+            creditor.call(abi.encodeWithSignature("repay(uint256,address)", amount, account));
         require(success, string(data));
     }
 }

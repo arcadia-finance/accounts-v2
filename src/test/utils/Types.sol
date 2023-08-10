@@ -14,7 +14,7 @@ struct Users {
     address payable tokenCreatorAddress;
     address payable oracleOwner;
     address payable unprivilegedAddress;
-    address payable vaultOwner;
+    address payable accountOwner;
     address payable liquidityProvider;
     address payable defaultCreatorAddress;
     address payable defaultTransmitter;

@@ -5,7 +5,8 @@
 pragma solidity ^0.8.13;
 
 import { BaseHandler } from "./BaseHandler.sol";
-import { Vault } from "../../../Vault.sol";
+import { AccountV1 } from "../../../AccountV1.sol";
+import { AccountV2 } from "../../../mockups/AccountV2.sol";
 import { Factory } from "../../../Factory.sol";
 import { MainRegistryExtension } from "../../utils/Extensions.sol";
 import { TrustedCreditorMock } from "../../../mockups/TrustedCreditorMock.sol";
@@ -19,7 +20,7 @@ contract FactoryHandler is BaseHandler {
     //////////////////////////////////////////////////////////////////////////*/
 
     // Track number of calls to functions
-    uint256 public callsToSetNewVaultInfo;
+    uint256 public callsToSetNewAccountInfo;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -27,35 +28,43 @@ contract FactoryHandler is BaseHandler {
 
     Factory internal factory;
     MainRegistryExtension internal mainRegistryExtension;
-    Vault internal vault;
-    Vault internal vaultV2;
+    AccountV1 internal account;
+    AccountV2 internal accountV2;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTRUCTOR
     //////////////////////////////////////////////////////////////////////////*/
-    constructor(Factory factory_, MainRegistryExtension mainRegistryExtension_, Vault vault_, Vault vaultV2_) {
+    // Todo: Why do I have to add "memory" to the 2 account instances in the input
+    constructor(
+        Factory factory_,
+        MainRegistryExtension mainRegistryExtension_,
+        AccountV1 account_,
+        AccountV2 accountV2_
+    ) {
         factory = factory_;
         mainRegistryExtension = mainRegistryExtension_;
-        vault = vault_;
-        vaultV2 = vaultV2_;
+        account = account_;
+        accountV2 = accountV2_;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
                                     FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
-    function createVault(uint256 salt, address baseCurrency) public {
+    function createAccount(uint256 salt, address baseCurrency) public {
         address creditor = address(0);
-        uint16 vaultVersion = 0;
-        factory.createVault(salt, vaultVersion, baseCurrency, creditor);
+        uint16 accountVersion = 0;
+        factory.createAccount(salt, accountVersion, baseCurrency, creditor);
     }
 
-    function setNewVaultInfo() public {
-        callsToSetNewVaultInfo++;
+    function setNewAccountInfo() public {
+        callsToSetNewAccountInfo++;
 
         // Objective is to only activate a V2 once
-        if (callsToSetNewVaultInfo == 3) {
+        if (callsToSetNewAccountInfo == 3) {
             vm.prank(factory.owner());
-            factory.setNewVaultInfo(address(mainRegistryExtension), address(vaultV2), Constants.upgradeProof1To2, "");
+            factory.setNewAccountInfo(
+                address(mainRegistryExtension), address(accountV2), Constants.upgradeProof1To2, ""
+            );
         }
     }
 }

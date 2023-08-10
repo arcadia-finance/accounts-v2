@@ -5,7 +5,7 @@
 pragma solidity ^0.8.13;
 
 import { Proxy } from "./Proxy.sol";
-import { IVault } from "./interfaces/IVault.sol";
+import { IAccount } from "./interfaces/IAccount.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { ERC721 } from "../lib/solmate/src/tokens/ERC721.sol";
@@ -16,8 +16,8 @@ import { FactoryGuardian } from "./security/FactoryGuardian.sol";
 /**
  * @title Factory.
  * @author Pragma Labs
- * @notice The Factory has the logic to deploy and upgrade Arcadia Vaults.
- * @dev The Factory is an ERC721 contract that maps each id to an Arcadia Vault.
+ * @notice The Factory has the logic to deploy and upgrade Arcadia Accounts.
+ * @dev The Factory is an ERC721 contract that maps each id to an Arcadia Account.
  */
 contract Factory is IFactory, ERC721, FactoryGuardian {
     using Strings for uint256;
@@ -26,206 +26,207 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // The latest Vault version, new deployed vault use the latest version by default.
-    uint16 public latestVaultVersion;
+    // The latest Account version, new deployed Account use the latest version by default.
+    uint16 public latestAccountVersion;
     // The baseURI of the ERC721 tokens.
     string public baseURI;
-    // Array of all Arcadia Vault contract addresses.
-    address[] public allVaults;
+    // Array of all Arcadia Account contract addresses.
+    address[] public allAccounts;
 
-    // Map vaultVersion => flag.
-    mapping(uint256 => bool) public vaultVersionBlocked;
-    // Map vaultAddress => vaultIndex.
-    mapping(address => uint256) public vaultIndex;
-    // Map vaultVersion => versionInfo.
-    mapping(uint256 => VaultVersionInfo) public vaultDetails;
+    // Map accountVersion => flag.
+    mapping(uint256 => bool) public accountVersionBlocked;
+    // Map accountAddress => accountIndex.
+    mapping(address => uint256) public accountIndex;
+    // Map accountVersion => versionInfo.
+    mapping(uint256 => AccountVersionInfo) public accountDetails;
 
-    // Struct with additional information for a specific Vault version.
-    struct VaultVersionInfo {
+    // Struct with additional information for a specific Account version.
+    struct AccountVersionInfo {
         address registry; // The contract address of the MainRegistry.
-        address logic; // The contract address of the Vault logic.
-        bytes32 versionRoot; // The Merkle root of the merkle tree of all the compatible vault versions.
-        bytes data; // Arbitrary data, can contain instructions to execute when updating Vault to new logic.
+        address logic; // The contract address of the Account logic.
+        bytes32 versionRoot; // The Merkle root of the merkle tree of all the compatible Account versions.
+        bytes data; // Arbitrary data, can contain instructions to execute when updating Account to new logic.
     }
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event VaultUpgraded(address indexed vaultAddress, uint16 oldVersion, uint16 indexed newVersion);
-    event VaultVersionAdded(
+    event AccountUpgraded(address indexed accountAddress, uint16 oldVersion, uint16 indexed newVersion);
+    event AccountVersionAdded(
         uint16 indexed version, address indexed registry, address indexed logic, bytes32 versionRoot
     );
-    event VaultVersionBlocked(uint16 version);
+    event AccountVersionBlocked(uint16 version);
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
-    constructor() ERC721("Arcadia Vault", "ARCADIA") { }
+    constructor() ERC721("Arcadia Account", "ARCADIA") { }
 
     /*///////////////////////////////////////////////////////////////
-                          VAULT MANAGEMENT
+                          ACCOUNT MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Function to create a new Vault.
+     * @notice Function to create a new Account.
      * @param salt A salt to be used to generate the hash.
-     * @param vaultVersion The Vault version.
-     * @param baseCurrency The Base-currency in which the vault is denominated.
+     * @param accountVersion The Account version.
+     * @param baseCurrency The Base-currency in which the Account is denominated.
      * @param creditor The contract address of the trusted creditor.
-     * @return vault The contract address of the proxy contract of the newly deployed vault.
+     * @return account The contract address of the proxy contract of the newly deployed Account.
      * @dev Safe to cast a uint256 to a bytes32 since the space of both is 2^256.
      */
-    function createVault(uint256 salt, uint16 vaultVersion, address baseCurrency, address creditor)
+    function createAccount(uint256 salt, uint16 accountVersion, address baseCurrency, address creditor)
         external
         whenCreateNotPaused
-        returns (address vault)
+        returns (address account)
     {
-        vaultVersion = vaultVersion == 0 ? latestVaultVersion : vaultVersion;
+        accountVersion = accountVersion == 0 ? latestAccountVersion : accountVersion;
 
-        require(vaultVersion <= latestVaultVersion, "FTRY_CV: Unknown vault version");
-        require(!vaultVersionBlocked[vaultVersion], "FTRY_CV: Vault version blocked");
+        require(accountVersion <= latestAccountVersion, "FTRY_CV: Unknown Account version");
+        require(!accountVersionBlocked[accountVersion], "FTRY_CV: Account version blocked");
 
-        // Hash tx.origin with the user provided salt to avoid front-running vault deployment with an identical salt.
+        // Hash tx.origin with the user provided salt to avoid front-running Account deployment with an identical salt.
         // We use tx.origin instead of msg.sender so that deployments through a third party contract is not vulnerable to front-running.
-        vault = address(new Proxy{salt: keccak256(abi.encodePacked(salt, tx.origin))}(vaultDetails[vaultVersion].logic));
+        account =
+            address(new Proxy{salt: keccak256(abi.encodePacked(salt, tx.origin))}(accountDetails[accountVersion].logic));
 
-        IVault(vault).initialize(
-            msg.sender, vaultDetails[vaultVersion].registry, uint16(vaultVersion), baseCurrency, creditor
+        IAccount(account).initialize(
+            msg.sender, accountDetails[accountVersion].registry, uint16(accountVersion), baseCurrency, creditor
         );
 
-        allVaults.push(vault);
-        vaultIndex[vault] = allVaults.length;
+        allAccounts.push(account);
+        accountIndex[account] = allAccounts.length;
 
-        _mint(msg.sender, allVaults.length);
+        _mint(msg.sender, allAccounts.length);
 
-        emit VaultUpgraded(vault, 0, vaultVersion);
+        emit AccountUpgraded(account, 0, accountVersion);
     }
 
     /**
-     * @notice View function returning if an address is a vault.
-     * @param vault The address to be checked.
-     * @return bool Whether the address is a vault or not.
+     * @notice View function returning if an address is a Account.
+     * @param account The address to be checked.
+     * @return bool Whether the address is a Account or not.
      */
-    function isVault(address vault) public view returns (bool) {
-        return vaultIndex[vault] > 0;
+    function isAccount(address account) public view returns (bool) {
+        return accountIndex[account] > 0;
     }
 
     /**
-     * @notice Returns the owner of a vault.
-     * @param vault The Vault address.
-     * @return owner_ The Vault owner.
-     * @dev Function does not revert when a non-existing vault is passed, but returns zero-address as owner.
+     * @notice Returns the owner of a Account.
+     * @param account The Account address.
+     * @return owner_ The Account owner.
+     * @dev Function does not revert when a non-existing Account is passed, but returns zero-address as owner.
      */
-    function ownerOfVault(address vault) external view returns (address owner_) {
-        owner_ = _ownerOf[vaultIndex[vault]];
+    function ownerOfAccount(address account) external view returns (address owner_) {
+        owner_ = _ownerOf[accountIndex[account]];
     }
 
     /**
-     * @notice This function allows vault owners to upgrade the logic of the vault.
-     * @param vault Vault that needs to be upgraded.
-     * @param version The vaultVersion to upgrade to.
-     * @param proofs The merkle proofs that prove the compatibility of the upgrade from current to new vaultVersion.
-     * @dev As each vault is a proxy, the implementation of the proxy can be changed by the owner of the vault.
+     * @notice This function allows Account owners to upgrade the logic of the Account.
+     * @param account Account that needs to be upgraded.
+     * @param version The accountVersion to upgrade to.
+     * @param proofs The merkle proofs that prove the compatibility of the upgrade from current to new accountVersion.
+     * @dev As each Account is a proxy, the implementation of the proxy can be changed by the owner of the Account.
      * Checks are done such that only compatible versions can be upgraded to.
      * Merkle proofs and their leaves can be found on https://www.github.com/arcadia-finance.
      */
-    function upgradeVaultVersion(address vault, uint16 version, bytes32[] calldata proofs) external {
-        require(_ownerOf[vaultIndex[vault]] == msg.sender, "FTRY_UVV: Only Owner");
-        require(!vaultVersionBlocked[version], "FTRY_UVV: Vault version blocked");
-        uint256 currentVersion = IVault(vault).vaultVersion();
+    function upgradeAccountVersion(address account, uint16 version, bytes32[] calldata proofs) external {
+        require(_ownerOf[accountIndex[account]] == msg.sender, "FTRY_UVV: Only Owner");
+        require(!accountVersionBlocked[version], "FTRY_UVV: Account version blocked");
+        uint256 currentVersion = IAccount(account).accountVersion();
 
         bool canUpgrade = MerkleProofLib.verify(
-            proofs, getVaultVersionRoot(), keccak256(abi.encodePacked(currentVersion, uint256(version)))
+            proofs, getAccountVersionRoot(), keccak256(abi.encodePacked(currentVersion, uint256(version)))
         );
 
         require(canUpgrade, "FTR_UVV: Version not allowed");
 
-        IVault(vault).upgradeVault(
-            vaultDetails[version].logic, vaultDetails[version].registry, version, vaultDetails[version].data
+        IAccount(account).upgradeAccount(
+            accountDetails[version].logic, accountDetails[version].registry, version, accountDetails[version].data
         );
 
-        emit VaultUpgraded(vault, uint16(currentVersion), version);
+        emit AccountUpgraded(account, uint16(currentVersion), version);
     }
 
     /**
      * @notice Function to get the latest versioning root.
      * @return The latest versioning root.
-     * @dev The versioning root is the root of the merkle tree of all the compatible vault versions.
-     * The root is updated every time a new vault version added. The root is used to verify the
-     * proofs when a vault is being upgraded.
+     * @dev The versioning root is the root of the merkle tree of all the compatible Account versions.
+     * The root is updated every time a new Account version added. The root is used to verify the
+     * proofs when a Account is being upgraded.
      */
-    function getVaultVersionRoot() public view returns (bytes32) {
-        return vaultDetails[latestVaultVersion].versionRoot;
+    function getAccountVersionRoot() public view returns (bytes32) {
+        return accountDetails[latestAccountVersion].versionRoot;
     }
 
     /**
-     * @notice Function used to transfer a vault between users.
+     * @notice Function used to transfer a Account between users.
      * @param from The sender.
      * @param to The target.
-     * @param vault The address of the vault that is transferred.
-     * @dev This method transfers a vault not on id but on address and also transfers the vault proxy contract to the new owner.
+     * @param account The address of the Account that is transferred.
+     * @dev This method transfers a Account not on id but on address and also transfers the Account proxy contract to the new owner.
      */
-    function safeTransferFrom(address from, address to, address vault) public {
-        uint256 id = vaultIndex[vault];
-        IVault(allVaults[id - 1]).transferOwnership(to);
+    function safeTransferFrom(address from, address to, address account) public {
+        uint256 id = accountIndex[account];
+        IAccount(allAccounts[id - 1]).transferOwnership(to);
         super.safeTransferFrom(from, to, id);
     }
 
     /**
-     * @notice Function used to transfer a vault between users.
+     * @notice Function used to transfer a Account between users.
      * @param from The sender.
      * @param to The target.
-     * @param id The id of the vault that is about to be transferred.
-     * @dev This method overwrites the safeTransferFrom function in ERC721.sol to also transfer the vault proxy contract to the new owner.
+     * @param id The id of the Account that is about to be transferred.
+     * @dev This method overwrites the safeTransferFrom function in ERC721.sol to also transfer the Account proxy contract to the new owner.
      */
     function safeTransferFrom(address from, address to, uint256 id) public override {
-        IVault(allVaults[id - 1]).transferOwnership(to);
+        IAccount(allAccounts[id - 1]).transferOwnership(to);
         super.safeTransferFrom(from, to, id);
     }
 
     /**
-     * @notice Function used to transfer a vault between users.
+     * @notice Function used to transfer a Account between users.
      * @param from The sender.
      * @param to The target.
-     * @param id The id of the vault that is about to be transferred.
+     * @param id The id of the Account that is about to be transferred.
      * @param data additional data, only used for onERC721Received.
-     * @dev This method overwrites the safeTransferFrom function in ERC721.sol to also transfer the vault proxy contract to the new owner.
+     * @dev This method overwrites the safeTransferFrom function in ERC721.sol to also transfer the Account proxy contract to the new owner.
      */
     function safeTransferFrom(address from, address to, uint256 id, bytes calldata data) public override {
-        IVault(allVaults[id - 1]).transferOwnership(to);
+        IAccount(allAccounts[id - 1]).transferOwnership(to);
         super.safeTransferFrom(from, to, id, data);
     }
 
     /**
-     * @notice Function used to transfer a vault between users.
+     * @notice Function used to transfer a Account between users.
      * @param from The sender.
      * @param to The target.
-     * @param id The id of the vault that is about to be transferred.
-     * @dev This method overwrites the safeTransferFrom function in ERC721.sol to also transfer the vault proxy contract to the new owner.
+     * @param id The id of the Account that is about to be transferred.
+     * @dev This method overwrites the safeTransferFrom function in ERC721.sol to also transfer the Account proxy contract to the new owner.
      */
     function transferFrom(address from, address to, uint256 id) public override {
-        IVault(allVaults[id - 1]).transferOwnership(to);
+        IAccount(allAccounts[id - 1]).transferOwnership(to);
         super.transferFrom(from, to, id);
     }
 
     /*///////////////////////////////////////////////////////////////
-                    VAULT VERSION MANAGEMENT
+                    ACCOUNT VERSION MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Function to set a new vault version with the contracts to be used for new deployed vaults.
+     * @notice Function to set a new Account version with the contracts to be used for new deployed Accounts.
      * @param registry The contract address of the Main Registry.
-     * @param logic The contract address of the Vault logic.
-     * @param versionRoot The Merkle root of the merkle tree of all the compatible vault versions.
-     * @param data Arbitrary data, can contain instructions to execute when updating Vault to new logic.
-     * @dev Changing any of the contracts does NOT change the contracts for existing deployed vaults,
-     * unless the vault owner explicitly chooses to upgrade their vault to a newer version
+     * @param logic The contract address of the Account logic.
+     * @param versionRoot The Merkle root of the merkle tree of all the compatible Account versions.
+     * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.
+     * @dev Changing any of the contracts does NOT change the contracts for existing deployed Accounts,
+     * unless the Account owner explicitly chooses to upgrade their Account to a newer version
      * If a new Main Registry contract is set, all the BaseCurrencies currently stored in the Factory
      * are checked against the new Main Registry contract. If they do not match, the function reverts.
      */
-    function setNewVaultInfo(address registry, address logic, bytes32 versionRoot, bytes calldata data)
+    function setNewAccountInfo(address registry, address logic, bytes32 versionRoot, bytes calldata data)
         external
         onlyOwner
     {
@@ -233,8 +234,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         require(logic != address(0), "FTRY_SNVI: logic address is zero");
 
         //If there is a new Main Registry Contract, Check that baseCurrencies in factory and main registry match.
-        if (vaultDetails[latestVaultVersion].registry != registry && latestVaultVersion != 0) {
-            address oldRegistry = vaultDetails[latestVaultVersion].registry;
+        if (accountDetails[latestAccountVersion].registry != registry && latestAccountVersion != 0) {
+            address oldRegistry = accountDetails[latestAccountVersion].registry;
             uint256 oldCounter = IMainRegistry(oldRegistry).baseCurrencyCounter();
             uint256 newCounter = IMainRegistry(registry).baseCurrencyCounter();
             require(oldCounter <= newCounter, "FTRY_SNVI: counter mismatch");
@@ -250,43 +251,43 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         }
 
         unchecked {
-            ++latestVaultVersion;
+            ++latestAccountVersion;
         }
 
-        vaultDetails[latestVaultVersion].registry = registry;
-        vaultDetails[latestVaultVersion].logic = logic;
-        vaultDetails[latestVaultVersion].versionRoot = versionRoot;
-        vaultDetails[latestVaultVersion].data = data;
+        accountDetails[latestAccountVersion].registry = registry;
+        accountDetails[latestAccountVersion].logic = logic;
+        accountDetails[latestAccountVersion].versionRoot = versionRoot;
+        accountDetails[latestAccountVersion].data = data;
 
-        emit VaultVersionAdded(latestVaultVersion, registry, logic, versionRoot);
+        emit AccountVersionAdded(latestAccountVersion, registry, logic, versionRoot);
     }
 
     /**
-     * @notice Function to block a certain vault logic version from being created as a new vault.
-     * @param version The vault version to be phased out.
-     * @dev Should any vault logic version be phased out,
-     * this function can be used to block it from being created for new vaults.
+     * @notice Function to block a certain Account logic version from being created as a new Account.
+     * @param version The Account version to be phased out.
+     * @dev Should any Account logic version be phased out,
+     * this function can be used to block it from being created for new Accounts.
      */
-    function blockVaultVersion(uint256 version) external onlyOwner {
-        require(version > 0 && version <= latestVaultVersion, "FTRY_BVV: Invalid version");
-        vaultVersionBlocked[version] = true;
+    function blockAccountVersion(uint256 version) external onlyOwner {
+        require(version > 0 && version <= latestAccountVersion, "FTRY_BVV: Invalid version");
+        accountVersionBlocked[version] = true;
 
-        emit VaultVersionBlocked(uint16(version));
+        emit AccountVersionBlocked(uint16(version));
     }
 
     /*///////////////////////////////////////////////////////////////
-                    VAULT LIQUIDATION LOGIC
+                    ACCOUNT LIQUIDATION LOGIC
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Function called by a Vault at the start of a liquidation to transfer ownership to the Liquidator contract.
+     * @notice Function called by a Account at the start of a liquidation to transfer ownership to the Liquidator contract.
      * @param liquidator The contract address of the liquidator.
      * @dev This transfer bypasses the standard transferFrom and safeTransferFrom from the ERC-721 standard.
      */
     function liquidate(address liquidator) external whenLiquidateNotPaused {
-        require(isVault(msg.sender), "FTRY: Not a vault");
+        require(isAccount(msg.sender), "FTRY: Not a Account");
 
-        uint256 id = vaultIndex[msg.sender];
+        uint256 id = accountIndex[msg.sender];
         address from = _ownerOf[id];
         unchecked {
             _balanceOf[from]--;
@@ -304,11 +305,11 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Function returns the total number of vaults.
-     * @return numberOfVaults The total number of vaults.
+     * @notice Function returns the total number of Accounts.
+     * @return numberOfAccounts The total number of Accounts.
      */
-    function allVaultsLength() external view returns (uint256 numberOfVaults) {
-        numberOfVaults = allVaults.length;
+    function allAccountsLength() external view returns (uint256 numberOfAccounts) {
+        numberOfAccounts = allAccounts.length;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -317,9 +318,9 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
 
     /**
      * @notice Function that stores a new base URI.
-     * @dev tokenURI's of Arcadia Vaults are not meant to be immutable
+     * @dev tokenURI's of Arcadia Accounts are not meant to be immutable
      * and might be updated later to allow users to
-     * choose/create their own vault art,
+     * choose/create their own Account art,
      * as such no URI freeze is added.
      * @param newBaseURI The new base URI to store.
      */
@@ -329,7 +330,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
 
     /**
      * @notice Function that returns the token URI as defined in the erc721 standard.
-     * @param tokenId The id if the vault.
+     * @param tokenId The id if the Account.
      * @return uri The token uri.
      */
     function tokenURI(uint256 tokenId) public view override returns (string memory uri) {

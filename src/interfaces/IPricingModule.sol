@@ -34,19 +34,19 @@ interface IPricingModule {
 
     /**
      * @notice Processes the deposit of an asset.
-     * @param vault The contract address of the Vault where the asset is transferred to.
+     * @param account The contract address of the Account where the asset is transferred to.
      * @param asset The contract address of the asset.
      * @param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDeposit(address vault, address asset, uint256 id, uint256 amount) external;
+    function processDeposit(address account, address asset, uint256 id, uint256 amount) external;
 
     /**
      * @notice Processes the withdrawal an asset.
-     * @param vault The address of the vault where the asset is withdrawn from
+     * @param account The address of the Account where the asset is withdrawn from
      * @param asset The contract address of the asset.
      * @param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processWithdrawal(address vault, address asset, uint256 id, uint256 amount) external;
+    function processWithdrawal(address account, address asset, uint256 id, uint256 amount) external;
 }

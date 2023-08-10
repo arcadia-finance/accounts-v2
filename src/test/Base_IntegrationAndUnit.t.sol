@@ -110,25 +110,25 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         mockERC1155.erc1155.mint(users.tokenCreatorAddress, 1, 100_000);
 
         // Transfer tokens
-        mockERC20.stable2.transfer(users.vaultOwner, 100_000 * 10 ** Constants.stableDecimals);
-        mockERC20.token1.transfer(users.vaultOwner, 100_000 * 10 ** Constants.tokenDecimals);
-        mockERC20.token2.transfer(users.vaultOwner, 100_000 * 10 ** Constants.tokenDecimals);
-        mockERC20.token3.transfer(users.vaultOwner, 100_000 * 10 ** Constants.tokenDecimals);
-        mockERC20.token4.transfer(users.vaultOwner, 100_000 * 10 ** Constants.tokenDecimals);
+        mockERC20.stable2.transfer(users.accountOwner, 100_000 * 10 ** Constants.stableDecimals);
+        mockERC20.token1.transfer(users.accountOwner, 100_000 * 10 ** Constants.tokenDecimals);
+        mockERC20.token2.transfer(users.accountOwner, 100_000 * 10 ** Constants.tokenDecimals);
+        mockERC20.token3.transfer(users.accountOwner, 100_000 * 10 ** Constants.tokenDecimals);
+        mockERC20.token4.transfer(users.accountOwner, 100_000 * 10 ** Constants.tokenDecimals);
 
         // Transfer mock ERC20 token to the unprivileged address
         mockERC20.token1.transfer(users.unprivilegedAddress, 1000 * 10 ** Constants.tokenDecimals);
 
-        // Transfer 3 first token ID's from each ERC721 contract to the vaultOwner
+        // Transfer 3 first token ID's from each ERC721 contract to the accountOwner
         for (uint8 i = 0; i <= 2; i++) {
-            mockERC721.nft1.transferFrom(users.tokenCreatorAddress, users.vaultOwner, i);
-            mockERC721.nft2.transferFrom(users.tokenCreatorAddress, users.vaultOwner, i);
-            mockERC721.nft3.transferFrom(users.tokenCreatorAddress, users.vaultOwner, i);
+            mockERC721.nft1.transferFrom(users.tokenCreatorAddress, users.accountOwner, i);
+            mockERC721.nft2.transferFrom(users.tokenCreatorAddress, users.accountOwner, i);
+            mockERC721.nft3.transferFrom(users.tokenCreatorAddress, users.accountOwner, i);
         }
 
         mockERC1155.erc1155.safeTransferFrom(
             users.tokenCreatorAddress,
-            users.vaultOwner,
+            users.accountOwner,
             1,
             100_000,
             "0x0000000000000000000000000000000000000000000000000000000000000000"

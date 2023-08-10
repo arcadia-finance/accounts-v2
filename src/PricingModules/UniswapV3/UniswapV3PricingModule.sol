@@ -454,7 +454,7 @@ contract UniswapV3PricingModule is PricingModule {
 
     /**
      * @notice Processes the deposit of an asset.
-     * param vault The contract address of the Vault where the asset is transferred to.
+     * param account The contract address of the Account where the asset is transferred to.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * param amount The amount of tokens.
@@ -540,7 +540,7 @@ contract UniswapV3PricingModule is PricingModule {
 
     /**
      * @notice Processes the withdrawal of an asset.
-     * param vault The address of the vault where the asset is withdrawn from
+     * param account The address of the Account where the asset is withdrawn from
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * param amount The amount of tokens.

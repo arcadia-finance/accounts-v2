@@ -4,11 +4,12 @@
  */
 pragma solidity ^0.8.13;
 
-import { Test } from "forge-std/Test.sol";
+import { Test } from "../../lib/forge-std/src/Test.sol";
 import { Users, MockOracles, MockERC20, MockERC721, Rates } from "./utils/Types.sol";
 import { Factory } from "../Factory.sol";
-import { Vault } from "../Vault.sol";
-import { MainRegistryExtension, VaultExtension } from "./utils/Extensions.sol";
+import { AccountV1 } from "../AccountV1.sol";
+import { AccountV2 } from "../mockups/AccountV2.sol";
+import { MainRegistryExtension, AccountExtension } from "./utils/Extensions.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import "./utils/Constants.sol";
 import "../mockups/ERC20SolmateMock.sol";
@@ -24,7 +25,7 @@ abstract contract Base_Global_Test is Test, Events, Errors {
     //////////////////////////////////////////////////////////////////////////*/
 
     Users internal users;
-    address internal deployedVaultInputs0;
+    address internal deployedAccountInputs0;
     // This will be the base currency set for the instance of "trustedCreditorWithParams"
     address internal initBaseCurrency;
 
@@ -34,9 +35,9 @@ abstract contract Base_Global_Test is Test, Events, Errors {
 
     Factory internal factory;
     MainRegistryExtension internal mainRegistryExtension;
-    Vault internal vault;
-    Vault internal vaultV2;
-    VaultExtension internal vaultExtension;
+    AccountV1 internal account;
+    AccountV2 internal accountV2;
+    AccountExtension internal accountExtension;
     TrustedCreditorMock internal trustedCreditorWithParamsInit;
     TrustedCreditorMock internal defaultTrustedCreditor;
 
@@ -51,7 +52,7 @@ abstract contract Base_Global_Test is Test, Events, Errors {
             tokenCreatorAddress: createUser("creatorAddress"),
             oracleOwner: createUser("oracleOwner"),
             unprivilegedAddress: createUser("unprivilegedAddress"),
-            vaultOwner: createUser("vaultOwner"),
+            accountOwner: createUser("accountOwner"),
             liquidityProvider: createUser("liquidityProvider"),
             defaultCreatorAddress: createUser("defaultCreatorAddress"),
             defaultTransmitter: createUser("defaultTransmitter")
@@ -61,10 +62,10 @@ abstract contract Base_Global_Test is Test, Events, Errors {
         vm.startPrank(users.creatorAddress);
         factory = new Factory();
         mainRegistryExtension = new MainRegistryExtension(address(factory));
-        vault = new Vault();
-        vaultV2 = new Vault();
-        vaultExtension = new VaultExtension(address(mainRegistryExtension), 1);
-        factory.setNewVaultInfo(address(mainRegistryExtension), address(vault), Constants.upgradeProof1To2, "");
+        account = new AccountV1();
+        accountV2 = new AccountV2();
+        accountExtension = new AccountExtension(address(mainRegistryExtension), 1);
+        factory.setNewAccountInfo(address(mainRegistryExtension), address(account), Constants.upgradeProof1To2, "");
         trustedCreditorWithParamsInit = new TrustedCreditorMock();
         defaultTrustedCreditor = new TrustedCreditorMock();
         vm.stopPrank();
@@ -72,8 +73,8 @@ abstract contract Base_Global_Test is Test, Events, Errors {
         // Label the base test contracts.
         vm.label({ account: address(factory), newLabel: "Factory" });
         vm.label({ account: address(mainRegistryExtension), newLabel: "Main Registry Extension" });
-        vm.label({ account: address(vault), newLabel: "Vault" });
-        vm.label({ account: address(vaultV2), newLabel: "VaultV2" });
+        vm.label({ account: address(account), newLabel: "Account" });
+        vm.label({ account: address(accountV2), newLabel: "AccountV2" });
         vm.label({ account: address(defaultTrustedCreditor), newLabel: "Trusted Creditor Mock Not Initialized" });
         vm.label({ account: address(trustedCreditorWithParamsInit), newLabel: "Trusted Creditor Mock Initialized" });
 
@@ -82,9 +83,9 @@ abstract contract Base_Global_Test is Test, Events, Errors {
         trustedCreditorWithParamsInit.setFixedLiquidationCost(Constants.initLiquidationCost);
         trustedCreditorWithParamsInit.setLiquidator(Constants.initLiquidator);
 
-        // Deploy an initial vault with all inputs to zero
-        vm.startPrank(users.vaultOwner);
-        deployedVaultInputs0 = factory.createVault(0, 0, address(0), address(0));
+        // Deploy an initial Account with all inputs to zero
+        vm.startPrank(users.accountOwner);
+        deployedAccountInputs0 = factory.createAccount(0, 0, address(0), address(0));
         vm.stopPrank();
     }
 
