@@ -11,13 +11,13 @@ contract AccountVariableVersion is AccountStorageV1 {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    uint16 public accountVersion;
+    uint16 public ACCOUNT_VERSION;
 
     constructor(uint256 accountVersion_) {
-        accountVersion = uint16(accountVersion_);
+        ACCOUNT_VERSION = uint16(accountVersion_);
     }
 
     function setAccountVersion(uint256 accountVersion_) public {
-        accountVersion = uint16(accountVersion_);
+        ACCOUNT_VERSION = uint16(accountVersion_);
     }
 }

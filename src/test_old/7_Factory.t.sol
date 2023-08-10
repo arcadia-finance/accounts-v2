@@ -35,7 +35,7 @@ contract FactoryTest is DeployArcadiaAccounts {
         factory.setNewAccountInfo(address(mainRegistry), address(account), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
 
-        accountVarVersion = new AccountVarVersion(1);
+        accountVarVersion = new AccountVariableVersion(1);
     }
 
     /* ///////////////////////////////////////////////////////////////

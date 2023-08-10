@@ -15,7 +15,6 @@ import { MultiActionMock } from "../mockups/MultiActionMock.sol";
 contract AccountTestExtension is AccountV1 {
     constructor(address mainReg_) AccountV1() {
         registry = mainReg_;
-        accountVersion = accountVersion_;
     }
 
     function getLengths() external view returns (uint256, uint256, uint256, uint256) {
@@ -28,10 +27,6 @@ contract AccountTestExtension is AccountV1 {
 
     function setIsTrustedCreditorSet(bool set) public {
         isTrustedCreditorSet = set;
-    }
-
-    function setAccountVersion(uint16 version) public {
-        accountVersion = version;
     }
 
     function setFixedLiquidationCost(uint96 fixedLiquidationCost_) public {
@@ -237,7 +232,7 @@ contract DeploymentTest is accountTests {
     function testSuccess_deployment() public {
         assertEq(account_.owner(), accountOwner);
         assertEq(account_.registry(), address(mainRegistry));
-        assertEq(account_.accountVersion(), 1);
+        assertEq(account_.ACCOUNT_VERSION(), 1);
         assertEq(account_.baseCurrency(), address(0));
     }
 }
@@ -263,23 +258,13 @@ contract AccountManagementTest is accountTests {
     // Test migrated to new test suite
     // function testSuccess_initialize(address owner_, uint16 accountVersion_) public {}
 
-    function testSuccess_upgradeAccount(
-        address newImplementation,
-        address newRegistry,
-        uint16 newVersion,
-        bytes calldata data
-    ) public {
-        //TrustedCreditor is set
-        vm.prank(accountOwner);
-        account_.openTrustedMarginAccount(address(trustedCreditor));
-
-        vm.prank(address(factory));
-        account_.upgradeAccount(newImplementation, newRegistry, newVersion, data);
-
-        uint16 expectedVersion = account_.accountVersion();
-
-        assertEq(expectedVersion, newVersion);
-    }
+    // Test available in proxyUpgrade testfile
+    // function testSuccess_upgradeAccount(
+    //     address newImplementation,
+    //     address newRegistry,
+    //     uint16 newVersion,
+    //     bytes calldata data
+    // ) public
 
     function testRevert_upgradeAccount_byNonFactory(
         address newImplementation,
@@ -949,8 +934,8 @@ contract AccountActionTest is accountTests {
         deal(address(eth), address(action), 1000 * 10 ** 20, false);
 
         vm.startPrank(creatorAddress);
-        account = new AccountTestExtension(address(mainRegistry), 1);
-        factory.setLatestVaultversion(0);
+        account = new AccountTestExtension(address(mainRegistry));
+        factory.setLatestAccountversion(0);
         factory.setNewAccountInfo(address(mainRegistry), address(account), Constants.upgradeProof1To2, "");
         vm.stopPrank();
 
@@ -1770,7 +1755,7 @@ contract AssetManagementTest is accountTests {
         vm.stopPrank();
 
         vm.prank(accountOwner);
-        account2 = new AccountTestExtension(address(mainRegistry), 2);
+        account2 = new AccountTestExtension(address(mainRegistry));
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(account2)).checked_write(
             true
         );
@@ -1808,7 +1793,7 @@ contract AssetManagementTest is accountTests {
         depositBaycInAccount(tokenIdsDeposit, accountOwner);
 
         vm.prank(accountOwner);
-        account2 = new AccountTestExtension(address(mainRegistry), 2);
+        account2 = new AccountTestExtension(address(mainRegistry));
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(account2)).checked_write(
             true
         );

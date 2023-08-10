@@ -1005,6 +1005,4 @@ contract AccountV2 is AccountStorageV2 {
 
         storageV2 = returnFive();
     }
-
-    uint256 public check;
 }

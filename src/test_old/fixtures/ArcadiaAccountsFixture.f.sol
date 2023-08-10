@@ -38,8 +38,8 @@ contract FactoryExtension is Factory {
         _ownerOf[accountId] = owner_;
     }
 
-    function setLatestVaultversion(uint16 latestVaultVersion_) public {
-        latestVaultVersion = latestVaultVersion_;
+    function setLatestAccountversion(uint16 latestAccountVersion_) public {
+        latestAccountVersion = latestAccountVersion_;
     }
 }
 

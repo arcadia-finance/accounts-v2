@@ -120,19 +120,21 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
     }
 
     function testRevert_initialize_InvalidMainreg() public {
-        account.setRegistry(address(0));
+        accountExtension.setRegistry(address(0));
 
         vm.expectRevert("V_I: Registry cannot be 0!");
-        account.initialize(users.accountOwner, address(0), address(0));
+        accountExtension.initialize(users.accountOwner, address(0), address(0), address(0));
     }
 
     function testRevert_initialize_AlreadyInitialized() public {
+        account.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
+
         vm.expectRevert("V_I: Already initialized!");
         account.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
     }
 
     function test_initialize(address owner_) public {
-        accountExtension.setOwner(address(0));
+        accountExtension.setRegistry(address(0));
 
         vm.expectEmit(true, true, true, true);
         emit BaseCurrencySet(address(0));
