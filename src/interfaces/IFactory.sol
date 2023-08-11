@@ -6,14 +6,14 @@ pragma solidity ^0.8.13;
 
 interface IFactory {
     /**
-     * @notice Checks if a contract is a Vault.
-     * @param vault The contract address of the Vault.
-     * @return bool indicating if the address is a vault or not.
+     * @notice Checks if a contract is a Account.
+     * @param account The contract address of the Account.
+     * @return bool indicating if the address is a Account or not.
      */
-    function isVault(address vault) external view returns (bool);
+    function isAccount(address account) external view returns (bool);
 
     /**
-     * @notice Function called by a Vault at the start of a liquidation to transfer ownership to the Liquidator contract.
+     * @notice Function called by a Account at the start of a liquidation to transfer ownership to the Liquidator contract.
      * @param liquidator The contract address of the liquidator.
      */
     function liquidate(address liquidator) external;

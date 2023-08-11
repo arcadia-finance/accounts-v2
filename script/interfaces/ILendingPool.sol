@@ -7,7 +7,7 @@ pragma solidity ^0.8.13;
 interface ILendingPool {
     function setBorrowCap(uint256 borrowCap) external;
 
-    function setVaultVersion(uint256 version, bool value) external;
+    function setAccountVersion(uint256 version, bool value) external;
 
     struct InterestRateConfiguration {
         uint72 baseRatePerYear; //18 decimals precision.

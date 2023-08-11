@@ -4,12 +4,12 @@
  */
 pragma solidity ^0.8.13;
 
-import "./fixtures/ArcadiaVaultsFixture.f.sol";
+import "./fixtures/ArcadiaAccountsFixture.f.sol";
 
 import { ERC4626Mock } from "../mockups/ERC4626Mock.sol";
 import { StandardERC4626PricingModule } from "../PricingModules/StandardERC4626PricingModule.sol";
 
-contract standardERC4626PricingModuleTest is DeployArcadiaVaults {
+contract standardERC4626PricingModuleTest is DeployArcadiaAccounts {
     using stdStorage for StdStorage;
 
     ERC4626Mock public ybEth;
@@ -18,7 +18,7 @@ contract standardERC4626PricingModuleTest is DeployArcadiaVaults {
     StandardERC4626PricingModule public standardERC4626PricingModule;
 
     //this is a before
-    constructor() DeployArcadiaVaults() {
+    constructor() DeployArcadiaAccounts() {
         vm.prank(tokenCreatorAddress);
         ybEth = new ERC4626Mock(eth, "ybETH Mock", "mybETH", uint8(Constants.ethDecimals));
     }

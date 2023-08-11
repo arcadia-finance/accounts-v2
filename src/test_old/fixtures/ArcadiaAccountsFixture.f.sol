@@ -8,7 +8,7 @@ import "../../../lib/forge-std/src/Test.sol";
 
 import "../../Factory.sol";
 import "../../Proxy.sol";
-import { Vault, ActionData } from "../../Vault.sol";
+import { AccountV1, ActionData } from "../../AccountV1.sol";
 import { ERC20Mock } from "../../mockups/ERC20SolmateMock.sol";
 import "../../mockups/ERC721SolmateMock.sol";
 import "../../mockups/ERC1155SolmateMock.sol";
@@ -34,19 +34,19 @@ contract mainRegistryExtension is MainRegistry {
 }
 
 contract FactoryExtension is Factory {
-    function setOwnerOf(address owner_, uint256 vaultId) public {
-        _ownerOf[vaultId] = owner_;
+    function setOwnerOf(address owner_, uint256 accountId) public {
+        _ownerOf[accountId] = owner_;
     }
 
-    function setLatestVaultversion(uint16 latestVaultVersion_) public {
-        latestVaultVersion = latestVaultVersion_;
+    function setLatestAccountversion(uint16 latestAccountVersion_) public {
+        latestAccountVersion = latestAccountVersion_;
     }
 }
 
-contract DeployArcadiaVaults is Test {
+contract DeployArcadiaAccounts is Test {
     FactoryExtension public factory;
-    Vault public vault;
-    Vault public proxy;
+    AccountV1 public account;
+    AccountV1 public proxy;
     address public proxyAddr;
     ERC20Mock public dai;
     ERC20Mock public eth;
@@ -74,7 +74,7 @@ contract DeployArcadiaVaults is Test {
     address public tokenCreatorAddress = address(2);
     address public oracleOwner = address(3);
     address public unprivilegedAddress = address(4);
-    address public vaultOwner = address(6);
+    address public accountOwner = address(6);
     address public liquidityProvider = address(7);
 
     uint256 rateDaiToUsd = 1 * 10 ** Constants.oracleDaiToUsdDecimals;
@@ -136,19 +136,19 @@ contract DeployArcadiaVaults is Test {
         interleave = new ERC1155Mock("Interleave Mock", "mInterleave");
         interleave.mint(tokenCreatorAddress, 1, 100_000);
 
-        eth.transfer(vaultOwner, 100_000 * 10 ** Constants.ethDecimals);
-        link.transfer(vaultOwner, 100_000 * 10 ** Constants.linkDecimals);
-        snx.transfer(vaultOwner, 100_000 * 10 ** Constants.snxDecimals);
-        safemoon.transfer(vaultOwner, 100_000 * 10 ** Constants.safemoonDecimals);
-        bayc.transferFrom(tokenCreatorAddress, vaultOwner, 0);
-        bayc.transferFrom(tokenCreatorAddress, vaultOwner, 1);
-        bayc.transferFrom(tokenCreatorAddress, vaultOwner, 2);
-        bayc.transferFrom(tokenCreatorAddress, vaultOwner, 3);
-        mayc.transferFrom(tokenCreatorAddress, vaultOwner, 0);
-        dickButs.transferFrom(tokenCreatorAddress, vaultOwner, 0);
+        eth.transfer(accountOwner, 100_000 * 10 ** Constants.ethDecimals);
+        link.transfer(accountOwner, 100_000 * 10 ** Constants.linkDecimals);
+        snx.transfer(accountOwner, 100_000 * 10 ** Constants.snxDecimals);
+        safemoon.transfer(accountOwner, 100_000 * 10 ** Constants.safemoonDecimals);
+        bayc.transferFrom(tokenCreatorAddress, accountOwner, 0);
+        bayc.transferFrom(tokenCreatorAddress, accountOwner, 1);
+        bayc.transferFrom(tokenCreatorAddress, accountOwner, 2);
+        bayc.transferFrom(tokenCreatorAddress, accountOwner, 3);
+        mayc.transferFrom(tokenCreatorAddress, accountOwner, 0);
+        dickButs.transferFrom(tokenCreatorAddress, accountOwner, 0);
         interleave.safeTransferFrom(
             tokenCreatorAddress,
-            vaultOwner,
+            accountOwner,
             1,
             100_000,
             "0x0000000000000000000000000000000000000000000000000000000000000000"
@@ -187,7 +187,7 @@ contract DeployArcadiaVaults is Test {
         oracleInterleaveToEth.transmit(int256(rateInterleaveToEth));
         vm.stopPrank();
 
-        //Deploy Arcadia Vaults contracts
+        //Deploy Arcadia Accounts contracts
         vm.startPrank(creatorAddress);
         oracleHub = new OracleHub();
         factory = new FactoryExtension();
@@ -360,8 +360,8 @@ contract DeployArcadiaVaults is Test {
             address(interleave), 1, oracleInterleaveToEthEthToUsd, riskVars_, type(uint128).max
         );
 
-        vault = new Vault();
-        factory.setNewVaultInfo(address(mainRegistry), address(vault), Constants.upgradeProof1To2, "");
+        account = new AccountV1();
+        factory.setNewAccountInfo(address(mainRegistry), address(account), Constants.upgradeProof1To2, "");
         vm.stopPrank();
     }
 }

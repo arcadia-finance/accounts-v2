@@ -7,7 +7,7 @@ pragma solidity ^0.8.13;
 contract TrustedCreditorMock {
     bool isCallSuccesfull = true;
 
-    uint256 public fixedLiquidationCost;
+    uint96 public fixedLiquidationCost;
 
     address public baseCurrency;
     address public liquidator;
@@ -34,12 +34,12 @@ contract TrustedCreditorMock {
         }
     }
 
-    function getOpenPosition(address vault) external view returns (uint256 openPosition_) {
-        openPosition_ = openPosition[vault];
+    function getOpenPosition(address account) external view returns (uint256 openPosition_) {
+        openPosition_ = openPosition[account];
     }
 
-    function setOpenPosition(address vault, uint256 openPosition_) external {
-        openPosition[vault] = openPosition_;
+    function setOpenPosition(address account, uint256 openPosition_) external {
+        openPosition[account] = openPosition_;
     }
 
     function setCallResult(bool success) external {
@@ -52,5 +52,9 @@ contract TrustedCreditorMock {
 
     function setLiquidator(address liquidator_) external {
         liquidator = liquidator_;
+    }
+
+    function setFixedLiquidationCost(uint96 fixedLiquidationCost_) external {
+        fixedLiquidationCost = fixedLiquidationCost_;
     }
 }

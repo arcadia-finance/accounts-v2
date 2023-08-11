@@ -11,7 +11,7 @@ import {
 
 import { Factory } from "../src/Factory.sol";
 import { Proxy } from "../src/Proxy.sol";
-import { Vault } from "../src/Vault.sol";
+import { AccountV1 } from "../src/AccountV1.sol";
 import { MainRegistry } from "../src/MainRegistry.sol";
 import { PricingModule, StandardERC20PricingModule } from "../src/PricingModules/StandardERC20PricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
@@ -22,9 +22,9 @@ import { ActionMultiCall } from "../src/actions/MultiCall.sol";
 import { ILendingPool } from "./interfaces/ILendingPool.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
 
-contract ArcadiaVaultDeployerOptimism is Test {
+contract ArcadiaAccountDeployerOptimism is Test {
     Factory public factory;
-    Vault public vault;
+    AccountV1 public account;
 
     ERC20 public dai;
     ERC20 public frax;
@@ -398,7 +398,7 @@ contract ArcadiaVaultDeployerOptimism is Test {
             0
         );
 
-        vault = new Vault();
+        account = new AccountV1();
         actionMultiCall = new ActionMultiCall();
 
         oracleHub.addOracle(daiToUsdOracleInfo);
@@ -454,12 +454,12 @@ contract ArcadiaVaultDeployerOptimism is Test {
             DeployAddresses.op_optimism, oracleOpToUsdArr, riskVarsOp_, type(uint128).max
         );
 
-        factory.setNewVaultInfo(address(mainRegistry), address(vault), DeployBytes.upgradeRoot1To1, "");
+        factory.setNewAccountInfo(address(mainRegistry), address(account), DeployBytes.upgradeRoot1To1, "");
 
         mainRegistry.setAllowedAction(address(actionMultiCall), true);
 
-        wethLendingPool.setVaultVersion(1, true);
-        usdcLendingPool.setVaultVersion(1, true);
+        wethLendingPool.setAccountVersion(1, true);
+        usdcLendingPool.setAccountVersion(1, true);
 
         // wethLendingPool.setBorrowCap(50 * 10**18);
         // usdcLendingPool.setBorrowCap(75000 * 10**6);

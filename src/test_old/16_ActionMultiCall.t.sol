@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.13;
 
-import "./fixtures/ArcadiaVaultsFixture.f.sol";
+import "./fixtures/ArcadiaAccountsFixture.f.sol";
 import { MultiActionMock } from "../mockups/MultiActionMock.sol";
 
 import { ActionMultiCall } from "../actions/MultiCall.sol";
@@ -13,7 +13,7 @@ import "../actions/utils/ActionData.sol";
 
 import { ERC20Mock } from "../mockups/ERC20SolmateMock.sol";
 
-contract ActionMultiCallTest is DeployArcadiaVaults {
+contract ActionMultiCallTest is DeployArcadiaAccounts {
     using stdStorage for StdStorage;
 
     ActionMultiCall public action;

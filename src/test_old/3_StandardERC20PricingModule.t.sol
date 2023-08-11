@@ -4,9 +4,9 @@
  */
 pragma solidity ^0.8.13;
 
-import "./fixtures/ArcadiaVaultsFixture.f.sol";
+import "./fixtures/ArcadiaAccountsFixture.f.sol";
 
-contract StandardERC20PricingModuleTest is DeployArcadiaVaults {
+contract StandardERC20PricingModuleTest is DeployArcadiaAccounts {
     using stdStorage for StdStorage;
 
     event RiskVariablesSet(
@@ -15,7 +15,7 @@ contract StandardERC20PricingModuleTest is DeployArcadiaVaults {
     event MaxExposureSet(address indexed asset, uint128 maxExposure);
 
     //this is a before
-    constructor() DeployArcadiaVaults() { }
+    constructor() DeployArcadiaAccounts() { }
 
     //this is a before each
     function setUp() public {

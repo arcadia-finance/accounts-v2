@@ -4,13 +4,13 @@
  */
 pragma solidity ^0.8.13;
 
-import "./fixtures/ArcadiaVaultsFixture.f.sol";
+import "./fixtures/ArcadiaAccountsFixture.f.sol";
 
-contract FloorERC1155PricingModuleTest is DeployArcadiaVaults {
+contract FloorERC1155PricingModuleTest is DeployArcadiaAccounts {
     using stdStorage for StdStorage;
 
     //this is a before
-    constructor() DeployArcadiaVaults() { }
+    constructor() DeployArcadiaAccounts() { }
 
     //this is a before each
     function setUp() public {
@@ -172,7 +172,7 @@ contract FloorERC1155PricingModuleTest is DeployArcadiaVaults {
                     RISK VARIABLES MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
-    function testRevert_processDeposit_NonMainRegistry(address unprivilegedAddress_, uint128 amount, address vault)
+    function testRevert_processDeposit_NonMainRegistry(address unprivilegedAddress_, uint128 amount, address account)
         public
     {
         vm.prank(creatorAddress);
@@ -184,11 +184,11 @@ contract FloorERC1155PricingModuleTest is DeployArcadiaVaults {
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        floorERC1155PricingModule.processDeposit(vault, address(interleave), 1, amount);
+        floorERC1155PricingModule.processDeposit(account, address(interleave), 1, amount);
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_OverExposure(uint128 amount, uint128 maxExposure, address vault) public {
+    function testRevert_processDeposit_OverExposure(uint128 amount, uint128 maxExposure, address account) public {
         vm.assume(maxExposure > 0); //Asset is whitelisted
         vm.assume(amount > maxExposure);
         vm.prank(creatorAddress);
@@ -198,11 +198,11 @@ contract FloorERC1155PricingModuleTest is DeployArcadiaVaults {
 
         vm.startPrank(address(mainRegistry));
         vm.expectRevert("PM1155_PD: Exposure not in limits");
-        floorERC1155PricingModule.processDeposit(vault, address(interleave), 1, amount);
+        floorERC1155PricingModule.processDeposit(account, address(interleave), 1, amount);
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_WrongID(uint256 assetId, uint128 amount, address vault) public {
+    function testRevert_processDeposit_WrongID(uint256 assetId, uint128 amount, address account) public {
         vm.assume(assetId > 0); //Wrong Id
         vm.prank(creatorAddress);
         floorERC1155PricingModule.addAsset(
@@ -211,21 +211,21 @@ contract FloorERC1155PricingModuleTest is DeployArcadiaVaults {
 
         vm.startPrank(address(mainRegistry));
         vm.expectRevert("PM1155_PD: ID not allowed");
-        floorERC1155PricingModule.processDeposit(vault, address(interleave), assetId, amount);
+        floorERC1155PricingModule.processDeposit(account, address(interleave), assetId, amount);
         vm.stopPrank();
 
         (, uint128 actualExposure) = floorERC1155PricingModule.exposure(address(interleave));
         assertEq(actualExposure, 0);
     }
 
-    function testSuccess_processDeposit_Positive(uint128 amount, address vault) public {
+    function testSuccess_processDeposit_Positive(uint128 amount, address account) public {
         vm.prank(creatorAddress);
         floorERC1155PricingModule.addAsset(
             address(interleave), 1, oracleInterleaveToEthEthToUsd, emptyRiskVarInput, type(uint128).max
         );
 
         vm.prank(address(mainRegistry));
-        floorERC1155PricingModule.processDeposit(vault, address(interleave), 1, amount);
+        floorERC1155PricingModule.processDeposit(account, address(interleave), 1, amount);
 
         (, uint128 actualExposure) = floorERC1155PricingModule.exposure(address(interleave));
         assertEq(actualExposure, amount);

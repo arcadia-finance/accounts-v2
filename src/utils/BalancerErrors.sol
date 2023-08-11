@@ -108,7 +108,7 @@ library Errors {
     uint256 internal constant MAX_SWAP_FEE_PERCENTAGE = 202;
     uint256 internal constant MIN_SWAP_FEE_PERCENTAGE = 203;
     uint256 internal constant MINIMUM_BPT = 204;
-    uint256 internal constant CALLER_NOT_VAULT = 205;
+    uint256 internal constant CALLER_NOT_ACCOUNT = 205;
     uint256 internal constant UNINITIALIZED = 206;
     uint256 internal constant BPT_IN_MAX_AMOUNT = 207;
     uint256 internal constant BPT_OUT_MIN_AMOUNT = 208;
@@ -161,7 +161,7 @@ library Errors {
     uint256 internal constant RENOUNCE_SENDER_NOT_ALLOWED = 424;
     uint256 internal constant BUFFER_PERIOD_EXPIRED = 425;
 
-    // Vault
+    // Account
     uint256 internal constant INVALID_POOL_ID = 500;
     uint256 internal constant CALLER_NOT_POOL = 501;
     uint256 internal constant SENDER_NOT_ASSET_MANAGER = 502;
