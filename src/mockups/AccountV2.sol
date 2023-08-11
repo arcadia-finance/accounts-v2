@@ -65,7 +65,7 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Throws if called by any account other than the factory address.
      */
     modifier onlyFactory() {
-        require(msg.sender == IMainRegistry(registry).factory(), "V: Only Factory");
+        require(msg.sender == IMainRegistry(registry).factory(), "A: Only Factory");
         _;
     }
 
@@ -73,7 +73,7 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        require(msg.sender == owner, "V: Only Owner");
+        require(msg.sender == owner, "A: Only Owner");
         _;
     }
 
@@ -83,7 +83,7 @@ contract AccountV2 is AccountStorageV2 {
     modifier onlyAssetManager() {
         require(
             msg.sender == owner || msg.sender == trustedCreditor || isAssetManager[owner][msg.sender],
-            "V: Only Asset Manager"
+            "A: Only Asset Manager"
         );
         _;
     }

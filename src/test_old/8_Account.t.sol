@@ -282,7 +282,7 @@ contract AccountManagementTest is accountTests {
         vm.assume(nonFactory != address(factory));
 
         vm.startPrank(nonFactory);
-        vm.expectRevert("V: Only Factory");
+        vm.expectRevert("A: Only Factory");
         account_.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
     }
@@ -323,7 +323,7 @@ contract OwnershipManagementTest is accountTests {
         assertEq(accountOwner, account_.owner());
 
         vm.startPrank(sender);
-        vm.expectRevert("V: Only Factory");
+        vm.expectRevert("A: Only Factory");
         account_.transferOwnership(to);
         vm.stopPrank();
 
@@ -380,7 +380,7 @@ contract BaseCurrencyLogicTest is accountTests {
         vm.assume(unprivilegedAddress_ != accountOwner);
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("V: Only Owner");
+        vm.expectRevert("A: Only Owner");
         account_.setBaseCurrency(address(eth));
         vm.stopPrank();
     }
@@ -451,7 +451,7 @@ contract MarginAccountSettingsTest is accountTests {
         vm.assume(nonOwner != accountOwner);
 
         vm.startPrank(nonOwner);
-        vm.expectRevert("V: Only Owner");
+        vm.expectRevert("A: Only Owner");
         account_.closeTrustedMarginAccount();
         vm.stopPrank();
     }
@@ -961,7 +961,7 @@ contract AccountActionTest is accountTests {
         vm.assume(nonOwner != accountOwner);
 
         vm.startPrank(nonOwner);
-        vm.expectRevert("V: Only Owner");
+        vm.expectRevert("A: Only Owner");
         account_.setAssetManager(assetManager, value);
         vm.stopPrank();
     }
@@ -991,7 +991,7 @@ contract AccountActionTest is accountTests {
         proxy_.setAssetManager(assetManager, true);
 
         vm.startPrank(sender);
-        vm.expectRevert("V: Only Asset Manager");
+        vm.expectRevert("A: Only Asset Manager");
         proxy_.accountManagementAction(address(action), new bytes(0));
         vm.stopPrank();
     }
@@ -1008,7 +1008,7 @@ contract AccountActionTest is accountTests {
         factory.safeTransferFrom(accountOwner, newOwner, address(proxy_));
 
         vm.startPrank(assetManager);
-        vm.expectRevert("V: Only Asset Manager");
+        vm.expectRevert("A: Only Asset Manager");
         proxy_.accountManagementAction(address(action), new bytes(0));
         vm.stopPrank();
     }
@@ -1340,7 +1340,7 @@ contract AssetManagementTest is accountTests {
         assetAmounts[0] = 10 * 10 ** Constants.ethDecimals;
 
         vm.startPrank(sender);
-        vm.expectRevert("V: Only Owner");
+        vm.expectRevert("A: Only Owner");
         account_.deposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -1673,7 +1673,7 @@ contract AssetManagementTest is accountTests {
 
         assetInfo.assetAmounts[0] = withdrawalAmount * 10 ** Constants.ethDecimals;
         vm.startPrank(sender);
-        vm.expectRevert("V: Only Owner");
+        vm.expectRevert("A: Only Owner");
         account_.withdraw(assetInfo.assetAddresses, assetInfo.assetIds, assetInfo.assetAmounts);
     }
 

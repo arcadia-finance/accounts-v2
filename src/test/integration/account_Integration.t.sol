@@ -80,7 +80,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
 
     function testRevert_openTrustedMarginAccount_NotOwner() public {
         // Should revert if not called by the owner
-        vm.expectRevert("V: Only Owner");
+        vm.expectRevert("A: Only Owner");
         AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
     }
 
