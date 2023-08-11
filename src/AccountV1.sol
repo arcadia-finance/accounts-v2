@@ -64,6 +64,19 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @dev Throws if function is reentered.
+     */
+    modifier nonReentrant() {
+        require(locked == 1, "A: REENTRANCY");
+
+        locked = 2;
+
+        _;
+
+        locked = 1;
+    }
+
+    /**
      * @dev Throws if called by any account other than the factory address.
      */
     modifier onlyFactory() {
@@ -118,6 +131,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         require(registry == address(0), "V_I: Already initialized!");
         require(registry_ != address(0), "V_I: Registry cannot be 0!");
         owner = owner_;
+        locked = 1;
         registry = registry_;
         baseCurrency = baseCurrency_;
 
@@ -137,6 +151,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      */
     function upgradeAccount(address newImplementation, address newRegistry, uint16 newVersion, bytes calldata data)
         external
+        nonReentrant
         onlyFactory
     {
         if (isTrustedCreditorSet) {
@@ -439,6 +454,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      */
     function liquidateAccount(uint256 openDebt)
         external
+        nonReentrant
         returns (address originalOwner, address baseCurrency_, address trustedCreditor_)
     {
         require(msg.sender == liquidator, "V_LV: Only Liquidator");
@@ -507,6 +523,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      */
     function accountManagementAction(address actionHandler, bytes calldata actionData)
         external
+        nonReentrant
         onlyAssetManager
         returns (address, uint256)
     {

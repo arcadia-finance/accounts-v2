@@ -40,6 +40,10 @@ contract AccountTestExtension is AccountV1 {
     function setRegistry(address registry_) public {
         registry = registry_;
     }
+
+    function setLocked(uint256 locked_) public {
+        locked = locked_;
+    }
 }
 
 abstract contract accountTests is DeployArcadiaAccounts {
@@ -72,6 +76,7 @@ abstract contract accountTests is DeployArcadiaAccounts {
     function setUp() public virtual {
         vm.prank(accountOwner);
         account_ = new AccountTestExtension(address(mainRegistry));
+        account_.setLocked(1);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -248,6 +253,7 @@ contract AccountManagementTest is accountTests {
     function setUp() public override {
         vm.prank(accountOwner);
         account_ = new AccountTestExtension(address(mainRegistry));
+        account_.setLocked(1);
     }
     // Test migrated to new test suite
     // function testRevert_initialize_AlreadyInitialized() public {}
