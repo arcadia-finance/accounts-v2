@@ -843,7 +843,7 @@ contract LiquidationLogicTest is accountTests {
         openMarginAccount();
     }
 
-    function testRevert_liquidateaccount_NotAuthorized(address unprivilegedAddress_, uint128 openDebt) public {
+    function testRevert_liquidateAccount_NotAuthorized(address unprivilegedAddress_, uint128 openDebt) public {
         vm.assume(unprivilegedAddress_ != liquidator);
 
         vm.startPrank(unprivilegedAddress_);
@@ -852,7 +852,7 @@ contract LiquidationLogicTest is accountTests {
         vm.stopPrank();
     }
 
-    function testRevert_liquidateaccount_AccountIsHealthy() public {
+    function testRevert_liquidateAccount_AccountIsHealthy() public {
         vm.startPrank(liquidator);
         vm.expectRevert("V_LV: liqValue above usedMargin");
         account_.liquidateAccount(0);

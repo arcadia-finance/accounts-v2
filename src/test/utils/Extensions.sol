@@ -23,6 +23,14 @@ contract AccountExtension is AccountV1 {
         registry = mainReg_;
     }
 
+    function getLocked() external view returns (uint256 locked_) {
+        locked_ = locked;
+    }
+
+    function setLocked(uint256 locked_) external {
+        locked = locked_;
+    }
+
     function getLengths() external view returns (uint256, uint256, uint256, uint256) {
         return (erc20Stored.length, erc721Stored.length, erc721TokenIds.length, erc1155Stored.length);
     }
