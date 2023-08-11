@@ -4,9 +4,8 @@
  */
 pragma solidity ^0.8.13;
 
-import { Base_IntegrationAndUnit_Test } from "../Base_IntegrationAndUnit.t.sol";
+import { Base_IntegrationAndUnit_Test, Constants } from "../Base_IntegrationAndUnit.t.sol";
 import { AccountV1 } from "../../AccountV1.sol";
-import "../utils/Constants.sol";
 
 contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -23,6 +22,36 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
 
     /* ///////////////////////////////////////////////////////////////
                           ACCOUNT MANAGEMENT
+    /////////////////////////////////////////////////////////////// */
+
+    function testRevert_initialize_InvalidMainreg() public {
+        accountExtension.setRegistry(address(0));
+
+        vm.expectRevert("V_I: Registry cannot be 0!");
+        accountExtension.initialize(users.accountOwner, address(0), address(0), address(0));
+    }
+
+    function testRevert_initialize_AlreadyInitialized() public {
+        account.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
+
+        vm.expectRevert("V_I: Already initialized!");
+        account.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
+    }
+
+    function test_initialize(address owner_) public {
+        accountExtension.setRegistry(address(0));
+
+        vm.expectEmit(true, true, true, true);
+        emit BaseCurrencySet(address(0));
+        accountExtension.initialize(owner_, address(mainRegistryExtension), address(0), address(0));
+
+        assertEq(accountExtension.owner(), owner_);
+        assertEq(accountExtension.registry(), address(mainRegistryExtension));
+        assertEq(accountExtension.baseCurrency(), address(0));
+    }
+
+    /* ///////////////////////////////////////////////////////////////
+                    MARGIN ACCOUNT SETTINGS
     /////////////////////////////////////////////////////////////// */
 
     function test_openTrustedMarginAccount() public {
@@ -117,31 +146,5 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         assertEq(AccountV1(deployedAccount).baseCurrency(), address(mockERC20.stable1));
         assertEq(AccountV1(deployedAccount).fixedLiquidationCost(), Constants.initLiquidationCost);
         assertTrue(AccountV1(deployedAccount).isTrustedCreditorSet());
-    }
-
-    function testRevert_initialize_InvalidMainreg() public {
-        accountExtension.setRegistry(address(0));
-
-        vm.expectRevert("V_I: Registry cannot be 0!");
-        accountExtension.initialize(users.accountOwner, address(0), address(0), address(0));
-    }
-
-    function testRevert_initialize_AlreadyInitialized() public {
-        account.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
-
-        vm.expectRevert("V_I: Already initialized!");
-        account.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
-    }
-
-    function test_initialize(address owner_) public {
-        accountExtension.setRegistry(address(0));
-
-        vm.expectEmit(true, true, true, true);
-        emit BaseCurrencySet(address(0));
-        accountExtension.initialize(owner_, address(mainRegistryExtension), address(0), address(0));
-
-        assertEq(accountExtension.owner(), owner_);
-        assertEq(accountExtension.registry(), address(mainRegistryExtension));
-        assertEq(accountExtension.baseCurrency(), address(0));
     }
 }

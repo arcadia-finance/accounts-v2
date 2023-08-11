@@ -11,12 +11,12 @@ import { AccountV1 } from "../AccountV1.sol";
 import { AccountV2 } from "../mockups/AccountV2.sol";
 import { MainRegistryExtension, AccountExtension } from "./utils/Extensions.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
-import "./utils/Constants.sol";
-import "../mockups/ERC20SolmateMock.sol";
-import "../mockups/ERC721SolmateMock.sol";
-import "../mockups/ERC1155SolmateMock.sol";
-import "./utils/Events.sol";
-import "./utils/Errors.sol";
+import { Constants } from "./utils/Constants.sol";
+import { Events } from "./utils/Events.sol";
+import { Errors } from "./utils/Errors.sol";
+import { ERC20Mock } from "../mockups/ERC20SolmateMock.sol";
+import { ERC721Mock } from "../mockups/ERC721SolmateMock.sol";
+import { ERC1155Mock } from "../mockups/ERC1155SolmateMock.sol";
 
 /// @notice Base test contract with common logic needed by all tests.
 abstract contract Base_Global_Test is Test, Events, Errors {

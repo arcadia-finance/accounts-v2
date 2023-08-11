@@ -4,17 +4,16 @@
  */
 pragma solidity ^0.8.13;
 
-import { Base_Global_Test } from "./Base_Global.t.sol";
+import { Base_Global_Test, Constants } from "./Base_Global.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "./utils/Types.sol";
 import { MainRegistry } from "../MainRegistry.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
-import "../Proxy.sol";
-import "../mockups/ERC20SolmateMock.sol";
-import "../mockups/ERC721SolmateMock.sol";
-import "../mockups/ERC1155SolmateMock.sol";
-import "../OracleHub.sol";
-import "../mockups/ArcadiaOracle.sol";
-import "./utils/Constants.sol";
+import { Proxy } from "../Proxy.sol";
+import { ERC20Mock } from "../mockups/ERC20SolmateMock.sol";
+import { ERC721Mock } from "../mockups/ERC721SolmateMock.sol";
+import { ERC1155Mock } from "../mockups/ERC1155SolmateMock.sol";
+import { OracleHub } from "../OracleHub.sol";
+import { ArcadiaOracle } from "../mockups/ArcadiaOracle.sol";
 
 /// @notice Common logic needed by all integration tests.
 abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {

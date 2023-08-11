@@ -4,10 +4,9 @@
  */
 pragma solidity ^0.8.13;
 
-import { Base_IntegrationAndUnit_Test } from "../Base_IntegrationAndUnit.t.sol";
+import { Base_IntegrationAndUnit_Test, Constants } from "../Base_IntegrationAndUnit.t.sol";
 import { AccountV1 } from "../../AccountV1.sol";
 import { AccountVariableVersion } from "../../mockups/AccountVariableVersion.sol";
-import "../utils/Constants.sol";
 
 contract Factory_Integration_Test is Base_IntegrationAndUnit_Test {
     /* ///////////////////////////////////////////////////////////////
