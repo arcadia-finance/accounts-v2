@@ -4,7 +4,6 @@
  */
 pragma solidity ^0.8.13;
 
-import { VaultStorageV1 } from "./VaultStorageV1.sol";
 import { IERC721 } from "./interfaces/IERC721.sol";
 import { IERC1155 } from "./interfaces/IERC1155.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
