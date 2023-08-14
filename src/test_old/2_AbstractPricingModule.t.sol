@@ -420,15 +420,35 @@ contract AbstractPricingModuleTest is DeployArcadiaAccounts {
         address account_
     ) public {
         vm.assume(maxExposure >= exposure);
+        vm.assume(exposure >= amount);
         abstractPricingModule.setExposure(asset, exposure, maxExposure);
 
         vm.prank(address(mainRegistry));
         abstractPricingModule.processWithdrawal(account_, asset, id, amount);
 
         (, uint128 actualExposure) = abstractPricingModule.exposure(address(asset));
-        uint128 expectedExposure;
-        amount < exposure ? expectedExposure = exposure - amount : expectedExposure = 0;
+        uint128 expectedExposure = exposure - amount;
 
         assertEq(actualExposure, expectedExposure);
+    }
+
+    function testSuccess_processWithdrawal_withAmountGreaterThanExposure(
+        address asset,
+        uint128 exposure,
+        uint128 amount,
+        uint128 maxExposure,
+        uint128 id,
+        address account_
+    ) public {
+        vm.assume(maxExposure >= exposure);
+        vm.assume(exposure < amount);
+        abstractPricingModule.setExposure(asset, exposure, maxExposure);
+
+        vm.prank(address(mainRegistry));
+        abstractPricingModule.processWithdrawal(account_, asset, id, amount);
+
+        (, uint128 actualExposure) = abstractPricingModule.exposure(address(asset));
+
+        assertEq(actualExposure, 0);
     }
 }
