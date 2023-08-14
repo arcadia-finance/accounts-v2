@@ -19,9 +19,7 @@ contract MainRegistryExtension is MainRegistry {
 }
 
 contract AccountExtension is AccountV1 {
-    constructor(address mainReg_) AccountV1() {
-        registry = mainReg_;
-    }
+    constructor() AccountV1() { }
 
     function getLocked() external view returns (uint256 locked_) {
         locked_ = locked;

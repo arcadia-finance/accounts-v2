@@ -843,55 +843,58 @@ contract LiquidationLogicTest is accountTests {
         openMarginAccount();
     }
 
-    function testRevert_liquidateAccount_NotAuthorized(address unprivilegedAddress_, uint128 openDebt) public {
-        vm.assume(unprivilegedAddress_ != liquidator);
+    // Test migrated to new test suite
+    // function testRevert_liquidateAccount_NotAuthorized(address unprivilegedAddress_, uint128 openDebt) public {
+    //     vm.assume(unprivilegedAddress_ != liquidator);
 
-        vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("V_LV: Only Liquidator");
-        account_.liquidateAccount(openDebt);
-        vm.stopPrank();
-    }
+    //     vm.startPrank(unprivilegedAddress_);
+    //     vm.expectRevert("V_LV: Only Liquidator");
+    //     account_.liquidateAccount(openDebt);
+    //     vm.stopPrank();
+    // }
 
-    function testRevert_liquidateAccount_AccountIsHealthy() public {
-        vm.startPrank(liquidator);
-        vm.expectRevert("V_LV: liqValue above usedMargin");
-        account_.liquidateAccount(0);
-        vm.stopPrank();
-    }
+    // Test migrated to new test suite
+    // function testRevert_liquidateAccount_AccountIsHealthy() public {
+    //     vm.startPrank(liquidator);
+    //     vm.expectRevert("V_LV: liqValue above usedMargin");
+    //     account_.liquidateAccount(0);
+    //     vm.stopPrank();
+    // }
 
-    function testSuccess_liquidateAccount(uint8 amountEth, uint128 openDebt, uint16 fixedLiquidationCost) public {
-        vm.assume(openDebt > 0);
+    // Test migrated to new test suite
+    // function testSuccess_liquidateAccount(uint8 amountEth, uint128 openDebt, uint16 fixedLiquidationCost) public {
+    //     vm.assume(openDebt > 0);
 
-        uint256 depositValue = ((Constants.WAD * rateEthToUsd) / 10 ** Constants.oracleEthToUsdDecimals) * amountEth
-            / 10 ** (18 - Constants.daiDecimals);
+    //     uint256 depositValue = ((Constants.WAD * rateEthToUsd) / 10 ** Constants.oracleEthToUsdDecimals) * amountEth
+    //         / 10 ** (18 - Constants.daiDecimals);
 
-        uint16 liqFactor_ = RiskConstants.DEFAULT_LIQUIDATION_FACTOR;
+    //     uint16 liqFactor_ = RiskConstants.DEFAULT_LIQUIDATION_FACTOR;
 
-        vm.assume((depositValue * liqFactor_) / 100 < uint256(openDebt) + fixedLiquidationCost);
-        depositEthInAccount(amountEth, accountOwner);
+    //     vm.assume((depositValue * liqFactor_) / 100 < uint256(openDebt) + fixedLiquidationCost);
+    //     depositEthInAccount(amountEth, accountOwner);
 
-        trustedCreditor.setOpenPosition(address(account_), openDebt);
+    //     trustedCreditor.setOpenPosition(address(account_), openDebt);
 
-        account_.setFixedLiquidationCost(fixedLiquidationCost);
+    //     account_.setFixedLiquidationCost(fixedLiquidationCost);
 
-        vm.startPrank(liquidator);
-        vm.expectEmit(true, true, true, true);
-        emit TrustedMarginAccountChanged(address(0), address(0));
-        (address originalOwner, address baseCurrency, address trustedCreditor_) = account_.liquidateAccount(openDebt);
-        vm.stopPrank();
+    //     vm.startPrank(liquidator);
+    //     vm.expectEmit(true, true, true, true);
+    //     emit TrustedMarginAccountChanged(address(0), address(0));
+    //     (address originalOwner, address baseCurrency, address trustedCreditor_) = account_.liquidateAccount(openDebt);
+    //     vm.stopPrank();
 
-        assertEq(originalOwner, accountOwner);
-        assertEq(baseCurrency, address(dai));
-        assertEq(trustedCreditor_, address(trustedCreditor));
+    //     assertEq(originalOwner, accountOwner);
+    //     assertEq(baseCurrency, address(dai));
+    //     assertEq(trustedCreditor_, address(trustedCreditor));
 
-        assertEq(account_.owner(), liquidator);
-        assertEq(account_.isTrustedCreditorSet(), false);
-        assertEq(account_.trustedCreditor(), address(0));
-        assertEq(account_.fixedLiquidationCost(), 0);
+    //     assertEq(account_.owner(), liquidator);
+    //     assertEq(account_.isTrustedCreditorSet(), false);
+    //     assertEq(account_.trustedCreditor(), address(0));
+    //     assertEq(account_.fixedLiquidationCost(), 0);
 
-        uint256 index = factory.accountIndex(address(account_));
-        assertEq(factory.ownerOf(index), liquidator);
-    }
+    //     uint256 index = factory.accountIndex(address(account_));
+    //     assertEq(factory.ownerOf(index), liquidator);
+    // }
 }
 
 /*///////////////////////////////////////////////////////////////

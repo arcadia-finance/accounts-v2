@@ -28,8 +28,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         Base_IntegrationAndUnit_Test.setUp();
 
         // Deploy Account.
-        vm.prank(users.creatorAddress);
-        accountExtension = new AccountExtension(address(mainRegistryExtension));
+        accountExtension = new AccountExtension();
         // Set account in factory.
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension))
             .checked_write(true);
@@ -42,22 +41,18 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
     /////////////////////////////////////////////////////////////// */
 
     function testRevert_initialize_InvalidMainreg() public {
-        accountExtension.setRegistry(address(0));
-
         vm.expectRevert("V_I: Registry cannot be 0!");
         accountExtension.initialize(users.accountOwner, address(0), address(0), address(0));
     }
 
     function testRevert_initialize_AlreadyInitialized() public {
-        account.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
+        accountExtension.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
 
         vm.expectRevert("V_I: Already initialized!");
-        account.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
+        accountExtension.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
     }
 
     function test_initialize(address owner_) public {
-        accountExtension.setRegistry(address(0));
-
         vm.expectEmit(true, true, true, true);
         emit BaseCurrencySet(address(0));
         accountExtension.initialize(owner_, address(mainRegistryExtension), address(0), address(0));
@@ -197,12 +192,17 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         uint128 liquidationValue,
         uint96 fixedLiquidationCost
     ) public {
-        // Assume debt is non-zero.
-        vm.assume(debt > 0);
-
         // Assume vault is healthy: liquidationValue is bigger than usedMargin (debt + fixedLiquidationCost).
         uint256 usedMargin = uint256(debt) + fixedLiquidationCost;
         vm.assume(liquidationValue >= usedMargin);
+
+        // Initiate Vault (set owner and baseCurrency).
+        accountExtension.initialize(
+            users.accountOwner,
+            address(mainRegistryExtension),
+            address(mockERC20.stable1),
+            address(trustedCreditorWithParamsInit)
+        );
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(fixedLiquidationCost);
@@ -224,6 +224,14 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         uint256 usedMargin = uint256(debt) + fixedLiquidationCost;
         vm.assume(liquidationValue < usedMargin);
 
+        // Initiate Vault (set owner and baseCurrency).
+        accountExtension.initialize(
+            users.accountOwner,
+            address(mainRegistryExtension),
+            address(mockERC20.stable1),
+            address(trustedCreditorWithParamsInit)
+        );
+
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(fixedLiquidationCost);
 
@@ -237,7 +245,14 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         (address originalOwner, address baseCurrency, address trustedCreditor_) =
             accountExtension.liquidateAccount(debt);
         vm.stopPrank();
-    }
 
-    function testFuzz_liquidateAccount_ZeroDebt(uint128 liquidationValue, uint96 fixedLiquidationCost) public { }
+        assertEq(originalOwner, users.accountOwner);
+        assertEq(baseCurrency, address(mockERC20.stable1));
+        assertEq(trustedCreditor_, address(trustedCreditorWithParamsInit));
+
+        assertEq(accountExtension.owner(), Constants.initLiquidator);
+        assertEq(accountExtension.isTrustedCreditorSet(), false);
+        assertEq(accountExtension.trustedCreditor(), address(0));
+        assertEq(accountExtension.fixedLiquidationCost(), 0);
+    }
 }
