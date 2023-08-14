@@ -420,7 +420,6 @@ contract AbstractPricingModuleTest is DeployArcadiaAccounts {
         address account_
     ) public {
         vm.assume(maxExposure >= exposure);
-        //vm.assume(exposure >= amount);
         abstractPricingModule.setExposure(asset, exposure, maxExposure);
 
         vm.prank(address(mainRegistry));
