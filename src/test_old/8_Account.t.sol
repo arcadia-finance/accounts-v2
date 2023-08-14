@@ -272,41 +272,43 @@ contract AccountManagementTest is accountTests {
     //     bytes calldata data
     // ) public
 
-    function testRevert_upgradeAccount_byNonFactory(
-        address newImplementation,
-        address newRegistry,
-        uint16 newVersion,
-        address nonFactory,
-        bytes calldata data
-    ) public {
-        vm.assume(nonFactory != address(factory));
+    // Test migrated to new test suite
+    // function testRevert_upgradeAccount_byNonFactory(
+    //     address newImplementation,
+    //     address newRegistry,
+    //     uint16 newVersion,
+    //     address nonFactory,
+    //     bytes calldata data
+    // ) public {
+    //     vm.assume(nonFactory != address(factory));
 
-        vm.startPrank(nonFactory);
-        vm.expectRevert("A: Only Factory");
-        account_.upgradeAccount(newImplementation, newRegistry, newVersion, data);
-        vm.stopPrank();
-    }
+    //     vm.startPrank(nonFactory);
+    //     vm.expectRevert("A: Only Factory");
+    //     account_.upgradeAccount(newImplementation, newRegistry, newVersion, data);
+    //     vm.stopPrank();
+    // }
 
-    function testRevert_upgradeAccount_InvalidAccountVersion(
-        address newImplementation,
-        address newRegistry,
-        uint16 newVersion,
-        bytes calldata data
-    ) public {
-        vm.assume(newVersion != 1);
+    // Test migrated to new test suite
+    // function testRevert_upgradeAccount_InvalidAccountVersion(
+    //     address newImplementation,
+    //     address newRegistry,
+    //     uint16 newVersion,
+    //     bytes calldata data
+    // ) public {
+    //     vm.assume(newVersion != 1);
 
-        //TrustedCreditor is set
-        vm.prank(accountOwner);
-        account_.openTrustedMarginAccount(address(trustedCreditor));
+    //     //TrustedCreditor is set
+    //     vm.prank(accountOwner);
+    //     account_.openTrustedMarginAccount(address(trustedCreditor));
 
-        //Check in creditor if new version is allowed should fail
-        trustedCreditor.setCallResult(false);
+    //     //Check in creditor if new version is allowed should fail
+    //     trustedCreditor.setCallResult(false);
 
-        vm.startPrank(address(factory));
-        vm.expectRevert("V_UV: Invalid Account version");
-        account_.upgradeAccount(newImplementation, newRegistry, newVersion, data);
-        vm.stopPrank();
-    }
+    //     vm.startPrank(address(factory));
+    //     vm.expectRevert("V_UV: Invalid Account version");
+    //     account_.upgradeAccount(newImplementation, newRegistry, newVersion, data);
+    //     vm.stopPrank();
+    // }
 }
 
 /* ///////////////////////////////////////////////////////////////
