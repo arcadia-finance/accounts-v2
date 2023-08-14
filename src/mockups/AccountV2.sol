@@ -113,8 +113,8 @@ contract AccountV2 is AccountStorageV2 {
      * @param creditor The contract address of the trusted creditor.
      */
     function initialize(address owner_, address registry_, address baseCurrency_, address creditor) external {
-        require(registry == address(0), "V_I: Already initialized!");
-        require(registry_ != address(0), "V_I: Registry cannot be 0!");
+        require(registry == address(0), "A_I: Already initialized!");
+        require(registry_ != address(0), "A_I: Registry cannot be 0!");
         owner = owner_;
         registry = registry_;
         baseCurrency = baseCurrency_;
@@ -141,7 +141,7 @@ contract AccountV2 is AccountStorageV2 {
             //If a trustedCreditor is set, new version should be compatible.
             //openMarginAccount() is a view function, cannot modify state.
             (bool success,,,) = ITrustedCreditor(trustedCreditor).openMarginAccount(newVersion);
-            require(success, "V_UV: Invalid Account version");
+            require(success, "A_UA: Invalid Account version");
         }
 
         //Cache old parameters
@@ -184,7 +184,7 @@ contract AccountV2 is AccountStorageV2 {
      */
     function transferOwnership(address newOwner) external onlyFactory {
         if (newOwner == address(0)) {
-            revert("V_TO: INVALID_RECIPIENT");
+            revert("A_TO: INVALID_RECIPIENT");
         }
         _transferOwnership(newOwner);
     }
@@ -210,7 +210,7 @@ contract AccountV2 is AccountStorageV2 {
      * if there is none set, then a new baseCurrency is set.
      */
     function setBaseCurrency(address baseCurrency_) external onlyOwner {
-        require(!isTrustedCreditorSet, "V_SBC: Trusted Creditor Set");
+        require(!isTrustedCreditorSet, "A_SBC: Trusted Creditor Set");
         _setBaseCurrency(baseCurrency_);
     }
 
@@ -219,7 +219,7 @@ contract AccountV2 is AccountStorageV2 {
      * @param baseCurrency_ the new baseCurrency for the Account.
      */
     function _setBaseCurrency(address baseCurrency_) internal {
-        require(IMainRegistry(registry).isBaseCurrency(baseCurrency_), "V_SBC: baseCurrency not found");
+        require(IMainRegistry(registry).isBaseCurrency(baseCurrency_), "A_SBC: baseCurrency not found");
         baseCurrency = baseCurrency_;
 
         emit BaseCurrencySet(baseCurrency_);
@@ -240,7 +240,7 @@ contract AccountV2 is AccountStorageV2 {
      * @dev The creditor has significant authorisation: use margin, trigger liquidation, and manage assets.
      */
     function openTrustedMarginAccount(address creditor) external onlyOwner {
-        require(!isTrustedCreditorSet, "V_OTMA: ALREADY SET");
+        require(!isTrustedCreditorSet, "A_OTMA: ALREADY SET");
 
         _openTrustedMarginAccount(creditor);
     }
@@ -253,7 +253,7 @@ contract AccountV2 is AccountStorageV2 {
         //openMarginAccount() is a view function, cannot modify state.
         (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_) =
             ITrustedCreditor(creditor).openMarginAccount(ACCOUNT_VERSION);
-        require(success, "V_OTMA: Invalid Version");
+        require(success, "A_OTMA: Invalid Version");
 
         liquidator = liquidator_;
         trustedCreditor = creditor;
@@ -271,9 +271,9 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Currently only one trusted creditor can be set.
      */
     function closeTrustedMarginAccount() external onlyOwner {
-        require(isTrustedCreditorSet, "V_CTMA: NOT SET");
+        require(isTrustedCreditorSet, "A_CTMA: NOT SET");
         //getOpenPosition() is a view function, cannot modify state.
-        require(ITrustedCreditor(trustedCreditor).getOpenPosition(address(this)) == 0, "V_CTMA: NON-ZERO OPEN POSITION");
+        require(ITrustedCreditor(trustedCreditor).getOpenPosition(address(this)) == 0, "A_CTMA: NON-ZERO OPEN POSITION");
 
         isTrustedCreditorSet = false;
         trustedCreditor = address(0);
@@ -427,7 +427,7 @@ contract AccountV2 is AccountStorageV2 {
         external
         returns (address originalOwner, address baseCurrency_, address trustedCreditor_)
     {
-        require(msg.sender == liquidator, "V_LV: Only Liquidator");
+        require(msg.sender == liquidator, "A_LA: Only Liquidator");
 
         //Cache trustedCreditor.
         trustedCreditor_ = trustedCreditor;
@@ -443,7 +443,7 @@ contract AccountV2 is AccountStorageV2 {
         //then the Account can be successfully liquidated.
         //Liquidations are triggered by the trustedCreditor (via Liquidator), the openDebt is
         //passed as input to avoid the need of another contract call back to trustedCreditor.
-        require(getLiquidationValue() < openDebt + fixedLiquidationCost, "V_LV: liqValue above usedMargin");
+        require(getLiquidationValue() < openDebt + fixedLiquidationCost, "A_LA: liqValue above usedMargin");
 
         //Set fixedLiquidationCost to 0 since margin account is closed.
         fixedLiquidationCost = 0;
@@ -496,7 +496,7 @@ contract AccountV2 is AccountStorageV2 {
         onlyAssetManager
         returns (address, uint256)
     {
-        require(IMainRegistry(registry).isActionAllowed(actionHandler), "V_VMA: Action not allowed");
+        require(IMainRegistry(registry).isActionAllowed(actionHandler), "A_AMA: Action not allowed");
 
         (ActionData memory outgoing,,,) = abi.decode(actionData, (ActionData, ActionData, address[], bytes[]));
 
@@ -513,7 +513,7 @@ contract AccountV2 is AccountStorageV2 {
         uint256 usedMargin = getUsedMargin();
         if (usedMargin > fixedLiquidationCost) {
             //Account must be healthy after actions are executed.
-            require(getCollateralValue() >= usedMargin, "V_VMA: Account Unhealthy");
+            require(getCollateralValue() >= usedMargin, "A_AMA: Account Unhealthy");
         }
 
         return (trustedCreditor, ACCOUNT_VERSION);
@@ -580,14 +580,14 @@ contract AccountV2 is AccountStorageV2 {
             } else if (assetTypes[i] == 2) {
                 _depositERC1155(from, assetAddresses[i], assetIds[i], assetAmounts[i]);
             } else {
-                revert("V_D: Unknown asset type");
+                revert("A_D: Unknown asset type");
             }
             unchecked {
                 ++i;
             }
         }
 
-        require(erc20Stored.length + erc721Stored.length + erc1155Stored.length <= ASSET_LIMIT, "V_D: Too many assets");
+        require(erc20Stored.length + erc721Stored.length + erc1155Stored.length <= ASSET_LIMIT, "A_D: Too many assets");
     }
 
     /**
@@ -618,7 +618,7 @@ contract AccountV2 is AccountStorageV2 {
         //If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and all assets can be withdrawn.
         if (usedMargin > fixedLiquidationCost) {
             //Account must be healthy after assets are withdrawn.
-            require(getCollateralValue() >= usedMargin, "V_W: Account Unhealthy");
+            require(getCollateralValue() >= usedMargin, "A_W: Account Unhealthy");
         }
     }
 
@@ -657,7 +657,7 @@ contract AccountV2 is AccountStorageV2 {
             } else if (assetTypes[i] == 2) {
                 _withdrawERC1155(to, assetAddresses[i], assetIds[i], assetAmounts[i]);
             } else {
-                require(false, "V_W: Unknown asset type");
+                require(false, "A_W: Unknown asset type");
             }
             unchecked {
                 ++i;
@@ -785,7 +785,7 @@ contract AccountV2 is AccountStorageV2 {
         uint256 i;
         if (tokenIdLength == 1) {
             //There was only one ERC721 stored on the contract, safe to remove both lists.
-            require(erc721TokenIds[0] == id && erc721Stored[0] == ERC721Address, "V_W721: Unknown asset");
+            require(erc721TokenIds[0] == id && erc721Stored[0] == ERC721Address, "A_W721: Unknown asset");
             erc721TokenIds.pop();
             erc721Stored.pop();
         } else {
@@ -803,7 +803,7 @@ contract AccountV2 is AccountStorageV2 {
             }
             //For loop should break, otherwise we never went into the if-branch, meaning the token being withdrawn
             //is unknown and not properly deposited.
-            require(i < tokenIdLength, "V_W721: Unknown asset");
+            require(i < tokenIdLength, "A_W721: Unknown asset");
         }
 
         IERC721(ERC721Address).safeTransferFrom(address(this), to, id);
@@ -862,7 +862,7 @@ contract AccountV2 is AccountStorageV2 {
      * or can be used to claim yield for rebasing tokens.
      */
     function skim(address token, uint256 id, uint256 type_) public {
-        require(msg.sender == owner, "V_S: Only owner can skim");
+        require(msg.sender == owner, "A_S: Only owner can skim");
 
         if (token == address(0)) {
             payable(owner).transfer(address(this).balance);

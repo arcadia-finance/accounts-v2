@@ -305,7 +305,7 @@ contract AccountManagementTest is accountTests {
     //     trustedCreditor.setCallResult(false);
 
     //     vm.startPrank(address(factory));
-    //     vm.expectRevert("V_UV: Invalid Account version");
+    //     vm.expectRevert("A_UA: Invalid Account version");
     //     account_.upgradeAccount(newImplementation, newRegistry, newVersion, data);
     //     vm.stopPrank();
     // }
@@ -336,7 +336,7 @@ contract OwnershipManagementTest is accountTests {
         assertEq(accountOwner, account_.owner());
 
         vm.startPrank(address(factory));
-        vm.expectRevert("V_TO: INVALID_RECIPIENT");
+        vm.expectRevert("A_TO: INVALID_RECIPIENT");
         account_.transferOwnership(address(0));
         vm.stopPrank();
 
@@ -391,7 +391,7 @@ contract BaseCurrencyLogicTest is accountTests {
         openMarginAccount();
 
         vm.startPrank(accountOwner);
-        vm.expectRevert("V_SBC: Trusted Creditor Set");
+        vm.expectRevert("A_SBC: Trusted Creditor Set");
         account_.setBaseCurrency(address(eth));
         vm.stopPrank();
 
@@ -404,7 +404,7 @@ contract BaseCurrencyLogicTest is accountTests {
         vm.assume(baseCurrency_ != address(dai));
 
         vm.startPrank(accountOwner);
-        vm.expectRevert("V_SBC: baseCurrency not found");
+        vm.expectRevert("A_SBC: baseCurrency not found");
         account_.setBaseCurrency(baseCurrency_);
         vm.stopPrank();
     }
@@ -460,7 +460,7 @@ contract MarginAccountSettingsTest is accountTests {
 
     function testRevert_closeTrustedMarginAccount_NonSetTrustedMarginAccount() public {
         vm.startPrank(accountOwner);
-        vm.expectRevert("V_CTMA: NOT SET");
+        vm.expectRevert("A_CTMA: NOT SET");
         account_.closeTrustedMarginAccount();
         vm.stopPrank();
     }
@@ -474,7 +474,7 @@ contract MarginAccountSettingsTest is accountTests {
         trustedCreditor.setOpenPosition(address(account_), debt_);
 
         vm.startPrank(accountOwner);
-        vm.expectRevert("V_CTMA: NON-ZERO OPEN POSITION");
+        vm.expectRevert("A_CTMA: NON-ZERO OPEN POSITION");
         account_.closeTrustedMarginAccount();
         vm.stopPrank();
     }
@@ -850,7 +850,7 @@ contract LiquidationLogicTest is accountTests {
     //     vm.assume(unprivilegedAddress_ != liquidator);
 
     //     vm.startPrank(unprivilegedAddress_);
-    //     vm.expectRevert("V_LV: Only Liquidator");
+    //     vm.expectRevert("A_LA: Only Liquidator");
     //     account_.liquidateAccount(openDebt);
     //     vm.stopPrank();
     // }
@@ -858,7 +858,7 @@ contract LiquidationLogicTest is accountTests {
     // Test migrated to new test suite
     // function testRevert_liquidateAccount_AccountIsHealthy() public {
     //     vm.startPrank(liquidator);
-    //     vm.expectRevert("V_LV: liqValue above usedMargin");
+    //     vm.expectRevert("A_LA: liqValue above usedMargin");
     //     account_.liquidateAccount(0);
     //     vm.stopPrank();
     // }
@@ -1022,7 +1022,7 @@ contract AccountActionTest is accountTests {
         vm.assume(action_ != address(action));
 
         vm.startPrank(accountOwner);
-        vm.expectRevert("V_VMA: Action not allowed");
+        vm.expectRevert("A_AMA: Action not allowed");
         proxy_.accountManagementAction(action_, new bytes(0));
         vm.stopPrank();
     }
@@ -1072,7 +1072,7 @@ contract AccountActionTest is accountTests {
         bayc.setApprovalForAll(address(proxy_), true);
 
         vm.prank(accountOwner);
-        vm.expectRevert("V_D: Too many assets");
+        vm.expectRevert("A_D: Too many assets");
         proxy_.accountManagementAction(address(action), callData);
     }
 
@@ -1312,7 +1312,7 @@ contract AccountActionTest is accountTests {
         bytes memory callData = abi.encode(assetDataOut, assetDataIn, to, data);
 
         vm.startPrank(accountOwner);
-        vm.expectRevert("V_VMA: Account Unhealthy");
+        vm.expectRevert("A_AMA: Account Unhealthy");
         proxy_.accountManagementAction(address(action), callData);
         vm.stopPrank();
     }
@@ -1362,7 +1362,7 @@ contract AssetManagementTest is accountTests {
         (assetAddresses, assetIds, assetAmounts,) = generateERC721DepositList(arrLength);
 
         vm.prank(accountOwner);
-        vm.expectRevert("V_D: Too many assets");
+        vm.expectRevert("A_D: Too many assets");
         account_.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
@@ -1395,7 +1395,7 @@ contract AssetManagementTest is accountTests {
         (assetAddresses, assetIds, assetAmounts,) = generateERC721DepositList(arrLength);
 
         vm.prank(accountOwner);
-        vm.expectRevert("V_D: Too many assets");
+        vm.expectRevert("A_D: Too many assets");
         account_.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
@@ -1488,7 +1488,7 @@ contract AssetManagementTest is accountTests {
         assetAmounts[0] = 1;
 
         vm.startPrank(accountOwner);
-        vm.expectRevert("V_D: Unknown asset type");
+        vm.expectRevert("A_D: Unknown asset type");
         account_.deposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -1723,7 +1723,7 @@ contract AssetManagementTest is accountTests {
         assetAmounts[0] = 1;
 
         vm.startPrank(accountOwner);
-        vm.expectRevert("V_W: Unknown asset type");
+        vm.expectRevert("A_W: Unknown asset type");
         account_.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -1790,7 +1790,7 @@ contract AssetManagementTest is accountTests {
         assetIds[0] = 11;
 
         vm.startPrank(accountOwner);
-        vm.expectRevert("V_W721: Unknown asset");
+        vm.expectRevert("A_W721: Unknown asset");
         account_.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -1834,7 +1834,7 @@ contract AssetManagementTest is accountTests {
         assetIds[0] = 11;
 
         vm.startPrank(accountOwner);
-        vm.expectRevert("V_W721: Unknown asset");
+        vm.expectRevert("A_W721: Unknown asset");
         account_.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -1870,7 +1870,7 @@ contract AssetManagementTest is accountTests {
         assetInfo.assetAmounts[0] = amountWithdraw;
 
         vm.startPrank(accountOwner);
-        vm.expectRevert("V_W: Account Unhealthy");
+        vm.expectRevert("A_W: Account Unhealthy");
         account_.withdraw(assetInfo.assetAddresses, assetInfo.assetIds, assetInfo.assetAmounts);
         vm.stopPrank();
     }
@@ -1902,7 +1902,7 @@ contract AssetManagementTest is accountTests {
         }
 
         vm.startPrank(accountOwner);
-        vm.expectRevert("V_W: Account Unhealthy");
+        vm.expectRevert("A_W: Account Unhealthy");
         account_.withdraw(withdrawalAddresses, withdrawalIds, withdrawalAmounts);
         vm.stopPrank();
     }
@@ -2023,7 +2023,7 @@ contract AssetManagementTest is accountTests {
         vm.assume(sender != accountOwner);
 
         vm.startPrank(sender);
-        vm.expectRevert("V_S: Only owner can skim");
+        vm.expectRevert("A_S: Only owner can skim");
         account_.skim(address(eth), 0, 0);
         vm.stopPrank();
     }

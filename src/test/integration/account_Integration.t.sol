@@ -55,14 +55,14 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
     /////////////////////////////////////////////////////////////// */
 
     function testRevert_initialize_InvalidMainreg() public {
-        vm.expectRevert("V_I: Registry cannot be 0!");
+        vm.expectRevert("A_I: Registry cannot be 0!");
         accountNotInitialised.initialize(users.accountOwner, address(0), address(0), address(0));
     }
 
     function testRevert_initialize_AlreadyInitialized() public {
         accountNotInitialised.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
 
-        vm.expectRevert("V_I: Already initialized!");
+        vm.expectRevert("A_I: Already initialized!");
         accountNotInitialised.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
     }
 
@@ -119,7 +119,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         trustedCreditorWithParamsInit.setCallResult(false);
 
         vm.startPrank(address(factory));
-        vm.expectRevert("V_UV: Invalid Account version");
+        vm.expectRevert("A_UA: Invalid Account version");
         accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
     }
@@ -164,7 +164,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
 
         // Should revert if a trusted creditor is already set
-        vm.expectRevert("V_OTMA: ALREADY SET");
+        vm.expectRevert("A_OTMA: ALREADY SET");
         AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
     }
 
@@ -172,7 +172,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         // set a different Account version on the trusted creditor
         defaultTrustedCreditor.setCallResult(false);
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("V_OTMA: Invalid Version");
+        vm.expectRevert("A_OTMA: Invalid Version");
         AccountV1(deployedAccountInputs0).openTrustedMarginAccount((address(defaultTrustedCreditor)));
         vm.stopPrank();
     }
@@ -243,7 +243,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
 
         // Should revert if not called by the Liquidator
         vm.startPrank(unprivilegedAddress);
-        vm.expectRevert("V_LV: Only Liquidator");
+        vm.expectRevert("A_LA: Only Liquidator");
         accountExtension.liquidateAccount(debt);
         vm.stopPrank();
     }
@@ -265,7 +265,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
 
         // Should revert if vault is healthy.
         vm.startPrank(accountExtension.liquidator());
-        vm.expectRevert("V_LV: liqValue above usedMargin");
+        vm.expectRevert("A_LA: liqValue above usedMargin");
         accountExtension.liquidateAccount(debt);
         vm.stopPrank();
     }
