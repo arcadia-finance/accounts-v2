@@ -8,7 +8,7 @@ import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IPricingModule } from "../interfaces/IPricingModule.sol";
 import { RiskConstants } from "../utils/RiskConstants.sol";
-import { Owned } from "lib/solmate/src/auth/Owned.sol";
+import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 import { IPricingModule } from "../interfaces/IPricingModule.sol";
 
 /**
@@ -278,6 +278,6 @@ abstract contract PricingModule is Owned, IPricingModule {
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
     function processWithdrawal(address, address asset, uint256, uint256 amount) external virtual onlyMainReg {
-        exposure[asset].exposure -= uint128(amount);
+        exposure[asset].exposure >= amount ? exposure[asset].exposure -= uint128(amount) : exposure[asset].exposure = 0;
     }
 }
