@@ -24,6 +24,8 @@ contract AccountStorageV1 {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
+    // Flag Indicating if a function is locked to protect against reentrancy.
+    uint256 internal locked;
     // Flag that indicates if a trusted creditor is set.
     bool public isTrustedCreditorSet;
     // The contract address of the liquidator, address 0 if no trusted creditor is set.

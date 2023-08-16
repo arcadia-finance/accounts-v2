@@ -9,7 +9,9 @@ import { Users, MockOracles, MockERC20, MockERC721, Rates } from "./utils/Types.
 import { Factory } from "../Factory.sol";
 import { AccountV1 } from "../AccountV1.sol";
 import { AccountV2 } from "../mockups/AccountV2.sol";
-import { MainRegistryExtension, AccountExtension } from "./utils/Extensions.sol";
+import { MainRegistryExtension } from "./utils/Extensions.sol";
+import { OracleHub } from "../OracleHub.sol";
+import { StandardERC20PricingModule } from "../PricingModules/StandardERC20PricingModule.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
@@ -35,9 +37,10 @@ abstract contract Base_Global_Test is Test, Events, Errors {
 
     Factory internal factory;
     MainRegistryExtension internal mainRegistryExtension;
+    OracleHub internal oracleHub;
+    StandardERC20PricingModule internal erc20PricingModule;
     AccountV1 internal account;
     AccountV2 internal accountV2;
-    AccountExtension internal accountExtension;
     TrustedCreditorMock internal trustedCreditorWithParamsInit;
     TrustedCreditorMock internal defaultTrustedCreditor;
 
@@ -62,17 +65,25 @@ abstract contract Base_Global_Test is Test, Events, Errors {
         vm.startPrank(users.creatorAddress);
         factory = new Factory();
         mainRegistryExtension = new MainRegistryExtension(address(factory));
+        oracleHub = new OracleHub();
+        erc20PricingModule = new StandardERC20PricingModule(address(mainRegistryExtension), address(oracleHub), 0);
         account = new AccountV1();
         accountV2 = new AccountV2();
-        accountExtension = new AccountExtension(address(mainRegistryExtension));
         factory.setNewAccountInfo(address(mainRegistryExtension), address(account), Constants.upgradeProof1To2, "");
         trustedCreditorWithParamsInit = new TrustedCreditorMock();
         defaultTrustedCreditor = new TrustedCreditorMock();
         vm.stopPrank();
 
+        // Add Pricing Modules to the Main Registry.
+        vm.startPrank(users.creatorAddress);
+        mainRegistryExtension.addPricingModule(address(erc20PricingModule));
+        vm.stopPrank();
+
         // Label the base test contracts.
         vm.label({ account: address(factory), newLabel: "Factory" });
         vm.label({ account: address(mainRegistryExtension), newLabel: "Main Registry Extension" });
+        vm.label({ account: address(oracleHub), newLabel: "Oracle Hub" });
+        vm.label({ account: address(erc20PricingModule), newLabel: "Standard ERC20 Pricing Module" });
         vm.label({ account: address(account), newLabel: "Account" });
         vm.label({ account: address(accountV2), newLabel: "AccountV2" });
         vm.label({ account: address(defaultTrustedCreditor), newLabel: "Trusted Creditor Mock Not Initialized" });

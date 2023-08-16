@@ -4,13 +4,22 @@
  */
 pragma solidity ^0.8.13;
 
+import { StdStorage, stdStorage } from "../../../lib/forge-std/src/Test.sol";
 import { Base_IntegrationAndUnit_Test, Constants } from "../Base_IntegrationAndUnit.t.sol";
-import { AccountV1 } from "../../AccountV1.sol";
+import { AccountExtension, AccountV1 } from "../utils/Extensions.sol";
 
 contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
+    using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                   TEST CONTRACTS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    AccountExtension internal accountNotInitialised;
+    AccountExtension internal accountExtension;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -18,6 +27,27 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
 
     function setUp() public virtual override(Base_IntegrationAndUnit_Test) {
         Base_IntegrationAndUnit_Test.setUp();
+
+        // Deploy uninitialised account.
+        accountNotInitialised = new AccountExtension();
+
+        // Deploy Account.
+        accountExtension = new AccountExtension();
+
+        // Initiate Account (set owner and baseCurrency).
+        accountExtension.initialize(
+            users.accountOwner,
+            address(mainRegistryExtension),
+            address(mockERC20.stable1),
+            address(trustedCreditorWithParamsInit)
+        );
+
+        // Set account in factory.
+        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension))
+            .checked_write(true);
+
+        // Initiate Reentrancy guard.
+        accountExtension.setLocked(1);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -25,29 +55,73 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
     /////////////////////////////////////////////////////////////// */
 
     function testRevert_initialize_InvalidMainreg() public {
-        accountExtension.setRegistry(address(0));
-
-        vm.expectRevert("V_I: Registry cannot be 0!");
-        accountExtension.initialize(users.accountOwner, address(0), address(0), address(0));
+        vm.expectRevert("A_I: Registry cannot be 0!");
+        accountNotInitialised.initialize(users.accountOwner, address(0), address(0), address(0));
     }
 
     function testRevert_initialize_AlreadyInitialized() public {
-        account.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
+        accountNotInitialised.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
 
-        vm.expectRevert("V_I: Already initialized!");
-        account.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
+        vm.expectRevert("A_I: Already initialized!");
+        accountNotInitialised.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
     }
 
     function test_initialize(address owner_) public {
-        accountExtension.setRegistry(address(0));
-
         vm.expectEmit(true, true, true, true);
         emit BaseCurrencySet(address(0));
-        accountExtension.initialize(owner_, address(mainRegistryExtension), address(0), address(0));
+        accountNotInitialised.initialize(owner_, address(mainRegistryExtension), address(0), address(0));
 
-        assertEq(accountExtension.owner(), owner_);
-        assertEq(accountExtension.registry(), address(mainRegistryExtension));
-        assertEq(accountExtension.baseCurrency(), address(0));
+        assertEq(accountNotInitialised.owner(), owner_);
+        assertEq(accountNotInitialised.getLocked(), 1);
+        assertEq(accountNotInitialised.registry(), address(mainRegistryExtension));
+        assertEq(accountNotInitialised.baseCurrency(), address(0));
+    }
+
+    function testFuzz_Revert_upgradeAccount_Reentered(
+        address newImplementation,
+        address newRegistry,
+        uint16 newVersion,
+        bytes calldata data
+    ) public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        // Should revert if the reentrancy guard is locked.
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert("A: REENTRANCY");
+        accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_upgradeAccount_NonFactory(
+        address newImplementation,
+        address newRegistry,
+        uint16 newVersion,
+        address nonFactory,
+        bytes calldata data
+    ) public {
+        vm.assume(nonFactory != address(factory));
+
+        // Should revert if not called by the Factory.
+        vm.startPrank(nonFactory);
+        vm.expectRevert("A: Only Factory");
+        accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_upgradeAccount_InvalidAccountVersion(
+        address newImplementation,
+        address newRegistry,
+        uint16 newVersion,
+        bytes calldata data
+    ) public {
+        // Check in creditor if new version is allowed should fail.
+        trustedCreditorWithParamsInit.setCallResult(false);
+
+        vm.startPrank(address(factory));
+        vm.expectRevert("A_UA: Invalid Account version");
+        accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
+        vm.stopPrank();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -80,7 +154,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
 
     function testRevert_openTrustedMarginAccount_NotOwner() public {
         // Should revert if not called by the owner
-        vm.expectRevert("V: Only Owner");
+        vm.expectRevert("A: Only Owner");
         AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
     }
 
@@ -90,7 +164,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
 
         // Should revert if a trusted creditor is already set
-        vm.expectRevert("V_OTMA: ALREADY SET");
+        vm.expectRevert("A_OTMA: ALREADY SET");
         AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
     }
 
@@ -98,7 +172,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         // set a different Account version on the trusted creditor
         defaultTrustedCreditor.setCallResult(false);
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("V_OTMA: Invalid Version");
+        vm.expectRevert("A_OTMA: Invalid Version");
         AccountV1(deployedAccountInputs0).openTrustedMarginAccount((address(defaultTrustedCreditor)));
         vm.stopPrank();
     }
@@ -146,5 +220,102 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         assertEq(AccountV1(deployedAccount).baseCurrency(), address(mockERC20.stable1));
         assertEq(AccountV1(deployedAccount).fixedLiquidationCost(), Constants.initLiquidationCost);
         assertTrue(AccountV1(deployedAccount).isTrustedCreditorSet());
+    }
+
+    /* ///////////////////////////////////////////////////////////////
+                        LIQUIDATION LOGIC
+    /////////////////////////////////////////////////////////////// */
+
+    function testFuzz_Revert_liquidateAccount_Reentered(uint128 debt) public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        // Should revert if the reentrancy guard is locked.
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert("A: REENTRANCY");
+        accountExtension.liquidateAccount(debt);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_liquidateAccount_NotAuthorized(uint128 debt, address unprivilegedAddress) public {
+        // msg.sender is different from the Liquidator.
+        vm.assume(unprivilegedAddress != accountExtension.liquidator());
+
+        // Should revert if not called by the Liquidator
+        vm.startPrank(unprivilegedAddress);
+        vm.expectRevert("A_LA: Only Liquidator");
+        accountExtension.liquidateAccount(debt);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_liquidateAccount_AccountIsHealthy(
+        uint128 debt,
+        uint128 liquidationValue,
+        uint96 fixedLiquidationCost
+    ) public {
+        // Assume account is healthy: liquidationValue is bigger than usedMargin (debt + fixedLiquidationCost).
+        uint256 usedMargin = uint256(debt) + fixedLiquidationCost;
+        vm.assume(liquidationValue >= usedMargin);
+
+        // Set fixedLiquidationCost
+        accountExtension.setFixedLiquidationCost(fixedLiquidationCost);
+
+        // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
+        depositTokenInAccount(accountExtension, mockERC20.stable1, liquidationValue);
+
+        // Should revert if account is healthy.
+        vm.startPrank(accountExtension.liquidator());
+        vm.expectRevert("A_LA: liqValue above usedMargin");
+        accountExtension.liquidateAccount(debt);
+        vm.stopPrank();
+    }
+
+    function testFuzz_liquidateAccount_Unhealthy(uint128 debt, uint128 liquidationValue, uint96 fixedLiquidationCost)
+        public
+    {
+        // Assume account is unhealthy: liquidationValue is smaller than usedMargin (debt + fixedLiquidationCost).
+        uint256 usedMargin = uint256(debt) + fixedLiquidationCost;
+        vm.assume(liquidationValue < usedMargin);
+
+        // Set fixedLiquidationCost
+        accountExtension.setFixedLiquidationCost(fixedLiquidationCost);
+
+        // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
+        depositTokenInAccount(accountExtension, mockERC20.stable1, liquidationValue);
+
+        // Should liquidate the Account.
+        vm.startPrank(accountExtension.liquidator());
+        vm.expectEmit(true, true, true, true);
+        emit TrustedMarginAccountChanged(address(0), address(0));
+        (address originalOwner, address baseCurrency, address trustedCreditor_) =
+            accountExtension.liquidateAccount(debt);
+        vm.stopPrank();
+
+        assertEq(originalOwner, users.accountOwner);
+        assertEq(baseCurrency, address(mockERC20.stable1));
+        assertEq(trustedCreditor_, address(trustedCreditorWithParamsInit));
+
+        assertEq(accountExtension.owner(), Constants.initLiquidator);
+        assertEq(accountExtension.isTrustedCreditorSet(), false);
+        assertEq(accountExtension.trustedCreditor(), address(0));
+        assertEq(accountExtension.fixedLiquidationCost(), 0);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                    ASSET MANAGEMENT LOGIC
+    ///////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_accountManagementAction_Reentered(
+        address sender,
+        address actionHandler,
+        bytes calldata actionData
+    ) public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        // Should revert if the reentrancy guard is locked.
+        vm.startPrank(sender);
+        vm.expectRevert("A: REENTRANCY");
+        accountExtension.accountManagementAction(actionHandler, actionData);
+        vm.stopPrank();
     }
 }

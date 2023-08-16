@@ -7,13 +7,15 @@ pragma solidity ^0.8.13;
 import { Base_Global_Test, Constants } from "./Base_Global.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "./utils/Types.sol";
 import { MainRegistry } from "../MainRegistry.sol";
+import { OracleHub } from "../OracleHub.sol";
+import { PricingModule } from "../PricingModules/AbstractPricingModule.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import { Proxy } from "../Proxy.sol";
 import { ERC20Mock } from "../mockups/ERC20SolmateMock.sol";
 import { ERC721Mock } from "../mockups/ERC721SolmateMock.sol";
 import { ERC1155Mock } from "../mockups/ERC1155SolmateMock.sol";
-import { OracleHub } from "../OracleHub.sol";
 import { ArcadiaOracle } from "../mockups/ArcadiaOracle.sol";
+import { AccountV1 } from "../AccountV1.sol";
 
 /// @notice Common logic needed by all integration tests.
 abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
@@ -89,67 +91,25 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         // Set a trusted creditor with initialized params to use accross tests
         initBaseCurrency = address(mockERC20.stable1);
         trustedCreditorWithParamsInit.setBaseCurrency(initBaseCurrency);
-
-        // Mint tokens
-        // Mint STABLE1 to Liquidity Provider
-        mockERC20.stable1.mint(users.liquidityProvider, 10_000_000 * 10 ** Constants.stableDecimals);
-        // Mint next tokens to tokenCreatorAddress
-        mockERC20.stable2.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.stableDecimals);
-        mockERC20.token1.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.tokenDecimals);
-        mockERC20.token2.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.tokenDecimals);
-        mockERC20.token3.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.tokenDecimals);
-        mockERC20.token4.mint(users.tokenCreatorAddress, 200_000 * 10 ** Constants.tokenDecimals);
-
-        for (uint8 i = 0; i <= 5; i++) {
-            mockERC721.nft1.mint(users.tokenCreatorAddress, i);
-            mockERC721.nft2.mint(users.tokenCreatorAddress, i);
-            mockERC721.nft3.mint(users.tokenCreatorAddress, i);
-        }
-
-        mockERC1155.erc1155.mint(users.tokenCreatorAddress, 1, 100_000);
-
-        // Transfer tokens
-        mockERC20.stable2.transfer(users.accountOwner, 100_000 * 10 ** Constants.stableDecimals);
-        mockERC20.token1.transfer(users.accountOwner, 100_000 * 10 ** Constants.tokenDecimals);
-        mockERC20.token2.transfer(users.accountOwner, 100_000 * 10 ** Constants.tokenDecimals);
-        mockERC20.token3.transfer(users.accountOwner, 100_000 * 10 ** Constants.tokenDecimals);
-        mockERC20.token4.transfer(users.accountOwner, 100_000 * 10 ** Constants.tokenDecimals);
-
-        // Transfer mock ERC20 token to the unprivileged address
-        mockERC20.token1.transfer(users.unprivilegedAddress, 1000 * 10 ** Constants.tokenDecimals);
-
-        // Transfer 3 first token ID's from each ERC721 contract to the accountOwner
-        for (uint8 i = 0; i <= 2; i++) {
-            mockERC721.nft1.transferFrom(users.tokenCreatorAddress, users.accountOwner, i);
-            mockERC721.nft2.transferFrom(users.tokenCreatorAddress, users.accountOwner, i);
-            mockERC721.nft3.transferFrom(users.tokenCreatorAddress, users.accountOwner, i);
-        }
-
-        mockERC1155.erc1155.safeTransferFrom(
-            users.tokenCreatorAddress,
-            users.accountOwner,
-            1,
-            100_000,
-            "0x0000000000000000000000000000000000000000000000000000000000000000"
-        );
-
         vm.stopPrank();
 
         // Deploy Oracles
         mockOracles = MockOracles({
-            stable1ToUsd: initMockedOracle(uint8(Constants.stableOracleDecimals), "STABLE1 / USD"),
-            stable2ToUsd: initMockedOracle(uint8(Constants.stableOracleDecimals), "STABLE2 / USD"),
-            token1ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN1 / USD"),
-            token2ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN2 / USD"),
-            token3ToToken1: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN3 / TOKEN1"),
-            token4ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN4 / USD"),
-            nft1ToToken1: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT1 / TOKEN1"),
-            nft2ToUsd: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT2 / USD"),
-            nft3ToToken1: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT3 / TOKEN1"),
-            erc1155ToToken1: initMockedOracle(uint8(Constants.erc1155OracleDecimals), "ERC1155 / TOKEN1")
+            stable1ToUsd: initMockedOracle(uint8(Constants.stableOracleDecimals), "STABLE1 / USD", rates.stable1ToUsd),
+            stable2ToUsd: initMockedOracle(uint8(Constants.stableOracleDecimals), "STABLE2 / USD", rates.stable2ToUsd),
+            token1ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN1 / USD", rates.token1ToUsd),
+            token2ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN2 / USD", rates.token2ToUsd),
+            token3ToToken1: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN3 / TOKEN1", rates.token3ToToken1),
+            token4ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN4 / USD", rates.token4ToUsd),
+            nft1ToToken1: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT1 / TOKEN1", rates.nft1ToToken1),
+            nft2ToUsd: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT2 / USD", rates.nft2ToUsd),
+            nft3ToToken1: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT3 / TOKEN1", rates.nft3ToToken1),
+            erc1155ToToken1: initMockedOracle(
+                uint8(Constants.erc1155OracleDecimals), "ERC1155 / TOKEN1", rates.erc1155ToToken1
+                )
         });
 
-        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 as baseCurrencies in MainRegistry
+        // Add STABLE1 AND TOKEN1 as baseCurrencies in MainRegistry
         vm.startPrank(mainRegistryExtension.owner());
         mainRegistryExtension.addBaseCurrency(
             MainRegistry.BaseCurrencyInformation({
@@ -157,16 +117,6 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
                 assetAddress: address(mockERC20.stable1),
                 baseCurrencyToUsdOracle: address(mockOracles.stable1ToUsd),
                 baseCurrencyLabel: "STABLE1",
-                baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.stableDecimals))
-            })
-        );
-
-        mainRegistryExtension.addBaseCurrency(
-            MainRegistry.BaseCurrencyInformation({
-                baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
-                assetAddress: address(mockERC20.stable2),
-                baseCurrencyToUsdOracle: address(mockOracles.stable2ToUsd),
-                baseCurrencyLabel: "STABLE2",
                 baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.stableDecimals))
             })
         );
@@ -181,16 +131,118 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
             })
         );
 
-        mainRegistryExtension.addBaseCurrency(
-            MainRegistry.BaseCurrencyInformation({
-                baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
-                assetAddress: address(mockERC20.token2),
-                baseCurrencyToUsdOracle: address(mockOracles.token2ToUsd),
-                baseCurrencyLabel: "TOKEN2",
-                baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.tokenDecimals))
+        // Add Oracles to the OracleHub.
+        oracleHub.addOracle(
+            OracleHub.OracleInformation({
+                oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
+                quoteAssetBaseCurrency: 0,
+                baseAsset: "STABLE1",
+                quoteAsset: "USD",
+                oracle: address(mockOracles.stable1ToUsd),
+                baseAssetAddress: address(mockERC20.stable1),
+                quoteAssetIsBaseCurrency: true,
+                isActive: true
             })
         );
 
+        oracleHub.addOracle(
+            OracleHub.OracleInformation({
+                oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
+                quoteAssetBaseCurrency: 0,
+                baseAsset: "STABLE2",
+                quoteAsset: "USD",
+                oracle: address(mockOracles.stable2ToUsd),
+                baseAssetAddress: address(mockERC20.stable2),
+                quoteAssetIsBaseCurrency: true,
+                isActive: true
+            })
+        );
+
+        oracleHub.addOracle(
+            OracleHub.OracleInformation({
+                oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
+                quoteAssetBaseCurrency: 0,
+                baseAsset: "TOKEN1",
+                quoteAsset: "USD",
+                oracle: address(mockOracles.token1ToUsd),
+                baseAssetAddress: address(mockERC20.token1),
+                quoteAssetIsBaseCurrency: true,
+                isActive: true
+            })
+        );
+
+        oracleHub.addOracle(
+            OracleHub.OracleInformation({
+                oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
+                quoteAssetBaseCurrency: 0,
+                baseAsset: "TOKEN2",
+                quoteAsset: "USD",
+                oracle: address(mockOracles.token2ToUsd),
+                baseAssetAddress: address(mockERC20.token2),
+                quoteAssetIsBaseCurrency: true,
+                isActive: true
+            })
+        );
+
+        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
+        PricingModule.RiskVarInput[] memory riskVarsStable = new PricingModule.RiskVarInput[](3);
+        PricingModule.RiskVarInput[] memory riskVarsToken = new PricingModule.RiskVarInput[](3);
+
+        riskVarsStable[0] = PricingModule.RiskVarInput({
+            baseCurrency: 0,
+            asset: address(0),
+            collateralFactor: Constants.stableToStableCollFactor,
+            liquidationFactor: Constants.stableToStableLiqFactor
+        });
+        riskVarsStable[1] = PricingModule.RiskVarInput({
+            baseCurrency: 1,
+            asset: address(0),
+            collateralFactor: Constants.stableToStableCollFactor,
+            liquidationFactor: Constants.stableToStableLiqFactor
+        });
+        riskVarsStable[2] = PricingModule.RiskVarInput({
+            baseCurrency: 2,
+            asset: address(0),
+            collateralFactor: Constants.tokenToStableCollFactor,
+            liquidationFactor: Constants.tokenToStableLiqFactor
+        });
+
+        riskVarsToken[0] = PricingModule.RiskVarInput({
+            baseCurrency: 0,
+            asset: address(0),
+            collateralFactor: Constants.tokenToStableCollFactor,
+            liquidationFactor: Constants.tokenToStableLiqFactor
+        });
+        riskVarsToken[1] = PricingModule.RiskVarInput({
+            baseCurrency: 1,
+            asset: address(0),
+            collateralFactor: Constants.tokenToStableCollFactor,
+            liquidationFactor: Constants.tokenToStableLiqFactor
+        });
+        riskVarsToken[2] = PricingModule.RiskVarInput({
+            baseCurrency: 2,
+            asset: address(0),
+            collateralFactor: Constants.tokenToTokenLiqFactor,
+            liquidationFactor: Constants.tokenToTokenLiqFactor
+        });
+
+        address[] memory oracleStable1ToUsdArr = new address[](1);
+        oracleStable1ToUsdArr[0] = address(mockOracles.stable1ToUsd);
+        address[] memory oracleStable2ToUsdArr = new address[](1);
+        oracleStable2ToUsdArr[0] = address(mockOracles.stable2ToUsd);
+        address[] memory oracleToken1ToUsdArr = new address[](1);
+        oracleToken1ToUsdArr[0] = address(mockOracles.token1ToUsd);
+        address[] memory oracleToken2ToUsdArr = new address[](1);
+        oracleToken2ToUsdArr[0] = address(mockOracles.token2ToUsd);
+
+        erc20PricingModule.addAsset(
+            address(mockERC20.stable1), oracleStable1ToUsdArr, riskVarsStable, type(uint128).max
+        );
+        erc20PricingModule.addAsset(
+            address(mockERC20.stable2), oracleStable2ToUsdArr, riskVarsStable, type(uint128).max
+        );
+        erc20PricingModule.addAsset(address(mockERC20.token1), oracleToken1ToUsdArr, riskVarsToken, type(uint128).max);
+        erc20PricingModule.addAsset(address(mockERC20.token2), oracleToken2ToUsdArr, riskVarsToken, type(uint128).max);
         vm.stopPrank();
     }
 
@@ -229,6 +281,25 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         return oracle;
     }
 
+    function initMockedOracle(uint8 decimals, string memory description, int256 answer)
+        public
+        returns (ArcadiaOracle)
+    {
+        vm.startPrank(users.defaultCreatorAddress);
+        ArcadiaOracle oracle = new ArcadiaOracle(
+            uint8(decimals),
+            description,
+            address(73)
+        );
+        oracle.setOffchainTransmitter(users.defaultTransmitter);
+        vm.stopPrank();
+
+        vm.prank(users.defaultTransmitter);
+        oracle.transmit(answer);
+
+        return oracle;
+    }
+
     function transmitOracle(ArcadiaOracle oracle, int256 answer, address transmitter) public {
         vm.startPrank(transmitter);
         oracle.transmit(answer);
@@ -238,6 +309,23 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
     function transmitOracle(ArcadiaOracle oracle, int256 answer) public {
         vm.startPrank(users.defaultTransmitter);
         oracle.transmit(answer);
+        vm.stopPrank();
+    }
+
+    function depositTokenInAccount(AccountV1 account_, ERC20Mock token, uint256 amount) public {
+        address[] memory assets = new address[](1);
+        assets[0] = address(token);
+
+        uint256[] memory ids = new uint256[](1);
+        ids[0] = 0;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amount;
+
+        deal(address(token), account_.owner(), amount);
+        vm.startPrank(account_.owner());
+        token.approve(address(account_), amount);
+        account_.deposit(assets, ids, amounts);
         vm.stopPrank();
     }
 

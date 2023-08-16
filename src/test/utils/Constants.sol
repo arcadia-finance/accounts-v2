@@ -10,6 +10,14 @@ library Constants {
     uint256 internal constant stableDecimals = 6;
     uint256 internal constant tokenDecimals = 18;
 
+    // Token risk factors
+    uint16 internal constant stableToStableCollFactor = 100;
+    uint16 internal constant stableToStableLiqFactor = 100;
+    uint16 internal constant tokenToStableCollFactor = 80;
+    uint16 internal constant tokenToStableLiqFactor = 90;
+    uint16 internal constant tokenToTokenCollFactor = 50;
+    uint16 internal constant tokenToTokenLiqFactor = 80;
+
     // Oracle decimals
     uint256 internal constant stableOracleDecimals = 18;
     uint256 internal constant tokenOracleDecimals = 8;
