@@ -7,7 +7,7 @@ pragma solidity ^0.8.13;
 import { Base_Global_Test, Constants } from "./Base_Global.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "./utils/Types.sol";
 import { MainRegistry } from "../MainRegistry.sol";
-import { OracleHub } from "../OracleHub.sol";
+import { OracleHub_UsdOnly } from "../OracleHub_UsdOnly.sol";
 import { PricingModule } from "../PricingModules/AbstractPricingModule.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import { Proxy } from "../Proxy.sol";
@@ -133,53 +133,45 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
 
         // Add Oracles to the OracleHub.
         oracleHub.addOracle(
-            OracleHub.OracleInformation({
+            OracleHub_UsdOnly.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
-                quoteAssetBaseCurrency: 0,
                 baseAsset: "STABLE1",
                 quoteAsset: "USD",
                 oracle: address(mockOracles.stable1ToUsd),
                 baseAssetAddress: address(mockERC20.stable1),
-                quoteAssetIsBaseCurrency: true,
                 isActive: true
             })
         );
 
         oracleHub.addOracle(
-            OracleHub.OracleInformation({
+            OracleHub_UsdOnly.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
-                quoteAssetBaseCurrency: 0,
                 baseAsset: "STABLE2",
                 quoteAsset: "USD",
                 oracle: address(mockOracles.stable2ToUsd),
                 baseAssetAddress: address(mockERC20.stable2),
-                quoteAssetIsBaseCurrency: true,
                 isActive: true
             })
         );
 
         oracleHub.addOracle(
-            OracleHub.OracleInformation({
+            OracleHub_UsdOnly.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
-                quoteAssetBaseCurrency: 0,
                 baseAsset: "TOKEN1",
                 quoteAsset: "USD",
                 oracle: address(mockOracles.token1ToUsd),
                 baseAssetAddress: address(mockERC20.token1),
-                quoteAssetIsBaseCurrency: true,
                 isActive: true
             })
         );
 
         oracleHub.addOracle(
-            OracleHub.OracleInformation({
+            OracleHub_UsdOnly.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
-                quoteAssetBaseCurrency: 0,
                 baseAsset: "TOKEN2",
                 quoteAsset: "USD",
                 oracle: address(mockOracles.token2ToUsd),
                 baseAssetAddress: address(mockERC20.token2),
-                quoteAssetIsBaseCurrency: true,
                 isActive: true
             })
         );
