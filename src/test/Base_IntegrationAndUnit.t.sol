@@ -29,6 +29,11 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
     MockERC1155 internal mockERC1155;
     Rates internal rates;
 
+    address[] public oracleStable1ToUsdArr = new address[](1);
+    address[] public oracleStable2ToUsdArr = new address[](1);
+    address[] public oracleToken1ToUsdArr = new address[](1);
+    address[] public oracleToken2ToUsdArr = new address[](1);
+
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -132,6 +137,7 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         );
 
         // Add Oracles to the OracleHub.
+        // Do not add TOKEN4/USD, TOKEN3/TOKEN1 as we are testing it on a case-by-case basis
         oracleHub.addOracle(
             OracleHub_UsdOnly.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
@@ -218,13 +224,9 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
             liquidationFactor: Constants.tokenToTokenLiqFactor
         });
 
-        address[] memory oracleStable1ToUsdArr = new address[](1);
         oracleStable1ToUsdArr[0] = address(mockOracles.stable1ToUsd);
-        address[] memory oracleStable2ToUsdArr = new address[](1);
         oracleStable2ToUsdArr[0] = address(mockOracles.stable2ToUsd);
-        address[] memory oracleToken1ToUsdArr = new address[](1);
         oracleToken1ToUsdArr[0] = address(mockOracles.token1ToUsd);
-        address[] memory oracleToken2ToUsdArr = new address[](1);
         oracleToken2ToUsdArr[0] = address(mockOracles.token2ToUsd);
 
         erc20PricingModule.addAsset(

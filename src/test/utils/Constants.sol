@@ -33,4 +33,7 @@ library Constants {
     // Those are fixed values set for the instance of "trustedCreditorWithParams"
     address internal constant initLiquidator = address(666);
     uint96 internal constant initLiquidationCost = 100;
+
+    // Math
+    uint256 internal constant WAD = 1e18;
 }

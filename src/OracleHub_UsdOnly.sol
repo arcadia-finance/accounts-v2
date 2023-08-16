@@ -176,11 +176,7 @@ contract OracleHub_UsdOnly is Owned, IOraclesHub_UsdOnly {
      * - Second rate will overflow when R1 * R2 * 10**(18 - D1) > MAXUINT256.
      * - Third and final rate will overflow when R1 * R2 * R3 * 10**(18 - D1 - D2) > MAXUINT256.
      */
-    function getRateInUsd(address[] memory oracles)
-        external
-        view
-        returns (uint256 rate)
-    {
+    function getRateInUsd(address[] memory oracles) external view returns (uint256 rate) {
         rate = FixedPointMathLib.WAD; // Scalar 1 with 18 decimals (The internal precision).
         int256 tempRate;
         uint256 oraclesLength = oracles.length;

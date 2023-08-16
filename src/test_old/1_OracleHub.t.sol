@@ -665,7 +665,8 @@ contract OracleHubTest is Test {
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
-    function testRevert_getRate_NegativeRate(int256 rateEthToUsd) public {
+    // Migrated to new test suite
+    /*     function testRevert_getRate_NegativeRate(int256 rateEthToUsd) public {
         // Given: oracleEthToUsdDecimals less than equal to 18, rateEthToUsd less than equal to max uint256 value,
         // rateEthToUsd is less than max uint256 value divided by WAD
         vm.assume(rateEthToUsd < 0);
@@ -694,14 +695,16 @@ contract OracleHubTest is Test {
 
         vm.expectRevert("OH_GR: Negative Rate");
         oracleHub.getRate(oraclesEthToUsd, Constants.UsdBaseCurrency);
-    }
+    } */
 
-    function testRevert_getRate_NoUsdOrBaseCurrencyOracle() public {
+    // Migrated to new test suite
+    /*     function testRevert_getRate_NoUsdOrBaseCurrencyOracle() public {
         vm.expectRevert("OH_GR: No qAsset in USD or bCurr");
         oracleHub.getRate(new address[](0), Constants.UsdBaseCurrency);
-    }
+    } */
 
-    function testSuccess_getRate_BaseCurrencyIsUsdForSingleOracle(uint256 rateEthToUsd, uint8 oracleEthToUsdDecimals)
+    // Migrated to new test suite
+    /*     function testSuccess_getRate_BaseCurrencyIsUsdForSingleOracle(uint256 rateEthToUsd, uint8 oracleEthToUsdDecimals)
         public
     {
         // Given: oracleEthToUsdDecimals less than equal to 18, rateEthToUsd less than equal to max uint256 value,
@@ -745,8 +748,10 @@ contract OracleHubTest is Test {
         assertEq(actualRateInUsd, expectedRateInUsd);
         assertEq(actualRateInBaseCurrency, expectedRateInBaseCurrency);
     }
+    */
 
-    function testRevert_getRate_BaseCurrencyIsUsdForSingleOracleOverflow(
+    // Migrated to new test suite
+    /*     function testRevert_getRate_BaseCurrencyIsUsdForSingleOracleOverflow(
         uint256 rateEthToUsd,
         uint8 oracleEthToUsdDecimals
     ) public {
@@ -786,7 +791,7 @@ contract OracleHubTest is Test {
         // Then: getRate should revert with Arithmetic overflow
         vm.expectRevert(bytes(""));
         oracleHub.getRate(oraclesEthToUsd, Constants.UsdBaseCurrency);
-    }
+    } */
 
     function testSuccess_getRate_BaseCurrencyIsUsdForMultipleOracles(
         uint256 rateSnxToEth,
