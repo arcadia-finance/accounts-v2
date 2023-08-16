@@ -34,7 +34,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         // Deploy Account.
         accountExtension = new AccountExtension();
 
-        // Initiate Vault (set owner and baseCurrency).
+        // Initiate Account (set owner and baseCurrency).
         accountExtension.initialize(
             users.accountOwner,
             address(mainRegistryExtension),
@@ -253,7 +253,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         uint128 liquidationValue,
         uint96 fixedLiquidationCost
     ) public {
-        // Assume vault is healthy: liquidationValue is bigger than usedMargin (debt + fixedLiquidationCost).
+        // Assume account is healthy: liquidationValue is bigger than usedMargin (debt + fixedLiquidationCost).
         uint256 usedMargin = uint256(debt) + fixedLiquidationCost;
         vm.assume(liquidationValue >= usedMargin);
 
@@ -263,7 +263,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, liquidationValue);
 
-        // Should revert if vault is healthy.
+        // Should revert if account is healthy.
         vm.startPrank(accountExtension.liquidator());
         vm.expectRevert("A_LA: liqValue above usedMargin");
         accountExtension.liquidateAccount(debt);
@@ -273,7 +273,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
     function testFuzz_liquidateAccount_Unhealthy(uint128 debt, uint128 liquidationValue, uint96 fixedLiquidationCost)
         public
     {
-        // Assume vault is unhealthy: liquidationValue is smaller than usedMargin (debt + fixedLiquidationCost).
+        // Assume account is unhealthy: liquidationValue is smaller than usedMargin (debt + fixedLiquidationCost).
         uint256 usedMargin = uint256(debt) + fixedLiquidationCost;
         vm.assume(liquidationValue < usedMargin);
 

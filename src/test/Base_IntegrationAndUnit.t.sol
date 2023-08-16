@@ -109,7 +109,7 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
                 )
         });
 
-        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 as baseCurrencies in MainRegistry
+        // Add STABLE1 AND TOKEN1 as baseCurrencies in MainRegistry
         vm.startPrank(mainRegistryExtension.owner());
         mainRegistryExtension.addBaseCurrency(
             MainRegistry.BaseCurrencyInformation({
