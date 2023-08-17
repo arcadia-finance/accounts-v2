@@ -45,14 +45,8 @@ contract OracleHub_Unit_Test is Base_IntegrationAndUnit_Test {
 
         // Then: oracleToken4ToUsd should return true to inOracleHub
         assertTrue(oracleHub.inOracleHub(address(mockOracles.token4ToUsd)));
-        (
-            bool isActive,
-            uint64 oracleUnit,
-            ,
-            address baseAssetAddress,
-            bytes16 baseAsset,
-            bytes16 quoteAsset
-        ) = oracleHub.oracleToOracleInformation(address(mockOracles.token4ToUsd));
+        (bool isActive, uint64 oracleUnit,, address baseAssetAddress, bytes16 baseAsset, bytes16 quoteAsset) =
+            oracleHub.oracleToOracleInformation(address(mockOracles.token4ToUsd));
         assertEq(oracleUnit, oracleToken4ToUsdUnit);
         assertEq(baseAsset, "TOKEN4");
         assertEq(quoteAsset, "USD");
@@ -200,12 +194,81 @@ contract OracleHub_Unit_Test is Base_IntegrationAndUnit_Test {
         );
         vm.stopPrank();
 
-       // When: oracleToken4ToUsdArr index 0 is mockOracles.token4ToUsd
+        // When: oracleToken4ToUsdArr index 0 is mockOracles.token4ToUsd
         address[] memory oracleToken4ToUsdArr = new address[](1);
         oracleToken4ToUsdArr[0] = address(mockOracles.token4ToUsd);
 
         // Then: checkOracleSequence with oracleToken4ToUsdArr should revert with "OH_COS: No Match First bAsset" as asset != address(mockERC20.token4)
         vm.expectRevert("OH_COS: No Match First bAsset");
         oracleHub.checkOracleSequence(oracleToken4ToUsdArr, asset);
+    }
+
+    function testRevert_checkOracleSequence_NonMatchingBaseAndQuoteAssets() public {
+        vm.startPrank(users.creatorAddress);
+        // Given: creatorAddress addOracle with OracleInformation for TOKEN3-TOKEN4
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: uint64(Constants.tokenOracleDecimals),
+                baseAsset: "TOKEN3",
+                quoteAsset: "TOKEN4",
+                oracle: address(mockOracles.token3ToToken4),
+                baseAssetAddress: address(mockERC20.token3),
+                isActive: true
+            })
+        );
+        vm.stopPrank();
+        // When: oracleToken3ToUsdArr index 0 is mockOracles.token3ToToken4, oracleToken3ToUsdArr index 1 is mockOracles.token1ToUsd
+        address[] memory oracleToken3ToUsdArr = new address[](2);
+        oracleToken3ToUsdArr[0] = address(mockOracles.token3ToToken4);
+        oracleToken3ToUsdArr[1] = address(mockOracles.token1ToUsd);
+        // Then: checkOracleSequence for oracleToken3ToUsdArr should revert with "OH_COS: No Match bAsset and qAsset"
+        vm.expectRevert("OH_COS: No Match bAsset and qAsset");
+        oracleHub.checkOracleSequence(oracleToken3ToUsdArr, address(mockERC20.token3));
+    }
+
+    function testRevert_checkOracleSequence_LastBaseAssetNotUsd() public {
+        vm.startPrank(users.creatorAddress);
+        // Given: creatorAddress addOracle with OracleInformation for TOKEN3-TOKEN4
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: uint64(Constants.tokenOracleDecimals),
+                baseAsset: "TOKEN3",
+                quoteAsset: "TOKEN4",
+                oracle: address(mockOracles.token3ToToken4),
+                baseAssetAddress: address(mockERC20.token3),
+                isActive: true
+            })
+        );
+        vm.stopPrank();
+        // When: racleToken3ToUsdArr index 0 is mockOracles.token3ToToken4
+        address[] memory oracleToken3ToUsdArr = new address[](1);
+        oracleToken3ToUsdArr[0] = address(mockOracles.token3ToToken4);
+        // Then: checkOracleSequence for oracleToken3ToUsdArr should revert with "OH_COS: Last qAsset not USD"
+        vm.expectRevert("OH_COS: Last qAsset not USD");
+        oracleHub.checkOracleSequence(oracleToken3ToUsdArr, address(mockERC20.token3));
+    }
+
+    function test_isActive_negative(address oracle) public {
+        vm.assume(oracle != address(mockOracles.token1ToUsd));
+        vm.assume(oracle != address(mockOracles.token2ToUsd));
+        vm.assume(oracle != address(mockOracles.stable1ToUsd));
+        vm.assume(oracle != address(mockOracles.stable2ToUsd));
+        assertFalse(oracleHub.isActive(address(oracle)));
+    }
+
+    function test_isActive_positive() public {
+        vm.prank(users.creatorAddress);
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: uint64(Constants.tokenOracleDecimals),
+                baseAsset: "TOKEN3",
+                quoteAsset: "TOKEN4",
+                oracle: address(mockOracles.token3ToToken4),
+                baseAssetAddress: address(mockERC20.token3),
+                isActive: true
+            })
+        );
+
+        assertTrue(oracleHub.isActive(address(mockOracles.token3ToToken4)));
     }
 }

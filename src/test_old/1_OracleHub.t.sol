@@ -78,7 +78,7 @@ contract OracleHubTest is Test {
     ///////////////////////////////////////////////////////////////*/
 
     // Migrated to new test suite
-/*     function testSuccess_addOracle_Owner(uint64 oracleEthToUsdUnit) public {
+    /*     function testSuccess_addOracle_Owner(uint64 oracleEthToUsdUnit) public {
         // Given: oracleEthToUsdUnit is less than equal to 1 ether
         vm.assume(oracleEthToUsdUnit <= 10 ** 18);
         // When: creatorAddress addOracle with OracleInformation
@@ -121,7 +121,7 @@ contract OracleHubTest is Test {
     } */
 
     // Migrated to new test suite
-/*     function testRevert_addOracle_OverwriteOracle() public {
+    /*     function testRevert_addOracle_OverwriteOracle() public {
         vm.startPrank(creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation
         oracleHub.addOracle(
@@ -156,7 +156,7 @@ contract OracleHubTest is Test {
     } */
 
     // Migrated to new test suite
-/*     function testRevert_addOracle_NonOwner(address unprivilegedAddress) public {
+    /*     function testRevert_addOracle_NonOwner(address unprivilegedAddress) public {
         // Given: unprivilegedAddress is not creatorAddress
         vm.assume(unprivilegedAddress != creatorAddress);
         // When: unprivilegedAddress addOracle
@@ -179,7 +179,7 @@ contract OracleHubTest is Test {
     } */
 
     // Migrated to new test suite
-/*     function testRevert_addOracle_BigOracleUnit(uint64 oracleEthToUsdUnit) public {
+    /*     function testRevert_addOracle_BigOracleUnit(uint64 oracleEthToUsdUnit) public {
         // Given: oracleEthToUsdUnit is bigger than 1 ether
         vm.assume(oracleEthToUsdUnit > 10 ** 18);
         // When: creatorAddress addOracle
@@ -202,7 +202,7 @@ contract OracleHubTest is Test {
     } */
 
     // Migrated to new test suite
-/*     function testSuccess_checkOracleSequence_SingleOracleToUsd() public {
+    /*     function testSuccess_checkOracleSequence_SingleOracleToUsd() public {
         vm.startPrank(creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation
         oracleHub.addOracle(
@@ -225,7 +225,7 @@ contract OracleHubTest is Test {
     } */
 
     // Migrated to new test suite
-/*     function testSuccess_checkOracleSequence_MultipleOraclesToUsd() public {
+    /*     function testSuccess_checkOracleSequence_MultipleOraclesToUsd() public {
         vm.startPrank(creatorAddress);
         // Given: creatorAddress addOracle for ETH-USD and SNX-USD
         oracleHub.addOracle(
@@ -285,7 +285,7 @@ contract OracleHubTest is Test {
     }
 
     // Migrated to new test suite
-/*     function testRevert_checkOracleSequence_InactiveOracle() public {
+    /*     function testRevert_checkOracleSequence_InactiveOracle() public {
         vm.prank(creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation
         oracleHub.addOracle(
@@ -312,7 +312,7 @@ contract OracleHubTest is Test {
     } */
 
     // Migrated to new test suite
-/*     function testRevert_checkOracleSequence_NonMatchingFirstQuoteAssets(address asset) public {
+    /*     function testRevert_checkOracleSequence_NonMatchingFirstQuoteAssets(address asset) public {
         vm.assume(asset != address(eth));
         vm.startPrank(creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation
@@ -337,7 +337,8 @@ contract OracleHubTest is Test {
         oracleHub.checkOracleSequence(oraclesEthToUsd, asset);
     } */
 
-    function testRevert_checkOracleSequence_NonMatchingBaseAndQuoteAssets() public {
+    // Migrated to new test suite
+    /*     function testRevert_checkOracleSequence_NonMatchingBaseAndQuoteAssets() public {
         vm.startPrank(creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation for SNX-ETH and LINK-USD
         oracleHub.addOracle(
@@ -371,9 +372,10 @@ contract OracleHubTest is Test {
         // Then: checkOracleSequence for oraclesSnxToUsd should revert with "OH_COS: No Match bAsset and qAsset"
         vm.expectRevert("OH_COS: No Match bAsset and qAsset");
         oracleHub.checkOracleSequence(oraclesSnxToUsd, address(snx));
-    }
+    } */
 
-    function testRevert_checkOracleSequence_LastBaseAssetNotUsd() public {
+    // Migrated to new test suite
+    /*     function testRevert_checkOracleSequence_LastBaseAssetNotUsd() public {
         vm.startPrank(creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation for SNX-ETH
         oracleHub.addOracle(
@@ -394,9 +396,10 @@ contract OracleHubTest is Test {
         // Then: checkOracleSequence for oraclesSnxToEth should revert with "OH_COS: Last qAsset not USD"
         vm.expectRevert("OH_COS: Last qAsset not USD");
         oracleHub.checkOracleSequence(oraclesSnxToEth, address(snx));
-    }
+    } */
 
-    function testRevert_decommissionOracle_notInHub(address sender, address oracle) public {
+    // Migrated to new test suite
+    /*     function testRevert_decommissionOracle_notInHub(address sender, address oracle) public {
         vm.assume(oracle != address(oracleEthToUsd));
         vm.assume(oracle != address(oracleLinkToUsd));
         vm.assume(oracle != address(oracleSnxToEth));
@@ -405,9 +408,10 @@ contract OracleHubTest is Test {
         vm.expectRevert("OH_DO: Oracle not in Hub");
         oracleHub.decommissionOracle(oracle);
         vm.stopPrank();
-    }
+    } */
 
-    function testSuccess_decommissionOracle_NonExistingContract(address sender) public {
+    // Migrated to new test suite
+    /*     function testSuccess_decommissionOracle_NonExistingContract(address sender) public {
         RevertingOracle revertingOracle = new RevertingOracle();
 
         vm.prank(creatorAddress);
@@ -440,9 +444,10 @@ contract OracleHubTest is Test {
 
         assertEq(rateInUsd, 0);
         assertEq(rateInBaseCurrency, 0);
-    }
+    } */
 
-    function testSuccess_decommissionOracle_answerTooLow(address sender) public {
+    // Migrated to new test suite
+    /*     function testSuccess_decommissionOracle_answerTooLow(address sender) public {
         vm.startPrank(creatorAddress);
         oracleHub.addOracle(
             OracleHub.OracleInformation({
@@ -498,9 +503,10 @@ contract OracleHubTest is Test {
 
         assertEq(rateInUsd, 0);
         assertEq(rateInBaseCurrency, 0);
-    }
+    } */
 
-    function testSuccess_decommissionOracle_updatedAtTooOld(address sender, uint32 timePassed) public {
+    // Migrated to new test suite
+    /*     function testSuccess_decommissionOracle_updatedAtTooOld(address sender, uint32 timePassed) public {
         vm.assume(timePassed > 1 weeks);
 
         vm.startPrank(creatorAddress);
@@ -560,9 +566,9 @@ contract OracleHubTest is Test {
 
         assertEq(rateInUsd, 0);
         assertEq(rateInBaseCurrency, 0);
-    }
+    } */
 
-    function testSuccess_decommissionOracle_resetOralceInUse(address sender, uint32 timePassed) public {
+    /*     function testSuccess_decommissionOracle_resetOralceInUse(address sender, uint32 timePassed) public {
         vm.assume(timePassed > 1 weeks);
 
         vm.startPrank(creatorAddress);
@@ -646,12 +652,15 @@ contract OracleHubTest is Test {
 
         assertEq(rateInUsd, 250_000);
     }
+    */
 
-    function testSuccess_isActive_negative(address oracle) public {
+    // Migrated to new test suite
+    /*     function testSuccess_isActive_negative(address oracle) public {
         assertFalse(oracleHub.isActive(address(oracle)));
-    }
+    } */
 
-    function testSuccess_isActive_positive() public {
+    // Migrated to new test suite
+    /*     function testSuccess_isActive_positive() public {
         vm.prank(creatorAddress);
         oracleHub.addOracle(
             OracleHub.OracleInformation({
@@ -667,7 +676,7 @@ contract OracleHubTest is Test {
         );
 
         assertTrue(oracleHub.isActive(address(oracleEthToUsd)));
-    }
+    } */
 
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
