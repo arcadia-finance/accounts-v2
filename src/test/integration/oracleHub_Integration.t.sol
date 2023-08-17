@@ -21,6 +21,37 @@ contract OracleHub_Integration_Test is Base_IntegrationAndUnit_Test {
     }
 
     /*///////////////////////////////////////////////////////////////
+                          ORACLE MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    function testRevert_checkOracleSequence_InactiveOracle() public {
+        vm.prank(users.creatorAddress);
+        // Given: creatorAddress addOracle with OracleInformation
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: uint64(Constants.tokenOracleDecimals),
+                baseAsset: "TOKEN4",
+                quoteAsset: "USD",
+                oracle: address(mockOracles.token4ToUsd),
+                baseAssetAddress: address(mockERC20.token4),
+                isActive: true
+            })
+        );
+
+        vm.prank(users.defaultTransmitter);
+        mockOracles.token4ToUsd.transmit(0); // Lower than min value
+
+        oracleHub.decommissionOracle(address(mockOracles.token4ToUsd));
+
+        address[] memory oracleToken4ToUsdArr = new address[](1);
+        oracleToken4ToUsdArr[0] = address(mockOracles.token4ToUsd);
+
+        // Then: checkOracleSequence with oracleToken4ToUsdArr should revert with "OH_COS: Oracle not active"
+        vm.expectRevert("OH_COS: Oracle not active");
+        oracleHub.checkOracleSequence(oracleToken4ToUsdArr, address(mockERC20.token4));
+    }
+
+    /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
@@ -107,44 +138,44 @@ contract OracleHub_Integration_Test is Base_IntegrationAndUnit_Test {
         address[] memory oracleToken4ToUsdArr = new address[](1);
         oracleToken4ToUsdArr[0] = address(mockOracles.token4ToUsd);
 
-        // Then: getRate should revert with Arithmetic overflow
+        // Then: getRateInUsd should revert with Arithmetic overflow
         vm.expectRevert(bytes(""));
         oracleHub.getRateInUsd(oracleToken4ToUsdArr);
     }
 
     function testFuzz_getRateInUsd_MultipleOracles(
-        uint256 rateToken3ToToken1,
+        uint256 rateToken3ToToken4,
         uint256 rateToken4ToUsd,
-        uint8 oracleToken3ToToken1Decimals,
+        uint8 oracleToken3ToToken4Decimals,
         uint8 oracleToken4ToUsdDecimals
     ) public {
-        // Given: oracleToken3ToToken1Decimals and oracleToken4ToUsdDecimals is less than equal to 18,
-        // rateToken3ToToken1 and rateToken4ToUsd is less than equal to uint256 max value, rateToken3ToToken1 is less than equal to uint256 max value divided by WAD
-        vm.assume(oracleToken3ToToken1Decimals <= 18 && oracleToken4ToUsdDecimals <= 18);
+        // Given: oracleToken3ToToken4Decimals and oracleToken4ToUsdDecimals is less than equal to 18,
+        // rateToken3ToToken4 and rateToken4ToUsd is less than equal to uint256 max value, rateToken3ToToken4 is less than equal to uint256 max value divided by WAD
+        vm.assume(oracleToken3ToToken4Decimals <= 18 && oracleToken4ToUsdDecimals <= 18);
 
-        vm.assume(rateToken3ToToken1 <= uint256(type(int256).max));
+        vm.assume(rateToken3ToToken4 <= uint256(type(int256).max));
         vm.assume(rateToken4ToUsd <= uint256(type(int256).max));
 
-        vm.assume(rateToken3ToToken1 <= type(uint256).max / Constants.WAD);
+        vm.assume(rateToken3ToToken4 <= type(uint256).max / Constants.WAD);
 
-        if (rateToken3ToToken1 == 0) {
+        if (rateToken3ToToken4 == 0) {
             vm.assume(uint256(rateToken4ToUsd) <= type(uint256).max / Constants.WAD);
         } else {
             vm.assume(
                 uint256(rateToken4ToUsd)
-                    <= type(uint256).max / Constants.WAD * 10 ** oracleToken3ToToken1Decimals / uint256(rateToken3ToToken1)
+                    <= type(uint256).max / Constants.WAD * 10 ** oracleToken3ToToken4Decimals / uint256(rateToken3ToToken4)
             );
         }
 
-        // When: creatorAddress addOracle for TOKEN3-TOKEN1 and TOKEN4-USD, oracleOwner transmit rateToken3ToToken1 and rateToken4ToUsd,
-        // oraclesToken3ToUsd index 0 is oracleToken3ToToken1, oraclesToken3ToUsd index 1 is oracleToken4ToUsd
+        // When: creatorAddress addOracle for TOKEN3-TOKEN4 and TOKEN4-USD, oracleOwner transmit rateToken3ToToken4 and rateToken4ToUsd,
+        // oraclesToken3ToUsd index 0 is oracleToken3ToToken4, oraclesToken3ToUsd index 1 is oracleToken4ToUsd
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
             OracleHub_UsdOnly.OracleInformation({
-                oracleUnit: uint64(10 ** oracleToken3ToToken1Decimals),
+                oracleUnit: uint64(10 ** oracleToken3ToToken4Decimals),
                 baseAsset: "TOKEN3",
-                quoteAsset: "TOKEN1",
-                oracle: address(mockOracles.token3ToToken1),
+                quoteAsset: "TOKEN4",
+                oracle: address(mockOracles.token3ToToken4),
                 baseAssetAddress: address(mockERC20.token3),
                 isActive: true
             })
@@ -163,18 +194,197 @@ contract OracleHub_Integration_Test is Base_IntegrationAndUnit_Test {
         vm.stopPrank();
 
         vm.startPrank(users.defaultTransmitter);
-        mockOracles.token3ToToken1.transmit(int256(rateToken3ToToken1));
+        mockOracles.token3ToToken4.transmit(int256(rateToken3ToToken4));
         mockOracles.token4ToUsd.transmit(int256(rateToken4ToUsd));
         vm.stopPrank();
 
         uint256 expectedRateInUsd = (
-            ((Constants.WAD * uint256(rateToken3ToToken1)) / 10 ** (oracleToken3ToToken1Decimals))
+            ((Constants.WAD * uint256(rateToken3ToToken4)) / 10 ** (oracleToken3ToToken4Decimals))
                 * uint256(rateToken4ToUsd)
         ) / 10 ** (oracleToken4ToUsdDecimals);
 
         address[] memory oracleToken3ToUsdArr = new address[](2);
-        oracleToken3ToUsdArr[0] = address(mockOracles.token3ToToken1);
+        oracleToken3ToUsdArr[0] = address(mockOracles.token3ToToken4);
         oracleToken3ToUsdArr[1] = address(mockOracles.token4ToUsd);
+        uint256 actualRateInUsd = oracleHub.getRateInUsd(oracleToken3ToUsdArr);
+
+        // Then: expectedRateInUsd should be equal to actualRateInUsd
+        assertEq(expectedRateInUsd, actualRateInUsd);
+    }
+
+    function testFuzz_getRateInUsd_MultipleOracles_Overflow1(
+        uint256 rateToken3ToToken4,
+        uint256 rateToken4ToUsd,
+        uint8 oracleToken3ToToken4Decimals,
+        uint8 oracleToken4ToUsdDecimals
+    ) public {
+        // Given: oracleToken3ToToken4Decimals and oracleToken4ToUsdDecimals is less than equal to 18,
+        // rateToken3ToToken4 and rateToken4ToUsd is less than equal to uint256 max value, rateToken3ToToken4 is bigger than uint256 max value divided by WAD
+        vm.assume(oracleToken3ToToken4Decimals <= 18 && oracleToken4ToUsdDecimals <= 18);
+        vm.assume(rateToken3ToToken4 <= uint256(type(int256).max));
+        vm.assume(rateToken4ToUsd <= uint256(type(int256).max));
+
+        vm.assume(rateToken3ToToken4 > type(uint256).max / Constants.WAD);
+
+        if (rateToken3ToToken4 == 0) {
+            vm.assume(uint256(rateToken4ToUsd) <= type(uint256).max / Constants.WAD);
+        } else {
+            vm.assume(
+                uint256(rateToken4ToUsd)
+                    <= type(uint256).max / Constants.WAD * 10 ** oracleToken3ToToken4Decimals / uint256(rateToken3ToToken4)
+            );
+        }
+
+        // When: creatorAddress addOracle for TOKEN3-TOKEN4 and TOKEN4-USD, oracleOwner transmit rateToken3ToToken4 and rateToken4ToUsd,
+        // oraclesToken3ToUsd index 0 is oracleToken3ToToken4, oraclesToken3ToUsd index 1 is oracleToken4ToUsd
+        vm.startPrank(users.creatorAddress);
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: uint64(10 ** oracleToken3ToToken4Decimals),
+                baseAsset: "TOKEN3",
+                quoteAsset: "TOKEN4",
+                oracle: address(mockOracles.token3ToToken4),
+                baseAssetAddress: address(mockERC20.token3),
+                isActive: true
+            })
+        );
+
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: uint64(10 ** oracleToken4ToUsdDecimals),
+                baseAsset: "TOKEN4",
+                quoteAsset: "USD",
+                oracle: address(mockOracles.token4ToUsd),
+                baseAssetAddress: address(mockERC20.token4),
+                isActive: true
+            })
+        );
+        vm.stopPrank();
+
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.token3ToToken4.transmit(int256(rateToken3ToToken4));
+        mockOracles.token4ToUsd.transmit(int256(rateToken4ToUsd));
+        vm.stopPrank();
+
+        address[] memory oracleToken3ToUsdArr = new address[](2);
+        oracleToken3ToUsdArr[0] = address(mockOracles.token3ToToken4);
+        oracleToken3ToUsdArr[1] = address(mockOracles.token4ToUsd);
+
+        // Then: getRateInUsd() should revert with Arithmetic overflow
+        vm.expectRevert(bytes(""));
+        oracleHub.getRateInUsd(oracleToken3ToUsdArr);
+    }
+
+    function testFuzz_getRateInUsd_MultipleOracles_Overflow2(
+        uint256 rateToken3ToToken4,
+        uint256 rateToken4ToUsd,
+        uint8 oracleToken3ToToken4Decimals,
+        uint8 oracleToken4ToUsdDecimals
+    ) public {
+        // Given: oracleToken3ToToken4Decimals and oracleToken4ToUsdDecimals is less than equal to 18,
+        // rateToken3ToToken4 and rateToken4ToUsd is less than equal to uint256 max value, rateToken3ToToken4 is bigger than 0.
+        vm.assume(oracleToken3ToToken4Decimals <= 18 && oracleToken4ToUsdDecimals <= 18);
+        vm.assume(rateToken3ToToken4 <= uint256(type(int256).max));
+        vm.assume(rateToken4ToUsd <= uint256(type(int256).max));
+        vm.assume(rateToken3ToToken4 > 0);
+
+        vm.assume(
+            uint256(rateToken4ToUsd)
+                > type(uint256).max / Constants.WAD * 10 ** oracleToken3ToToken4Decimals / uint256(rateToken3ToToken4)
+        );
+
+        // When: creatorAddress addOracle for TOKEN3-TOKEN4 and TOKEN4-USD, oracleOwner transmit rateToken3ToToken4 and rateToken4ToUsd,
+        // oraclesToken3ToUsd index 0 is oracleToken3ToToken4, oraclesToken3ToUsd index 1 is oracleToken4ToUsd
+        vm.startPrank(users.creatorAddress);
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: uint64(10 ** oracleToken3ToToken4Decimals),
+                baseAsset: "TOKEN3",
+                quoteAsset: "TOKEN4",
+                oracle: address(mockOracles.token3ToToken4),
+                baseAssetAddress: address(mockERC20.token3),
+                isActive: true
+            })
+        );
+
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: uint64(10 ** oracleToken4ToUsdDecimals),
+                baseAsset: "TOKEN4",
+                quoteAsset: "USD",
+                oracle: address(mockOracles.token4ToUsd),
+                baseAssetAddress: address(mockERC20.token4),
+                isActive: true
+            })
+        );
+        vm.stopPrank();
+
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.token3ToToken4.transmit(int256(rateToken3ToToken4));
+        mockOracles.token4ToUsd.transmit(int256(rateToken4ToUsd));
+        vm.stopPrank();
+
+        address[] memory oracleToken3ToUsdArr = new address[](2);
+        oracleToken3ToUsdArr[0] = address(mockOracles.token3ToToken4);
+        oracleToken3ToUsdArr[1] = address(mockOracles.token4ToUsd);
+
+        // Then: getRateInUsd() should revert with Arithmetic overflow
+        vm.expectRevert(bytes(""));
+        oracleHub.getRateInUsd(oracleToken3ToUsdArr);
+    }
+
+    function testSuccess_getRateInUsd_MultipleOracles_FirstRateIsZero(
+        uint256 rateToken4ToUsd,
+        uint8 oracleToken3ToToken4Decimals,
+        uint8 oracleToken4ToUsdDecimals
+    ) public {
+        // Given: oracleToken3ToToken4Decimals and oracleToken4ToUsdDecimals is less than equal to 18,
+        // rateToken4ToUsd is less than equal to uint256 max value, rateToken3ToToken4 is 0
+        uint256 rateToken3ToToken4 = 0;
+
+        vm.assume(oracleToken3ToToken4Decimals <= 18 && oracleToken4ToUsdDecimals <= 18);
+        vm.assume(rateToken4ToUsd <= uint256(type(int256).max));
+
+        // When: creatorAddress addOracle for TOKEN3-TOKEN4 and TOKEN4-USD, oracleOwner transmit rateToken3ToToken4 and rateToken4ToUsd,
+        // oraclesToken3ToUsd index 0 is oracleToken3ToToken4, oraclesToken3ToUsd index 1 is oracleToken4ToUsd
+        vm.startPrank(users.creatorAddress);
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: uint64(10 ** oracleToken3ToToken4Decimals),
+                baseAsset: "TOKEN3",
+                quoteAsset: "TOKEN4",
+                oracle: address(mockOracles.token3ToToken4),
+                baseAssetAddress: address(mockERC20.token3),
+                isActive: true
+            })
+        );
+
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: uint64(10 ** oracleToken4ToUsdDecimals),
+                baseAsset: "TOKEN4",
+                quoteAsset: "USD",
+                oracle: address(mockOracles.token4ToUsd),
+                baseAssetAddress: address(mockERC20.token4),
+                isActive: true
+            })
+        );
+        vm.stopPrank();
+
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.token3ToToken4.transmit(int256(rateToken3ToToken4));
+        mockOracles.token4ToUsd.transmit(int256(rateToken4ToUsd));
+        vm.stopPrank();
+
+        uint256 expectedRateInUsd = (
+            ((Constants.WAD * uint256(rateToken3ToToken4)) / 10 ** (oracleToken3ToToken4Decimals))
+                * uint256(rateToken4ToUsd)
+        ) / 10 ** (oracleToken4ToUsdDecimals);
+
+        address[] memory oracleToken3ToUsdArr = new address[](2);
+        oracleToken3ToUsdArr[0] = address(mockOracles.token3ToToken4);
+        oracleToken3ToUsdArr[1] = address(mockOracles.token4ToUsd);
+
         uint256 actualRateInUsd = oracleHub.getRateInUsd(oracleToken3ToUsdArr);
 
         // Then: expectedRateInUsd should be equal to actualRateInUsd

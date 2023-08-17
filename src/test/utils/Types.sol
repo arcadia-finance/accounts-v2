@@ -25,7 +25,7 @@ struct MockOracles {
     ArcadiaOracle stable2ToUsd;
     ArcadiaOracle token1ToUsd;
     ArcadiaOracle token2ToUsd;
-    ArcadiaOracle token3ToToken1;
+    ArcadiaOracle token3ToToken4;
     ArcadiaOracle token4ToUsd;
     ArcadiaOracle nft1ToToken1;
     ArcadiaOracle nft2ToUsd;
@@ -57,7 +57,7 @@ struct Rates {
     uint256 stable2ToUsd;
     uint256 token1ToUsd;
     uint256 token2ToUsd;
-    uint256 token3ToToken1;
+    uint256 token3ToToken4;
     uint256 token4ToUsd;
     uint256 nft1ToToken1;
     uint256 nft2ToUsd;

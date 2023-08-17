@@ -193,7 +193,7 @@ contract OracleHub_UsdOnly is Owned, IOraclesHub_UsdOnly {
 
             rate = rate.mulDivDown(uint256(tempRate), oracleToOracleInformation[oracleAddressAtIndex].oracleUnit);
 
-            if (oracleToOracleInformation[oracleAddressAtIndex].quoteAsset == bytes16("USD")) {
+            if (oracleToOracleInformation[oracleAddressAtIndex].quoteAsset == "USD") {
                 // If the quote asset is in USD, return rate.
                 return rate;
             }

@@ -13,13 +13,13 @@ abstract contract Events {
     event Transfer(address indexed from, address indexed to, uint256 indexed id);
 
     /*//////////////////////////////////////////////////////////////////////////
-                                      Proxy
+                                      PROXY
     //////////////////////////////////////////////////////////////////////////*/
 
     event Upgraded(address indexed implementation);
 
     /*//////////////////////////////////////////////////////////////////////////
-                                     Factory
+                                     FACTORY
     //////////////////////////////////////////////////////////////////////////*/
 
     event AccountUpgraded(address indexed accountAddress, uint16 oldVersion, uint16 indexed newVersion);
@@ -30,4 +30,11 @@ abstract contract Events {
 
     event TrustedMarginAccountChanged(address indexed protocol, address indexed liquidator);
     event BaseCurrencySet(address baseCurrency);
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    ORACLEHUB
+    //////////////////////////////////////////////////////////////////////////*/
+
+    event OracleAdded(address indexed oracle, address indexed quoteAsset, bytes16 baseAsset);
+    event OracleDecommissioned(address indexed oracle, bool isActive);
 }
