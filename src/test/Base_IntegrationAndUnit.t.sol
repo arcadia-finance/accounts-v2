@@ -137,7 +137,7 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         );
 
         // Add Oracles to the OracleHub.
-        // Do not add TOKEN4/USD, TOKEN3/TOKEN1 as we are testing it on a case-by-case basis
+        // Do not add TOKEN4/USD, TOKEN3/TOKEN4 as we are testing it on a case-by-case basis
         oracleHub.addOracle(
             OracleHub_UsdOnly.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
