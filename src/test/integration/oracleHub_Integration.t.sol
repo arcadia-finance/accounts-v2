@@ -57,7 +57,7 @@ contract OracleHub_Integration_Test is Base_IntegrationAndUnit_Test {
         oracleHub.checkOracleSequence(oracleToken4ToUsdArr, address(mockERC20.token4));
     }
 
-    function testFuzz_Revert_decommissionOracle_notInHub(address sender, address oracle) public {
+    function testRevert_Fuzz_decommissionOracle_notInHub(address sender, address oracle) public {
         vm.assume(oracle != address(mockOracles.token1ToUsd));
         vm.assume(oracle != address(mockOracles.token2ToUsd));
         vm.assume(oracle != address(mockOracles.stable1ToUsd));
@@ -273,7 +273,7 @@ contract OracleHub_Integration_Test is Base_IntegrationAndUnit_Test {
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_getRateInUsd_NegativeRate(int256 rateToken1ToUsd) public {
+    function testRevert_Fuzz_getRateInUsd_NegativeRate(int256 rateToken1ToUsd) public {
         // Given: oracleToken1ToUsdDecimals less than equal to 18, rateToken1ToUsd less than equal to max uint256 value,
         // rateToken1ToUsd is less than max uint256 value divided by WAD
         vm.assume(rateToken1ToUsd < 0);
@@ -325,7 +325,7 @@ contract OracleHub_Integration_Test is Base_IntegrationAndUnit_Test {
         assertEq(actualRateInUsd, expectedRateInUsd);
     }
 
-    function testFuzz_Revert_getRateInUsd_SingleOracleOverflow(uint256 rateToken4ToUsd, uint8 oracleToken4ToUsdDecimals)
+    function testRevert_Fuzz_getRateInUsd_SingleOracleOverflow(uint256 rateToken4ToUsd, uint8 oracleToken4ToUsdDecimals)
         public
     {
         // Given: oracleToken4ToUsdDecimals less than equal to 18, rateToken4ToUsd less than equal to max uint256 value,
@@ -551,7 +551,7 @@ contract OracleHub_Integration_Test is Base_IntegrationAndUnit_Test {
         oracleHub.getRateInUsd(oracleToken3ToUsdArr);
     }
 
-    function testSuccess_getRateInUsd_MultipleOracles_FirstRateIsZero(
+    function testFuzz_getRateInUsd_MultipleOracles_FirstRateIsZero(
         uint256 rateToken4ToUsd,
         uint8 oracleToken3ToToken4Decimals,
         uint8 oracleToken4ToUsdDecimals

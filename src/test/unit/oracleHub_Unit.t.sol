@@ -84,7 +84,7 @@ contract OracleHub_Unit_Test is Base_IntegrationAndUnit_Test {
         vm.stopPrank();
     }
 
-    function testRevert_addOracle_NonOwner(address unprivilegedAddress) public {
+    function testRevert_Fuzz_addOracle_NonOwner(address unprivilegedAddress) public {
         // Given: unprivilegedAddress is not creatorAddress
         vm.assume(unprivilegedAddress != users.creatorAddress);
         // When: unprivilegedAddress addOracle
@@ -104,7 +104,7 @@ contract OracleHub_Unit_Test is Base_IntegrationAndUnit_Test {
         vm.stopPrank();
     }
 
-    function testRevert_addOracle_BigOracleUnit(uint64 oracleEthToUsdUnit) public {
+    function testRevert_Fuzz_addOracle_BigOracleUnit(uint64 oracleEthToUsdUnit) public {
         // Given: oracleEthToUsdUnit is bigger than 1 ether
         vm.assume(oracleEthToUsdUnit > 10 ** 18);
         // When: creatorAddress addOracle
@@ -178,7 +178,7 @@ contract OracleHub_Unit_Test is Base_IntegrationAndUnit_Test {
         oracleHub.checkOracleSequence(oracleToken3ToUsdArr, address(mockERC20.token3));
     }
 
-    function testFuzz_Revert_checkOracleSequence_NonMatchingFirstQuoteAssets(address asset) public {
+    function testRevert_Fuzz_checkOracleSequence_NonMatchingFirstQuoteAssets(address asset) public {
         vm.assume(asset != address(mockERC20.token4));
         vm.startPrank(users.creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation
