@@ -10,8 +10,9 @@ import { Factory } from "../Factory.sol";
 import { AccountV1 } from "../AccountV1.sol";
 import { AccountV2 } from "../mockups/AccountV2.sol";
 import { MainRegistryExtension } from "./utils/Extensions.sol";
+import { PricingModule_UsdOnly } from "../PricingModules/AbstractPricingModule_UsdOnly.sol";
 import { OracleHub_UsdOnly } from "../OracleHub_UsdOnly.sol";
-import { StandardERC20PricingModule } from "../PricingModules/StandardERC20PricingModule.sol";
+import { StandardERC20PricingModule_UsdOnly } from "../PricingModules/StandardERC20PricingModule_UsdOnly.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
@@ -31,6 +32,8 @@ abstract contract Base_Global_Test is Test, Events, Errors {
     // This will be the base currency set for the instance of "trustedCreditorWithParams"
     address internal initBaseCurrency;
 
+    PricingModule_UsdOnly.RiskVarInput[] emptyRiskVarInput;
+
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -38,7 +41,7 @@ abstract contract Base_Global_Test is Test, Events, Errors {
     Factory internal factory;
     MainRegistryExtension internal mainRegistryExtension;
     OracleHub_UsdOnly internal oracleHub;
-    StandardERC20PricingModule internal erc20PricingModule;
+    StandardERC20PricingModule_UsdOnly internal erc20PricingModule;
     AccountV1 internal account;
     AccountV2 internal accountV2;
     TrustedCreditorMock internal trustedCreditorWithParamsInit;
@@ -66,7 +69,7 @@ abstract contract Base_Global_Test is Test, Events, Errors {
         factory = new Factory();
         mainRegistryExtension = new MainRegistryExtension(address(factory));
         oracleHub = new OracleHub_UsdOnly();
-        erc20PricingModule = new StandardERC20PricingModule(address(mainRegistryExtension), address(oracleHub), 0);
+        erc20PricingModule = new StandardERC20PricingModule_UsdOnly(address(mainRegistryExtension), address(oracleHub), 0);
         account = new AccountV1();
         accountV2 = new AccountV2();
         factory.setNewAccountInfo(address(mainRegistryExtension), address(account), Constants.upgradeProof1To2, "");

@@ -8,7 +8,7 @@ import { Base_Global_Test, Constants } from "./Base_Global.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "./utils/Types.sol";
 import { MainRegistry } from "../MainRegistry.sol";
 import { OracleHub_UsdOnly } from "../OracleHub_UsdOnly.sol";
-import { PricingModule } from "../PricingModules/AbstractPricingModule.sol";
+import { PricingModule_UsdOnly } from "../PricingModules/AbstractPricingModule_UsdOnly.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import { Proxy } from "../Proxy.sol";
 import { ERC20Mock } from "../mockups/ERC20SolmateMock.sol";
@@ -19,6 +19,16 @@ import { AccountV1 } from "../AccountV1.sol";
 
 /// @notice Common logic needed by all integration tests.
 abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                     CONSTANTS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    // Basecurrency ID's in MainRegistry.sol
+    uint256 internal constant UsdBaseCurrencyID = 0;
+    uint256 internal constant Stable1BaseCurrencyID = 1;
+    uint256 internal constant Token1BaseCurrencyID = 2;
+
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -183,41 +193,41 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         );
 
         // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
-        PricingModule.RiskVarInput[] memory riskVarsStable = new PricingModule.RiskVarInput[](3);
-        PricingModule.RiskVarInput[] memory riskVarsToken = new PricingModule.RiskVarInput[](3);
+        PricingModule_UsdOnly.RiskVarInput[] memory riskVarsStable = new PricingModule_UsdOnly.RiskVarInput[](3);
+        PricingModule_UsdOnly.RiskVarInput[] memory riskVarsToken = new PricingModule_UsdOnly.RiskVarInput[](3);
 
-        riskVarsStable[0] = PricingModule.RiskVarInput({
+        riskVarsStable[0] = PricingModule_UsdOnly.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: Constants.stableToStableCollFactor,
             liquidationFactor: Constants.stableToStableLiqFactor
         });
-        riskVarsStable[1] = PricingModule.RiskVarInput({
+        riskVarsStable[1] = PricingModule_UsdOnly.RiskVarInput({
             baseCurrency: 1,
             asset: address(0),
             collateralFactor: Constants.stableToStableCollFactor,
             liquidationFactor: Constants.stableToStableLiqFactor
         });
-        riskVarsStable[2] = PricingModule.RiskVarInput({
+        riskVarsStable[2] = PricingModule_UsdOnly.RiskVarInput({
             baseCurrency: 2,
             asset: address(0),
             collateralFactor: Constants.tokenToStableCollFactor,
             liquidationFactor: Constants.tokenToStableLiqFactor
         });
 
-        riskVarsToken[0] = PricingModule.RiskVarInput({
+        riskVarsToken[0] = PricingModule_UsdOnly.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: Constants.tokenToStableCollFactor,
             liquidationFactor: Constants.tokenToStableLiqFactor
         });
-        riskVarsToken[1] = PricingModule.RiskVarInput({
+        riskVarsToken[1] = PricingModule_UsdOnly.RiskVarInput({
             baseCurrency: 1,
             asset: address(0),
             collateralFactor: Constants.tokenToStableCollFactor,
             liquidationFactor: Constants.tokenToStableLiqFactor
         });
-        riskVarsToken[2] = PricingModule.RiskVarInput({
+        riskVarsToken[2] = PricingModule_UsdOnly.RiskVarInput({
             baseCurrency: 2,
             asset: address(0),
             collateralFactor: Constants.tokenToTokenLiqFactor,
