@@ -334,7 +334,7 @@ contract StandardERC20PricingModuleTest is DeployArcadiaAccounts {
     }
 
     // Migrated to new test suite
-/*     function testSuccess_getValue(uint256 rateEthToUsdNew, uint256 amountEth) public {
+    /*     function testSuccess_getValue(uint256 rateEthToUsdNew, uint256 amountEth) public {
         // Given: rateEthToUsdNew is lower than equal to max int256 value and max uint256 value divided by Constants.WAD
         vm.assume(rateEthToUsdNew <= uint256(type(int256).max));
         vm.assume(rateEthToUsdNew <= type(uint256).max / Constants.WAD);
@@ -378,7 +378,7 @@ contract StandardERC20PricingModuleTest is DeployArcadiaAccounts {
     } */
 
     // Migrated to new test suite
-/*     function testRevert_getValue_Overflow(uint256 rateEthToUsdNew, uint256 amountEth) public {
+    /*     function testRevert_getValue_Overflow(uint256 rateEthToUsdNew, uint256 amountEth) public {
         // Given: rateEthToUsdNew is lower than equal to max int256 value and max uint256 value divided by Constants.WAD and bigger than zero
         vm.assume(rateEthToUsdNew <= uint256(type(int256).max));
         vm.assume(rateEthToUsdNew <= type(uint256).max / Constants.WAD);
