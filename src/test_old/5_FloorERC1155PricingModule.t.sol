@@ -235,7 +235,8 @@ contract FloorERC1155PricingModuleTest is DeployArcadiaAccounts {
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
-    function testSuccess_getValue_ReturnUsdValueWhenBaseCurrencyIsUsd(uint128 amountInterleave) public {
+    // Migrated to new test suite
+    /*     function testSuccess_getValue_ReturnUsdValueWhenBaseCurrencyIsUsd(uint128 amountInterleave) public {
         //Does not test on overflow, test to check if function correctly returns value in BaseCurrency
         vm.startPrank(creatorAddress);
         // Given: creatorAddress calls addAsset, expectedValueInBaseCurrency is zero
@@ -261,8 +262,9 @@ contract FloorERC1155PricingModuleTest is DeployArcadiaAccounts {
         // Then: actualValueInUsd should be equal to expectedValueInUsd, actualValueInBaseCurrency should be equal to expectedValueInBaseCurrency
         assertEq(actualValueInUsd, expectedValueInUsd);
         assertEq(actualValueInBaseCurrency, expectedValueInBaseCurrency);
-    }
+    } */
 
+    // TODO: test deprecated with new pricing modules returning value only in usd
     function testSuccess_getValue_returnBaseCurrencyValueWhenBaseCurrencyIsNotUsd(uint128 amountInterleave) public {
         //Does not test on overflow, test to check if function correctly returns value in BaseCurrency
         vm.startPrank(creatorAddress);
@@ -291,6 +293,7 @@ contract FloorERC1155PricingModuleTest is DeployArcadiaAccounts {
         assertEq(actualValueInBaseCurrency, expectedValueInBaseCurrency);
     }
 
+    // TODO: test deprecated with new pricing modules returning value only in usd
     function testSuccess_getValue_ReturnUsdValueWhenBaseCurrencyIsNotUsd(uint128 amountInterleave) public {
         //Does not test on overflow, test to check if function correctly returns value in BaseCurrency
         vm.startPrank(creatorAddress);
@@ -319,6 +322,7 @@ contract FloorERC1155PricingModuleTest is DeployArcadiaAccounts {
         assertEq(actualValueInBaseCurrency, expectedValueInBaseCurrency);
     }
 
+    // TODO: test deprecated with new pricing modules returning value only in usd
     function testSuccess_getValue_ReturnValue(uint256 amountInterleave, uint256 rateInterleaveToEthNew) public {
         // Given: rateInterleaveToEthNew is lower than equal to max int256 value and max uint256 value divided by Constants.WAD
         vm.assume(rateInterleaveToEthNew <= uint256(type(int256).max));
@@ -364,7 +368,8 @@ contract FloorERC1155PricingModuleTest is DeployArcadiaAccounts {
         assertEq(actualValueInBaseCurrency, expectedValueInBaseCurrency);
     }
 
-    function testRevert_getValue_Overflow(uint256 amountInterleave, uint256 rateInterleaveToEthNew) public {
+    // Migrated to new test suite
+    /*     function testRevert_getValue_Overflow(uint256 amountInterleave, uint256 rateInterleaveToEthNew) public {
         // Given: rateInterleaveToEthNew is lower than equal to max int256 value and max uint256 value divided by Constants.WAD and bigger than zero
         vm.assume(rateInterleaveToEthNew <= uint256(type(int256).max));
         vm.assume(rateInterleaveToEthNew <= type(uint256).max / Constants.WAD);
@@ -397,5 +402,5 @@ contract FloorERC1155PricingModuleTest is DeployArcadiaAccounts {
         // Then: getValue should be reverted
         vm.expectRevert(stdError.arithmeticError);
         floorERC1155PricingModule.getValue(getValueInput);
-    }
+    } */
 }

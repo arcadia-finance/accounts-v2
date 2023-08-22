@@ -714,11 +714,11 @@ contract OracleHubTest is Test {
         oracleHub.getRate(oraclesEthToUsd, Constants.UsdBaseCurrency);
     } */
 
-    // Migrated to new test suite
-    /*     function testRevert_getRate_NoUsdOrBaseCurrencyOracle() public {
+    // TODO: Test deprecated in new OracleHub_UsdOnly contract
+    function testRevert_getRate_NoUsdOrBaseCurrencyOracle() public {
         vm.expectRevert("OH_GR: No qAsset in USD or bCurr");
         oracleHub.getRate(new address[](0), Constants.UsdBaseCurrency);
-    } */
+    }
 
     // Migrated to new test suite
     /*     function testSuccess_getRate_BaseCurrencyIsUsdForSingleOracle(uint256 rateEthToUsd, uint8 oracleEthToUsdDecimals)

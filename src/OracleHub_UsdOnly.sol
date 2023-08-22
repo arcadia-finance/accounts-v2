@@ -193,16 +193,9 @@ contract OracleHub_UsdOnly is Owned, IOraclesHub_UsdOnly {
 
             rate = rate.mulDivDown(uint256(tempRate), oracleToOracleInformation[oracleAddressAtIndex].oracleUnit);
 
-            if (oracleToOracleInformation[oracleAddressAtIndex].quoteAsset == "USD") {
-                // If the quote asset is in USD, return rate.
-                return rate;
-            }
-
             unchecked {
                 ++i;
             }
         }
-        // Since all series of oracles must end with USD, it should be impossible to arrive to this state.
-        revert("OH_GR: No qAsset in USD or bCurr");
     }
 }

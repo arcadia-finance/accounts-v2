@@ -8,18 +8,17 @@ import { PricingModule_UsdOnly, IMainRegistry } from "./AbstractPricingModule_Us
 import { IOraclesHub_UsdOnly } from "./interfaces/IOraclesHub_UsdOnly.sol";
 
 /**
- * @title Pricing Module for ERC721 tokens for which a oracle exists for the floor price of the collection
+ * @title Pricing Module for ERC1155 tokens
  * @author Pragma Labs
- * @notice The FloorERC721PricingModule stores pricing logic and basic information for ERC721 tokens for which a direct price feeds exists
+ * @notice The FloorERC1155PricingModule stores pricing logic and basic information for ERC721 tokens for which a direct price feeds exists
  * for the floor price of the collection
- * @dev No end-user should directly interact with the FloorERC721PricingModule, only the Main-registry, Oracle-Hub or the contract owner
+ * @dev No end-user should directly interact with the FloorERC1155PricingModule, only the Main-registry, Oracle-Hub or the contract owner
  */
-contract FloorERC721PricingModule_UsdOnly is PricingModule_UsdOnly {
+contract FloorERC1155PricingModule_UsdOnly is PricingModule_UsdOnly {
     mapping(address => AssetInformation) public assetToInformation;
 
     struct AssetInformation {
-        uint256 idRangeStart;
-        uint256 idRangeEnd;
+        uint256 id;
         address[] oracles;
     }
 
@@ -41,10 +40,9 @@ contract FloorERC721PricingModule_UsdOnly is PricingModule_UsdOnly {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a new asset to the FloorERC721PricingModule.
+     * @notice Adds a new asset to the FloorERC1155PricingModule.
      * @param asset The contract address of the asset
-     * @param idRangeStart: The id of the first NFT of the collection
-     * @param idRangeEnd: The id of the last NFT of the collection
+     * @param id: The id of the collection
      * @param oracles An array of addresses of oracle contracts, to price the asset in USD
      * @param riskVars An array of Risk Variables for the asset
      * @param maxExposure The maximum exposure of the asset in its own decimals
@@ -56,8 +54,7 @@ contract FloorERC721PricingModule_UsdOnly is PricingModule_UsdOnly {
      */
     function addAsset(
         address asset,
-        uint256 idRangeStart,
-        uint256 idRangeEnd,
+        uint256 id,
         address[] calldata oracles,
         RiskVarInput[] calldata riskVars,
         uint256 maxExposure
@@ -65,16 +62,15 @@ contract FloorERC721PricingModule_UsdOnly is PricingModule_UsdOnly {
         //View function, reverts in OracleHub if sequence is not correct
         IOraclesHub_UsdOnly(oracleHub).checkOracleSequence(oracles, asset);
 
-        require(!inPricingModule[asset], "PM721_AA: already added");
+        require(!inPricingModule[asset], "PM1155_AA: already added");
         inPricingModule[asset] = true;
         assetsInPricingModule.push(asset);
 
-        assetToInformation[asset].idRangeStart = idRangeStart;
-        assetToInformation[asset].idRangeEnd = idRangeEnd;
+        assetToInformation[asset].id = id;
         assetToInformation[asset].oracles = oracles;
         _setRiskVariablesForAsset(asset, riskVars);
 
-        require(maxExposure <= type(uint128).max, "PM721_AA: Max Exposure not in limits");
+        require(maxExposure <= type(uint128).max, "PM1155_AA: Max Exposure not in limits");
         exposure[asset].maxExposure = uint128(maxExposure);
 
         //Will revert in MainRegistry if asset can't be added
@@ -83,18 +79,12 @@ contract FloorERC721PricingModule_UsdOnly is PricingModule_UsdOnly {
 
     /**
      * @notice Returns the information that is stored in the Pricing Module for a given asset
-     * @dev struct is not taken into memory; saves 6613 gas
      * @param asset The Token address of the asset
-     * @return idRangeStart The id of the first token of the collection
-     * @return idRangeEnd The id of the last token of the collection
+     * @return id The id of the token
      * @return oracles The list of addresses of the oracles to get the exchange rate of the asset in USD
      */
-    function getAssetInformation(address asset) external view returns (uint256, uint256, address[] memory) {
-        return (
-            assetToInformation[asset].idRangeStart,
-            assetToInformation[asset].idRangeEnd,
-            assetToInformation[asset].oracles
-        );
+    function getAssetInformation(address asset) external view returns (uint256, address[] memory) {
+        return (assetToInformation[asset].id, assetToInformation[asset].oracles);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -109,26 +99,12 @@ contract FloorERC721PricingModule_UsdOnly is PricingModule_UsdOnly {
      */
     function isAllowListed(address asset, uint256 assetId) public view override returns (bool) {
         if (exposure[asset].maxExposure != 0) {
-            if (isIdInRange(asset, assetId)) {
+            if (assetId == assetToInformation[asset].id) {
                 return true;
             }
         }
 
         return false;
-    }
-
-    /**
-     * @notice Checks if the Id for a given token is in the range for which there exists a price feed
-     * @param asset The address of the asset
-     * @param assetId The Id of the asset
-     * @return A boolean, indicating if the Id of the given asset is whitelisted
-     */
-    function isIdInRange(address asset, uint256 assetId) private view returns (bool) {
-        if (assetId >= assetToInformation[asset].idRangeStart && assetId <= assetToInformation[asset].idRangeEnd) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -139,26 +115,14 @@ contract FloorERC721PricingModule_UsdOnly is PricingModule_UsdOnly {
      * @notice Processes the deposit of a token address and the corresponding Id if it is white-listed
      * @param asset The address of the asset
      * @param assetId The Id of the asset
-     * @param amount the amount of ERC721 tokens
-     * @dev amount of a deposit in ERC721 pricing module must be 1
+     * @param amount the amount of ERC1155 tokens
+     * @dev Unsafe cast to uint128, meaning it is assumed no more than 10**(20+decimals) tokens can be deposited
      */
     function processDeposit(address, address asset, uint256 assetId, uint256 amount) external override onlyMainReg {
-        require(isIdInRange(asset, assetId), "PM721_PD: ID not allowed");
-        require(amount == 1, "PM721_PD: Amount not 1");
+        require(assetId == assetToInformation[asset].id, "PM1155_PD: ID not allowed");
 
-        exposure[asset].exposure += 1;
-        require(exposure[asset].exposure <= exposure[asset].maxExposure, "PM721_PD: Exposure not in limits");
-    }
-
-    /**
-     * @notice Processes the withdrawal of tokens to increase the maxExposure
-     * @param asset The address of the asset
-     * @param amount the amount of ERC721 tokens
-     * @dev amount of a deposit in ERC721 pricing module must be 1
-     */
-    function processWithdrawal(address, address asset, uint256, uint256 amount) external override onlyMainReg {
-        require(amount == 1, "PM721_PW: Amount not 1");
-        exposure[asset].exposure -= 1;
+        exposure[asset].exposure += uint128(amount);
+        require(exposure[asset].exposure <= exposure[asset].maxExposure, "PM1155_PD: Exposure not in limits");
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -166,17 +130,18 @@ contract FloorERC721PricingModule_UsdOnly is PricingModule_UsdOnly {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the value of a certain asset, denominated in USD.
+     * @notice Returns the value of a certain asset, denominated in USD
      * @param getValueInput A Struct with all the information neccessary to get the value of an asset
-     * - assetAddress: The contract address of the asset
+     * - asset: The contract address of the asset
      * - assetId: The Id of the asset
-     * - assetAmount: Since ERC721 tokens have no amount, the amount should be set to 0
+     * - assetAmount: The Amount of tokens
      * - baseCurrency: The BaseCurrency in which the value is ideally expressed
      * @return valueInUsd The value of the asset denominated in USD with 18 Decimals precision
      * @return collateralFactor The Collateral Factor of the asset
      * @return liquidationFactor The Liquidation Factor of the asset
+     * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256
      * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
-     * However no check in FloorERC721PricingModule is necessary, since the check if the asset is whitelisted (and hence added to PricingModule)
+     * However no check in FloorERC1155PricingModule is necessary, since the check if the asset is whitelisted (and hence added to PricingModule)
      * is already done in the Main-Registry.
      */
     function getValue(GetValueInput memory getValueInput)
@@ -185,7 +150,9 @@ contract FloorERC721PricingModule_UsdOnly is PricingModule_UsdOnly {
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        valueInUsd = IOraclesHub_UsdOnly(oracleHub).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
+        uint256 rateInUsd = IOraclesHub_UsdOnly(oracleHub).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
+
+        valueInUsd = getValueInput.assetAmount * rateInUsd;
 
         collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
         liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;

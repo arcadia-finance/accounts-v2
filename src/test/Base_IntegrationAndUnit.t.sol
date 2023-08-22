@@ -38,12 +38,17 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
     MockERC1155 internal mockERC1155;
     Rates internal rates;
 
+    // ERC20 oracle arrays
     address[] public oracleStable1ToUsdArr = new address[](1);
     address[] public oracleStable2ToUsdArr = new address[](1);
     address[] public oracleToken1ToUsdArr = new address[](1);
     address[] public oracleToken2ToUsdArr = new address[](1);
 
+    // ERC721 oracle arrays
     address[] public oracleNft1ToToken1ToUsd = new address[](2);
+
+    // ERC1155 oracle array
+    address[] public oracleERC1155ToToken1ToUsd = new address[](2);
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -204,6 +209,17 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
             })
         );
 
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: uint64(10 ** Constants.erc1155OracleDecimals),
+                baseAsset: "ERC1155",
+                quoteAsset: "TOKEN1",
+                oracle: address(mockOracles.erc1155ToToken1),
+                baseAssetAddress: address(mockERC1155.erc1155),
+                isActive: true
+            })
+        );
+
         // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
         PricingModule_UsdOnly.RiskVarInput[] memory riskVarsStable = new PricingModule_UsdOnly.RiskVarInput[](3);
         PricingModule_UsdOnly.RiskVarInput[] memory riskVarsToken = new PricingModule_UsdOnly.RiskVarInput[](3);
@@ -267,6 +283,15 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft1), 0, 999, oracleNft1ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
         );
+
+        // Add ERC1155 contract to the floorERC1155PricingModule
+        oracleERC1155ToToken1ToUsd[0] = address(mockOracles.erc1155ToToken1);
+        oracleERC1155ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
+
+        floorERC1155PricingModule.addAsset(
+            address(mockERC1155.erc1155), 1, oracleERC1155ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
+        );
+
         vm.stopPrank();
     }
 
