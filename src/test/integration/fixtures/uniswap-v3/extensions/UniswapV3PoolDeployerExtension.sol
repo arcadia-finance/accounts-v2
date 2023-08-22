@@ -5,8 +5,6 @@ import { UniswapV3PoolDeployer } from "../../../../../../lib/v3-core/contracts/U
 import { UniswapV3PoolExtension } from "./UniswapV3PoolExtension.sol";
 
 contract UniswapV3PoolDeployerExtension is UniswapV3PoolDeployer {
-    bytes32 internal constant override POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
-
     /// @dev Deploys a pool with the given parameters by transiently setting the parameters storage slot and then
     /// clearing it after deploying the pool.
     /// @param factory The contract address of the Uniswap V3 factory
