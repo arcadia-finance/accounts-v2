@@ -6,6 +6,7 @@ pragma solidity ^0.8.13;
 
 import { Base_IntegrationAndUnit_Test, Constants } from "../Base_IntegrationAndUnit.t.sol";
 import { IPricingModule_UsdOnly } from "../../interfaces/IPricingModule_UsdOnly.sol";
+import { ArcadiaOracle } from "../../mockups/ArcadiaOracle.sol";
 import { RiskModule } from "../../RiskModule.sol";
 import { CompareArrays } from "../utils/CompareArrays.sol";
 
@@ -13,6 +14,39 @@ contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
+
+    /* ///////////////////////////////////////////////////////////////
+                         HELPER FUNCTIONS
+    /////////////////////////////////////////////////////////////// */
+
+    function convertAssetToUsd(
+        uint256 assetDecimals,
+        uint256 amount,
+        address[] memory oracleArr
+    ) public view returns (uint256 usdValue) {
+        uint256 ratesMultiplied = 1;
+        uint256 sumOfOracleDecimals;
+        for (uint8 i; i < oracleArr.length; i++) {
+            (,int256 answer,,,) = ArcadiaOracle(oracleArr[i]).latestRoundData();
+            ratesMultiplied *= uint256(answer);
+            sumOfOracleDecimals += ArcadiaOracle(oracleArr[i]).decimals();
+        }
+
+        usdValue = (Constants.WAD * ratesMultiplied * amount) / (10 ** (sumOfOracleDecimals + assetDecimals));
+    }
+
+    function convertUsdToBaseCurrency(
+        uint256 baseCurrencyDecimals,
+        uint256 usdAmount,
+        uint256 rateBaseCurrencyToUsd,
+        uint256 oracleDecimals
+    ) public pure returns (uint256 assetValue) {
+        assetValue = (usdAmount * 10 ** oracleDecimals) / rateBaseCurrencyToUsd;
+        // USD value will always be in 18 decimals so we have to convert to baseCurrency decimals
+        if (baseCurrencyDecimals < 18) {
+            assetValue /= 10 ** (18 - baseCurrencyDecimals);
+        }
+    }
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -83,15 +117,9 @@ contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
         RiskModule.AssetValueAndRiskVariables[] memory actualValuesPerAsset =
             mainRegistryExtension.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, UsdBaseCurrencyID);
 
-        uint256 stable1ValueInUsd = (Constants.WAD * rates.stable1ToUsd * assetAmounts[0])
-            / 10 ** (Constants.stableOracleDecimals + Constants.stableDecimals);
-        uint256 token1ValueInUsd = (Constants.WAD * rates.token1ToUsd * assetAmounts[1])
-            / 10 ** (Constants.tokenOracleDecimals + Constants.tokenDecimals);
-        uint256 nft1ValueInUsd = Constants.WAD
-            * (
-                (rates.nft1ToToken1 * assetAmounts[2] * rates.token1ToUsd)
-                    / 10 ** (Constants.nftOracleDecimals + Constants.tokenOracleDecimals)
-            );
+        uint256 stable1ValueInUsd = convertAssetToUsd(Constants.stableDecimals, assetAmounts[0], oracleStable1ToUsdArr);
+        uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, assetAmounts[1], oracleToken1ToUsdArr);
+        uint256 nft1ValueInUsd = convertAssetToUsd(0, assetAmounts[2], oracleNft1ToToken1ToUsd);
 
         uint256[] memory expectedListOfValuesPerAsset = new uint256[](3);
         expectedListOfValuesPerAsset[0] = stable1ValueInUsd;
@@ -106,7 +134,7 @@ contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
         assertTrue(CompareArrays.compareArrays(expectedListOfValuesPerAsset, actualListOfValuesPerAsset));
     }
 
-    function test_getListOfValuesPerAsset_BaseCurrencyIsId1() public {
+    function test_getListOfValuesPerAsset_BaseCurrencyIsNotUsd() public {
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.stable1);
         assetAddresses[1] = address(mockERC20.token1);
@@ -123,22 +151,20 @@ contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
         assetAmounts[2] = 1;
 
         RiskModule.AssetValueAndRiskVariables[] memory actualValuesPerAsset =
-            mainRegistryExtension.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, UsdBaseCurrencyID);
+            mainRegistryExtension.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, Token1BaseCurrencyID);
 
-        uint256 stable1ValueInUsd = (Constants.WAD * rates.stable1ToUsd * assetAmounts[0])
-            / 10 ** (Constants.stableOracleDecimals + Constants.stableDecimals);
-        uint256 token1ValueInUsd = (Constants.WAD * rates.token1ToUsd * assetAmounts[1])
-            / 10 ** (Constants.tokenOracleDecimals + Constants.tokenDecimals);
-        uint256 nft1ValueInUsd = Constants.WAD
-            * (
-                (rates.nft1ToToken1 * assetAmounts[2] * rates.token1ToUsd)
-                    / 10 ** (Constants.nftOracleDecimals + Constants.tokenOracleDecimals)
-            );
+        uint256 stable1ValueInUsd = convertAssetToUsd(Constants.stableDecimals, assetAmounts[0], oracleStable1ToUsdArr);
+        uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, assetAmounts[1], oracleToken1ToUsdArr);
+        uint256 nft1ValueInUsd = convertAssetToUsd(0, assetAmounts[2], oracleNft1ToToken1ToUsd);
+
+        uint256 stable1ValueInBCurrency = convertUsdToBaseCurrency(Constants.tokenDecimals, stable1ValueInUsd, rates.token1ToUsd, Constants.tokenOracleDecimals);    
+        uint256 token1ValueInBCurrency = convertUsdToBaseCurrency(Constants.tokenDecimals, token1ValueInUsd, rates.token1ToUsd, Constants.tokenOracleDecimals);
+        uint256 nft1ValueInBCurrency = convertUsdToBaseCurrency(Constants.tokenDecimals, nft1ValueInUsd, rates.token1ToUsd, Constants.tokenOracleDecimals);
 
         uint256[] memory expectedListOfValuesPerAsset = new uint256[](3);
-        expectedListOfValuesPerAsset[0] = stable1ValueInUsd;
-        expectedListOfValuesPerAsset[1] = token1ValueInUsd;
-        expectedListOfValuesPerAsset[2] = nft1ValueInUsd;
+        expectedListOfValuesPerAsset[0] = stable1ValueInBCurrency;
+        expectedListOfValuesPerAsset[1] = token1ValueInBCurrency;
+        expectedListOfValuesPerAsset[2] = nft1ValueInBCurrency;
 
         uint256[] memory actualListOfValuesPerAsset = new uint256[](3);
         for (uint256 i; i < actualValuesPerAsset.length; ++i) {
