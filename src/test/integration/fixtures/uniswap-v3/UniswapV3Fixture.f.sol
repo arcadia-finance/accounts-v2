@@ -49,60 +49,10 @@ contract UniswapV3Fixture is WETH9Fixture {
         // Overwrite constant in bytecode of NonfungiblePositionManager.
         // -> Replace the code hash of UniswapV3Pool.sol with the code hash of UniswapV3PoolExtension.sol
         bytes32 POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
-        bytecode = veryBadBytesReplacer(bytecode, POOL_INIT_CODE_HASH, poolExtensionInitCodeHash);
+        bytecode = Utils.veryBadBytesReplacer(bytecode, POOL_INIT_CODE_HASH, poolExtensionInitCodeHash);
 
         // Deploy NonfungiblePositionManagerExtension with modified bytecode.
         address nonfungiblePositionManager_ = Utils.deployBytecode(bytecode);
         nonfungiblePositionManager = INonfungiblePositionManagerExtension(nonfungiblePositionManager_);
-    }
-
-    function veryBadBytesReplacer(bytes memory bytecode, bytes32 target, bytes32 replacement)
-        internal
-        returns (bytes memory result)
-    {
-        bytes memory target_ = abi.encodePacked(target);
-        bytes memory replacement_ = abi.encodePacked(replacement);
-
-        uint256 lengthTarget = target_.length;
-        uint256 lengthBytecode = bytecode.length - lengthTarget + 1;
-        uint256 i;
-        for (i; i < lengthBytecode;) {
-            uint256 j = 0;
-            for (j; j < lengthTarget;) {
-                if (bytecode[i + j] == target_[j]) {
-                    if (j == lengthTarget - 1) {
-                        emit log_string('check');
-                        // Break loop
-                        return result = replace(bytecode, replacement_, i);
-                    }
-                } else {
-                    break;
-                }
-                unchecked {
-                    ++j;
-                }
-            }
-
-            unchecked {
-                ++i;
-            }
-        }
-        // Should always find one single match. -> revert if not.
-        revert();
-    }
-
-    function replace(bytes memory bytecode, bytes memory replacement, uint256 startPosition)
-        internal pure
-        returns (bytes memory)
-    {
-        uint256 lengthReplacement = replacement.length;
-        for (uint256 j; j < lengthReplacement;) {
-            bytecode[startPosition + j] = replacement[j];
-
-            unchecked {
-                ++j;
-            }
-        }
-        return bytecode;
     }
 }
