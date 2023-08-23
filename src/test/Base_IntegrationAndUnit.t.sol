@@ -7,7 +7,7 @@ pragma solidity ^0.8.13;
 import { Base_Global_Test, Constants } from "./Base_Global.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "./utils/Types.sol";
 import { MainRegistry } from "../MainRegistry.sol";
-import { OracleHub } from "../OracleHub.sol";
+import { OracleHub_UsdOnly } from "../OracleHub_UsdOnly.sol";
 import { PricingModule } from "../PricingModules/AbstractPricingModule.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import { Proxy } from "../Proxy.sol";
@@ -28,6 +28,11 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
     MockERC721 internal mockERC721;
     MockERC1155 internal mockERC1155;
     Rates internal rates;
+
+    address[] public oracleStable1ToUsdArr = new address[](1);
+    address[] public oracleStable2ToUsdArr = new address[](1);
+    address[] public oracleToken1ToUsdArr = new address[](1);
+    address[] public oracleToken2ToUsdArr = new address[](1);
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -80,7 +85,7 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
             stable2ToUsd: 1 * 10 ** Constants.stableOracleDecimals,
             token1ToUsd: 6000 * 10 ** Constants.tokenOracleDecimals,
             token2ToUsd: 50 * 10 ** Constants.tokenOracleDecimals,
-            token3ToToken1: 4 * 10 ** Constants.tokenOracleDecimals,
+            token3ToToken4: 4 * 10 ** Constants.tokenOracleDecimals,
             token4ToUsd: 3 * 10 ** (Constants.tokenOracleDecimals - 2),
             nft1ToToken1: 50 * 10 ** Constants.nftOracleDecimals,
             nft2ToUsd: 7 * 10 ** Constants.nftOracleDecimals,
@@ -99,7 +104,7 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
             stable2ToUsd: initMockedOracle(uint8(Constants.stableOracleDecimals), "STABLE2 / USD", rates.stable2ToUsd),
             token1ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN1 / USD", rates.token1ToUsd),
             token2ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN2 / USD", rates.token2ToUsd),
-            token3ToToken1: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN3 / TOKEN1", rates.token3ToToken1),
+            token3ToToken4: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN3 / TOKEN4", rates.token3ToToken4),
             token4ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN4 / USD", rates.token4ToUsd),
             nft1ToToken1: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT1 / TOKEN1", rates.nft1ToToken1),
             nft2ToUsd: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT2 / USD", rates.nft2ToUsd),
@@ -132,54 +137,47 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         );
 
         // Add Oracles to the OracleHub.
+        // Do not add TOKEN4/USD, TOKEN3/TOKEN4 as we are testing it on a case-by-case basis
         oracleHub.addOracle(
-            OracleHub.OracleInformation({
+            OracleHub_UsdOnly.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
-                quoteAssetBaseCurrency: 0,
                 baseAsset: "STABLE1",
                 quoteAsset: "USD",
                 oracle: address(mockOracles.stable1ToUsd),
                 baseAssetAddress: address(mockERC20.stable1),
-                quoteAssetIsBaseCurrency: true,
                 isActive: true
             })
         );
 
         oracleHub.addOracle(
-            OracleHub.OracleInformation({
+            OracleHub_UsdOnly.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
-                quoteAssetBaseCurrency: 0,
                 baseAsset: "STABLE2",
                 quoteAsset: "USD",
                 oracle: address(mockOracles.stable2ToUsd),
                 baseAssetAddress: address(mockERC20.stable2),
-                quoteAssetIsBaseCurrency: true,
                 isActive: true
             })
         );
 
         oracleHub.addOracle(
-            OracleHub.OracleInformation({
+            OracleHub_UsdOnly.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
-                quoteAssetBaseCurrency: 0,
                 baseAsset: "TOKEN1",
                 quoteAsset: "USD",
                 oracle: address(mockOracles.token1ToUsd),
                 baseAssetAddress: address(mockERC20.token1),
-                quoteAssetIsBaseCurrency: true,
                 isActive: true
             })
         );
 
         oracleHub.addOracle(
-            OracleHub.OracleInformation({
+            OracleHub_UsdOnly.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
-                quoteAssetBaseCurrency: 0,
                 baseAsset: "TOKEN2",
                 quoteAsset: "USD",
                 oracle: address(mockOracles.token2ToUsd),
                 baseAssetAddress: address(mockERC20.token2),
-                quoteAssetIsBaseCurrency: true,
                 isActive: true
             })
         );
@@ -226,13 +224,9 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
             liquidationFactor: Constants.tokenToTokenLiqFactor
         });
 
-        address[] memory oracleStable1ToUsdArr = new address[](1);
         oracleStable1ToUsdArr[0] = address(mockOracles.stable1ToUsd);
-        address[] memory oracleStable2ToUsdArr = new address[](1);
         oracleStable2ToUsdArr[0] = address(mockOracles.stable2ToUsd);
-        address[] memory oracleToken1ToUsdArr = new address[](1);
         oracleToken1ToUsdArr[0] = address(mockOracles.token1ToUsd);
-        address[] memory oracleToken2ToUsdArr = new address[](1);
         oracleToken2ToUsdArr[0] = address(mockOracles.token2ToUsd);
 
         erc20PricingModule.addAsset(

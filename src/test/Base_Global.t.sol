@@ -10,7 +10,7 @@ import { Factory } from "../Factory.sol";
 import { AccountV1 } from "../AccountV1.sol";
 import { AccountV2 } from "../mockups/AccountV2.sol";
 import { MainRegistryExtension } from "./utils/Extensions.sol";
-import { OracleHub } from "../OracleHub.sol";
+import { OracleHub_UsdOnly } from "../OracleHub_UsdOnly.sol";
 import { StandardERC20PricingModule } from "../PricingModules/StandardERC20PricingModule.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import { Constants } from "./utils/Constants.sol";
@@ -37,7 +37,7 @@ abstract contract Base_Global_Test is Test, Events, Errors {
 
     Factory internal factory;
     MainRegistryExtension internal mainRegistryExtension;
-    OracleHub internal oracleHub;
+    OracleHub_UsdOnly internal oracleHub;
     StandardERC20PricingModule internal erc20PricingModule;
     AccountV1 internal account;
     AccountV2 internal accountV2;
@@ -65,7 +65,7 @@ abstract contract Base_Global_Test is Test, Events, Errors {
         vm.startPrank(users.creatorAddress);
         factory = new Factory();
         mainRegistryExtension = new MainRegistryExtension(address(factory));
-        oracleHub = new OracleHub();
+        oracleHub = new OracleHub_UsdOnly();
         erc20PricingModule = new StandardERC20PricingModule(address(mainRegistryExtension), address(oracleHub), 0);
         account = new AccountV1();
         accountV2 = new AccountV2();
