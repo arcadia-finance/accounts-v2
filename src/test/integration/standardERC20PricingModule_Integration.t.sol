@@ -87,45 +87,4 @@ contract StandardERC20PricingModule_Integration_Test is Base_IntegrationAndUnit_
         vm.expectRevert(bytes(""));
         erc20PricingModule.getValue(getValueInput);
     }
-
-    function test_getValue_test() public {
-        /*        // Given: rateToken1ToUsdNew is lower than equal to max int256 value and max uint256 value divided by Constants.WAD
-        vm.assume(rateToken1ToUsdNew <= uint256(type(int256).max));
-        vm.assume(rateToken1ToUsdNew <= type(uint256).max / Constants.WAD);
-
-        if (rateToken1ToUsdNew == 0) {
-            vm.assume(uint256(amountToken1) <= type(uint256).max / Constants.WAD);
-        } else {
-            vm.assume(
-                uint256(amountToken1)
-                    <= (type(uint256).max / uint256(rateToken1ToUsdNew) / Constants.WAD)
-                        * 10 ** Constants.tokenOracleDecimals
-            );
-        } */
-
-        uint256 rateToken1ToUsdNew = 2000 * 10 ** 8;
-        uint256 amountToken1 = 3 ether;
-
-        vm.startPrank(users.defaultTransmitter);
-        mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsdNew));
-        vm.stopPrank();
-
-        uint256 expectedValueInUsd = (
-            ((Constants.WAD * rateToken1ToUsdNew) / 10 ** Constants.tokenOracleDecimals) * amountToken1
-        ) / 10 ** Constants.tokenDecimals;
-
-        IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
-            asset: address(mockERC20.token1),
-            assetId: 0,
-            assetAmount: amountToken1,
-            baseCurrency: UsdBaseCurrencyID
-        });
-        // When: getValue called
-        (uint256 actualValueInUsd,,) = erc20PricingModule.getValue(getValueInput);
-
-        emit log_named_uint("actualValueInUsd", actualValueInUsd);
-
-        // Then: actualValueInUsd should be equal to expectedValueInUsd
-        assertEq(actualValueInUsd, expectedValueInUsd);
-    }
 }
