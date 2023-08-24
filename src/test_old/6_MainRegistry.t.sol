@@ -1178,7 +1178,7 @@ contract PricingLogicTest is MainRegistryTest {
         mainRegistry.getCollateralValue(assetAddresses, assetIds, assetAmounts, basecurrency);
     } */
 
-    function testSuccess_getCollateralValue(int64 rateEthToUsd_, uint64 amountEth, uint16 collateralFactor_) public {
+    /*     function testSuccess_getCollateralValue(int64 rateEthToUsd_, uint64 amountEth, uint16 collateralFactor_) public {
         vm.assume(collateralFactor_ <= RiskConstants.MAX_COLLATERAL_FACTOR);
         vm.assume(rateEthToUsd_ > 0);
 
@@ -1212,9 +1212,9 @@ contract PricingLogicTest is MainRegistryTest {
         uint256 expectedCollateralValue = ethValueInUsd * collateralFactor_ / 100;
 
         assertEq(expectedCollateralValue, actualCollateralValue);
-    }
+    } */
 
-    function testRevert_getLiquidationValue_UnknownBaseCurrency(address basecurrency) public {
+    /*     function testRevert_getLiquidationValue_UnknownBaseCurrency(address basecurrency) public {
         vm.assume(basecurrency != address(0));
         vm.assume(basecurrency != address(dai));
         vm.assume(basecurrency != address(eth));
@@ -1236,9 +1236,10 @@ contract PricingLogicTest is MainRegistryTest {
         // Then: getLiquidationValue should revert with "" ("EvmError: Revert")
         vm.expectRevert("MR_GLV: UNKNOWN_BASECURRENCY");
         mainRegistry.getLiquidationValue(assetAddresses, assetIds, assetAmounts, basecurrency);
-    }
+    } */
 
-    function testSuccess_getLiquidationValue(int64 rateEthToUsd_, uint64 amountEth, uint16 liquidationFactor_) public {
+    // Migrated to new test suite
+    /*     function testSuccess_getLiquidationValue(int64 rateEthToUsd_, uint64 amountEth, uint16 liquidationFactor_) public {
         vm.assume(liquidationFactor_ <= RiskConstants.MAX_LIQUIDATION_FACTOR);
         vm.assume(rateEthToUsd_ > 0);
 
@@ -1272,9 +1273,10 @@ contract PricingLogicTest is MainRegistryTest {
         uint256 expectedLiquidationValue = ethValueInUsd * liquidationFactor_ / 100;
 
         assertEq(expectedLiquidationValue, actualLiquidationValue);
-    }
+    } */
 
-    function testSucccess_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsd(
+    // Migrated to new test suite
+    /*     function testSucccess_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsd(
         uint256 rateEthToUsdNew,
         uint256 amountLink,
         uint8 linkDecimals
@@ -1349,9 +1351,10 @@ contract PricingLogicTest is MainRegistryTest {
 
         // Then: expectedTotalValue should be equal to actualTotalValue
         assertEq(expectedTotalValue, actualTotalValue);
-    }
+    } */
 
-    function testRevert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdOverflow(
+    // Migrated to new test suite
+/*     function testRevert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdOverflow(
         uint256 rateEthToUsdNew,
         uint256 amountLink,
         uint8 linkDecimals
@@ -1410,7 +1413,7 @@ contract PricingLogicTest is MainRegistryTest {
         // Then: getTotalValue should revert with arithmetic overflow
         vm.expectRevert(bytes(""));
         mainRegistry.getTotalValue(assetAddresses, assetIds, assetAmounts, address(eth));
-    }
+    }*/
 
     function testRevert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdWithRateZero(uint256 amountLink)
         public

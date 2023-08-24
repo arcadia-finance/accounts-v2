@@ -7,10 +7,12 @@ pragma solidity ^0.8.13;
 import { Base_IntegrationAndUnit_Test, Constants } from "../Base_IntegrationAndUnit.t.sol";
 import { IPricingModule_UsdOnly } from "../../interfaces/IPricingModule_UsdOnly.sol";
 import { PricingModule_UsdOnly } from "../../PricingModules/AbstractPricingModule_UsdOnly.sol";
+import { OracleHub_UsdOnly } from "../../OracleHub_UsdOnly.sol";
 import { ArcadiaOracle } from "../../mockups/ArcadiaOracle.sol";
 import { RiskModule } from "../../RiskModule.sol";
 import { CompareArrays } from "../utils/CompareArrays.sol";
 import { RiskConstants } from "../../utils/RiskConstants.sol";
+import { ERC20Mock } from "../../mockups/ERC20SolmateMock.sol";
 
 contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -44,7 +46,7 @@ contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
         uint256 oracleDecimals
     ) public pure returns (uint256 assetValue) {
         assetValue = (usdAmount * 10 ** oracleDecimals) / rateBaseCurrencyToUsd;
-        // USD value will always be in 18 decimals so we have to convert to baseCurrency decimals
+        // USD value will always be in 18 decimals so we have to convert to baseCurrency decimals if needed
         if (baseCurrencyDecimals < 18) {
             assetValue /= 10 ** (18 - baseCurrencyDecimals);
         }
@@ -224,7 +226,7 @@ contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
         mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, basecurrency);
     }
 
-    function testSuccess_getTotalValue() public {
+    function test_getTotalValue() public {
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC20.token2);
@@ -317,5 +319,229 @@ contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
         uint256 expectedCollateralValue = token1ValueInUsd * collateralFactor_ / 100;
 
         assertEq(expectedCollateralValue, actualCollateralValue);
+    }
+
+    function testRevert_Fuzz_getLiquidationValue_UnknownBaseCurrency(address basecurrency) public {
+        vm.assume(basecurrency != address(0));
+        vm.assume(basecurrency != address(mockERC20.stable1));
+        vm.assume(basecurrency != address(mockERC20.token1));
+
+        address[] memory assetAddresses = new address[](2);
+        assetAddresses[0] = address(mockERC20.token2);
+        assetAddresses[1] = address(mockERC721.nft1);
+
+        uint256[] memory assetIds = new uint256[](2);
+        assetIds[0] = 0;
+        assetIds[1] = 1;
+
+        uint256[] memory assetAmounts = new uint256[](2);
+        assetAmounts[0] = 10;
+        assetAmounts[1] = 1;
+
+        vm.expectRevert("MR_GLV: UNKNOWN_BASECURRENCY");
+        mainRegistryExtension.getLiquidationValue(assetAddresses, assetIds, assetAmounts, basecurrency);
+    }
+
+    function test_Fuzz_getLiquidationValue(int64 rateToken1ToUsd, uint64 amountToken1, uint16 liquidationFactor_)
+        public
+    {
+        vm.assume(liquidationFactor_ <= RiskConstants.MAX_LIQUIDATION_FACTOR);
+        vm.assume(rateToken1ToUsd > 0);
+
+        vm.prank(users.defaultTransmitter);
+        mockOracles.token1ToUsd.transmit(rateToken1ToUsd);
+
+        uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, amountToken1, oracleToken1ToUsdArr);
+        vm.assume(token1ValueInUsd > 0);
+
+        PricingModule_UsdOnly.RiskVarInput[] memory riskVarsInput = new PricingModule_UsdOnly.RiskVarInput[](1);
+        riskVarsInput[0].asset = address(mockERC20.token1);
+        riskVarsInput[0].baseCurrency = uint8(UsdBaseCurrencyID);
+        riskVarsInput[0].liquidationFactor = liquidationFactor_;
+
+        vm.startPrank(users.creatorAddress);
+        erc20PricingModule.setBatchRiskVariables(riskVarsInput);
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(mockERC20.token1);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = 0;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amountToken1;
+
+        uint256 actualLiquidationValue =
+            mainRegistryExtension.getLiquidationValue(assetAddresses, assetIds, assetAmounts, address(0));
+
+        uint256 expectedLiquidationValue = token1ValueInUsd * liquidationFactor_ / 100;
+
+        assertEq(expectedLiquidationValue, actualLiquidationValue);
+    }
+
+    function testFuzz_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsd_token2With18Decimals(
+        uint256 rateToken1ToUsd,
+        uint256 amountToken2
+    ) public {
+        vm.assume(rateToken1ToUsd <= uint256(type(int256).max));
+        vm.assume(rateToken1ToUsd > 0);
+
+        vm.assume(
+            amountToken2
+                <= type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD
+                    / 10 ** (Constants.tokenOracleDecimals - Constants.tokenOracleDecimals)
+        );
+        vm.assume(
+            amountToken2
+                <= (
+                    ((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD) * 10 ** Constants.tokenOracleDecimals)
+                        / 10 ** Constants.tokenOracleDecimals
+                ) * 10 ** Constants.tokenDecimals
+        );
+
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd));
+        vm.stopPrank();
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(mockERC20.token2);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = 0;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amountToken2;
+
+        uint256 actualTotalValue =
+            mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, address(mockERC20.token1));
+
+        uint256 token2ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, amountToken2, oracleToken2ToUsdArr);
+        uint256 token2ValueInToken1 = convertUsdToBaseCurrency(
+            Constants.tokenDecimals, token2ValueInUsd, rateToken1ToUsd, Constants.tokenOracleDecimals
+        );
+
+        uint256 expectedValue = token2ValueInToken1;
+
+        // Then: expectedTotalValue should be equal to actualTotalValue
+        assertEq(expectedValue, actualTotalValue);
+    }
+
+    function testFuzz_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsd_token2With6decimals(
+        uint256 rateToken1ToUsd,
+        uint128 amountToken2
+    ) public {
+        // Here it's safe to consider a max value of uint128.max for amountToken2, as we tested for overflow on previous test.
+        // Objective is to test with token with different decimals (in this case mockERC20.stable tokens have 6 decimals)
+
+        vm.assume(rateToken1ToUsd <= uint256(type(int256).max));
+        vm.assume(rateToken1ToUsd > 0);
+
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd));
+        vm.stopPrank();
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(mockERC20.stable2);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = 0;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amountToken2;
+
+        uint256 actualTotalValue =
+            mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, address(mockERC20.token1));
+
+        uint256 token2ValueInUsd = convertAssetToUsd(Constants.stableDecimals, amountToken2, oracleStable2ToUsdArr);
+        uint256 token2ValueInToken1 = convertUsdToBaseCurrency(
+            Constants.tokenDecimals, token2ValueInUsd, rateToken1ToUsd, Constants.tokenOracleDecimals
+        );
+
+        uint256 expectedValue = token2ValueInToken1;
+
+        // Then: expectedTotalValue should be equal to actualTotalValue
+        assertEq(expectedValue, actualTotalValue);
+    }
+
+    function testRevert_Fuzz_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdOverflow(
+        uint256 rateToken1ToUsd,
+        uint256 amountToken2,
+        uint8 token2Decimals
+    ) public {
+        // Given: token2Decimals is less than oracleEthToUsdDecimals, rateToken1ToUsd is less than equal to max uint256 value and bigger than 0,
+        // creatorAddress calls addBaseCurrency, calls addPricingModule with standardERC20PricingModule,
+        // oracleOwner calls transmit with rateToken1ToUsd and rateToken2ToUsd
+        vm.assume(token2Decimals < Constants.tokenOracleDecimals);
+        vm.assume(rateToken1ToUsd <= uint256(type(int256).max));
+        vm.assume(rateToken1ToUsd > 0);
+        vm.assume(
+            amountToken2
+                > ((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD) * 10 ** Constants.tokenOracleDecimals)
+                    / 10 ** (Constants.tokenOracleDecimals - token2Decimals)
+        );
+
+        ArcadiaOracle oracle = initMockedOracle(0, "LINK / USD");
+        vm.startPrank(users.creatorAddress);
+        mockERC20.token2 = new ERC20Mock(
+            "TOKEN2",
+            "T2",
+            token2Decimals);
+        address[] memory oracleAssetToUsdArr = new address[](1);
+        oracleAssetToUsdArr[0] = address(oracle);
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: 0,
+                baseAsset: "ASSET",
+                quoteAsset: "USD",
+                oracle: address(oracle),
+                baseAssetAddress: address(mockERC20.token2),
+                isActive: true
+            })
+        );
+        erc20PricingModule.addAsset(address(mockERC20.token2), oracleAssetToUsdArr, emptyRiskVarInput, type(uint128).max);
+        vm.stopPrank();
+
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd));
+        oracle.transmit(int256(rates.token2ToUsd));
+        vm.stopPrank();
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(mockERC20.token2);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = 0;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amountToken2;
+
+        // Then: getTotalValue should revert with arithmetic overflow
+        vm.expectRevert(bytes(""));
+        mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, address(mockERC20.token1));
+    }
+
+    function testRevert_Fuzz_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdWithRateZero(uint256 amountToken2)
+        public
+    {
+        vm.assume(amountToken2 > 0);
+
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.token1ToUsd.transmit(int256(0));
+        mockOracles.token2ToUsd.transmit(int256(rates.stable2ToUsd));
+        vm.stopPrank();
+
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(mockERC20.token2);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = 0;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amountToken2;
+
+        // Then: getTotalValue should revert
+        vm.expectRevert(bytes(""));
+        mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, address(mockERC20.token1));
     }
 }
