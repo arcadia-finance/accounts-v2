@@ -10,7 +10,7 @@ interface IPricingModule_UsdOnly {
         address asset; // The contract address of the asset.
         uint256 assetId; // The Id of the asset.
         uint256 assetAmount; // The amount of assets.
-        uint256 baseCurrency; // Identifier of the BaseCurrency in which the value is ideally denominated.
+        uint256 baseCurrency; // Identifier of the BaseCurrency.
     }
 
     /**
