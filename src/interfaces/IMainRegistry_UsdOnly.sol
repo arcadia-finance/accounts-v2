@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.13;
 
-interface IMainRegistry {
+interface IMainRegistry_UsdOnly {
     /**
      * @notice Returns the number of baseCurrencies.
      * @return Counter for the number of baseCurrencies in use.
