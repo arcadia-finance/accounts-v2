@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.7.6;
 
-import { UniswapV3Factory } from "../../../../../../lib/v3-core/contracts/UniswapV3Factory.sol";
+import { UniswapV3Factory } from "@uniswap/v3-core/contracts/UniswapV3Factory.sol";
 import { UniswapV3PoolDeployerExtension } from "./UniswapV3PoolDeployerExtension.sol";
 
 contract UniswapV3FactoryExtension is UniswapV3Factory, UniswapV3PoolDeployerExtension {
