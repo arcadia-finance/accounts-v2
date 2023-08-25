@@ -430,8 +430,8 @@ contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
         uint256 rateToken1ToUsd,
         uint128 amountToken2
     ) public {
-        // Here it's safe to consider a max value of uint128.max for amountToken2, as we tested for overflow on previous test.
-        // Objective is to test with token with different decimals (in this case mockERC20.stable tokens have 6 decimals)
+        // Here it's safe to consider a max value of uint128.max for amountToken2, as we tested for overflow on previous related test.
+        // Objective is to test if calculation hold true with different tokendecimals (in this case mockERC20.stable tokens have 6 decimals)
 
         vm.assume(rateToken1ToUsd <= uint256(type(int256).max));
         vm.assume(rateToken1ToUsd > 0);
@@ -498,7 +498,9 @@ contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
                 isActive: true
             })
         );
-        erc20PricingModule.addAsset(address(mockERC20.token2), oracleAssetToUsdArr, emptyRiskVarInput, type(uint128).max);
+        erc20PricingModule.addAsset(
+            address(mockERC20.token2), oracleAssetToUsdArr, emptyRiskVarInput, type(uint128).max
+        );
         vm.stopPrank();
 
         vm.startPrank(users.defaultTransmitter);
@@ -529,7 +531,6 @@ contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
         mockOracles.token1ToUsd.transmit(int256(0));
         mockOracles.token2ToUsd.transmit(int256(rates.stable2ToUsd));
         vm.stopPrank();
-
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token2);

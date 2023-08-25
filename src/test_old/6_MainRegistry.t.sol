@@ -1354,7 +1354,7 @@ contract PricingLogicTest is MainRegistryTest {
     } */
 
     // Migrated to new test suite
-/*     function testRevert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdOverflow(
+    /*     function testRevert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdOverflow(
         uint256 rateEthToUsdNew,
         uint256 amountLink,
         uint8 linkDecimals
@@ -1415,7 +1415,8 @@ contract PricingLogicTest is MainRegistryTest {
         mainRegistry.getTotalValue(assetAddresses, assetIds, assetAmounts, address(eth));
     }*/
 
-    function testRevert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdWithRateZero(uint256 amountLink)
+    // Migrated to new test suite
+    /*     function testRevert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdWithRateZero(uint256 amountLink)
         public
     {
         // Given: amountLink bigger than 0, oracleOwner calls transmit for 0 and rateLinkToUsd
@@ -1440,5 +1441,5 @@ contract PricingLogicTest is MainRegistryTest {
         // Then: getTotalValue should revert
         vm.expectRevert(bytes(""));
         mainRegistry.getTotalValue(assetAddresses, assetIds, assetAmounts, address(eth));
-    }
+    } */
 }
