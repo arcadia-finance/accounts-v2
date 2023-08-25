@@ -142,7 +142,9 @@ abstract contract PricingModule_UsdOnly is Owned, IPricingModule_UsdOnly {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the value of a certain asset, denominated in USD.
+     * @notice Returns the value of a certain asset, denominated in USD, 18 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, 2 decimals precision.
      */
     function getValue(GetValueInput memory) public view virtual returns (uint256, uint256, uint256) { }
 
