@@ -26,9 +26,14 @@ contract FloorERC1155PricingModule_Integration_Test is Base_IntegrationAndUnit_T
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
-    function testFuzz_getValue(uint128 amountERC1155) public {
-        uint256 expectedValueInUsd = (amountERC1155 * rates.erc1155ToToken1 * rates.token1ToUsd * Constants.WAD)
+    function testFuzz_getValue(uint80 amountERC1155, uint72 rateERC1155ToToken1) public {
+        // Does not test on overflow, test to check if function correctly returns value in Usd
+        uint256 expectedValueInUsd = (uint256(amountERC1155) * uint256(rateERC1155ToToken1) * rates.token1ToUsd * Constants.WAD)
             / 10 ** (Constants.erc1155OracleDecimals + Constants.tokenOracleDecimals);
+
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.erc1155ToToken1.transmit(int256(uint256(rateERC1155ToToken1)));
+        vm.stopPrank();
 
         IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
             asset: address(mockERC1155.erc1155),
