@@ -468,9 +468,8 @@ contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
         uint256 amountToken2,
         uint8 token2Decimals
     ) public {
-        // Given: token2Decimals is less than oracleEthToUsdDecimals, rateToken1ToUsd is less than equal to max uint256 value and bigger than 0,
+        // Given: token2Decimals is less than tokenOracleDecimals, rateToken1ToUsd is less than equal to max uint256 value and bigger than 0,
         // creatorAddress calls addBaseCurrency, calls addPricingModule with standardERC20PricingModule,
-        // oracleOwner calls transmit with rateToken1ToUsd and rateToken2ToUsd
         vm.assume(token2Decimals < Constants.tokenOracleDecimals);
         vm.assume(rateToken1ToUsd <= uint256(type(int256).max));
         vm.assume(rateToken1ToUsd > 0);
