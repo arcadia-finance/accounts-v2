@@ -7,7 +7,7 @@ pragma solidity ^0.8.13;
 import { MainRegistry } from "../../MainRegistry.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { AccountV1 } from "../../AccountV1.sol";
-import { UniswapV3WithFeesPricingModule_UsdOnly } from "../../PricingModules/UniswapV3/UniswapV3WithFees_UsdOnly.sol";
+import { UniswapV3WithFeesPricingModule_UsdOnly } from "../../PricingModules/UniswapV3/UniswapV3WithFeesPricingModule_UsdOnly.sol";
 
 contract MainRegistryExtension is MainRegistry {
     using FixedPointMathLib for uint256;
@@ -55,9 +55,9 @@ contract AccountExtension is AccountV1 {
     }
 }
 
-contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule {
+contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule_UsdOnly {
     constructor(address mainRegistry_, address oracleHub_, address riskManager_, address erc20PricingModule_)
-        UniswapV3WithFeesPricingModule(mainRegistry_, oracleHub_, riskManager_, erc20PricingModule_)
+        UniswapV3WithFeesPricingModule_UsdOnly(mainRegistry_, oracleHub_, riskManager_, erc20PricingModule_)
     { }
 
     function getPrincipalAmounts(
