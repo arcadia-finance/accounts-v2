@@ -286,11 +286,6 @@ contract OracleHub_Integration_Test is Base_IntegrationAndUnit_Test {
         oracleHub.getRateInUsd(oracleToken1ToUsdArr);
     }
 
-    function testRevert_getRate_NoUsdOrBaseCurrencyOracle() public {
-        vm.expectRevert("OH_GR: No qAsset in USD or bCurr");
-        oracleHub.getRateInUsd(new address[](0));
-    }
-
     function testFuzz_getRateInUsd_SingleOracle(uint256 rateToken4ToUsd, uint8 oracleToken4ToUsdDecimals) public {
         // Given: oracleToken4ToUsdDecimals less than equal to 18, rateToken1ToUsd less than equal to max uint256 value,
         // rateToken1ToUsd is less than max uint256 value divided by WAD

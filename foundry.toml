@@ -8,7 +8,7 @@ optimizer_runs = 200
 auto_detect_solc = true
 fuzz = { runs = 50, max_test_rejects = 100_000_000}
 no_match_path = "*UniV3Test.t.sol"
-remappings = ["@uniswap/v3-core/contracts/=lib/v3-core/contracts/", "@openzeppelin/contracts/=lib/openzeppelin/contracts/"]
+remappings = ["@uniswap/v3-core/contracts/=lib/v3-core/contracts/", "@openzeppelin/=lib/openzeppelin-contracts/"]
 fs_permissions = [{ access = "read", path = "./out"}]
 
 [fmt]

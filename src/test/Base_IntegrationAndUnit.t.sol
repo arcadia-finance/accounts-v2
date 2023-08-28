@@ -8,7 +8,7 @@ import { Base_Global_Test, Constants } from "./Base_Global.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "./utils/Types.sol";
 import { MainRegistry } from "../MainRegistry.sol";
 import { OracleHub_UsdOnly } from "../OracleHub_UsdOnly.sol";
-import { PricingModule } from "../PricingModules/AbstractPricingModule.sol";
+import { PricingModule_UsdOnly } from "../PricingModules/AbstractPricingModule_UsdOnly.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import { Proxy } from "../Proxy.sol";
 import { ERC20Mock } from "../mockups/ERC20SolmateMock.sol";
@@ -20,6 +20,15 @@ import { AccountV1 } from "../AccountV1.sol";
 /// @notice Common logic needed by all integration tests.
 abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
     /*//////////////////////////////////////////////////////////////////////////
+                                     CONSTANTS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    // Basecurrency ID's in MainRegistry.sol
+    uint256 internal constant UsdBaseCurrencyID = 0;
+    uint256 internal constant Stable1BaseCurrencyID = 1;
+    uint256 internal constant Token1BaseCurrencyID = 2;
+
+    /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -29,10 +38,17 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
     MockERC1155 internal mockERC1155;
     Rates internal rates;
 
+    // ERC20 oracle arrays
     address[] public oracleStable1ToUsdArr = new address[](1);
     address[] public oracleStable2ToUsdArr = new address[](1);
     address[] public oracleToken1ToUsdArr = new address[](1);
     address[] public oracleToken2ToUsdArr = new address[](1);
+
+    // ERC721 oracle arrays
+    address[] public oracleNft1ToToken1ToUsd = new address[](2);
+
+    // ERC1155 oracle array
+    address[] public oracleERC1155ToToken1ToUsd = new address[](2);
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -182,42 +198,64 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
             })
         );
 
-        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
-        PricingModule.RiskVarInput[] memory riskVarsStable = new PricingModule.RiskVarInput[](3);
-        PricingModule.RiskVarInput[] memory riskVarsToken = new PricingModule.RiskVarInput[](3);
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: uint64(10 ** Constants.nftOracleDecimals),
+                baseAsset: "NFT1",
+                quoteAsset: "TOKEN1",
+                oracle: address(mockOracles.nft1ToToken1),
+                baseAssetAddress: address(mockERC721.nft1),
+                isActive: true
+            })
+        );
 
-        riskVarsStable[0] = PricingModule.RiskVarInput({
+        oracleHub.addOracle(
+            OracleHub_UsdOnly.OracleInformation({
+                oracleUnit: uint64(10 ** Constants.erc1155OracleDecimals),
+                baseAsset: "ERC1155",
+                quoteAsset: "TOKEN1",
+                oracle: address(mockOracles.erc1155ToToken1),
+                baseAssetAddress: address(mockERC1155.erc1155),
+                isActive: true
+            })
+        );
+
+        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
+        PricingModule_UsdOnly.RiskVarInput[] memory riskVarsStable = new PricingModule_UsdOnly.RiskVarInput[](3);
+        PricingModule_UsdOnly.RiskVarInput[] memory riskVarsToken = new PricingModule_UsdOnly.RiskVarInput[](3);
+
+        riskVarsStable[0] = PricingModule_UsdOnly.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: Constants.stableToStableCollFactor,
             liquidationFactor: Constants.stableToStableLiqFactor
         });
-        riskVarsStable[1] = PricingModule.RiskVarInput({
+        riskVarsStable[1] = PricingModule_UsdOnly.RiskVarInput({
             baseCurrency: 1,
             asset: address(0),
             collateralFactor: Constants.stableToStableCollFactor,
             liquidationFactor: Constants.stableToStableLiqFactor
         });
-        riskVarsStable[2] = PricingModule.RiskVarInput({
+        riskVarsStable[2] = PricingModule_UsdOnly.RiskVarInput({
             baseCurrency: 2,
             asset: address(0),
             collateralFactor: Constants.tokenToStableCollFactor,
             liquidationFactor: Constants.tokenToStableLiqFactor
         });
 
-        riskVarsToken[0] = PricingModule.RiskVarInput({
+        riskVarsToken[0] = PricingModule_UsdOnly.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: Constants.tokenToStableCollFactor,
             liquidationFactor: Constants.tokenToStableLiqFactor
         });
-        riskVarsToken[1] = PricingModule.RiskVarInput({
+        riskVarsToken[1] = PricingModule_UsdOnly.RiskVarInput({
             baseCurrency: 1,
             asset: address(0),
             collateralFactor: Constants.tokenToStableCollFactor,
             liquidationFactor: Constants.tokenToStableLiqFactor
         });
-        riskVarsToken[2] = PricingModule.RiskVarInput({
+        riskVarsToken[2] = PricingModule_UsdOnly.RiskVarInput({
             baseCurrency: 2,
             asset: address(0),
             collateralFactor: Constants.tokenToTokenLiqFactor,
@@ -237,6 +275,23 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         );
         erc20PricingModule.addAsset(address(mockERC20.token1), oracleToken1ToUsdArr, riskVarsToken, type(uint128).max);
         erc20PricingModule.addAsset(address(mockERC20.token2), oracleToken2ToUsdArr, riskVarsToken, type(uint128).max);
+
+        // Add NFT1 to the floorERC721PricingModule.
+        oracleNft1ToToken1ToUsd[0] = address(mockOracles.nft1ToToken1);
+        oracleNft1ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
+
+        floorERC721PricingModule.addAsset(
+            address(mockERC721.nft1), 0, 999, oracleNft1ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
+        );
+
+        // Add ERC1155 contract to the floorERC1155PricingModule
+        oracleERC1155ToToken1ToUsd[0] = address(mockOracles.erc1155ToToken1);
+        oracleERC1155ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
+
+        floorERC1155PricingModule.addAsset(
+            address(mockERC1155.erc1155), 1, oracleERC1155ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
+        );
+
         vm.stopPrank();
     }
 

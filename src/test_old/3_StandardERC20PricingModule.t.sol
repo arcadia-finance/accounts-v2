@@ -251,6 +251,7 @@ contract StandardERC20PricingModuleTest is DeployArcadiaAccounts {
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
+    // TODO: test deprecated with new pricing modules returning value only in usd
     function testSuccess_getValue_ReturnUsdValueWhenBaseCurrencyIsUsd(uint128 amountEth) public {
         //Does not test on overflow, test to check if function correctly returns value in USD
         vm.startPrank(creatorAddress);
@@ -277,6 +278,7 @@ contract StandardERC20PricingModuleTest is DeployArcadiaAccounts {
         assertEq(actualValueInBaseCurrency, expectedValueInBaseCurrency);
     }
 
+    // TODO: test deprecated with new pricing modules returning value only in usd
     function testSuccess_getValue_returnBaseCurrencyValueWhenBaseCurrencyIsNotUsd(uint128 amountSnx) public {
         //Does not test on overflow, test to check if function correctly returns value in BaseCurrency
         vm.startPrank(creatorAddress);
@@ -303,6 +305,7 @@ contract StandardERC20PricingModuleTest is DeployArcadiaAccounts {
         assertEq(actualValueInBaseCurrency, expectedValueInBaseCurrency);
     }
 
+    // TODO: test deprecated with new pricing modules returning value only in usd
     function testSuccess_getValue_ReturnUsdValueWhenBaseCurrencyIsNotUsd(uint128 amountLink) public {
         //Does not test on overflow, test to check if function correctly returns value in BaseCurrency
         vm.startPrank(creatorAddress);
@@ -330,7 +333,8 @@ contract StandardERC20PricingModuleTest is DeployArcadiaAccounts {
         assertEq(actualValueInBaseCurrency, expectedValueInBaseCurrency);
     }
 
-    function testSuccess_getValue(uint256 rateEthToUsdNew, uint256 amountEth) public {
+    // Migrated to new test suite
+    /*     function testSuccess_getValue(uint256 rateEthToUsdNew, uint256 amountEth) public {
         // Given: rateEthToUsdNew is lower than equal to max int256 value and max uint256 value divided by Constants.WAD
         vm.assume(rateEthToUsdNew <= uint256(type(int256).max));
         vm.assume(rateEthToUsdNew <= type(uint256).max / Constants.WAD);
@@ -371,9 +375,10 @@ contract StandardERC20PricingModuleTest is DeployArcadiaAccounts {
         // Then: actualValueInUsd should be equal to expectedValueInUsd, actualValueInBaseCurrency should be equal to expectedValueInBaseCurrency
         assertEq(actualValueInUsd, expectedValueInUsd);
         assertEq(actualValueInBaseCurrency, expectedValueInBaseCurrency);
-    }
+    } */
 
-    function testRevert_getValue_Overflow(uint256 rateEthToUsdNew, uint256 amountEth) public {
+    // Migrated to new test suite
+    /*     function testRevert_getValue_Overflow(uint256 rateEthToUsdNew, uint256 amountEth) public {
         // Given: rateEthToUsdNew is lower than equal to max int256 value and max uint256 value divided by Constants.WAD and bigger than zero
         vm.assume(rateEthToUsdNew <= uint256(type(int256).max));
         vm.assume(rateEthToUsdNew <= type(uint256).max / Constants.WAD);
@@ -403,5 +408,5 @@ contract StandardERC20PricingModuleTest is DeployArcadiaAccounts {
         // Then: getValue should be reverted
         vm.expectRevert(bytes(""));
         standardERC20PricingModule.getValue(getValueInput);
-    }
+    } */
 }

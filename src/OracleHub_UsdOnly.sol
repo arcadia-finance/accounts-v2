@@ -180,29 +180,22 @@ contract OracleHub_UsdOnly is Owned, IOraclesHub_UsdOnly {
         rate = FixedPointMathLib.WAD; // Scalar 1 with 18 decimals (The internal precision).
         int256 tempRate;
         uint256 oraclesLength = oracles.length;
-        address oracleAddressAtIndex;
+        address oracle;
 
         for (uint256 i; i < oraclesLength;) {
-            oracleAddressAtIndex = oracles[i];
+            oracle = oracles[i];
 
             // If the oracle is not active anymore (decommissioned), return value 0 -> assets do not count as collateral anymore.
-            if (!oracleToOracleInformation[oracleAddressAtIndex].isActive) return (0);
+            if (!oracleToOracleInformation[oracle].isActive) return (0);
 
-            (, tempRate,,,) = IChainLinkData(oracleAddressAtIndex).latestRoundData();
+            (, tempRate,,,) = IChainLinkData(oracle).latestRoundData();
             require(tempRate >= 0, "OH_GR: Negative Rate");
 
-            rate = rate.mulDivDown(uint256(tempRate), oracleToOracleInformation[oracleAddressAtIndex].oracleUnit);
-
-            if (oracleToOracleInformation[oracleAddressAtIndex].quoteAsset == "USD") {
-                // If the quote asset is in USD, return rate.
-                return rate;
-            }
+            rate = rate.mulDivDown(uint256(tempRate), oracleToOracleInformation[oracle].oracleUnit);
 
             unchecked {
                 ++i;
             }
         }
-        // Since all series of oracles must end with USD, it should be impossible to arrive to this state.
-        revert("OH_GR: No qAsset in USD or bCurr");
     }
 }

@@ -286,7 +286,8 @@ contract FloorERC721PricingModuleTest is DeployArcadiaAccounts {
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
-    function testSuccess_getValue_ReturnUsdValueWhenBaseCurrencyIsUsd() public {
+    // Migrated to new test suite
+    /*     function testSuccess_getValue_ReturnUsdValueWhenBaseCurrencyIsUsd() public {
         vm.startPrank(creatorAddress);
         // Given: creatorAddress calls addAsset, expectedValueInBaseCurrency is zero
         floorERC721PricingModule.addAsset(
@@ -311,8 +312,9 @@ contract FloorERC721PricingModuleTest is DeployArcadiaAccounts {
         // Then: actualValueInUsd should be equal to expectedValueInUsd, actualValueInBaseCurrency should be equal to expectedValueInBaseCurrency
         assertEq(actualValueInUsd, expectedValueInUsd);
         assertEq(actualValueInBaseCurrency, expectedValueInBaseCurrency);
-    }
+    } */
 
+    // TODO: test deprecated with new pricing modules returning value only in usd
     function testSuccess_getValue_ReturnBaseCurrencyValueWhenBaseCurrencyIsNotUsd() public {
         vm.startPrank(creatorAddress);
         // Given: creatorAddress calls addAsset, expectedValueInUsd is zero
@@ -339,6 +341,7 @@ contract FloorERC721PricingModuleTest is DeployArcadiaAccounts {
         assertEq(actualValueInBaseCurrency, expectedValueInBaseCurrency);
     }
 
+    // TODO: test deprecated with new pricing modules returning value only in usd
     function testSuccess_getValue_ReturnUsdValueWhenBaseCurrencyIsNotUsd() public {
         vm.startPrank(creatorAddress);
         // Given: creatorAddress calls addAsset, expectedValueInBaseCurrency is zero

@@ -39,6 +39,7 @@ contract UniswapV3Test_Integration_Test is Base_IntegrationAndUnit_Test, Uniswap
         public
         returns (IUniswapV3PoolExtension pool)
     {
+        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
         address poolAddress = nonfungiblePositionManager.createAndInitializePoolIfNecessary(
             address(token0), address(token1), 100, sqrtPriceX96
         ); // Set initial price to lowest possible price.
