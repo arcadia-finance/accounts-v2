@@ -15,6 +15,7 @@ import { OracleHub_UsdOnly } from "../OracleHub_UsdOnly.sol";
 import { StandardERC20PricingModule_UsdOnly } from "../PricingModules/StandardERC20PricingModule_UsdOnly.sol";
 import { FloorERC721PricingModule_UsdOnly } from "../PricingModules/FloorERC721PricingModule_UsdOnly.sol";
 import { FloorERC1155PricingModule_UsdOnly } from "../PricingModules/FloorERC1155PricingModule_UsdOnly.sol";
+import { UniswapV3WithFeesPricingModule_UsdOnly } from "../PricingModules/UniswapV3/UniswapV3PricingModule_UsdOnly.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
@@ -46,6 +47,7 @@ abstract contract Base_Global_Test is Test, Events, Errors {
     StandardERC20PricingModule_UsdOnly internal erc20PricingModule;
     FloorERC721PricingModule_UsdOnly internal floorERC721PricingModule;
     FloorERC1155PricingModule_UsdOnly internal floorERC1155PricingModule;
+    UniswapV3WithFeesPricingModule_UsdOnly internal uniV3PricingModule;
     AccountV1 internal account;
     AccountV2 internal accountV2;
     TrustedCreditorMock internal trustedCreditorWithParamsInit;
@@ -82,6 +84,8 @@ abstract contract Base_Global_Test is Test, Events, Errors {
             address(oracleHub),
             2
         );
+        uniV3PricingModule =
+        new UniswapV3WithFeesPricingModule_UsdOnly(address(mainRegistryExtension), address(oracleHub), users.creatorAddress, address(erc20PricingModule));
         account = new AccountV1();
         accountV2 = new AccountV2();
         factory.setNewAccountInfo(address(mainRegistryExtension), address(account), Constants.upgradeProof1To2, "");
