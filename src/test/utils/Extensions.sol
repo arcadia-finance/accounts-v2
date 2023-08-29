@@ -7,7 +7,8 @@ pragma solidity ^0.8.13;
 import { MainRegistry } from "../../MainRegistry.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { AccountV1 } from "../../AccountV1.sol";
-import { UniswapV3WithFeesPricingModule_UsdOnly } from "../../PricingModules/UniswapV3/UniswapV3WithFeesPricingModule_UsdOnly.sol";
+import { UniswapV3WithFeesPricingModule_UsdOnly } from
+    "../../PricingModules/UniswapV3/UniswapV3WithFeesPricingModule_UsdOnly.sol";
 
 contract MainRegistryExtension is MainRegistry {
     using FixedPointMathLib for uint256;

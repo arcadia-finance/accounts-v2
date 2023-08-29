@@ -44,8 +44,7 @@ contract UniswapV3Test_Integration_Test is Base_IntegrationAndUnit_Test, Uniswap
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    //constructor() 
-
+    //constructor()
 
     function setUp() public virtual override(Base_IntegrationAndUnit_Test, UniswapV3Fixture) {
         Base_IntegrationAndUnit_Test.setUp();
@@ -190,9 +189,7 @@ contract UniswapV3Test_Integration_Test is Base_IntegrationAndUnit_Test, Uniswap
                          PRICING LOGIC
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_getValue_valueInUsd(
-        TestValues memory val
-    ) public {
+    function testFuzz_getValue_valueInUsd(TestValues memory val) public {
         // Check that ticks are within allowed ranges.
         vm.assume(val.tickLower < val.tickUpper);
         vm.assume(isWithinAllowedRange(val.tickLower));
@@ -212,7 +209,7 @@ contract UniswapV3Test_Integration_Test is Base_IntegrationAndUnit_Test, Uniswap
         }
 
         // Avoid divide by 0 in next line.
-        vm.assume( val.priceToken1 > 0);
+        vm.assume(val.priceToken1 > 0);
         // Cast to uint160 will overflow, not realistic.
         vm.assume(val.priceToken0 / val.priceToken1 < 2 ** 128);
         // Check that sqrtPriceX96 is within allowed Uniswap V3 ranges.
@@ -229,14 +226,18 @@ contract UniswapV3Test_Integration_Test is Base_IntegrationAndUnit_Test, Uniswap
         // Check that Liquidity is within allowed ranges.
         vm.assume(val.liquidity <= pool.maxLiquidityPerTick());
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, val.liquidity, users.liquidityProvider, val.tickLower, val.tickUpper, false);
+        uint256 tokenId =
+            addLiquidity(pool, val.liquidity, users.liquidityProvider, val.tickLower, val.tickUpper, false);
 
         // Calculate amounts of underlying tokens.
         // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
         // This is because there might be some small differences due to rounding errors.
-        (,,,,,,, uint128 liquidity_ ,,,,) = nonfungiblePositionManager.positions(tokenId);
+        (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtPriceX96, TickMath.getSqrtRatioAtTick(val.tickLower), TickMath.getSqrtRatioAtTick(val.tickUpper), liquidity_
+            sqrtPriceX96,
+            TickMath.getSqrtRatioAtTick(val.tickLower),
+            TickMath.getSqrtRatioAtTick(val.tickUpper),
+            liquidity_
         );
 
         // Overflows Uniswap libraries, not realistic.
@@ -257,7 +258,12 @@ contract UniswapV3Test_Integration_Test is Base_IntegrationAndUnit_Test, Uniswap
         uint256 valueToken1 = 1e18 * uint256(val.priceToken1) * amount1 / 10 ** val.decimals1;
 
         (uint256 actualValueInUsd,,) = uniV3PricingModule.getValue(
-            IPricingModule_UsdOnly.GetValueInput({ asset: address(nonfungiblePositionManager), assetId: tokenId, assetAmount: 1, baseCurrency: 0 })
+            IPricingModule_UsdOnly.GetValueInput({
+                asset: address(nonfungiblePositionManager),
+                assetId: tokenId,
+                assetAmount: 1,
+                baseCurrency: 0
+            })
         );
 
         assertEq(actualValueInUsd, valueToken0 + valueToken1);
@@ -319,12 +325,15 @@ contract UniswapV3Test_Integration_Test is Base_IntegrationAndUnit_Test, Uniswap
         uint256 expectedLiqFactor = liqFactor0 < liqFactor1 ? liqFactor0 : liqFactor1;
 
         (, uint256 actualCollFactor, uint256 actualLiqFactor) = uniV3PricingModule.getValue(
-            IPricingModule_UsdOnly.GetValueInput({ asset: address(nonfungiblePositionManager), assetId: tokenId, assetAmount: 1, baseCurrency: 0 })
+            IPricingModule_UsdOnly.GetValueInput({
+                asset: address(nonfungiblePositionManager),
+                assetId: tokenId,
+                assetAmount: 1,
+                baseCurrency: 0
+            })
         );
 
         assertEq(actualCollFactor, expectedCollFactor);
         assertEq(actualLiqFactor, expectedLiqFactor);
     }
 }
-
-
