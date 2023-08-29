@@ -68,7 +68,8 @@ abstract contract Base_Global_Test is Test, Events, Errors {
             accountOwner: createUser("accountOwner"),
             liquidityProvider: createUser("liquidityProvider"),
             defaultCreatorAddress: createUser("defaultCreatorAddress"),
-            defaultTransmitter: createUser("defaultTransmitter")
+            defaultTransmitter: createUser("defaultTransmitter"),
+            swapper: createUser("swapper")
         });
 
         // Deploy the base test contracts.

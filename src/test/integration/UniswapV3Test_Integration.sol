@@ -197,8 +197,6 @@ contract UniswapV3Test_Integration_Test is Base_IntegrationAndUnit_Test, Uniswap
         vm.assume(val.tickLower < val.tickUpper);
         vm.assume(isWithinAllowedRange(val.tickLower));
         vm.assume(isWithinAllowedRange(val.tickUpper));
-        //vm.assume(val.amount0 < type(uint104).max &&  val.amount1 < type(uint104).max);
-        //vm.assume(val.amount0 > 0 &&  val.amount1 > 0);
 
         // Deploy and sort tokens.
         val.decimals0 = bound(val.decimals0, 6, 18);
@@ -264,4 +262,69 @@ contract UniswapV3Test_Integration_Test is Base_IntegrationAndUnit_Test, Uniswap
 
         assertEq(actualValueInUsd, valueToken0 + valueToken1);
     }
+
+    function testFuzz_getValue_RiskFactors(
+        uint256 collFactor0,
+        uint256 liqFactor0,
+        uint256 collFactor1,
+        uint256 liqFactor1,
+        uint256 decimals0,
+        uint256 decimals1
+    ) public {
+        liqFactor0 = bound(liqFactor0, 0, 100);
+        collFactor0 = bound(collFactor0, 0, liqFactor0);
+        liqFactor1 = bound(liqFactor1, 0, 100);
+        collFactor1 = bound(collFactor1, 0, liqFactor1);
+
+        // Deploy and sort tokens.
+        decimals0 = bound(decimals0, 6, 18);
+        decimals1 = bound(decimals1, 6, 18);
+
+        vm.startPrank(users.tokenCreatorAddress);
+        ERC20 token0 = new ERC20Mock("TOKEN0", "TOK0", uint8(decimals0));
+        ERC20 token1 = new ERC20Mock("TOKEN1", "TOK1", uint8(decimals1));
+        if (token0 > token1) {
+            (token0, token1) = (token1, token0);
+            (decimals0, decimals1) = (decimals1, decimals0);
+        }
+
+        IUniswapV3PoolExtension pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(0), 300);
+        uint256 tokenId = addLiquidity(pool, 1e5, users.liquidityProvider, 0, 10, true);
+
+        // Add underlying tokens and its oracles to Arcadia.
+        addUnderlyingTokenToArcadia(address(token0), 1);
+        addUnderlyingTokenToArcadia(address(token1), 1);
+        vm.startPrank(users.creatorAddress);
+        uniV3PricingModule.setExposureOfAsset(address(token0), type(uint128).max);
+        uniV3PricingModule.setExposureOfAsset(address(token1), type(uint128).max);
+        vm.stopPrank();
+
+        PricingModule_UsdOnly.RiskVarInput[] memory riskVarInputs = new PricingModule_UsdOnly.RiskVarInput[](2);
+        riskVarInputs[0] = PricingModule_UsdOnly.RiskVarInput({
+            asset: address(token0),
+            baseCurrency: 0,
+            collateralFactor: uint16(collFactor0),
+            liquidationFactor: uint16(liqFactor0)
+        });
+        riskVarInputs[1] = PricingModule_UsdOnly.RiskVarInput({
+            asset: address(token1),
+            baseCurrency: 0,
+            collateralFactor: uint16(collFactor1),
+            liquidationFactor: uint16(liqFactor1)
+        });
+        vm.prank(users.creatorAddress);
+        erc20PricingModule.setBatchRiskVariables(riskVarInputs);
+
+        uint256 expectedCollFactor = collFactor0 < collFactor1 ? collFactor0 : collFactor1;
+        uint256 expectedLiqFactor = liqFactor0 < liqFactor1 ? liqFactor0 : liqFactor1;
+
+        (, uint256 actualCollFactor, uint256 actualLiqFactor) = uniV3PricingModule.getValue(
+            IPricingModule_UsdOnly.GetValueInput({ asset: address(nonfungiblePositionManager), assetId: tokenId, assetAmount: 1, baseCurrency: 0 })
+        );
+
+        assertEq(actualCollFactor, expectedCollFactor);
+        assertEq(actualLiqFactor, expectedLiqFactor);
+    }
 }
+
+

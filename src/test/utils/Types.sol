@@ -18,6 +18,7 @@ struct Users {
     address payable liquidityProvider;
     address payable defaultCreatorAddress;
     address payable defaultTransmitter;
+    address payable swapper;
 }
 
 struct MockOracles {
