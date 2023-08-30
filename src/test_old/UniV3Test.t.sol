@@ -1127,7 +1127,7 @@ contract RiskVariablesManagementTest is UniV3Test {
     }
 
     // Migrated to new test suite
-/*     function testSuccess_getValue_valueInUsd(
+    /*     function testSuccess_getValue_valueInUsd(
         uint256 decimals0,
         uint256 decimals1,
         uint80 liquidity,
@@ -1489,7 +1489,7 @@ contract RiskVariablesManagementTest is UniV3Test {
     }
 
     // Migrated to new test suite
-/*     function testSuccess_getValue_RiskFactors(
+    /*     function testSuccess_getValue_RiskFactors(
         uint256 collFactor0,
         uint256 liqFactor0,
         uint256 collFactor1,
@@ -1537,7 +1537,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         assertEq(actualCollFactor, expectedCollFactor);
         assertEq(actualLiqFactor, expectedLiqFactor);
     }*/
-} 
+}
 
 /*///////////////////////////////////////////////////////////////
                     INTEGRATION TEST
