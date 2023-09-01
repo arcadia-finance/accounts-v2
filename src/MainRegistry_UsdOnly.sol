@@ -109,7 +109,7 @@ contract MainRegistry_UsdOnly is IMainRegistry, MainRegistryGuardian {
      * @param factory_ The contract address of the Factory.
      * @dev The mainRegistry must be initialised with baseCurrency USD, at baseCurrencyCounter of 0.
      * Usd is initialised with the following BaseCurrencyInformation.
-     * - baseCurrencyToUsdOracleUnit: Since there is no price oracle for usd to USD, this is 0 by default for USD.
+     * - baseCurrencyToUsdOracleUnit: Since there is no price oracle for usd to USD, this is 1 by default for USD.
      * - baseCurrencyUnitCorrection: We use 18 decimals precision for USD, so unitCorrection is 1 for USD.
      * - assetAddress: Since there is no native token for usd, this is the 0 address by default for USD.
      * - baseCurrencyToUsdOracle: Since there is no price oracle for usd to USD, this is the 0 address by default for USD.
@@ -119,11 +119,14 @@ contract MainRegistry_UsdOnly is IMainRegistry, MainRegistryGuardian {
         _this = address(this);
         factory = factory_;
 
-        //Main Registry must be initialised with usd, other values of baseCurrencyToInformation[0] are 0 or the zero-address.
+        // Main Registry must be initialised with usd, other values of baseCurrencyToInformation[0] are 0 or the zero-address.
         baseCurrencyToInformation[0].baseCurrencyLabel = "USD";
+        // No need for a unit correction, since USD has hardcoded precision of 18 decimals, identical to the internal precision 18 decimals.
         baseCurrencyToInformation[0].baseCurrencyUnitCorrection = 1;
+        // "rateUsdToUsd" is hardcoded to 1, with 0 decimals -> "usdToUsdOracleUnit" is 1.
+        baseCurrencyToInformation[0].baseCurrencyToUsdOracleUnit = 1;
 
-        //Usd is the first baseCurrency at index 0 of array baseCurrencies.
+        // Usd is the first baseCurrency at index 0 of array baseCurrencies.
         isBaseCurrency[address(0)] = true;
         baseCurrencies.push(address(0));
         baseCurrencyCounter = 1;
@@ -371,14 +374,19 @@ contract MainRegistry_UsdOnly is IMainRegistry, MainRegistryGuardian {
         // Cache variables.
         IPricingModule_UsdOnly.GetValueInput memory getValueInput;
         getValueInput.baseCurrency = baseCurrency;
+        BaseCurrencyInformation memory baseCurrencyInformation = baseCurrencyToInformation[baseCurrency];
         int256 rateBaseCurrencyToUsd;
         address assetAddress;
         uint256 valueInUsd;
 
-        // Get the BaseCurrency-USD rate if the BaseCurrency is different from USD.
         if (baseCurrency > 0) {
+            // Get the baseCurrency-USD rate if the BaseCurrency is different from USD (identifier 0).
             (, rateBaseCurrencyToUsd,,,) =
-                IChainLinkData(baseCurrencyToInformation[baseCurrency].baseCurrencyToUsdOracle).latestRoundData();
+                IChainLinkData(baseCurrencyInformation.baseCurrencyToUsdOracle).latestRoundData();
+        } else {
+            // If baseCurrency is USD, set "rateUsdToUsd" to 1.
+            // Both USD and the internal precision of calculations have 18 decimals.
+            rateBaseCurrencyToUsd = 1;
         }
 
         // Loop over all assets.
@@ -387,7 +395,7 @@ contract MainRegistry_UsdOnly is IMainRegistry, MainRegistryGuardian {
 
             // If the asset is identical to the base Currency, we do not need to get a rate.
             // We only need to fetch the risk variables from the PricingModule.
-            if (assetAddress == baseCurrencyToInformation[baseCurrency].assetAddress) {
+            if (assetAddress == baseCurrencyInformation.assetAddress) {
                 valuesAndRiskVarPerAsset[i].valueInBaseCurrency = assetAmounts[i];
                 (valuesAndRiskVarPerAsset[i].collateralFactor, valuesAndRiskVarPerAsset[i].liquidationFactor) =
                 IPricingModule_UsdOnly(assetToAssetInformation[assetAddress].pricingModule).getRiskVariables(
@@ -408,22 +416,14 @@ contract MainRegistry_UsdOnly is IMainRegistry, MainRegistryGuardian {
                     valuesAndRiskVarPerAsset[i].liquidationFactor
                 ) = IPricingModule_UsdOnly(assetToAssetInformation[assetAddress].pricingModule).getValue(getValueInput);
 
-                // If the baseCurrency is USD (identifier 0), IPricingModule().getValue will always return the value in USD.
-                if (baseCurrency == 0) {
-                    //USD has hardcoded precision of 18 decimals (baseCurrencyUnitCorrection set to 1).
-                    //Since internal precision of value calculations is also 18 decimals, no need for a unit correction.
-                    valuesAndRiskVarPerAsset[i].valueInBaseCurrency = valueInUsd;
-                } else {
-                    //Calculate the equivalent of valueInUsd denominated in BaseCurrency and add it to valueInBaseCurrency.
-                    //And bring the final valueInBaseCurrency from internal 18 decimals to the actual number of decimals of baseCurrency.
-                    unchecked {
-                        valuesAndRiskVarPerAsset[i].valueInBaseCurrency = (
-                            valueInUsd.mulDivDown(
-                                baseCurrencyToInformation[baseCurrency].baseCurrencyToUsdOracleUnit,
-                                uint256(rateBaseCurrencyToUsd)
-                            )
-                        ) / baseCurrencyToInformation[baseCurrency].baseCurrencyUnitCorrection;
-                    }
+                // Calculate "valueInBaseCurrency" from "valueInUsd" by dividing by the "rateBaseCurrencyToUsd".
+                // Bring the "valueInBaseCurrency" from internal 18 decimals to the actual number of decimals of "baseCurrency".
+                unchecked {
+                    valuesAndRiskVarPerAsset[i].valueInBaseCurrency = (
+                        valueInUsd.mulDivDown(
+                            baseCurrencyInformation.baseCurrencyToUsdOracleUnit, uint256(rateBaseCurrencyToUsd)
+                        )
+                    ) / baseCurrencyInformation.baseCurrencyUnitCorrection;
                 }
             }
             unchecked {
