@@ -1076,7 +1076,8 @@ contract AccountActionTest is accountTests {
         proxy_.accountManagementAction(address(action), callData);
     }
 
-    function testSuccess_accountManagementAction_Owner(uint128 debtAmount, uint32 fixedLiquidationCost) public {
+    // Migrated to new test suite
+    /*     function testSuccess_accountManagementAction_Owner(uint128 debtAmount, uint32 fixedLiquidationCost) public {
         multiActionMock = new MultiActionMock();
 
         proxy_.setFixedLiquidationCost(fixedLiquidationCost);
@@ -1151,9 +1152,10 @@ contract AccountActionTest is accountTests {
         vm.startPrank(accountOwner);
         proxy_.accountManagementAction(address(action), callData);
         vm.stopPrank();
-    }
+    } */
 
-    function testSuccess_accountManagementAction_AssetManager(
+    // Migrated to new test suite
+    /*     function testSuccess_accountManagementAction_AssetManager(
         uint128 debtAmount,
         uint32 fixedLiquidationCost,
         address assetManager
@@ -1236,9 +1238,10 @@ contract AccountActionTest is accountTests {
         vm.startPrank(accountOwner);
         proxy_.accountManagementAction(address(action), callData);
         vm.stopPrank();
-    }
+    } */
 
-    function testRevert_accountManagementAction_InsufficientReturned(uint128 debtAmount, uint32 fixedLiquidationCost)
+    // Migrated to new test suite
+    /*     function testRevert_accountManagementAction_InsufficientReturned(uint128 debtAmount, uint32 fixedLiquidationCost)
         public
     {
         vm.assume(debtAmount > 0);
@@ -1315,7 +1318,7 @@ contract AccountActionTest is accountTests {
         vm.expectRevert("A_AMA: Account Unhealthy");
         proxy_.accountManagementAction(address(action), callData);
         vm.stopPrank();
-    }
+    }*/
 }
 
 /* ///////////////////////////////////////////////////////////////

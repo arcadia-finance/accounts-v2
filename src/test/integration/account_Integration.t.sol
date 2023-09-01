@@ -87,7 +87,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         action = new ActionMultiCall();
         multiActionMock = new MultiActionMock();
 
-       // Set allowed action contract
+        // Set allowed action contract
         vm.prank(users.creatorAddress);
         mainRegistryExtension.setAllowedAction(address(action), true);
     }
@@ -381,8 +381,10 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         uint256 token2AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
         uint256 stable1AmountForAction = 500 * 10 ** Constants.stableDecimals;
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
+
         vm.assume(
-            1000 * 10 ** 18 + ((uint256(debtAmount) + fixedLiquidationCost) * token1ToToken2Ratio) < type(uint256).max
+            token1AmountForAction + ((uint256(debtAmount) + fixedLiquidationCost) * token1ToToken2Ratio)
+                < type(uint256).max
         );
 
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
@@ -488,6 +490,245 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) > 0);
         assert(mockERC20.stable1.balanceOf(address(accountNotInitialised)) == stable1AmountForAction);
 
-        vm.stopPrank();   
+        vm.stopPrank();
+    }
+
+    function testFuzz_accountManagementAction_AssetManager(
+        uint128 debtAmount,
+        uint32 fixedLiquidationCost,
+        address assetManager
+    ) public {
+        vm.assume(users.accountOwner != assetManager);
+        vm.startPrank(users.accountOwner);
+        accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
+        accountNotInitialised.setLocked(1);
+        accountNotInitialised.setOwner(users.accountOwner);
+        accountNotInitialised.setAssetManager(assetManager, true);
+        accountNotInitialised.setRegistry(address(mainRegistryExtension));
+        accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
+        accountNotInitialised.setTrustedCreditor(address(trustedCreditorWithParamsInit));
+        accountNotInitialised.setIsTrustedCreditorSet(true);
+        vm.stopPrank();
+
+        trustedCreditorWithParamsInit.setOpenPosition(address(accountNotInitialised), debtAmount);
+
+        // Set the account as initialised in the factory
+        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+            .checked_write(true);
+
+        uint256 token1AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
+        uint256 token2AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
+        uint256 stable1AmountForAction = 500 * 10 ** Constants.stableDecimals;
+        uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
+
+        vm.assume(
+            token1AmountForAction + ((uint256(debtAmount) + fixedLiquidationCost) * token1ToToken2Ratio)
+                < type(uint256).max
+        );
+
+        // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
+        // TODO: fuzz testing on amounts should be done separately
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
+        vm.stopPrank();
+
+        bytes[] memory data = new bytes[](4);
+        address[] memory to = new address[](4);
+
+        data[0] = abi.encodeWithSignature(
+            "approve(address,uint256)", address(multiActionMock), token1AmountForAction + uint256(debtAmount)
+        );
+        data[1] = abi.encodeWithSignature(
+            "swapAssets(address,address,uint256,uint256)",
+            address(mockERC20.token1),
+            address(mockERC20.token2),
+            token1AmountForAction + uint256(debtAmount),
+            token2AmountForAction + uint256(debtAmount) * token1ToToken2Ratio
+        );
+        data[2] = abi.encodeWithSignature(
+            "approve(address,uint256)",
+            address(accountNotInitialised),
+            token2AmountForAction + uint256(debtAmount) * token1ToToken2Ratio
+        );
+        data[3] =
+            abi.encodeWithSignature("approve(address,uint256)", address(accountNotInitialised), stable1AmountForAction);
+
+        vm.prank(users.tokenCreatorAddress);
+        mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
+
+        vm.prank(users.tokenCreatorAddress);
+        mockERC20.token1.mint(address(action), debtAmount);
+
+        to[0] = address(mockERC20.token1);
+        to[1] = address(multiActionMock);
+        to[2] = address(mockERC20.token2);
+        to[3] = address(mockERC20.stable1);
+
+        ActionData memory assetDataOut = ActionData({
+            assets: new address[](1),
+            assetIds: new uint256[](1),
+            assetAmounts: new uint256[](1),
+            assetTypes: new uint256[](1),
+            actionBalances: new uint256[](0)
+        });
+
+        assetDataOut.assets[0] = address(mockERC20.token1);
+        assetDataOut.assetTypes[0] = 0;
+        assetDataOut.assetIds[0] = 0;
+        assetDataOut.assetAmounts[0] = token1AmountForAction;
+
+        ActionData memory assetDataIn = ActionData({
+            assets: new address[](2),
+            assetIds: new uint256[](2),
+            assetAmounts: new uint256[](2),
+            assetTypes: new uint256[](2),
+            actionBalances: new uint256[](0)
+        });
+
+        assetDataIn.assets[0] = address(mockERC20.token2);
+        // Add stable 1 that will be sent from owner wallet to action contract
+        assetDataIn.assets[1] = address(mockERC20.stable1);
+        assetDataIn.assetTypes[0] = 0;
+        assetDataIn.assetTypes[1] = 0;
+        assetDataIn.assetIds[0] = 0;
+        assetDataIn.assetIds[1] = 0;
+
+        ActionData memory transferFromOwner = ActionData({
+            assets: new address[](1),
+            assetIds: new uint256[](1),
+            assetAmounts: new uint256[](1),
+            assetTypes: new uint256[](1),
+            actionBalances: new uint256[](0)
+        });
+
+        transferFromOwner.assets[0] = address(mockERC20.stable1);
+        transferFromOwner.assetAmounts[0] = stable1AmountForAction;
+        transferFromOwner.assetTypes[0] = 0;
+        transferFromOwner.assetIds[0] = 0;
+
+        bytes memory callData = abi.encode(assetDataOut, assetDataIn, transferFromOwner, to, data);
+
+        // Deposit token1 in account first
+        depositERC20InAccount(
+            mockERC20.token1, token1AmountForAction, users.accountOwner, address(accountNotInitialised)
+        );
+
+        vm.startPrank(assetManager);
+        deal(address(mockERC20.stable1), assetManager, stable1AmountForAction);
+        // Approve the tokens "stable1" that will need to be transferred from owner to action contract
+        mockERC20.stable1.approve(address(accountNotInitialised), stable1AmountForAction);
+
+        // Assert the account has no TOKEN2 and STABLE1 balance initially
+        assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) == 0);
+        assert(mockERC20.stable1.balanceOf(address(accountNotInitialised)) == 0);
+
+        // Call accountManagementAction() on Account
+        accountNotInitialised.accountManagementAction(address(action), callData);
+
+        // Assert that the Account now has a balance of TOKEN2 and STABLE1
+        assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) > 0);
+        assert(mockERC20.stable1.balanceOf(address(accountNotInitialised)) == stable1AmountForAction);
+
+        vm.stopPrank();
+    }
+
+    function testRevert_Fuzz_accountManagementAction_InsufficientReturned(
+        uint128 debtAmount,
+        uint32 fixedLiquidationCost
+    ) public {
+        vm.assume(debtAmount > 0);
+
+        // Init account
+        vm.startPrank(users.accountOwner);
+        accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
+        accountNotInitialised.setLocked(1);
+        accountNotInitialised.setOwner(users.accountOwner);
+        accountNotInitialised.setRegistry(address(mainRegistryExtension));
+        accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
+        accountNotInitialised.setTrustedCreditor(address(trustedCreditorWithParamsInit));
+        accountNotInitialised.setIsTrustedCreditorSet(true);
+        vm.stopPrank();
+
+        accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
+
+        // Set the account as initialised in the factory
+        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+            .checked_write(true);
+
+        uint256 token1AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
+        uint256 token2AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
+        uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
+
+        vm.assume(
+            token1AmountForAction + ((uint256(debtAmount) + fixedLiquidationCost) * token1ToToken2Ratio)
+                < type(uint256).max
+        );
+
+        trustedCreditorWithParamsInit.setOpenPosition(address(accountNotInitialised), debtAmount);
+
+        bytes[] memory data = new bytes[](3);
+        address[] memory to = new address[](3);
+
+        data[0] = abi.encodeWithSignature(
+            "approve(address,uint256)", address(multiActionMock), token1AmountForAction + uint256(debtAmount)
+        );
+        data[1] = abi.encodeWithSignature(
+            "swapAssets(address,address,uint256,uint256)",
+            address(mockERC20.token1),
+            address(mockERC20.token2),
+            token1AmountForAction + uint256(debtAmount),
+            0
+        );
+        data[2] = abi.encodeWithSignature(
+            "approve(address,uint256)",
+            address(accountNotInitialised),
+            token2AmountForAction + uint256(debtAmount) * token1ToToken2Ratio
+        );
+
+        vm.prank(users.tokenCreatorAddress);
+        mockERC20.token1.mint(address(action), debtAmount);
+
+        to[0] = address(mockERC20.token1);
+        to[1] = address(multiActionMock);
+        to[2] = address(mockERC20.token2);
+
+        ActionData memory assetDataOut = ActionData({
+            assets: new address[](1),
+            assetIds: new uint256[](1),
+            assetAmounts: new uint256[](1),
+            assetTypes: new uint256[](1),
+            actionBalances: new uint256[](0)
+        });
+
+        assetDataOut.assets[0] = address(mockERC20.token1);
+        assetDataOut.assetTypes[0] = 0;
+        assetDataOut.assetIds[0] = 0;
+        assetDataOut.assetAmounts[0] = token1AmountForAction;
+
+        ActionData memory assetDataIn = ActionData({
+            assets: new address[](1),
+            assetIds: new uint256[](1),
+            assetAmounts: new uint256[](1),
+            assetTypes: new uint256[](1),
+            actionBalances: new uint256[](0)
+        });
+
+        assetDataIn.assets[0] = address(mockERC20.token2);
+        assetDataIn.assetTypes[0] = 0;
+        assetDataOut.assetIds[0] = 0;
+
+        ActionData memory transferFromOwner;
+
+        bytes memory callData = abi.encode(assetDataOut, assetDataIn, transferFromOwner, to, data);
+
+        // Deposit token1 in account first
+        depositERC20InAccount(
+            mockERC20.token1, token1AmountForAction, users.accountOwner, address(accountNotInitialised)
+        );
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert("A_AMA: Account Unhealthy");
+        accountNotInitialised.accountManagementAction(address(action), callData);
+        vm.stopPrank();
     }
 }
