@@ -6,7 +6,7 @@ pragma solidity ^0.8.13;
 
 import { Base_Global_Test, Constants } from "./Base_Global.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "./utils/Types.sol";
-import { MainRegistry } from "../MainRegistry.sol";
+import { MainRegistry_UsdOnly } from "../MainRegistry_UsdOnly.sol";
 import { OracleHub_UsdOnly } from "../OracleHub_UsdOnly.sol";
 import { PricingModule_UsdOnly } from "../PricingModules/AbstractPricingModule_UsdOnly.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
@@ -133,7 +133,7 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         // Add STABLE1 AND TOKEN1 as baseCurrencies in MainRegistry
         vm.startPrank(mainRegistryExtension.owner());
         mainRegistryExtension.addBaseCurrency(
-            MainRegistry.BaseCurrencyInformation({
+            MainRegistry_UsdOnly.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
                 assetAddress: address(mockERC20.stable1),
                 baseCurrencyToUsdOracle: address(mockOracles.stable1ToUsd),
@@ -143,7 +143,7 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
         );
 
         mainRegistryExtension.addBaseCurrency(
-            MainRegistry.BaseCurrencyInformation({
+            MainRegistry_UsdOnly.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
                 assetAddress: address(mockERC20.token1),
                 baseCurrencyToUsdOracle: address(mockOracles.token1ToUsd),
