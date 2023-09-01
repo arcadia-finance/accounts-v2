@@ -4,14 +4,14 @@
  */
 pragma solidity ^0.8.13;
 
-import { MainRegistry } from "../../MainRegistry.sol";
+import { MainRegistry_UsdOnly } from "../../MainRegistry_UsdOnly.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { AccountV1 } from "../../AccountV1.sol";
 
-contract MainRegistryExtension is MainRegistry {
+contract MainRegistryExtension is MainRegistry_UsdOnly {
     using FixedPointMathLib for uint256;
 
-    constructor(address factory_) MainRegistry(factory_) { }
+    constructor(address factory_) MainRegistry_UsdOnly(factory_) { }
 
     function setAssetType(address asset, uint96 assetType) public {
         assetToAssetInformation[asset].assetType = assetType;

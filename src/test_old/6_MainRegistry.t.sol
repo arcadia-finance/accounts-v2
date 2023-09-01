@@ -965,7 +965,8 @@ contract PricingLogicTest is MainRegistryTest {
         vm.stopPrank();
     }
 
-    function testRevert_getListOfValuesPerAsset_UnknownAsset() public {
+    // Migrated to new test suite
+    /*     function testRevert_getListOfValuesPerAsset_UnknownAsset() public {
         //Does not test on overflow, test to check if function correctly returns value in BaseCurrency or USD
         // Given: assetAddresses index 0 is address(safemoon), index 1 is address(bayc), assetIds index 0 and 1 is 0, assetAmounts index 0 and 1 is 10
         address[] memory assetAddresses = new address[](2);
@@ -984,9 +985,10 @@ contract PricingLogicTest is MainRegistryTest {
         // Then: getTotalValue should revert with "" ("EvmError: Revert")
         vm.expectRevert(bytes(""));
         mainRegistry.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, 0);
-    }
+    } */
 
-    function testRevert_getListOfValuesPerAsset_UnknownBaseCurrency(uint256 basecurrency) public {
+    // Migrated to new test suite
+    /*     function testRevert_getListOfValuesPerAsset_UnknownBaseCurrency(uint256 basecurrency) public {
         vm.assume(basecurrency >= 3);
         //Does not test on overflow, test to check if function correctly returns value in BaseCurrency or USD
         // Given: assetAddresses index 0 is address(eth), index 1 is address(bayc), assetIds index 0 and 1 is 0, assetAmounts index 0 and 1 is 10
@@ -1008,6 +1010,7 @@ contract PricingLogicTest is MainRegistryTest {
         mainRegistry.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, basecurrency);
     }
 
+    // Migrated to new test suite
     function testSuccess_getListOfValuesPerAsset() public {
         // Given: oracleOwner calls transmit for rateEthToUsd, rateLinkToUsd and rateBaycToEth
         vm.startPrank(oracleOwner);
@@ -1056,9 +1059,10 @@ contract PricingLogicTest is MainRegistryTest {
         }
         // Then: expectedListOfValuesPerAsset array should be equal to actualListOfValuesPerAsset
         assertTrue(CompareArrays.compareArrays(expectedListOfValuesPerAsset, actualListOfValuesPerAsset));
-    }
+    } */
 
-    function testRevert_getListOfValuesPerAsset_UnknownBaseCurrency(address basecurrency) public {
+    // Migrated to new test suite
+    /*     function testRevert_getListOfValuesPerAsset_UnknownBaseCurrency(address basecurrency) public {
         vm.assume(basecurrency != address(0));
         vm.assume(basecurrency != address(dai));
         vm.assume(basecurrency != address(eth));
@@ -1080,9 +1084,9 @@ contract PricingLogicTest is MainRegistryTest {
         // Then: getTotalValue should revert with "" ("EvmError: Revert")
         vm.expectRevert("MR_GLVA: UNKNOWN_BASECURRENCY");
         mainRegistry.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, basecurrency);
-    }
+    } */
 
-    function testRevert_getTotalValue_UnknownBaseCurrency(address basecurrency) public {
+    /*     function testRevert_getTotalValue_UnknownBaseCurrency(address basecurrency) public {
         vm.assume(basecurrency != address(0));
         vm.assume(basecurrency != address(dai));
         vm.assume(basecurrency != address(eth));
@@ -1104,9 +1108,10 @@ contract PricingLogicTest is MainRegistryTest {
         // Then: getTotalValue should revert with "" ("EvmError: Revert")
         vm.expectRevert("MR_GTV: UNKNOWN_BASECURRENCY");
         mainRegistry.getTotalValue(assetAddresses, assetIds, assetAmounts, basecurrency);
-    }
+    } */
 
-    function testSuccess_getTotalValue() public {
+    // Migrated to new test suite
+    /*     function testSuccess_getTotalValue() public {
         //Does not test on overflow, test to check if function correctly returns value in BaseCurrency or USD
         // Given: oracleOwner calls transmit for rateEthToUsd, rateLinkToUsd and rateBaycToEth
         vm.startPrank(oracleOwner);
@@ -1147,9 +1152,9 @@ contract PricingLogicTest is MainRegistryTest {
 
         // Then: expectedTotalValue should be equal to actualTotalValue
         assertEq(expectedTotalValue, actualTotalValue);
-    }
+    } */
 
-    function testRevert_getCollateralValue_UnknownBaseCurrency(address basecurrency) public {
+    /*     function testRevert_getCollateralValue_UnknownBaseCurrency(address basecurrency) public {
         vm.assume(basecurrency != address(0));
         vm.assume(basecurrency != address(dai));
         vm.assume(basecurrency != address(eth));
@@ -1171,9 +1176,9 @@ contract PricingLogicTest is MainRegistryTest {
         // Then: getCollateralValue should revert with "" ("EvmError: Revert")
         vm.expectRevert("MR_GCV: UNKNOWN_BASECURRENCY");
         mainRegistry.getCollateralValue(assetAddresses, assetIds, assetAmounts, basecurrency);
-    }
+    } */
 
-    function testSuccess_getCollateralValue(int64 rateEthToUsd_, uint64 amountEth, uint16 collateralFactor_) public {
+    /*     function testSuccess_getCollateralValue(int64 rateEthToUsd_, uint64 amountEth, uint16 collateralFactor_) public {
         vm.assume(collateralFactor_ <= RiskConstants.MAX_COLLATERAL_FACTOR);
         vm.assume(rateEthToUsd_ > 0);
 
@@ -1207,9 +1212,9 @@ contract PricingLogicTest is MainRegistryTest {
         uint256 expectedCollateralValue = ethValueInUsd * collateralFactor_ / 100;
 
         assertEq(expectedCollateralValue, actualCollateralValue);
-    }
+    } */
 
-    function testRevert_getLiquidationValue_UnknownBaseCurrency(address basecurrency) public {
+    /*     function testRevert_getLiquidationValue_UnknownBaseCurrency(address basecurrency) public {
         vm.assume(basecurrency != address(0));
         vm.assume(basecurrency != address(dai));
         vm.assume(basecurrency != address(eth));
@@ -1231,9 +1236,10 @@ contract PricingLogicTest is MainRegistryTest {
         // Then: getLiquidationValue should revert with "" ("EvmError: Revert")
         vm.expectRevert("MR_GLV: UNKNOWN_BASECURRENCY");
         mainRegistry.getLiquidationValue(assetAddresses, assetIds, assetAmounts, basecurrency);
-    }
+    } */
 
-    function testSuccess_getLiquidationValue(int64 rateEthToUsd_, uint64 amountEth, uint16 liquidationFactor_) public {
+    // Migrated to new test suite
+    /*     function testSuccess_getLiquidationValue(int64 rateEthToUsd_, uint64 amountEth, uint16 liquidationFactor_) public {
         vm.assume(liquidationFactor_ <= RiskConstants.MAX_LIQUIDATION_FACTOR);
         vm.assume(rateEthToUsd_ > 0);
 
@@ -1267,9 +1273,10 @@ contract PricingLogicTest is MainRegistryTest {
         uint256 expectedLiquidationValue = ethValueInUsd * liquidationFactor_ / 100;
 
         assertEq(expectedLiquidationValue, actualLiquidationValue);
-    }
+    } */
 
-    function testSucccess_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsd(
+    // Migrated to new test suite
+    /*     function testSucccess_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsd(
         uint256 rateEthToUsdNew,
         uint256 amountLink,
         uint8 linkDecimals
@@ -1344,9 +1351,10 @@ contract PricingLogicTest is MainRegistryTest {
 
         // Then: expectedTotalValue should be equal to actualTotalValue
         assertEq(expectedTotalValue, actualTotalValue);
-    }
+    } */
 
-    function testRevert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdOverflow(
+    // Migrated to new test suite
+    /*     function testRevert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdOverflow(
         uint256 rateEthToUsdNew,
         uint256 amountLink,
         uint8 linkDecimals
@@ -1405,9 +1413,10 @@ contract PricingLogicTest is MainRegistryTest {
         // Then: getTotalValue should revert with arithmetic overflow
         vm.expectRevert(bytes(""));
         mainRegistry.getTotalValue(assetAddresses, assetIds, assetAmounts, address(eth));
-    }
+    }*/
 
-    function testRevert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdWithRateZero(uint256 amountLink)
+    // Migrated to new test suite
+    /*     function testRevert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdWithRateZero(uint256 amountLink)
         public
     {
         // Given: amountLink bigger than 0, oracleOwner calls transmit for 0 and rateLinkToUsd
@@ -1432,5 +1441,5 @@ contract PricingLogicTest is MainRegistryTest {
         // Then: getTotalValue should revert
         vm.expectRevert(bytes(""));
         mainRegistry.getTotalValue(assetAddresses, assetIds, assetAmounts, address(eth));
-    }
+    } */
 }
