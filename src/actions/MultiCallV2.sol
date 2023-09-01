@@ -28,13 +28,13 @@ contract ActionMultiCallV2 is ActionBase {
 
     /**
      * @notice Calls a series of addresses with arbitrary calldata.
-     * @param actionData A bytes object containing two actionAssetData structs, an address array and a bytes array.
+     * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
      * @return resultData An actionAssetData struct with the balances of this ActionMultiCall address.
      * @dev input address is not used in this generic action.
      */
     function executeAction(bytes calldata actionData) external override returns (ActionData memory) {
-        (, ActionData memory incoming, address[] memory to, bytes[] memory data) =
-            abi.decode(actionData, (ActionData, ActionData, address[], bytes[]));
+        (, ActionData memory incoming,, address[] memory to, bytes[] memory data) =
+            abi.decode(actionData, (ActionData, ActionData, ActionData, address[], bytes[]));
 
         uint256 callLength = to.length;
 
