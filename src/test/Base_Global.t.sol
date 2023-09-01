@@ -15,10 +15,12 @@ import { OracleHub_UsdOnly } from "../OracleHub_UsdOnly.sol";
 import { StandardERC20PricingModule_UsdOnly } from "../PricingModules/StandardERC20PricingModule_UsdOnly.sol";
 import { FloorERC721PricingModule_UsdOnly } from "../PricingModules/FloorERC721PricingModule_UsdOnly.sol";
 import { FloorERC1155PricingModule_UsdOnly } from "../PricingModules/FloorERC1155PricingModule_UsdOnly.sol";
+import { UniswapV3PricingModuleExtension } from "./utils/Extensions.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Errors } from "./utils/Errors.sol";
+import { Utils } from "./utils/Utils.sol";
 import { ERC20Mock } from "../mockups/ERC20SolmateMock.sol";
 import { ERC721Mock } from "../mockups/ERC721SolmateMock.sol";
 import { ERC1155Mock } from "../mockups/ERC1155SolmateMock.sol";
@@ -46,6 +48,7 @@ abstract contract Base_Global_Test is Test, Events, Errors {
     StandardERC20PricingModule_UsdOnly internal erc20PricingModule;
     FloorERC721PricingModule_UsdOnly internal floorERC721PricingModule;
     FloorERC1155PricingModule_UsdOnly internal floorERC1155PricingModule;
+    UniswapV3PricingModuleExtension internal uniV3PricingModule;
     AccountV1 internal account;
     AccountV2 internal accountV2;
     TrustedCreditorMock internal trustedCreditorWithParamsInit;
@@ -65,7 +68,8 @@ abstract contract Base_Global_Test is Test, Events, Errors {
             accountOwner: createUser("accountOwner"),
             liquidityProvider: createUser("liquidityProvider"),
             defaultCreatorAddress: createUser("defaultCreatorAddress"),
-            defaultTransmitter: createUser("defaultTransmitter")
+            defaultTransmitter: createUser("defaultTransmitter"),
+            swapper: createUser("swapper")
         });
 
         // Deploy the base test contracts.
@@ -82,6 +86,7 @@ abstract contract Base_Global_Test is Test, Events, Errors {
             address(oracleHub),
             2
         );
+        deployUniswapV3PricingModule();
         account = new AccountV1();
         accountV2 = new AccountV2();
         factory.setNewAccountInfo(address(mainRegistryExtension), address(account), Constants.upgradeProof1To2, "");
@@ -94,6 +99,7 @@ abstract contract Base_Global_Test is Test, Events, Errors {
         mainRegistryExtension.addPricingModule(address(erc20PricingModule));
         mainRegistryExtension.addPricingModule(address(floorERC721PricingModule));
         mainRegistryExtension.addPricingModule(address(floorERC1155PricingModule));
+        mainRegistryExtension.addPricingModule(address(uniV3PricingModule));
         vm.stopPrank();
 
         // Label the base test contracts.
@@ -126,6 +132,28 @@ abstract contract Base_Global_Test is Test, Events, Errors {
         address payable user = payable(makeAddr(name));
         vm.deal({ account: user, newBalance: 100 ether });
         return user;
+    }
+
+    function deployUniswapV3PricingModule() internal {
+        // Get the bytecode of the UniswapV3PoolExtension.
+        bytes memory args = abi.encode();
+        bytes memory bytecode = abi.encodePacked(vm.getCode("UniswapV3PoolExtension.sol"), args);
+        bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
+
+        // Get the bytecode of UniswapV3PricingModuleExtension.
+        args = abi.encode(
+            address(mainRegistryExtension), address(oracleHub), users.creatorAddress, address(erc20PricingModule)
+        );
+        bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3PricingModuleExtension"), args);
+
+        // Overwrite constant in bytecode of NonfungiblePositionManager.
+        // -> Replace the code hash of UniswapV3Pool.sol with the code hash of UniswapV3PoolExtension.sol
+        bytes32 POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+        bytecode = Utils.veryBadBytesReplacer(bytecode, POOL_INIT_CODE_HASH, poolExtensionInitCodeHash);
+
+        // Deploy UniswapV3PoolExtension with modified bytecode.
+        address uniV3PricingModule_ = Utils.deployBytecode(bytecode);
+        uniV3PricingModule = UniswapV3PricingModuleExtension(uniV3PricingModule_);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
