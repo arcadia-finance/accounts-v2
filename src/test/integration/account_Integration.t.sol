@@ -55,6 +55,32 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         vm.stopPrank();
     }
 
+    function generateERC721DepositList(uint8 length)
+        public
+        returns (
+            address[] memory assetAddresses,
+            uint256[] memory assetIds,
+            uint256[] memory assetAmounts,
+            uint256[] memory assetTypes
+        )
+    {
+        assetAddresses = new address[](length);
+        assetIds = new uint256[](length);
+        assetAmounts = new uint256[](length);
+        assetTypes = new uint256[](length);
+
+        uint256 id = 10;
+        for (uint256 i; i < length; ++i) {
+            vm.prank(users.tokenCreatorAddress);
+            mockERC721.nft1.mint(users.accountOwner, id);
+            assetAddresses[i] = address(mockERC721.nft1);
+            assetIds[i] = id;
+            assetAmounts[i] = 1;
+            assetTypes[i] = 1;
+            ++id;
+        }
+    }
+
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -346,7 +372,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
     /*///////////////////////////////////////////////////////////////
                     ASSET MANAGEMENT LOGIC
     ///////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_accountManagementAction_Reentered(
+    function testRevert_Fuzz_accountManagementAction_Reentered(
         address sender,
         address actionHandler,
         bytes calldata actionData
@@ -359,6 +385,94 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         vm.expectRevert("A: REENTRANCY");
         accountExtension.accountManagementAction(actionHandler, actionData);
         vm.stopPrank();
+    }
+
+    function testRevert_Fuzz_accountManagementAction_NonAssetManager(address sender, address assetManager) public {
+        vm.assume(sender != users.accountOwner);
+        vm.assume(sender != assetManager);
+        vm.assume(sender != address(0));
+
+        vm.prank(users.accountOwner);
+        accountExtension.setAssetManager(assetManager, true);
+
+        vm.startPrank(sender);
+        vm.expectRevert("A: Only Asset Manager");
+        accountExtension.accountManagementAction(address(action), new bytes(0));
+        vm.stopPrank();
+    }
+
+    function testRevert_Fuzz_accountManagementAction_OwnerChanged(address assetManager) public {
+        vm.assume(assetManager != address(0));
+        address newOwner = address(60); //Annoying to fuzz since it often fuzzes to existing contracts without an onERC721Received
+        vm.assume(assetManager != newOwner);
+
+        // Deploy account via factory (proxy)
+        vm.startPrank(users.accountOwner);
+        address proxyAddr = factory.createAccount(12_345_678, 0, address(0), address(0));
+        AccountExtension proxy = AccountExtension(proxyAddr);
+        vm.stopPrank();
+
+        vm.prank(users.accountOwner);
+        proxy.setAssetManager(assetManager, true);
+
+        vm.prank(users.accountOwner);
+        factory.safeTransferFrom(users.accountOwner, newOwner, address(proxy));
+
+        vm.startPrank(assetManager);
+        vm.expectRevert("A: Only Asset Manager");
+        proxy.accountManagementAction(address(action), new bytes(0));
+        vm.stopPrank();
+    }
+
+    function testRevert_Fuzz_accountManagementAction_actionNotAllowed(address action_) public {
+        vm.assume(action_ != address(action));
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert("A_AMA: Action not allowed");
+        accountExtension.accountManagementAction(action_, new bytes(0));
+        vm.stopPrank();
+    }
+
+    function testRevert_Fuzz_accountManagementAction_tooManyAssets(uint8 arrLength) public {
+        vm.assume(arrLength > accountExtension.ASSET_LIMIT() && arrLength < 50);
+
+        address[] memory assetAddresses = new address[](arrLength);
+        uint256[] memory assetIds = new uint256[](arrLength);
+        uint256[] memory assetAmounts = new uint256[](arrLength);
+        uint256[] memory assetTypes = new uint256[](arrLength);
+
+        (assetAddresses, assetIds, assetAmounts, assetTypes) = generateERC721DepositList(arrLength);
+
+        bytes[] memory data = new bytes[](0);
+        address[] memory to = new address[](0);
+
+        ActionData memory assetDataOut;
+
+        ActionData memory assetDataIn = ActionData({
+            assets: assetAddresses,
+            assetIds: assetIds,
+            assetAmounts: assetAmounts,
+            assetTypes: assetTypes,
+            actionBalances: new uint256[](0)
+        });
+
+        ActionData memory transferFromOwner;
+
+        bytes memory callData = abi.encode(assetDataOut, assetDataIn, transferFromOwner, to, data);
+
+        //Already sent asset to action contract
+        uint256 id = 10;
+        for (uint256 i; i < arrLength; ++i) {
+            vm.prank(users.accountOwner);
+            mockERC721.nft1.transferFrom(users.accountOwner, address(action), id);
+            ++id;
+        }
+        vm.prank(address(action));
+        mockERC721.nft1.setApprovalForAll(address(accountExtension), true);
+
+        vm.prank(users.accountOwner);
+        vm.expectRevert("A_D: Too many assets");
+        accountExtension.accountManagementAction(address(action), callData);
     }
 
     function testFuzz_accountManagementAction_Owner(uint128 debtAmount, uint32 fixedLiquidationCost) public {
