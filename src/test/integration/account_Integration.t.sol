@@ -8,7 +8,7 @@ import { StdStorage, stdStorage } from "../../../lib/forge-std/src/Test.sol";
 import { Base_IntegrationAndUnit_Test, Constants } from "../Base_IntegrationAndUnit.t.sol";
 import { AccountExtension, AccountV1 } from "../utils/Extensions.sol";
 import { MultiActionMock } from "../../mockups/MultiActionMock.sol";
-import { ActionMultiCall } from "../../actions/MultiCall.sol";
+import { ActionMultiCallV2 } from "../../actions/MultiCallV2.sol";
 import { ActionData } from "../../actions/utils/ActionData.sol";
 import { ERC20Mock } from "../../mockups/ERC20SolmateMock.sol";
 
@@ -25,7 +25,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
     AccountExtension internal accountNotInitialised;
     AccountExtension internal accountExtension;
     MultiActionMock internal multiActionMock;
-    ActionMultiCall internal action;
+    ActionMultiCallV2 internal action;
 
     /* ///////////////////////////////////////////////////////////////
                             HELPER FUNCTIONS
@@ -110,7 +110,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         accountExtension.setLocked(1);
 
         // Deploy multicall contract and actions
-        action = new ActionMultiCall();
+        action = new ActionMultiCallV2();
         multiActionMock = new MultiActionMock();
 
         // Set allowed action contract
@@ -502,13 +502,12 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         );
 
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
-        // TODO: fuzz testing on amounts should be done separately
         vm.startPrank(users.defaultTransmitter);
         mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
         vm.stopPrank();
 
-        bytes[] memory data = new bytes[](4);
-        address[] memory to = new address[](4);
+        bytes[] memory data = new bytes[](5);
+        address[] memory to = new address[](5);
 
         data[0] = abi.encodeWithSignature(
             "approve(address,uint256)", address(multiActionMock), token1AmountForAction + uint256(debtAmount)
@@ -527,6 +526,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         );
         data[3] =
             abi.encodeWithSignature("approve(address,uint256)", address(accountNotInitialised), stable1AmountForAction);
+        data[4] = abi.encodeWithSignature("approve(address,uint256)", address(accountNotInitialised), 1);
 
         vm.prank(users.tokenCreatorAddress);
         mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
@@ -538,6 +538,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         to[1] = address(multiActionMock);
         to[2] = address(mockERC20.token2);
         to[3] = address(mockERC20.stable1);
+        to[4] = address(mockERC721.nft1);
 
         ActionData memory assetDataOut = ActionData({
             assets: new address[](1),
@@ -553,6 +554,26 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         assetDataOut.assetAmounts[0] = token1AmountForAction;
 
         ActionData memory assetDataIn = ActionData({
+            assets: new address[](3),
+            assetIds: new uint256[](3),
+            assetAmounts: new uint256[](3),
+            assetTypes: new uint256[](3),
+            actionBalances: new uint256[](0)
+        });
+
+        assetDataIn.assets[0] = address(mockERC20.token2);
+        // Add stable 1 that will be sent from owner wallet to action contract
+        assetDataIn.assets[1] = address(mockERC20.stable1);
+        // Add nft1 that will be sent from owner wallet to action contract
+        assetDataIn.assets[2] = address(mockERC721.nft1);
+        assetDataIn.assetTypes[0] = 0;
+        assetDataIn.assetTypes[1] = 0;
+        assetDataIn.assetTypes[2] = 1;
+        assetDataIn.assetIds[0] = 0;
+        assetDataIn.assetIds[1] = 0;
+        assetDataIn.assetIds[2] = 1;
+
+        ActionData memory transferFromOwner = ActionData({
             assets: new address[](2),
             assetIds: new uint256[](2),
             assetAmounts: new uint256[](2),
@@ -560,26 +581,14 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
             actionBalances: new uint256[](0)
         });
 
-        assetDataIn.assets[0] = address(mockERC20.token2);
-        // Add stable 1 that will be sent from owner wallet to action contract
-        assetDataIn.assets[1] = address(mockERC20.stable1);
-        assetDataIn.assetTypes[0] = 0;
-        assetDataIn.assetTypes[1] = 0;
-        assetDataIn.assetIds[0] = 0;
-        assetDataIn.assetIds[1] = 0;
-
-        ActionData memory transferFromOwner = ActionData({
-            assets: new address[](1),
-            assetIds: new uint256[](1),
-            assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1),
-            actionBalances: new uint256[](0)
-        });
-
         transferFromOwner.assets[0] = address(mockERC20.stable1);
+        transferFromOwner.assets[1] = address(mockERC721.nft1);
         transferFromOwner.assetAmounts[0] = stable1AmountForAction;
+        transferFromOwner.assetAmounts[1] = 1;
         transferFromOwner.assetTypes[0] = 0;
+        transferFromOwner.assetTypes[1] = 1;
         transferFromOwner.assetIds[0] = 0;
+        transferFromOwner.assetIds[1] = 1;
 
         bytes memory callData = abi.encode(assetDataOut, assetDataIn, transferFromOwner, to, data);
 
@@ -590,8 +599,10 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
 
         vm.startPrank(users.accountOwner);
         deal(address(mockERC20.stable1), users.accountOwner, stable1AmountForAction);
-        // Approve the tokens "stable1" that will need to be transferred from owner to action contract
+        mockERC721.nft1.mint(users.accountOwner, 1);
+        // Approve the "stable1" and "nft1" tokens that will need to be transferred from owner to action contract
         mockERC20.stable1.approve(address(accountNotInitialised), stable1AmountForAction);
+        mockERC721.nft1.approve(address(accountNotInitialised), 1);
 
         // Assert the account has no TOKEN2 and STABLE1 balance initially
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) == 0);
@@ -641,7 +652,6 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         );
 
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
-        // TODO: fuzz testing on amounts should be done separately
         vm.startPrank(users.defaultTransmitter);
         mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
         vm.stopPrank();
