@@ -643,7 +643,6 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
 
         uint256 token1AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
         uint256 token2AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
-        uint256 stable1AmountForAction = 500 * 10 ** Constants.stableDecimals;
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
 
         vm.assume(
@@ -656,8 +655,8 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
         vm.stopPrank();
 
-        bytes[] memory data = new bytes[](4);
-        address[] memory to = new address[](4);
+        bytes[] memory data = new bytes[](3);
+        address[] memory to = new address[](3);
 
         data[0] = abi.encodeWithSignature(
             "approve(address,uint256)", address(multiActionMock), token1AmountForAction + uint256(debtAmount)
@@ -674,8 +673,6 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
             address(accountNotInitialised),
             token2AmountForAction + uint256(debtAmount) * token1ToToken2Ratio
         );
-        data[3] =
-            abi.encodeWithSignature("approve(address,uint256)", address(accountNotInitialised), stable1AmountForAction);
 
         vm.prank(users.tokenCreatorAddress);
         mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
@@ -686,7 +683,6 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         to[0] = address(mockERC20.token1);
         to[1] = address(multiActionMock);
         to[2] = address(mockERC20.token2);
-        to[3] = address(mockERC20.stable1);
 
         ActionData memory assetDataOut = ActionData({
             assets: new address[](1),
@@ -702,22 +698,6 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         assetDataOut.assetAmounts[0] = token1AmountForAction;
 
         ActionData memory assetDataIn = ActionData({
-            assets: new address[](2),
-            assetIds: new uint256[](2),
-            assetAmounts: new uint256[](2),
-            assetTypes: new uint256[](2),
-            actionBalances: new uint256[](0)
-        });
-
-        assetDataIn.assets[0] = address(mockERC20.token2);
-        // Add stable 1 that will be sent from owner wallet to action contract
-        assetDataIn.assets[1] = address(mockERC20.stable1);
-        assetDataIn.assetTypes[0] = 0;
-        assetDataIn.assetTypes[1] = 0;
-        assetDataIn.assetIds[0] = 0;
-        assetDataIn.assetIds[1] = 0;
-
-        ActionData memory transferFromOwner = ActionData({
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
@@ -725,10 +705,11 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
             actionBalances: new uint256[](0)
         });
 
-        transferFromOwner.assets[0] = address(mockERC20.stable1);
-        transferFromOwner.assetAmounts[0] = stable1AmountForAction;
-        transferFromOwner.assetTypes[0] = 0;
-        transferFromOwner.assetIds[0] = 0;
+        assetDataIn.assets[0] = address(mockERC20.token2);
+        assetDataIn.assetTypes[0] = 0;
+        assetDataIn.assetIds[0] = 0;
+
+        ActionData memory transferFromOwner;
 
         bytes memory callData = abi.encode(assetDataOut, assetDataIn, transferFromOwner, to, data);
 
@@ -738,20 +719,15 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         );
 
         vm.startPrank(assetManager);
-        deal(address(mockERC20.stable1), assetManager, stable1AmountForAction);
-        // Approve the tokens "stable1" that will need to be transferred from owner to action contract
-        mockERC20.stable1.approve(address(accountNotInitialised), stable1AmountForAction);
 
-        // Assert the account has no TOKEN2 and STABLE1 balance initially
+        // Assert the account has no TOKEN2 balance initially
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) == 0);
-        assert(mockERC20.stable1.balanceOf(address(accountNotInitialised)) == 0);
 
         // Call accountManagementAction() on Account
         accountNotInitialised.accountManagementAction(address(action), callData);
 
-        // Assert that the Account now has a balance of TOKEN2 and STABLE1
+        // Assert that the Account now has a balance of TOKEN2
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) > 0);
-        assert(mockERC20.stable1.balanceOf(address(accountNotInitialised)) == stable1AmountForAction);
 
         vm.stopPrank();
     }

@@ -7,7 +7,6 @@ pragma solidity ^0.8.13;
 import { ActionBase, ActionData } from "./ActionBase.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
-import { ERC721TokenReceiver } from "../../lib/solmate/src/tokens/ERC721.sol";
 
 /**
  * @title Generic multicall action
@@ -16,7 +15,7 @@ import { ERC721TokenReceiver } from "../../lib/solmate/src/tokens/ERC721.sol";
  * @dev Only calls are used, no delegatecalls.
  * @dev This address will approve random addresses. Do not store any funds on this address!
  */
-contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
+contract ActionMultiCall is ActionBase {
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */

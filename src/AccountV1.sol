@@ -520,7 +520,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The only requirements are that the recipient tokens of the interactions are allowlisted, deposited back into the Account and
      * that the Account is in a healthy state at the end of the transaction.
      */
-    // TODO: Should we specify an address other than msg.sender that we add to input ?
     function accountManagementAction(address actionHandler, bytes calldata actionData)
         external
         nonReentrant
@@ -536,9 +535,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
         _withdraw(outgoing.assets, outgoing.assetIds, outgoing.assetAmounts, actionHandler);
 
         // Transfer assets from owner (that are not assets in this account) to actionHandler.
-        // TODO: should we require equald length of input here ? See no risk
         if (fromOwner.assets.length > 0) {
-            _transferFromOwner(fromOwner, msg.sender, actionHandler);
+            _transferFromOwner(fromOwner, actionHandler);
         }
 
         // Execute Action(s).
@@ -706,10 +704,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /**
      * @notice Transfers assets directly from the owner to the actionHandler contract.
      * @param fromOwner A struct containing the info of all assets transferred from the owner that are not in this account.
-     * @param from The address of the account transferring the assets.
      * @param to The address to withdraw to.
      */
-    function _transferFromOwner(ActionData memory fromOwner, address from, address to) internal {
+    function _transferFromOwner(ActionData memory fromOwner, address to) internal {
         uint256 assetAddressesLength = fromOwner.assets.length;
         for (uint256 i; i < assetAddressesLength;) {
             if (fromOwner.assetAmounts[i] == 0) {
@@ -721,12 +718,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
             }
 
             if (fromOwner.assetTypes[i] == 0) {
-                ERC20(fromOwner.assets[i]).safeTransferFrom(from, to, fromOwner.assetAmounts[i]);
+                ERC20(fromOwner.assets[i]).safeTransferFrom(owner, to, fromOwner.assetAmounts[i]);
             } else if (fromOwner.assetTypes[i] == 1) {
-                IERC721(fromOwner.assets[i]).safeTransferFrom(from, to, fromOwner.assetIds[i]);
+                IERC721(fromOwner.assets[i]).safeTransferFrom(owner, to, fromOwner.assetIds[i]);
             } else if (fromOwner.assetTypes[i] == 2) {
                 IERC1155(fromOwner.assets[i]).safeTransferFrom(
-                    from, to, fromOwner.assetIds[i], fromOwner.assetAmounts[i], ""
+                    owner, to, fromOwner.assetIds[i], fromOwner.assetAmounts[i], ""
                 );
             } else {
                 require(false, "A_W: Unknown asset type");
