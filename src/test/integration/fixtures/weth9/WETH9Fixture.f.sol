@@ -8,7 +8,7 @@ import { Utils } from "../../../utils/Utils.sol";
 import { Test } from "../../../../../lib/forge-std/src/Test.sol";
 import { IERC20 } from "../../../../interfaces/IERC20.sol";
 
-contract WETH9Fixture is Utils, Test {
+contract WETH9Fixture is Test {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
