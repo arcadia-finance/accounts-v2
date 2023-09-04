@@ -540,10 +540,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
         }
 
         // Execute Action(s).
-        ActionData memory incoming = IActionBase(actionHandler).executeAction(actionData);
+        ActionData memory depositData = IActionBase(actionHandler).executeAction(actionData);
 
         // Deposit assets from actionHandler into Account.
-        _deposit(incoming.assets, incoming.assetIds, incoming.assetAmounts, actionHandler);
+        _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionHandler);
 
         //If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always in a healthy state.
         uint256 usedMargin = getUsedMargin();
@@ -708,6 +708,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      */
     function _transferFromOwner(ActionData memory fromOwner, address to) internal {
         uint256 assetAddressesLength = fromOwner.assets.length;
+        address owner_ = owner;
         for (uint256 i; i < assetAddressesLength;) {
             if (fromOwner.assetAmounts[i] == 0) {
                 //Skip if amount is 0 to prevent transferring 0 balances.
@@ -718,12 +719,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
             }
 
             if (fromOwner.assetTypes[i] == 0) {
-                ERC20(fromOwner.assets[i]).safeTransferFrom(owner, to, fromOwner.assetAmounts[i]);
+                ERC20(fromOwner.assets[i]).safeTransferFrom(owner_, to, fromOwner.assetAmounts[i]);
             } else if (fromOwner.assetTypes[i] == 1) {
-                IERC721(fromOwner.assets[i]).safeTransferFrom(owner, to, fromOwner.assetIds[i]);
+                IERC721(fromOwner.assets[i]).safeTransferFrom(owner_, to, fromOwner.assetIds[i]);
             } else if (fromOwner.assetTypes[i] == 2) {
                 IERC1155(fromOwner.assets[i]).safeTransferFrom(
-                    owner, to, fromOwner.assetIds[i], fromOwner.assetAmounts[i], ""
+                    owner_, to, fromOwner.assetIds[i], fromOwner.assetAmounts[i], ""
                 );
             } else {
                 require(false, "A_W: Unknown asset type");
