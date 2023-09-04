@@ -528,7 +528,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     {
         require(IMainRegistry(registry).isActionAllowed(actionHandler), "A_AMA: Action not allowed");
 
-        (ActionData memory outgoing,, ActionData memory fromOwner,,) =
+        (ActionData memory outgoing, ActionData memory fromOwner,,,) =
             abi.decode(actionData, (ActionData, ActionData, ActionData, address[], bytes[]));
 
         // Withdraw assets to actionHandler.

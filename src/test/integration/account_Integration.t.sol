@@ -448,6 +448,8 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
 
         ActionData memory assetDataOut;
 
+        ActionData memory transferFromOwner;
+
         ActionData memory assetDataIn = ActionData({
             assets: assetAddresses,
             assetIds: assetIds,
@@ -456,9 +458,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
             actionBalances: new uint256[](0)
         });
 
-        ActionData memory transferFromOwner;
-
-        bytes memory callData = abi.encode(assetDataOut, assetDataIn, transferFromOwner, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, assetDataIn, to, data);
 
         //Already sent asset to action contract
         uint256 id = 10;
@@ -590,7 +590,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         transferFromOwner.assetIds[0] = 0;
         transferFromOwner.assetIds[1] = 1;
 
-        bytes memory callData = abi.encode(assetDataOut, assetDataIn, transferFromOwner, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, assetDataIn, to, data);
 
         // Deposit token1 in account first
         depositERC20InAccount(
@@ -711,7 +711,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
 
         ActionData memory transferFromOwner;
 
-        bytes memory callData = abi.encode(assetDataOut, assetDataIn, transferFromOwner, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, assetDataIn, to, data);
 
         // Deposit token1 in account first
         depositERC20InAccount(
@@ -819,7 +819,7 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
 
         ActionData memory transferFromOwner;
 
-        bytes memory callData = abi.encode(assetDataOut, assetDataIn, transferFromOwner, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, assetDataIn, to, data);
 
         // Deposit token1 in account first
         depositERC20InAccount(
