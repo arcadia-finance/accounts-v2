@@ -33,7 +33,7 @@ contract ActionMultiCall is ActionBase {
      * @dev input address is not used in this generic action.
      */
     function executeAction(bytes calldata actionData) external override returns (ActionData memory) {
-        (,,ActionData memory incoming, address[] memory to, bytes[] memory data) =
+        (,, ActionData memory incoming, address[] memory to, bytes[] memory data) =
             abi.decode(actionData, (ActionData, ActionData, ActionData, address[], bytes[]));
 
         uint256 callLength = to.length;
