@@ -22,7 +22,7 @@ import { LiquidityAmountsExtension } from "../../test_old/libraries/LiquidityAmo
 import { ArcadiaOracle } from "../../mockups/ArcadiaOracle.sol";
 import { OracleHub_UsdOnly } from "../../OracleHub_UsdOnly.sol";
 
-contract UniswapV3Test_Integration_Test is Base_IntegrationAndUnit_Test, UniswapV3Fixture {
+contract UniswapV3PricingModule_Integration_Test is Base_IntegrationAndUnit_Test, UniswapV3Fixture {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES
