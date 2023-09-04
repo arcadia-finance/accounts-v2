@@ -528,15 +528,15 @@ contract AccountV1 is AccountStorageV1, IAccount {
     {
         require(IMainRegistry(registry).isActionAllowed(actionHandler), "A_AMA: Action not allowed");
 
-        (ActionData memory outgoing, ActionData memory fromOwner,,,) =
+        (ActionData memory withdrawData, ActionData memory transferFromOwnerData,,,) =
             abi.decode(actionData, (ActionData, ActionData, ActionData, address[], bytes[]));
 
         // Withdraw assets to actionHandler.
-        _withdraw(outgoing.assets, outgoing.assetIds, outgoing.assetAmounts, actionHandler);
+        _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionHandler);
 
         // Transfer assets from owner (that are not assets in this account) to actionHandler.
-        if (fromOwner.assets.length > 0) {
-            _transferFromOwner(fromOwner, actionHandler);
+        if (transferFromOwnerData.assets.length > 0) {
+            _transferFromOwner(transferFromOwnerData, actionHandler);
         }
 
         // Execute Action(s).
