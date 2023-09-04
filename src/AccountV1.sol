@@ -513,6 +513,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @notice Calls external action handler to execute and interact with external logic.
      * @param actionHandler The address of the action handler.
      * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
+     * The first struct contains the info about the assets to withdraw from this Account to the actionHandler.
+     * The second struct contains the info about the owner's assets that are not in this Account and needs to be transferred to the actionHandler.
+     * The third struct contains the info about the assets that needs to be returned from the actionHandler.
      * @return trustedCreditor_ The contract address of the trusted creditor.
      * @return accountVersion_ The Account version.
      * @dev Similar to flash loans, this function optimistically calls external logic and checks for the Account state at the very end.
