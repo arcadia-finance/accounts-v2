@@ -604,9 +604,11 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         mockERC20.stable1.approve(address(accountNotInitialised), stable1AmountForAction);
         mockERC721.nft1.approve(address(accountNotInitialised), 1);
 
-        // Assert the account has no TOKEN2 and STABLE1 balance initially
+        // Assert the Account has no TOKEN2 and STABLE1 balance initially
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) == 0);
         assert(mockERC20.stable1.balanceOf(address(accountNotInitialised)) == 0);
+        // Assert the owner of token id 1 of mockERC721.nft1 contract is accountOwner
+        assert(mockERC721.nft1.ownerOf(1) == users.accountOwner);
 
         // Call accountManagementAction() on Account
         accountNotInitialised.accountManagementAction(address(action), callData);
@@ -614,6 +616,8 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
         // Assert that the Account now has a balance of TOKEN2 and STABLE1
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) > 0);
         assert(mockERC20.stable1.balanceOf(address(accountNotInitialised)) == stable1AmountForAction);
+        // Assert that token id 1 of mockERC721.nft1 contract was transferred to the Account
+        assert(mockERC721.nft1.ownerOf(1) == address(accountNotInitialised));
 
         vm.stopPrank();
     }
