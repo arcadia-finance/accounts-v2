@@ -706,14 +706,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Transfers assets directly from the owner to the actionHandler contract.
-     * @param fromOwner A struct containing the info of all assets transferred from the owner that are not in this account.
+     * @param transferFromOwnerData A struct containing the info of all assets transferred from the owner that are not in this account.
      * @param to The address to withdraw to.
      */
-    function _transferFromOwner(ActionData memory fromOwner, address to) internal {
-        uint256 assetAddressesLength = fromOwner.assets.length;
+    function _transferFromOwner(ActionData memory transferFromOwnerData, address to) internal {
+        uint256 assetAddressesLength = transferFromOwnerData.assets.length;
         address owner_ = owner;
         for (uint256 i; i < assetAddressesLength;) {
-            if (fromOwner.assetAmounts[i] == 0) {
+            if (transferFromOwnerData.assetAmounts[i] == 0) {
                 //Skip if amount is 0 to prevent transferring 0 balances.
                 unchecked {
                     ++i;
@@ -721,13 +721,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
                 continue;
             }
 
-            if (fromOwner.assetTypes[i] == 0) {
-                ERC20(fromOwner.assets[i]).safeTransferFrom(owner_, to, fromOwner.assetAmounts[i]);
-            } else if (fromOwner.assetTypes[i] == 1) {
-                IERC721(fromOwner.assets[i]).safeTransferFrom(owner_, to, fromOwner.assetIds[i]);
-            } else if (fromOwner.assetTypes[i] == 2) {
-                IERC1155(fromOwner.assets[i]).safeTransferFrom(
-                    owner_, to, fromOwner.assetIds[i], fromOwner.assetAmounts[i], ""
+            if (transferFromOwnerData.assetTypes[i] == 0) {
+                ERC20(transferFromOwnerData.assets[i]).safeTransferFrom(owner_, to, transferFromOwnerData.assetAmounts[i]);
+            } else if (transferFromOwnerData.assetTypes[i] == 1) {
+                IERC721(transferFromOwnerData.assets[i]).safeTransferFrom(owner_, to, transferFromOwnerData.assetIds[i]);
+            } else if (transferFromOwnerData.assetTypes[i] == 2) {
+                IERC1155(transferFromOwnerData.assets[i]).safeTransferFrom(
+                    owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
                 );
             } else {
                 require(false, "A_W: Unknown asset type");
