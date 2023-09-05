@@ -722,7 +722,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
             }
 
             if (transferFromOwnerData.assetTypes[i] == 0) {
-                ERC20(transferFromOwnerData.assets[i]).safeTransferFrom(owner_, to, transferFromOwnerData.assetAmounts[i]);
+                ERC20(transferFromOwnerData.assets[i]).safeTransferFrom(
+                    owner_, to, transferFromOwnerData.assetAmounts[i]
+                );
             } else if (transferFromOwnerData.assetTypes[i] == 1) {
                 IERC721(transferFromOwnerData.assets[i]).safeTransferFrom(owner_, to, transferFromOwnerData.assetIds[i]);
             } else if (transferFromOwnerData.assetTypes[i] == 2) {
