@@ -732,7 +732,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
                     owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
                 );
             } else {
-                require(false, "A_W: Unknown asset type");
+                require(false, "A_TFO: Unknown asset type");
             }
             unchecked {
                 ++i;
