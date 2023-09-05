@@ -49,20 +49,20 @@ contract ActionMultiCall is ActionBase {
             }
         }
 
-        for (uint256 i; i < incoming.assets.length;) {
-            if (incoming.assetTypes[i] == 0) {
-                incoming.assetAmounts[i] = IERC20(incoming.assets[i]).balanceOf(address(this));
-            } else if (incoming.assetTypes[i] == 1) {
-                incoming.assetAmounts[i] = 1;
-            } else if (incoming.assetTypes[i] == 2) {
-                incoming.assetAmounts[i] = IERC1155(incoming.assets[i]).balanceOf(address(this), incoming.assetIds[i]);
+        for (uint256 i; i < depositData.assets.length;) {
+            if (depositData.assetTypes[i] == 0) {
+                depositData.assetAmounts[i] = IERC20(depositData.assets[i]).balanceOf(address(this));
+            } else if (depositData.assetTypes[i] == 1) {
+                depositData.assetAmounts[i] = 1;
+            } else if (depositData.assetTypes[i] == 2) {
+                depositData.assetAmounts[i] = IERC1155(depositData.assets[i]).balanceOf(address(this), depositData.assetIds[i]);
             }
             unchecked {
                 ++i;
             }
         }
 
-        return incoming;
+        return depositData;
     }
 
     /* //////////////////////////////////////////////////////////////
