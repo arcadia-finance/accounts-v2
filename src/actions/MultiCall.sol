@@ -28,13 +28,13 @@ contract ActionMultiCall is ActionBase {
 
     /**
      * @notice Calls a series of addresses with arbitrary calldata.
-     * @param actionData A bytes object containing two actionAssetData structs, an address array and a bytes array.
+     * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
      * @return resultData An actionAssetData struct with the balances of this ActionMultiCall address.
      * @dev input address is not used in this generic action.
      */
     function executeAction(bytes calldata actionData) external override returns (ActionData memory) {
-        (, ActionData memory incoming, address[] memory to, bytes[] memory data) =
-            abi.decode(actionData, (ActionData, ActionData, address[], bytes[]));
+        (,, ActionData memory depositData, address[] memory to, bytes[] memory data) =
+            abi.decode(actionData, (ActionData, ActionData, ActionData, address[], bytes[]));
 
         uint256 callLength = to.length;
 
@@ -49,20 +49,21 @@ contract ActionMultiCall is ActionBase {
             }
         }
 
-        for (uint256 i; i < incoming.assets.length;) {
-            if (incoming.assetTypes[i] == 0) {
-                incoming.assetAmounts[i] = IERC20(incoming.assets[i]).balanceOf(address(this));
-            } else if (incoming.assetTypes[i] == 1) {
-                incoming.assetAmounts[i] = 1;
-            } else if (incoming.assetTypes[i] == 2) {
-                incoming.assetAmounts[i] = IERC1155(incoming.assets[i]).balanceOf(address(this), incoming.assetIds[i]);
+        for (uint256 i; i < depositData.assets.length;) {
+            if (depositData.assetTypes[i] == 0) {
+                depositData.assetAmounts[i] = IERC20(depositData.assets[i]).balanceOf(address(this));
+            } else if (depositData.assetTypes[i] == 1) {
+                depositData.assetAmounts[i] = 1;
+            } else if (depositData.assetTypes[i] == 2) {
+                depositData.assetAmounts[i] =
+                    IERC1155(depositData.assets[i]).balanceOf(address(this), depositData.assetIds[i]);
             }
             unchecked {
                 ++i;
             }
         }
 
-        return incoming;
+        return depositData;
     }
 
     /* //////////////////////////////////////////////////////////////

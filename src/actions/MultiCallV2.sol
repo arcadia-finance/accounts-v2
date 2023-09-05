@@ -7,6 +7,7 @@ pragma solidity ^0.8.13;
 import { ActionBase, ActionData } from "./ActionBase.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
+import { ERC721TokenReceiver } from "../../lib/solmate/src/tokens/ERC721.sol";
 
 /**
  * @title Generic multicall action
@@ -15,7 +16,7 @@ import { IERC1155 } from "../interfaces/IERC1155.sol";
  * @dev Only calls are used, no delegatecalls.
  * @dev This address will approve random addresses. Do not store any funds on this address!
  */
-contract ActionMultiCallV2 is ActionBase {
+contract ActionMultiCallV2 is ActionBase, ERC721TokenReceiver {
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
@@ -28,13 +29,13 @@ contract ActionMultiCallV2 is ActionBase {
 
     /**
      * @notice Calls a series of addresses with arbitrary calldata.
-     * @param actionData A bytes object containing two actionAssetData structs, an address array and a bytes array.
+     * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
      * @return resultData An actionAssetData struct with the balances of this ActionMultiCall address.
      * @dev input address is not used in this generic action.
      */
     function executeAction(bytes calldata actionData) external override returns (ActionData memory) {
-        (, ActionData memory incoming, address[] memory to, bytes[] memory data) =
-            abi.decode(actionData, (ActionData, ActionData, address[], bytes[]));
+        (,, ActionData memory depositData, address[] memory to, bytes[] memory data) =
+            abi.decode(actionData, (ActionData, ActionData, ActionData, address[], bytes[]));
 
         uint256 callLength = to.length;
 
@@ -49,20 +50,21 @@ contract ActionMultiCallV2 is ActionBase {
             }
         }
 
-        for (uint256 i; i < incoming.assets.length;) {
-            if (incoming.assetTypes[i] == 0) {
-                incoming.assetAmounts[i] = IERC20(incoming.assets[i]).balanceOf(address(this));
-            } else if (incoming.assetTypes[i] == 1) {
-                incoming.assetAmounts[i] = 1;
-            } else if (incoming.assetTypes[i] == 2) {
-                incoming.assetAmounts[i] = IERC1155(incoming.assets[i]).balanceOf(address(this), incoming.assetIds[i]);
+        for (uint256 i; i < depositData.assets.length;) {
+            if (depositData.assetTypes[i] == 0) {
+                depositData.assetAmounts[i] = IERC20(depositData.assets[i]).balanceOf(address(this));
+            } else if (depositData.assetTypes[i] == 1) {
+                depositData.assetAmounts[i] = 1;
+            } else if (depositData.assetTypes[i] == 2) {
+                depositData.assetAmounts[i] =
+                    IERC1155(depositData.assets[i]).balanceOf(address(this), depositData.assetIds[i]);
             }
             unchecked {
                 ++i;
             }
         }
 
-        return incoming;
+        return depositData;
     }
 
     /* //////////////////////////////////////////////////////////////

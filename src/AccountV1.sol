@@ -512,7 +512,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /**
      * @notice Calls external action handler to execute and interact with external logic.
      * @param actionHandler The address of the action handler.
-     * @param actionData A bytes object containing two actionAssetData structs, an address array and a bytes array.
+     * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
+     * The first struct contains the info about the assets to withdraw from this Account to the actionHandler.
+     * The second struct contains the info about the owner's assets that are not in this Account and needs to be transferred to the actionHandler.
+     * The third struct contains the info about the assets that needs to be deposited from the actionHandler back into the Account.
      * @return trustedCreditor_ The contract address of the trusted creditor.
      * @return accountVersion_ The Account version.
      * @dev Similar to flash loans, this function optimistically calls external logic and checks for the Account state at the very end.
@@ -528,16 +531,22 @@ contract AccountV1 is AccountStorageV1, IAccount {
     {
         require(IMainRegistry(registry).isActionAllowed(actionHandler), "A_AMA: Action not allowed");
 
-        (ActionData memory outgoing,,,) = abi.decode(actionData, (ActionData, ActionData, address[], bytes[]));
+        (ActionData memory withdrawData, ActionData memory transferFromOwnerData,,,) =
+            abi.decode(actionData, (ActionData, ActionData, ActionData, address[], bytes[]));
 
         // Withdraw assets to actionHandler.
-        _withdraw(outgoing.assets, outgoing.assetIds, outgoing.assetAmounts, actionHandler);
+        _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionHandler);
+
+        // Transfer assets from owner (that are not assets in this account) to actionHandler.
+        if (transferFromOwnerData.assets.length > 0) {
+            _transferFromOwner(transferFromOwnerData, actionHandler);
+        }
 
         // Execute Action(s).
-        ActionData memory incoming = IActionBase(actionHandler).executeAction(actionData);
+        ActionData memory depositData = IActionBase(actionHandler).executeAction(actionData);
 
         // Deposit assets from actionHandler into Account.
-        _deposit(incoming.assets, incoming.assetIds, incoming.assetAmounts, actionHandler);
+        _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionHandler);
 
         //If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always in a healthy state.
         uint256 usedMargin = getUsedMargin();
@@ -688,6 +697,42 @@ contract AccountV1 is AccountStorageV1, IAccount {
                 _withdrawERC1155(to, assetAddresses[i], assetIds[i], assetAmounts[i]);
             } else {
                 require(false, "A_W: Unknown asset type");
+            }
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /**
+     * @notice Transfers assets directly from the owner to the actionHandler contract.
+     * @param transferFromOwnerData A struct containing the info of all assets transferred from the owner that are not in this account.
+     * @param to The address to withdraw to.
+     */
+    function _transferFromOwner(ActionData memory transferFromOwnerData, address to) internal {
+        uint256 assetAddressesLength = transferFromOwnerData.assets.length;
+        address owner_ = owner;
+        for (uint256 i; i < assetAddressesLength;) {
+            if (transferFromOwnerData.assetAmounts[i] == 0) {
+                //Skip if amount is 0 to prevent transferring 0 balances.
+                unchecked {
+                    ++i;
+                }
+                continue;
+            }
+
+            if (transferFromOwnerData.assetTypes[i] == 0) {
+                ERC20(transferFromOwnerData.assets[i]).safeTransferFrom(
+                    owner_, to, transferFromOwnerData.assetAmounts[i]
+                );
+            } else if (transferFromOwnerData.assetTypes[i] == 1) {
+                IERC721(transferFromOwnerData.assets[i]).safeTransferFrom(owner_, to, transferFromOwnerData.assetIds[i]);
+            } else if (transferFromOwnerData.assetTypes[i] == 2) {
+                IERC1155(transferFromOwnerData.assets[i]).safeTransferFrom(
+                    owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
+                );
+            } else {
+                require(false, "A_TFO: Unknown asset type");
             }
             unchecked {
                 ++i;

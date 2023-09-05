@@ -34,6 +34,8 @@ contract ActionMultiCallTest is DeployArcadiaAccounts {
             actionBalances: new uint256[](0)
         });
 
+        ActionData memory fromOwner;
+
         assetData.assets[0] = address(eth);
         assetData.assetTypes[0] = 0;
 
@@ -42,7 +44,7 @@ contract ActionMultiCallTest is DeployArcadiaAccounts {
         to[0] = address(this);
         data[0] = abi.encodeWithSignature("setNumberStored(uint256)", number);
 
-        bytes memory callData = abi.encode(assetData, assetData, to, data);
+        bytes memory callData = abi.encode(assetData, assetData, fromOwner, to, data);
 
         action.executeAction(callData);
 
@@ -58,6 +60,8 @@ contract ActionMultiCallTest is DeployArcadiaAccounts {
             actionBalances: new uint256[](0)
         });
 
+        ActionData memory fromOwner;
+
         assetData.assets[0] = address(eth);
         assetData.assetTypes[0] = 0;
 
@@ -67,7 +71,7 @@ contract ActionMultiCallTest is DeployArcadiaAccounts {
         to[1] = address(this);
         data[0] = abi.encodeWithSignature("returnFive()");
 
-        bytes memory callData = abi.encode(assetData, assetData, to, data);
+        bytes memory callData = abi.encode(assetData, assetData, fromOwner, to, data);
 
         vm.expectRevert("EA: Length mismatch");
         action.executeAction(callData);
