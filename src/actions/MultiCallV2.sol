@@ -56,7 +56,8 @@ contract ActionMultiCallV2 is ActionBase, ERC721TokenReceiver {
             } else if (depositData.assetTypes[i] == 1) {
                 depositData.assetAmounts[i] = 1;
             } else if (depositData.assetTypes[i] == 2) {
-                depositData.assetAmounts[i] = IERC1155(depositData.assets[i]).balanceOf(address(this), depositData.assetIds[i]);
+                depositData.assetAmounts[i] =
+                    IERC1155(depositData.assets[i]).balanceOf(address(this), depositData.assetIds[i]);
             }
             unchecked {
                 ++i;
