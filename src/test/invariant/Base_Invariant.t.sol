@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
 import { StdInvariant } from "../../../lib/forge-std/src/StdInvariant.sol";
 import { Base_Test } from "../Base.t.sol";

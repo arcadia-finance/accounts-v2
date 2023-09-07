@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
 library DeployAddresses {
     address public constant eth_optimism = 0x4200000000000000000000000000000000000006;

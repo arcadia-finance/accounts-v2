@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
 import { Base_Test, Constants } from "../Base.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
