@@ -4,12 +4,12 @@
  */
 pragma solidity ^0.8.13;
 
-import { Base_IntegrationAndUnit_Test, Constants } from "../Base_IntegrationAndUnit.t.sol";
+import { Fuzz_Test, Constants } from "./Fuzz.t.sol";
 import { IPricingModule_UsdOnly } from "../../interfaces/IPricingModule_UsdOnly.sol";
 import { FloorERC1155PricingModule_UsdOnly } from "../../PricingModules/FloorERC1155PricingModule_UsdOnly.sol";
 import { stdError } from "../../../lib/forge-std/src/StdError.sol";
 
-contract FloorERC1155PricingModule_Integration_Test is Base_IntegrationAndUnit_Test {
+contract FloorERC1155PricingModule_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -18,8 +18,8 @@ contract FloorERC1155PricingModule_Integration_Test is Base_IntegrationAndUnit_T
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(Base_IntegrationAndUnit_Test) {
-        Base_IntegrationAndUnit_Test.setUp();
+    function setUp() public virtual override(Fuzz_Test) {
+        Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.13;
 
-import { Base_IntegrationAndUnit_Test, Constants } from "../Base_IntegrationAndUnit.t.sol";
+import { Fuzz_Test, Constants } from "./Fuzz.t.sol";
 import { IPricingModule_UsdOnly } from "../../interfaces/IPricingModule_UsdOnly.sol";
 import { PricingModule_UsdOnly } from "../../PricingModules/AbstractPricingModule_UsdOnly.sol";
 import { OracleHub_UsdOnly } from "../../OracleHub_UsdOnly.sol";
@@ -14,7 +14,7 @@ import { CompareArrays } from "../utils/CompareArrays.sol";
 import { RiskConstants } from "../../utils/RiskConstants.sol";
 import { ERC20Mock } from "../../mockups/ERC20SolmateMock.sol";
 
-contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
+contract MainRegistry_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -56,8 +56,8 @@ contract MainRegistry_Integration_Test is Base_IntegrationAndUnit_Test {
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(Base_IntegrationAndUnit_Test) {
-        Base_IntegrationAndUnit_Test.setUp();
+    function setUp() public virtual override(Fuzz_Test) {
+        Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////

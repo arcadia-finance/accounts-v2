@@ -7,7 +7,7 @@ pragma solidity ^0.8.13;
 import { StdStorage, stdStorage } from "../../../lib/forge-std/src/Test.sol";
 import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../mockups/ERC20SolmateMock.sol";
-import { Base_IntegrationAndUnit_Test, Constants } from "../Base_IntegrationAndUnit.t.sol";
+import { Fuzz_Test, Constants } from "./Fuzz.t.sol";
 import { UniswapV3Fixture, INonfungiblePositionManagerExtension } from "./fixtures/uniswap-v3/UniswapV3Fixture.f.sol";
 import { IUniswapV3PoolExtension } from "../../test_old/interfaces/IUniswapV3PoolExtension.sol";
 import {
@@ -22,7 +22,7 @@ import { LiquidityAmountsExtension } from "../../test_old/libraries/LiquidityAmo
 import { ArcadiaOracle } from "../../mockups/ArcadiaOracle.sol";
 import { OracleHub_UsdOnly } from "../../OracleHub_UsdOnly.sol";
 
-contract UniswapV3PricingModule_Integration_Test is Base_IntegrationAndUnit_Test, UniswapV3Fixture {
+contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES
@@ -46,8 +46,8 @@ contract UniswapV3PricingModule_Integration_Test is Base_IntegrationAndUnit_Test
 
     //constructor()
 
-    function setUp() public virtual override(Base_IntegrationAndUnit_Test, UniswapV3Fixture) {
-        Base_IntegrationAndUnit_Test.setUp();
+    function setUp() public virtual override(Fuzz_Test, UniswapV3Fixture) {
+        Fuzz_Test.setUp();
         UniswapV3Fixture.setUp();
 
         vm.prank(users.creatorAddress);

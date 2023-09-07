@@ -4,21 +4,21 @@
  */
 pragma solidity ^0.8.13;
 
-import { Base_Global_Test, Constants } from "./Base_Global.t.sol";
-import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "./utils/Types.sol";
-import { MainRegistry_UsdOnly } from "../MainRegistry_UsdOnly.sol";
-import { OracleHub_UsdOnly } from "../OracleHub_UsdOnly.sol";
-import { PricingModule_UsdOnly } from "../PricingModules/AbstractPricingModule_UsdOnly.sol";
-import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
-import { Proxy } from "../Proxy.sol";
-import { ERC20Mock } from "../mockups/ERC20SolmateMock.sol";
-import { ERC721Mock } from "../mockups/ERC721SolmateMock.sol";
-import { ERC1155Mock } from "../mockups/ERC1155SolmateMock.sol";
-import { ArcadiaOracle } from "../mockups/ArcadiaOracle.sol";
-import { AccountV1 } from "../AccountV1.sol";
+import { Base_Test, Constants } from "../Base.t.sol";
+import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
+import { MainRegistry_UsdOnly } from "../../MainRegistry_UsdOnly.sol";
+import { OracleHub_UsdOnly } from "../../OracleHub_UsdOnly.sol";
+import { PricingModule_UsdOnly } from "../../PricingModules/AbstractPricingModule_UsdOnly.sol";
+import { TrustedCreditorMock } from "../../mockups/TrustedCreditorMock.sol";
+import { Proxy } from "../../Proxy.sol";
+import { ERC20Mock } from "../../mockups/ERC20SolmateMock.sol";
+import { ERC721Mock } from "../../mockups/ERC721SolmateMock.sol";
+import { ERC1155Mock } from "../../mockups/ERC1155SolmateMock.sol";
+import { ArcadiaOracle } from "../../mockups/ArcadiaOracle.sol";
+import { AccountV1 } from "../../AccountV1.sol";
 
 /// @notice Common logic needed by all integration tests.
-abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
+abstract contract Fuzz_Test is Base_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                      CONSTANTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -59,7 +59,7 @@ abstract contract Base_IntegrationAndUnit_Test is Base_Global_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function setUp() public virtual override {
-        Base_Global_Test.setUp();
+        Base_Test.setUp();
 
         // Create mock ERC20 tokens for testing
         vm.startPrank(users.tokenCreatorAddress);

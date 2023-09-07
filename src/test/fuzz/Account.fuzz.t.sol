@@ -5,14 +5,14 @@
 pragma solidity ^0.8.13;
 
 import { StdStorage, stdStorage } from "../../../lib/forge-std/src/Test.sol";
-import { Base_IntegrationAndUnit_Test, Constants } from "../Base_IntegrationAndUnit.t.sol";
+import { Fuzz_Test, Constants } from "./Fuzz.t.sol";
 import { AccountExtension, AccountV1 } from "../utils/Extensions.sol";
 import { MultiActionMock } from "../../mockups/MultiActionMock.sol";
 import { ActionMultiCallV2 } from "../../actions/MultiCallV2.sol";
 import { ActionData } from "../../actions/utils/ActionData.sol";
 import { ERC20Mock } from "../../mockups/ERC20SolmateMock.sol";
 
-contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
+contract Account_Fuzz_Test is Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
@@ -85,8 +85,8 @@ contract Account_Integration_Test is Base_IntegrationAndUnit_Test {
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(Base_IntegrationAndUnit_Test) {
-        Base_IntegrationAndUnit_Test.setUp();
+    function setUp() public virtual override(Fuzz_Test) {
+        Fuzz_Test.setUp();
 
         // Deploy uninitialised account.
         accountNotInitialised = new AccountExtension();

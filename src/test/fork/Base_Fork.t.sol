@@ -4,10 +4,10 @@
  */
 pragma solidity ^0.8.13;
 
-import { Base_Global_Test } from "../Base_Global.t.sol";
+import { Base_Test } from "../Base.t.sol";
 
 /// @notice Common logic needed by all fork tests.
-abstract contract Base_Fork_Test is Base_Global_Test {
+abstract contract Base_Fork_Test is Base_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                 CONSTANTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -24,6 +24,6 @@ abstract contract Base_Fork_Test is Base_Global_Test {
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
-        Base_Global_Test.setUp();
+        Base_Test.setUp();
     }
 }

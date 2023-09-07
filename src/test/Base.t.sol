@@ -26,7 +26,7 @@ import { ERC721Mock } from "../mockups/ERC721SolmateMock.sol";
 import { ERC1155Mock } from "../mockups/ERC1155SolmateMock.sol";
 
 /// @notice Base test contract with common logic needed by all tests.
-abstract contract Base_Global_Test is Test, Events, Errors {
+abstract contract Base_Test is Test, Events, Errors {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
