@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "../../PricingModules/UniswapV3/libraries/FullMath.sol";
-import "../../PricingModules/UniswapV3/libraries/FixedPoint96.sol";
+import "../../pricing-modules/UniswapV3/libraries/FullMath.sol";
+import "../../pricing-modules/UniswapV3/libraries/FixedPoint96.sol";
 
 library LiquidityAmountsExtension {
     /// @notice Computes the amount of liquidity received for a given amount of token0 and price range

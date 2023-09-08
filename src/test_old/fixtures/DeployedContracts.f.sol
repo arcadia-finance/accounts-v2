@@ -8,7 +8,7 @@ import { Factory } from "../../Factory.sol";
 import { AccountV1 } from "../../AccountV1.sol";
 import { MainRegistry } from "../../MainRegistry.sol";
 import { OracleHub } from "../../OracleHub.sol";
-import { StandardERC20PricingModule } from "../../PricingModules/StandardERC20PricingModule.sol";
+import { StandardERC20PricingModule } from "../../pricing-modules/StandardERC20PricingModule.sol";
 
 contract DeployedContracts {
     Factory public constant factory = Factory(0x00CB53780Ea58503D3059FC02dDd596D0Be926cB);

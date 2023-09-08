@@ -8,7 +8,7 @@ import { Base_Test, Constants } from "../Base.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
 import { MainRegistry_UsdOnly } from "../../MainRegistry_UsdOnly.sol";
 import { OracleHub_UsdOnly } from "../../OracleHub_UsdOnly.sol";
-import { PricingModule_UsdOnly } from "../../PricingModules/AbstractPricingModule_UsdOnly.sol";
+import { PricingModule_UsdOnly } from "../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
 import { TrustedCreditorMock } from "../../mockups/TrustedCreditorMock.sol";
 import { Proxy } from "../../Proxy.sol";
 import { ERC20Mock } from "../../mockups/ERC20SolmateMock.sol";

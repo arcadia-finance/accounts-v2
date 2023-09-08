@@ -9,7 +9,7 @@ import {
     DeployAddresses, DeployNumbers, DeployBytes, DeployRiskConstantsMainnet
 } from "./Constants/DeployConstants.sol";
 
-import { PricingModule, StandardERC20PricingModule } from "../src/PricingModules/StandardERC20PricingModule.sol";
+import { PricingModule, StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
 import { RiskConstants } from "../src/utils/RiskConstants.sol";
 

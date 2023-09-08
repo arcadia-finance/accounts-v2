@@ -9,7 +9,7 @@ import {
     DeployAddresses, DeployNumbers, DeployBytes, DeployRiskConstantsMainnet
 } from "./Constants/DeployConstants.sol";
 
-import { StandardERC20PricingModule } from "../src/PricingModules/StandardERC20PricingModule.sol";
+import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
 
 import { ILendingPool } from "./interfaces/ILendingPool.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";

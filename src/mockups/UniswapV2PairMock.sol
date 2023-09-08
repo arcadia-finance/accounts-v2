@@ -7,7 +7,7 @@
 pragma solidity 0.8.19;
 
 import "../../lib/solmate/src/tokens/ERC20.sol";
-import "../PricingModules/interfaces/IUniswapV2Factory.sol";
+import "../pricing-modules/interfaces/IUniswapV2Factory.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 
 contract UniswapV2PairMock is ERC20 {

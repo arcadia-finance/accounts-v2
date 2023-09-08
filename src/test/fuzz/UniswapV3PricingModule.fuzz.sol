@@ -17,7 +17,7 @@ import {
     TickMath,
     LiquidityAmounts,
     FixedPointMathLib
-} from "../../PricingModules/UniswapV3/UniswapV3WithFeesPricingModule_UsdOnly.sol";
+} from "../../pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule_UsdOnly.sol";
 import { LiquidityAmountsExtension } from "../../test_old/libraries/LiquidityAmountsExtension.sol";
 import { ArcadiaOracle } from "../../mockups/ArcadiaOracle.sol";
 import { OracleHub_UsdOnly } from "../../OracleHub_UsdOnly.sol";

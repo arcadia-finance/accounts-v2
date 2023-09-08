@@ -9,7 +9,7 @@ import { ArcadiaAddresses, ArcadiaContractAddresses } from "./Constants/Transfer
 
 import "../src/Factory.sol";
 import "../src/MainRegistry.sol";
-import { StandardERC20PricingModule } from "../src/PricingModules/StandardERC20PricingModule.sol";
+import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
 import { ILiquidator } from "./interfaces/ILiquidator.sol";
 import "../src/OracleHub.sol";
 

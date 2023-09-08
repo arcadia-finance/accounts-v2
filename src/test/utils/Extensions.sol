@@ -8,7 +8,7 @@ import { MainRegistry_UsdOnly } from "../../MainRegistry_UsdOnly.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { AccountV1 } from "../../AccountV1.sol";
 import { UniswapV3WithFeesPricingModule_UsdOnly } from
-    "../../PricingModules/UniswapV3/UniswapV3WithFeesPricingModule_UsdOnly.sol";
+    "../../pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule_UsdOnly.sol";
 
 contract MainRegistryExtension is MainRegistry_UsdOnly {
     using FixedPointMathLib for uint256;

@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "./Fuzz.t.sol";
 import { IPricingModule_UsdOnly } from "../../interfaces/IPricingModule_UsdOnly.sol";
-import { PricingModule_UsdOnly } from "../../PricingModules/AbstractPricingModule_UsdOnly.sol";
+import { PricingModule_UsdOnly } from "../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
 import { OracleHub_UsdOnly } from "../../OracleHub_UsdOnly.sol";
 import { ArcadiaOracle } from "../../mockups/ArcadiaOracle.sol";
 import { RiskModule } from "../../RiskModule.sol";

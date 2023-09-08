@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "./Fuzz.t.sol";
 import { IPricingModule_UsdOnly } from "../../interfaces/IPricingModule_UsdOnly.sol";
-import { FloorERC1155PricingModule_UsdOnly } from "../../PricingModules/FloorERC1155PricingModule_UsdOnly.sol";
+import { FloorERC1155PricingModule_UsdOnly } from "../../pricing-modules/FloorERC1155PricingModule_UsdOnly.sol";
 import { stdError } from "../../../lib/forge-std/src/StdError.sol";
 
 contract FloorERC1155PricingModule_Fuzz_Test is Fuzz_Test {

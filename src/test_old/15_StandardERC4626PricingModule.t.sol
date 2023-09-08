@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import "./fixtures/ArcadiaAccountsFixture.f.sol";
 
 import { ERC4626Mock } from "../mockups/ERC4626Mock.sol";
-import { StandardERC4626PricingModule } from "../PricingModules/StandardERC4626PricingModule.sol";
+import { StandardERC4626PricingModule } from "../pricing-modules/StandardERC4626PricingModule.sol";
 
 contract standardERC4626PricingModuleTest is DeployArcadiaAccounts {
     using stdStorage for StdStorage;

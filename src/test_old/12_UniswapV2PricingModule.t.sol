@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import "./fixtures/ArcadiaAccountsFixture.f.sol";
 import { UniswapV2FactoryMock } from "../mockups/UniswapV2FactoryMock.sol";
 import { UniswapV2PairMock } from "../mockups/UniswapV2PairMock.sol";
-import { UniswapV2PricingModule } from "../PricingModules/UniswapV2PricingModule.sol";
+import { UniswapV2PricingModule } from "../pricing-modules/UniswapV2PricingModule.sol";
 
 contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
     constructor(

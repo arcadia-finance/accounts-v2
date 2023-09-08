@@ -17,7 +17,7 @@ import {
     TickMath,
     LiquidityAmounts,
     FixedPointMathLib
-} from "../PricingModules/UniswapV3/UniswapV3PricingModule.sol";
+} from "../pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
 import { INonfungiblePositionManagerExtension } from "./interfaces/INonfungiblePositionManagerExtension.sol";
 import { IUniswapV3PoolExtension } from "./interfaces/IUniswapV3PoolExtension.sol";
 import { IUniswapV3Factory } from "./interfaces/IUniswapV3Factory.sol";
