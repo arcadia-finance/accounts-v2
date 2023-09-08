@@ -4,27 +4,25 @@
  */
 pragma solidity 0.8.19;
 
-import { Fuzz_Test, Constants } from "./Fuzz.t.sol";
-import { IPricingModule_UsdOnly } from "../../interfaces/IPricingModule_UsdOnly.sol";
-import { FloorERC721PricingModule_UsdOnly } from "../../pricing-modules/FloorERC721PricingModule_UsdOnly.sol";
+import { Constants, FloorERC721PricingModule_Fuzz_Test } from "./FloorERC721PricingModule.fuzz.t.sol";
 
-contract FloorERC721PricingModule_Fuzz_Test is Fuzz_Test {
-    /* ///////////////////////////////////////////////////////////////
-                             VARIABLES
-    /////////////////////////////////////////////////////////////// */
+import { IPricingModule_UsdOnly } from "../../../../interfaces/IPricingModule_UsdOnly.sol";
 
+/**
+ * @notice Fuzz tests for the "getValue" of contract "FloorERC721PricingModule".
+ */
+contract GetValue_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(Fuzz_Test) {
-        Fuzz_Test.setUp();
+    function setUp() public override {
+        FloorERC721PricingModule_Fuzz_Test.setUp();
     }
 
-    /*///////////////////////////////////////////////////////////////
-                          PRICING LOGIC
-    ///////////////////////////////////////////////////////////////*/
-
+    /*//////////////////////////////////////////////////////////////
+                              TESTS
+    //////////////////////////////////////////////////////////////*/
     function testFuzz_getValue(uint96 rateNft1ToToken1, uint96 rateToken1ToUsd) public {
         // Does not test on overflow, test to check if function correctly returns value in Usd
         uint256 expectedValueInUsd = (uint256(rateNft1ToToken1) * uint256(rateToken1ToUsd) * Constants.WAD)
