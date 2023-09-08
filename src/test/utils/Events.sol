@@ -37,4 +37,14 @@ abstract contract Events {
 
     event OracleAdded(address indexed oracle, address indexed quoteAsset, bytes16 baseAsset);
     event OracleDecommissioned(address indexed oracle, bool isActive);
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                PRICING MODULE
+    //////////////////////////////////////////////////////////////////////////*/
+
+    event RiskManagerUpdated(address riskManager);
+    event RiskVariablesSet(
+        address indexed asset, uint8 indexed baseCurrencyId, uint16 collateralFactor, uint16 liquidationFactor
+    );
+    event MaxExposureSet(address indexed asset, uint128 maxExposure);
 }
