@@ -31,7 +31,8 @@ struct MockOracles {
     ArcadiaOracle nft1ToToken1;
     ArcadiaOracle nft2ToUsd;
     ArcadiaOracle nft3ToToken1;
-    ArcadiaOracle erc1155ToToken1;
+    ArcadiaOracle sft1ToToken1;
+    ArcadiaOracle sft2ToUsd;
 }
 
 struct MockERC20 {
@@ -50,7 +51,8 @@ struct MockERC721 {
 }
 
 struct MockERC1155 {
-    ERC1155Mock erc1155;
+    ERC1155Mock sft1;
+    ERC1155Mock sft2;
 }
 
 struct Rates {
@@ -63,5 +65,6 @@ struct Rates {
     uint256 nft1ToToken1;
     uint256 nft2ToUsd;
     uint256 nft3ToToken1;
-    uint256 erc1155ToToken1;
+    uint256 sft1ToToken1;
+    uint256 sft2ToUsd;
 }

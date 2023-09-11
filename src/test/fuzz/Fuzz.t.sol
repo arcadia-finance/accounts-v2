@@ -56,7 +56,7 @@ abstract contract Fuzz_Test is Base_Test {
     address[] public oracleNft1ToToken1ToUsd = new address[](2);
 
     // ERC1155 oracle array
-    address[] public oracleERC1155ToToken1ToUsd = new address[](2);
+    address[] public oracleSft1ToToken1ToUsd = new address[](2);
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -89,7 +89,7 @@ abstract contract Fuzz_Test is Base_Test {
         });
 
         // Create a mock ERC1155 token for testing
-        mockERC1155 = MockERC1155({ erc1155: new ERC1155Mock("ERC1155", "1155") });
+        mockERC1155 = MockERC1155({ sft1: new ERC1155Mock("SFT1", "SFT1"), sft2: new ERC1155Mock("SFT2", "SFT2") });
 
         // Label the deployed tokens
         vm.label({ account: address(mockERC20.stable1), newLabel: "STABLE1" });
@@ -101,7 +101,8 @@ abstract contract Fuzz_Test is Base_Test {
         vm.label({ account: address(mockERC721.nft1), newLabel: "NFT1" });
         vm.label({ account: address(mockERC721.nft2), newLabel: "NFT2" });
         vm.label({ account: address(mockERC721.nft3), newLabel: "NFT3" });
-        vm.label({ account: address(mockERC1155.erc1155), newLabel: "ERC1155" });
+        vm.label({ account: address(mockERC1155.sft1), newLabel: "SFT1" });
+        vm.label({ account: address(mockERC1155.sft2), newLabel: "SFT2" });
 
         // Set rates
         rates = Rates({
@@ -114,7 +115,8 @@ abstract contract Fuzz_Test is Base_Test {
             nft1ToToken1: 50 * 10 ** Constants.nftOracleDecimals,
             nft2ToUsd: 7 * 10 ** Constants.nftOracleDecimals,
             nft3ToToken1: 1 * 10 ** (Constants.nftOracleDecimals - 1),
-            erc1155ToToken1: 1 * 10 ** (Constants.erc1155OracleDecimals - 2)
+            sft1ToToken1: 1 * 10 ** (Constants.erc1155OracleDecimals - 2),
+            sft2ToUsd: 1 * 10 ** Constants.erc1155OracleDecimals
         });
 
         // Set a trusted creditor with initialized params to use accross tests
@@ -133,9 +135,8 @@ abstract contract Fuzz_Test is Base_Test {
             nft1ToToken1: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT1 / TOKEN1", rates.nft1ToToken1),
             nft2ToUsd: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT2 / USD", rates.nft2ToUsd),
             nft3ToToken1: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT3 / TOKEN1", rates.nft3ToToken1),
-            erc1155ToToken1: initMockedOracle(
-                uint8(Constants.erc1155OracleDecimals), "ERC1155 / TOKEN1", rates.erc1155ToToken1
-                )
+            sft1ToToken1: initMockedOracle(uint8(Constants.erc1155OracleDecimals), "SFT1 / TOKEN1", rates.sft1ToToken1),
+            sft2ToUsd: initMockedOracle(uint8(Constants.erc1155OracleDecimals), "SFT2 / TOKEN1", rates.sft2ToUsd)
         });
 
         // Add STABLE1 AND TOKEN1 as baseCurrencies in MainRegistry
@@ -220,10 +221,10 @@ abstract contract Fuzz_Test is Base_Test {
         oracleHub.addOracle(
             OracleHub_UsdOnly.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.erc1155OracleDecimals),
-                baseAsset: "ERC1155",
+                baseAsset: "SFT1",
                 quoteAsset: "TOKEN1",
-                oracle: address(mockOracles.erc1155ToToken1),
-                baseAssetAddress: address(mockERC1155.erc1155),
+                oracle: address(mockOracles.sft1ToToken1),
+                baseAssetAddress: address(mockERC1155.sft1),
                 isActive: true
             })
         );
@@ -293,11 +294,11 @@ abstract contract Fuzz_Test is Base_Test {
         );
 
         // Add ERC1155 contract to the floorERC1155PricingModule
-        oracleERC1155ToToken1ToUsd[0] = address(mockOracles.erc1155ToToken1);
-        oracleERC1155ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
+        oracleSft1ToToken1ToUsd[0] = address(mockOracles.sft1ToToken1);
+        oracleSft1ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
 
         floorERC1155PricingModule.addAsset(
-            address(mockERC1155.erc1155), 1, oracleERC1155ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
+            address(mockERC1155.sft1), 1, oracleSft1ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
         );
 
         vm.stopPrank();

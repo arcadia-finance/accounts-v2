@@ -4,28 +4,25 @@
  */
 pragma solidity 0.8.19;
 
-import { Fuzz_Test, Constants } from "./Fuzz.t.sol";
-import { IPricingModule_UsdOnly } from "../../interfaces/IPricingModule_UsdOnly.sol";
-import { FloorERC1155PricingModule_UsdOnly } from "../../pricing-modules/FloorERC1155PricingModule_UsdOnly.sol";
-import { stdError } from "../../../lib/forge-std/src/StdError.sol";
+import { Constants, FloorERC1155PricingModule_Fuzz_Test } from "./FloorERC1155PricingModule.fuzz.t.sol";
 
-contract FloorERC1155PricingModule_Fuzz_Test is Fuzz_Test {
-    /* ///////////////////////////////////////////////////////////////
-                             VARIABLES
-    /////////////////////////////////////////////////////////////// */
+import { IPricingModule_UsdOnly } from "../../../../interfaces/IPricingModule_UsdOnly.sol";
 
+/**
+ * @notice Fuzz tests for the "getValue" of contract "FloorERC1155PricingModule".
+ */
+contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(Fuzz_Test) {
-        Fuzz_Test.setUp();
+    function setUp() public override {
+        FloorERC1155PricingModule_Fuzz_Test.setUp();
     }
 
-    /*///////////////////////////////////////////////////////////////
-                          PRICING LOGIC
-    ///////////////////////////////////////////////////////////////*/
-
+    /*//////////////////////////////////////////////////////////////
+                              TESTS
+    //////////////////////////////////////////////////////////////*/
     function testFuzz_getValue(uint80 amountERC1155, uint72 rateERC1155ToToken1) public {
         // Does not test on overflow, test to check if function correctly returns value in Usd
         uint256 expectedValueInUsd = (
@@ -33,11 +30,11 @@ contract FloorERC1155PricingModule_Fuzz_Test is Fuzz_Test {
         ) / 10 ** (Constants.erc1155OracleDecimals + Constants.tokenOracleDecimals);
 
         vm.startPrank(users.defaultTransmitter);
-        mockOracles.erc1155ToToken1.transmit(int256(uint256(rateERC1155ToToken1)));
+        mockOracles.sft1ToToken1.transmit(int256(uint256(rateERC1155ToToken1)));
         vm.stopPrank();
 
         IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
-            asset: address(mockERC1155.erc1155),
+            asset: address(mockERC1155.sft1),
             assetId: 0,
             assetAmount: amountERC1155,
             baseCurrency: UsdBaseCurrencyID
@@ -62,11 +59,11 @@ contract FloorERC1155PricingModule_Fuzz_Test is Fuzz_Test {
         );
 
         vm.startPrank(users.defaultTransmitter);
-        mockOracles.erc1155ToToken1.transmit(int256(rateERC1155ToToken1New));
+        mockOracles.sft1ToToken1.transmit(int256(rateERC1155ToToken1New));
         vm.stopPrank();
 
         IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
-            asset: address(mockERC1155.erc1155),
+            asset: address(mockERC1155.sft1),
             assetId: 1,
             assetAmount: amountERC1155,
             baseCurrency: UsdBaseCurrencyID
