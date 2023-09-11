@@ -12,7 +12,7 @@ import { ArcadiaOracle } from "../../../mockups/ArcadiaOracle.sol";
 /**
  * @notice Common logic needed by all "MainRegistry" fuzz tests.
  */
-contract MainRegistry_Fuzz_Test is Fuzz_Test {
+abstract contract MainRegistry_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */

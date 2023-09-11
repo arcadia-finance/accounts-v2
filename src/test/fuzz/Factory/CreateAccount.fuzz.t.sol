@@ -4,27 +4,26 @@
  */
 pragma solidity 0.8.19;
 
-import { Fuzz_Test, Constants } from "./Fuzz.t.sol";
-import { AccountV1 } from "../../AccountV1.sol";
-import { AccountVariableVersion } from "../../mockups/AccountVariableVersion.sol";
+import { Constants, Factory_Fuzz_Test } from "./Factory.fuzz.t.sol";
 
-contract Factory_Fuzz_Test is Fuzz_Test {
-    /* ///////////////////////////////////////////////////////////////
-                             VARIABLES
-    /////////////////////////////////////////////////////////////// */
+import { AccountV1 } from "../../../AccountV1.sol";
+import { AccountVariableVersion } from "../../../mockups/AccountVariableVersion.sol";
 
+/**
+ * @notice Fuzz tests for the "createAccount" of contract "Factory".
+ */
+contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(Fuzz_Test) {
-        Fuzz_Test.setUp();
+    function setUp() public override {
+        Factory_Fuzz_Test.setUp();
     }
 
-    /* ///////////////////////////////////////////////////////////////
-                          Account MANAGEMENT
-    /////////////////////////////////////////////////////////////// */
-
+    /*//////////////////////////////////////////////////////////////
+                              TESTS
+    //////////////////////////////////////////////////////////////*/
     function testFuzz_createAccount_DeployAccountWithNoCreditor(uint256 salt) public {
         // We assume that salt > 0 as we already deployed a Account with all inputs to 0
         vm.assume(salt > 0);
@@ -175,14 +174,5 @@ contract Factory_Fuzz_Test is Fuzz_Test {
         vm.prank(sender);
         vm.expectRevert(FunctionIsPaused.selector);
         factory.createAccount(salt, 0, address(0), address(0));
-    }
-
-    function test_isAccount_positive() public {
-        address newAccount = factory.createAccount(1, 0, address(0), address(0));
-
-        bool expectedReturn = factory.isAccount(address(newAccount));
-        bool actualReturn = true;
-
-        assertEq(expectedReturn, actualReturn);
     }
 }

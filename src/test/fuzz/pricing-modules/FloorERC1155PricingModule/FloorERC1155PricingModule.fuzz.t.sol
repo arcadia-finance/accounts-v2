@@ -12,7 +12,7 @@ import { RiskConstants } from "../../../../utils/RiskConstants.sol";
 /**
  * @notice Common logic needed by all "FloorERC1155PricingModule" fuzz tests.
  */
-contract FloorERC1155PricingModule_Fuzz_Test is Fuzz_Test {
+abstract contract FloorERC1155PricingModule_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */

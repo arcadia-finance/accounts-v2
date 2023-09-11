@@ -23,6 +23,10 @@ abstract contract Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     event AccountUpgraded(address indexed accountAddress, uint16 oldVersion, uint16 indexed newVersion);
+    event AccountVersionAdded(
+        uint16 indexed version, address indexed registry, address indexed logic, bytes32 versionRoot
+    );
+    event AccountVersionBlocked(uint16 version);
 
     /*//////////////////////////////////////////////////////////////////////////
                                       ACCOUNT

@@ -29,6 +29,8 @@ contract DecommissionOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.assume(oracle != address(mockOracles.token2ToUsd));
         vm.assume(oracle != address(mockOracles.stable1ToUsd));
         vm.assume(oracle != address(mockOracles.stable2ToUsd));
+        vm.assume(oracle != address(mockOracles.nft1ToToken1));
+        vm.assume(oracle != address(mockOracles.sft1ToToken1));
 
         vm.startPrank(sender);
         vm.expectRevert("OH_DO: Oracle not in Hub");
