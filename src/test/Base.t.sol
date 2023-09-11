@@ -32,7 +32,7 @@ abstract contract Base_Test is Test, Events, Errors {
     //////////////////////////////////////////////////////////////////////////*/
 
     Users internal users;
-    address internal deployedAccountInputs0;
+
     // This will be the base currency set for the instance of "trustedCreditorWithParams"
     address internal initBaseCurrency;
 
@@ -49,10 +49,10 @@ abstract contract Base_Test is Test, Events, Errors {
     FloorERC721PricingModule_UsdOnly internal floorERC721PricingModule;
     FloorERC1155PricingModule_UsdOnly internal floorERC1155PricingModule;
     UniswapV3PricingModuleExtension internal uniV3PricingModule;
-    AccountV1 internal account;
-    AccountV2 internal accountV2;
-    TrustedCreditorMock internal trustedCreditorWithParamsInit;
-    TrustedCreditorMock internal defaultTrustedCreditor;
+    AccountV1 internal accountV1Logic;
+    AccountV2 internal accountV2Logic;
+    AccountV1 internal proxyAccount;
+    TrustedCreditorMock internal trustedCreditor;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -87,11 +87,13 @@ abstract contract Base_Test is Test, Events, Errors {
             2
         );
         deployUniswapV3PricingModule();
-        account = new AccountV1();
-        accountV2 = new AccountV2();
-        factory.setNewAccountInfo(address(mainRegistryExtension), address(account), Constants.upgradeProof1To2, "");
-        trustedCreditorWithParamsInit = new TrustedCreditorMock();
-        defaultTrustedCreditor = new TrustedCreditorMock();
+        accountV1Logic = new AccountV1();
+        accountV2Logic = new AccountV2();
+        factory.setNewAccountInfo(
+            address(mainRegistryExtension), address(accountV1Logic), Constants.upgradeProof1To2, ""
+        );
+        trustedCreditor = new TrustedCreditorMock();
+        trustedCreditor = new TrustedCreditorMock();
         vm.stopPrank();
 
         // Add Pricing Modules to the Main Registry.
@@ -107,20 +109,19 @@ abstract contract Base_Test is Test, Events, Errors {
         vm.label({ account: address(mainRegistryExtension), newLabel: "Main Registry Extension" });
         vm.label({ account: address(oracleHub), newLabel: "Oracle Hub" });
         vm.label({ account: address(erc20PricingModule), newLabel: "Standard ERC20 Pricing Module" });
-        vm.label({ account: address(account), newLabel: "Account" });
-        vm.label({ account: address(accountV2), newLabel: "AccountV2" });
-        vm.label({ account: address(defaultTrustedCreditor), newLabel: "Trusted Creditor Mock Not Initialized" });
-        vm.label({ account: address(trustedCreditorWithParamsInit), newLabel: "Trusted Creditor Mock Initialized" });
+        vm.label({ account: address(accountV1Logic), newLabel: "Account" });
+        vm.label({ account: address(accountV2Logic), newLabel: "AccountV2" });
+        vm.label({ account: address(trustedCreditor), newLabel: "Mocked Trusted Creditor" });
 
         // Initialize the default liquidation cost and liquidator of trusted creditor
         // The base currency on initialization will depend on the type of test and set at a lower level
-        trustedCreditorWithParamsInit.setFixedLiquidationCost(Constants.initLiquidationCost);
-        trustedCreditorWithParamsInit.setLiquidator(Constants.initLiquidator);
+        trustedCreditor.setFixedLiquidationCost(Constants.initLiquidationCost);
+        trustedCreditor.setLiquidator(Constants.initLiquidator);
 
         // Deploy an initial Account with all inputs to zero
-        vm.startPrank(users.accountOwner);
-        deployedAccountInputs0 = factory.createAccount(0, 0, address(0), address(0));
-        vm.stopPrank();
+        vm.prank(users.accountOwner);
+        address proxyAddress = factory.createAccount(0, 0, address(0), address(0));
+        proxyAccount = AccountV1(proxyAddress);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

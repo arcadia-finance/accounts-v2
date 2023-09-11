@@ -16,14 +16,13 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
     function setUp() public override {
         MainRegistry_Fuzz_Test.setUp();
-        MainRegistry_Fuzz_Test.deployAccount();
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testRevert_batchProcessDeposit_NonAccount(address unprivilegedAddress_) public {
-        vm.assume(unprivilegedAddress_ != address(account));
+        vm.assume(unprivilegedAddress_ != address(proxyAccount));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -52,7 +51,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assetAmounts[0] = 1000;
         assetAmounts[1] = 1000;
 
-        vm.startPrank(address(account));
+        vm.startPrank(address(proxyAccount));
         vm.expectRevert("MR_BPD: LENGTH_MISMATCH");
         mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
@@ -73,7 +72,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amount;
 
-        vm.startPrank(address(account));
+        vm.startPrank(address(proxyAccount));
         vm.expectRevert("APM_PD: Exposure not in limits");
         mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
@@ -91,7 +90,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = 1;
 
-        vm.startPrank(address(account));
+        vm.startPrank(address(proxyAccount));
         vm.expectRevert();
         mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
@@ -121,7 +120,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         mainRegistryExtension.pause();
 
         // Then: batchProcessDeposit should reverted
-        vm.prank(address(account));
+        vm.prank(address(proxyAccount));
         vm.expectRevert(FunctionIsPaused.selector);
         mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
     }
@@ -136,7 +135,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amount;
 
-        vm.prank(address(account));
+        vm.prank(address(proxyAccount));
         uint256[] memory assetTypes = mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
 
         assertEq(assetTypes[0], 0);
@@ -158,7 +157,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assetAmounts[0] = amountToken1;
         assetAmounts[1] = amountToken2;
 
-        vm.prank(address(account));
+        vm.prank(address(proxyAccount));
         uint256[] memory assetTypes = mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
 
         assertEq(assetTypes[0], 0);
@@ -181,7 +180,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken2;
 
-        vm.startPrank(address(account));
+        vm.startPrank(address(proxyAccount));
         mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 
@@ -200,7 +199,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken2;
 
-        vm.startPrank(address(account));
+        vm.startPrank(address(proxyAccount));
         vm.expectRevert("MR: No delegate.");
         (bool success,) = address(mainRegistryExtension).delegatecall(
             abi.encodeWithSignature(

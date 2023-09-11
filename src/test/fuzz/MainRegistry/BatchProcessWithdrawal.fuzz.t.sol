@@ -19,14 +19,13 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
 
     function setUp() public override {
         MainRegistry_Fuzz_Test.setUp();
-        MainRegistry_Fuzz_Test.deployAccount();
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testRevert_batchProcessWithdrawal_NonAccount(address unprivilegedAddress_) public {
-        vm.assume(unprivilegedAddress_ != address(account));
+        vm.assume(unprivilegedAddress_ != address(proxyAccount));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -54,7 +53,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = 1000;
 
-        vm.startPrank(address(account));
+        vm.startPrank(address(proxyAccount));
         vm.expectRevert("MR_BPW: LENGTH_MISMATCH");
         mainRegistryExtension.batchProcessWithdrawal(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
@@ -71,7 +70,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken2;
 
-        vm.prank(address(account));
+        vm.prank(address(proxyAccount));
         mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
 
         // When: Main registry is paused
@@ -82,7 +81,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         mainRegistryExtension.pause();
 
         // Then: Withdrawal is reverted due to paused main registry
-        vm.startPrank(address(account));
+        vm.startPrank(address(proxyAccount));
         vm.expectRevert(FunctionIsPaused.selector);
         mainRegistryExtension.batchProcessWithdrawal(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
@@ -114,7 +113,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
 
         assetAmounts[0] = amountWithdrawn;
 
-        vm.prank(address(account));
+        vm.prank(address(proxyAccount));
         vm.expectRevert();
         mainRegistryExtension.batchProcessWithdrawal(assetAddresses, assetIds, assetAmounts);
     }
@@ -131,7 +130,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountDeposited;
 
-        vm.prank(address(account));
+        vm.prank(address(proxyAccount));
         mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
 
         (, uint256 exposure) = erc20PricingModule.exposure(address(mockERC20.token1));
@@ -140,7 +139,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
 
         assetAmounts[0] = amountWithdrawn;
 
-        vm.prank(address(account));
+        vm.prank(address(proxyAccount));
         uint256[] memory assetTypes =
             mainRegistryExtension.batchProcessWithdrawal(assetAddresses, assetIds, assetAmounts);
 
@@ -161,11 +160,11 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken2;
 
-        vm.startPrank(address(account));
+        vm.startPrank(address(proxyAccount));
         mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 
-        vm.startPrank(address(account));
+        vm.startPrank(address(proxyAccount));
         mainRegistryExtension.batchProcessWithdrawal(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 
@@ -184,7 +183,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken2;
 
-        vm.startPrank(address(account));
+        vm.startPrank(address(proxyAccount));
         vm.expectRevert("MR: No delegate.");
         (bool success,) = address(mainRegistryExtension).delegatecall(
             abi.encodeWithSignature(

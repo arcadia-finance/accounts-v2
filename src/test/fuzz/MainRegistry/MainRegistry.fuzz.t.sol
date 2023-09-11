@@ -61,22 +61,4 @@ abstract contract MainRegistry_Fuzz_Test is Fuzz_Test {
             assetValue /= 10 ** (18 - baseCurrencyDecimals);
         }
     }
-
-    function deployAccount() internal {
-        vm.startPrank(users.accountOwner);
-        address accountAddress = factory.createAccount(
-            uint256(
-                keccak256(
-                    abi.encodeWithSignature(
-                        "doRandom(uint256,uint256,bytes32)", block.timestamp, block.number, blockhash(block.number)
-                    )
-                )
-            ),
-            0,
-            address(0),
-            address(0)
-        );
-        account = AccountV1(accountAddress);
-        vm.stopPrank();
-    }
 }

@@ -121,7 +121,7 @@ abstract contract Fuzz_Test is Base_Test {
 
         // Set a trusted creditor with initialized params to use accross tests
         initBaseCurrency = address(mockERC20.stable1);
-        trustedCreditorWithParamsInit.setBaseCurrency(initBaseCurrency);
+        trustedCreditor.setBaseCurrency(initBaseCurrency);
         vm.stopPrank();
 
         // Deploy Oracles

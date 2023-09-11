@@ -4,110 +4,32 @@
  */
 pragma solidity 0.8.19;
 
-import { StdStorage, stdStorage } from "../../../lib/forge-std/src/Test.sol";
-import { Fuzz_Test, Constants } from "./Fuzz.t.sol";
-import { AccountExtension, AccountV1 } from "../utils/Extensions.sol";
-import { MultiActionMock } from "../../mockups/MultiActionMock.sol";
-import { ActionMultiCallV2 } from "../../actions/MultiCallV2.sol";
-import { ActionData } from "../../actions/utils/ActionData.sol";
-import { ERC20Mock } from "../../mockups/ERC20SolmateMock.sol";
+import { Constants, AccountV1_Fuzz_Test } from "./AccountV1.fuzz.t.sol";
 
-contract Account_Fuzz_Test is Fuzz_Test {
+import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
+import { ActionData } from "../../../../actions/utils/ActionData.sol";
+import { ActionMultiCallV2 } from "../../../../actions/MultiCallV2.sol";
+import { MultiActionMock } from "../../../../mockups/MultiActionMock.sol";
+import { StdStorage, stdStorage } from "../../../../../lib/forge-std/src/Test.sol";
+
+/**
+ * @notice Fuzz tests for the "accountManagementAction" of contract "AccountV1".
+ */
+contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    /*//////////////////////////////////////////////////////////////////////////
-                                   TEST CONTRACTS
-    //////////////////////////////////////////////////////////////////////////*/
-
     AccountExtension internal accountNotInitialised;
-    AccountExtension internal accountExtension;
-    MultiActionMock internal multiActionMock;
     ActionMultiCallV2 internal action;
-
-    /* ///////////////////////////////////////////////////////////////
-                            HELPER FUNCTIONS
-    /////////////////////////////////////////////////////////////// */
-
-    function depositERC20InAccount(ERC20Mock token, uint256 amount, address sender, address account_)
-        public
-        returns (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts)
-    {
-        assetAddresses = new address[](1);
-        assetAddresses[0] = address(token);
-
-        assetIds = new uint256[](1);
-        assetIds[0] = 0;
-
-        assetAmounts = new uint256[](1);
-        assetAmounts[0] = amount;
-
-        vm.prank(users.tokenCreatorAddress);
-        token.mint(sender, amount);
-
-        token.balanceOf(0x0000000000000000000000000000000000000006);
-
-        vm.startPrank(sender);
-        token.approve(account_, amount);
-        AccountExtension(account_).deposit(assetAddresses, assetIds, assetAmounts);
-        vm.stopPrank();
-    }
-
-    function generateERC721DepositList(uint8 length)
-        public
-        returns (
-            address[] memory assetAddresses,
-            uint256[] memory assetIds,
-            uint256[] memory assetAmounts,
-            uint256[] memory assetTypes
-        )
-    {
-        assetAddresses = new address[](length);
-        assetIds = new uint256[](length);
-        assetAmounts = new uint256[](length);
-        assetTypes = new uint256[](length);
-
-        uint256 id = 10;
-        for (uint256 i; i < length; ++i) {
-            vm.prank(users.tokenCreatorAddress);
-            mockERC721.nft1.mint(users.accountOwner, id);
-            assetAddresses[i] = address(mockERC721.nft1);
-            assetIds[i] = id;
-            assetAmounts[i] = 1;
-            assetTypes[i] = 1;
-            ++id;
-        }
-    }
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(Fuzz_Test) {
-        Fuzz_Test.setUp();
-
-        // Deploy uninitialised account.
-        accountNotInitialised = new AccountExtension();
-
-        // Deploy Account.
-        accountExtension = new AccountExtension();
-
-        // Initiate Account (set owner and baseCurrency).
-        accountExtension.initialize(
-            users.accountOwner,
-            address(mainRegistryExtension),
-            address(mockERC20.stable1),
-            address(trustedCreditorWithParamsInit)
-        );
-
-        // Set account in factory.
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension))
-            .checked_write(true);
-
-        // Initiate Reentrancy guard.
-        accountExtension.setLocked(1);
+    function setUp() public override {
+        AccountV1_Fuzz_Test.setUp();
 
         // Deploy multicall contract and actions
         action = new ActionMultiCallV2();
@@ -116,262 +38,13 @@ contract Account_Fuzz_Test is Fuzz_Test {
         // Set allowed action contract
         vm.prank(users.creatorAddress);
         mainRegistryExtension.setAllowedAction(address(action), true);
+
+        accountNotInitialised = new AccountExtension();
     }
 
-    /* ///////////////////////////////////////////////////////////////
-                          ACCOUNT MANAGEMENT
-    /////////////////////////////////////////////////////////////// */
-
-    function testRevert_initialize_InvalidMainreg() public {
-        vm.expectRevert("A_I: Registry cannot be 0!");
-        accountNotInitialised.initialize(users.accountOwner, address(0), address(0), address(0));
-    }
-
-    function testRevert_initialize_AlreadyInitialized() public {
-        accountNotInitialised.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
-
-        vm.expectRevert("A_I: Already initialized!");
-        accountNotInitialised.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
-    }
-
-    function test_initialize(address owner_) public {
-        vm.expectEmit(true, true, true, true);
-        emit BaseCurrencySet(address(0));
-        accountNotInitialised.initialize(owner_, address(mainRegistryExtension), address(0), address(0));
-
-        assertEq(accountNotInitialised.owner(), owner_);
-        assertEq(accountNotInitialised.getLocked(), 1);
-        assertEq(accountNotInitialised.registry(), address(mainRegistryExtension));
-        assertEq(accountNotInitialised.baseCurrency(), address(0));
-    }
-
-    function testFuzz_Revert_upgradeAccount_Reentered(
-        address newImplementation,
-        address newRegistry,
-        uint16 newVersion,
-        bytes calldata data
-    ) public {
-        // Reentrancy guard is in locked state.
-        accountExtension.setLocked(2);
-
-        // Should revert if the reentrancy guard is locked.
-        vm.startPrank(users.accountOwner);
-        vm.expectRevert("A: REENTRANCY");
-        accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
-        vm.stopPrank();
-    }
-
-    function testFuzz_Revert_upgradeAccount_NonFactory(
-        address newImplementation,
-        address newRegistry,
-        uint16 newVersion,
-        address nonFactory,
-        bytes calldata data
-    ) public {
-        vm.assume(nonFactory != address(factory));
-
-        // Should revert if not called by the Factory.
-        vm.startPrank(nonFactory);
-        vm.expectRevert("A: Only Factory");
-        accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
-        vm.stopPrank();
-    }
-
-    function testFuzz_Revert_upgradeAccount_InvalidAccountVersion(
-        address newImplementation,
-        address newRegistry,
-        uint16 newVersion,
-        bytes calldata data
-    ) public {
-        // Check in creditor if new version is allowed should fail.
-        trustedCreditorWithParamsInit.setCallResult(false);
-
-        vm.startPrank(address(factory));
-        vm.expectRevert("A_UA: Invalid Account version");
-        accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
-        vm.stopPrank();
-    }
-
-    /* ///////////////////////////////////////////////////////////////
-                    MARGIN ACCOUNT SETTINGS
-    /////////////////////////////////////////////////////////////// */
-
-    function test_openTrustedMarginAccount() public {
-        // Assert no creditor has been set on deployment
-        assertEq(AccountV1(deployedAccountInputs0).trustedCreditor(), address(0));
-        assertEq(AccountV1(deployedAccountInputs0).isTrustedCreditorSet(), false);
-        // Assert no liquidator, baseCurrency and liquidation costs have been defined on deployment
-        assertEq(AccountV1(deployedAccountInputs0).liquidator(), address(0));
-        assertEq(AccountV1(deployedAccountInputs0).fixedLiquidationCost(), 0);
-        assertEq(AccountV1(deployedAccountInputs0).baseCurrency(), address(0));
-
-        // Open a margin account
-        vm.startPrank(users.accountOwner);
-        vm.expectEmit();
-        emit TrustedMarginAccountChanged(address(trustedCreditorWithParamsInit), Constants.initLiquidator);
-        AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
-        vm.stopPrank();
-
-        // Assert a creditor has been set and other variables updated
-        assertEq(AccountV1(deployedAccountInputs0).trustedCreditor(), address(trustedCreditorWithParamsInit));
-        assertEq(AccountV1(deployedAccountInputs0).isTrustedCreditorSet(), true);
-        assertEq(AccountV1(deployedAccountInputs0).liquidator(), Constants.initLiquidator);
-        assertEq(AccountV1(deployedAccountInputs0).fixedLiquidationCost(), Constants.initLiquidationCost);
-        assertEq(AccountV1(deployedAccountInputs0).baseCurrency(), initBaseCurrency);
-    }
-
-    function testRevert_openTrustedMarginAccount_NotOwner() public {
-        // Should revert if not called by the owner
-        vm.expectRevert("A: Only Owner");
-        AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
-    }
-
-    function testRevert_openTrustedMarginAccount_AlreadySet() public {
-        // Open a margin account => will set a trusted creditor
-        vm.startPrank(users.accountOwner);
-        AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
-
-        // Should revert if a trusted creditor is already set
-        vm.expectRevert("A_OTMA: ALREADY SET");
-        AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
-    }
-
-    function testRevert_openTrustedMarginAccount_InvalidAccountVersion() public {
-        // set a different Account version on the trusted creditor
-        defaultTrustedCreditor.setCallResult(false);
-        vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_OTMA: Invalid Version");
-        AccountV1(deployedAccountInputs0).openTrustedMarginAccount((address(defaultTrustedCreditor)));
-        vm.stopPrank();
-    }
-
-    function testFuzz_openTrustedMarginAccount_DifferentBaseCurrency(address liquidator, uint96 fixedLiquidationCost)
-        public
-    {
-        // Confirm initial base currency is not set for the Account
-        assertEq(AccountV1(deployedAccountInputs0).baseCurrency(), address(0));
-
-        // Update base currency of the trusted creditor to TOKEN1
-        defaultTrustedCreditor.setBaseCurrency(address(mockERC20.token1));
-        // Update liquidation costs in trusted creditor
-        defaultTrustedCreditor.setFixedLiquidationCost(fixedLiquidationCost);
-        // Update liquidator in trusted creditor
-        defaultTrustedCreditor.setLiquidator(liquidator);
-
-        vm.startPrank(users.accountOwner);
-        vm.expectEmit();
-        emit BaseCurrencySet(address(mockERC20.token1));
-        vm.expectEmit();
-        emit TrustedMarginAccountChanged(address(defaultTrustedCreditor), liquidator);
-        AccountV1(deployedAccountInputs0).openTrustedMarginAccount(address(defaultTrustedCreditor));
-        vm.stopPrank();
-
-        assertEq(AccountV1(deployedAccountInputs0).trustedCreditor(), address(defaultTrustedCreditor));
-        assertEq(AccountV1(deployedAccountInputs0).isTrustedCreditorSet(), true);
-        assertEq(AccountV1(deployedAccountInputs0).liquidator(), liquidator);
-        assertEq(AccountV1(deployedAccountInputs0).baseCurrency(), address(mockERC20.token1));
-        assertEq(AccountV1(deployedAccountInputs0).fixedLiquidationCost(), fixedLiquidationCost);
-    }
-
-    function test_openTrustedMarginAccount_SameBaseCurrency() public {
-        // Deploy a Account with baseCurrency set to STABLE1
-        address deployedAccount = factory.createAccount(1111, 0, address(mockERC20.stable1), address(0));
-        assertEq(AccountV1(deployedAccount).baseCurrency(), address(mockERC20.stable1));
-        assertEq(trustedCreditorWithParamsInit.baseCurrency(), address(mockERC20.stable1));
-
-        vm.expectEmit();
-        emit TrustedMarginAccountChanged(address(trustedCreditorWithParamsInit), Constants.initLiquidator);
-        AccountV1(deployedAccount).openTrustedMarginAccount(address(trustedCreditorWithParamsInit));
-
-        assertEq(AccountV1(deployedAccount).liquidator(), Constants.initLiquidator);
-        assertEq(AccountV1(deployedAccount).trustedCreditor(), address(trustedCreditorWithParamsInit));
-        assertEq(AccountV1(deployedAccount).baseCurrency(), address(mockERC20.stable1));
-        assertEq(AccountV1(deployedAccount).fixedLiquidationCost(), Constants.initLiquidationCost);
-        assertTrue(AccountV1(deployedAccount).isTrustedCreditorSet());
-    }
-
-    /* ///////////////////////////////////////////////////////////////
-                        LIQUIDATION LOGIC
-    /////////////////////////////////////////////////////////////// */
-
-    function testFuzz_Revert_liquidateAccount_Reentered(uint128 debt) public {
-        // Reentrancy guard is in locked state.
-        accountExtension.setLocked(2);
-
-        // Should revert if the reentrancy guard is locked.
-        vm.startPrank(users.accountOwner);
-        vm.expectRevert("A: REENTRANCY");
-        accountExtension.liquidateAccount(debt);
-        vm.stopPrank();
-    }
-
-    function testFuzz_Revert_liquidateAccount_NotAuthorized(uint128 debt, address unprivilegedAddress) public {
-        // msg.sender is different from the Liquidator.
-        vm.assume(unprivilegedAddress != accountExtension.liquidator());
-
-        // Should revert if not called by the Liquidator
-        vm.startPrank(unprivilegedAddress);
-        vm.expectRevert("A_LA: Only Liquidator");
-        accountExtension.liquidateAccount(debt);
-        vm.stopPrank();
-    }
-
-    function testFuzz_Revert_liquidateAccount_AccountIsHealthy(
-        uint128 debt,
-        uint128 liquidationValue,
-        uint96 fixedLiquidationCost
-    ) public {
-        // Assume account is healthy: liquidationValue is bigger than usedMargin (debt + fixedLiquidationCost).
-        uint256 usedMargin = uint256(debt) + fixedLiquidationCost;
-        vm.assume(liquidationValue >= usedMargin);
-
-        // Set fixedLiquidationCost
-        accountExtension.setFixedLiquidationCost(fixedLiquidationCost);
-
-        // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositTokenInAccount(accountExtension, mockERC20.stable1, liquidationValue);
-
-        // Should revert if account is healthy.
-        vm.startPrank(accountExtension.liquidator());
-        vm.expectRevert("A_LA: liqValue above usedMargin");
-        accountExtension.liquidateAccount(debt);
-        vm.stopPrank();
-    }
-
-    function testFuzz_liquidateAccount_Unhealthy(uint128 debt, uint128 liquidationValue, uint96 fixedLiquidationCost)
-        public
-    {
-        // Assume account is unhealthy: liquidationValue is smaller than usedMargin (debt + fixedLiquidationCost).
-        uint256 usedMargin = uint256(debt) + fixedLiquidationCost;
-        vm.assume(liquidationValue < usedMargin);
-
-        // Set fixedLiquidationCost
-        accountExtension.setFixedLiquidationCost(fixedLiquidationCost);
-
-        // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositTokenInAccount(accountExtension, mockERC20.stable1, liquidationValue);
-
-        // Should liquidate the Account.
-        vm.startPrank(accountExtension.liquidator());
-        vm.expectEmit(true, true, true, true);
-        emit TrustedMarginAccountChanged(address(0), address(0));
-        (address originalOwner, address baseCurrency, address trustedCreditor_) =
-            accountExtension.liquidateAccount(debt);
-        vm.stopPrank();
-
-        assertEq(originalOwner, users.accountOwner);
-        assertEq(baseCurrency, address(mockERC20.stable1));
-        assertEq(trustedCreditor_, address(trustedCreditorWithParamsInit));
-
-        assertEq(accountExtension.owner(), Constants.initLiquidator);
-        assertEq(accountExtension.isTrustedCreditorSet(), false);
-        assertEq(accountExtension.trustedCreditor(), address(0));
-        assertEq(accountExtension.fixedLiquidationCost(), 0);
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                    ASSET MANAGEMENT LOGIC
-    ///////////////////////////////////////////////////////////////*/
+    /*//////////////////////////////////////////////////////////////
+                              TESTS
+    //////////////////////////////////////////////////////////////*/
     function testRevert_Fuzz_accountManagementAction_Reentered(
         address sender,
         address actionHandler,
@@ -482,10 +155,10 @@ contract Account_Fuzz_Test is Fuzz_Test {
         accountNotInitialised.setRegistry(address(mainRegistryExtension));
         vm.prank(users.accountOwner);
         accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
-        accountNotInitialised.setTrustedCreditor(address(trustedCreditorWithParamsInit));
+        accountNotInitialised.setTrustedCreditor(address(trustedCreditor));
         accountNotInitialised.setIsTrustedCreditorSet(true);
 
-        trustedCreditorWithParamsInit.setOpenPosition(address(accountNotInitialised), debtAmount);
+        trustedCreditor.setOpenPosition(address(accountNotInitialised), debtAmount);
 
         // Set the account as initialised in the factory
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
@@ -635,11 +308,11 @@ contract Account_Fuzz_Test is Fuzz_Test {
         accountNotInitialised.setAssetManager(assetManager, true);
         accountNotInitialised.setRegistry(address(mainRegistryExtension));
         accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
-        accountNotInitialised.setTrustedCreditor(address(trustedCreditorWithParamsInit));
+        accountNotInitialised.setTrustedCreditor(address(trustedCreditor));
         accountNotInitialised.setIsTrustedCreditorSet(true);
         vm.stopPrank();
 
-        trustedCreditorWithParamsInit.setOpenPosition(address(accountNotInitialised), debtAmount);
+        trustedCreditor.setOpenPosition(address(accountNotInitialised), debtAmount);
 
         // Set the account as initialised in the factory
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
@@ -749,7 +422,7 @@ contract Account_Fuzz_Test is Fuzz_Test {
         accountNotInitialised.setOwner(users.accountOwner);
         accountNotInitialised.setRegistry(address(mainRegistryExtension));
         accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
-        accountNotInitialised.setTrustedCreditor(address(trustedCreditorWithParamsInit));
+        accountNotInitialised.setTrustedCreditor(address(trustedCreditor));
         accountNotInitialised.setIsTrustedCreditorSet(true);
         vm.stopPrank();
 
@@ -768,7 +441,7 @@ contract Account_Fuzz_Test is Fuzz_Test {
                 < type(uint256).max
         );
 
-        trustedCreditorWithParamsInit.setOpenPosition(address(accountNotInitialised), debtAmount);
+        trustedCreditor.setOpenPosition(address(accountNotInitialised), debtAmount);
 
         bytes[] memory data = new bytes[](3);
         address[] memory to = new address[](3);
