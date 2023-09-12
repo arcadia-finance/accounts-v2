@@ -4,27 +4,25 @@
  */
 pragma solidity 0.8.19;
 
-import "./fixtures/ArcadiaAccountsFixture.f.sol";
-import { MultiActionMock } from "../mockups/MultiActionMock.sol";
+import { Constants, MultiCall_Fuzz_Test } from "./MultiCall.fuzz.t.sol";
 
-import { ActionMultiCall } from "../actions/MultiCall.sol";
-import { ActionMultiCallV2 } from "../actions/MultiCallV2.sol";
-import "../actions/utils/ActionData.sol";
+import "../../../../actions/utils/ActionData.sol";
 
-import { ERC20Mock } from "../mockups/ERC20SolmateMock.sol";
+/**
+ * @notice Fuzz tests for the "executeAction" of contract "MultiCall".
+ */
+contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
+    /* ///////////////////////////////////////////////////////////////
+                              SETUP
+    /////////////////////////////////////////////////////////////// */
 
-contract ActionMultiCallTest is DeployArcadiaAccounts {
-    using stdStorage for StdStorage;
-
-    ActionMultiCall public action;
-    MultiActionMock public multiActionMock;
-
-    uint256 public numberStored;
-
-    function setUp() public {
-        action = new ActionMultiCall();
+    function setUp() public override {
+        MultiCall_Fuzz_Test.setUp();
     }
 
+    /*//////////////////////////////////////////////////////////////
+                              TESTS
+    //////////////////////////////////////////////////////////////*/
     function testSuccess_executeAction_storeNumber(uint256 number) public {
         ActionData memory assetData = ActionData({
             assets: new address[](1),
@@ -36,7 +34,7 @@ contract ActionMultiCallTest is DeployArcadiaAccounts {
 
         ActionData memory fromOwner;
 
-        assetData.assets[0] = address(eth);
+        assetData.assets[0] = address(mockERC20.token1);
         assetData.assetTypes[0] = 0;
 
         address[] memory to = new address[](1);
@@ -62,7 +60,7 @@ contract ActionMultiCallTest is DeployArcadiaAccounts {
 
         ActionData memory fromOwner;
 
-        assetData.assets[0] = address(eth);
+        assetData.assets[0] = address(mockERC20.token1);
         assetData.assetTypes[0] = 0;
 
         address[] memory to = new address[](2);
@@ -75,28 +73,5 @@ contract ActionMultiCallTest is DeployArcadiaAccounts {
 
         vm.expectRevert("EA: Length mismatch");
         action.executeAction(callData);
-    }
-
-    function testRevert_checkAmountOut(uint256 amount) public {
-        vm.assume(amount > 0);
-
-        ActionMultiCallV2 actionV2 = new ActionMultiCallV2();
-        ERC20Mock erc20 = new ERC20Mock("ERC20", "ERC20", 18);
-
-        vm.expectRevert("CS: amountOut too low");
-        actionV2.checkAmountOut(address(erc20), amount);
-    }
-
-    function testSuccess_checkAmountOut(uint256 amount, uint256 balance) public {
-        vm.assume(balance >= amount);
-        ActionMultiCallV2 actionV2 = new ActionMultiCallV2();
-        ERC20Mock erc20 = new ERC20Mock("ERC20", "ERC20", 18);
-        erc20.mint(address(actionV2), balance);
-
-        actionV2.checkAmountOut(address(erc20), amount);
-    }
-
-    function setNumberStored(uint256 number) public {
-        numberStored = number;
     }
 }
