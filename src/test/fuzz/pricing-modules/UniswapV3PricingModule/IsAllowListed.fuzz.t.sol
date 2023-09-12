@@ -43,7 +43,11 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
         ERC20 tokenA = ERC20(address(mockERC20.token1));
         ERC20 tokenB = ERC20(address(mockERC20.token2));
         (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        nonfungiblePositionManager.createAndInitializePoolIfNecessary(address(tokenA), address(tokenB), 100, 1 << 96);
+        address pool = nonfungiblePositionManager.createAndInitializePoolIfNecessary(
+            address(tokenA), address(tokenB), 100, 1 << 96
+        );
+
+        vm.assume(lp != pool);
 
         deal(address(tokenA), lp, 1e8);
         deal(address(tokenB), lp, 1e8);
@@ -81,7 +85,11 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
         ERC20 tokenA = ERC20(address(mockERC20.token1));
         ERC20 tokenB = ERC20(address(mockERC20.token2));
         (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        nonfungiblePositionManager.createAndInitializePoolIfNecessary(address(tokenA), address(tokenB), 100, 1 << 96);
+        address pool = nonfungiblePositionManager.createAndInitializePoolIfNecessary(
+            address(tokenA), address(tokenB), 100, 1 << 96
+        );
+
+        vm.assume(lp != pool);
 
         deal(address(tokenA), lp, 1e8);
         deal(address(tokenB), lp, 1e8);
