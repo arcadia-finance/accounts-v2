@@ -6,8 +6,8 @@ pragma solidity 0.8.19;
 
 import { Constants, UniswapV3PricingModule_Fuzz_Test } from "./UniswapV3PricingModule.fuzz.t.sol";
 
-import { UniswapV3WithFeesPricingModule_UsdOnly } from
-    "../../../../pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule_UsdOnly.sol";
+import { UniswapV3WithFeesPricingModule } from
+    "../../../../pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "constructor" of contract "UniswapV3PricingModule".
@@ -28,7 +28,7 @@ contract Constructor_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskManagerUpdated(riskManager_);
-        UniswapV3WithFeesPricingModule_UsdOnly erc20PricingModule_ = new UniswapV3WithFeesPricingModule_UsdOnly(
+        UniswapV3WithFeesPricingModule erc20PricingModule_ = new UniswapV3WithFeesPricingModule(
             mainRegistry_,
             oracleHub_,
             riskManager_,

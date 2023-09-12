@@ -134,144 +134,118 @@ contract ArcadiaAccountDeployerMainnet is Test {
 
         crvToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleCrvToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "CRV",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleCrvToUsd_mainnet,
             baseAssetAddress: DeployAddresses.crv_mainnet,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         daiToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleDaiToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "DAI",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleDaiToUsd_mainnet,
             baseAssetAddress: DeployAddresses.dai_mainnet,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         fraxToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleFraxToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "FRAX",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleFraxToUsd_mainnet,
             baseAssetAddress: DeployAddresses.frax_mainnet,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         fxsToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleFxsToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "FXS",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleFxsToUsd_mainnet,
             baseAssetAddress: DeployAddresses.fxs_mainnet,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         linkToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleLinkToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "LINK",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleLinkToUsd_mainnet,
             baseAssetAddress: DeployAddresses.link_mainnet,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         snxToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleSnxToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "SNX",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleSnxToUsd_mainnet,
             baseAssetAddress: DeployAddresses.snx_mainnet,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         uniToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleUniToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "UNI",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleUniToUsd_mainnet,
             baseAssetAddress: DeployAddresses.uni_mainnet,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         usdcToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleUsdcToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "USDC",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleUsdcToUsd_mainnet,
             baseAssetAddress: DeployAddresses.usdc_mainnet,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         usdtToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleUsdtToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "USDT",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleUsdtToUsd_mainnet,
             baseAssetAddress: DeployAddresses.usdt_mainnet,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         wbtcToBtcOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleWbtcToBtcUnit),
-            quoteAssetBaseCurrency: uint8(0),
             baseAsset: "wBTC",
             quoteAsset: "BTC",
             oracle: DeployAddresses.oracleWbtcToBtc_mainnet,
             baseAssetAddress: DeployAddresses.wbtc_mainnet,
-            quoteAssetIsBaseCurrency: false,
             isActive: true
         });
 
         btcToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleBtcToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "BTC",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleBtcToUsd_mainnet,
             baseAssetAddress: address(0),
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         ethToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleEthToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "wETH",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleEthToUsd_mainnet,
             baseAssetAddress: DeployAddresses.weth_mainnet,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         cbethToEthOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleCbethToEthUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.EthBaseCurrency),
             baseAsset: "cbETH",
             quoteAsset: "wETH",
             oracle: DeployAddresses.oracleCbethToEth_mainnet,
             baseAssetAddress: DeployAddresses.cbeth_mainnet,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 

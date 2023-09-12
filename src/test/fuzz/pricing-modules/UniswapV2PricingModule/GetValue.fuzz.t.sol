@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./UniswapV2PricingModule.fuzz.t.sol";
 
 import { UniswapV2PairMock } from "../../../../mockups/UniswapV2PairMock.sol";
-import { IPricingModule_UsdOnly } from "../../../../interfaces/IPricingModule_UsdOnly.sol";
+import { IPricingModule } from "../../../../interfaces/IPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "getValue" of contract "UniswapV2PricingModule".
@@ -75,7 +75,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
             > type(uint256).max / Constants.WAD / Constants.WAD * 10 ** _oracleToken1ToUsdDecimals; // trustedPriceToken1ToUsd overflows
         vm.assume(cond0 || cond1);
 
-        IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
+        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(pairToken1Token2),
             assetId: 0,
             assetAmount: pairToken1Token2.totalSupply(),
@@ -159,7 +159,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
             Constants.WAD * _rateToken1ToUsd / 10 ** _oracleToken1ToUsdDecimals * amountToken1 / 10 ** _token1Decimals;
         uint256 expectedValueInUsd = valueToken2 + valueToken1;
 
-        IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
+        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(pairToken1Token2),
             assetId: 0,
             assetAmount: pairToken1Token2.totalSupply(),

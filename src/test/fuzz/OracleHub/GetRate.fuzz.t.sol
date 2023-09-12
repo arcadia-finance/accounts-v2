@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, OracleHub_Fuzz_Test } from "./OracleHub.fuzz.t.sol";
 
-import { OracleHub_UsdOnly } from "../../../OracleHub_UsdOnly.sol";
+import { OracleHub } from "../../../OracleHub.sol";
 
 /**
  * @notice Fuzz tests for the function "getRate" of contract "OracleHub".
@@ -50,7 +50,7 @@ contract GetRate_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         // When: creatorAddress addOracle with OracleInformation for TOKEN4-USD, oracleOwner transmit rateToken4ToUsd,
         // oraclesToken4ToUsd index 0 is oracleToken4ToUsd, oracleOwner getRate
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** oracleToken4ToUsdDecimals),
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",
@@ -91,7 +91,7 @@ contract GetRate_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         // oraclesToken3ToUsd index 0 is oracleToken3ToToken4, oraclesToken3ToUsd index 1 is oracleToken4ToUsd
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** oracleToken3ToToken4Decimals),
                 baseAsset: "TOKEN3",
                 quoteAsset: "TOKEN4",
@@ -102,7 +102,7 @@ contract GetRate_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         );
 
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** oracleToken4ToUsdDecimals),
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",
@@ -149,7 +149,7 @@ contract GetRate_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         // oraclesToken3ToUsd index 0 is oracleToken3ToToken4, oraclesToken3ToUsd index 1 is oracleToken4ToUsd
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** oracleToken3ToToken4Decimals),
                 baseAsset: "TOKEN3",
                 quoteAsset: "TOKEN4",
@@ -160,7 +160,7 @@ contract GetRate_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         );
 
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** oracleToken4ToUsdDecimals),
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",
@@ -194,7 +194,7 @@ contract GetRate_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** oracleToken4ToUsdDecimals),
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",
@@ -247,7 +247,7 @@ contract GetRate_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         // oraclesToken3ToUsd index 0 is oracleToken3ToToken4, oraclesToken3ToUsd index 1 is oracleToken4ToUsd
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** oracleToken3ToToken4Decimals),
                 baseAsset: "TOKEN3",
                 quoteAsset: "TOKEN4",
@@ -258,7 +258,7 @@ contract GetRate_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         );
 
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** oracleToken4ToUsdDecimals),
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",

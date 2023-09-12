@@ -11,8 +11,8 @@ import { StdStorage, stdStorage } from "../../../../../lib/forge-std/src/Test.so
 
 import { ArcadiaOracle } from "../../../../mockups/ArcadiaOracle.sol";
 import { ERC20Mock } from "../../../../mockups/ERC20SolmateMock.sol";
-import { OracleHub_UsdOnly } from "../../../../OracleHub_UsdOnly.sol";
-import { PricingModule_UsdOnly } from "../../../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
+import { OracleHub } from "../../../../OracleHub.sol";
+import { PricingModule } from "../../../../pricing-modules/AbstractPricingModule.sol";
 import { RiskConstants } from "../../../../utils/RiskConstants.sol";
 import { UniswapV2PairMock } from "../../../../mockups/UniswapV2PairMock.sol";
 import { UniswapV2PricingModuleExtension } from "../../../utils/Extensions.sol";
@@ -108,7 +108,7 @@ abstract contract UniswapV2PricingModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** oracleTokenToUsdDecimals),
                 baseAsset: bytes8(abi.encodePacked(label)),
                 quoteAsset: "USD",

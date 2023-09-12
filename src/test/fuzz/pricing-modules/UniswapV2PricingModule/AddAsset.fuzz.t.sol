@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./UniswapV2PricingModule.fuzz.t.sol";
 
-import { PricingModule_UsdOnly } from "../../../../pricing-modules/StandardERC20PricingModule_UsdOnly.sol";
+import { PricingModule } from "../../../../pricing-modules/StandardERC20PricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "UniswapV2PricingModule".
@@ -75,8 +75,8 @@ contract AddAsset_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
 
     function testSuccess_addAsset_OwnerAddsAssetWithNonFullListRiskVariables() public {
         //Given: The number of credit ratings is not 0 and not the number of baseCurrencies
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVars_ = new PricingModule_UsdOnly.RiskVarInput[](1);
-        riskVars_[0] = PricingModule_UsdOnly.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](1);
+        riskVars_[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: collateralFactor,

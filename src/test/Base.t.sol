@@ -10,11 +10,11 @@ import { Factory } from "../Factory.sol";
 import { AccountV1 } from "../AccountV1.sol";
 import { AccountV2 } from "../mockups/AccountV2.sol";
 import { MainRegistryExtension } from "./utils/Extensions.sol";
-import { PricingModule_UsdOnly } from "../pricing-modules/AbstractPricingModule_UsdOnly.sol";
-import { OracleHub_UsdOnly } from "../OracleHub_UsdOnly.sol";
-import { StandardERC20PricingModule_UsdOnly } from "../pricing-modules/StandardERC20PricingModule_UsdOnly.sol";
-import { FloorERC721PricingModule_UsdOnly } from "../pricing-modules/FloorERC721PricingModule_UsdOnly.sol";
-import { FloorERC1155PricingModule_UsdOnly } from "../pricing-modules/FloorERC1155PricingModule_UsdOnly.sol";
+import { PricingModule } from "../pricing-modules/AbstractPricingModule.sol";
+import { OracleHub } from "../OracleHub.sol";
+import { StandardERC20PricingModule } from "../pricing-modules/StandardERC20PricingModule.sol";
+import { FloorERC721PricingModule } from "../pricing-modules/FloorERC721PricingModule.sol";
+import { FloorERC1155PricingModule } from "../pricing-modules/FloorERC1155PricingModule.sol";
 import { UniswapV3PricingModuleExtension } from "./utils/Extensions.sol";
 import { TrustedCreditorMock } from "../mockups/TrustedCreditorMock.sol";
 import { Constants } from "./utils/Constants.sol";
@@ -36,7 +36,7 @@ abstract contract Base_Test is Test, Events, Errors {
     // This will be the base currency set for the instance of "trustedCreditorWithParams"
     address internal initBaseCurrency;
 
-    PricingModule_UsdOnly.RiskVarInput[] emptyRiskVarInput;
+    PricingModule.RiskVarInput[] emptyRiskVarInput;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -44,10 +44,10 @@ abstract contract Base_Test is Test, Events, Errors {
 
     Factory internal factory;
     MainRegistryExtension internal mainRegistryExtension;
-    OracleHub_UsdOnly internal oracleHub;
-    StandardERC20PricingModule_UsdOnly internal erc20PricingModule;
-    FloorERC721PricingModule_UsdOnly internal floorERC721PricingModule;
-    FloorERC1155PricingModule_UsdOnly internal floorERC1155PricingModule;
+    OracleHub internal oracleHub;
+    StandardERC20PricingModule internal erc20PricingModule;
+    FloorERC721PricingModule internal floorERC721PricingModule;
+    FloorERC1155PricingModule internal floorERC1155PricingModule;
     UniswapV3PricingModuleExtension internal uniV3PricingModule;
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
@@ -76,12 +76,10 @@ abstract contract Base_Test is Test, Events, Errors {
         vm.startPrank(users.creatorAddress);
         factory = new Factory();
         mainRegistryExtension = new MainRegistryExtension(address(factory));
-        oracleHub = new OracleHub_UsdOnly();
-        erc20PricingModule =
-            new StandardERC20PricingModule_UsdOnly(address(mainRegistryExtension), address(oracleHub), 0);
-        floorERC721PricingModule =
-            new FloorERC721PricingModule_UsdOnly(address(mainRegistryExtension), address(oracleHub), 1);
-        floorERC1155PricingModule = new FloorERC1155PricingModule_UsdOnly(
+        oracleHub = new OracleHub();
+        erc20PricingModule = new StandardERC20PricingModule(address(mainRegistryExtension), address(oracleHub), 0);
+        floorERC721PricingModule = new FloorERC721PricingModule(address(mainRegistryExtension), address(oracleHub), 1);
+        floorERC1155PricingModule = new FloorERC1155PricingModule(
             address(mainRegistryExtension),
             address(oracleHub),
             2

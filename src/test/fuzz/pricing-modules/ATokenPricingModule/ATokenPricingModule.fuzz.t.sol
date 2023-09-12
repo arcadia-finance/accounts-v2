@@ -7,9 +7,9 @@ pragma solidity 0.8.19;
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { ATokenMock } from "../../../../mockups/ATokenMock.sol";
-import { OracleHub_UsdOnly } from "../../../../OracleHub_UsdOnly.sol";
+import { OracleHub } from "../../../../OracleHub.sol";
 import { RiskConstants } from "../../../../utils/RiskConstants.sol";
-import { ATokenPricingModule_UsdOnly } from "../../../../pricing-modules/ATokenPricingModule_UsdOnly.sol";
+import { ATokenPricingModule } from "../../../../pricing-modules/ATokenPricingModule.sol";
 
 /**
  * @notice Common logic needed by all "ATokenPricingModule" fuzz tests.
@@ -28,7 +28,7 @@ abstract contract ATokenPricingModule_Fuzz_Test is Fuzz_Test {
                           TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    ATokenPricingModule_UsdOnly internal aTokenPricingModule;
+    ATokenPricingModule internal aTokenPricingModule;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -42,7 +42,7 @@ abstract contract ATokenPricingModule_Fuzz_Test is Fuzz_Test {
             new ATokenMock(address(mockERC20.token1), "Mocked AAVE Token 1", "maTOKEN1", mockERC20.token1.decimals());
 
         vm.startPrank(users.creatorAddress);
-        aTokenPricingModule = new ATokenPricingModule_UsdOnly(
+        aTokenPricingModule = new ATokenPricingModule(
             address(mainRegistryExtension),
             address(oracleHub),
             0,address(erc20PricingModule)

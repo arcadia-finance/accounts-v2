@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Constants, ATokenPricingModule_Fuzz_Test } from "./ATokenPricingModule.fuzz.t.sol";
 
 import { ATokenMock } from "../../../../mockups/ATokenMock.sol";
-import { PricingModule_UsdOnly } from "../../../../pricing-modules/ATokenPricingModule_UsdOnly.sol";
+import { PricingModule } from "../../../../pricing-modules/ATokenPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "ATokenPricingModule".
@@ -73,8 +73,8 @@ contract AddAsset_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
 
     function testSuccess_addAsset_NonFullListRiskVariables() public {
         vm.startPrank(users.creatorAddress);
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVars_ = new PricingModule_UsdOnly.RiskVarInput[](1);
-        riskVars_[0] = PricingModule_UsdOnly.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](1);
+        riskVars_[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: collateralFactor,

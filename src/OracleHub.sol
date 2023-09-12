@@ -8,16 +8,14 @@ import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
 import { IOraclesHub } from "./pricing-modules/interfaces/IOraclesHub.sol";
 import { StringHelpers } from "./utils/StringHelpers.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { Owned } from "lib/solmate/src/auth/Owned.sol";
+import { Owned } from "../lib/solmate/src/auth/Owned.sol";
 
 /**
  * @title Oracle Hub
  * @author Pragma Labs
- * @notice The Oracle Hub stores the information of the Price Oracles and calculates rates of assets.
+ * @notice The Oracle Hub stores the information of the Price Oracles and calculates rates of assets in USD.
  * @dev Terminology:
  * - oracles are named as BaseAsset/QuoteAsset: The oracle rate reflects how much of the QuoteAsset is required to buy 1 unit of the BaseAsset
- * - The BaseCurrency is the final currency in which the asset values are denominated.
- * This might get confusing since the BaseCurrency is very often the QuoteAsset of a trading.
  */
 contract OracleHub is Owned, IOraclesHub {
     using FixedPointMathLib for uint256;
@@ -35,8 +33,6 @@ contract OracleHub is Owned, IOraclesHub {
     struct OracleInformation {
         bool isActive; // Flag indicating if the oracle is active or decommissioned.
         uint64 oracleUnit; // The unit of the oracle, equal to 10^decimalsOracle.
-        uint8 quoteAssetBaseCurrency; // A unique identifier for the quote asset if it also is as baseCurrency.
-        bool quoteAssetIsBaseCurrency; // Flag indicating if the quote asset is also a baseCurrency.
         address oracle; // The contract address of the oracle.
         address baseAssetAddress; // The contract address of the base asset.
         bytes16 baseAsset; // Human readable label for the base asset.
@@ -65,9 +61,6 @@ contract OracleHub is Owned, IOraclesHub {
      * @param oracleInformation A Struct with information about the Oracle:
      * - isActive: Flag indicating if the oracle is active or decommissioned.
      * - oracleUnit: The unit of the oracle, equal to 10^decimalsOracle.
-     * - quoteAssetBaseCurrency: A unique identifier for the quote asset if it also is as baseCurrency,
-     * 0 by default if the quote asset cannot be used as baseCurrency.
-     * - quoteAssetIsBaseCurrency: Flag indicating if the quote asset is also a baseCurrency.
      * - oracle: The contract address of the oracle.
      * - baseAssetAddress: The contract address of the base asset.
      * - baseAsset: Human readable label for the base asset.
@@ -171,11 +164,9 @@ contract OracleHub is Owned, IOraclesHub {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the rate of a certain asset, denominated in USD or in another BaseCurrency.
+     * @notice Returns the rate of a certain asset, denominated in USD.
      * @param oracles Array of contract addresses of oracles.
-     * @param baseCurrency The BaseCurrency in which the rate is ideally expressed.
-     * @return rateInUsd The rate of the asset denominated in USD, with 18 Decimals precision.
-     * @return rateInBaseCurrency The rate of the asset denominated in a BaseCurrency different from USD, with 18 Decimals precision.
+     * @return rate The rate of the asset denominated in USD, with 18 Decimals precision.
      * @dev The Function will loop over all oracles-addresses and find the total rate of the asset by
      * multiplying the intermediate exchange-rates (max 3) with each other. Oracles can have any Decimals precision smaller than 18.
      * All intermediate rates are calculated with a precision of 18 decimals and rounded down.
@@ -184,50 +175,27 @@ contract OracleHub is Owned, IOraclesHub {
      * - First intermediate rate will overflow when R1 * 10**18 > MAXUINT256.
      * - Second rate will overflow when R1 * R2 * 10**(18 - D1) > MAXUINT256.
      * - Third and final rate will overflow when R1 * R2 * R3 * 10**(18 - D1 - D2) > MAXUINT256.
-     * @dev The rate of an asset will be denominated in a baseCurrency different from USD if and only if
-     * the given baseCurrency is different from USD (baseCurrency is not 0) and one of the intermediate oracles to price the asset has
-     * the given baseCurrency as quote-asset.
-     * The rate of an asset will be denominated in USD if the baseCurrency is USD (baseCurrency equals 0) or
-     * the given baseCurrency is different from USD (baseCurrency is not 0) but none of the oracles to price the asset has
-     * the given baseCurrency as quote-asset.
-     * @dev Only one of the two values can be different from 0.
      */
-    function getRate(address[] memory oracles, uint256 baseCurrency)
-        external
-        view
-        returns (uint256 rateInUsd, uint256 rateInBaseCurrency)
-    {
-        uint256 rate = FixedPointMathLib.WAD; // Scalar 1 with 18 decimals (The internal precision).
+    function getRateInUsd(address[] memory oracles) external view returns (uint256 rate) {
+        rate = FixedPointMathLib.WAD; // Scalar 1 with 18 decimals (The internal precision).
         int256 tempRate;
         uint256 oraclesLength = oracles.length;
-        address oracleAddressAtIndex;
+        address oracle;
 
         for (uint256 i; i < oraclesLength;) {
-            oracleAddressAtIndex = oracles[i];
+            oracle = oracles[i];
 
             // If the oracle is not active anymore (decommissioned), return value 0 -> assets do not count as collateral anymore.
-            if (!oracleToOracleInformation[oracleAddressAtIndex].isActive) return (0, 0);
+            if (!oracleToOracleInformation[oracle].isActive) return (0);
 
-            (, tempRate,,,) = IChainLinkData(oracleAddressAtIndex).latestRoundData();
+            (, tempRate,,,) = IChainLinkData(oracle).latestRoundData();
             require(tempRate >= 0, "OH_GR: Negative Rate");
 
-            rate = rate.mulDivDown(uint256(tempRate), oracleToOracleInformation[oracleAddressAtIndex].oracleUnit);
-
-            if (oracleToOracleInformation[oracleAddressAtIndex].quoteAssetIsBaseCurrency) {
-                if (oracleToOracleInformation[oracleAddressAtIndex].quoteAssetBaseCurrency == 0) {
-                    // If the rate is denominated in USD, return rateInUsd.
-                    return (rate, 0);
-                } else if (oracleToOracleInformation[oracleAddressAtIndex].quoteAssetBaseCurrency == baseCurrency) {
-                    // If rate is denominated in baseCurrency (non USD), return rateInBaseCurrency.
-                    return (0, rate);
-                }
-            }
+            rate = rate.mulDivDown(uint256(tempRate), oracleToOracleInformation[oracle].oracleUnit);
 
             unchecked {
                 ++i;
             }
         }
-        // Since all series of oracles must end with USD, it should be impossible to arrive to this state.
-        revert("OH_GR: No qAsset in USD or bCurr");
     }
 }

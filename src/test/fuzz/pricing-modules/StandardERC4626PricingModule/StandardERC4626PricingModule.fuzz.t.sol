@@ -7,10 +7,9 @@ pragma solidity 0.8.19;
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { ERC4626Mock } from "../../../../mockups/ERC4626Mock.sol";
-import { OracleHub_UsdOnly } from "../../../../OracleHub_UsdOnly.sol";
+import { OracleHub } from "../../../../OracleHub.sol";
 import { RiskConstants } from "../../../../utils/RiskConstants.sol";
-import { StandardERC4626PricingModule_UsdOnly } from
-    "../../../../pricing-modules/StandardERC4626PricingModule_UsdOnly.sol";
+import { StandardERC4626PricingModule } from "../../../../pricing-modules/StandardERC4626PricingModule.sol";
 
 /**
  * @notice Common logic needed by all "StandardERC4626PricingModule" fuzz tests.
@@ -29,7 +28,7 @@ abstract contract StandardERC4626PricingModule_Fuzz_Test is Fuzz_Test {
                           TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    StandardERC4626PricingModule_UsdOnly internal erc4626PricingModule;
+    StandardERC4626PricingModule internal erc4626PricingModule;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -43,7 +42,7 @@ abstract contract StandardERC4626PricingModule_Fuzz_Test is Fuzz_Test {
             new ERC4626Mock(mockERC20.token1, "Mocked Yield Bearing Token 1", "mybTOKEN1", mockERC20.token1.decimals());
 
         vm.startPrank(users.creatorAddress);
-        erc4626PricingModule = new StandardERC4626PricingModule_UsdOnly(
+        erc4626PricingModule = new StandardERC4626PricingModule(
             address(mainRegistryExtension),
             address(oracleHub),
             0,address(erc20PricingModule)

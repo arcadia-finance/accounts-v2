@@ -18,12 +18,9 @@ import { INonfungiblePositionManagerExtension } from
 import { IUniswapV3PoolExtension } from "../../fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../pricing-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { LiquidityAmountsExtension } from "../../fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
-import { OracleHub_UsdOnly } from "../../../../OracleHub_UsdOnly.sol";
+import { OracleHub } from "../../../../OracleHub.sol";
 import { TickMath } from "../../../../pricing-modules/UniswapV3/libraries/TickMath.sol";
-import {
-    PricingModule_UsdOnly,
-    IPricingModule_UsdOnly
-} from "../../../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
+import { PricingModule, IPricingModule } from "../../../../pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV3PricingModule" fuzz tests.
@@ -153,8 +150,8 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
         ArcadiaOracle oracle = initMockedOracle(0, "Token / USD");
         address[] memory oracleArr = new address[](1);
         oracleArr[0] = address(oracle);
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVars = new PricingModule_UsdOnly.RiskVarInput[](1);
-        riskVars[0] = PricingModule_UsdOnly.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVars = new PricingModule.RiskVarInput[](1);
+        riskVars[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: 80,
@@ -165,7 +162,7 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
         oracle.transmit(price);
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: 1,
                 baseAsset: "Token",
                 quoteAsset: "USD",

@@ -8,7 +8,7 @@ import { Constants, ATokenPricingModule_Fuzz_Test } from "./ATokenPricingModule.
 
 import { StdStorage, stdStorage } from "../../../../../lib/forge-std/src/Test.sol";
 
-import { IPricingModule_UsdOnly } from "../../../../interfaces/IPricingModule_UsdOnly.sol";
+import { IPricingModule } from "../../../../interfaces/IPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "getValue" of contract "ATokenPricingModule".
@@ -44,7 +44,7 @@ contract GetValue_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
         aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput, type(uint128).max);
         vm.stopPrank();
 
-        IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
+        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(aToken1),
             assetId: 0,
             assetAmount: amountToken1,
@@ -83,7 +83,7 @@ contract GetValue_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
         emit log_named_uint("(Constants.WAD * rateToken1ToUsd_)", (Constants.WAD * rateToken1ToUsd_));
         emit log_named_uint("Constants.tokenOracleDecimals", Constants.tokenOracleDecimals);
 
-        IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
+        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(aToken1),
             assetId: 0,
             assetAmount: amountToken1,

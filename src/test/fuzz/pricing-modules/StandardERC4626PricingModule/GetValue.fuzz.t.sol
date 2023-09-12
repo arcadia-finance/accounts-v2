@@ -8,7 +8,7 @@ import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./StandardERC
 
 import { StdStorage, stdStorage } from "../../../../../lib/forge-std/src/Test.sol";
 
-import { IPricingModule_UsdOnly } from "../../../../interfaces/IPricingModule_UsdOnly.sol";
+import { IPricingModule } from "../../../../interfaces/IPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "getValue" of contract "StandardERC4626PricingModule".
@@ -60,7 +60,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         stdstore.target(address(mockERC20.token1)).sig(ybToken1.balanceOf.selector).with_key(address(ybToken1))
             .checked_write(totalAssets);
 
-        IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
+        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(ybToken1),
             assetId: 0,
             assetAmount: shares,
@@ -109,7 +109,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         stdstore.target(address(mockERC20.token1)).sig(ybToken1.balanceOf.selector).with_key(address(ybToken1))
             .checked_write(totalAssets);
 
-        IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
+        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(ybToken1),
             assetId: 0,
             assetAmount: shares,

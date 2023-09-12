@@ -4,18 +4,17 @@
  */
 pragma solidity 0.8.19;
 
-import { MainRegistry_UsdOnly } from "../../MainRegistry_UsdOnly.sol";
+import { MainRegistry } from "../../MainRegistry.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { AccountV1 } from "../../AccountV1.sol";
-import { PricingModule_UsdOnly } from "../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
-import { UniswapV2PricingModule_UsdOnly } from "../../pricing-modules/UniswapV2PricingModule_UsdOnly.sol";
-import { UniswapV3WithFeesPricingModule_UsdOnly } from
-    "../../pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule_UsdOnly.sol";
+import { PricingModule } from "../../pricing-modules/AbstractPricingModule.sol";
+import { UniswapV2PricingModule } from "../../pricing-modules/UniswapV2PricingModule.sol";
+import { UniswapV3WithFeesPricingModule } from "../../pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
 
-contract MainRegistryExtension is MainRegistry_UsdOnly {
+contract MainRegistryExtension is MainRegistry {
     using FixedPointMathLib for uint256;
 
-    constructor(address factory_) MainRegistry_UsdOnly(factory_) { }
+    constructor(address factory_) MainRegistry(factory_) { }
 
     function setAssetType(address asset, uint96 assetType) public {
         assetToAssetInformation[asset].assetType = assetType;
@@ -58,14 +57,14 @@ contract AccountExtension is AccountV1 {
     }
 }
 
-contract UniswapV2PricingModuleExtension is UniswapV2PricingModule_UsdOnly {
+contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
     constructor(
         address mainRegistry_,
         address oracleHub_,
         uint256 assetType_,
         address uniswapV2Factory_,
         address erc20PricingModule_
-    ) UniswapV2PricingModule_UsdOnly(mainRegistry_, oracleHub_, assetType_, uniswapV2Factory_, erc20PricingModule_) { }
+    ) UniswapV2PricingModule(mainRegistry_, oracleHub_, assetType_, uniswapV2Factory_, erc20PricingModule_) { }
 
     function getTrustedTokenAmounts(
         address pair,
@@ -114,9 +113,9 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule_UsdOnly {
     }
 }
 
-contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule_UsdOnly {
+contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule {
     constructor(address mainRegistry_, address oracleHub_, address riskManager_, address erc20PricingModule_)
-        UniswapV3WithFeesPricingModule_UsdOnly(mainRegistry_, oracleHub_, riskManager_, erc20PricingModule_)
+        UniswapV3WithFeesPricingModule(mainRegistry_, oracleHub_, riskManager_, erc20PricingModule_)
     { }
 
     function getPrincipalAmounts(
@@ -147,9 +146,9 @@ contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule_UsdOn
     }
 }
 
-contract AbstractPricingModuleExtension is PricingModule_UsdOnly {
+contract AbstractPricingModuleExtension is PricingModule {
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        PricingModule_UsdOnly(mainRegistry_, oracleHub_, assetType_, riskManager_)
+        PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
     function setRiskVariablesForAsset(address asset, RiskVarInput[] memory riskVarInputs) public {

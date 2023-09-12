@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, ATokenPricingModule_Fuzz_Test } from "./ATokenPricingModule.fuzz.t.sol";
 
-import { ATokenPricingModule_UsdOnly } from "../../../../pricing-modules/ATokenPricingModule_UsdOnly.sol";
+import { ATokenPricingModule } from "../../../../pricing-modules/ATokenPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "constructor" of contract "ATokenPricingModule".
@@ -32,7 +32,7 @@ contract Constructor_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_T
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskManagerUpdated(users.creatorAddress);
-        ATokenPricingModule_UsdOnly aTokenPricingModule_ = new ATokenPricingModule_UsdOnly(
+        ATokenPricingModule aTokenPricingModule_ = new ATokenPricingModule(
             mainRegistry_,
             oracleHub_,
             assetType_,

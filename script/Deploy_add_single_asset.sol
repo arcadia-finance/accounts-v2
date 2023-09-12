@@ -47,12 +47,10 @@ contract AddSingleAssetMainnet is Test {
 
         rethToEthOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleRethToEthUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.EthBaseCurrency),
             baseAsset: "rETH",
             quoteAsset: "wETH",
             oracle: DeployAddresses.oracleRethToEth_mainnet,
             baseAssetAddress: DeployAddresses.reth_mainnet,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 

@@ -118,13 +118,10 @@ contract UniswapV2PricingModule is PricingModule {
      * - assetAmount: The Amount of tokens, ERC20 tokens can have any Decimals precision smaller than 18.
      * - baseCurrency: The BaseCurrency in which the value is ideally expressed
      * @return valueInUsd The value of the asset denominated in USD with 18 Decimals precision
-     * @return valueInBaseCurrency The value of the asset denominated in BaseCurrency different from USD with 18 Decimals precision
      * @return collateralFactor The Collateral Factor of the asset
      * @return liquidationFactor The Liquidation Factor of the asset
      * @dev trustedUsdPriceToken cannot realisticly overflow, requires unit price of a token with 0 decimals (worst case),
      * to be bigger than $1,16 * 10^41
-     * @dev The UniswapV2PricingModule will always return the value in valueInUsd,
-     * valueInBaseCurrency will always be 0
      * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
      * However no explicit check is necessary, since the check if the asset is whitelisted (and hence added to PricingModule)
      * is already done in the Main-Registry.
@@ -133,12 +130,12 @@ contract UniswapV2PricingModule is PricingModule {
         public
         view
         override
-        returns (uint256 valueInUsd, uint256 valueInBaseCurrency, uint256 collateralFactor, uint256 liquidationFactor)
+        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
         // To calculate the liquidity value after arbitrage, what matters is the ratio of the price of token0 compared to the price of token1
         // Hence we need to use a trusted external price for an equal amount of tokens,
         // we use for both tokens the USD price of 1 WAD (10**18) to guarantee precision.
-        (uint256 trustedUsdPriceToken0,,,) = PricingModule(erc20PricingModule).getValue(
+        (uint256 trustedUsdPriceToken0,,) = PricingModule(erc20PricingModule).getValue(
             GetValueInput({
                 asset: assetToInformation[getValueInput.asset].token0,
                 assetId: 0,
@@ -146,7 +143,7 @@ contract UniswapV2PricingModule is PricingModule {
                 baseCurrency: 0
             })
         );
-        (uint256 trustedUsdPriceToken1,,,) = PricingModule(erc20PricingModule).getValue(
+        (uint256 trustedUsdPriceToken1,,) = PricingModule(erc20PricingModule).getValue(
             GetValueInput({
                 asset: assetToInformation[getValueInput.asset].token1,
                 assetId: 0,
@@ -167,7 +164,7 @@ contract UniswapV2PricingModule is PricingModule {
         collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
         liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;
 
-        return (valueInUsd, 0, collateralFactor, liquidationFactor);
+        return (valueInUsd, collateralFactor, liquidationFactor);
     }
 
     /**

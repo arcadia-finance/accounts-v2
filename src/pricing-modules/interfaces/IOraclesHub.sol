@@ -20,11 +20,9 @@ interface IOraclesHub {
     function isActive(address oracle) external view returns (bool);
 
     /**
-     * @notice Returns the rate of a certain asset, denominated in USD or in another BaseCurrency.
+     * @notice Returns the rate of a certain asset, denominated in USD.
      * @param oracles Array of contract addresses of oracles.
-     * @param baseCurrency The BaseCurrency in which the rate is ideally expressed.
      * @return rateInUsd The rate of the asset denominated in USD, with 18 Decimals precision.
-     * @return rateInBaseCurrency The rate of the asset denominated in a BaseCurrency different from USD, with 18 Decimals precision.
      */
-    function getRate(address[] memory oracles, uint256 baseCurrency) external view returns (uint256, uint256);
+    function getRateInUsd(address[] memory oracles) external view returns (uint256);
 }

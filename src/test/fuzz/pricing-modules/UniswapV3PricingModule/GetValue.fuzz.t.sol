@@ -12,10 +12,7 @@ import { ERC20Mock } from "../../../../mockups/ERC20SolmateMock.sol";
 import { IUniswapV3PoolExtension } from "../../fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../pricing-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../pricing-modules/UniswapV3/libraries/TickMath.sol";
-import {
-    IPricingModule_UsdOnly,
-    PricingModule_UsdOnly
-} from "../../../../pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule_UsdOnly.sol";
+import { IPricingModule, PricingModule } from "../../../../pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "getValue" of contract "UniswapV3PricingModule".
@@ -104,7 +101,7 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         uint256 valueToken1 = 1e18 * uint256(vars.priceToken1) * amount1 / 10 ** vars.decimals1;
 
         (uint256 actualValueInUsd,,) = uniV3PricingModule.getValue(
-            IPricingModule_UsdOnly.GetValueInput({
+            IPricingModule.GetValueInput({
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
@@ -151,14 +148,14 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         uniV3PricingModule.setExposureOfAsset(address(token1), type(uint128).max);
         vm.stopPrank();
 
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVarInputs = new PricingModule_UsdOnly.RiskVarInput[](2);
-        riskVarInputs[0] = PricingModule_UsdOnly.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVarInputs = new PricingModule.RiskVarInput[](2);
+        riskVarInputs[0] = PricingModule.RiskVarInput({
             asset: address(token0),
             baseCurrency: 0,
             collateralFactor: uint16(collFactor0),
             liquidationFactor: uint16(liqFactor0)
         });
-        riskVarInputs[1] = PricingModule_UsdOnly.RiskVarInput({
+        riskVarInputs[1] = PricingModule.RiskVarInput({
             asset: address(token1),
             baseCurrency: 0,
             collateralFactor: uint16(collFactor1),
@@ -171,7 +168,7 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         uint256 expectedLiqFactor = liqFactor0 < liqFactor1 ? liqFactor0 : liqFactor1;
 
         (, uint256 actualCollFactor, uint256 actualLiqFactor) = uniV3PricingModule.getValue(
-            IPricingModule_UsdOnly.GetValueInput({
+            IPricingModule.GetValueInput({
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,

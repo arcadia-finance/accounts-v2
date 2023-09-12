@@ -6,11 +6,8 @@ pragma solidity 0.8.19;
 
 import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./StandardERC20PricingModule.fuzz.t.sol";
 
-import { OracleHub_UsdOnly } from "../../../../OracleHub_UsdOnly.sol";
-import {
-    PricingModule_UsdOnly,
-    StandardERC20PricingModule_UsdOnly
-} from "../../../../pricing-modules/StandardERC20PricingModule_UsdOnly.sol";
+import { OracleHub } from "../../../../OracleHub.sol";
+import { PricingModule, StandardERC20PricingModule } from "../../../../pricing-modules/StandardERC20PricingModule.sol";
 import { ERC20Mock } from "../../../../mockups/ERC20SolmateMock.sol";
 import { ArcadiaOracle } from "../../../../mockups/ArcadiaOracle.sol";
 
@@ -72,7 +69,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         oracleAssetToUsdArr[0] = address(oracle);
         vm.prank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: 0,
                 baseAsset: "ASSET",
                 quoteAsset: "USD",
@@ -114,8 +111,8 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
 
     function testSuccess_addAsset_NonFullListRiskVariables() public {
         // Given: collateralFactors index 0 is DEFAULT_COLLATERAL_FACTOR, liquidationThresholds index 0 is DEFAULT_LIQUIDATION_FACTOR
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVars_ = new PricingModule_UsdOnly.RiskVarInput[](1);
-        riskVars_[0] = PricingModule_UsdOnly.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](1);
+        riskVars_[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: collateralFactor,
@@ -137,20 +134,20 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
 
     function testSuccess_addAsset_FullListRiskVariables() public {
         // Given:
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVars_ = new PricingModule_UsdOnly.RiskVarInput[](3);
-        riskVars_[0] = PricingModule_UsdOnly.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](3);
+        riskVars_[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: collateralFactor,
             liquidationFactor: liquidationFactor
         });
-        riskVars_[1] = PricingModule_UsdOnly.RiskVarInput({
+        riskVars_[1] = PricingModule.RiskVarInput({
             baseCurrency: 1,
             asset: address(0),
             collateralFactor: collateralFactor,
             liquidationFactor: liquidationFactor
         });
-        riskVars_[2] = PricingModule_UsdOnly.RiskVarInput({
+        riskVars_[2] = PricingModule.RiskVarInput({
             baseCurrency: 2,
             asset: address(0),
             collateralFactor: collateralFactor,
