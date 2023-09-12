@@ -21,10 +21,9 @@ import { LiquidityAmountsExtension } from "../../fixtures/uniswap-v3/extensions/
 import { OracleHub_UsdOnly } from "../../../../OracleHub_UsdOnly.sol";
 import { TickMath } from "../../../../pricing-modules/UniswapV3/libraries/TickMath.sol";
 import {
-    UniswapV3WithFeesPricingModule_UsdOnly,
     PricingModule_UsdOnly,
     IPricingModule_UsdOnly
-} from "../../../../pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule_UsdOnly.sol";
+} from "../../../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV3PricingModule" fuzz tests.
