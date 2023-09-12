@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
 import "../../lib/forge-std/src/Test.sol";
 import { DeployedContracts, OracleHub, AccountV1 } from "./fixtures/DeployedContracts.f.sol";
@@ -17,7 +17,7 @@ import {
     TickMath,
     LiquidityAmounts,
     FixedPointMathLib
-} from "../PricingModules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
+} from "../pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
 import { INonfungiblePositionManagerExtension } from "./interfaces/INonfungiblePositionManagerExtension.sol";
 import { IUniswapV3PoolExtension } from "./interfaces/IUniswapV3PoolExtension.sol";
 import { IUniswapV3Factory } from "./interfaces/IUniswapV3Factory.sol";

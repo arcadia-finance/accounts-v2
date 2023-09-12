@@ -2,12 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
 import "./fixtures/ArcadiaAccountsFixture.f.sol";
 
 import { ATokenMock } from "../mockups/ATokenMock.sol";
-import { ATokenPricingModule } from "../PricingModules/ATokenPricingModule.sol";
+import { ATokenPricingModule } from "../pricing-modules/ATokenPricingModule.sol";
 
 contract aTokenPricingModuleTest is DeployArcadiaAccounts {
     using stdStorage for StdStorage;

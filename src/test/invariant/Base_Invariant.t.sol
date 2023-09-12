@@ -2,13 +2,13 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
 import { StdInvariant } from "../../../lib/forge-std/src/StdInvariant.sol";
-import { Base_Global_Test } from "../Base_Global.t.sol";
+import { Base_Test } from "../Base.t.sol";
 
 /// @notice Common logic needed by all invariant tests.
-abstract contract Base_Invariant_Test is Base_Global_Test {
+abstract contract Base_Invariant_Test is Base_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -21,6 +21,6 @@ abstract contract Base_Invariant_Test is Base_Global_Test {
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
-        Base_Global_Test.setUp();
+        Base_Test.setUp();
     }
 }

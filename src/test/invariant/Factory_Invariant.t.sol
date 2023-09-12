@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
 import { Base_Invariant_Test } from "./Base_Invariant.t.sol";
 import { FactoryHandler } from "./handlers/FactoryHandler.sol";
@@ -26,7 +26,7 @@ contract Factory_Invariant_Test is Base_Invariant_Test {
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
         Base_Invariant_Test.setUp();
-        factoryHandler = new FactoryHandler(factory, mainRegistryExtension, account, accountV2);
+        factoryHandler = new FactoryHandler(factory, mainRegistryExtension, accountV1Logic, accountV2Logic);
         // We only want to target function calls inside the FactoryHandler contract
         targetContract(address(factoryHandler));
     }

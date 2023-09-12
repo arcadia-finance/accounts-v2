@@ -2,13 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
 import { MainRegistry_UsdOnly } from "../../MainRegistry_UsdOnly.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { AccountV1 } from "../../AccountV1.sol";
+import { PricingModule_UsdOnly } from "../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
 import { UniswapV3WithFeesPricingModule_UsdOnly } from
-    "../../PricingModules/UniswapV3/UniswapV3WithFeesPricingModule_UsdOnly.sol";
+    "../../pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule_UsdOnly.sol";
 
 contract MainRegistryExtension is MainRegistry_UsdOnly {
     using FixedPointMathLib for uint256;
@@ -86,5 +87,24 @@ contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule_UsdOn
 
     function getFeeAmounts(address asset, uint256 id) public view returns (uint256 amount0, uint256 amount1) {
         (amount0, amount1) = _getFeeAmounts(asset, id);
+    }
+}
+
+contract AbstractPricingModuleExtension is PricingModule_UsdOnly {
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
+        PricingModule_UsdOnly(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    { }
+
+    function setRiskVariablesForAsset(address asset, RiskVarInput[] memory riskVarInputs) public {
+        _setRiskVariablesForAsset(asset, riskVarInputs);
+    }
+
+    function setRiskVariables(address asset, uint256 basecurrency, RiskVars memory riskVars_) public {
+        _setRiskVariables(asset, basecurrency, riskVars_);
+    }
+
+    function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
+        exposure[asset].exposure = exposure_;
+        exposure[asset].maxExposure = maxExposure;
     }
 }

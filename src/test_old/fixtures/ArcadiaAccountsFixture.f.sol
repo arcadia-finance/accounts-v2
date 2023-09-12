@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
 import "../../../lib/forge-std/src/Test.sol";
 
@@ -13,9 +13,9 @@ import { ERC20Mock } from "../../mockups/ERC20SolmateMock.sol";
 import "../../mockups/ERC721SolmateMock.sol";
 import "../../mockups/ERC1155SolmateMock.sol";
 import "../../MainRegistry.sol";
-import { PricingModule, StandardERC20PricingModule } from "../../PricingModules/StandardERC20PricingModule.sol";
-import { FloorERC721PricingModule } from "../../PricingModules/FloorERC721PricingModule.sol";
-import { FloorERC1155PricingModule } from "../../PricingModules/FloorERC1155PricingModule.sol";
+import { PricingModule, StandardERC20PricingModule } from "../../pricing-modules/StandardERC20PricingModule.sol";
+import { FloorERC721PricingModule } from "../../pricing-modules/FloorERC721PricingModule.sol";
+import { FloorERC1155PricingModule } from "../../pricing-modules/FloorERC1155PricingModule.sol";
 import "../../OracleHub.sol";
 import "../../utils/Constants.sol";
 import { LogExpMath } from "../../utils/LogExpMath.sol";
