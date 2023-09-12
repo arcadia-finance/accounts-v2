@@ -32,20 +32,18 @@ interface IPricingModule_UsdOnly {
     function getRiskVariables(address asset, uint256 baseCurrency) external view returns (uint16, uint16);
 
     /**
-     * @notice Processes the deposit of an asset.
-     * @param account The contract address of the Account where the asset is transferred to.
+     * @notice Increases the exposure to an asset on deposit.
      * @param asset The contract address of the asset.
      * @param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDeposit(address account, address asset, uint256 id, uint256 amount) external;
+    function increaseExposure(address asset, uint256 id, uint256 amount) external;
 
     /**
-     * @notice Processes the withdrawal an asset.
-     * @param account The address of the Account where the asset is withdrawn from
+     * @notice Decreases the exposure to an asset on withdrawal.
      * @param asset The contract address of the asset.
      * @param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processWithdrawal(address account, address asset, uint256 id, uint256 amount) external;
+    function decreaseExposure(address asset, uint256 id, uint256 amount) external;
 }
