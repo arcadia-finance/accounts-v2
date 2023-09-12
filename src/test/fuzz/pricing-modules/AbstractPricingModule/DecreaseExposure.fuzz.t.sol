@@ -9,9 +9,9 @@ import { Constants, AbstractPricingModule_Fuzz_Test } from "./AbstractPricingMod
 import { PricingModule_UsdOnly } from "../../../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
 
 /**
- * @notice Fuzz tests for the "processWithdrawal" of contract "AbstractPricingModule".
+ * @notice Fuzz tests for the "decreaseExposure" of contract "AbstractPricingModule".
  */
-contract ProcessWithdrawal_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
+contract DecreaseExposure_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -23,7 +23,7 @@ contract ProcessWithdrawal_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Tes
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_processWithdrawal_NonMainRegistry(
+    function testRevert_decreaseExposure_NonMainRegistry(
         address unprivilegedAddress_,
         address asset,
         uint128 id,
@@ -34,11 +34,11 @@ contract ProcessWithdrawal_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Tes
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        pricingModule.processWithdrawal(account_, asset, id, amount);
+        pricingModule.decreaseExposure(asset, id, amount);
         vm.stopPrank();
     }
 
-    function testSuccess_processWithdrawal(
+    function testSuccess_decreaseExposure(
         address asset,
         uint128 exposure,
         uint128 amount,
@@ -51,7 +51,7 @@ contract ProcessWithdrawal_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Tes
         pricingModule.setExposure(asset, exposure, maxExposure);
 
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processWithdrawal(account_, asset, id, amount);
+        pricingModule.decreaseExposure(asset, id, amount);
 
         (, uint128 actualExposure) = pricingModule.exposure(address(asset));
         uint128 expectedExposure = exposure - amount;
@@ -59,7 +59,7 @@ contract ProcessWithdrawal_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Tes
         assertEq(actualExposure, expectedExposure);
     }
 
-    function testSuccess_processWithdrawal_withAmountGreaterThanExposure(
+    function testSuccess_decreaseExposure_withAmountGreaterThanExposure(
         address asset,
         uint128 exposure,
         uint128 amount,
@@ -72,7 +72,7 @@ contract ProcessWithdrawal_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Tes
         pricingModule.setExposure(asset, exposure, maxExposure);
 
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processWithdrawal(account_, asset, id, amount);
+        pricingModule.decreaseExposure(asset, id, amount);
 
         (, uint128 actualExposure) = pricingModule.exposure(address(asset));
 

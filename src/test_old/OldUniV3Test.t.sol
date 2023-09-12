@@ -596,16 +596,18 @@ contract RiskVariablesManagementTest is UniV3Test {
         assertEq(actualTickTwap, expectedTickTwap);
     }
 
-    function testRevert_processDeposit_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id) public {
+    function testRevert_increaseExposure_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
+        public
+    {
         vm.assume(unprivilegedAddress != address(mainRegistry));
 
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        uniV3PricingModule.processDeposit(address(0), asset, id, 0);
+        uniV3PricingModule.increaseExposure(asset, id, 0);
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_ZeroLiquidity() public {
+    function testRevert_increaseExposure_ZeroLiquidity() public {
         // Create Uniswap V3 pool initiated at tick 0 with cardinality 300.
         pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(0), 300);
 
@@ -629,11 +631,11 @@ contract RiskVariablesManagementTest is UniV3Test {
 
         vm.startPrank(address(mainRegistry));
         vm.expectRevert("PMUV3_PD: 0 liquidity");
-        uniV3PricingModule.processDeposit(address(0), address(uniV3), tokenId, 0);
+        uniV3PricingModule.increaseExposure(address(uniV3), tokenId, 0);
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_BelowAcceptedRange(
+    function testRevert_increaseExposure_BelowAcceptedRange(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -662,11 +664,11 @@ contract RiskVariablesManagementTest is UniV3Test {
 
         vm.startPrank(address(mainRegistry));
         vm.expectRevert("PMUV3_PD: Tlow not in limits");
-        uniV3PricingModule.processDeposit(address(0), address(uniV3), tokenId, 0);
+        uniV3PricingModule.increaseExposure(address(uniV3), tokenId, 0);
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_AboveAcceptedRange(
+    function testRevert_increaseExposure_AboveAcceptedRange(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -697,11 +699,11 @@ contract RiskVariablesManagementTest is UniV3Test {
 
         vm.startPrank(address(mainRegistry));
         vm.expectRevert("PMUV3_PD: Tup not in limits");
-        uniV3PricingModule.processDeposit(address(0), address(uniV3), tokenId, 0);
+        uniV3PricingModule.increaseExposure(address(uniV3), tokenId, 0);
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_ExposureToken0ExceedingMax(
+    function testRevert_increaseExposure_ExposureToken0ExceedingMax(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -748,11 +750,11 @@ contract RiskVariablesManagementTest is UniV3Test {
 
         vm.startPrank(address(mainRegistry));
         vm.expectRevert("PMUV3_PD: Exposure0 not in limits");
-        uniV3PricingModule.processDeposit(address(0), address(uniV3), tokenId, 0);
+        uniV3PricingModule.increaseExposure(address(uniV3), tokenId, 0);
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_ExposureToken1ExceedingMax(
+    function testRevert_increaseExposure_ExposureToken1ExceedingMax(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -799,11 +801,11 @@ contract RiskVariablesManagementTest is UniV3Test {
 
         vm.startPrank(address(mainRegistry));
         vm.expectRevert("PMUV3_PD: Exposure1 not in limits");
-        uniV3PricingModule.processDeposit(address(0), address(uniV3), tokenId, 0);
+        uniV3PricingModule.increaseExposure(address(uniV3), tokenId, 0);
         vm.stopPrank();
     }
 
-    function testSuccess_processDeposit(
+    function testSuccess_increaseExposure(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -855,7 +857,7 @@ contract RiskVariablesManagementTest is UniV3Test {
         vm.warp(block.timestamp + 300);
 
         vm.prank(address(mainRegistry));
-        uniV3PricingModule.processDeposit(address(0), address(uniV3), tokenId, 0);
+        uniV3PricingModule.increaseExposure(address(uniV3), tokenId, 0);
 
         (, uint128 exposure0) = uniV3PricingModule.exposure(address(token0));
         (, uint128 exposure1) = uniV3PricingModule.exposure(address(token1));
@@ -863,18 +865,18 @@ contract RiskVariablesManagementTest is UniV3Test {
         assertEq(exposure1, amount1 + initialExposure1);
     }
 
-    function testRevert_processWithdrawal_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
+    function testRevert_decreaseExposure_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
         public
     {
         vm.assume(unprivilegedAddress != address(mainRegistry));
 
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        uniV3PricingModule.processWithdrawal(address(0), asset, id, 0);
+        uniV3PricingModule.decreaseExposure(asset, id, 0);
         vm.stopPrank();
     }
 
-    function testSuccess_processWithdrawal(
+    function testSuccess_decreaseExposure(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -930,10 +932,10 @@ contract RiskVariablesManagementTest is UniV3Test {
 
         // Deposit assets (necessary to update the position in the Pricing Module).
         vm.prank(address(mainRegistry));
-        uniV3PricingModule.processDeposit(address(0), address(uniV3), tokenId, 0);
+        uniV3PricingModule.increaseExposure(address(uniV3), tokenId, 0);
 
         vm.prank(address(mainRegistry));
-        uniV3PricingModule.processWithdrawal(address(0), address(uniV3), tokenId, 0);
+        uniV3PricingModule.decreaseExposure(address(uniV3), tokenId, 0);
 
         (, uint128 exposure0) = uniV3PricingModule.exposure(address(token0));
         (, uint128 exposure1) = uniV3PricingModule.exposure(address(token1));

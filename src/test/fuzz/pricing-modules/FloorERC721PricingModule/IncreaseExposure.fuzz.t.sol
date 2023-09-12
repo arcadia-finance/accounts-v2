@@ -7,9 +7,9 @@ pragma solidity 0.8.19;
 import { Constants, FloorERC721PricingModule_Fuzz_Test } from "./FloorERC721PricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "processDeposit" of contract "FloorERC721PricingModule".
+ * @notice Fuzz tests for the "increaseExposure" of contract "FloorERC721PricingModule".
  */
-contract ProcessDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule_Fuzz_Test {
+contract IncreaseExposure_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -21,9 +21,11 @@ contract ProcessDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721Pricing
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_processDeposit_NonMainRegistry(address unprivilegedAddress_, uint256 assetId, address account_)
-        public
-    {
+    function testRevert_increaseExposure_NonMainRegistry(
+        address unprivilegedAddress_,
+        uint256 assetId,
+        address account_
+    ) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
@@ -33,39 +35,39 @@ contract ProcessDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721Pricing
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        floorERC721PricingModule.processDeposit(account_, address(mockERC721.nft2), assetId, 1);
+        floorERC721PricingModule.increaseExposure(address(mockERC721.nft2), assetId, 1);
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_OverExposure(uint256 assetId, address account_) public {
+    function testRevert_increaseExposure_OverExposure(uint256 assetId, address account_) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        floorERC721PricingModule.processDeposit(account_, address(mockERC721.nft2), assetId, 1);
+        floorERC721PricingModule.increaseExposure(address(mockERC721.nft2), assetId, 1);
 
         vm.expectRevert("PM721_PD: Exposure not in limits");
-        floorERC721PricingModule.processDeposit(account_, address(mockERC721.nft2), assetId, 1);
+        floorERC721PricingModule.increaseExposure(address(mockERC721.nft2), assetId, 1);
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_WrongID(uint256 assetId, address account_) public {
+    function testRevert_increaseExposure_WrongID(uint256 assetId, address account_) public {
         vm.assume(assetId > 0); //Not in range
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, 0, oracleNft2ToUsdArr, emptyRiskVarInput, 1);
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("PM721_PD: ID not allowed");
-        floorERC721PricingModule.processDeposit(account_, address(mockERC721.nft2), assetId, 1);
+        floorERC721PricingModule.increaseExposure(address(mockERC721.nft2), assetId, 1);
         vm.stopPrank();
 
         (, uint128 actualExposure) = floorERC721PricingModule.exposure(address(mockERC721.nft2));
         assertEq(actualExposure, 0);
     }
 
-    function testRevert_processDeposit_NotOne(uint256 assetId, address account_, uint256 amount) public {
+    function testRevert_increaseExposure_NotOne(uint256 assetId, address account_, uint256 amount) public {
         vm.assume(amount != 1); //Not in range
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
@@ -74,21 +76,21 @@ contract ProcessDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721Pricing
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("PM721_PD: Amount not 1");
-        floorERC721PricingModule.processDeposit(account_, address(mockERC721.nft2), assetId, amount);
+        floorERC721PricingModule.increaseExposure(address(mockERC721.nft2), assetId, amount);
         vm.stopPrank();
 
         (, uint128 actualExposure) = floorERC721PricingModule.exposure(address(mockERC721.nft2));
         assertEq(actualExposure, 0);
     }
 
-    function testSuccess_processDeposit_Positive(uint256 assetId, address account_) public {
+    function testSuccess_increaseExposure_Positive(uint256 assetId, address account_) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1
         );
 
         vm.prank(address(mainRegistryExtension));
-        floorERC721PricingModule.processDeposit(account_, address(mockERC721.nft2), assetId, 1);
+        floorERC721PricingModule.increaseExposure(address(mockERC721.nft2), assetId, 1);
 
         (, uint128 actualExposure) = floorERC721PricingModule.exposure(address(mockERC721.nft2));
         assertEq(actualExposure, 1);

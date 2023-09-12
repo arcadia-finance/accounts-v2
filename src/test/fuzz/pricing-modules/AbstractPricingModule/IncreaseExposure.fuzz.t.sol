@@ -9,9 +9,9 @@ import { Constants, AbstractPricingModule_Fuzz_Test } from "./AbstractPricingMod
 import { PricingModule_UsdOnly } from "../../../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
 
 /**
- * @notice Fuzz tests for the "processDeposit" of contract "AbstractPricingModule".
+ * @notice Fuzz tests for the "increaseExposure" of contract "AbstractPricingModule".
  */
-contract ProcessDeposit_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
+contract IncreaseExposure_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -23,7 +23,7 @@ contract ProcessDeposit_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_processDeposit_NonMainRegistry(
+    function testRevert_increaseExposure_NonMainRegistry(
         address unprivilegedAddress_,
         address asset,
         uint128 amount,
@@ -33,11 +33,11 @@ contract ProcessDeposit_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        pricingModule.processDeposit(account_, asset, 0, amount);
+        pricingModule.increaseExposure(asset, 0, amount);
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_OverExposure(
+    function testRevert_increaseExposure_OverExposure(
         address asset,
         uint128 exposure,
         uint128 amount,
@@ -50,11 +50,11 @@ contract ProcessDeposit_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("APM_PD: Exposure not in limits");
-        pricingModule.processDeposit(account_, address(asset), 0, amount);
+        pricingModule.increaseExposure(address(asset), 0, amount);
         vm.stopPrank();
     }
 
-    function testSuccess_processDeposit(
+    function testSuccess_increaseExposure(
         address asset,
         uint128 exposure,
         uint128 amount,
@@ -66,7 +66,7 @@ contract ProcessDeposit_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
         pricingModule.setExposure(asset, exposure, maxExposure);
 
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processDeposit(account_, address(asset), 0, amount);
+        pricingModule.increaseExposure(address(asset), 0, amount);
 
         (, uint128 actualExposure) = pricingModule.exposure(address(asset));
         uint128 expectedExposure = exposure + amount;

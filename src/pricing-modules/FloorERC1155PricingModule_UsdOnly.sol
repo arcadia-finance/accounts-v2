@@ -112,13 +112,13 @@ contract FloorERC1155PricingModule_UsdOnly is PricingModule_UsdOnly {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Processes the deposit of a token address and the corresponding Id if it is white-listed
+     * @notice Increases the exposure of a token address and the corresponding Id if it is white-listed
      * @param asset The address of the asset
      * @param assetId The Id of the asset
      * @param amount the amount of ERC1155 tokens
      * @dev Unsafe cast to uint128, meaning it is assumed no more than 10**(20+decimals) tokens can be deposited
      */
-    function processDeposit(address, address asset, uint256 assetId, uint256 amount) external override onlyMainReg {
+    function increaseExposure(address asset, uint256 assetId, uint256 amount) external override onlyMainReg {
         require(assetId == assetToInformation[asset].id, "PM1155_PD: ID not allowed");
 
         exposure[asset].exposure += uint128(amount);

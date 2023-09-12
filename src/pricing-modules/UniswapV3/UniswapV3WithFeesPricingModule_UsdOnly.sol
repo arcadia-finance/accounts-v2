@@ -405,8 +405,7 @@ contract UniswapV3WithFeesPricingModule_UsdOnly is PricingModule_UsdOnly {
     }
 
     /**
-     * @notice Processes the deposit of an asset.
-     * param account The contract address of the Account where the asset is transferred to.
+     * @notice Increases the exposure to an asset and it's underlying assets if any.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * param amount The amount of tokens.
@@ -419,7 +418,7 @@ contract UniswapV3WithFeesPricingModule_UsdOnly is PricingModule_UsdOnly {
      * The chosen max range (from 0.2x to 5X the current price) is a trade-off between not hindering normal usage of LPs and
      * making it expensive for malicious actors to manipulate exposures (now they have to deposit at least 20% of the max exposure).
      */
-    function processDeposit(address, address asset, uint256 assetId, uint256) external override onlyMainReg {
+    function increaseExposure(address asset, uint256 assetId, uint256) external override onlyMainReg {
         (,, address token0, address token1,, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) =
             INonfungiblePositionManager(asset).positions(assetId);
 
@@ -488,14 +487,13 @@ contract UniswapV3WithFeesPricingModule_UsdOnly is PricingModule_UsdOnly {
     }
 
     /**
-     * @notice Processes the withdrawal of an asset.
-     * param account The address of the Account where the asset is withdrawn from
+     * @notice Decreases the exposure to an asset and it's underlying assets if any on withdrawal.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * param amount The amount of tokens.
      * @dev Unsafe cast to uint128, we know that the same cast did not overflow in deposit().
      */
-    function processWithdrawal(address, address asset, uint256 assetId, uint256) external override onlyMainReg {
+    function decreaseExposure(address asset, uint256 assetId, uint256) external override onlyMainReg {
         // Cache sqrtRatio.
         uint160 sqrtRatioLowerX96 = TickMath.getSqrtRatioAtTick(positions[asset][assetId].tickLower);
         uint160 sqrtRatioUpperX96 = TickMath.getSqrtRatioAtTick(positions[asset][assetId].tickUpper);
