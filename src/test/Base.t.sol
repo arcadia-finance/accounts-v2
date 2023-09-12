@@ -13,6 +13,7 @@ import { MainRegistryExtension } from "./utils/Extensions.sol";
 import { PricingModule_UsdOnly } from "../pricing-modules/AbstractPricingModule_UsdOnly.sol";
 import { OracleHub_UsdOnly } from "../OracleHub_UsdOnly.sol";
 import { StandardERC20PricingModule_UsdOnly } from "../pricing-modules/StandardERC20PricingModule_UsdOnly.sol";
+import { ATokenPricingModule } from "../pricing-modules/ATokenPricingModule.sol";
 import { FloorERC721PricingModule_UsdOnly } from "../pricing-modules/FloorERC721PricingModule_UsdOnly.sol";
 import { FloorERC1155PricingModule_UsdOnly } from "../pricing-modules/FloorERC1155PricingModule_UsdOnly.sol";
 import { UniswapV3PricingModuleExtension } from "./utils/Extensions.sol";
@@ -48,6 +49,7 @@ abstract contract Base_Test is Test, Events, Errors {
     StandardERC20PricingModule_UsdOnly internal erc20PricingModule;
     FloorERC721PricingModule_UsdOnly internal floorERC721PricingModule;
     FloorERC1155PricingModule_UsdOnly internal floorERC1155PricingModule;
+    ATokenPricingModule internal aTokenPricingModule;
     UniswapV3PricingModuleExtension internal uniV3PricingModule;
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
@@ -86,6 +88,8 @@ abstract contract Base_Test is Test, Events, Errors {
             address(oracleHub),
             2
         );
+        aTokenPricingModule =
+            new ATokenPricingModule(address(mainRegistryExtension), address(oracleHub), 0, address(erc20PricingModule));
         deployUniswapV3PricingModule();
         accountV1Logic = new AccountV1();
         accountV2Logic = new AccountV2();
@@ -102,6 +106,7 @@ abstract contract Base_Test is Test, Events, Errors {
         mainRegistryExtension.addPricingModule(address(floorERC721PricingModule));
         mainRegistryExtension.addPricingModule(address(floorERC1155PricingModule));
         mainRegistryExtension.addPricingModule(address(uniV3PricingModule));
+        mainRegistryExtension.addPricingModule(address(aTokenPricingModule));
         vm.stopPrank();
 
         // Label the base test contracts.

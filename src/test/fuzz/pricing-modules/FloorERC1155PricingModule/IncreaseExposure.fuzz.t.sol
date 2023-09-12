@@ -21,7 +21,7 @@ contract IncreaseExposure_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Pri
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_increaseExposure_NonMainRegistry(address unprivilegedAddress_, uint128 amount, address account_)
+    function testRevert_increaseExposure_NonMainRegistry(address unprivilegedAddress_, uint128 amount)
         public
     {
         vm.prank(users.creatorAddress);
@@ -37,7 +37,7 @@ contract IncreaseExposure_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Pri
         vm.stopPrank();
     }
 
-    function testRevert_increaseExposure_OverExposure(uint128 amount, uint128 maxExposure, address account_) public {
+    function testRevert_increaseExposure_OverExposure(uint128 amount, uint128 maxExposure) public {
         vm.assume(maxExposure > 0); //Asset is whitelisted
         vm.assume(amount > maxExposure);
         vm.prank(users.creatorAddress);
@@ -51,7 +51,7 @@ contract IncreaseExposure_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Pri
         vm.stopPrank();
     }
 
-    function testRevert_increaseExposure_WrongID(uint256 assetId, uint128 amount, address account_) public {
+    function testRevert_increaseExposure_WrongID(uint256 assetId, uint128 amount) public {
         vm.assume(assetId > 0); //Wrong Id
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
@@ -67,7 +67,7 @@ contract IncreaseExposure_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Pri
         assertEq(actualExposure, 0);
     }
 
-    function testSuccess_increaseExposure_Positive(uint128 amount, address account_) public {
+    function testSuccess_increaseExposure_Positive(uint128 amount) public {
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
             address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max

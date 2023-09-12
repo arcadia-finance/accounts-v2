@@ -149,4 +149,43 @@ contract ATokenPricingModule is PricingModule {
         collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
         liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;
     }
+
+    /*///////////////////////////////////////////////////////////////
+                    RISK VARIABLES MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Increases the exposure to an asset on deposit.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @param amount The amount of tokens.
+     * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens can be deposited.
+     */
+    function increaseExposure(address asset, uint256, uint256 amount) external override onlyMainReg {
+        require(
+            exposure[asset].exposure + uint128(amount) <= exposure[asset].maxExposure, "APM_PD: Exposure not in limits"
+        );
+        exposure[asset].exposure += uint128(amount);
+
+        // Increase the exposure of the underlying asset.
+        IMainRegistry(mainRegistry).increaseExposureUnderlyingAsset(
+            assetToInformation[asset].underlyingAsset, 0, amount
+        );
+    }
+
+    /**
+     * @notice Decreases the exposure to an asset on withdrawal.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @param amount The amount of tokens.
+     * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
+     */
+    function decreaseExposure(address asset, uint256, uint256 amount) external override onlyMainReg {
+        exposure[asset].exposure >= amount ? exposure[asset].exposure -= uint128(amount) : exposure[asset].exposure = 0;
+
+        // Decrease exposure of the underlying asset.
+        IMainRegistry(mainRegistry).decreaseExposureUnderlyingAsset(
+            assetToInformation[asset].underlyingAsset, 0, amount
+        );
+    }
 }

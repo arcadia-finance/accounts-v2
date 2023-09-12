@@ -9,13 +9,16 @@ import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils
 import { MainRegistry_UsdOnly } from "../../MainRegistry_UsdOnly.sol";
 import { OracleHub_UsdOnly } from "../../OracleHub_UsdOnly.sol";
 import { PricingModule_UsdOnly } from "../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
+import { PricingModule } from "../../pricing-modules/AbstractPricingModule.sol";
 import { TrustedCreditorMock } from "../../mockups/TrustedCreditorMock.sol";
 import { Proxy } from "../../Proxy.sol";
 import { ERC20Mock } from "../../mockups/ERC20SolmateMock.sol";
 import { ERC721Mock } from "../../mockups/ERC721SolmateMock.sol";
 import { ERC1155Mock } from "../../mockups/ERC1155SolmateMock.sol";
+import { ATokenMock } from "../../mockups/ATokenMock.sol";
 import { ArcadiaOracle } from "../../mockups/ArcadiaOracle.sol";
 import { AccountV1 } from "../../AccountV1.sol";
+
 
 /**
  * @notice Common logic needed by all fuzz tests.
@@ -44,6 +47,8 @@ abstract contract Fuzz_Test is Base_Test {
     MockERC20 internal mockERC20;
     MockERC721 internal mockERC721;
     MockERC1155 internal mockERC1155;
+    ATokenMock internal aToken1;
+    ATokenMock internal aToken2;
     Rates internal rates;
 
     // ERC20 oracle arrays
@@ -81,6 +86,10 @@ abstract contract Fuzz_Test is Base_Test {
             token4: new ERC20Mock("TOKEN4", "T4", uint8(Constants.tokenDecimals))
         });
 
+        // Create mockERC20 aTokens for testing
+        aToken1 = new ATokenMock(address(mockERC20.token1), "aTOKEN1", "aT1", uint8(Constants.tokenDecimals));
+        aToken2 = new ATokenMock(address(mockERC20.token2), "aTOKEN2", "aT2", uint8(Constants.tokenDecimals));
+
         // Create mock ERC721 tokens for testing
         mockERC721 = MockERC721({
             nft1: new ERC721Mock("NFT1", "NFT1"),
@@ -103,6 +112,8 @@ abstract contract Fuzz_Test is Base_Test {
         vm.label({ account: address(mockERC721.nft3), newLabel: "NFT3" });
         vm.label({ account: address(mockERC1155.sft1), newLabel: "SFT1" });
         vm.label({ account: address(mockERC1155.sft2), newLabel: "SFT2" });
+        vm.label({ account: address(aToken1), newLabel: "aT1" });
+        vm.label({ account: address(aToken2), newLabel: "aT2" });
 
         // Set rates
         rates = Rates({
@@ -300,6 +311,12 @@ abstract contract Fuzz_Test is Base_Test {
         floorERC1155PricingModule.addAsset(
             address(mockERC1155.sft1), 1, oracleSft1ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
         );
+
+        // Add aTokens to the aTokenPricingModule
+        // TODO: adapt below when refactoring for pricingModule_UsdOnly
+        PricingModule.RiskVarInput[] memory emptyRiskVarInput_;
+        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput_, type(uint128).max);
+        aTokenPricingModule.addAsset(address(aToken2), emptyRiskVarInput_, type(uint128).max);
 
         vm.stopPrank();
     }

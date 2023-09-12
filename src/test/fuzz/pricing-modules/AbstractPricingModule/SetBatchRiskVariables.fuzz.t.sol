@@ -12,7 +12,7 @@ import { PricingModule_UsdOnly, RiskConstants } from "../../../../pricing-module
 /**
  * @notice Fuzz tests for the "setBatchRiskVariables" of contract "AbstractPricingModule".
  */
-contract SetBatchRiskVariables_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
+contract SetBatchRiskVariables_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                               SETUP

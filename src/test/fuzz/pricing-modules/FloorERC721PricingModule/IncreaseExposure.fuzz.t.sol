@@ -23,8 +23,7 @@ contract IncreaseExposure_FloorERC721PricingModule_Fuzz_Test is FloorERC721Prici
     //////////////////////////////////////////////////////////////*/
     function testRevert_increaseExposure_NonMainRegistry(
         address unprivilegedAddress_,
-        uint256 assetId,
-        address account_
+        uint256 assetId
     ) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
@@ -39,7 +38,7 @@ contract IncreaseExposure_FloorERC721PricingModule_Fuzz_Test is FloorERC721Prici
         vm.stopPrank();
     }
 
-    function testRevert_increaseExposure_OverExposure(uint256 assetId, address account_) public {
+    function testRevert_increaseExposure_OverExposure(uint256 assetId) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1
@@ -53,7 +52,7 @@ contract IncreaseExposure_FloorERC721PricingModule_Fuzz_Test is FloorERC721Prici
         vm.stopPrank();
     }
 
-    function testRevert_increaseExposure_WrongID(uint256 assetId, address account_) public {
+    function testRevert_increaseExposure_WrongID(uint256 assetId) public {
         vm.assume(assetId > 0); //Not in range
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, 0, oracleNft2ToUsdArr, emptyRiskVarInput, 1);
@@ -67,7 +66,7 @@ contract IncreaseExposure_FloorERC721PricingModule_Fuzz_Test is FloorERC721Prici
         assertEq(actualExposure, 0);
     }
 
-    function testRevert_increaseExposure_NotOne(uint256 assetId, address account_, uint256 amount) public {
+    function testRevert_increaseExposure_NotOne(uint256 assetId, uint256 amount) public {
         vm.assume(amount != 1); //Not in range
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
@@ -83,7 +82,7 @@ contract IncreaseExposure_FloorERC721PricingModule_Fuzz_Test is FloorERC721Prici
         assertEq(actualExposure, 0);
     }
 
-    function testSuccess_increaseExposure_Positive(uint256 assetId, address account_) public {
+    function testSuccess_increaseExposure_Positive(uint256 assetId) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1

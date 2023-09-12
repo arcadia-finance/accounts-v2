@@ -11,7 +11,7 @@ import { AbstractPricingModuleExtension } from "../../../utils/Extensions.sol";
 /**
  * @notice Fuzz tests for the "constructor" of contract "AbstractPricingModule".
  */
-contract Constructor_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
+contract Constructor_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

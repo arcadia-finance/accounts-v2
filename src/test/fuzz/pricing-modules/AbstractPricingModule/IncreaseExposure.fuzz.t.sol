@@ -11,7 +11,7 @@ import { PricingModule_UsdOnly } from "../../../../pricing-modules/AbstractPrici
 /**
  * @notice Fuzz tests for the "increaseExposure" of contract "AbstractPricingModule".
  */
-contract IncreaseExposure_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
+contract IncreaseExposure_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -26,8 +26,7 @@ contract IncreaseExposure_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test
     function testRevert_increaseExposure_NonMainRegistry(
         address unprivilegedAddress_,
         address asset,
-        uint128 amount,
-        address account_
+        uint128 amount
     ) public {
         vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
 
@@ -41,8 +40,7 @@ contract IncreaseExposure_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test
         address asset,
         uint128 exposure,
         uint128 amount,
-        uint128 maxExposure,
-        address account_
+        uint128 maxExposure
     ) public {
         vm.assume(exposure <= type(uint128).max - amount);
         vm.assume(exposure + amount > maxExposure);
@@ -58,8 +56,7 @@ contract IncreaseExposure_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test
         address asset,
         uint128 exposure,
         uint128 amount,
-        uint128 maxExposure,
-        address account_
+        uint128 maxExposure
     ) public {
         vm.assume(exposure <= type(uint128).max - amount);
         vm.assume(exposure + amount <= maxExposure);

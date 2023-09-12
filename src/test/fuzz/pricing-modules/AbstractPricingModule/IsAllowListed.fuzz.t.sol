@@ -11,7 +11,7 @@ import { PricingModule_UsdOnly } from "../../../../pricing-modules/AbstractPrici
 /**
  * @notice Fuzz tests for the "isAllowListed" of contract "AbstractPricingModule".
  */
-contract IsAllowListed_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
+contract IsAllowListed_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
