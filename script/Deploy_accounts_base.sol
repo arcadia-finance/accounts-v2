@@ -9,12 +9,12 @@ import { DeployAddresses, DeployNumbers, DeployBytes, DeployRiskConstantsBase } 
 
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/AccountV1.sol";
-import { MainRegistry } from "../src/MainRegistry.sol";
+import { MainRegistry_UsdOnly } from "../src/MainRegistry_UsdOnly.sol";
 import {
     PricingModule_UsdOnly,
     StandardERC20PricingModule_UsdOnly
-} from "../src/PricingModules/StandardERC20PricingModule_UsdOnly.sol";
-import { UniswapV3PricingModule_UsdOnly } from "../src/PricingModules/UniswapV3/UniswapV3PricingModule_UsdOnly.sol";
+} from "../src/pricing-modules/StandardERC20PricingModule_UsdOnly.sol";
+import { UniswapV3PricingModule_UsdOnly } from "../src/pricing-modules/UniswapV3/UniswapV3PricingModule_UsdOnly.sol";
 import { OracleHub } from "../src/OracleHub.sol";
 
 import { ActionMultiCallV2 } from "../src/actions/MultiCallV2.sol";
@@ -22,7 +22,7 @@ import { ActionMultiCallV2 } from "../src/actions/MultiCallV2.sol";
 import { ILendingPool } from "./interfaces/ILendingPool.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
 
-contract ArcadiaAccountDeployerBase is Test {
+contract ArcadiaAccountDeployment is Test {
     Factory public factory;
     AccountV1 public account;
 
@@ -30,32 +30,29 @@ contract ArcadiaAccountDeployerBase is Test {
     ERC20 public dai;
     ERC20 public weth;
     ERC20 public usdc;
-    ERC20 public usdbc;
     ERC20 public cbeth;
     ERC20 public reth;
 
     OracleHub public oracleHub;
-    MainRegistry public mainRegistry;
+    MainRegistry_UsdOnly public mainRegistry;
     StandardERC20PricingModule_UsdOnly public standardERC20PricingModule;
     UniswapV3PricingModule_UsdOnly public uniswapV3PricingModule;
     ActionMultiCallV2 public actionMultiCall;
 
-    ILendingPool public wethLendingPool = ILendingPool(0xD417c28aF20884088F600e724441a3baB38b22cc); //to change after LP deploy
-    ILendingPool public usdcLendingPool = ILendingPool(0x9aa024D3fd962701ED17F76c17CaB22d3dc9D92d); //to change after LP deploy
+    ILendingPool public wethLendingPool;
+    ILendingPool public usdcLendingPool;
 
     address[] public oracleCompToUsdArr = new address[](1);
     address[] public oracleDaiToUsdArr = new address[](1);
     address[] public oracleEthToUsdArr = new address[](1);
     address[] public oracleUsdcToUsdArr = new address[](1);
-    address[] public oracleUsdbcToUsdArr = new address[](1);
     address[] public oracleCbethToEthToUsdArr = new address[](2);
-    address[] public oracleRethToEthArr = new address[](1);
+    address[] public oracleRethToEthToUsdArr = new address[](2);
 
     PricingModule_UsdOnly.RiskVarInput[] public riskVarsComp;
     PricingModule_UsdOnly.RiskVarInput[] public riskVarsDai;
     PricingModule_UsdOnly.RiskVarInput[] public riskVarsEth;
     PricingModule_UsdOnly.RiskVarInput[] public riskVarsUsdc;
-    PricingModule_UsdOnly.RiskVarInput[] public riskVarsUsdbc;
     PricingModule_UsdOnly.RiskVarInput[] public riskVarsCbeth;
     PricingModule_UsdOnly.RiskVarInput[] public riskVarsReth;
 
@@ -63,43 +60,41 @@ contract ArcadiaAccountDeployerBase is Test {
     OracleHub.OracleInformation public daiToUsdOracleInfo;
     OracleHub.OracleInformation public ethToUsdOracleInfo;
     OracleHub.OracleInformation public usdcToUsdOracleInfo;
-    OracleHub.OracleInformation public usdbcToUsdOracleInfo;
     OracleHub.OracleInformation public cbethToEthToUsdOracleInfo;
     OracleHub.OracleInformation public rethToEthOracleInfo;
 
-    MainRegistry.BaseCurrencyInformation public usdBaseCurrencyInfo;
-    MainRegistry.BaseCurrencyInformation public ethBaseCurrencyInfo;
-    MainRegistry.BaseCurrencyInformation public usdcBaseCurrencyInfo;
+    MainRegistry_UsdOnly.BaseCurrencyInformation public usdBaseCurrencyInfo;
+    MainRegistry_UsdOnly.BaseCurrencyInformation public ethBaseCurrencyInfo;
+    MainRegistry_UsdOnly.BaseCurrencyInformation public usdcBaseCurrencyInfo;
 
     constructor() {
-        /*///////////////////////////////////////////////////////////////
-                          ADDRESSES
-        ///////////////////////////////////////////////////////////////*/
+        // /*///////////////////////////////////////////////////////////////
+        //                   ADDRESSES
+        // ///////////////////////////////////////////////////////////////*/
 
         comp = ERC20(DeployAddresses.comp_base);
         dai = ERC20(DeployAddresses.dai_base);
         weth = ERC20(DeployAddresses.weth_base);
         usdc = ERC20(DeployAddresses.usdc_base);
-        usdbc = ERC20(DeployAddresses.usdbc_base);
         cbeth = ERC20(DeployAddresses.cbeth_base);
         reth = ERC20(DeployAddresses.reth_base);
 
-        /*///////////////////////////////////////////////////////////////
-                          ORACLE TRAINS
-        ///////////////////////////////////////////////////////////////*/
+        // /*///////////////////////////////////////////////////////////////
+        //                   ORACLE TRAINS
+        // ///////////////////////////////////////////////////////////////*/
 
         oracleCompToUsdArr[0] = DeployAddresses.oracleCompToUsd_base;
         oracleDaiToUsdArr[0] = DeployAddresses.oracleDaiToUsd_base;
         oracleEthToUsdArr[0] = DeployAddresses.oracleEthToUsd_base;
         oracleUsdcToUsdArr[0] = DeployAddresses.oracleUsdcToUsd_base;
-        oracleUsdbcToUsdArr[0] = DeployAddresses.oracleUsdcToUsd_base;
         oracleCbethToEthToUsdArr[0] = DeployAddresses.oracleCbethToEth_base;
         oracleCbethToEthToUsdArr[1] = DeployAddresses.oracleEthToUsd_base;
-        oracleRethToEthArr[0] = DeployAddresses.oracleRethToEth_base;
+        oracleRethToEthToUsdArr[0] = DeployAddresses.oracleRethToEth_base;
+        oracleRethToEthToUsdArr[1] = DeployAddresses.oracleEthToUsd_base;
 
-        /*///////////////////////////////////////////////////////////////
-                          ORACLE INFO
-        ///////////////////////////////////////////////////////////////*/
+        // /*///////////////////////////////////////////////////////////////
+        //                   ORACLE INFO
+        // ///////////////////////////////////////////////////////////////*/
 
         compToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleCompToUsdUnit),
@@ -145,17 +140,6 @@ contract ArcadiaAccountDeployerBase is Test {
             isActive: true
         });
 
-        usdbcToUsdOracleInfo = OracleHub.OracleInformation({
-            oracleUnit: uint64(DeployNumbers.oracleUsdcToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
-            baseAsset: "USDBC",
-            quoteAsset: "USD",
-            oracle: DeployAddresses.oracleUsdcToUsd_base,
-            baseAssetAddress: DeployAddresses.usdbc_base,
-            quoteAssetIsBaseCurrency: true,
-            isActive: true
-        });
-
         cbethToEthToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleCbethToEthUnit),
             quoteAssetBaseCurrency: uint8(DeployNumbers.EthBaseCurrency),
@@ -178,7 +162,7 @@ contract ArcadiaAccountDeployerBase is Test {
             isActive: true
         });
 
-        ethBaseCurrencyInfo = MainRegistry.BaseCurrencyInformation({
+        ethBaseCurrencyInfo = MainRegistry_UsdOnly.BaseCurrencyInformation({
             baseCurrencyToUsdOracleUnit: uint64(DeployNumbers.oracleEthToUsdUnit),
             assetAddress: DeployAddresses.weth_base,
             baseCurrencyToUsdOracle: DeployAddresses.oracleEthToUsd_base,
@@ -186,7 +170,7 @@ contract ArcadiaAccountDeployerBase is Test {
             baseCurrencyUnitCorrection: uint64(10 ** (18 - DeployNumbers.wethDecimals))
         });
 
-        usdcBaseCurrencyInfo = MainRegistry.BaseCurrencyInformation({
+        usdcBaseCurrencyInfo = MainRegistry_UsdOnly.BaseCurrencyInformation({
             baseCurrencyToUsdOracleUnit: uint64(DeployNumbers.oracleUsdcToUsdUnit),
             assetAddress: DeployAddresses.usdc_base,
             baseCurrencyToUsdOracle: DeployAddresses.oracleUsdcToUsd_base,
@@ -266,23 +250,6 @@ contract ArcadiaAccountDeployerBase is Test {
             })
         );
 
-        riskVarsUsdbc.push(
-            PricingModule_UsdOnly.RiskVarInput({
-                baseCurrency: 0,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.usdbc_collFact_1,
-                liquidationFactor: DeployRiskConstantsBase.usdbc_liqFact_1
-            })
-        );
-        riskVarsUsdbc.push(
-            PricingModule_UsdOnly.RiskVarInput({
-                baseCurrency: 1,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.usdbc_collFact_2,
-                liquidationFactor: DeployRiskConstantsBase.usdbc_liqFact_2
-            })
-        );
-
         riskVarsCbeth.push(
             PricingModule_UsdOnly.RiskVarInput({
                 baseCurrency: 0,
@@ -323,9 +290,11 @@ contract ArcadiaAccountDeployerBase is Test {
         address deployerAddress = vm.addr(deployerPrivateKey);
 
         vm.startBroadcast(deployerPrivateKey);
-        factory = Factory(0x00CB53780Ea58503D3059FC02dDd596D0Be926cB); //to change after factory deploy
+        factory = Factory(0x5FC8d32690cc91D4c39d9d3abcBD16989F875707); //to change after factory deploy
+        wethLendingPool = ILendingPool(0xa513E6E4b8f2a923D98304ec87F64353C4D5C853); //to change after LP deploy
+        usdcLendingPool = ILendingPool(0x3Aa5ebB10DC797CAC828524e59A333d0A371443c); //to change after LP deploy
 
-        mainRegistry = new MainRegistry(address(factory));
+        mainRegistry = new MainRegistry_UsdOnly(address(factory));
         oracleHub = new OracleHub();
         standardERC20PricingModule = new StandardERC20PricingModule_UsdOnly(
             address(mainRegistry),
@@ -342,7 +311,6 @@ contract ArcadiaAccountDeployerBase is Test {
         oracleHub.addOracle(daiToUsdOracleInfo);
         oracleHub.addOracle(ethToUsdOracleInfo);
         oracleHub.addOracle(usdcToUsdOracleInfo);
-        oracleHub.addOracle(usdbcToUsdOracleInfo);
         oracleHub.addOracle(cbethToEthToUsdOracleInfo);
         oracleHub.addOracle(rethToEthOracleInfo);
 
@@ -356,30 +324,44 @@ contract ArcadiaAccountDeployerBase is Test {
         PricingModule_UsdOnly.RiskVarInput[] memory riskVarsDai_ = riskVarsDai;
         PricingModule_UsdOnly.RiskVarInput[] memory riskVarsEth_ = riskVarsEth;
         PricingModule_UsdOnly.RiskVarInput[] memory riskVarsUsdc_ = riskVarsUsdc;
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVarsUsdbc_ = riskVarsUsdbc;
         PricingModule_UsdOnly.RiskVarInput[] memory riskVarsCbeth_ = riskVarsCbeth;
         PricingModule_UsdOnly.RiskVarInput[] memory riskVarsReth_ = riskVarsReth;
 
         standardERC20PricingModule.addAsset(
-            DeployAddresses.comp_base, oracleCompToUsdArr, riskVarsComp_, type(uint128).max
+            DeployAddresses.comp_base,
+            oracleCompToUsdArr,
+            riskVarsComp_,
+            type(uint128).max //todo: change after risk analysis
         );
         standardERC20PricingModule.addAsset(
-            DeployAddresses.dai_base, oracleDaiToUsdArr, riskVarsDai_, type(uint128).max
+            DeployAddresses.dai_base,
+            oracleDaiToUsdArr,
+            riskVarsDai_,
+            type(uint128).max //todo: change after risk analysis
         );
         standardERC20PricingModule.addAsset(
-            DeployAddresses.weth_base, oracleEthToUsdArr, riskVarsEth_, type(uint128).max
+            DeployAddresses.weth_base,
+            oracleEthToUsdArr,
+            riskVarsEth_,
+            type(uint128).max //todo: change after risk analysis
         );
         standardERC20PricingModule.addAsset(
-            DeployAddresses.usdc_base, oracleUsdcToUsdArr, riskVarsUsdc_, type(uint128).max
+            DeployAddresses.usdc_base,
+            oracleUsdcToUsdArr,
+            riskVarsUsdc_,
+            type(uint128).max //todo: change after risk analysis
         );
         standardERC20PricingModule.addAsset(
-            DeployAddresses.usdbc_base, oracleUsdbcToUsdArr, riskVarsUsdbc_, type(uint128).max
+            DeployAddresses.cbeth_base,
+            oracleCbethToEthToUsdArr,
+            riskVarsCbeth_,
+            type(uint128).max //todo: change after risk analysis
         );
         standardERC20PricingModule.addAsset(
-            DeployAddresses.cbeth_base, oracleCbethToEthToUsdArr, riskVarsCbeth_, type(uint128).max
-        );
-        standardERC20PricingModule.addAsset(
-            DeployAddresses.reth_base, oracleRethToEthArr, riskVarsReth_, type(uint128).max
+            DeployAddresses.reth_base,
+            oracleRethToEthToUsdArr,
+            riskVarsReth_,
+            type(uint128).max //todo: change after risk analysis
         );
 
         factory.setNewAccountInfo(address(mainRegistry), address(account), DeployBytes.upgradeRoot1To1, "");
@@ -389,8 +371,8 @@ contract ArcadiaAccountDeployerBase is Test {
         wethLendingPool.setAccountVersion(1, true);
         usdcLendingPool.setAccountVersion(1, true);
 
-        wethLendingPool.setBorrowCap(2000 * 10 ** 18);
-        usdcLendingPool.setBorrowCap(5_000_000 * 10 ** 6);
+        wethLendingPool.setBorrowCap(uint128(2000 * 10 ** 18));
+        usdcLendingPool.setBorrowCap(uint128(5_000_000 * 10 ** 6));
 
         vm.stopBroadcast();
     }

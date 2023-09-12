@@ -24,7 +24,7 @@ library DeployAddresses {
 
     address public constant oracleCompToUsd_base = 0x9DDa783DE64A9d1A60c49ca761EbE528C35BA428;
     address public constant oracleDaiToUsd_base = 0x591e79239a7d679378eC8c847e5038150364C78F;
-    address public constant oracleEthToUsd_base = 0x591e79239a7d679378eC8c847e5038150364C78F;
+    address public constant oracleEthToUsd_base = 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70;
     address public constant oracleUsdcToUsd_base = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
     address public constant oracleWbtcToUsd_base = 0xCCADC697c55bbB68dc5bCdf8d3CBe83CdD4E071E;
     address public constant oracleCbethToEth_base = 0x868a501e68F3D1E89CfC0D22F6b22E8dabce5F04;
@@ -45,21 +45,21 @@ library DeployNumbers {
     uint256 public constant oracleCbethToEthUnit = 1e18;
     uint256 public constant oracleRethToEthUnit = 1e18;
 
-    uint256 public constant wethDecimals = 1e18;
-    uint256 public constant daiDecimals = 1e18;
-    uint256 public constant compDecimals = 1e18;
-    uint256 public constant usdcDecimals = 1e6;
-    uint256 public constant usdbcDecimals = 1e6;
-    uint256 public constant tbtcDecimals = 1e18;
-    uint256 public constant crvusdDecimals = 1e18;
-    uint256 public constant cbethDecimals = 1e18;
-    uint256 public constant rethDecimals = 1e18;
-    uint256 public constant sushiDecimals = 1e18;
-    uint256 public constant axlusdcDecimals = 1e6;
-    uint256 public constant axldaiDecimals = 1e18;
-    uint256 public constant axlusdtDecimals = 1e6;
-    uint256 public constant axlDecimals = 1e6;
-    uint256 public constant crvDecimals = 1e18;
+    uint256 public constant wethDecimals = 18;
+    uint256 public constant daiDecimals = 18;
+    uint256 public constant compDecimals = 18;
+    uint256 public constant usdcDecimals = 6;
+    uint256 public constant usdbcDecimals = 6;
+    uint256 public constant tbtcDecimals = 18;
+    uint256 public constant crvusdDecimals = 18;
+    uint256 public constant cbethDecimals = 18;
+    uint256 public constant rethDecimals = 18;
+    uint256 public constant sushiDecimals = 18;
+    uint256 public constant axlusdcDecimals = 6;
+    uint256 public constant axldaiDecimals = 18;
+    uint256 public constant axlusdtDecimals = 6;
+    uint256 public constant axlDecimals = 6;
+    uint256 public constant crvDecimals = 18;
 
     uint256 public constant UsdBaseCurrency = 0;
     uint256 public constant EthBaseCurrency = 1;
