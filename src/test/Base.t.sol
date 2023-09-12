@@ -93,7 +93,6 @@ abstract contract Base_Test is Test, Events, Errors {
             address(mainRegistryExtension), address(accountV1Logic), Constants.upgradeProof1To2, ""
         );
         trustedCreditor = new TrustedCreditorMock();
-        trustedCreditor = new TrustedCreditorMock();
         vm.stopPrank();
 
         // Add Pricing Modules to the Main Registry.
