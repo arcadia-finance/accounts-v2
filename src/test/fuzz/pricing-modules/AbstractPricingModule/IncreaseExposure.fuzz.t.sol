@@ -23,11 +23,9 @@ contract IncreaseExposure_AbstractPricingModule_Fuzz_Test is AbstractPricingModu
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_increaseExposure_NonMainRegistry(
-        address unprivilegedAddress_,
-        address asset,
-        uint128 amount
-    ) public {
+    function testRevert_increaseExposure_NonMainRegistry(address unprivilegedAddress_, address asset, uint128 amount)
+        public
+    {
         vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress_);
@@ -47,17 +45,14 @@ contract IncreaseExposure_AbstractPricingModule_Fuzz_Test is AbstractPricingModu
         pricingModule.setExposure(asset, exposure, maxExposure);
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("APM_PD: Exposure not in limits");
+        vm.expectRevert("APM_IE: Exposure not in limits");
         pricingModule.increaseExposure(address(asset), 0, amount);
         vm.stopPrank();
     }
 
-    function testSuccess_increaseExposure(
-        address asset,
-        uint128 exposure,
-        uint128 amount,
-        uint128 maxExposure
-    ) public {
+    function testSuccess_increaseExposure(address asset, uint128 exposure, uint128 amount, uint128 maxExposure)
+        public
+    {
         vm.assume(exposure <= type(uint128).max - amount);
         vm.assume(exposure + amount <= maxExposure);
         pricingModule.setExposure(asset, exposure, maxExposure);

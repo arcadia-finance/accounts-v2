@@ -142,11 +142,11 @@ contract FloorERC721PricingModule is PricingModule {
      * @dev amount of a deposit in ERC721 pricing module must be 1
      */
     function increaseExposure(address asset, uint256 assetId, uint256 amount) external override onlyMainReg {
-        require(isIdInRange(asset, assetId), "PM721_PD: ID not allowed");
-        require(amount == 1, "PM721_PD: Amount not 1");
+        require(isIdInRange(asset, assetId), "PM721_IE: ID not allowed");
+        require(amount == 1, "PM721_IE: Amount not 1");
 
         exposure[asset].exposure += 1;
-        require(exposure[asset].exposure <= exposure[asset].maxExposure, "PM721_PD: Exposure not in limits");
+        require(exposure[asset].exposure <= exposure[asset].maxExposure, "PM721_IE: Exposure not in limits");
     }
 
     /**
@@ -156,7 +156,7 @@ contract FloorERC721PricingModule is PricingModule {
      * @dev amount of a deposit in ERC721 pricing module must be 1
      */
     function decreaseExposure(address asset, uint256, uint256 amount) external override onlyMainReg {
-        require(amount == 1, "PM721_PW: Amount not 1");
+        require(amount == 1, "PM721_DE: Amount not 1");
         exposure[asset].exposure -= 1;
     }
 

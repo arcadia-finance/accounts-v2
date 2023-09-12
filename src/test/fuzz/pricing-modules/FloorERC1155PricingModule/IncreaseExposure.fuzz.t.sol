@@ -21,9 +21,7 @@ contract IncreaseExposure_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Pri
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_increaseExposure_NonMainRegistry(address unprivilegedAddress_, uint128 amount)
-        public
-    {
+    function testRevert_increaseExposure_NonMainRegistry(address unprivilegedAddress_, uint128 amount) public {
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
             address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
@@ -46,7 +44,7 @@ contract IncreaseExposure_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Pri
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PM1155_PD: Exposure not in limits");
+        vm.expectRevert("PM1155_IE: Exposure not in limits");
         floorERC1155PricingModule.increaseExposure(address(mockERC1155.sft2), 1, amount);
         vm.stopPrank();
     }
@@ -59,7 +57,7 @@ contract IncreaseExposure_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Pri
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PM1155_PD: ID not allowed");
+        vm.expectRevert("PM1155_IE: ID not allowed");
         floorERC1155PricingModule.increaseExposure(address(mockERC1155.sft2), assetId, amount);
         vm.stopPrank();
 

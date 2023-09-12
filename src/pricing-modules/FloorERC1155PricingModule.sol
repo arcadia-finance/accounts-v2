@@ -118,10 +118,10 @@ contract FloorERC1155PricingModule is PricingModule {
      * @dev Unsafe cast to uint128, meaning it is assumed no more than 10**(20+decimals) tokens can be deposited
      */
     function increaseExposure(address asset, uint256 assetId, uint256 amount) external override onlyMainReg {
-        require(assetId == assetToInformation[asset].id, "PM1155_PD: ID not allowed");
+        require(assetId == assetToInformation[asset].id, "PM1155_IE: ID not allowed");
 
         exposure[asset].exposure += uint128(amount);
-        require(exposure[asset].exposure <= exposure[asset].maxExposure, "PM1155_PD: Exposure not in limits");
+        require(exposure[asset].exposure <= exposure[asset].maxExposure, "PM1155_IE: Exposure not in limits");
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -19,7 +19,6 @@ import { ATokenMock } from "../../mockups/ATokenMock.sol";
 import { ArcadiaOracle } from "../../mockups/ArcadiaOracle.sol";
 import { AccountV1 } from "../../AccountV1.sol";
 
-
 /**
  * @notice Common logic needed by all fuzz tests.
  * @dev Each function must be fuzz tested over its full space of possible state configurations
@@ -316,7 +315,6 @@ abstract contract Fuzz_Test is Base_Test {
         // TODO: adapt below when refactoring for pricingModule_UsdOnly
         PricingModule.RiskVarInput[] memory emptyRiskVarInput_;
         aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput_, type(uint128).max);
-        aTokenPricingModule.addAsset(address(aToken2), emptyRiskVarInput_, type(uint128).max);
 
         vm.stopPrank();
     }

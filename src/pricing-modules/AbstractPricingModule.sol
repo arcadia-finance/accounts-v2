@@ -263,7 +263,7 @@ abstract contract PricingModule is Owned, IPricingModule {
      */
     function increaseExposure(address asset, uint256, uint256 amount) external virtual onlyMainReg {
         require(
-            exposure[asset].exposure + uint128(amount) <= exposure[asset].maxExposure, "APM_PD: Exposure not in limits"
+            exposure[asset].exposure + uint128(amount) <= exposure[asset].maxExposure, "APM_IE: Exposure not in limits"
         );
         exposure[asset].exposure += uint128(amount);
     }

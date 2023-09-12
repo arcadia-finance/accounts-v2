@@ -163,7 +163,7 @@ contract ATokenPricingModule is PricingModule {
      */
     function increaseExposure(address asset, uint256, uint256 amount) external override onlyMainReg {
         require(
-            exposure[asset].exposure + uint128(amount) <= exposure[asset].maxExposure, "APM_PD: Exposure not in limits"
+            exposure[asset].exposure + uint128(amount) <= exposure[asset].maxExposure, "ATPM_IE: Exposure not in limits"
         );
         exposure[asset].exposure += uint128(amount);
 

@@ -21,7 +21,7 @@ contract DecreaseExposure_FloorERC721PricingModule_Fuzz_Test is FloorERC721Prici
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_decreaseExposure_NonMainRegistry(address unprivilegedAddress_, address account_) public {
+    function testRevert_decreaseExposure_NonMainRegistry(address unprivilegedAddress_) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
@@ -35,7 +35,7 @@ contract DecreaseExposure_FloorERC721PricingModule_Fuzz_Test is FloorERC721Prici
         vm.stopPrank();
     }
 
-    function testRevert_decreaseExposure_NotOne(uint256 assetId, address account_, uint256 amount) public {
+    function testRevert_decreaseExposure_NotOne(uint256 assetId, uint256 amount) public {
         vm.assume(amount != 1); //Not in range
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
@@ -43,12 +43,12 @@ contract DecreaseExposure_FloorERC721PricingModule_Fuzz_Test is FloorERC721Prici
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PM721_PW: Amount not 1");
+        vm.expectRevert("PM721_DE: Amount not 1");
         floorERC721PricingModule.decreaseExposure(address(mockERC721.nft2), assetId, amount);
         vm.stopPrank();
     }
 
-    function testSuccess_decreaseExposure(uint256 assetId, address account_) public {
+    function testSuccess_decreaseExposure(uint256 assetId) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1

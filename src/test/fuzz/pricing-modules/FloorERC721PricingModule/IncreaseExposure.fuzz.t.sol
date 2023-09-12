@@ -21,10 +21,7 @@ contract IncreaseExposure_FloorERC721PricingModule_Fuzz_Test is FloorERC721Prici
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_increaseExposure_NonMainRegistry(
-        address unprivilegedAddress_,
-        uint256 assetId
-    ) public {
+    function testRevert_increaseExposure_NonMainRegistry(address unprivilegedAddress_, uint256 assetId) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
@@ -47,7 +44,7 @@ contract IncreaseExposure_FloorERC721PricingModule_Fuzz_Test is FloorERC721Prici
         vm.startPrank(address(mainRegistryExtension));
         floorERC721PricingModule.increaseExposure(address(mockERC721.nft2), assetId, 1);
 
-        vm.expectRevert("PM721_PD: Exposure not in limits");
+        vm.expectRevert("PM721_IE: Exposure not in limits");
         floorERC721PricingModule.increaseExposure(address(mockERC721.nft2), assetId, 1);
         vm.stopPrank();
     }
@@ -58,7 +55,7 @@ contract IncreaseExposure_FloorERC721PricingModule_Fuzz_Test is FloorERC721Prici
         floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, 0, oracleNft2ToUsdArr, emptyRiskVarInput, 1);
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PM721_PD: ID not allowed");
+        vm.expectRevert("PM721_IE: ID not allowed");
         floorERC721PricingModule.increaseExposure(address(mockERC721.nft2), assetId, 1);
         vm.stopPrank();
 
@@ -74,7 +71,7 @@ contract IncreaseExposure_FloorERC721PricingModule_Fuzz_Test is FloorERC721Prici
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PM721_PD: Amount not 1");
+        vm.expectRevert("PM721_IE: Amount not 1");
         floorERC721PricingModule.increaseExposure(address(mockERC721.nft2), assetId, amount);
         vm.stopPrank();
 
