@@ -86,7 +86,7 @@ abstract contract Base_Test is Test, Events, Errors {
             address(oracleHub),
             2
         );
-        deployUniswapV3PricingModule();
+
         accountV1Logic = new AccountV1();
         accountV2Logic = new AccountV2();
         factory.setNewAccountInfo(
@@ -101,16 +101,17 @@ abstract contract Base_Test is Test, Events, Errors {
         mainRegistryExtension.addPricingModule(address(erc20PricingModule));
         mainRegistryExtension.addPricingModule(address(floorERC721PricingModule));
         mainRegistryExtension.addPricingModule(address(floorERC1155PricingModule));
-        mainRegistryExtension.addPricingModule(address(uniV3PricingModule));
         vm.stopPrank();
 
         // Label the base test contracts.
         vm.label({ account: address(factory), newLabel: "Factory" });
-        vm.label({ account: address(mainRegistryExtension), newLabel: "Main Registry Extension" });
+        vm.label({ account: address(mainRegistryExtension), newLabel: "Main Registry" });
         vm.label({ account: address(oracleHub), newLabel: "Oracle Hub" });
         vm.label({ account: address(erc20PricingModule), newLabel: "Standard ERC20 Pricing Module" });
-        vm.label({ account: address(accountV1Logic), newLabel: "Account" });
-        vm.label({ account: address(accountV2Logic), newLabel: "AccountV2" });
+        vm.label({ account: address(floorERC721PricingModule), newLabel: "ERC721 Pricing Module" });
+        vm.label({ account: address(floorERC1155PricingModule), newLabel: "ERC1155 Pricing Module" });
+        vm.label({ account: address(accountV1Logic), newLabel: "Account V1 Logic" });
+        vm.label({ account: address(accountV2Logic), newLabel: "Account V2 Logic" });
         vm.label({ account: address(trustedCreditor), newLabel: "Mocked Trusted Creditor" });
 
         // Initialize the default liquidation cost and liquidator of trusted creditor
@@ -153,8 +154,15 @@ abstract contract Base_Test is Test, Events, Errors {
         bytecode = Utils.veryBadBytesReplacer(bytecode, POOL_INIT_CODE_HASH, poolExtensionInitCodeHash);
 
         // Deploy UniswapV3PoolExtension with modified bytecode.
+        vm.prank(users.creatorAddress);
         address uniV3PricingModule_ = Utils.deployBytecode(bytecode);
         uniV3PricingModule = UniswapV3PricingModuleExtension(uniV3PricingModule_);
+
+        vm.label({ account: address(uniV3PricingModule), newLabel: "Uniswap V3 Pricing Module" });
+
+        // Add the Pricing Module to the MainRegistry.
+        vm.prank(users.creatorAddress);
+        mainRegistryExtension.addPricingModule(address(uniV3PricingModule));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
