@@ -290,9 +290,9 @@ contract ArcadiaAccountDeployment is Test {
         address deployerAddress = vm.addr(deployerPrivateKey);
 
         vm.startBroadcast(deployerPrivateKey);
-        factory = Factory(0x5FC8d32690cc91D4c39d9d3abcBD16989F875707); //to change after factory deploy
-        wethLendingPool = ILendingPool(0xa513E6E4b8f2a923D98304ec87F64353C4D5C853); //to change after LP deploy
-        usdcLendingPool = ILendingPool(0x3Aa5ebB10DC797CAC828524e59A333d0A371443c); //to change after LP deploy
+        factory = Factory(0x5FC8d32690cc91D4c39d9d3abcBD16989F875707); //todo: change after factory deploy
+        wethLendingPool = ILendingPool(0xa513E6E4b8f2a923D98304ec87F64353C4D5C853); //todo: change after LP deploy
+        usdcLendingPool = ILendingPool(0x3Aa5ebB10DC797CAC828524e59A333d0A371443c); //todo: change after LP deploy
 
         mainRegistry = new MainRegistry_UsdOnly(address(factory));
         oracleHub = new OracleHub();
