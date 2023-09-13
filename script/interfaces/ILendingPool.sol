@@ -5,7 +5,7 @@
 pragma solidity 0.8.19;
 
 interface ILendingPool {
-    function setBorrowCap(uint256 borrowCap) external;
+    function setBorrowCap(uint128 borrowCap) external;
 
     function setAccountVersion(uint256 version, bool value) external;
 
