@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, MainRegistry_Fuzz_Test } from "./MainRegistry.fuzz.t.sol";
 
-import { MainRegistry_UsdOnly } from "../../../MainRegistry_UsdOnly.sol";
+import { MainRegistry } from "../../../MainRegistry.sol";
 
 /**
  * @notice Fuzz tests for the "constructor" of contract "MainRegistry".
@@ -27,7 +27,7 @@ contract Constructor_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit BaseCurrencyAdded(address(0), 0, "USD");
-        MainRegistry_UsdOnly mainRegistry = new MainRegistry_UsdOnly(address(factory));
+        MainRegistry mainRegistry = new MainRegistry(address(factory));
         vm.stopPrank();
 
         assertEq(mainRegistry.factory(), address(factory));

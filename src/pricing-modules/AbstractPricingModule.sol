@@ -4,7 +4,6 @@
  */
 pragma solidity 0.8.19;
 
-import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IPricingModule } from "../interfaces/IPricingModule.sol";
 import { RiskConstants } from "../utils/RiskConstants.sol";
@@ -143,15 +142,11 @@ abstract contract PricingModule is Owned, IPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the value of a certain asset, denominated in USD or in another BaseCurrency.
-     * @dev The value of the asset can be denominated in:
-     * - USD.
-     * - A given BaseCurrency, different from USD.
-     * - A combination of USD and a given BaseCurrency, different from USD (will be very exceptional,
-     * but theoretically possible for eg. a UNI V2 LP position of two underlying assets,
-     * one denominated in USD and the other one in the BaseCurrency different from USD).
+     * @notice Returns the value of a certain asset, denominated in USD, 18 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, 2 decimals precision.
      */
-    function getValue(GetValueInput memory) public view virtual returns (uint256, uint256, uint256, uint256) { }
+    function getValue(GetValueInput memory) public view virtual returns (uint256, uint256, uint256) { }
 
     /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT

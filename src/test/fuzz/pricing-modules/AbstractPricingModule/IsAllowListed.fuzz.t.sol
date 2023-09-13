@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, AbstractPricingModule_Fuzz_Test } from "./AbstractPricingModule.fuzz.t.sol";
 
-import { PricingModule_UsdOnly } from "../../../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
+import { PricingModule } from "../../../../pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "isAllowListed" of contract "AbstractPricingModule".

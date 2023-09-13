@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, OracleHub_Fuzz_Test } from "./OracleHub.fuzz.t.sol";
 
-import { OracleHub_UsdOnly } from "../../../OracleHub_UsdOnly.sol";
+import { OracleHub } from "../../../OracleHub.sol";
 import { RevertingOracle } from "../../mocks/RevertingOracle.sol";
 
 /**
@@ -43,7 +43,7 @@ contract DecommissionOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
 
         vm.prank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: 10 ** 18,
                 baseAsset: "REVERT",
                 quoteAsset: "USD",
@@ -73,7 +73,7 @@ contract DecommissionOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
     function testFuzz_Pass_decommissionOracle_answerTooLow(address sender) public {
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN3",
                 quoteAsset: "TOKEN4",
@@ -119,7 +119,7 @@ contract DecommissionOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN3",
                 quoteAsset: "TOKEN4",
@@ -167,7 +167,7 @@ contract DecommissionOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN3",
                 quoteAsset: "TOKEN4",
@@ -177,7 +177,7 @@ contract DecommissionOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
             })
         );
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",

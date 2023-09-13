@@ -4,7 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule, IMainRegistry, IOraclesHub } from "./AbstractPricingModule.sol";
+import { PricingModule, IMainRegistry } from "./AbstractPricingModule.sol";
+import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 
 /**
  * @title Pricing Module for ERC1155 tokens
@@ -129,20 +130,15 @@ contract FloorERC1155PricingModule is PricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the value of a certain asset, denominated in USD or in another BaseCurrency
+     * @notice Returns the value of a certain asset, denominated in USD
      * @param getValueInput A Struct with all the information neccessary to get the value of an asset
      * - asset: The contract address of the asset
      * - assetId: The Id of the asset
      * - assetAmount: The Amount of tokens
      * - baseCurrency: The BaseCurrency in which the value is ideally expressed
      * @return valueInUsd The value of the asset denominated in USD with 18 Decimals precision
-     * @return valueInBaseCurrency The value of the asset denominated in BaseCurrency different from USD with 18 Decimals precision
      * @return collateralFactor The Collateral Factor of the asset
      * @return liquidationFactor The Liquidation Factor of the asset
-     * @dev If the Oracle-Hub returns the rate in a baseCurrency different from USD, the FloorERC1155PricingModule will return
-     * the value of the asset in the same BaseCurrency. If the Oracle-Hub returns the rate in USD, the FloorERC1155PricingModule
-     * will return the value of the asset in USD.
-     * Only one of the two values can be different from 0.
      * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256
      * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
      * However no check in FloorERC1155PricingModule is necessary, since the check if the asset is whitelisted (and hence added to PricingModule)
@@ -152,19 +148,11 @@ contract FloorERC1155PricingModule is PricingModule {
         public
         view
         override
-        returns (uint256 valueInUsd, uint256 valueInBaseCurrency, uint256 collateralFactor, uint256 liquidationFactor)
+        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        uint256 rateInUsd;
-        uint256 rateInBaseCurrency;
+        uint256 rateInUsd = IOraclesHub(oracleHub).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
 
-        (rateInUsd, rateInBaseCurrency) =
-            IOraclesHub(oracleHub).getRate(assetToInformation[getValueInput.asset].oracles, getValueInput.baseCurrency);
-
-        if (rateInBaseCurrency > 0) {
-            valueInBaseCurrency = getValueInput.assetAmount * rateInBaseCurrency;
-        } else {
-            valueInUsd = getValueInput.assetAmount * rateInUsd;
-        }
+        valueInUsd = getValueInput.assetAmount * rateInUsd;
 
         collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
         liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;

@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, MainRegistry_Fuzz_Test } from "./MainRegistry.fuzz.t.sol";
 
-import { PricingModule_UsdOnly } from "../../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
+import { PricingModule } from "../../../pricing-modules/AbstractPricingModule.sol";
 import { RiskConstants } from "../../../utils/RiskConstants.sol";
 import { RiskModule } from "../../../RiskModule.sol";
 
@@ -56,7 +56,7 @@ contract GetCollateralValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, amountToken1, oracleToken1ToUsdArr);
         vm.assume(token1ValueInUsd > 0);
 
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVarsInput = new PricingModule_UsdOnly.RiskVarInput[](1);
+        PricingModule.RiskVarInput[] memory riskVarsInput = new PricingModule.RiskVarInput[](1);
         riskVarsInput[0].asset = address(mockERC20.token1);
         riskVarsInput[0].baseCurrency = uint8(UsdBaseCurrencyID);
         riskVarsInput[0].collateralFactor = collateralFactor_;

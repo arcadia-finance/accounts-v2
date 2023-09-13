@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { OracleHub_UsdOnly } from "../../../../OracleHub_UsdOnly.sol";
+import { OracleHub } from "../../../../OracleHub.sol";
 import { RiskConstants } from "../../../../utils/RiskConstants.sol";
 
 /**
@@ -31,7 +31,7 @@ abstract contract FloorERC721PricingModule_Fuzz_Test is Fuzz_Test {
 
         vm.prank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.nftOracleDecimals),
                 baseAsset: "NFT2",
                 quoteAsset: "USD",
