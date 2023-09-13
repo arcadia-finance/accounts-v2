@@ -2,14 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
 import { ArcadiaAddresses, ArcadiaContractAddresses } from "./Constants/TransferOwnershipConstants.sol";
 
 import "../src/Factory.sol";
 import "../src/MainRegistry.sol";
-import { StandardERC20PricingModule } from "../src/PricingModules/StandardERC20PricingModule.sol";
+import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
 import { ILiquidator } from "./interfaces/ILiquidator.sol";
 import "../src/OracleHub.sol";
 

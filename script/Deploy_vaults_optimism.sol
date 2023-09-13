@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
 import {
@@ -13,7 +13,7 @@ import { Factory } from "../src/Factory.sol";
 import { Proxy } from "../src/Proxy.sol";
 import { AccountV1 } from "../src/AccountV1.sol";
 import { MainRegistry } from "../src/MainRegistry.sol";
-import { PricingModule, StandardERC20PricingModule } from "../src/PricingModules/StandardERC20PricingModule.sol";
+import { PricingModule, StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
 import { RiskConstants } from "../src/utils/RiskConstants.sol";
 
@@ -113,100 +113,82 @@ contract ArcadiaAccountDeployerOptimism is Test {
 
         daiToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleDaiToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "DAI",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleDaiToUsd_optimism,
             baseAssetAddress: DeployAddresses.dai_optimism,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         fraxToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleFraxToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "FRAX",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleFraxToUsd_optimism,
             baseAssetAddress: DeployAddresses.frax_optimism,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         snxToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleSnxToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "SNX",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleSnxToUsd_optimism,
             baseAssetAddress: DeployAddresses.snx_optimism,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         usdcToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleUsdcToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "USDC",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleUsdcToUsd_optimism,
             baseAssetAddress: DeployAddresses.usdc_optimism,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         usdtToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleUsdtToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "USDT",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleUsdtToUsd_optimism,
             baseAssetAddress: DeployAddresses.usdt_optimism,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         wbtcToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleWbtcToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "wBTC",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleWbtcToUsd_optimism,
             baseAssetAddress: DeployAddresses.wbtc_optimism,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         ethToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleEthToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "wETH",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleEthToUsd_optimism,
             baseAssetAddress: DeployAddresses.weth_optimism,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         wstethToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleWstethToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "wstETH",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleWstethToUsd_optimism,
             baseAssetAddress: DeployAddresses.wsteth_optimism,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
         opToUsdOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleOpToUsdUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.UsdBaseCurrency),
             baseAsset: "OP",
             quoteAsset: "USD",
             oracle: DeployAddresses.oracleOpToUsd_optimism,
             baseAssetAddress: DeployAddresses.op_optimism,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 

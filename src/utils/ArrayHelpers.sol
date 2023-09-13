@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
 library ArrayHelpers {
     // https://twitter.com/0x_beans/status/1502420621250105346

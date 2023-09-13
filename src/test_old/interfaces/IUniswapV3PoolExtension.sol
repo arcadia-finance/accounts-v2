@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
-import { IUniswapV3Pool } from "../../PricingModules/UniswapV3/interfaces/IUniswapV3Pool.sol";
+import { IUniswapV3Pool } from "../../pricing-modules/UniswapV3/interfaces/IUniswapV3Pool.sol";
 
 interface IUniswapV3PoolExtension is IUniswapV3Pool {
     function increaseObservationCardinalityNext(uint16 observationCardinalityNext) external;

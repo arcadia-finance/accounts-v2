@@ -2,14 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.13;
+pragma solidity 0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
 import {
     DeployAddresses, DeployNumbers, DeployBytes, DeployRiskConstantsMainnet
 } from "./Constants/DeployConstants.sol";
 
-import { PricingModule, StandardERC20PricingModule } from "../src/PricingModules/StandardERC20PricingModule.sol";
+import { PricingModule, StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
 import { RiskConstants } from "../src/utils/RiskConstants.sol";
 
@@ -47,12 +47,10 @@ contract AddSingleAssetMainnet is Test {
 
         rethToEthOracleInfo = OracleHub.OracleInformation({
             oracleUnit: uint64(DeployNumbers.oracleRethToEthUnit),
-            quoteAssetBaseCurrency: uint8(DeployNumbers.EthBaseCurrency),
             baseAsset: "rETH",
             quoteAsset: "wETH",
             oracle: DeployAddresses.oracleRethToEth_mainnet,
             baseAssetAddress: DeployAddresses.reth_mainnet,
-            quoteAssetIsBaseCurrency: true,
             isActive: true
         });
 
