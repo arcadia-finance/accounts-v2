@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./StandardERC20PricingModule.fuzz.t.sol";
 
-import { StandardERC20PricingModule_UsdOnly } from "../../../../pricing-modules/StandardERC20PricingModule_UsdOnly.sol";
+import { StandardERC20PricingModule } from "../../../../pricing-modules/StandardERC20PricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "constructor" of contract "StandardERC20PricingModule".
@@ -27,7 +27,7 @@ contract Constructor_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricin
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskManagerUpdated(users.creatorAddress);
-        StandardERC20PricingModule_UsdOnly erc20PricingModule_ = new StandardERC20PricingModule_UsdOnly(
+        StandardERC20PricingModule erc20PricingModule_ = new StandardERC20PricingModule(
             mainRegistry_,
             oracleHub_,
             assetType_

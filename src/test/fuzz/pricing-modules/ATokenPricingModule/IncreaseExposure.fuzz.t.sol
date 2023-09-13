@@ -38,15 +38,13 @@ contract IncreaseExposure_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_F
         vm.assume(maxExposure > 0); //Asset is whitelisted
         vm.assume(amount > maxExposure);
 
-        // TODO: adapt below when refactoring for pricingModule_UsdOnly
-        PricingModule.RiskVarInput[] memory emptyRiskVarInput_;
-
-        vm.prank(users.creatorAddress);
-        aTokenPricingModule.addAsset(address(aToken2), emptyRiskVarInput_, maxExposure);
+        // Set underlying asset to max exposure
+        vm.prank(erc20PricingModule.riskManager());
+        aTokenPricingModule.setExposureOfAsset(address(aToken1), maxExposure);
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("ATPM_IE: Exposure not in limits");
-        aTokenPricingModule.increaseExposure(address(aToken2), 0, amount);
+        aTokenPricingModule.increaseExposure(address(aToken1), 0, amount);
         vm.stopPrank();
     }
 
@@ -61,18 +59,12 @@ contract IncreaseExposure_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_F
 
         // Set underlying asset to max exposure
         vm.startPrank(erc20PricingModule.riskManager());
-        erc20PricingModule.setExposureOfAsset(address(mockERC20.token2), maxExposureUnderlying);
+        erc20PricingModule.setExposureOfAsset(address(mockERC20.token1), maxExposureUnderlying);
         vm.stopPrank();
-
-        // TODO: adapt below when refactoring for pricingModule_UsdOnly
-        PricingModule.RiskVarInput[] memory emptyRiskVarInput_;
-
-        vm.prank(users.creatorAddress);
-        aTokenPricingModule.addAsset(address(aToken2), emptyRiskVarInput_, maxExposureAToken);
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("APM_IE: Exposure not in limits");
-        aTokenPricingModule.increaseExposure(address(aToken2), 0, amountAToken);
+        aTokenPricingModule.increaseExposure(address(aToken1), 0, amountAToken);
         vm.stopPrank();
     }
 
@@ -80,20 +72,14 @@ contract IncreaseExposure_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_F
         vm.assume(amount < maxExposure);
         vm.assume(amount > 0); // Meaning maxExposure > 0 and thus asset whitelisted
 
-        // TODO: adapt below when refactoring for pricingModule_UsdOnly
-        PricingModule.RiskVarInput[] memory emptyRiskVarInput_;
-
-        vm.prank(users.creatorAddress);
-        aTokenPricingModule.addAsset(address(aToken2), emptyRiskVarInput_, maxExposure);
-
         // Check exposure pre-increase
-        (, uint128 preExposure) = aTokenPricingModule.exposure(address(aToken2));
+        (, uint128 preExposure) = aTokenPricingModule.exposure(address(aToken1));
 
         vm.prank(address(mainRegistryExtension));
-        aTokenPricingModule.increaseExposure(address(aToken2), 0, amount);
+        aTokenPricingModule.increaseExposure(address(aToken1), 0, amount);
 
         // Assert exposure increased
-        (, uint128 afterExposure) = aTokenPricingModule.exposure(address(aToken2));
+        (, uint128 afterExposure) = aTokenPricingModule.exposure(address(aToken1));
         assert(afterExposure > preExposure);
     }
 }

@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, OracleHub_Fuzz_Test } from "./OracleHub.fuzz.t.sol";
 
-import { OracleHub_UsdOnly } from "../../../OracleHub_UsdOnly.sol";
+import { OracleHub } from "../../../OracleHub.sol";
 
 /**
  * @notice Fuzz tests for the function "isActive" of contract "OracleHub".
@@ -34,7 +34,7 @@ contract IsActive_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
     function testFuzz_Pass_isActive_NotActive() public {
         vm.prank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN3",
                 quoteAsset: "TOKEN4",

@@ -4,12 +4,11 @@
  */
 pragma solidity 0.8.19;
 
-import { Utils } from "../../../utils/Utils.sol";
 import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
 
-import { INonfungiblePositionManagerExtension } from
-    "../../../../test_old/interfaces/INonfungiblePositionManagerExtension.sol";
-import { IUniswapV3Factory } from "../../../../test_old/interfaces/IUniswapV3Factory.sol";
+import { INonfungiblePositionManagerExtension } from "./extensions/interfaces/INonfungiblePositionManagerExtension.sol";
+import { IUniswapV3Factory } from "./extensions/interfaces/IUniswapV3Factory.sol";
+import { Utils } from "../../../utils/Utils.sol";
 
 contract UniswapV3Fixture is WETH9Fixture {
     /*//////////////////////////////////////////////////////////////////////////

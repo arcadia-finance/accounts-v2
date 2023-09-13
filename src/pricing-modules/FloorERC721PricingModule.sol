@@ -4,7 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule, IMainRegistry, IOraclesHub } from "./AbstractPricingModule.sol";
+import { PricingModule, IMainRegistry } from "./AbstractPricingModule.sol";
+import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 
 /**
  * @title Pricing Module for ERC721 tokens for which a oracle exists for the floor price of the collection
@@ -165,20 +166,15 @@ contract FloorERC721PricingModule is PricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the value of a certain asset, denominated in USD or in another BaseCurrency
+     * @notice Returns the value of a certain asset, denominated in USD.
      * @param getValueInput A Struct with all the information neccessary to get the value of an asset
      * - assetAddress: The contract address of the asset
      * - assetId: The Id of the asset
      * - assetAmount: Since ERC721 tokens have no amount, the amount should be set to 0
      * - baseCurrency: The BaseCurrency in which the value is ideally expressed
      * @return valueInUsd The value of the asset denominated in USD with 18 Decimals precision
-     * @return valueInBaseCurrency The value of the asset denominated in BaseCurrency different from USD with 18 Decimals precision
      * @return collateralFactor The Collateral Factor of the asset
      * @return liquidationFactor The Liquidation Factor of the asset
-     * @dev If the Oracle-Hub returns the rate in a baseCurrency different from USD, the FloorERC721PricingModule will return
-     * the value of the asset in the same BaseCurrency. If the Oracle-Hub returns the rate in USD, the FloorERC721PricingModule
-     * will return the value of the asset in USD.
-     * Only one of the two values can be different from 0.
      * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
      * However no check in FloorERC721PricingModule is necessary, since the check if the asset is whitelisted (and hence added to PricingModule)
      * is already done in the Main-Registry.
@@ -187,10 +183,9 @@ contract FloorERC721PricingModule is PricingModule {
         public
         view
         override
-        returns (uint256 valueInUsd, uint256 valueInBaseCurrency, uint256 collateralFactor, uint256 liquidationFactor)
+        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        (valueInUsd, valueInBaseCurrency) =
-            IOraclesHub(oracleHub).getRate(assetToInformation[getValueInput.asset].oracles, getValueInput.baseCurrency);
+        valueInUsd = IOraclesHub(oracleHub).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
 
         collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
         liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;

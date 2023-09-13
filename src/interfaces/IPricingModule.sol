@@ -10,18 +10,17 @@ interface IPricingModule {
         address asset; // The contract address of the asset.
         uint256 assetId; // The Id of the asset.
         uint256 assetAmount; // The amount of assets.
-        uint256 baseCurrency; // Identifier of the BaseCurrency in which the value is ideally denominated.
+        uint256 baseCurrency; // Identifier of the BaseCurrency.
     }
 
     /**
      * @notice Returns the value of a certain asset, denominated in USD or in another BaseCurrency.
      * @param input A Struct with the input variables (avoid stack to deep).
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return valueInBaseCurrency The value of the asset denominated in a BaseCurrency different from USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
      * @return liquidationFactor liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
      */
-    function getValue(GetValueInput memory input) external view returns (uint256, uint256, uint256, uint256);
+    function getValue(GetValueInput memory input) external view returns (uint256, uint256, uint256);
 
     /**
      * @notice Returns the risk variables of an asset.

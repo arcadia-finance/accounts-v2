@@ -6,16 +6,14 @@ pragma solidity 0.8.19;
 
 import { Base_Test, Constants } from "../Base.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
-import { MainRegistry_UsdOnly } from "../../MainRegistry_UsdOnly.sol";
-import { OracleHub_UsdOnly } from "../../OracleHub_UsdOnly.sol";
-import { PricingModule_UsdOnly } from "../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
+import { MainRegistry } from "../../MainRegistry.sol";
+import { OracleHub } from "../../OracleHub.sol";
 import { PricingModule } from "../../pricing-modules/AbstractPricingModule.sol";
 import { TrustedCreditorMock } from "../../mockups/TrustedCreditorMock.sol";
 import { Proxy } from "../../Proxy.sol";
 import { ERC20Mock } from "../../mockups/ERC20SolmateMock.sol";
 import { ERC721Mock } from "../../mockups/ERC721SolmateMock.sol";
 import { ERC1155Mock } from "../../mockups/ERC1155SolmateMock.sol";
-import { ATokenMock } from "../../mockups/ATokenMock.sol";
 import { ArcadiaOracle } from "../../mockups/ArcadiaOracle.sol";
 import { AccountV1 } from "../../AccountV1.sol";
 
@@ -46,8 +44,6 @@ abstract contract Fuzz_Test is Base_Test {
     MockERC20 internal mockERC20;
     MockERC721 internal mockERC721;
     MockERC1155 internal mockERC1155;
-    ATokenMock internal aToken1;
-    ATokenMock internal aToken2;
     Rates internal rates;
 
     // ERC20 oracle arrays
@@ -85,10 +81,6 @@ abstract contract Fuzz_Test is Base_Test {
             token4: new ERC20Mock("TOKEN4", "T4", uint8(Constants.tokenDecimals))
         });
 
-        // Create mockERC20 aTokens for testing
-        aToken1 = new ATokenMock(address(mockERC20.token1), "aTOKEN1", "aT1", uint8(Constants.tokenDecimals));
-        aToken2 = new ATokenMock(address(mockERC20.token2), "aTOKEN2", "aT2", uint8(Constants.tokenDecimals));
-
         // Create mock ERC721 tokens for testing
         mockERC721 = MockERC721({
             nft1: new ERC721Mock("NFT1", "NFT1"),
@@ -111,8 +103,6 @@ abstract contract Fuzz_Test is Base_Test {
         vm.label({ account: address(mockERC721.nft3), newLabel: "NFT3" });
         vm.label({ account: address(mockERC1155.sft1), newLabel: "SFT1" });
         vm.label({ account: address(mockERC1155.sft2), newLabel: "SFT2" });
-        vm.label({ account: address(aToken1), newLabel: "aT1" });
-        vm.label({ account: address(aToken2), newLabel: "aT2" });
 
         // Set rates
         rates = Rates({
@@ -152,7 +142,7 @@ abstract contract Fuzz_Test is Base_Test {
         // Add STABLE1 AND TOKEN1 as baseCurrencies in MainRegistry
         vm.startPrank(mainRegistryExtension.owner());
         mainRegistryExtension.addBaseCurrency(
-            MainRegistry_UsdOnly.BaseCurrencyInformation({
+            MainRegistry.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
                 assetAddress: address(mockERC20.stable1),
                 baseCurrencyToUsdOracle: address(mockOracles.stable1ToUsd),
@@ -162,7 +152,7 @@ abstract contract Fuzz_Test is Base_Test {
         );
 
         mainRegistryExtension.addBaseCurrency(
-            MainRegistry_UsdOnly.BaseCurrencyInformation({
+            MainRegistry.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
                 assetAddress: address(mockERC20.token1),
                 baseCurrencyToUsdOracle: address(mockOracles.token1ToUsd),
@@ -174,7 +164,7 @@ abstract contract Fuzz_Test is Base_Test {
         // Add Oracles to the OracleHub.
         // Do not add TOKEN4/USD, TOKEN3/TOKEN4 as we are testing it on a case-by-case basis
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
                 baseAsset: "STABLE1",
                 quoteAsset: "USD",
@@ -185,7 +175,7 @@ abstract contract Fuzz_Test is Base_Test {
         );
 
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
                 baseAsset: "STABLE2",
                 quoteAsset: "USD",
@@ -196,7 +186,7 @@ abstract contract Fuzz_Test is Base_Test {
         );
 
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN1",
                 quoteAsset: "USD",
@@ -207,7 +197,7 @@ abstract contract Fuzz_Test is Base_Test {
         );
 
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN2",
                 quoteAsset: "USD",
@@ -218,7 +208,7 @@ abstract contract Fuzz_Test is Base_Test {
         );
 
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.nftOracleDecimals),
                 baseAsset: "NFT1",
                 quoteAsset: "TOKEN1",
@@ -229,7 +219,7 @@ abstract contract Fuzz_Test is Base_Test {
         );
 
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.erc1155OracleDecimals),
                 baseAsset: "SFT1",
                 quoteAsset: "TOKEN1",
@@ -240,41 +230,41 @@ abstract contract Fuzz_Test is Base_Test {
         );
 
         // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVarsStable = new PricingModule_UsdOnly.RiskVarInput[](3);
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVarsToken = new PricingModule_UsdOnly.RiskVarInput[](3);
+        PricingModule.RiskVarInput[] memory riskVarsStable = new PricingModule.RiskVarInput[](3);
+        PricingModule.RiskVarInput[] memory riskVarsToken = new PricingModule.RiskVarInput[](3);
 
-        riskVarsStable[0] = PricingModule_UsdOnly.RiskVarInput({
+        riskVarsStable[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: Constants.stableToStableCollFactor,
             liquidationFactor: Constants.stableToStableLiqFactor
         });
-        riskVarsStable[1] = PricingModule_UsdOnly.RiskVarInput({
+        riskVarsStable[1] = PricingModule.RiskVarInput({
             baseCurrency: 1,
             asset: address(0),
             collateralFactor: Constants.stableToStableCollFactor,
             liquidationFactor: Constants.stableToStableLiqFactor
         });
-        riskVarsStable[2] = PricingModule_UsdOnly.RiskVarInput({
+        riskVarsStable[2] = PricingModule.RiskVarInput({
             baseCurrency: 2,
             asset: address(0),
             collateralFactor: Constants.tokenToStableCollFactor,
             liquidationFactor: Constants.tokenToStableLiqFactor
         });
 
-        riskVarsToken[0] = PricingModule_UsdOnly.RiskVarInput({
+        riskVarsToken[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: Constants.tokenToStableCollFactor,
             liquidationFactor: Constants.tokenToStableLiqFactor
         });
-        riskVarsToken[1] = PricingModule_UsdOnly.RiskVarInput({
+        riskVarsToken[1] = PricingModule.RiskVarInput({
             baseCurrency: 1,
             asset: address(0),
             collateralFactor: Constants.tokenToStableCollFactor,
             liquidationFactor: Constants.tokenToStableLiqFactor
         });
-        riskVarsToken[2] = PricingModule_UsdOnly.RiskVarInput({
+        riskVarsToken[2] = PricingModule.RiskVarInput({
             baseCurrency: 2,
             asset: address(0),
             collateralFactor: Constants.tokenToTokenLiqFactor,
@@ -310,12 +300,6 @@ abstract contract Fuzz_Test is Base_Test {
         floorERC1155PricingModule.addAsset(
             address(mockERC1155.sft1), 1, oracleSft1ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
         );
-
-        // Add aTokens to the aTokenPricingModule
-        // TODO: adapt below when refactoring for pricingModule_UsdOnly
-        PricingModule.RiskVarInput[] memory emptyRiskVarInput_;
-        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput_, type(uint128).max);
-
         vm.stopPrank();
     }
 

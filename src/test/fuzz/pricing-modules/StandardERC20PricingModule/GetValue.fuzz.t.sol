@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./StandardERC20PricingModule.fuzz.t.sol";
 
-import { IPricingModule_UsdOnly } from "../../../../interfaces/IPricingModule_UsdOnly.sol";
+import { IPricingModule } from "../../../../interfaces/IPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "getValue" of contract "StandardERC20PricingModule".
@@ -38,7 +38,7 @@ contract GetValue_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsdNew));
         vm.stopPrank();
 
-        IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
+        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(mockERC20.token1),
             assetId: 0,
             assetAmount: amountToken1,
@@ -74,7 +74,7 @@ contract GetValue_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
             ((Constants.WAD * rateToken1ToUsdNew) / 10 ** Constants.tokenOracleDecimals) * amountToken1
         ) / 10 ** Constants.tokenDecimals;
 
-        IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
+        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(mockERC20.token1),
             assetId: 0,
             assetAmount: amountToken1,

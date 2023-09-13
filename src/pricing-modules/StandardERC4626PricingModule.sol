@@ -4,7 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule, IMainRegistry, IOraclesHub } from "./AbstractPricingModule.sol";
+import { PricingModule, IMainRegistry } from "./AbstractPricingModule.sol";
+import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 import { IERC4626 } from "../interfaces/IERC4626.sol";
 import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -112,13 +113,8 @@ contract StandardERC4626PricingModule is PricingModule {
      * - assetAmount: The Amount of Shares, ERC4626 tokens can have any Decimals precision smaller than 18.
      * - baseCurrency: The BaseCurrency in which the value is ideally expressed
      * @return valueInUsd The value of the asset denominated in USD with 18 Decimals precision
-     * @return valueInBaseCurrency The value of the asset denominated in BaseCurrency different from USD with 18 Decimals precision
      * @return collateralFactor The Collateral Factor of the asset
      * @return liquidationFactor The Liquidation Factor of the asset
-     * @dev If the Oracle-Hub returns the rate in a baseCurrency different from USD, the StandardERC4626Registry will return
-     * the value of the asset in the same BaseCurrency. If the Oracle-Hub returns the rate in USD, the StandardERC4626Registry
-     * will return the value of the asset in USD.
-     * Only one of the two values can be different from 0.
      * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256
      * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
      * However no check in StandardERC4626Registry is necessary, since the check if the asset is whitelisted (and hence added to PricingModule)
@@ -128,22 +124,14 @@ contract StandardERC4626PricingModule is PricingModule {
         public
         view
         override
-        returns (uint256 valueInUsd, uint256 valueInBaseCurrency, uint256 collateralFactor, uint256 liquidationFactor)
+        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        uint256 rateInUsd;
-        uint256 rateInBaseCurrency;
-
-        (rateInUsd, rateInBaseCurrency) = IOraclesHub(oracleHub).getRate(
-            assetToInformation[getValueInput.asset].underlyingAssetOracles, getValueInput.baseCurrency
-        );
+        uint256 rateInUsd =
+            IOraclesHub(oracleHub).getRateInUsd(assetToInformation[getValueInput.asset].underlyingAssetOracles);
 
         uint256 assetAmount = IERC4626(getValueInput.asset).convertToAssets(getValueInput.assetAmount);
-        if (rateInBaseCurrency > 0) {
-            valueInBaseCurrency =
-                assetAmount.mulDivDown(rateInBaseCurrency, assetToInformation[getValueInput.asset].assetUnit);
-        } else {
-            valueInUsd = assetAmount.mulDivDown(rateInUsd, assetToInformation[getValueInput.asset].assetUnit);
-        }
+
+        valueInUsd = assetAmount.mulDivDown(rateInUsd, assetToInformation[getValueInput.asset].assetUnit);
 
         collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
         liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;

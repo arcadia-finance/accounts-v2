@@ -182,7 +182,6 @@ contract UniswapV3PricingModule is PricingModule {
      * - assetAmount: The amount of assets.
      * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return valueInBaseCurrency The value of the asset denominated in a BaseCurrency different from USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
      * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
      * @dev The UniswapV3PricingModule will always return the value denominated in USD.
@@ -193,7 +192,7 @@ contract UniswapV3PricingModule is PricingModule {
         public
         view
         override
-        returns (uint256 valueInUsd, uint256, uint256 collateralFactor, uint256 liquidationFactor)
+        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
         // Use variables as much as possible in local context, to avoid stack too deep errors.
         address asset = getValueInput.asset;
@@ -213,15 +212,15 @@ contract UniswapV3PricingModule is PricingModule {
 
             // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
             // sufficient precision.
-            (usdPriceToken0,,,) = PricingModule(erc20PricingModule).getValue(
+            (usdPriceToken0,,) = PricingModule(erc20PricingModule).getValue(
                 GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
             );
-            (usdPriceToken1,,,) = PricingModule(erc20PricingModule).getValue(
+            (usdPriceToken1,,) = PricingModule(erc20PricingModule).getValue(
                 GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
             );
 
             // If the Usd price of one of the tokens is 0, the LP-token will also have a value of 0.
-            if (usdPriceToken0 == 0 || usdPriceToken1 == 0) return (0, 0, 0, 0);
+            if (usdPriceToken0 == 0 || usdPriceToken1 == 0) return (0, 0, 0);
 
             // Calculate amount0 and amount1 of the principal (the actual liquidity position).
             (principal0, principal1) =
@@ -254,7 +253,7 @@ contract UniswapV3PricingModule is PricingModule {
             liquidationFactor = liquidationFactor0 < liquidationFactor1 ? liquidationFactor0 : liquidationFactor1;
         }
 
-        return (valueInUsd, 0, collateralFactor, liquidationFactor);
+        return (valueInUsd, collateralFactor, liquidationFactor);
     }
 
     /**

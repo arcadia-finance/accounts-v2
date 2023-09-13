@@ -8,7 +8,7 @@ import { Constants, MainRegistry_Fuzz_Test } from "./MainRegistry.fuzz.t.sol";
 
 import { ArcadiaOracle } from "../../../mockups/ArcadiaOracle.sol";
 import { ERC20Mock } from "../../../mockups/ERC20SolmateMock.sol";
-import { OracleHub_UsdOnly } from "../../../OracleHub_UsdOnly.sol";
+import { OracleHub } from "../../../OracleHub.sol";
 
 /**
  * @notice Fuzz tests for the "getTotalValue" of contract "MainRegistry".
@@ -71,7 +71,7 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         address[] memory oracleAssetToUsdArr = new address[](1);
         oracleAssetToUsdArr[0] = address(oracle);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: 0,
                 baseAsset: "ASSET",
                 quoteAsset: "USD",

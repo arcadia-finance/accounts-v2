@@ -33,10 +33,9 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     ) public {
         vm.assume(nonOwner != users.accountOwner);
 
-        vm.startPrank(nonOwner);
+        vm.prank(nonOwner);
         vm.expectRevert("A: Only Owner");
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
-        vm.stopPrank();
     }
 
     function testRevert_deposit_tooManyAssets(uint8 arrLength) public {
@@ -244,12 +243,14 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then: Asset arrays are properly updated.
         (uint256 erc20Length, uint256 erc721Length,, uint256 erc1155Length) = accountExtension.getLengths();
+
         assertEq(erc20Length, 1);
         assertEq(
             accountExtension.erc20Balances(address(mockERC20.token1)),
             mockERC20.token1.balanceOf(address(accountExtension))
         );
         assertEq(accountExtension.erc20Balances(address(mockERC20.token1)), erc20InitialAmount + erc20DepositAmount);
+
         assertEq(erc721Length, 2);
         assertEq(accountExtension.erc721Stored(0), address(mockERC721.nft1));
         assertEq(accountExtension.erc721Stored(1), address(mockERC721.nft1));
@@ -259,7 +260,6 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(erc1155Length, 1);
         assertEq(accountExtension.erc1155Stored(0), address(mockERC1155.sft1));
         assertEq(accountExtension.erc1155TokenIds(0), 1);
-
         assertEq(
             accountExtension.erc1155Balances(address(mockERC1155.sft1), 1),
             mockERC1155.sft1.balanceOf(address(accountExtension), 1)

@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Constants, AbstractPricingModule_Fuzz_Test } from "./AbstractPricingModule.fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../../../lib/forge-std/src/Test.sol";
-import { PricingModule_UsdOnly, RiskConstants } from "../../../../pricing-modules/AbstractPricingModule_UsdOnly.sol";
+import { PricingModule, RiskConstants } from "../../../../pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "setBatchRiskVariables" of contract "AbstractPricingModule".
@@ -26,7 +26,7 @@ contract SetBatchRiskVariables_AbstractPricingModule_Fuzz_Test is AbstractPricin
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testRevert_setBatchRiskVariables_NonRiskManager(
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVarInputs,
+        PricingModule.RiskVarInput[] memory riskVarInputs,
         address unprivilegedAddress_
     ) public {
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
@@ -38,7 +38,7 @@ contract SetBatchRiskVariables_AbstractPricingModule_Fuzz_Test is AbstractPricin
     }
 
     function testRevert_setBatchRiskVariables_BaseCurrencyNotInLimits(
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVarInputs,
+        PricingModule.RiskVarInput[] memory riskVarInputs,
         uint256 baseCurrencyCounter
     ) public {
         vm.assume(riskVarInputs.length > 0);
@@ -53,7 +53,7 @@ contract SetBatchRiskVariables_AbstractPricingModule_Fuzz_Test is AbstractPricin
         vm.stopPrank();
     }
 
-    function testSuccess_setBatchRiskVariables(PricingModule_UsdOnly.RiskVarInput[2] memory riskVarInputs) public {
+    function testSuccess_setBatchRiskVariables(PricingModule.RiskVarInput[2] memory riskVarInputs) public {
         vm.assume(riskVarInputs[0].baseCurrency != riskVarInputs[1].baseCurrency);
         stdstore.target(address(mainRegistryExtension)).sig(mainRegistryExtension.baseCurrencyCounter.selector)
             .checked_write(type(uint256).max);

@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, FloorERC1155PricingModule_Fuzz_Test } from "./FloorERC1155PricingModule.fuzz.t.sol";
 
-import { IPricingModule_UsdOnly } from "../../../../interfaces/IPricingModule_UsdOnly.sol";
+import { IPricingModule } from "../../../../interfaces/IPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "getValue" of contract "FloorERC1155PricingModule".
@@ -33,7 +33,7 @@ contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         mockOracles.sft1ToToken1.transmit(int256(uint256(rateERC1155ToToken1)));
         vm.stopPrank();
 
-        IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
+        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(mockERC1155.sft1),
             assetId: 0,
             assetAmount: amountERC1155,
@@ -62,7 +62,7 @@ contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         mockOracles.sft1ToToken1.transmit(int256(rateERC1155ToToken1New));
         vm.stopPrank();
 
-        IPricingModule_UsdOnly.GetValueInput memory getValueInput = IPricingModule_UsdOnly.GetValueInput({
+        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(mockERC1155.sft1),
             assetId: 1,
             assetAmount: amountERC1155,

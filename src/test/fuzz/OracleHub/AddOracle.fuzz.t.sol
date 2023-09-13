@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, OracleHub_Fuzz_Test } from "./OracleHub.fuzz.t.sol";
 
-import { OracleHub_UsdOnly } from "../../../OracleHub_UsdOnly.sol";
+import { OracleHub } from "../../../OracleHub.sol";
 
 /**
  * @notice Fuzz tests for the function "addOracle" of contract "OracleHub".
@@ -33,7 +33,7 @@ contract AddOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.startPrank(users.unprivilegedAddress);
         vm.expectRevert("UNAUTHORIZED");
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",
@@ -49,7 +49,7 @@ contract AddOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         // Given: creatorAddress addOracle with OracleInformation.
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",
@@ -63,7 +63,7 @@ contract AddOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         // Then: addOracle reverts with "OH_AO: Oracle not unique".
         vm.expectRevert("OH_AO: Oracle not unique");
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",
@@ -84,7 +84,7 @@ contract AddOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("OH_AO: Maximal 18 decimals");
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: oracleEthToUsdUnit,
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",
@@ -105,7 +105,7 @@ contract AddOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.expectEmit();
         emit OracleAdded(address(mockOracles.token4ToUsd), address(mockERC20.token4), "USD");
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: oracleToken4ToUsdUnit,
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",

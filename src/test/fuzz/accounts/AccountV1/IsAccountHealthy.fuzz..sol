@@ -58,10 +58,10 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
 
-        // When: An Authorised protocol tries to take more margin against the Account
+        // When: An Authorised protocol tries to take more margin against the Account.
         (bool success, address creditor, uint256 version) = accountExtension.isAccountHealthy(debtIncrease, 0);
 
-        // Then: The action is not successful
+        // Then: The action is not successful.
         assertTrue(!success);
         assertEq(creditor, address(trustedCreditor));
         assertEq(version, 1);

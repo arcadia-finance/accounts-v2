@@ -6,8 +6,8 @@ pragma solidity 0.8.19;
 
 import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./StandardERC20PricingModule.fuzz.t.sol";
 
-import { OracleHub_UsdOnly } from "../../../../OracleHub_UsdOnly.sol";
-import { StandardERC20PricingModule_UsdOnly } from "../../../../pricing-modules/StandardERC20PricingModule_UsdOnly.sol";
+import { OracleHub } from "../../../../OracleHub.sol";
+import { StandardERC20PricingModule } from "../../../../pricing-modules/StandardERC20PricingModule.sol";
 import { ArcadiaOracle } from "../../../../mockups/ArcadiaOracle.sol";
 
 /**
@@ -99,7 +99,7 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
         address[] memory oracleAssetToUsdArr = new address[](1);
         oracleAssetToUsdArr[0] = address(oracle);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
                 baseAsset: "ETH",
                 quoteAsset: "USD",

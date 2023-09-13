@@ -6,10 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, FloorERC721PricingModule_Fuzz_Test } from "./FloorERC721PricingModule.fuzz.t.sol";
 
-import {
-    PricingModule_UsdOnly,
-    FloorERC721PricingModule_UsdOnly
-} from "../../../../pricing-modules/FloorERC721PricingModule_UsdOnly.sol";
+import { PricingModule, FloorERC721PricingModule } from "../../../../pricing-modules/FloorERC721PricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "FloorERC721PricingModule".
@@ -79,8 +76,8 @@ contract AddAsset_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
     function testSuccess_addAsset_NonFullListRiskVariables() public {
         vm.startPrank(users.creatorAddress);
         // Given: collateralFactors index 0 is DEFAULT_COLLATERAL_FACTOR, liquidationThresholds index 0 is DEFAULT_LIQUIDATION_FACTOR
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVars_ = new PricingModule_UsdOnly.RiskVarInput[](1);
-        riskVars_[0] = PricingModule_UsdOnly.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](1);
+        riskVars_[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: collateralFactor,
@@ -98,20 +95,20 @@ contract AddAsset_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
     }
 
     function testSuccess_addAsset_FullListRiskVariables() public {
-        PricingModule_UsdOnly.RiskVarInput[] memory riskVars_ = new PricingModule_UsdOnly.RiskVarInput[](3);
-        riskVars_[0] = PricingModule_UsdOnly.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](3);
+        riskVars_[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: collateralFactor,
             liquidationFactor: liquidationFactor
         });
-        riskVars_[1] = PricingModule_UsdOnly.RiskVarInput({
+        riskVars_[1] = PricingModule.RiskVarInput({
             baseCurrency: 1,
             asset: address(0),
             collateralFactor: collateralFactor,
             liquidationFactor: liquidationFactor
         });
-        riskVars_[2] = PricingModule_UsdOnly.RiskVarInput({
+        riskVars_[2] = PricingModule.RiskVarInput({
             baseCurrency: 2,
             asset: address(0),
             collateralFactor: collateralFactor,

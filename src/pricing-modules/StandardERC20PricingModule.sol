@@ -146,13 +146,8 @@ contract StandardERC20PricingModule is PricingModule, IStandardERC20PricingModul
      * - assetAmount: The amount of assets.
      * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return valueInBaseCurrency The value of the asset denominated in a BaseCurrency different from USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
      * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
-     * @dev If the OracleHub returns the rate in a baseCurrency different from USD, the StandardERC20PricingModule will return
-     * the value of the asset in the same BaseCurrency. If the Oracle-Hub returns the rate in USD, the StandardERC20PricingModule
-     * will return the value of the asset in USD.
-     * Only one of the two values can be different from 0.
      * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256
      * @dev If the asset is not added to PricingModule, this function will return value 0 without throwing an error.
      * However no check in StandardERC20PricingModule is necessary, since the check if the asset is allow listed (and hence added to PricingModule)
@@ -162,22 +157,11 @@ contract StandardERC20PricingModule is PricingModule, IStandardERC20PricingModul
         public
         view
         override
-        returns (uint256 valueInUsd, uint256 valueInBaseCurrency, uint256 collateralFactor, uint256 liquidationFactor)
+        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        uint256 rateInUsd;
-        uint256 rateInBaseCurrency;
+        uint256 rateInUsd = IOraclesHub(oracleHub).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
 
-        (rateInUsd, rateInBaseCurrency) =
-            IOraclesHub(oracleHub).getRate(assetToInformation[getValueInput.asset].oracles, getValueInput.baseCurrency);
-
-        if (rateInBaseCurrency > 0) {
-            valueInBaseCurrency = (getValueInput.assetAmount).mulDivDown(
-                rateInBaseCurrency, assetToInformation[getValueInput.asset].assetUnit
-            );
-        } else {
-            valueInUsd =
-                (getValueInput.assetAmount).mulDivDown(rateInUsd, assetToInformation[getValueInput.asset].assetUnit);
-        }
+        valueInUsd = getValueInput.assetAmount.mulDivDown(rateInUsd, assetToInformation[getValueInput.asset].assetUnit);
 
         collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
         liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;

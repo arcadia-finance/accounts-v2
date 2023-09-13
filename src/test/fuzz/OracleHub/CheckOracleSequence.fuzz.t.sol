@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, OracleHub_Fuzz_Test } from "./OracleHub.fuzz.t.sol";
 
-import { OracleHub_UsdOnly } from "../../../OracleHub_UsdOnly.sol";
+import { OracleHub } from "../../../OracleHub.sol";
 
 /**
  * @notice Fuzz tests for the function "checkOracleSequence" of contract "OracleHub".
@@ -44,6 +44,8 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.assume(oracle != address(mockOracles.token2ToUsd));
         vm.assume(oracle != address(mockOracles.stable1ToUsd));
         vm.assume(oracle != address(mockOracles.stable2ToUsd));
+        vm.assume(oracle != address(mockOracles.nft1ToToken1));
+        vm.assume(oracle != address(mockOracles.sft1ToToken1));
         address[] memory oracleTokenToUsdArr = new address[](1);
         oracleTokenToUsdArr[0] = oracle;
 
@@ -55,7 +57,7 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.prank(users.creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation.
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",
@@ -84,7 +86,7 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         // Given: creatorAddress addOracle with OracleInformation.
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",
@@ -107,7 +109,7 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.startPrank(users.creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation for TOKEN3-TOKEN4
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN3",
                 quoteAsset: "TOKEN4",
@@ -130,7 +132,7 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.startPrank(users.creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation for TOKEN3-TOKEN4
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN3",
                 quoteAsset: "TOKEN4",
@@ -152,7 +154,7 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.startPrank(users.creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",
@@ -173,7 +175,7 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.startPrank(users.creatorAddress);
         // Given: creatorAddress addOracle for TOKEN3-TOKEN4 and TOKEN4-USD
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN3",
                 quoteAsset: "TOKEN4",
@@ -183,7 +185,7 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
             })
         );
         oracleHub.addOracle(
-            OracleHub_UsdOnly.OracleInformation({
+            OracleHub.OracleInformation({
                 oracleUnit: uint64(Constants.tokenOracleDecimals),
                 baseAsset: "TOKEN4",
                 quoteAsset: "USD",
