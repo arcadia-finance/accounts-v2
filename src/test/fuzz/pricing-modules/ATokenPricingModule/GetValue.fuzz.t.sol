@@ -27,22 +27,20 @@ contract GetValue_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testRevert_getValue_Overflow(uint256 rateToken1ToUsd_, uint256 amountToken1) public {
-        vm.assume(rateToken1ToUsd_ <= uint256(type(int256).max));
+        // No Overflow OracleHub
         vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD);
         vm.assume(rateToken1ToUsd_ > 0);
 
         vm.assume(
             uint256(amountToken1)
-                > type(uint256).max / Constants.WAD * 10 ** Constants.tokenOracleDecimals / uint256(rateToken1ToUsd_)
+                > type(uint256).max / (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals)
         );
 
-        vm.startPrank(users.defaultTransmitter);
+        vm.prank(users.defaultTransmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
-        vm.stopPrank();
 
-        vm.startPrank(users.creatorAddress);
+        vm.prank(users.creatorAddress);
         aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput, type(uint128).max);
-        vm.stopPrank();
 
         IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(aToken1),
@@ -50,38 +48,32 @@ contract GetValue_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
             assetAmount: amountToken1,
             baseCurrency: UsdBaseCurrencyID
         });
+
         //Arithmetic overflow.
         vm.expectRevert(bytes(""));
         aTokenPricingModule.getValue(getValueInput);
     }
 
     function testSuccess_getValue(uint256 rateToken1ToUsd_, uint256 amountToken1) public {
-        vm.assume(rateToken1ToUsd_ <= uint256(type(int256).max));
+        // No Overflow OracleHub
         vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD);
 
-        if (rateToken1ToUsd_ == 0) {
-            vm.assume(uint256(amountToken1) <= type(uint256).max / Constants.WAD);
-        } else {
+        if (rateToken1ToUsd_ != 0) {
             vm.assume(
                 uint256(amountToken1)
-                    <= type(uint256).max / Constants.WAD * 10 ** Constants.tokenOracleDecimals / uint256(rateToken1ToUsd_)
+                    <= type(uint256).max / (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals)
             );
         }
 
-        vm.startPrank(users.defaultTransmitter);
+        vm.prank(users.defaultTransmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
-        vm.stopPrank();
 
-        vm.startPrank(users.creatorAddress);
+        vm.prank(users.creatorAddress);
         aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput, type(uint128).max);
-        vm.stopPrank();
 
         uint256 expectedValueInUsd = (
-            ((Constants.WAD * rateToken1ToUsd_) / 10 ** Constants.tokenOracleDecimals) * amountToken1
+            (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals) * amountToken1
         ) / 10 ** Constants.tokenDecimals;
-
-        emit log_named_uint("(Constants.WAD * rateToken1ToUsd_)", (Constants.WAD * rateToken1ToUsd_));
-        emit log_named_uint("Constants.tokenOracleDecimals", Constants.tokenOracleDecimals);
 
         IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(aToken1),

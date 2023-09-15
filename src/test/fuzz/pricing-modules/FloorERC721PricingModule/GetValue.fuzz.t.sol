@@ -18,23 +18,28 @@ contract GetValue_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
 
     function setUp() public override {
         FloorERC721PricingModule_Fuzz_Test.setUp();
+
+        // Add Nft2 (which has an oracle directly to usd).
+        vm.prank(users.creatorAddress);
+        floorERC721PricingModule.addAsset(
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
+        );
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_getValue(uint96 rateNft1ToToken1, uint96 rateToken1ToUsd) public {
-        // Does not test on overflow, test to check if function correctly returns value in Usd
-        uint256 expectedValueInUsd = (uint256(rateNft1ToToken1) * uint256(rateToken1ToUsd) * Constants.WAD)
-            / 10 ** (Constants.nftOracleDecimals + Constants.tokenOracleDecimals);
+    function testFuzz_getValue(uint256 rateNft2ToUsd) public {
+        // No overflow OracleHub.
+        vm.assume(rateNft2ToUsd <= type(uint256).max / Constants.WAD);
 
-        vm.startPrank(users.defaultTransmitter);
-        mockOracles.nft1ToToken1.transmit(int256(uint256(rateNft1ToToken1)));
-        mockOracles.token1ToUsd.transmit(int256(uint256(rateToken1ToUsd)));
-        vm.stopPrank();
+        uint256 expectedValueInUsd = Constants.WAD * rateNft2ToUsd / 10 ** Constants.nftOracleDecimals;
+
+        vm.prank(users.defaultTransmitter);
+        mockOracles.nft2ToUsd.transmit(int256(rateNft2ToUsd));
 
         IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
-            asset: address(mockERC721.nft1),
+            asset: address(mockERC721.nft2),
             assetId: 0,
             assetAmount: 1,
             baseCurrency: UsdBaseCurrencyID

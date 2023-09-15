@@ -37,21 +37,21 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         vm.assume(totalAssets > 0);
         vm.assume(rateToken1ToUsd_ > 0);
 
+        // No Overflow OracleHub
         vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD);
+        // No Overflow ERC4626
         vm.assume(shares <= type(uint256).max / totalAssets);
 
         vm.assume(
             shares * totalAssets / totalSupply
-                > type(uint256).max / Constants.WAD * 10 ** Constants.tokenOracleDecimals / uint256(rateToken1ToUsd_)
+                > type(uint256).max / (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals)
         );
 
-        vm.startPrank(users.defaultTransmitter);
+        vm.prank(users.defaultTransmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
-        vm.stopPrank();
 
-        vm.startPrank(users.creatorAddress);
+        vm.prank(users.creatorAddress);
         erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput, type(uint128).max);
-        vm.stopPrank();
 
         //Cheat totalSupply
         stdstore.target(address(ybToken1)).sig(ybToken1.totalSupply.selector).checked_write(totalSupply);
@@ -78,29 +78,28 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         vm.assume(shares <= totalSupply);
         vm.assume(totalSupply > 0);
 
+        // No Overflow OracleHub
         vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD);
+        // No Overflow ERC4626
         if (totalAssets > 0) {
             vm.assume(shares <= type(uint256).max / totalAssets);
         }
-        if (rateToken1ToUsd_ == 0) {
-            vm.assume(shares * totalAssets / totalSupply <= type(uint256).max / Constants.WAD);
-        } else {
+
+        if (rateToken1ToUsd_ != 0) {
             vm.assume(
                 shares * totalAssets / totalSupply
-                    <= type(uint256).max / Constants.WAD * 10 ** Constants.tokenOracleDecimals / uint256(rateToken1ToUsd_)
+                    <= type(uint256).max / (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals)
             );
         }
 
-        uint256 expectedValueInUsd = (shares * totalAssets / totalSupply)
-            * (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals) / 10 ** Constants.tokenDecimals;
+        uint256 expectedValueInUsd = (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals)
+            * (shares * totalAssets / totalSupply) / 10 ** Constants.tokenDecimals;
 
-        vm.startPrank(users.defaultTransmitter);
+        vm.prank(users.defaultTransmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
-        vm.stopPrank();
 
-        vm.startPrank(users.creatorAddress);
+        vm.prank(users.creatorAddress);
         erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput, type(uint128).max);
-        vm.stopPrank();
 
         //Cheat totalSupply
         stdstore.target(address(ybToken1)).sig(ybToken1.totalSupply.selector).checked_write(totalSupply);
