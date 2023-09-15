@@ -4,9 +4,9 @@
  */
 pragma solidity 0.8.19;
 
-import "../../../lib/forge-std/src/Test.sol";
-import { RiskModule } from "../../RiskModule.sol";
-import { RiskConstants } from "../../utils/RiskConstants.sol";
+import "../../lib/forge-std/src/Test.sol";
+import { RiskModule } from "../../src/RiskModule.sol";
+import { RiskConstants } from "../../src/utils/RiskConstants.sol";
 
 contract RiskModuleTest is Test {
     using stdStorage for StdStorage;
