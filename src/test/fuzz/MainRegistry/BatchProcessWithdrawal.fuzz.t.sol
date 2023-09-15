@@ -118,6 +118,31 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         mainRegistryExtension.batchProcessWithdrawal(assetAddresses, assetIds, assetAmounts);
     }
 
+    function testFuzz_Revert_batchProcessWithdrawal_delegateCall(uint128 amountToken2) public {
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(mockERC20.token2);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = 0;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amountToken2;
+
+        vm.startPrank(address(proxyAccount));
+        vm.expectRevert("MR: No delegate.");
+        (bool success,) = address(mainRegistryExtension).delegatecall(
+            abi.encodeWithSignature(
+                "batchProcessWithdrawal(address[] calldata,uint256[] calldata,uint256[] calldata)",
+                assetAddresses,
+                assetIds,
+                assetAmounts
+            )
+        );
+        vm.stopPrank();
+
+        success; //avoid warning
+    }
+
     function testFuzz_Success_batchProcessWithdrawal(uint128 amountDeposited, uint128 amountWithdrawn) public {
         vm.assume(amountDeposited >= amountWithdrawn);
 
@@ -171,30 +196,5 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         (, uint128 endExposure) = erc20PricingModule.exposure(address(mockERC20.token2));
 
         assertEq(endExposure, 0);
-    }
-
-    function testFuzz_Revert_batchProcessWithdrawal_delegateCall(uint128 amountToken2) public {
-        address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = address(mockERC20.token2);
-
-        uint256[] memory assetIds = new uint256[](1);
-        assetIds[0] = 0;
-
-        uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = amountToken2;
-
-        vm.startPrank(address(proxyAccount));
-        vm.expectRevert("MR: No delegate.");
-        (bool success,) = address(mainRegistryExtension).delegatecall(
-            abi.encodeWithSignature(
-                "batchProcessWithdrawal(address[] calldata,uint256[] calldata,uint256[] calldata)",
-                assetAddresses,
-                assetIds,
-                assetAmounts
-            )
-        );
-        vm.stopPrank();
-
-        success; //avoid warning
     }
 }

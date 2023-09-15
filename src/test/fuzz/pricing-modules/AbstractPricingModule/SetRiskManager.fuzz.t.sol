@@ -23,19 +23,6 @@ contract SetRiskManager_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-
-    function testFuzz_Success_setRiskManager(address newRiskManager) public {
-        assertEq(pricingModule.riskManager(), users.creatorAddress);
-
-        vm.startPrank(users.creatorAddress);
-        vm.expectEmit(true, true, true, true);
-        emit RiskManagerUpdated(newRiskManager);
-        pricingModule.setRiskManager(newRiskManager);
-        vm.stopPrank();
-
-        assertEq(pricingModule.riskManager(), newRiskManager);
-    }
-
     function testFuzz_Revert_setRiskManager_NonRiskManager(address newRiskManager, address unprivilegedAddress_)
         public
     {
@@ -48,5 +35,17 @@ contract SetRiskManager_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
         vm.stopPrank();
 
         assertEq(pricingModule.riskManager(), users.creatorAddress);
+    }
+
+    function testFuzz_Success_setRiskManager(address newRiskManager) public {
+        assertEq(pricingModule.riskManager(), users.creatorAddress);
+
+        vm.startPrank(users.creatorAddress);
+        vm.expectEmit(true, true, true, true);
+        emit RiskManagerUpdated(newRiskManager);
+        pricingModule.setRiskManager(newRiskManager);
+        vm.stopPrank();
+
+        assertEq(pricingModule.riskManager(), newRiskManager);
     }
 }

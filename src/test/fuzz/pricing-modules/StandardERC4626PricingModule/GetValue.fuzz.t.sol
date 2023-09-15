@@ -26,7 +26,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_Revert_getValue_Overflow(
+    function testFuzz_Revert_getValue_Overflow(
         uint256 rateToken1ToUsd_,
         uint256 shares,
         uint256 totalSupply,

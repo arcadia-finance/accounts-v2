@@ -21,16 +21,6 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_setBaseCurrency() public {
-        vm.startPrank(users.accountOwner);
-        vm.expectEmit(true, true, true, true);
-        emit BaseCurrencySet(address(mockERC20.token1));
-        accountExtension.setBaseCurrency(address(mockERC20.token1));
-        vm.stopPrank();
-
-        assertEq(accountExtension.baseCurrency(), address(mockERC20.token1));
-    }
-
     function testFuzz_Revert_setBaseCurrency_NonAuthorized(address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != users.accountOwner);
 
@@ -60,5 +50,15 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.expectRevert("A_SBC: baseCurrency not found");
         accountExtension.setBaseCurrency(baseCurrency_);
         vm.stopPrank();
+    }
+
+    function testFuzz_Success_setBaseCurrency() public {
+        vm.startPrank(users.accountOwner);
+        vm.expectEmit(true, true, true, true);
+        emit BaseCurrencySet(address(mockERC20.token1));
+        accountExtension.setBaseCurrency(address(mockERC20.token1));
+        vm.stopPrank();
+
+        assertEq(accountExtension.baseCurrency(), address(mockERC20.token1));
     }
 }

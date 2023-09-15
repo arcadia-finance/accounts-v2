@@ -125,6 +125,31 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
     }
 
+    function testFuzz_Revert_batchProcessDeposit_delegateCall(uint128 amountToken2) public {
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(mockERC20.token2);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = 0;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amountToken2;
+
+        vm.startPrank(address(proxyAccount));
+        vm.expectRevert("MR: No delegate.");
+        (bool success,) = address(mainRegistryExtension).delegatecall(
+            abi.encodeWithSignature(
+                "batchProcessDeposit(address[] calldata,uint256[] calldata,uint256[] calldata)",
+                assetAddresses,
+                assetIds,
+                assetAmounts
+            )
+        );
+        vm.stopPrank();
+
+        success; //avoid warning
+    }
+
     function testFuzz_Success_batchProcessDeposit_SingleAsset(uint128 amount) public {
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -187,30 +212,5 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         (, uint128 newExposure) = erc20PricingModule.exposure(address(mockERC20.token2));
 
         assertEq(newExposure, amountToken2);
-    }
-
-    function testFuzz_Revert_batchProcessDeposit_delegateCall(uint128 amountToken2) public {
-        address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = address(mockERC20.token2);
-
-        uint256[] memory assetIds = new uint256[](1);
-        assetIds[0] = 0;
-
-        uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = amountToken2;
-
-        vm.startPrank(address(proxyAccount));
-        vm.expectRevert("MR: No delegate.");
-        (bool success,) = address(mainRegistryExtension).delegatecall(
-            abi.encodeWithSignature(
-                "batchProcessDeposit(address[] calldata,uint256[] calldata,uint256[] calldata)",
-                assetAddresses,
-                assetIds,
-                assetAmounts
-            )
-        );
-        vm.stopPrank();
-
-        success; //avoid warning
     }
 }

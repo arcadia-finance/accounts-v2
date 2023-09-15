@@ -21,6 +21,15 @@ contract SetAllowedAction_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_setAllowedAction_NonOwner(address action, bool allowed, address nonAuthorized) public {
+        vm.assume(nonAuthorized != users.creatorAddress);
+
+        vm.startPrank(nonAuthorized);
+        vm.expectRevert("UNAUTHORIZED");
+        mainRegistryExtension.setAllowedAction(action, allowed);
+        vm.stopPrank();
+    }
+
     function testFuzz_Success_setAllowedAction_Owner(address action, bool allowed) public {
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
@@ -29,14 +38,5 @@ contract SetAllowedAction_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
 
         assertEq(mainRegistryExtension.isActionAllowed(action), allowed);
-    }
-
-    function testFuzz_Revert_setAllowedAction_NonOwner(address action, bool allowed, address nonAuthorized) public {
-        vm.assume(nonAuthorized != users.creatorAddress);
-
-        vm.startPrank(nonAuthorized);
-        vm.expectRevert("UNAUTHORIZED");
-        mainRegistryExtension.setAllowedAction(action, allowed);
-        vm.stopPrank();
     }
 }

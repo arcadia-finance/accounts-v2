@@ -201,6 +201,50 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_withdraw_WithDebt_UnsufficientCollateral(
+        uint256 debt,
+        uint256 collateralValueInitial,
+        uint256 collateralValueDecrease,
+        uint256 fixedLiquidationCost
+    ) public {
+        // Test-case: With debt.
+        debt = bound(debt, 1, type(uint256).max);
+
+        // No overflow of Used Margin.
+        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint256).max - debt);
+        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
+        uint256 usedMargin = debt + fixedLiquidationCost;
+
+        // No overflow riskmodule
+        collateralValueInitial = bound(collateralValueInitial, 0, type(uint256).max / RiskConstants.RISK_VARIABLES_UNIT);
+        // No underflow Withdrawal.
+        collateralValueDecrease = bound(collateralValueDecrease, 0, collateralValueInitial);
+
+        // test-case: Insufficient collateralValue after withdrawal.
+        vm.assume(collateralValueInitial - collateralValueDecrease < usedMargin);
+
+        // Set fixedLiquidationCost
+        accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
+
+        // Mock initial debt.
+        trustedCreditor.setOpenPosition(address(accountExtension), debt);
+
+        // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
+        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
+
+        // When: "accountOwner" withdraws assets.
+        // Then: Transaction should revert with "A_W721: Unknown asset".
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(mockERC20.stable1);
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = 0;
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = collateralValueDecrease;
+        vm.prank(users.accountOwner);
+        vm.expectRevert("A_W: Account Unhealthy");
+        accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
+    }
+
     function testFuzz_Success_withdraw_NoDebt_FullWithdrawal(uint128 erc20Amount, uint8 erc721Id, uint128 erc1155Amount)
         public
     {
@@ -330,50 +374,6 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             accountExtension.erc1155Balances(address(mockERC1155.sft1), 1), erc1155InitialAmount - erc1155WithdrawAmount
         );
         assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), erc1155WithdrawAmount);
-    }
-
-    function testFuzz_Revert_withdraw_WithDebt_UnsufficientCollateral(
-        uint256 debt,
-        uint256 collateralValueInitial,
-        uint256 collateralValueDecrease,
-        uint256 fixedLiquidationCost
-    ) public {
-        // Test-case: With debt.
-        debt = bound(debt, 1, type(uint256).max);
-
-        // No overflow of Used Margin.
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint256).max - debt);
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
-        uint256 usedMargin = debt + fixedLiquidationCost;
-
-        // No overflow riskmodule
-        collateralValueInitial = bound(collateralValueInitial, 0, type(uint256).max / RiskConstants.RISK_VARIABLES_UNIT);
-        // No underflow Withdrawal.
-        collateralValueDecrease = bound(collateralValueDecrease, 0, collateralValueInitial);
-
-        // test-case: Insufficient collateralValue after withdrawal.
-        vm.assume(collateralValueInitial - collateralValueDecrease < usedMargin);
-
-        // Set fixedLiquidationCost
-        accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
-
-        // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(accountExtension), debt);
-
-        // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
-
-        // When: "accountOwner" withdraws assets.
-        // Then: Transaction should revert with "A_W721: Unknown asset".
-        address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = address(mockERC20.stable1);
-        uint256[] memory assetIds = new uint256[](1);
-        assetIds[0] = 0;
-        uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = collateralValueDecrease;
-        vm.prank(users.accountOwner);
-        vm.expectRevert("A_W: Account Unhealthy");
-        accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Success_withdraw_WithDebt(

@@ -23,30 +23,6 @@ contract OpenTrustedMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_openTrustedMarginAccount() public {
-        // Assert no creditor has been set on deployment
-        assertEq(proxyAccount.trustedCreditor(), address(0));
-        assertEq(proxyAccount.isTrustedCreditorSet(), false);
-        // Assert no liquidator, baseCurrency and liquidation costs have been defined on deployment
-        assertEq(proxyAccount.liquidator(), address(0));
-        assertEq(proxyAccount.fixedLiquidationCost(), 0);
-        assertEq(proxyAccount.baseCurrency(), address(0));
-
-        // Open a margin account
-        vm.startPrank(users.accountOwner);
-        vm.expectEmit();
-        emit TrustedMarginAccountChanged(address(trustedCreditor), Constants.initLiquidator);
-        proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
-        vm.stopPrank();
-
-        // Assert a creditor has been set and other variables updated
-        assertEq(proxyAccount.trustedCreditor(), address(trustedCreditor));
-        assertEq(proxyAccount.isTrustedCreditorSet(), true);
-        assertEq(proxyAccount.liquidator(), Constants.initLiquidator);
-        assertEq(proxyAccount.fixedLiquidationCost(), Constants.initLiquidationCost);
-        assertEq(proxyAccount.baseCurrency(), initBaseCurrency);
-    }
-
     function testFuzz_Revert_openTrustedMarginAccount_NotOwner() public {
         // Should revert if not called by the owner
         vm.expectRevert("A: Only Owner");
@@ -70,6 +46,30 @@ contract OpenTrustedMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.expectRevert("A_OTMA: Invalid Version");
         proxyAccount.openTrustedMarginAccount((address(trustedCreditor)));
         vm.stopPrank();
+    }
+
+    function testFuzz_Success_openTrustedMarginAccount() public {
+        // Assert no creditor has been set on deployment
+        assertEq(proxyAccount.trustedCreditor(), address(0));
+        assertEq(proxyAccount.isTrustedCreditorSet(), false);
+        // Assert no liquidator, baseCurrency and liquidation costs have been defined on deployment
+        assertEq(proxyAccount.liquidator(), address(0));
+        assertEq(proxyAccount.fixedLiquidationCost(), 0);
+        assertEq(proxyAccount.baseCurrency(), address(0));
+
+        // Open a margin account
+        vm.startPrank(users.accountOwner);
+        vm.expectEmit();
+        emit TrustedMarginAccountChanged(address(trustedCreditor), Constants.initLiquidator);
+        proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
+        vm.stopPrank();
+
+        // Assert a creditor has been set and other variables updated
+        assertEq(proxyAccount.trustedCreditor(), address(trustedCreditor));
+        assertEq(proxyAccount.isTrustedCreditorSet(), true);
+        assertEq(proxyAccount.liquidator(), Constants.initLiquidator);
+        assertEq(proxyAccount.fixedLiquidationCost(), Constants.initLiquidationCost);
+        assertEq(proxyAccount.baseCurrency(), initBaseCurrency);
     }
 
     function testFuzz_Success_openTrustedMarginAccount_DifferentBaseCurrency(
