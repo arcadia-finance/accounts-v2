@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, MainRegistry_Fuzz_Test } from "./MainRegistry.fuzz.t.sol";
+import { Constants, MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
 import { CompareArrays } from "../../utils/CompareArrays.sol";
 import { RiskModule } from "../../../RiskModule.sol";

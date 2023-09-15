@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, UniswapV3PricingModule_Fuzz_Test } from "./UniswapV3PricingModule.fuzz.t.sol";
+import { Constants, UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the "setExposureOfAsset" of contract "UniswapV3PricingModule".

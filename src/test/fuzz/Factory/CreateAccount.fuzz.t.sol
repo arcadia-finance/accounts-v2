@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, Factory_Fuzz_Test } from "./Factory.fuzz.t.sol";
+import { Constants, Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
 
 import { AccountV1 } from "../../../AccountV1.sol";
 import { AccountVariableVersion } from "../../../mockups/AccountVariableVersion.sol";

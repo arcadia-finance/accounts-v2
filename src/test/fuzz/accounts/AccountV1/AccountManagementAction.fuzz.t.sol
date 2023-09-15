@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./AccountV1.fuzz.t.sol";
+import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 import { ActionData } from "../../../../actions/utils/ActionData.sol";

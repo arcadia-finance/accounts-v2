@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, OracleHub_Fuzz_Test } from "./OracleHub.fuzz.t.sol";
+import { Constants, OracleHub_Fuzz_Test } from "./_OracleHub.fuzz.t.sol";
 
 import { OracleHub } from "../../../OracleHub.sol";
 
@@ -44,6 +44,8 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.assume(oracle != address(mockOracles.token2ToUsd));
         vm.assume(oracle != address(mockOracles.stable1ToUsd));
         vm.assume(oracle != address(mockOracles.stable2ToUsd));
+        vm.assume(oracle != address(mockOracles.nft1ToToken1));
+        vm.assume(oracle != address(mockOracles.sft1ToToken1));
         address[] memory oracleTokenToUsdArr = new address[](1);
         oracleTokenToUsdArr[0] = oracle;
 

@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, Factory_Fuzz_Test } from "./Factory.fuzz.t.sol";
+import { Constants, Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
 
 import { AccountV2 } from "../../../mockups/AccountV2.sol";
 import { AccountVariableVersion } from "../../../mockups/AccountVariableVersion.sol";
@@ -110,6 +110,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(0));
         vm.assume(randomAssetAddress != address(0));
         vm.assume(randomAssetAddress != address(mockERC20.stable1));
+        vm.assume(randomAssetAddress != address(mockERC20.token1));
 
         vm.startPrank(users.creatorAddress);
         mainRegistry2 = new MainRegistryExtension(address(factory));
@@ -192,6 +193,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         bytes calldata data
     ) public {
         vm.assume(logic > address(10));
+        vm.assume(logic != address(factory));
         vm.assume(newAssetAddress != address(0));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();
@@ -215,6 +217,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         bytes calldata data
     ) public {
         vm.assume(logic > address(10));
+        vm.assume(logic != address(factory));
         vm.assume(newAssetAddress != address(0));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();

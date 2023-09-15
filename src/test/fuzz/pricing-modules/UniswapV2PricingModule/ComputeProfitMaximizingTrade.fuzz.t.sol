@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./UniswapV2PricingModule.fuzz.t.sol";
+import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the "computeProfitMaximizingTrade" of contract "UniswapV2PricingModule".

@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./StandardERC20PricingModule.fuzz.t.sol";
+import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./_StandardERC20PricingModule.fuzz.t.sol";
 
 import { IPricingModule } from "../../../../interfaces/IPricingModule.sol";
 

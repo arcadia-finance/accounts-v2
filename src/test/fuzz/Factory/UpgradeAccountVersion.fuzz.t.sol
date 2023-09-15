@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, Factory_Fuzz_Test } from "./Factory.fuzz.t.sol";
+import { Constants, Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the "upgradeAccountVersion" of contract "Factory".

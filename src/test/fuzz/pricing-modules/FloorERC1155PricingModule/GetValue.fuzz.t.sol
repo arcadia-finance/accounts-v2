@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, FloorERC1155PricingModule_Fuzz_Test } from "./FloorERC1155PricingModule.fuzz.t.sol";
+import { Constants, FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModule.fuzz.t.sol";
 
 import { IPricingModule } from "../../../../interfaces/IPricingModule.sol";
 

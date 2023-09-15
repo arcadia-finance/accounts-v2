@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, MainRegistry_Fuzz_Test } from "./MainRegistry.fuzz.t.sol";
+import { Constants, MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 

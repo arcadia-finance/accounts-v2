@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, ATokenPricingModule_Fuzz_Test } from "./ATokenPricingModule.fuzz.t.sol";
+import { Constants, ATokenPricingModule_Fuzz_Test } from "./_ATokenPricingModule.fuzz.t.sol";
 
 import { ATokenMock } from "../../../../mockups/ATokenMock.sol";
 import { PricingModule } from "../../../../pricing-modules/ATokenPricingModule.sol";

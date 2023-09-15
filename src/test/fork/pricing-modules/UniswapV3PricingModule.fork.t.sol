@@ -53,7 +53,7 @@ contract UniswapV3PricingModule_Fork_Test is Fork_Test {
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
-    //ToDo: move to shared contract with "UniswapV3PricingModule.fuzz.t.sol"
+    //ToDo: move to shared contract with "_UniswapV3PricingModule.fuzz.t.sol"
     function isWithinAllowedRange(int24 tick) public pure returns (bool) {
         int24 MIN_TICK = -887_272;
         int24 MAX_TICK = -MIN_TICK;

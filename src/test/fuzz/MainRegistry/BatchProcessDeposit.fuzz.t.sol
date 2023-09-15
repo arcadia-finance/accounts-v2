@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, MainRegistry_Fuzz_Test } from "./MainRegistry.fuzz.t.sol";
+import { Constants, MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the "batchProcessDeposit" of contract "MainRegistry".

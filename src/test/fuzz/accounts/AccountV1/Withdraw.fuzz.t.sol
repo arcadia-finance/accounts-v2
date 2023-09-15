@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./AccountV1.fuzz.t.sol";
+import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { stdError } from "../../../../../lib/forge-std/src/StdError.sol";
 import { StdStorage, stdStorage } from "../../../../../lib/forge-std/src/Test.sol";
