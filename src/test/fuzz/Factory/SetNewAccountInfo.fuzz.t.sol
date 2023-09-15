@@ -64,7 +64,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_setNewAccountInfo_NonOwner(address unprivilegedAddress_, address logic) public {
+    function testFuzz_Revert_setNewAccountInfo_NonOwner(address unprivilegedAddress_, address logic) public {
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
 
         vm.startPrank(unprivilegedAddress_);
@@ -73,14 +73,14 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_setNewAccountInfo_VersionRootIsZero(address mainRegistry_, address logic) public {
+    function testFuzz_Revert_setNewAccountInfo_VersionRootIsZero(address mainRegistry_, address logic) public {
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("FTRY_SNVI: version root is zero");
         factory.setNewAccountInfo(mainRegistry_, logic, bytes32(0), "");
         vm.stopPrank();
     }
 
-    function testRevert_setNewAccountInfo_LogicAddressIsZero(address mainRegistry_, bytes32 versionRoot) public {
+    function testFuzz_Revert_setNewAccountInfo_LogicAddressIsZero(address mainRegistry_, bytes32 versionRoot) public {
         vm.assume(versionRoot != bytes32(0));
 
         vm.startPrank(users.creatorAddress);
@@ -89,7 +89,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_setNewAccountInfo_OwnerSetsNewAccountWithInfoMissingBaseCurrencyInMainRegistry(
+    function testFuzz_Revert_setNewAccountInfo_OwnerSetsNewAccountWithInfoMissingBaseCurrencyInMainRegistry(
         address newAssetAddress,
         address logic
     ) public {
@@ -103,7 +103,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_setNewAccountInfo_OwnerSetsNewAccountInfoWithDifferentBaseCurrencyInMainRegistry(
+    function testFuzz_Revert_setNewAccountInfo_OwnerSetsNewAccountInfoWithDifferentBaseCurrencyInMainRegistry(
         address randomAssetAddress,
         address logic
     ) public {
@@ -140,7 +140,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         factory.setNewAccountInfo(address(mainRegistry2), logic, Constants.upgradeProof1To2, "");
     }
 
-    function testRevert_setNewAccountInfo_InvalidAccountVersion() public {
+    function testFuzz_Revert_setNewAccountInfo_InvalidAccountVersion() public {
         AccountV2 newAccountV2 = new AccountV2();
         AccountV2 newAccountV2_2 = new AccountV2();
 
@@ -155,7 +155,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_setNewAccountInfo_NoBaseCurrenciesSetInMainRegistry(
+    function testFuzz_Success_setNewAccountInfo_NoBaseCurrenciesSetInMainRegistry(
         address mainRegistry_,
         address logic,
         bytes calldata data
@@ -187,7 +187,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         assertEq(factory.latestAccountVersion(), latestAccountVersionPre + 1);
     }
 
-    function testSuccess_setNewAccountInfo_OwnerSetsNewAccountWithIdenticalBaseCurrenciesInMainRegistry(
+    function testFuzz_Success_setNewAccountInfo_OwnerSetsNewAccountWithIdenticalBaseCurrenciesInMainRegistry(
         address newAssetAddress,
         address logic,
         bytes calldata data
@@ -211,7 +211,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         assertEq(factory.latestAccountVersion(), ++latestAccountVersionPre);
     }
 
-    function testSuccess_setNewAccountInfo_OwnerSetsNewAccountWithMoreBaseCurrenciesInMainRegistry(
+    function testFuzz_Success_setNewAccountInfo_OwnerSetsNewAccountWithMoreBaseCurrenciesInMainRegistry(
         address newAssetAddress,
         address logic,
         bytes calldata data

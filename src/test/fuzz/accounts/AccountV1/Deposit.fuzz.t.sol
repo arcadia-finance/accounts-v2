@@ -25,7 +25,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_deposit_NonOwner(
+    function testFuzz_Revert_deposit_NonOwner(
         address nonOwner,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
@@ -38,7 +38,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
-    function testRevert_deposit_tooManyAssets(uint8 arrLength) public {
+    function testFuzz_Revert_deposit_tooManyAssets(uint8 arrLength) public {
         vm.assume(arrLength > accountExtension.ASSET_LIMIT() && arrLength < 50);
 
         address[] memory assetAddresses = new address[](arrLength);
@@ -56,7 +56,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
-    function testRevert_deposit_tooManyAssetsNotAtOnce(uint8 arrLength, uint8 amountToken1) public {
+    function testFuzz_Revert_deposit_tooManyAssetsNotAtOnce(uint8 arrLength, uint8 amountToken1) public {
         vm.assume(uint256(arrLength) + 1 > accountExtension.ASSET_LIMIT() && arrLength < 50);
 
         //deposit a single asset first
@@ -79,7 +79,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
-    function testRevert_deposit_LengthOfListDoesNotMatch(uint8 addrLen, uint8 idLen, uint8 amountLen) public {
+    function testFuzz_Revert_deposit_LengthOfListDoesNotMatch(uint8 addrLen, uint8 idLen, uint8 amountLen) public {
         vm.assume((addrLen != idLen && addrLen != amountLen));
         vm.assume(
             addrLen <= accountExtension.ASSET_LIMIT() && idLen <= accountExtension.ASSET_LIMIT()
@@ -107,7 +107,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_deposit_UnknownAsset(address asset, uint256 id, uint256 amount) public {
+    function testFuzz_Revert_deposit_UnknownAsset(address asset, uint256 id, uint256 amount) public {
         vm.assume(asset != address(mockERC20.stable1));
         vm.assume(asset != address(mockERC20.stable2));
         vm.assume(asset != address(mockERC20.token1));
@@ -130,7 +130,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_deposit_UnknownAssetType(uint96 assetType) public {
+    function testFuzz_Revert_deposit_UnknownAssetType(uint96 assetType) public {
         vm.assume(assetType >= 3);
 
         mainRegistryExtension.setAssetType(address(mockERC20.token1), assetType);
@@ -150,7 +150,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_deposit_ZeroAmounts(uint8 erc721Id) public {
+    function testFuzz_Success_deposit_ZeroAmounts(uint8 erc721Id) public {
         // Given: Zero amounts are deposited.
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.token1);
@@ -194,7 +194,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(accountExtension.erc1155Balances(address(mockERC1155.sft1), 1), 0);
     }
 
-    function testSuccess_deposit_NonZeroAmounts(
+    function testFuzz_Success_deposit_NonZeroAmounts(
         uint128 erc20InitialAmount,
         uint128 erc20DepositAmount,
         uint8 erc721Id1,

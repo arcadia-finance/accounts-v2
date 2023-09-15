@@ -23,7 +23,7 @@ contract GetRate_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_Fuzz_getRateInUsd_NegativeRate(int256 rateToken1ToUsd) public {
+    function testFuzz_Revert_getRateInUsd_NegativeRate(int256 rateToken1ToUsd) public {
         // Given: oracleToken1ToUsdDecimals less than equal to 18, rateToken1ToUsd less than equal to max uint256 value,
         // rateToken1ToUsd is less than max uint256 value divided by WAD
         vm.assume(rateToken1ToUsd < 0);
@@ -36,7 +36,7 @@ contract GetRate_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         oracleHub.getRateInUsd(oracleToken1ToUsdArr);
     }
 
-    function testRevert_Fuzz_getRateInUsd_FirstOracleOverflowsRate(
+    function testFuzz_Revert_getRateInUsd_FirstOracleOverflowsRate(
         uint256 rateToken4ToUsd,
         uint8 oracleToken4ToUsdDecimals
     ) public {
@@ -185,7 +185,9 @@ contract GetRate_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         oracleHub.getRateInUsd(oracleToken3ToUsdArr);
     }
 
-    function testFuzz_Pass_getRateInUsd_SingleOracle(uint256 rateToken4ToUsd, uint8 oracleToken4ToUsdDecimals) public {
+    function testFuzz_Success_getRateInUsd_SingleOracle(uint256 rateToken4ToUsd, uint8 oracleToken4ToUsdDecimals)
+        public
+    {
         // Given: oracleToken4ToUsdDecimals less than equal to 18, rateToken1ToUsd less than equal to max uint256 value,
         // rateToken1ToUsd is less than max uint256 value divided by WAD
         vm.assume(oracleToken4ToUsdDecimals <= 18);
@@ -219,7 +221,7 @@ contract GetRate_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         assertEq(actualRateInUsd, expectedRateInUsd);
     }
 
-    function testFuzz_Pass_getRateInUsd_MultipleOracles(
+    function testFuzz_Success_getRateInUsd_MultipleOracles(
         uint256 rateToken3ToToken4,
         uint256 rateToken4ToUsd,
         uint8 oracleToken3ToToken4Decimals,

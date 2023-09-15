@@ -23,7 +23,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_addAsset_NonOwner(address unprivilegedAddress_) public {
+    function testFuzz_Revert_addAsset_NonOwner(address unprivilegedAddress_) public {
         // Given: unprivilegedAddress_ is not users.creatorAddress
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
         vm.startPrank(unprivilegedAddress_);
@@ -38,7 +38,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         vm.stopPrank();
     }
 
-    function testRevert_addAsset_OverwriteExistingAsset() public {
+    function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         // Given: All necessary contracts deployed on setup
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset twice
@@ -52,7 +52,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         vm.stopPrank();
     }
 
-    function testSuccess_addAsset_EmptyListRiskVariables() public {
+    function testFuzz_Success_addAsset_EmptyListRiskVariables() public {
         // Given: All necessary contracts deployed on setup
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset with empty list credit ratings
@@ -73,7 +73,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         assertTrue(floorERC1155PricingModule.isAllowListed(address(mockERC1155.sft2), 1));
     }
 
-    function testSuccess_addAsset_NonFullListRiskVariables() public {
+    function testFuzz_Success_addAsset_NonFullListRiskVariables() public {
         vm.startPrank(users.creatorAddress);
         // Given: collateralFactors index 0 is DEFAULT_COLLATERAL_FACTOR, liquidationThresholds index 0 is DEFAULT_LIQUIDATION_FACTOR
         PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](1);
@@ -92,7 +92,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         assertTrue(floorERC1155PricingModule.inPricingModule(address(mockERC1155.sft2)));
     }
 
-    function testSuccess_addAsset_FullListRiskVariables() public {
+    function testFuzz_Success_addAsset_FullListRiskVariables() public {
         PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](3);
         riskVars_[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,

@@ -26,7 +26,7 @@ contract GetTrustedTickCurrent_UniswapV3PricingModule_Fuzz_Test is UniswapV3Pric
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_getTrustedTickCurrent_OverflowPriceToken0(
+    function testFuzz_Revert_getTrustedTickCurrent_OverflowPriceToken0(
         uint256 decimals0,
         uint256 decimals1,
         uint256 priceToken0,
@@ -57,7 +57,7 @@ contract GetTrustedTickCurrent_UniswapV3PricingModule_Fuzz_Test is UniswapV3Pric
         uniV3PricingModule.getTrustedTickCurrent(address(token0), address(token1));
     }
 
-    function testRevert_getTrustedTickCurrent_OverflowPriceToken1(
+    function testFuzz_Revert_getTrustedTickCurrent_OverflowPriceToken1(
         uint256 decimals0,
         uint256 decimals1,
         uint256 priceToken0,
@@ -88,7 +88,7 @@ contract GetTrustedTickCurrent_UniswapV3PricingModule_Fuzz_Test is UniswapV3Pric
         uniV3PricingModule.getTrustedTickCurrent(address(token0), address(token1));
     }
 
-    function testRevert_getTrustedTickCurrent_sqrtPriceX96(
+    function testFuzz_Revert_getTrustedTickCurrent_sqrtPriceX96(
         uint256 decimals0,
         uint256 decimals1,
         uint256 priceToken0,
@@ -128,7 +128,7 @@ contract GetTrustedTickCurrent_UniswapV3PricingModule_Fuzz_Test is UniswapV3Pric
         uniV3PricingModule.getTrustedTickCurrent(address(token0), address(token1));
     }
 
-    function testSuccess_getTrustedTickCurrent(
+    function testFuzz_Success_getTrustedTickCurrent(
         uint256 decimals0,
         uint256 decimals1,
         uint256 priceToken0,

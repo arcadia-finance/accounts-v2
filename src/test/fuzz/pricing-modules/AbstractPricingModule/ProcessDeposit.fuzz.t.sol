@@ -23,7 +23,7 @@ contract ProcessDeposit_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_processDeposit_NonMainRegistry(
+    function testFuzz_Revert_processDeposit_NonMainRegistry(
         address unprivilegedAddress_,
         address asset,
         uint128 amount,
@@ -37,7 +37,7 @@ contract ProcessDeposit_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_OverExposure(
+    function testFuzz_Revert_processDeposit_OverExposure(
         address asset,
         uint128 exposure,
         uint128 amount,
@@ -54,7 +54,7 @@ contract ProcessDeposit_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_processDeposit(
+    function testFuzz_Success_processDeposit(
         address asset,
         uint128 exposure,
         uint128 amount,

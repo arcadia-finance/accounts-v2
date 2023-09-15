@@ -25,7 +25,7 @@ contract SetRiskVariablesForAsset_OracleHub_Fuzz_Test is AbstractPricingModule_F
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_setRiskVariablesForAsset_BaseCurrencyNotInLimits(
+    function testFuzz_Revert_setRiskVariablesForAsset_BaseCurrencyNotInLimits(
         address asset,
         PricingModule.RiskVarInput[] memory riskVarInputs,
         uint256 baseCurrencyCounter
@@ -42,9 +42,10 @@ contract SetRiskVariablesForAsset_OracleHub_Fuzz_Test is AbstractPricingModule_F
         vm.stopPrank();
     }
 
-    function testSuccess_setRiskVariablesForAsset(address asset, PricingModule.RiskVarInput[2] memory riskVarInputs)
-        public
-    {
+    function testFuzz_Success_setRiskVariablesForAsset(
+        address asset,
+        PricingModule.RiskVarInput[2] memory riskVarInputs
+    ) public {
         vm.assume(riskVarInputs[0].baseCurrency != riskVarInputs[1].baseCurrency);
 
         stdstore.target(address(mainRegistryExtension)).sig(mainRegistryExtension.baseCurrencyCounter.selector)

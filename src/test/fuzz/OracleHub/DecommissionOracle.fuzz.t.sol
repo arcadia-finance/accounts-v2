@@ -24,7 +24,7 @@ contract DecommissionOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_Fuzz_decommissionOracle_notInHub(address sender, address oracle) public {
+    function testFuzz_Revert_decommissionOracle_notInHub(address sender, address oracle) public {
         vm.assume(oracle != address(mockOracles.token1ToUsd));
         vm.assume(oracle != address(mockOracles.token2ToUsd));
         vm.assume(oracle != address(mockOracles.stable1ToUsd));
@@ -38,7 +38,7 @@ contract DecommissionOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_decommissionOracle_RevertingOracle(address sender) public {
+    function testFuzz_Success_decommissionOracle_RevertingOracle(address sender) public {
         RevertingOracle revertingOracle = new RevertingOracle();
 
         vm.prank(users.creatorAddress);
@@ -70,7 +70,7 @@ contract DecommissionOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         assertEq(rate, 0);
     }
 
-    function testFuzz_Pass_decommissionOracle_answerTooLow(address sender) public {
+    function testFuzz_Success_decommissionOracle_answerTooLow(address sender) public {
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
             OracleHub.OracleInformation({
@@ -114,7 +114,7 @@ contract DecommissionOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         assertEq(rate, 0);
     }
 
-    function testFuzz_Pass_decommissionOracle_updatedAtTooOld(address sender, uint32 timePassed) public {
+    function testFuzz_Success_decommissionOracle_updatedAtTooOld(address sender, uint32 timePassed) public {
         vm.assume(timePassed > 1 weeks);
 
         vm.startPrank(users.creatorAddress);
@@ -162,7 +162,7 @@ contract DecommissionOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         assertEq(rate, 0);
     }
 
-    function testFuzz_Pass_decommissionOracle_ReactivateOracle(address sender, uint32 timePassed) public {
+    function testFuzz_Success_decommissionOracle_ReactivateOracle(address sender, uint32 timePassed) public {
         vm.assume(timePassed > 1 weeks);
 
         vm.startPrank(users.creatorAddress);

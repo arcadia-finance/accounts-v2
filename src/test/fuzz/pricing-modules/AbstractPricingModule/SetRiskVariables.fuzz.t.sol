@@ -23,7 +23,7 @@ contract SetRiskVariables_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_setRiskVariables_CollateralFactorOutOfLimits(
+    function testFuzz_Revert_setRiskVariables_CollateralFactorOutOfLimits(
         address asset,
         uint256 baseCurrency,
         PricingModule.RiskVars memory riskVars_
@@ -38,7 +38,7 @@ contract SetRiskVariables_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test
         assertEq(liquidationFactor_, 0);
     }
 
-    function testRevert_setRiskVariables_LiquidationTreshholdOutOfLimits(
+    function testFuzz_Revert_setRiskVariables_LiquidationThresholdOutOfLimits(
         address asset,
         uint256 baseCurrency,
         PricingModule.RiskVars memory riskVars_
@@ -55,9 +55,11 @@ contract SetRiskVariables_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test
         assertEq(liquidationFactor_, 0);
     }
 
-    function testSuccess_setRiskVariables(address asset, uint8 baseCurrency, PricingModule.RiskVars memory riskVars_)
-        public
-    {
+    function testFuzz_Success_setRiskVariables(
+        address asset,
+        uint8 baseCurrency,
+        PricingModule.RiskVars memory riskVars_
+    ) public {
         vm.assume(riskVars_.collateralFactor <= RiskConstants.MAX_COLLATERAL_FACTOR);
         vm.assume(riskVars_.liquidationFactor <= RiskConstants.MAX_LIQUIDATION_FACTOR);
 

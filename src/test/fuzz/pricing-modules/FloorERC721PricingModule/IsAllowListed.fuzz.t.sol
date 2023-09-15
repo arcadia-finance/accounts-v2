@@ -21,7 +21,7 @@ contract IsAllowListed_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingM
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_isAllowListed_Positive() public {
+    function testFuzz_Success_isAllowListed_Positive() public {
         // Given: All necessary contracts deployed on setup
         vm.prank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset
@@ -35,7 +35,7 @@ contract IsAllowListed_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingM
         assertTrue(floorERC721PricingModule.isAllowListed(address(mockERC721.nft2), 5000));
     }
 
-    function testSuccess_isWhiteListed_NegativeWrongAddress(address randomAsset) public {
+    function testFuzz_Success_isWhiteListed_NegativeWrongAddress(address randomAsset) public {
         // Given: All necessary contracts deployed on setup
         // When: input is randomAsset
 
@@ -43,7 +43,7 @@ contract IsAllowListed_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingM
         assertTrue(!floorERC721PricingModule.isAllowListed(randomAsset, 0));
     }
 
-    function testSuccess_isAllowListed_NegativeIdOutsideRange(uint256 id) public {
+    function testFuzz_Success_isAllowListed_NegativeIdOutsideRange(uint256 id) public {
         // Given: id is lower than 10 or bigger than 1000
         vm.assume(id < 10 || id > 1000);
         vm.prank(users.creatorAddress);

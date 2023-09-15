@@ -23,7 +23,7 @@ contract Constructor_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_deployment() public {
+    function testFuzz_Success_deployment() public {
         assertEq(uniswapV2PricingModule.mainRegistry(), address(mainRegistryExtension));
         assertEq(uniswapV2PricingModule.oracleHub(), address(oracleHub));
         assertEq(uniswapV2PricingModule.assetType(), 0);

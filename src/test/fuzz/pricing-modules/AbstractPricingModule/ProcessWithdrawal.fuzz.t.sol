@@ -23,7 +23,7 @@ contract ProcessWithdrawal_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Tes
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_processWithdrawal_NonMainRegistry(
+    function testFuzz_Revert_processWithdrawal_NonMainRegistry(
         address unprivilegedAddress_,
         address asset,
         uint128 id,
@@ -38,7 +38,7 @@ contract ProcessWithdrawal_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Tes
         vm.stopPrank();
     }
 
-    function testSuccess_processWithdrawal(
+    function testFuzz_Success_processWithdrawal(
         address asset,
         uint128 exposure,
         uint128 amount,
@@ -59,7 +59,7 @@ contract ProcessWithdrawal_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Tes
         assertEq(actualExposure, expectedExposure);
     }
 
-    function testSuccess_processWithdrawal_withAmountGreaterThanExposure(
+    function testFuzz_Success_processWithdrawal_withAmountGreaterThanExposure(
         address asset,
         uint128 exposure,
         uint128 amount,

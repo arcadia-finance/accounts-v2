@@ -21,14 +21,14 @@ contract GetTrustedReserves_UniswapV2PricingModule_Fuzz_Test is UniswapV2Pricing
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_getTrustedReserves_Zeroreserves(uint256 trustedPriceToken0, uint256 trustedPriceToken1)
+    function testFuzz_Revert_getTrustedReserves_ZeroReserves(uint256 trustedPriceToken0, uint256 trustedPriceToken1)
         public
     {
         vm.expectRevert("UV2_GTR: ZERO_PAIR_RESERVES");
         uniswapV2PricingModule.getTrustedReserves(address(pairToken1Token2), trustedPriceToken0, trustedPriceToken1);
     }
 
-    function testSuccess_getTrustedReserves(
+    function testFuzz_Success_getTrustedReserves(
         uint256 priceToken0,
         uint256 priceToken1,
         uint112 reserve0,

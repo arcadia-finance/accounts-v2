@@ -26,17 +26,17 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_isAllowListed_Negative_UnknownAsset(address asset, uint256 assetId) public {
+    function testFuzz_Success_isAllowListed_Negative_UnknownAsset(address asset, uint256 assetId) public {
         vm.assume(asset != address(nonfungiblePositionManager));
 
         assertFalse(uniV3PricingModule.isAllowListed(asset, assetId));
     }
 
-    function testSuccess_isAllowListed_Negative_UnknownId(uint256 assetId) public {
+    function testFuzz_Success_isAllowListed_Negative_UnknownId(uint256 assetId) public {
         assertFalse(uniV3PricingModule.isAllowListed(address(nonfungiblePositionManager), assetId));
     }
 
-    function testSuccess_isAllowListed_Negative_NoExposure(address lp) public {
+    function testFuzz_Success_isAllowListed_Negative_NoExposure(address lp) public {
         vm.assume(lp != address(0));
 
         // Create a LP-position of two underlying assets: token1 and token2.
@@ -76,7 +76,7 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
         assertFalse(uniV3PricingModule.isAllowListed(address(nonfungiblePositionManager), tokenId));
     }
 
-    function testSuccess_isAllowListed_Positive(address lp, uint128 maxExposureA, uint128 maxExposureB) public {
+    function testFuzz_Success_isAllowListed_Positive(address lp, uint128 maxExposureA, uint128 maxExposureB) public {
         vm.assume(lp != address(0));
         vm.assume(maxExposureA > 0);
         vm.assume(maxExposureB > 0);

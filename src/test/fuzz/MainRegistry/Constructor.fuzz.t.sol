@@ -23,7 +23,7 @@ contract Constructor_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_deployment() public {
+    function testFuzz_Success_deployment() public {
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit BaseCurrencyAdded(address(0), 0, "USD");

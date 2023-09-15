@@ -25,7 +25,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_skim_NonOwner(address nonOwner, address asset, uint256 id, uint256 type_) public {
+    function testFuzz_Revert_skim_NonOwner(address nonOwner, address asset, uint256 id, uint256 type_) public {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.startPrank(nonOwner);
@@ -34,7 +34,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_skim_Type0_NonZeroSkim(uint256 depositAmount, uint256 transferAmount) public {
+    function testFuzz_Success_skim_Type0_NonZeroSkim(uint256 depositAmount, uint256 transferAmount) public {
         // Deposit ERC20.
         depositAmount = bound(depositAmount, 1, type(uint256).max - 1);
         transferAmount = bound(transferAmount, 1, type(uint256).max - depositAmount);
@@ -59,7 +59,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(mockERC20.token1.balanceOf(address(users.accountOwner)), transferAmount);
     }
 
-    function testSuccess_skim_Type0_NothingToSkim(uint256 depositAmount) public {
+    function testFuzz_Success_skim_Type0_NothingToSkim(uint256 depositAmount) public {
         // Deposit ERC20.
         depositAmount = bound(depositAmount, 1, type(uint256).max);
 
@@ -76,7 +76,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(mockERC20.token1.balanceOf(address(users.accountOwner)), 0);
     }
 
-    function testSuccess_skim_Type1_NonZeroSkim(uint256 arrLength) public {
+    function testFuzz_Success_skim_Type1_NonZeroSkim(uint256 arrLength) public {
         // Deposit number of nfts.
         arrLength = bound(arrLength, 1, accountExtension.ASSET_LIMIT());
 
@@ -104,7 +104,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(mockERC721.nft1.ownerOf(100), users.accountOwner);
     }
 
-    function testSuccess_skim_Type1_NothingToSkim(uint256 arrLength) public {
+    function testFuzz_Success_skim_Type1_NothingToSkim(uint256 arrLength) public {
         // Deposit number of nfts.
         arrLength = bound(arrLength, 1, accountExtension.ASSET_LIMIT());
 
@@ -125,7 +125,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(erc721Length, arrLength);
     }
 
-    function testSuccess_skim_Type2_NonZeroSkim(uint256 depositAmount, uint256 transferAmount) public {
+    function testFuzz_Success_skim_Type2_NonZeroSkim(uint256 depositAmount, uint256 transferAmount) public {
         // Deposit ERC1155.
         depositAmount = bound(depositAmount, 1, type(uint256).max - 1);
         transferAmount = bound(transferAmount, 1, type(uint256).max - depositAmount);
@@ -164,7 +164,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), transferAmount);
     }
 
-    function testSuccess_skim_Type2_NothingToSkim(uint256 depositAmount) public {
+    function testFuzz_Success_skim_Type2_NothingToSkim(uint256 depositAmount) public {
         // Deposit ERC1155.
         depositAmount = bound(depositAmount, 1, type(uint256).max);
 
@@ -196,7 +196,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), 0);
     }
 
-    function testSuccess_skim_Ether(uint256 transferAmount) public {
+    function testFuzz_Success_skim_Ether(uint256 transferAmount) public {
         uint256 balancePre = users.accountOwner.balance;
 
         // No overflow.

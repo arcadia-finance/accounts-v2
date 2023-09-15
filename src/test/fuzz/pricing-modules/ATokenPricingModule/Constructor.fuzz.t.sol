@@ -23,7 +23,7 @@ contract Constructor_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_T
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_deployment(
+    function testFuzz_Success_deployment(
         address mainRegistry_,
         address oracleHub_,
         uint256 assetType_,

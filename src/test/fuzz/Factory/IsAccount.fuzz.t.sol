@@ -21,7 +21,7 @@ contract IsAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function test_isAccount_positive() public {
+    function testFuzz_Success_isAccount_positive() public {
         address newAccount = factory.createAccount(1, 0, address(0), address(0));
 
         bool expectedReturn = factory.isAccount(address(newAccount));
@@ -30,7 +30,7 @@ contract IsAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         assertEq(expectedReturn, actualReturn);
     }
 
-    function testSuccess_isAccount_negative(address random) public {
+    function testFuzz_Success_isAccount_negative(address random) public {
         bool expectedReturn = factory.isAccount(random);
         bool actualReturn = false;
 

@@ -21,9 +21,11 @@ contract ProcessDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721Pricing
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_processDeposit_NonMainRegistry(address unprivilegedAddress_, uint256 assetId, address account_)
-        public
-    {
+    function testFuzz_Revert_processDeposit_NonMainRegistry(
+        address unprivilegedAddress_,
+        uint256 assetId,
+        address account_
+    ) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
@@ -37,7 +39,7 @@ contract ProcessDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721Pricing
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_OverExposure(uint256 assetId, address account_) public {
+    function testFuzz_Revert_processDeposit_OverExposure(uint256 assetId, address account_) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1
@@ -51,7 +53,7 @@ contract ProcessDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721Pricing
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_WrongID(uint256 assetId, address account_) public {
+    function testFuzz_Revert_processDeposit_WrongID(uint256 assetId, address account_) public {
         vm.assume(assetId > 0); //Not in range
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, 0, oracleNft2ToUsdArr, emptyRiskVarInput, 1);
@@ -65,7 +67,7 @@ contract ProcessDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721Pricing
         assertEq(actualExposure, 0);
     }
 
-    function testRevert_processDeposit_NotOne(uint256 assetId, address account_, uint256 amount) public {
+    function testFuzz_Revert_processDeposit_NotOne(uint256 assetId, address account_, uint256 amount) public {
         vm.assume(amount != 1); //Not in range
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
@@ -81,7 +83,7 @@ contract ProcessDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721Pricing
         assertEq(actualExposure, 0);
     }
 
-    function testSuccess_processDeposit_Positive(uint256 assetId, address account_) public {
+    function testFuzz_Success_processDeposit_Positive(uint256 assetId, address account_) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1

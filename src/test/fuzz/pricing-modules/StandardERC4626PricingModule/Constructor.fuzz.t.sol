@@ -23,7 +23,7 @@ contract Constructor_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Pr
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_deployment(
+    function testFuzz_Success_deployment(
         address mainRegistry_,
         address oracleHub_,
         uint256 assetType_,

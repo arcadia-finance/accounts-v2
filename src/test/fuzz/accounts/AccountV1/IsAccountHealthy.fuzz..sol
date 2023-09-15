@@ -31,7 +31,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testSuccess_isAccountHealthy_debtIncrease_InsufficientMargin(
+    function testFuzz_Success_isAccountHealthy_debtIncrease_InsufficientMargin(
         uint256 debtInitial,
         uint256 debtIncrease,
         uint256 collateralValue,
@@ -67,7 +67,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(version, 1);
     }
 
-    function testSuccess_isAccountHealthy_debtIncrease_SufficientMargin(
+    function testFuzz_Success_isAccountHealthy_debtIncrease_SufficientMargin(
         uint256 debtInitial,
         uint256 debtIncrease,
         uint256 collateralValue,
@@ -100,7 +100,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(version, 1);
     }
 
-    function testSuccess_isAccountHealthy_totalOpenDebt_InsufficientMargin(
+    function testFuzz_Success_isAccountHealthy_totalOpenDebt_InsufficientMargin(
         uint256 debt,
         uint256 collateralValue,
         uint256 fixedLiquidationCost
@@ -131,7 +131,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(version, 1);
     }
 
-    function testSuccess_isAccountHealthy_totalOpenDebt_SufficientMargin(
+    function testFuzz_Success_isAccountHealthy_totalOpenDebt_SufficientMargin(
         uint256 debt,
         uint256 collateralValue,
         uint256 fixedLiquidationCost

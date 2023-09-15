@@ -23,7 +23,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_executeAction_storeNumber(uint256 number) public {
+    function testFuzz_Success_executeAction_storeNumber(uint256 number) public {
         ActionData memory assetData = ActionData({
             assets: new address[](1),
             assetIds: new uint256[](0),
@@ -49,7 +49,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         assertEq(numberStored, number);
     }
 
-    function testRevert_executeAction_lengthMismatch() public {
+    function testFuzz_Revert_executeAction_lengthMismatch() public {
         ActionData memory assetData = ActionData({
             assets: new address[](1),
             assetIds: new uint256[](0),

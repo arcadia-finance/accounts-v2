@@ -28,7 +28,7 @@ contract GetCollateralValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_getCollateralValue(uint256 spotValue, uint8 collateralFactor) public {
+    function testFuzz_Success_getCollateralValue(uint256 spotValue, uint8 collateralFactor) public {
         // No overflow of riskModule:
         spotValue = bound(spotValue, 0, type(uint256).max / RiskConstants.RISK_VARIABLES_UNIT);
 

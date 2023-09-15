@@ -21,7 +21,7 @@ contract SyncFee_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuzz
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_syncFee_FeeOffToFeeOff(address sender) public {
+    function testFuzz_Success_syncFee_FeeOffToFeeOff(address sender) public {
         //Given: feeOn is false
         assertTrue(!uniswapV2PricingModule.feeOn());
         //And: feeTo on the UniswapV2 factory is the zero-address (fees are off)
@@ -35,7 +35,7 @@ contract SyncFee_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuzz
         assertTrue(!uniswapV2PricingModule.feeOn());
     }
 
-    function testSuccess_syncFee_FeeOffToFeeOn(address sender, address feeTo) public {
+    function testFuzz_Success_syncFee_FeeOffToFeeOn(address sender, address feeTo) public {
         //Given: feeOn is false
         assertTrue(!uniswapV2PricingModule.feeOn());
         //And: feeTo on the UniswapV2 factory is not the zero-address (fees are on)
@@ -51,7 +51,7 @@ contract SyncFee_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuzz
         assertTrue(uniswapV2PricingModule.feeOn());
     }
 
-    function testSuccess_syncFee_FeeOnToFeeOn(address sender, address feeTo) public {
+    function testFuzz_Success_syncFee_FeeOnToFeeOn(address sender, address feeTo) public {
         //Given: feeTo on the UniswapV2 factory is not the zero-address (fees are on)
         vm.assume(feeTo != address(0));
         vm.prank(haydenAdams);
@@ -68,7 +68,7 @@ contract SyncFee_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuzz
         assertTrue(uniswapV2PricingModule.feeOn());
     }
 
-    function testSuccess_syncFee_FeeOnToFeeOff(address sender, address feeTo) public {
+    function testFuzz_Success_syncFee_FeeOnToFeeOff(address sender, address feeTo) public {
         //Given: feeOn is true
         vm.assume(feeTo != address(0));
         vm.prank(haydenAdams);

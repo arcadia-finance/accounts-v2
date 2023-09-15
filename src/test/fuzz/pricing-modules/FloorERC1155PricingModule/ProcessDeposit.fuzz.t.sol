@@ -21,9 +21,11 @@ contract ProcessDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Prici
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_processDeposit_NonMainRegistry(address unprivilegedAddress_, uint128 amount, address account_)
-        public
-    {
+    function testFuzz_Revert_processDeposit_NonMainRegistry(
+        address unprivilegedAddress_,
+        uint128 amount,
+        address account_
+    ) public {
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
             address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
@@ -37,7 +39,9 @@ contract ProcessDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Prici
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_OverExposure(uint128 amount, uint128 maxExposure, address account_) public {
+    function testFuzz_Revert_processDeposit_OverExposure(uint128 amount, uint128 maxExposure, address account_)
+        public
+    {
         vm.assume(maxExposure > 0); //Asset is whitelisted
         vm.assume(amount > maxExposure);
         vm.prank(users.creatorAddress);
@@ -51,7 +55,7 @@ contract ProcessDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Prici
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_WrongID(uint256 assetId, uint128 amount, address account_) public {
+    function testFuzz_Revert_processDeposit_WrongID(uint256 assetId, uint128 amount, address account_) public {
         vm.assume(assetId > 0); //Wrong Id
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
@@ -67,7 +71,7 @@ contract ProcessDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Prici
         assertEq(actualExposure, 0);
     }
 
-    function testSuccess_processDeposit_Positive(uint128 amount, address account_) public {
+    function testFuzz_Success_processDeposit_Positive(uint128 amount, address account_) public {
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
             address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max

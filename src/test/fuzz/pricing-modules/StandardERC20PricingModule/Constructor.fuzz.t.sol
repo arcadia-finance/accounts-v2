@@ -23,7 +23,7 @@ contract Constructor_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricin
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_deployment(address mainRegistry_, address oracleHub_, uint256 assetType_) public {
+    function testFuzz_Success_deployment(address mainRegistry_, address oracleHub_, uint256 assetType_) public {
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskManagerUpdated(users.creatorAddress);

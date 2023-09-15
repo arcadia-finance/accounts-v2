@@ -26,7 +26,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_getValue_Overflow(
+    function testFuzz_Success_Revert_getValue_Overflow(
         uint256 rateToken1ToUsd_,
         uint256 shares,
         uint256 totalSupply,
@@ -72,9 +72,12 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         erc4626PricingModule.getValue(getValueInput);
     }
 
-    function testSuccess_getValue(uint256 rateToken1ToUsd_, uint256 shares, uint256 totalSupply, uint256 totalAssets)
-        public
-    {
+    function testFuzz_Success_getValue(
+        uint256 rateToken1ToUsd_,
+        uint256 shares,
+        uint256 totalSupply,
+        uint256 totalAssets
+    ) public {
         vm.assume(shares <= totalSupply);
         vm.assume(totalSupply > 0);
 

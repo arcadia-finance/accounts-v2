@@ -29,7 +29,7 @@ contract GetValue_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_getValue(uint256 rateNft2ToUsd) public {
+    function testFuzz_Success_getValue(uint256 rateNft2ToUsd) public {
         // No overflow OracleHub.
         vm.assume(rateNft2ToUsd <= type(uint256).max / Constants.WAD);
 

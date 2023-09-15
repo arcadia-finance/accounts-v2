@@ -25,7 +25,7 @@ contract GetLiquidationValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_Fuzz_getLiquidationValue_UnknownBaseCurrency(address basecurrency) public {
+    function testFuzz_Revert_getLiquidationValue_UnknownBaseCurrency(address basecurrency) public {
         vm.assume(basecurrency != address(0));
         vm.assume(basecurrency != address(mockERC20.stable1));
         vm.assume(basecurrency != address(mockERC20.token1));
@@ -46,7 +46,7 @@ contract GetLiquidationValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         mainRegistryExtension.getLiquidationValue(assetAddresses, assetIds, assetAmounts, basecurrency);
     }
 
-    function test_Fuzz_getLiquidationValue(int64 rateToken1ToUsd, uint64 amountToken1, uint16 liquidationFactor_)
+    function testFuzz_Success_getLiquidationValue(int64 rateToken1ToUsd, uint64 amountToken1, uint16 liquidationFactor_)
         public
     {
         vm.assume(liquidationFactor_ <= RiskConstants.MAX_LIQUIDATION_FACTOR);

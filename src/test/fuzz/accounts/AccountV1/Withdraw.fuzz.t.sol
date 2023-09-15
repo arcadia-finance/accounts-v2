@@ -35,7 +35,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_withdraw_NonOwner(
+    function testFuzz_Revert_withdraw_NonOwner(
         address nonOwner,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
@@ -48,7 +48,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
     }
 
-    function testRevert_withdraw_LengthOfListDoesNotMatch(uint8 addrLen, uint8 idLen, uint8 amountLen) public {
+    function testFuzz_Revert_withdraw_LengthOfListDoesNotMatch(uint8 addrLen, uint8 idLen, uint8 amountLen) public {
         vm.assume((addrLen != idLen && addrLen != amountLen));
 
         address[] memory assetAddresses = new address[](addrLen);
@@ -72,7 +72,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_withdraw_UnknownAssetType(uint96 assetType) public {
+    function testFuzz_Revert_withdraw_UnknownAssetType(uint96 assetType) public {
         vm.assume(assetType >= 3);
 
         mainRegistryExtension.setAssetType(address(mockERC20.token1), assetType);
@@ -92,7 +92,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_withdraw_MoreThanMaxExposure(uint256 amountWithdraw, uint128 maxExposure) public {
+    function testFuzz_Revert_withdraw_MoreThanMaxExposure(uint256 amountWithdraw, uint128 maxExposure) public {
         vm.assume(amountWithdraw > maxExposure);
         vm.prank(users.creatorAddress);
         erc20PricingModule.setExposureOfAsset(address(mockERC20.token1), maxExposure);
@@ -112,7 +112,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_withdraw_UnknownAsset_OneERC721Deposited() public {
+    function testFuzz_Revert_withdraw_UnknownAsset_OneERC721Deposited() public {
         // Given: two ERC721.
         mockERC721.nft1.mint(users.accountOwner, 100);
         mockERC721.nft1.mint(users.accountOwner, 101);
@@ -145,7 +145,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_withdraw_UnknownAsset_NotOneERC721Deposited(uint8 arrLength) public {
+    function testFuzz_Revert_withdraw_UnknownAsset_NotOneERC721Deposited(uint8 arrLength) public {
         // Given: two ERC721.
         mockERC721.nft1.mint(users.accountOwner, 100);
         mockERC721.nft1.mint(users.accountOwner, 101);
@@ -201,7 +201,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_withdraw_NoDebt_FullWithdrawal(uint128 erc20Amount, uint8 erc721Id, uint128 erc1155Amount)
+    function testFuzz_Success_withdraw_NoDebt_FullWithdrawal(uint128 erc20Amount, uint8 erc721Id, uint128 erc1155Amount)
         public
     {
         // Given: An initial state of the account with assets.
@@ -252,7 +252,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), erc1155Amount);
     }
 
-    function testSuccess_withdraw_NoDebt_PartialWithdrawal(
+    function testFuzz_Success_withdraw_NoDebt_PartialWithdrawal(
         uint128 erc20InitialAmount,
         uint128 erc20WithdrawAmount,
         uint8 erc721Id,
@@ -332,7 +332,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), erc1155WithdrawAmount);
     }
 
-    function testRevert_withdraw_WithDebt_UnsufficientCollateral(
+    function testFuzz_Revert_withdraw_WithDebt_UnsufficientCollateral(
         uint256 debt,
         uint256 collateralValueInitial,
         uint256 collateralValueDecrease,
@@ -376,7 +376,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
     }
 
-    function testSuccess_withdraw_WithDebt(
+    function testFuzz_Success_withdraw_WithDebt(
         uint256 debt,
         uint256 collateralValueInitial,
         uint256 collateralValueDecrease,

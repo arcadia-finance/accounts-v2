@@ -21,7 +21,7 @@ contract ComputeTokenAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV2Pricin
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_computeTokenAmounts_FeeOff(
+    function testFuzz_Success_computeTokenAmounts_FeeOff(
         uint112 reserve0,
         uint112 reserve1,
         uint256 totalSupply,
@@ -44,7 +44,7 @@ contract ComputeTokenAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV2Pricin
         assertEq(token1AmountActual, token1AmountExpected);
     }
 
-    function testSuccess_computeTokenAmounts_FeeOn(
+    function testFuzz_Success_computeTokenAmounts_FeeOn(
         uint112 reserve0Last,
         uint112 reserve1Last,
         uint112 reserve0,

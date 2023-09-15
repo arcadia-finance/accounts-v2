@@ -40,7 +40,7 @@ contract ProcessWithdrawal_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingM
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_processWithdrawal_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
+    function testFuzz_Revert_processWithdrawal_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
         public
     {
         vm.assume(unprivilegedAddress != address(mainRegistryExtension));
@@ -51,7 +51,7 @@ contract ProcessWithdrawal_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingM
         vm.stopPrank();
     }
 
-    function testSuccess_processWithdrawal(
+    function testFuzz_Success_processWithdrawal(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,

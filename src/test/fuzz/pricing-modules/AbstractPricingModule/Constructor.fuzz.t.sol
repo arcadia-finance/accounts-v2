@@ -23,9 +23,12 @@ contract Constructor_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_deployment(address mainRegistry_, address oracleHub_, address riskManager_, uint256 assetType_)
-        public
-    {
+    function testFuzz_Success_deployment(
+        address mainRegistry_,
+        address oracleHub_,
+        address riskManager_,
+        uint256 assetType_
+    ) public {
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskManagerUpdated(riskManager_);

@@ -21,7 +21,7 @@ contract ComputeProfitMaximizingTrade_UniswapV2PricingModule_Fuzz_Test is Uniswa
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_computeProfitMaximizingTrade(
+    function testFuzz_Success_computeProfitMaximizingTrade(
         uint256 priceToken0,
         uint256 priceToken1,
         uint112 reserve0,
@@ -71,7 +71,7 @@ contract ComputeProfitMaximizingTrade_UniswapV2PricingModule_Fuzz_Test is Uniswa
         );
     }
 
-    function testRevert_computeProfitMaximizingTrade_token0ToToken1Overflows(
+    function testFuzz_Revert_computeProfitMaximizingTrade_token0ToToken1Overflows(
         uint256 priceToken0,
         uint256 priceToken1,
         uint112 reserve0,
@@ -89,7 +89,7 @@ contract ComputeProfitMaximizingTrade_UniswapV2PricingModule_Fuzz_Test is Uniswa
         uniswapV2PricingModule.computeProfitMaximizingTrade(priceToken0, priceToken1, reserve0, reserve1);
     }
 
-    function testRevert_computeProfitMaximizingTrade_leftSideOverflows(
+    function testFuzz_Revert_computeProfitMaximizingTrade_leftSideOverflows(
         uint256 priceToken0,
         uint256 priceToken1,
         uint112 reserve0,

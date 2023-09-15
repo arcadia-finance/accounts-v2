@@ -26,7 +26,7 @@ contract GetValue_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_getValue_Overflow(uint256 rateToken1ToUsd_, uint256 amountToken1) public {
+    function testFuzz_Revert_getValue_Overflow(uint256 rateToken1ToUsd_, uint256 amountToken1) public {
         // No Overflow OracleHub
         vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD);
         vm.assume(rateToken1ToUsd_ > 0);
@@ -54,7 +54,7 @@ contract GetValue_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
         aTokenPricingModule.getValue(getValueInput);
     }
 
-    function testSuccess_getValue(uint256 rateToken1ToUsd_, uint256 amountToken1) public {
+    function testFuzz_Success_getValue(uint256 rateToken1ToUsd_, uint256 amountToken1) public {
         // No Overflow OracleHub
         vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD);
 

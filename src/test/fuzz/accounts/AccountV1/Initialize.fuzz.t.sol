@@ -31,19 +31,19 @@ contract Initialize_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_initialize_InvalidMainreg() public {
+    function testFuzz_Revert_initialize_InvalidMainreg() public {
         vm.expectRevert("A_I: Registry cannot be 0!");
         accountNotInitialised.initialize(users.accountOwner, address(0), address(0), address(0));
     }
 
-    function testRevert_initialize_AlreadyInitialized() public {
+    function testFuzz_Revert_initialize_AlreadyInitialized() public {
         accountNotInitialised.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
 
         vm.expectRevert("A_I: Already initialized!");
         accountNotInitialised.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
     }
 
-    function test_initialize(address owner_) public {
+    function testFuzz_Success_initialize(address owner_) public {
         vm.expectEmit(true, true, true, true);
         emit BaseCurrencySet(address(0));
         accountNotInitialised.initialize(owner_, address(mainRegistryExtension), address(0), address(0));

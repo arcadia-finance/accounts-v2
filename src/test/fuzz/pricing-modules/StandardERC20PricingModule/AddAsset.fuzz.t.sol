@@ -26,7 +26,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_addAsset_NonOwner(address unprivilegedAddress_) public {
+    function testFuzz_Revert_addAsset_NonOwner(address unprivilegedAddress_) public {
         // Given: unprivilegedAddress_ is not users.creatorAddress
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
         vm.startPrank(unprivilegedAddress_);
@@ -40,7 +40,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         vm.stopPrank();
     }
 
-    function testRevert_addAsset_OverwriteExistingAsset() public {
+    function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         // Given: All necessary contracts deployed on setup
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset twice
@@ -54,14 +54,14 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         vm.stopPrank();
     }
 
-    function testRevert_addAsset_BadOracleSequence() public {
+    function testFuzz_Revert_addAsset_BadOracleSequence() public {
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("OH_COS: Min 1 Oracle");
         erc20PricingModule.addAsset(address(mockERC20.token4), new address[](0), emptyRiskVarInput, type(uint128).max);
         vm.stopPrank();
     }
 
-    function testRevert_addAsset_MoreThan18Decimals() public {
+    function testFuzz_Revert_addAsset_MoreThan18Decimals() public {
         vm.prank(users.tokenCreatorAddress);
         ERC20Mock asset = new ERC20Mock("ASSET", "ASSET", 19);
         ArcadiaOracle oracle = initMockedOracle(0, "ASSET / USD");
@@ -87,7 +87,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         vm.stopPrank();
     }
 
-    function testSuccess_addAsset_EmptyListRiskVariables() public {
+    function testFuzz_Success_addAsset_EmptyListRiskVariables() public {
         // Given: All necessary contracts deployed on setup
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset with empty list credit ratings
@@ -109,7 +109,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         assertTrue(erc20PricingModule.isAllowListed(address(mockERC20.token4), 0));
     }
 
-    function testSuccess_addAsset_NonFullListRiskVariables() public {
+    function testFuzz_Success_addAsset_NonFullListRiskVariables() public {
         // Given: collateralFactors index 0 is DEFAULT_COLLATERAL_FACTOR, liquidationThresholds index 0 is DEFAULT_LIQUIDATION_FACTOR
         PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](1);
         riskVars_[0] = PricingModule.RiskVarInput({
@@ -132,7 +132,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         assertTrue(erc20PricingModule.inPricingModule(address(mockERC20.token4)));
     }
 
-    function testSuccess_addAsset_FullListRiskVariables() public {
+    function testFuzz_Success_addAsset_FullListRiskVariables() public {
         // Given:
         PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](3);
         riskVars_[0] = PricingModule.RiskVarInput({

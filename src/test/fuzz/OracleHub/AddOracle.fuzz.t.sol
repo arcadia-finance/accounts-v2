@@ -24,7 +24,7 @@ contract AddOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testRevert_Fuzz_addOracle_NonOwner(address unprivilegedAddress) public {
+    function testFuzz_Revert_addOracle_NonOwner(address unprivilegedAddress) public {
         // Given: unprivilegedAddress is not creatorAddress.
         vm.assume(unprivilegedAddress != users.creatorAddress);
 
@@ -45,7 +45,7 @@ contract AddOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_addOracle_OverwriteOracle() public {
+    function testFuzz_Revert_addOracle_OverwriteOracle() public {
         // Given: creatorAddress addOracle with OracleInformation.
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
@@ -75,7 +75,7 @@ contract AddOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_Fuzz_addOracle_BigOracleUnit(uint64 oracleEthToUsdUnit) public {
+    function testFuzz_Revert_addOracle_BigOracleUnit(uint64 oracleEthToUsdUnit) public {
         // Given: oracleEthToUsdUnit is bigger than 1 ether.
         vm.assume(oracleEthToUsdUnit > 10 ** 18);
 
@@ -96,7 +96,7 @@ contract AddOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Pass_addOracle(uint64 oracleToken4ToUsdUnit) public {
+    function testFuzz_Success_addOracle(uint64 oracleToken4ToUsdUnit) public {
         // Given: oracleToken4ToUsdUnit is less than equal to 1 ether.
         vm.assume(oracleToken4ToUsdUnit <= 10 ** 18);
 

@@ -21,7 +21,7 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_setBaseCurrency() public {
+    function testFuzz_Success_setBaseCurrency() public {
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
         emit BaseCurrencySet(address(mockERC20.token1));
@@ -31,7 +31,7 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(accountExtension.baseCurrency(), address(mockERC20.token1));
     }
 
-    function testRevert_setBaseCurrency_NonAuthorized(address unprivilegedAddress_) public {
+    function testFuzz_Revert_setBaseCurrency_NonAuthorized(address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != users.accountOwner);
 
         vm.startPrank(unprivilegedAddress_);
@@ -40,7 +40,7 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_setBaseCurrency_TrustedCreditorSet() public {
+    function testFuzz_Revert_setBaseCurrency_TrustedCreditorSet() public {
         openMarginAccount();
 
         vm.startPrank(users.accountOwner);
@@ -51,7 +51,7 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(accountExtension.baseCurrency(), address(mockERC20.stable1));
     }
 
-    function testRevert_setBaseCurrency_BaseCurrencyNotFound(address baseCurrency_) public {
+    function testFuzz_Revert_setBaseCurrency_BaseCurrencyNotFound(address baseCurrency_) public {
         vm.assume(baseCurrency_ != address(0));
         vm.assume(baseCurrency_ != address(mockERC20.token1));
         vm.assume(baseCurrency_ != address(mockERC20.stable1));

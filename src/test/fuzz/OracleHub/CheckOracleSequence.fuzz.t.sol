@@ -80,7 +80,7 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         oracleHub.checkOracleSequence(oracleToken4ToUsdArr, address(mockERC20.token4));
     }
 
-    function testRevert_Fuzz_checkOracleSequence_NonMatchingFirstBaseAssets(address asset) public {
+    function testFuzz_Revert_checkOracleSequence_NonMatchingFirstBaseAssets(address asset) public {
         vm.assume(asset != address(mockERC20.token4));
 
         // Given: creatorAddress addOracle with OracleInformation.
@@ -105,7 +105,7 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         oracleHub.checkOracleSequence(oracleToken4ToUsdArr, asset);
     }
 
-    function testRevert_checkOracleSequence_NonMatchingBaseAndQuoteAssets() public {
+    function testFuzz_Revert_checkOracleSequence_NonMatchingBaseAndQuoteAssets() public {
         vm.startPrank(users.creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation for TOKEN3-TOKEN4
         oracleHub.addOracle(
@@ -128,7 +128,7 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         oracleHub.checkOracleSequence(oracleToken3ToUsdArr, address(mockERC20.token3));
     }
 
-    function testRevert_checkOracleSequence_LastBaseAssetNotUsd() public {
+    function testFuzz_Revert_checkOracleSequence_LastBaseAssetNotUsd() public {
         vm.startPrank(users.creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation for TOKEN3-TOKEN4
         oracleHub.addOracle(
@@ -150,7 +150,7 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         oracleHub.checkOracleSequence(oracleToken3ToUsdArr, address(mockERC20.token3));
     }
 
-    function testFuzz_Pass_checkOracleSequence_SingleOracleToUsd() public {
+    function testFuzz_Success_checkOracleSequence_SingleOracleToUsd() public {
         vm.startPrank(users.creatorAddress);
         // Given: creatorAddress addOracle with OracleInformation
         oracleHub.addOracle(
@@ -171,7 +171,7 @@ contract CheckOracleSequence_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         oracleHub.checkOracleSequence(oracleToken4ToUsdArr, address(mockERC20.token4));
     }
 
-    function testFuzz_Pass_checkOracleSequence_MultipleOraclesToUsd() public {
+    function testFuzz_Success_checkOracleSequence_MultipleOraclesToUsd() public {
         vm.startPrank(users.creatorAddress);
         // Given: creatorAddress addOracle for TOKEN3-TOKEN4 and TOKEN4-USD
         oracleHub.addOracle(

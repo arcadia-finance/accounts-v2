@@ -23,7 +23,7 @@ contract SetExposureOfAsset_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Te
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_setExposureOfAsset_NonRiskManager(
+    function testFuzz_Revert_setExposureOfAsset_NonRiskManager(
         address unprivilegedAddress_,
         address asset,
         uint128 maxExposure
@@ -36,7 +36,7 @@ contract SetExposureOfAsset_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Te
         vm.stopPrank();
     }
 
-    function testSuccess_setExposureOfAsset(address asset, uint128 maxExposure) public {
+    function testFuzz_Success_setExposureOfAsset(address asset, uint128 maxExposure) public {
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit MaxExposureSet(asset, maxExposure);

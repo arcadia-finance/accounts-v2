@@ -25,7 +25,7 @@ contract GetRiskVariables_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_getRiskVariables_RiskVariablesAreNotSet(address asset, uint256 baseCurrency) public {
+    function testFuzz_Success_getRiskVariables_RiskVariablesAreNotSet(address asset, uint256 baseCurrency) public {
         (uint16 actualCollateralFactor, uint16 actualLiquidationThreshold) =
             pricingModule.getRiskVariables(asset, baseCurrency);
 
@@ -33,7 +33,7 @@ contract GetRiskVariables_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test
         assertEq(actualLiquidationThreshold, 0);
     }
 
-    function testSuccess_getRiskVariables_RiskVariablesAreSet(
+    function testFuzz_Success_getRiskVariables_RiskVariablesAreSet(
         address asset,
         uint256 baseCurrency,
         uint16 collateralFactor_,

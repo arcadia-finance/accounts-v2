@@ -28,7 +28,7 @@ contract GetLiquidationValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_getLiquidationValue(uint256 spotValue, uint8 liquidationFactor) public {
+    function testFuzz_Success_getLiquidationValue(uint256 spotValue, uint8 liquidationFactor) public {
         // No overflow of riskModule:
         spotValue = bound(spotValue, 0, type(uint256).max / RiskConstants.RISK_VARIABLES_UNIT);
 

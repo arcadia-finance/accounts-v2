@@ -30,7 +30,7 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_getFreeMargin_TrustedCreditorNotSet(
+    function testFuzz_Success_getFreeMargin_TrustedCreditorNotSet(
         uint256 openDebt,
         uint256 fixedLiquidationCost,
         uint256 collateralValue
@@ -53,7 +53,7 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(collateralValue, accountExtension.getFreeMargin());
     }
 
-    function testSuccess_getFreeMargin_TrustedCreditorIsSet_NonZeroFreeMargin(
+    function testFuzz_Success_getFreeMargin_TrustedCreditorIsSet_NonZeroFreeMargin(
         uint256 openDebt,
         uint256 fixedLiquidationCost,
         uint256 collateralValue
@@ -81,7 +81,7 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(collateralValue - openDebt - fixedLiquidationCost, accountExtension.getFreeMargin());
     }
 
-    function testSuccess_getFreeMargin_TrustedCreditorIsSet_ZeroFreeMargin(
+    function testFuzz_Success_getFreeMargin_TrustedCreditorIsSet_ZeroFreeMargin(
         uint256 openDebt,
         uint256 fixedLiquidationCost,
         uint256 collateralValue

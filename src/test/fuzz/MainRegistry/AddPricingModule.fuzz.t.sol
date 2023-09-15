@@ -21,7 +21,7 @@ contract AddPricingModule_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_addPricingModule_NonOwner(address unprivilegedAddress_) public {
+    function testFuzz_Revert_addPricingModule_NonOwner(address unprivilegedAddress_) public {
         // Given: unprivilegedAddress_ is not users.creatorAddress
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
         vm.startPrank(unprivilegedAddress_);
@@ -33,7 +33,7 @@ contract AddPricingModule_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_addPricingModule_AddExistingPricingModule() public {
+    function testFuzz_Revert_addPricingModule_AddExistingPricingModule() public {
         // Given: All necessary contracts deployed on setup
 
         // When: users.creatorAddress calls addPricingModule for address(erc20PricingModule)
@@ -43,7 +43,7 @@ contract AddPricingModule_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         mainRegistryExtension.addPricingModule(address(erc20PricingModule));
     }
 
-    function testSuccess_addPricingModule(address pricingModule) public {
+    function testFuzz_Success_addPricingModule(address pricingModule) public {
         // Given: pricingModule is different from previously deployed pricing modules.
         vm.assume(pricingModule != address(erc20PricingModule));
         vm.assume(pricingModule != address(floorERC721PricingModule));

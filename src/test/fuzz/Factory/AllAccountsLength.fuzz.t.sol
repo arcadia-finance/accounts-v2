@@ -21,7 +21,7 @@ contract AllAccountsLength_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_allAccountsLength_AccountIdStartFromZero() public {
+    function testFuzz_Success_allAccountsLength_AccountIdStartFromZero() public {
         Factory factory_ = new Factory();
 
         assertEq(factory_.allAccountsLength(), 0);

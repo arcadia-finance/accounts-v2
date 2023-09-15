@@ -23,7 +23,7 @@ contract IsActive_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Pass_isActive_Active(address oracle) public {
+    function testFuzz_Success_isActive_Active(address oracle) public {
         vm.assume(oracle != address(mockOracles.token1ToUsd));
         vm.assume(oracle != address(mockOracles.token2ToUsd));
         vm.assume(oracle != address(mockOracles.stable1ToUsd));
@@ -33,7 +33,7 @@ contract IsActive_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         assertFalse(oracleHub.isActive(address(oracle)));
     }
 
-    function testFuzz_Pass_isActive_NotActive() public {
+    function testFuzz_Success_isActive_NotActive() public {
         vm.prank(users.creatorAddress);
         oracleHub.addOracle(
             OracleHub.OracleInformation({

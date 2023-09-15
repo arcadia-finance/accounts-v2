@@ -25,7 +25,7 @@ contract SetBatchRiskVariables_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_setBatchRiskVariables_NonRiskManager(
+    function testFuzz_Revert_setBatchRiskVariables_NonRiskManager(
         PricingModule.RiskVarInput[] memory riskVarInputs,
         address unprivilegedAddress_
     ) public {
@@ -37,7 +37,7 @@ contract SetBatchRiskVariables_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz
         vm.stopPrank();
     }
 
-    function testRevert_setBatchRiskVariables_BaseCurrencyNotInLimits(
+    function testFuzz_Revert_setBatchRiskVariables_BaseCurrencyNotInLimits(
         PricingModule.RiskVarInput[] memory riskVarInputs,
         uint256 baseCurrencyCounter
     ) public {
@@ -53,7 +53,7 @@ contract SetBatchRiskVariables_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz
         vm.stopPrank();
     }
 
-    function testSuccess_setBatchRiskVariables(PricingModule.RiskVarInput[2] memory riskVarInputs) public {
+    function testFuzz_Success_setBatchRiskVariables(PricingModule.RiskVarInput[2] memory riskVarInputs) public {
         vm.assume(riskVarInputs[0].baseCurrency != riskVarInputs[1].baseCurrency);
         stdstore.target(address(mainRegistryExtension)).sig(mainRegistryExtension.baseCurrencyCounter.selector)
             .checked_write(type(uint256).max);

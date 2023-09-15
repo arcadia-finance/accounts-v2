@@ -24,7 +24,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_getValue_Overflow(
+    function testFuzz_Revert_getValue_Overflow(
         uint112 amountToken2,
         uint112 amountToken1,
         uint8 _token1Decimals,
@@ -87,7 +87,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
         uniswapV2PricingModule.getValue(getValueInput);
     }
 
-    function testSuccess_getValue(
+    function testFuzz_Success_getValue(
         uint112 amountToken2,
         uint8 _token1Decimals,
         uint8 _token2Decimals,

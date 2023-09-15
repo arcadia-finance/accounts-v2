@@ -23,14 +23,14 @@ contract CheckAmountOut_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_checkAmountOut(uint256 amount) public {
+    function testFuzz_Revert_checkAmountOut(uint256 amount) public {
         vm.assume(amount > 0);
 
         vm.expectRevert("CS: amountOut too low");
         action.checkAmountOut(address(mockERC20.token1), amount);
     }
 
-    function testSuccess_checkAmountOut(uint256 amount, uint256 balance) public {
+    function testFuzz_Success_checkAmountOut(uint256 amount, uint256 balance) public {
         vm.assume(balance >= amount);
 
         mockERC20.token1.mint(address(action), balance);

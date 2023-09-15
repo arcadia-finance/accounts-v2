@@ -21,7 +21,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_blockAccountVersion_NonOwner(uint16 accountVersion, address unprivilegedAddress_) public {
+    function testFuzz_Revert_blockAccountVersion_NonOwner(uint16 accountVersion, address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
 
         uint256 currentVersion = factory.latestAccountVersion();
@@ -34,7 +34,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_blockAccountVersion_BlockNonExistingAccountVersion(uint16 accountVersion) public {
+    function testFuzz_Revert_blockAccountVersion_BlockNonExistingAccountVersion(uint16 accountVersion) public {
         uint256 currentVersion = factory.latestAccountVersion();
         vm.assume(accountVersion > currentVersion || accountVersion == 0);
 
@@ -44,7 +44,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_blockAccountVersion(uint16 accountVersion) public {
+    function testFuzz_Success_blockAccountVersion(uint16 accountVersion) public {
         uint256 currentVersion = factory.latestAccountVersion();
         vm.assume(accountVersion <= currentVersion);
         vm.assume(accountVersion != 0);

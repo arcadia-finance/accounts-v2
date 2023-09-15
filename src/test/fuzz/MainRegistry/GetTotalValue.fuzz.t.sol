@@ -25,7 +25,7 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_Fuzz_getTotalValue_UnknownBaseCurrency(address basecurrency) public {
+    function testFuzz_Revert_getTotalValue_UnknownBaseCurrency(address basecurrency) public {
         vm.assume(basecurrency != address(0));
         vm.assume(basecurrency != address(mockERC20.stable1));
         vm.assume(basecurrency != address(mockERC20.token1));
@@ -46,7 +46,7 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, basecurrency);
     }
 
-    function testRevert_Fuzz_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdOverflow(
+    function testFuzz_Revert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdOverflow(
         uint256 rateToken1ToUsd,
         uint256 amountToken2,
         uint8 token2Decimals
@@ -104,7 +104,7 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, address(mockERC20.token1));
     }
 
-    function testRevert_Fuzz_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdWithRateZero(uint256 amountToken2)
+    function testFuzz_Revert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdWithRateZero(uint256 amountToken2)
         public
     {
         vm.assume(amountToken2 > 0);
@@ -128,7 +128,7 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, address(mockERC20.token1));
     }
 
-    function test_getTotalValue() public {
+    function testFuzz_Success_getTotalValue() public {
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC20.token2);
@@ -167,7 +167,7 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assertEq(expectedTotalValue, actualTotalValue);
     }
 
-    function testFuzz_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsd_token2With18Decimals(
+    function testFuzz_Success_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsd_token2With18Decimals(
         uint256 rateToken1ToUsd,
         uint256 amountToken2
     ) public {
@@ -214,7 +214,7 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assertEq(expectedValue, actualTotalValue);
     }
 
-    function testFuzz_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsd_token2With6decimals(
+    function testFuzz_Success_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsd_token2With6decimals(
         uint256 rateToken1ToUsd,
         uint128 amountToken2
     ) public {

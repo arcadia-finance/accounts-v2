@@ -32,7 +32,7 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
 
     // ToDo: getValue with fuzzed tokensOwed and pending Fees.
 
-    function testFuzz_getValue_valueInUsd(TestVariables memory vars) public {
+    function testFuzz_Success_getValue_valueInUsd(TestVariables memory vars) public {
         // Check that ticks are within allowed ranges.
         vm.assume(vars.tickLower < vars.tickUpper);
         vm.assume(isWithinAllowedRange(vars.tickLower));
@@ -112,7 +112,7 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         assertEq(actualValueInUsd, valueToken0 + valueToken1);
     }
 
-    function testFuzz_getValue_RiskFactors(
+    function testFuzz_Success_getValue_RiskFactors(
         uint256 collFactor0,
         uint256 liqFactor0,
         uint256 collFactor1,

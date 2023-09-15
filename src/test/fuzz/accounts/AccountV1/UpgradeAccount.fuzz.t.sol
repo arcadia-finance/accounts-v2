@@ -114,9 +114,12 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_upgradeAccountVersion(uint128 erc20Amount, uint8 erc721Id, uint128 erc1155Amount, uint256 debt)
-        public
-    {
+    function testFuzz_Success_upgradeAccountVersion(
+        uint128 erc20Amount,
+        uint8 erc721Id,
+        uint128 erc1155Amount,
+        uint256 debt
+    ) public {
         // Given: an account in a random state (with assets, a creditor and debt).
         vm.prank(users.accountOwner);
         proxyAccount.openTrustedMarginAccount(address(trustedCreditor)); // Mocked Trusted Creditor, approves all account-versions by default.

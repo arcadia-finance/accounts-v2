@@ -21,7 +21,7 @@ contract ProcessWithdrawal_FloorERC721PricingModule_Fuzz_Test is FloorERC721Pric
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_processWithdrawal_NonMainRegistry(address unprivilegedAddress_, address account_) public {
+    function testFuzz_Revert_processWithdrawal_NonMainRegistry(address unprivilegedAddress_, address account_) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
@@ -35,7 +35,7 @@ contract ProcessWithdrawal_FloorERC721PricingModule_Fuzz_Test is FloorERC721Pric
         vm.stopPrank();
     }
 
-    function testRevert_processWithdrawal_NotOne(uint256 assetId, address account_, uint256 amount) public {
+    function testFuzz_Revert_processWithdrawal_NotOne(uint256 assetId, address account_, uint256 amount) public {
         vm.assume(amount != 1); //Not in range
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
@@ -48,7 +48,7 @@ contract ProcessWithdrawal_FloorERC721PricingModule_Fuzz_Test is FloorERC721Pric
         vm.stopPrank();
     }
 
-    function testSuccess_processWithdrawal(uint256 assetId, address account_) public {
+    function testFuzz_Success_processWithdrawal(uint256 assetId, address account_) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1

@@ -42,7 +42,9 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_processDeposit_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id) public {
+    function testFuzz_Revert_processDeposit_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
+        public
+    {
         vm.assume(unprivilegedAddress != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress);
@@ -51,7 +53,7 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_ZeroLiquidity() public {
+    function testFuzz_Revert_processDeposit_ZeroLiquidity() public {
         // Create Uniswap V3 pool initiated at tick 0 with cardinality 300.
         pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(0), 300);
 
@@ -79,7 +81,7 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_BelowAcceptedRange(
+    function testFuzz_Revert_processDeposit_BelowAcceptedRange(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -119,7 +121,7 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_AboveAcceptedRange(
+    function testFuzz_Revert_processDeposit_AboveAcceptedRange(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -160,7 +162,7 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_ExposureToken0ExceedingMax(
+    function testFuzz_Revert_processDeposit_ExposureToken0ExceedingMax(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -217,7 +219,7 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
         vm.stopPrank();
     }
 
-    function testRevert_processDeposit_ExposureToken1ExceedingMax(
+    function testFuzz_Revert_processDeposit_ExposureToken1ExceedingMax(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -274,7 +276,7 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
         vm.stopPrank();
     }
 
-    function testSuccess_processDeposit(
+    function testFuzz_Success_processDeposit(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,

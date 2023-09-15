@@ -25,7 +25,7 @@ contract SetAssetManager_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_setAssetManager_NonOwner(address nonOwner, address assetManager, bool value) public {
+    function testFuzz_Revert_setAssetManager_NonOwner(address nonOwner, address assetManager, bool value) public {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.startPrank(nonOwner);
@@ -34,7 +34,7 @@ contract SetAssetManager_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_setAssetManager(address assetManager, bool startValue, bool endvalue) public {
+    function testFuzz_Success_setAssetManager(address assetManager, bool startValue, bool endvalue) public {
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
         emit AssetManagerSet(users.accountOwner, assetManager, startValue);

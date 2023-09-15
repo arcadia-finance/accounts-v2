@@ -26,7 +26,7 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testRevert_setOracles_NonOwner(address asset, address oracle, address unprivilegedAddress_) public {
+    function testFuzz_Revert_setOracles_NonOwner(address asset, address oracle, address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
 
         vm.startPrank(unprivilegedAddress_);
@@ -35,14 +35,14 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
         vm.stopPrank();
     }
 
-    function testRevert_setOracles_UnknownAsset(address asset, address oracle) public {
+    function testFuzz_Revert_setOracles_UnknownAsset(address asset, address oracle) public {
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("PM20_SO: Unknown Oracle");
         erc20PricingModule.setOracles(asset, new address[](0), oracle);
         vm.stopPrank();
     }
 
-    function testRevert_setOracles_UnknownOracle(address oracle) public {
+    function testFuzz_Revert_setOracles_UnknownOracle(address oracle) public {
         vm.assume(oracle != address(mockOracles.token4ToUsd));
 
         vm.prank(users.creatorAddress);
@@ -56,7 +56,7 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
         vm.stopPrank();
     }
 
-    function testRevert_setOracles_ActiveOracle() public {
+    function testFuzz_Revert_setOracles_ActiveOracle() public {
         vm.prank(users.creatorAddress);
         erc20PricingModule.addAsset(
             address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
@@ -68,7 +68,7 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
         vm.stopPrank();
     }
 
-    function testRevert_setOracles_BadOracleSequence() public {
+    function testFuzz_Revert_setOracles_BadOracleSequence() public {
         vm.prank(users.creatorAddress);
         erc20PricingModule.addAsset(
             address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
@@ -84,7 +84,7 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
         vm.stopPrank();
     }
 
-    function testSuccess_setOracles() public {
+    function testFuzz_Success_setOracles() public {
         vm.prank(users.creatorAddress);
         erc20PricingModule.addAsset(
             address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max

@@ -24,7 +24,7 @@ contract GetPrincipalAmounts_UniswapV3PricingModule_Fuzz_Test is UniswapV3Pricin
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_getPrincipalAmounts(
+    function testFuzz_Success_getPrincipalAmounts(
         int24 tickLower,
         int24 tickUpper,
         uint128 liquidity,

@@ -10,7 +10,7 @@ import { Test } from "../../../lib/forge-std/src/Test.sol";
 contract Utils_Test is Test {
     function setUp() public { }
 
-    function test_veryBadBytesReplacer_FirstByte() public {
+    function test_Success_veryBadBytesReplacer_FirstByte() public {
         bytes memory bytecode = hex"e34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b544f4f";
         bytes32 target = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
         bytes32 replacement = 0x100000000000000000000000000000000000000000000000000000000000000f;
@@ -21,7 +21,7 @@ contract Utils_Test is Test {
         assertEq(actualResult, expectedResult);
     }
 
-    function test_veryBadBytesReplacer_LastByte() public {
+    function test_Success_veryBadBytesReplacer_LastByte() public {
         bytes memory bytecode = hex"4f4fe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54";
         bytes32 target = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
         bytes32 replacement = 0x100000000000000000000000000000000000000000000000000000000000000f;
@@ -32,7 +32,7 @@ contract Utils_Test is Test {
         assertEq(actualResult, expectedResult);
     }
 
-    function test_veryBadBytesReplacer_MiddleByte() public {
+    function test_Success_veryBadBytesReplacer_MiddleByte() public {
         bytes memory bytecode = hex"4fe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b544f";
         bytes32 target = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
         bytes32 replacement = 0x100000000000000000000000000000000000000000000000000000000000000f;
@@ -43,7 +43,7 @@ contract Utils_Test is Test {
         assertEq(actualResult, expectedResult);
     }
 
-    function testRevert_veryBadBytesReplacer_Short() public {
+    function test_Revert_veryBadBytesReplacer_Short() public {
         bytes memory bytecode = hex"4fe34f199b19b2b4f47f68442619d555527d244f78a3297ea8";
         bytes32 target = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
         bytes32 replacement = 0x100000000000000000000000000000000000000000000000000000000000000f;
@@ -52,7 +52,7 @@ contract Utils_Test is Test {
         Utils.veryBadBytesReplacer(bytecode, target, replacement);
     }
 
-    function testRevert_veryBadBytesReplacer_NoMatch() public {
+    function test_Revert_veryBadBytesReplacer_NoMatch() public {
         bytes memory bytecode = hex"e34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b55";
         bytes32 target = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
         bytes32 replacement = 0x100000000000000000000000000000000000000000000000000000000000000f;

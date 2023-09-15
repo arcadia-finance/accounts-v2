@@ -24,7 +24,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_batchProcessWithdrawal_NonAccount(address unprivilegedAddress_) public {
+    function testFuzz_Revert_batchProcessWithdrawal_NonAccount(address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != address(proxyAccount));
 
         address[] memory assetAddresses = new address[](1);
@@ -42,7 +42,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         vm.stopPrank();
     }
 
-    function testRevert_batchProcessWithdrawal_lengthMismatch() public {
+    function testFuzz_Revert_batchProcessWithdrawal_lengthMismatch() public {
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC20.stable2);
@@ -59,7 +59,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         vm.stopPrank();
     }
 
-    function testRevert_batchProcessWithdrawal_Paused(uint128 amountToken2, address guardian) public {
+    function testFuzz_Revert_batchProcessWithdrawal_Paused(uint128 amountToken2, address guardian) public {
         // Given: Assets are deposited
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token2);
@@ -87,7 +87,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         vm.stopPrank();
     }
 
-    function testRevert_batchProcessWithdrawal_AssetNotInMainreg(
+    function testFuzz_Revert_batchProcessWithdrawal_AssetNotInMainreg(
         uint128 amountDeposited,
         uint128 amountWithdrawn,
         address asset
@@ -118,7 +118,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         mainRegistryExtension.batchProcessWithdrawal(assetAddresses, assetIds, assetAmounts);
     }
 
-    function testSuccess_batchProcessWithdrawal(uint128 amountDeposited, uint128 amountWithdrawn) public {
+    function testFuzz_Success_batchProcessWithdrawal(uint128 amountDeposited, uint128 amountWithdrawn) public {
         vm.assume(amountDeposited >= amountWithdrawn);
 
         address[] memory assetAddresses = new address[](1);
@@ -150,7 +150,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         assertEq(exposure, amountDeposited - amountWithdrawn);
     }
 
-    function testSuccess_batchProcessWithdrawal_directCall(uint128 amountToken2) public {
+    function testFuzz_Success_batchProcessWithdrawal_directCall(uint128 amountToken2) public {
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token2);
 
@@ -173,7 +173,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         assertEq(endExposure, 0);
     }
 
-    function testRevert_batchProcessWithdrawal_delegateCall(uint128 amountToken2) public {
+    function testFuzz_Revert_batchProcessWithdrawal_delegateCall(uint128 amountToken2) public {
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token2);
 

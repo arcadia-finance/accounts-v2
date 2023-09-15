@@ -21,7 +21,7 @@ contract AddAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_addAsset_NonPricingModule(address unprivilegedAddress_, address asset) public {
+    function testFuzz_Revert_addAsset_NonPricingModule(address unprivilegedAddress_, address asset) public {
         // Given: unprivilegedAddress_ is not address(erc20PricingModule), address(floorERC721PricingModule) or address(floorERC1155PricingModule)
         vm.assume(unprivilegedAddress_ != address(erc20PricingModule));
         vm.assume(unprivilegedAddress_ != address(floorERC721PricingModule));
@@ -34,7 +34,7 @@ contract AddAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_addAsset_OverwriteAsset() public {
+    function testFuzz_Revert_addAsset_OverwriteAsset() public {
         // Given: erc20PricingModule has token1 added as asset
 
         vm.startPrank(address(floorERC721PricingModule));
@@ -45,7 +45,7 @@ contract AddAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_addAsset_InvalidAssetType(address newAsset, uint256 assetType) public {
+    function testFuzz_Revert_addAsset_InvalidAssetType(address newAsset, uint256 assetType) public {
         vm.assume(mainRegistryExtension.inMainRegistry(newAsset) == false);
         vm.assume(assetType > type(uint96).max);
 
@@ -57,7 +57,7 @@ contract AddAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_addAsset(address newAsset, uint8 assetType) public {
+    function testFuzz_Success_addAsset(address newAsset, uint8 assetType) public {
         vm.assume(mainRegistryExtension.inMainRegistry(newAsset) == false);
         // When: erc20PricingModule calls addAsset with input of address(eth)
         vm.startPrank(address(erc20PricingModule));

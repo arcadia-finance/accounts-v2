@@ -23,7 +23,7 @@ contract AddAsset_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_addAsset_Unauthorised(address unprivilegedAddress_) public {
+    function testFuzz_Revert_addAsset_Unauthorised(address unprivilegedAddress_) public {
         //Given: unprivilegedAddress_ is not protocol deployer
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
 
@@ -35,7 +35,7 @@ contract AddAsset_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
         vm.stopPrank();
     }
 
-    function testRevert_addAsset_NonWhiteListedUnderlyingAsset() public {
+    function testFuzz_Revert_addAsset_NonWhiteListedUnderlyingAsset() public {
         //Given: One of the underlying assets is not whitelisted (SafeMoon)
         //When: creator adds a new asset
         //Then: addAsset reverts with "UNAUTHORIZED"
@@ -45,7 +45,7 @@ contract AddAsset_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
         vm.stopPrank();
     }
 
-    function testRevert_addAsset_OverwriteExistingAsset() public {
+    function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         //Given: asset is added to pricing module
         vm.prank(users.creatorAddress);
         uniswapV2PricingModule.addAsset(address(pairToken1Token2), emptyRiskVarInput, type(uint128).max);
@@ -57,7 +57,7 @@ contract AddAsset_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
         uniswapV2PricingModule.addAsset(address(pairToken1Token2), emptyRiskVarInput, type(uint128).max);
     }
 
-    function testSuccess_addAsset_EmptyListCreditRatings() public {
+    function testFuzz_Success_addAsset_EmptyListCreditRatings() public {
         //Given: credit rating list is empty
 
         //When: creator adds a new asset
@@ -73,7 +73,7 @@ contract AddAsset_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
         assertTrue(uniswapV2PricingModule.isAllowListed(address(pairToken1Token2), 0));
     }
 
-    function testSuccess_addAsset_OwnerAddsAssetWithNonFullListRiskVariables() public {
+    function testFuzz_Success_addAsset_OwnerAddsAssetWithNonFullListRiskVariables() public {
         //Given: The number of credit ratings is not 0 and not the number of baseCurrencies
         PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](1);
         riskVars_[0] = PricingModule.RiskVarInput({

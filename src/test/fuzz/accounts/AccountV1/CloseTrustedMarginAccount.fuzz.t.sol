@@ -25,7 +25,7 @@ contract CloseTrustedMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_closeTrustedMarginAccount_NonOwner(address nonOwner) public {
+    function testFuzz_Revert_closeTrustedMarginAccount_NonOwner(address nonOwner) public {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.startPrank(nonOwner);
@@ -34,14 +34,14 @@ contract CloseTrustedMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_closeTrustedMarginAccount_NonSetTrustedMarginAccount() public {
+    function testFuzz_Revert_closeTrustedMarginAccount_NonSetTrustedMarginAccount() public {
         vm.startPrank(users.accountOwner);
         vm.expectRevert("A_CTMA: NOT SET");
         proxyAccount.closeTrustedMarginAccount();
         vm.stopPrank();
     }
 
-    function testRevert_closeTrustedMarginAccount_OpenPosition(uint256 debt_) public {
+    function testFuzz_Revert_closeTrustedMarginAccount_OpenPosition(uint256 debt_) public {
         vm.prank(users.accountOwner);
         proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
 
@@ -55,7 +55,7 @@ contract CloseTrustedMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_closeTrustedMarginAccount() public {
+    function testFuzz_Success_closeTrustedMarginAccount() public {
         vm.prank(users.accountOwner);
         proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
 

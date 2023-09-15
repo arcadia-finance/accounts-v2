@@ -23,7 +23,7 @@ contract AddAsset_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_addAsset_NonOwner(address unprivilegedAddress_, address asset) public {
+    function testFuzz_Revert_addAsset_NonOwner(address unprivilegedAddress_, address asset) public {
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
         vm.startPrank(unprivilegedAddress_);
 
@@ -32,14 +32,14 @@ contract AddAsset_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         vm.stopPrank();
     }
 
-    function testRevert_addAsset_OverwriteExistingAsset() public {
+    function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("PMUV3_AA: already added");
         uniV3PricingModule.addAsset(address(nonfungiblePositionManager));
         vm.stopPrank();
     }
 
-    function testRevert_addAsset_MainRegistryReverts() public {
+    function testFuzz_Revert_addAsset_MainRegistryReverts() public {
         vm.prank(users.creatorAddress);
         uniV3PricingModule =
         new UniswapV3PricingModuleExtension(address(mainRegistryExtension), address(oracleHub), users.creatorAddress, address(erc20PricingModule));
@@ -50,7 +50,7 @@ contract AddAsset_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         vm.stopPrank();
     }
 
-    function testSuccess_addAsset() public {
+    function testFuzz_Success_addAsset() public {
         // Deploy UniV3 again to have new contract addresses, not yet added into the MainRegistry.
         UniswapV3Fixture.setUp();
 

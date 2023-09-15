@@ -21,7 +21,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_batchProcessDeposit_NonAccount(address unprivilegedAddress_) public {
+    function testFuzz_Revert_batchProcessDeposit_NonAccount(address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != address(proxyAccount));
 
         address[] memory assetAddresses = new address[](1);
@@ -39,7 +39,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_batchProcessDeposit_lengthMismatch() public {
+    function testFuzz_Revert_batchProcessDeposit_lengthMismatch() public {
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC20.stable2);
@@ -57,7 +57,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_batchProcessDeposit_exposureNotSufficient(uint128 newMaxExposure, uint128 amount) public {
+    function testFuzz_Revert_batchProcessDeposit_exposureNotSufficient(uint128 newMaxExposure, uint128 amount) public {
         vm.assume(newMaxExposure < amount);
 
         vm.prank(users.creatorAddress);
@@ -78,7 +78,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_batchProcessDeposit_AssetNotInMainreg(address asset) public {
+    function testFuzz_Revert_batchProcessDeposit_AssetNotInMainreg(address asset) public {
         vm.assume(!mainRegistryExtension.inMainRegistry(asset));
 
         address[] memory assetAddresses = new address[](1);
@@ -96,7 +96,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_batchProcessDeposit_Paused(uint128 amountToken1, uint128 amountToken2, address guardian)
+    function testFuzz_Revert_batchProcessDeposit_Paused(uint128 amountToken1, uint128 amountToken2, address guardian)
         public
     {
         // Given: Assets
@@ -125,7 +125,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
     }
 
-    function testSuccess_batchProcessDeposit_SingleAsset(uint128 amount) public {
+    function testFuzz_Success_batchProcessDeposit_SingleAsset(uint128 amount) public {
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
 
@@ -144,7 +144,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assertEq(exposure, amount);
     }
 
-    function testSuccess_batchProcessDeposit_MultipleAssets(uint128 amountToken1, uint128 amountToken2) public {
+    function testFuzz_Success_batchProcessDeposit_MultipleAssets(uint128 amountToken1, uint128 amountToken2) public {
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC20.token2);
@@ -170,7 +170,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assertEq(exposureToken2, amountToken2);
     }
 
-    function testSuccess_batchProcessDeposit_directCall(uint128 amountToken2) public {
+    function testFuzz_Success_batchProcessDeposit_directCall(uint128 amountToken2) public {
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token2);
 
@@ -189,7 +189,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assertEq(newExposure, amountToken2);
     }
 
-    function testRevert_batchProcessDeposit_delegateCall(uint128 amountToken2) public {
+    function testFuzz_Revert_batchProcessDeposit_delegateCall(uint128 amountToken2) public {
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token2);
 

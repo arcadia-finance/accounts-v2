@@ -24,7 +24,7 @@ contract SetOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_setOracle_NonOwner(
+    function testFuzz_Revert_setOracle_NonOwner(
         uint256 baseCurrency,
         address newOracle,
         uint64 baseCurrencyToUsdOracleUnit,
@@ -38,7 +38,7 @@ contract SetOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_setOracle_NonBaseCurrency(
+    function testFuzz_Revert_setOracle_NonBaseCurrency(
         uint256 baseCurrency,
         address newOracle,
         uint64 baseCurrencyToUsdOracleUnit
@@ -51,7 +51,7 @@ contract SetOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_setOracle_HealthyOracle(
+    function testFuzz_Revert_setOracle_HealthyOracle(
         address newOracle,
         uint64 baseCurrencyToUsdOracleUnit,
         int192 minAnswer,
@@ -91,7 +91,7 @@ contract SetOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_setOracle_RevertingOracle(address newOracle, uint64 baseCurrencyToUsdOracleUnit) public {
+    function testFuzz_Success_setOracle_RevertingOracle(address newOracle, uint64 baseCurrencyToUsdOracleUnit) public {
         RevertingOracle revertingOracle = new RevertingOracle();
 
         vm.prank(users.creatorAddress);
@@ -115,7 +115,7 @@ contract SetOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assertEq(baseCurrencyToUsdOracleUnit_, baseCurrencyToUsdOracleUnit);
     }
 
-    function testSuccess_setOracle_MinAnswer(
+    function testFuzz_Success_setOracle_MinAnswer(
         address newOracle,
         uint64 baseCurrencyToUsdOracleUnit,
         int192 minAnswer,
@@ -150,7 +150,7 @@ contract SetOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assertEq(baseCurrencyToUsdOracleUnit_, baseCurrencyToUsdOracleUnit);
     }
 
-    function testSuccess_setOracle_MaxAnswer(
+    function testFuzz_Success_setOracle_MaxAnswer(
         address newOracle,
         uint64 baseCurrencyToUsdOracleUnit,
         int192 maxAnswer,
@@ -185,7 +185,7 @@ contract SetOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assertEq(baseCurrencyToUsdOracleUnit_, baseCurrencyToUsdOracleUnit);
     }
 
-    function testSuccess_setOracle_UpdateTooOld(
+    function testFuzz_Success_setOracle_UpdateTooOld(
         address newOracle,
         uint64 baseCurrencyToUsdOracleUnit,
         int192 minAnswer,

@@ -23,7 +23,7 @@ contract IsAllowListed_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_isAllowListed_Positive(address asset, uint128 maxExposure) public {
+    function testFuzz_Success_isAllowListed_Positive(address asset, uint128 maxExposure) public {
         // Given: asset is white listed
         vm.assume(maxExposure > 0);
         pricingModule.setExposure(asset, 0, maxExposure);
@@ -33,7 +33,7 @@ contract IsAllowListed_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
         assertTrue(pricingModule.isAllowListed(asset, 0));
     }
 
-    function testSuccess_isAllowListed_Negative(address asset) public {
+    function testFuzz_Success_isAllowListed_Negative(address asset) public {
         // Given: All necessary contracts deployed on setup
         // And: asset is non whitelisted
 

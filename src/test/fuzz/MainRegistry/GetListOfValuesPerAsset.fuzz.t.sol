@@ -24,7 +24,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_getListOfValuesPerAsset_UnknownAsset() public {
+    function testFuzz_Revert_getListOfValuesPerAsset_UnknownAsset() public {
         // Should revert here as mockERC20.token3 was not added to a pricing module
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
@@ -42,7 +42,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         mainRegistryExtension.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, 0);
     }
 
-    function testRevert_Fuzz_getListOfValuesPerAsset_UnknownBaseCurrencyId(uint256 basecurrency) public {
+    function testFuzz_Revert_getListOfValuesPerAsset_UnknownBaseCurrencyId(uint256 basecurrency) public {
         // Given: the baseCurrencyID is greater than the number of baseCurrencies added in the protocol
         vm.assume(basecurrency >= 3);
 
@@ -62,7 +62,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         mainRegistryExtension.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, basecurrency);
     }
 
-    function testRevert_Fuzz_getListOfValuesPerAsset_UnknownBaseCurrencyAddress(address basecurrency) public {
+    function testFuzz_Revert_getListOfValuesPerAsset_UnknownBaseCurrencyAddress(address basecurrency) public {
         vm.assume(basecurrency != address(0));
         vm.assume(basecurrency != address(mockERC20.stable1));
         vm.assume(basecurrency != address(mockERC20.token1));
@@ -83,7 +83,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         mainRegistryExtension.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, basecurrency);
     }
 
-    function test_getListOfValuesPerAsset_BaseCurrencyIsUsd() public {
+    function testFuzz_Success_getListOfValuesPerAsset_BaseCurrencyIsUsd() public {
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.stable1);
         assetAddresses[1] = address(mockERC20.token1);
@@ -119,7 +119,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         assertTrue(CompareArrays.compareArrays(expectedListOfValuesPerAsset, actualListOfValuesPerAsset));
     }
 
-    function test_getListOfValuesPerAsset_BaseCurrencyIsNotUsd() public {
+    function testFuzz_Success_getListOfValuesPerAsset_BaseCurrencyIsNotUsd() public {
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.stable1);
         assetAddresses[1] = address(mockERC20.token1);

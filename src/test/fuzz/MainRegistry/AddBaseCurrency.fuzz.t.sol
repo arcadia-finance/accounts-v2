@@ -23,7 +23,7 @@ contract AddBaseCurrency_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_addBaseCurrency_NonOwner(address unprivilegedAddress_) public {
+    function testFuzz_Revert_addBaseCurrency_NonOwner(address unprivilegedAddress_) public {
         // Given: unprivilegedAddress_ is not users.creatorAddress
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
         vm.startPrank(unprivilegedAddress_);
@@ -43,7 +43,7 @@ contract AddBaseCurrency_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_addBaseCurrency_duplicateBaseCurrency() public {
+    function testFuzz_Revert_addBaseCurrency_duplicateBaseCurrency() public {
         vm.startPrank(users.creatorAddress);
         // Given: users.creatorAddress calls addBaseCurrency
         mainRegistryExtension.addBaseCurrency(
@@ -71,7 +71,7 @@ contract AddBaseCurrency_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_addBaseCurrency() public {
+    function testFuzz_Success_addBaseCurrency() public {
         // When: users.creatorAddress calls addBaseCurrency
         vm.prank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);

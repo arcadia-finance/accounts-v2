@@ -21,7 +21,7 @@ contract SetExposureOfAsset_UniswapV3PricingModule_Fuzz_Test is UniswapV3Pricing
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_setExposureOfAsset_NonRiskManager(
+    function testFuzz_Revert_setExposureOfAsset_NonRiskManager(
         address unprivilegedAddress_,
         address asset,
         uint128 maxExposure
@@ -34,14 +34,14 @@ contract SetExposureOfAsset_UniswapV3PricingModule_Fuzz_Test is UniswapV3Pricing
         vm.stopPrank();
     }
 
-    function testRevert_setExposureOfAsset_UnknownAsset(uint128 maxExposure) public {
+    function testFuzz_Revert_setExposureOfAsset_UnknownAsset(uint128 maxExposure) public {
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("PMUV3_SEOA: Unknown asset");
         uniV3PricingModule.setExposureOfAsset(address(mockERC20.token3), maxExposure);
         vm.stopPrank();
     }
 
-    function testSuccess_setExposureOfAsset(uint128 maxExposure) public {
+    function testFuzz_Success_setExposureOfAsset(uint128 maxExposure) public {
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit MaxExposureSet(address(mockERC20.token1), maxExposure);

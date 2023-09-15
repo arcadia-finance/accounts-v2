@@ -68,9 +68,11 @@ contract LiquidateAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_liquidateAccount_Unhealthy(uint128 debt, uint128 liquidationValue, uint96 fixedLiquidationCost)
-        public
-    {
+    function testFuzz_Success_liquidateAccount_Unhealthy(
+        uint128 debt,
+        uint128 liquidationValue,
+        uint96 fixedLiquidationCost
+    ) public {
         // Assume account is unhealthy: liquidationValue is smaller than usedMargin (debt + fixedLiquidationCost).
         uint256 usedMargin = uint256(debt) + fixedLiquidationCost;
         vm.assume(liquidationValue < usedMargin);

@@ -21,7 +21,7 @@ contract SetAllowedAction_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_setAllowedAction_Owner(address action, bool allowed) public {
+    function testFuzz_Success_setAllowedAction_Owner(address action, bool allowed) public {
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit AllowedActionSet(action, allowed);
@@ -31,7 +31,7 @@ contract SetAllowedAction_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assertEq(mainRegistryExtension.isActionAllowed(action), allowed);
     }
 
-    function testRevert_setAllowedAction_NonOwner(address action, bool allowed, address nonAuthorized) public {
+    function testFuzz_Revert_setAllowedAction_NonOwner(address action, bool allowed, address nonAuthorized) public {
         vm.assume(nonAuthorized != users.creatorAddress);
 
         vm.startPrank(nonAuthorized);

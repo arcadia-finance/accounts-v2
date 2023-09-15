@@ -31,7 +31,7 @@ contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_Fuzz_getValue_Overflow(uint256 amountSft2, uint256 rateSft2ToUsd) public {
+    function testFuzz_Revert_getValue_Overflow(uint256 amountSft2, uint256 rateSft2ToUsd) public {
         // No Overflow OracleHub
         vm.assume(rateSft2ToUsd <= type(uint256).max / Constants.WAD);
         vm.assume(rateSft2ToUsd > 0);
@@ -56,7 +56,7 @@ contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         floorERC1155PricingModule.getValue(getValueInput);
     }
 
-    function testFuzz_getValue(uint256 amountSft2, uint256 rateSft2ToUsd) public {
+    function testFuzz_Success_getValue(uint256 amountSft2, uint256 rateSft2ToUsd) public {
         // No Overflow OracleHub
         vm.assume(rateSft2ToUsd <= type(uint256).max / Constants.WAD);
 

@@ -24,7 +24,7 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_addAsset_NonOwner(address unprivilegedAddress_, address asset) public {
+    function testFuzz_Revert_addAsset_NonOwner(address unprivilegedAddress_, address asset) public {
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
@@ -32,7 +32,7 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         vm.stopPrank();
     }
 
-    function testRevert_addAsset_DecimalsDontMatch(uint8 decimals) public {
+    function testFuzz_Revert_addAsset_DecimalsDontMatch(uint8 decimals) public {
         vm.assume(decimals != mockERC20.token1.decimals());
         vm.assume(decimals <= 20);
         vm.prank(users.tokenCreatorAddress);
@@ -44,7 +44,7 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         vm.stopPrank();
     }
 
-    function testRevert_addAsset_OverwriteExistingAsset() public {
+    function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
         erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput, type(uint128).max);
         vm.expectRevert("PM4626_AA: already added");
@@ -54,7 +54,7 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         assertTrue(erc4626PricingModule.inPricingModule(address(ybToken1)));
     }
 
-    function testSuccess_addAsset_EmptyListRiskVariables() public {
+    function testFuzz_Success_addAsset_EmptyListRiskVariables() public {
         vm.startPrank(users.creatorAddress);
         erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput, type(uint128).max);
         vm.stopPrank();
@@ -71,7 +71,7 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         assertTrue(erc4626PricingModule.isAllowListed(address(ybToken1), 0));
     }
 
-    function testSuccess_addAsset_NonFullListRiskVariables() public {
+    function testFuzz_Success_addAsset_NonFullListRiskVariables() public {
         vm.startPrank(users.creatorAddress);
         PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](1);
         riskVars_[0] = PricingModule.RiskVarInput({

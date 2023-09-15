@@ -28,7 +28,9 @@ contract GetUsedMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_getUsedMargin_TrustedCreditorNotSet(uint256 openDebt, uint96 fixedLiquidationCost) public {
+    function testFuzz_Success_getUsedMargin_TrustedCreditorNotSet(uint256 openDebt, uint96 fixedLiquidationCost)
+        public
+    {
         // Test-case: trusted creditor is not set.
         accountExtension.setIsTrustedCreditorSet(false);
 
@@ -41,7 +43,9 @@ contract GetUsedMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(0, accountExtension.getUsedMargin());
     }
 
-    function testSuccess_getUsedMargin_TrustedCreditorIsSet(uint256 openDebt, uint96 fixedLiquidationCost) public {
+    function testFuzz_Success_getUsedMargin_TrustedCreditorIsSet(uint256 openDebt, uint96 fixedLiquidationCost)
+        public
+    {
         // No overflow of Used Margin.
         vm.assume(openDebt <= type(uint256).max - fixedLiquidationCost);
 

@@ -21,7 +21,7 @@ contract SetBaseURI_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_setBaseURI_NonOwner(string calldata uri, address unprivilegedAddress_) public {
+    function testFuzz_Revert_setBaseURI_NonOwner(string calldata uri, address unprivilegedAddress_) public {
         vm.assume(address(unprivilegedAddress_) != users.creatorAddress);
 
         vm.startPrank(unprivilegedAddress_);
@@ -30,7 +30,7 @@ contract SetBaseURI_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_setBaseURI(string calldata uri) public {
+    function testFuzz_Success_setBaseURI(string calldata uri) public {
         vm.prank(users.creatorAddress);
         factory.setBaseURI(uri);
 

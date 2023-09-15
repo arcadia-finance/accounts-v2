@@ -21,7 +21,7 @@ contract TransferOwnership_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_transferOwnership_NonFactory(address sender, address to) public {
+    function testFuzz_Revert_transferOwnership_NonFactory(address sender, address to) public {
         vm.assume(sender != address(factory));
 
         assertEq(users.accountOwner, accountExtension.owner());
@@ -34,7 +34,7 @@ contract TransferOwnership_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(users.accountOwner, accountExtension.owner());
     }
 
-    function testRevert_transferOwnership_InvalidRecipient() public {
+    function testFuzz_Revert_transferOwnership_InvalidRecipient() public {
         assertEq(users.accountOwner, accountExtension.owner());
 
         vm.startPrank(address(factory));
@@ -45,7 +45,7 @@ contract TransferOwnership_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(users.accountOwner, accountExtension.owner());
     }
 
-    function testSuccess_transferOwnership(address to) public {
+    function testFuzz_Success_transferOwnership(address to) public {
         vm.assume(to != address(0));
 
         assertEq(users.accountOwner, accountExtension.owner());

@@ -21,7 +21,7 @@ contract Liquidate_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_liquidate_NonAccount(address liquidator_, address nonAccount) public {
+    function testFuzz_Revert_liquidate_NonAccount(address liquidator_, address nonAccount) public {
         vm.startPrank(nonAccount);
         vm.expectRevert("FTRY: Not a Account");
         factory.liquidate(liquidator_);

@@ -23,7 +23,7 @@ contract OpenTrustedMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function test_openTrustedMarginAccount() public {
+    function testFuzz_Success_openTrustedMarginAccount() public {
         // Assert no creditor has been set on deployment
         assertEq(proxyAccount.trustedCreditor(), address(0));
         assertEq(proxyAccount.isTrustedCreditorSet(), false);
@@ -47,13 +47,13 @@ contract OpenTrustedMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.baseCurrency(), initBaseCurrency);
     }
 
-    function testRevert_openTrustedMarginAccount_NotOwner() public {
+    function testFuzz_Revert_openTrustedMarginAccount_NotOwner() public {
         // Should revert if not called by the owner
         vm.expectRevert("A: Only Owner");
         proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
     }
 
-    function testRevert_openTrustedMarginAccount_AlreadySet() public {
+    function testFuzz_Revert_openTrustedMarginAccount_AlreadySet() public {
         // Open a margin account => will set a trusted creditor
         vm.startPrank(users.accountOwner);
         proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
@@ -63,7 +63,7 @@ contract OpenTrustedMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
     }
 
-    function testRevert_openTrustedMarginAccount_InvalidAccountVersion() public {
+    function testFuzz_Revert_openTrustedMarginAccount_InvalidAccountVersion() public {
         // set a different Account version on the trusted creditor
         trustedCreditor.setCallResult(false);
         vm.startPrank(users.accountOwner);
@@ -72,9 +72,10 @@ contract OpenTrustedMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_openTrustedMarginAccount_DifferentBaseCurrency(address liquidator, uint96 fixedLiquidationCost)
-        public
-    {
+    function testFuzz_Success_openTrustedMarginAccount_DifferentBaseCurrency(
+        address liquidator,
+        uint96 fixedLiquidationCost
+    ) public {
         // Confirm initial base currency is not set for the Account
         assertEq(proxyAccount.baseCurrency(), address(0));
 
@@ -100,7 +101,7 @@ contract OpenTrustedMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.fixedLiquidationCost(), fixedLiquidationCost);
     }
 
-    function test_openTrustedMarginAccount_SameBaseCurrency() public {
+    function testFuzz_Success_openTrustedMarginAccount_SameBaseCurrency() public {
         // Deploy a Account with baseCurrency set to STABLE1
         address deployedAccount = factory.createAccount(1111, 0, address(mockERC20.stable1), address(0));
         assertEq(AccountV1(deployedAccount).baseCurrency(), address(mockERC20.stable1));

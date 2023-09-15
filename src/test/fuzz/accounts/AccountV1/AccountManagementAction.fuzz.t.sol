@@ -45,7 +45,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testRevert_Fuzz_accountManagementAction_Reentered(
+    function testFuzz_Revert_accountManagementAction_Reentered(
         address sender,
         address actionHandler,
         bytes calldata actionData
@@ -60,7 +60,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_Fuzz_accountManagementAction_NonAssetManager(address sender, address assetManager) public {
+    function testFuzz_Revert_accountManagementAction_NonAssetManager(address sender, address assetManager) public {
         vm.assume(sender != users.accountOwner);
         vm.assume(sender != assetManager);
         vm.assume(sender != address(0));
@@ -74,7 +74,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_Fuzz_accountManagementAction_OwnerChanged(address assetManager) public {
+    function testFuzz_Revert_accountManagementAction_OwnerChanged(address assetManager) public {
         vm.assume(assetManager != address(0));
         address newOwner = address(60); //Annoying to fuzz since it often fuzzes to existing contracts without an onERC721Received
         vm.assume(assetManager != newOwner);
@@ -97,7 +97,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_Fuzz_accountManagementAction_actionNotAllowed(address action_) public {
+    function testFuzz_Revert_accountManagementAction_actionNotAllowed(address action_) public {
         vm.assume(action_ != address(action));
 
         vm.startPrank(users.accountOwner);
@@ -106,7 +106,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_Fuzz_accountManagementAction_tooManyAssets(uint8 arrLength) public {
+    function testFuzz_Revert_accountManagementAction_tooManyAssets(uint8 arrLength) public {
         vm.assume(arrLength > accountExtension.ASSET_LIMIT() && arrLength < 50);
 
         address[] memory assetAddresses = new address[](arrLength);
@@ -148,7 +148,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.accountManagementAction(address(action), callData);
     }
 
-    function testFuzz_accountManagementAction_Owner(uint128 debtAmount, uint32 fixedLiquidationCost) public {
+    function testFuzz_Success_accountManagementAction_Owner(uint128 debtAmount, uint32 fixedLiquidationCost) public {
         accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
@@ -295,7 +295,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_accountManagementAction_AssetManager(
+    function testFuzz_Success_accountManagementAction_AssetManager(
         uint128 debtAmount,
         uint32 fixedLiquidationCost,
         address assetManager
@@ -409,7 +409,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testRevert_Fuzz_accountManagementAction_InsufficientReturned(
+    function testFuzz_Revert_accountManagementAction_InsufficientReturned(
         uint128 debtAmount,
         uint32 fixedLiquidationCost
     ) public {
