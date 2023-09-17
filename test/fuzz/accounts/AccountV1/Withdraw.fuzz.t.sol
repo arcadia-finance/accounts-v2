@@ -10,7 +10,7 @@ import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { AccountExtension } from "../../../utils/Extensions.sol";
-import { RiskConstants } from "../../../../src/utils/RiskConstants.sol";
+import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 
 /**
  * @notice Fuzz tests for the "withdraw" of contract "AccountV1".

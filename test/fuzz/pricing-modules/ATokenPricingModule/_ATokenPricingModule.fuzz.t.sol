@@ -8,7 +8,7 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { ATokenMock } from "../../.././utils/mocks/ATokenMock.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
-import { RiskConstants } from "../../../../src/utils/RiskConstants.sol";
+import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 import { ATokenPricingModule } from "../../../../src/pricing-modules/ATokenPricingModule.sol";
 
 /**

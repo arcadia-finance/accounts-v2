@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { OracleHub } from "../../../../src/OracleHub.sol";
-import { RiskConstants } from "../../../../src/utils/RiskConstants.sol";
+import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 
 /**
  * @notice Common logic needed by all "FloorERC1155PricingModule" fuzz tests.

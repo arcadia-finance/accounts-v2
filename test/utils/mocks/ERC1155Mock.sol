@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import { ERC1155 } from "../../../lib/solmate/src/tokens/ERC1155.sol";
-import { Strings } from "../../../src/utils/Strings.sol";
+import { Strings } from "../../../src/libraries/Strings.sol";
 
 contract ERC1155Mock is ERC1155 {
     using Strings for uint256;

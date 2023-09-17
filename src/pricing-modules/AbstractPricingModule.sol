@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IPricingModule } from "../interfaces/IPricingModule.sol";
-import { RiskConstants } from "../utils/RiskConstants.sol";
+import { RiskConstants } from "../libraries/RiskConstants.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 import { IPricingModule } from "../interfaces/IPricingModule.sol";
 

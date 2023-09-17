@@ -9,8 +9,8 @@ import { IAccount } from "./interfaces/IAccount.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { ERC721 } from "../lib/solmate/src/tokens/ERC721.sol";
-import { Strings } from "./utils/Strings.sol";
-import { MerkleProofLib } from "./utils/MerkleProofLib.sol";
+import { Strings } from "./libraries/Strings.sol";
+import { MerkleProofLib } from "./libraries/MerkleProofLib.sol";
 import { FactoryGuardian } from "./security/FactoryGuardian.sol";
 
 /**

@@ -13,7 +13,7 @@ import { ArcadiaOracle } from "../../.././utils/mocks/ArcadiaOracle.sol";
 import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
-import { RiskConstants } from "../../../../src/utils/RiskConstants.sol";
+import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 import { UniswapV2PairMock } from "../../.././utils/mocks/UniswapV2PairMock.sol";
 import { UniswapV2PricingModuleExtension } from "../../../utils/Extensions.sol";
 import { UniswapV2FactoryMock } from "../../.././utils/mocks/UniswapV2FactoryMock.sol";
