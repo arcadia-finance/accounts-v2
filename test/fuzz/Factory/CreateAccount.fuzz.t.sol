@@ -24,7 +24,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_createAccount_Paused(uint256 salt, address sender, address guardian) public {
+    function testFuzz_Revert_createAccount_Paused(uint256 salt, address sender) public {
         // When: guardian pauses the contract
         vm.warp(35 days);
         vm.prank(users.guardian);
