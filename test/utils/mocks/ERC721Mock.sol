@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "../utils/Strings.sol";
-
-import "../../lib/solmate/src/tokens/ERC721.sol";
+import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
+import { Strings } from "../../../src/utils/Strings.sol";
 
 contract ERC721Mock is ERC721 {
     using Strings for uint256;

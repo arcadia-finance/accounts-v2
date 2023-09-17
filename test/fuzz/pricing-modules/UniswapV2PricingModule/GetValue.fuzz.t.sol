@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
 
-import { UniswapV2PairMock } from "../../../../src/mockups/UniswapV2PairMock.sol";
+import { UniswapV2PairMock } from "../../.././utils/mocks/UniswapV2PairMock.sol";
 import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**

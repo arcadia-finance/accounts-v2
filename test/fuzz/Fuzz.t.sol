@@ -9,12 +9,12 @@ import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils
 import { MainRegistry } from "../../src/MainRegistry.sol";
 import { OracleHub } from "../../src/OracleHub.sol";
 import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
-import { TrustedCreditorMock } from "../../src/mockups/TrustedCreditorMock.sol";
+import { TrustedCreditorMock } from ".././utils/mocks/TrustedCreditorMock.sol";
 import { Proxy } from "../../src/Proxy.sol";
-import { ERC20Mock } from "../../src/mockups/ERC20SolmateMock.sol";
-import { ERC721Mock } from "../../src/mockups/ERC721SolmateMock.sol";
-import { ERC1155Mock } from "../../src/mockups/ERC1155SolmateMock.sol";
-import { ArcadiaOracle } from "../../src/mockups/ArcadiaOracle.sol";
+import { ERC20Mock } from ".././utils/mocks/ERC20Mock.sol";
+import { ERC721Mock } from ".././utils/mocks/ERC721Mock.sol";
+import { ERC1155Mock } from ".././utils/mocks/ERC1155Mock.sol";
+import { ArcadiaOracle } from ".././utils/mocks/ArcadiaOracle.sol";
 import { AccountV1 } from "../../src/AccountV1.sol";
 
 /**

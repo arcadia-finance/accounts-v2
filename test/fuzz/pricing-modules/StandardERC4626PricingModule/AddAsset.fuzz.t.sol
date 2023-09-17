@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
 
-import { ERC4626Mock } from "../../../../src/mockups/ERC4626Mock.sol";
+import { ERC4626DifferentDecimals } from "../../.././utils/mocks/ERC4626DifferentDecimals.sol";
 import { PricingModule } from "../../../../src/pricing-modules/StandardERC20PricingModule.sol";
 
 /**
@@ -36,11 +36,11 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         vm.assume(decimals != mockERC20.token1.decimals());
         vm.assume(decimals <= 20);
         vm.prank(users.tokenCreatorAddress);
-        ybToken1 = new ERC4626Mock(mockERC20.token1, "aETH Mock", "maETH", decimals);
+        ERC4626DifferentDecimals ybToken = new ERC4626DifferentDecimals(decimals, mockERC20.token1);
 
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("PM4626_AA: Decimals don't match");
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput, type(uint128).max);
+        erc4626PricingModule.addAsset(address(ybToken), emptyRiskVarInput, type(uint128).max);
         vm.stopPrank();
     }
 

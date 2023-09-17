@@ -8,7 +8,7 @@ import { Test } from "../lib/forge-std/src/Test.sol";
 import { Users, MockOracles, MockERC20, MockERC721, Rates } from "./utils/Types.sol";
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/AccountV1.sol";
-import { AccountV2 } from "../src/mockups/AccountV2.sol";
+import { AccountV2 } from "./utils/mocks/AccountV2.sol";
 import { MainRegistryExtension } from "./utils/Extensions.sol";
 import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
@@ -16,14 +16,14 @@ import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20
 import { FloorERC721PricingModule } from "../src/pricing-modules/FloorERC721PricingModule.sol";
 import { FloorERC1155PricingModule } from "../src/pricing-modules/FloorERC1155PricingModule.sol";
 import { UniswapV3PricingModuleExtension } from "./utils/Extensions.sol";
-import { TrustedCreditorMock } from "../src/mockups/TrustedCreditorMock.sol";
+import { TrustedCreditorMock } from "./utils/mocks/TrustedCreditorMock.sol";
 import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Errors } from "./utils/Errors.sol";
 import { Utils } from "./utils/Utils.sol";
-import { ERC20Mock } from "../src/mockups/ERC20SolmateMock.sol";
-import { ERC721Mock } from "../src/mockups/ERC721SolmateMock.sol";
-import { ERC1155Mock } from "../src/mockups/ERC1155SolmateMock.sol";
+import { ERC20Mock } from "./utils/mocks/ERC20Mock.sol";
+import { ERC721Mock } from "./utils/mocks/ERC721Mock.sol";
+import { ERC1155Mock } from "./utils/mocks/ERC1155Mock.sol";
 
 /// @notice Base test contract with common logic needed by all tests.
 abstract contract Base_Test is Test, Events, Errors {

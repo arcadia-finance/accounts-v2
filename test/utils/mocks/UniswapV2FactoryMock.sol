@@ -1,13 +1,11 @@
 /**
- * Created by Arcadia Finance
- * https://www.arcadia.finance
- *
+ * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
 pragma solidity 0.8.19;
 
-import "./UniswapV2PairMock.sol";
-import "../pricing-modules/interfaces/IUniswapV2Pair.sol";
+import { UniswapV2PairMock } from "./UniswapV2PairMock.sol";
+import { IUniswapV2Pair } from "../../../src/pricing-modules/interfaces/IUniswapV2Pair.sol";
 
 interface IUniswapV2PairExtension is IUniswapV2Pair {
     function initialize(address _token0, address _token1) external;

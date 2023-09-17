@@ -8,7 +8,7 @@ import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./_StandardERC2
 
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import { StandardERC20PricingModule } from "../../../../src/pricing-modules/StandardERC20PricingModule.sol";
-import { ArcadiaOracle } from "../../../../src/mockups/ArcadiaOracle.sol";
+import { ArcadiaOracle } from "../../.././utils/mocks/ArcadiaOracle.sol";
 
 /**
  * @notice Fuzz tests for the "setOracles" of contract "StandardERC20PricingModule".

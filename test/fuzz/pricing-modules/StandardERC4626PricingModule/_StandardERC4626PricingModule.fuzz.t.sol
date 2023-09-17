@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { ERC4626Mock } from "../../../../src/mockups/ERC4626Mock.sol";
+import { ERC4626Mock } from "../../.././utils/mocks/ERC4626Mock.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import { RiskConstants } from "../../../../src/utils/RiskConstants.sol";
 import { StandardERC4626PricingModule } from "../../../../src/pricing-modules/StandardERC4626PricingModule.sol";
@@ -38,8 +38,7 @@ abstract contract StandardERC4626PricingModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.tokenCreatorAddress);
-        ybToken1 =
-            new ERC4626Mock(mockERC20.token1, "Mocked Yield Bearing Token 1", "mybTOKEN1", mockERC20.token1.decimals());
+        ybToken1 = new ERC4626Mock(mockERC20.token1, "Mocked Yield Bearing Token 1", "mybTOKEN1");
 
         vm.startPrank(users.creatorAddress);
         erc4626PricingModule = new StandardERC4626PricingModule(

@@ -11,8 +11,8 @@ import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
-import { ArcadiaOracle } from "../../../../src/mockups/ArcadiaOracle.sol";
-import { ERC20Mock } from "../../../../src/mockups/ERC20SolmateMock.sol";
+import { ArcadiaOracle } from "../../.././utils/mocks/ArcadiaOracle.sol";
+import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
 import { INonfungiblePositionManagerExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { IUniswapV3PoolExtension } from

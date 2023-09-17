@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
-import { AccountV2 } from "../../../../src/mockups/AccountV2.sol";
+import { AccountV2 } from "../../.././utils/mocks/AccountV2.sol";
 
 /**
  * @notice Fuzz tests for the "upgradeAccount" of contract "AccountV1".

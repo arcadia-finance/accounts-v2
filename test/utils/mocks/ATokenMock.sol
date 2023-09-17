@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 // interfaces
-import "../../lib/solmate/src/tokens/ERC20.sol";
+import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
 
 contract ATokenMock is ERC20 {
     address public uToken;

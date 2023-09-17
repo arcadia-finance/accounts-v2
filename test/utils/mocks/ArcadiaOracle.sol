@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Owned } from "lib/solmate/src/auth/Owned.sol";
+import { Owned } from "../../../lib/solmate/src/auth/Owned.sol";
 
 contract ArcadiaOracle is Owned {
     // Configs

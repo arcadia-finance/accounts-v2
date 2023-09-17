@@ -8,7 +8,7 @@ import { StdInvariant } from "../../lib/forge-std/src/StdInvariant.sol";
 import { Base_Test } from "../Base.t.sol";
 
 /// @notice Common logic needed by all invariant tests.
-abstract contract Base_Invariant_Test is Base_Test {
+abstract contract Invariant_Test is Base_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/

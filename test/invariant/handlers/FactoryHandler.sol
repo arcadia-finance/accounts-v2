@@ -6,10 +6,10 @@ pragma solidity 0.8.19;
 
 import { BaseHandler } from "./BaseHandler.sol";
 import { AccountV1 } from "../../../src/AccountV1.sol";
-import { AccountV2 } from "../../../src/mockups/AccountV2.sol";
+import { AccountV2 } from "../.././utils/mocks/AccountV2.sol";
 import { Factory } from "../../../src/Factory.sol";
 import { MainRegistryExtension } from "../../utils/Extensions.sol";
-import { TrustedCreditorMock } from "../../../src/mockups/TrustedCreditorMock.sol";
+import { TrustedCreditorMock } from "../.././utils/mocks/TrustedCreditorMock.sol";
 import "../../utils/Constants.sol";
 
 /// @dev This contract and not { Factory } is exposed to Foundry for invariant testing. The point is

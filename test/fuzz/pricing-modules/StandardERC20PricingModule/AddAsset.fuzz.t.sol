@@ -10,8 +10,8 @@ import { OracleHub } from "../../../../src/OracleHub.sol";
 import {
     PricingModule, StandardERC20PricingModule
 } from "../../../../src/pricing-modules/StandardERC20PricingModule.sol";
-import { ERC20Mock } from "../../../../src/mockups/ERC20SolmateMock.sol";
-import { ArcadiaOracle } from "../../../../src/mockups/ArcadiaOracle.sol";
+import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
+import { ArcadiaOracle } from "../../.././utils/mocks/ArcadiaOracle.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "StandardERC20PricingModule".

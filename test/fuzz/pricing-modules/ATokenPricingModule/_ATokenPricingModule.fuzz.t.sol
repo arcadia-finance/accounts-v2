@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { ATokenMock } from "../../../../src/mockups/ATokenMock.sol";
+import { ATokenMock } from "../../.././utils/mocks/ATokenMock.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import { RiskConstants } from "../../../../src/utils/RiskConstants.sol";
 import { ATokenPricingModule } from "../../../../src/pricing-modules/ATokenPricingModule.sol";

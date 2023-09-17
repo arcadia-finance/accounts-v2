@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import "../../src/mockups/ArcadiaOracle.sol";
-import "../../src/mockups/ERC20SolmateMock.sol";
-import "../../src/mockups/ERC721SolmateMock.sol";
-import "../../src/mockups/ERC1155SolmateMock.sol";
+import ".././utils/mocks/ArcadiaOracle.sol";
+import ".././utils/mocks/ERC20Mock.sol";
+import ".././utils/mocks/ERC721Mock.sol";
+import ".././utils/mocks/ERC1155Mock.sol";
 
 struct Users {
     address payable creatorAddress;

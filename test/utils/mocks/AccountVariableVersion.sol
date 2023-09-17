@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AccountStorageV1 } from "../AccountStorageV1.sol";
+import { AccountStorageV1 } from "../../../src/AccountStorageV1.sol";
 
 contract AccountVariableVersion is AccountStorageV1 {
     /* //////////////////////////////////////////////////////////////
