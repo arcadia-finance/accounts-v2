@@ -161,6 +161,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         bytes calldata data
     ) public {
         vm.assume(logic > address(10));
+        vm.assume(logic != address(vm));
 
         // Redeploy Factory to start with a different MainRegistry without BaseCurrencies.
         vm.prank(users.creatorAddress);
@@ -194,6 +195,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     ) public {
         vm.assume(logic > address(10));
         vm.assume(logic != address(factory));
+        vm.assume(logic != address(vm));
         vm.assume(newAssetAddress != address(0));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();
@@ -218,6 +220,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     ) public {
         vm.assume(logic > address(10));
         vm.assume(logic != address(factory));
+        vm.assume(logic != address(vm));
         vm.assume(newAssetAddress != address(0));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();
