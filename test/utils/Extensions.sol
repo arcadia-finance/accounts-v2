@@ -4,22 +4,16 @@
  */
 pragma solidity 0.8.19;
 
-import { MainRegistry } from "../../src/MainRegistry.sol";
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
+
 import { AccountV1 } from "../../src/AccountV1.sol";
+import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
+import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
+import { MainRegistryGuardian } from "../../src/guardians/MainRegistryGuardian.sol";
+import { MainRegistry } from "../../src/MainRegistry.sol";
 import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
 import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
 import { UniswapV3WithFeesPricingModule } from "../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
-
-contract MainRegistryExtension is MainRegistry {
-    using FixedPointMathLib for uint256;
-
-    constructor(address factory_) MainRegistry(factory_) { }
-
-    function setAssetType(address asset, uint96 assetType) public {
-        assetToAssetInformation[asset].assetType = assetType;
-    }
-}
 
 contract AccountExtension is AccountV1 {
     constructor() AccountV1() { }
@@ -54,6 +48,65 @@ contract AccountExtension is AccountV1 {
 
     function setRegistry(address registry_) public {
         registry = registry_;
+    }
+}
+
+contract BaseGuardianExtension is BaseGuardian {
+    constructor() BaseGuardian() { }
+}
+
+contract FactoryGuardianExtension is FactoryGuardian {
+    constructor() FactoryGuardian() { }
+
+    function setPauseTimestamp(uint256 pauseTimestamp_) public {
+        pauseTimestamp = pauseTimestamp_;
+    }
+
+    function setFlags(bool createPaused_, bool liquidatePaused_) public {
+        createPaused = createPaused_;
+        liquidatePaused = liquidatePaused_;
+    }
+}
+
+contract MainRegistryGuardianExtension is MainRegistryGuardian {
+    constructor() MainRegistryGuardian() { }
+
+    function setPauseTimestamp(uint256 pauseTimestamp_) public {
+        pauseTimestamp = pauseTimestamp_;
+    }
+
+    function setFlags(bool withdrawPaused_, bool depositPaused_) public {
+        withdrawPaused = withdrawPaused_;
+        depositPaused = depositPaused_;
+    }
+}
+
+contract MainRegistryExtension is MainRegistry {
+    using FixedPointMathLib for uint256;
+
+    constructor(address factory_) MainRegistry(factory_) { }
+
+    function setAssetType(address asset, uint96 assetType) public {
+        assetToAssetInformation[asset].assetType = assetType;
+    }
+}
+
+contract AbstractPricingModuleExtension is PricingModule {
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
+        PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    { }
+
+    function setRiskVariablesForAsset(address asset, RiskVarInput[] memory riskVarInputs) public {
+        _setRiskVariablesForAsset(asset, riskVarInputs);
+    }
+
+    function setRiskVariables(address asset, uint256 basecurrency, RiskVars memory riskVars_) public {
+        _setRiskVariables(asset, basecurrency, riskVars_);
+    }
+
+    function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
+        exposure[asset].exposure = exposure_;
+        exposure[asset].maxExposure = maxExposure;
     }
 }
 
@@ -143,24 +196,5 @@ contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule {
 
     function getFeeAmounts(address asset, uint256 id) public view returns (uint256 amount0, uint256 amount1) {
         (amount0, amount1) = _getFeeAmounts(asset, id);
-    }
-}
-
-contract AbstractPricingModuleExtension is PricingModule {
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
-    { }
-
-    function setRiskVariablesForAsset(address asset, RiskVarInput[] memory riskVarInputs) public {
-        _setRiskVariablesForAsset(asset, riskVarInputs);
-    }
-
-    function setRiskVariables(address asset, uint256 basecurrency, RiskVars memory riskVars_) public {
-        _setRiskVariables(asset, basecurrency, riskVars_);
-    }
-
-    function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
-        exposure[asset].exposure = exposure_;
-        exposure[asset].maxExposure = maxExposure;
     }
 }

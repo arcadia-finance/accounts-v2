@@ -21,6 +21,26 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_batchProcessDeposit_Paused(address sender) public {
+        vm.warp(35 days);
+        vm.prank(users.guardian);
+        mainRegistryExtension.pause();
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(mockERC20.token1);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = 0;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = 1;
+
+        vm.startPrank(sender);
+        vm.expectRevert(FunctionIsPaused.selector);
+        mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_batchProcessDeposit_NonAccount(address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != address(proxyAccount));
 

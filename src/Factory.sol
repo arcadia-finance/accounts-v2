@@ -11,7 +11,7 @@ import { IFactory } from "./interfaces/IFactory.sol";
 import { ERC721 } from "../lib/solmate/src/tokens/ERC721.sol";
 import { Strings } from "./libraries/Strings.sol";
 import { MerkleProofLib } from "./libraries/MerkleProofLib.sol";
-import { FactoryGuardian } from "./security/FactoryGuardian.sol";
+import { FactoryGuardian } from "./guardians/FactoryGuardian.sol";
 
 /**
  * @title Factory.

@@ -21,12 +21,23 @@ contract Liquidate_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_liquidate_Paused(address liquidator_, address account_) public {
+        vm.warp(35 days);
+        vm.prank(users.guardian);
+        factory.pause();
+
+        vm.startPrank(liquidator_);
+        vm.expectRevert(FunctionIsPaused.selector);
+        factory.liquidate(account_);
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_liquidate_NonAccount(address liquidator_, address nonAccount) public {
         vm.assume(nonAccount != address(proxyAccount));
 
-        vm.startPrank(nonAccount);
+        vm.startPrank(liquidator_);
         vm.expectRevert("FTRY: Not a Account");
-        factory.liquidate(liquidator_);
+        factory.liquidate(nonAccount);
         vm.stopPrank();
     }
 }

@@ -78,6 +78,7 @@ abstract contract FactoryGuardian is BaseGuardian {
         createPaused = true;
         liquidatePaused = true;
         pauseTimestamp = block.timestamp;
+
         emit PauseUpdate(true, true);
     }
 
@@ -92,6 +93,7 @@ abstract contract FactoryGuardian is BaseGuardian {
     function unPause(bool createPaused_, bool liquidatePaused_) external onlyOwner {
         createPaused = createPaused && createPaused_;
         liquidatePaused = liquidatePaused && liquidatePaused_;
+
         emit PauseUpdate(createPaused, liquidatePaused);
     }
 
@@ -100,10 +102,9 @@ abstract contract FactoryGuardian is BaseGuardian {
      */
     function unPause() external override {
         require(block.timestamp > pauseTimestamp + 30 days, "G_UP: Cannot unPause");
-        if (createPaused || liquidatePaused) {
-            createPaused = false;
-            liquidatePaused = false;
-            emit PauseUpdate(false, false);
-        }
+        createPaused = false;
+        liquidatePaused = false;
+
+        emit PauseUpdate(false, false);
     }
 }

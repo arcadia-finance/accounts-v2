@@ -69,7 +69,8 @@ abstract contract Base_Test is Test, Events, Errors {
             liquidityProvider: createUser("liquidityProvider"),
             defaultCreatorAddress: createUser("defaultCreatorAddress"),
             defaultTransmitter: createUser("defaultTransmitter"),
-            swapper: createUser("swapper")
+            swapper: createUser("swapper"),
+            guardian: createUser("guardian")
         });
 
         // Deploy the base test contracts.
@@ -91,6 +92,12 @@ abstract contract Base_Test is Test, Events, Errors {
             address(mainRegistryExtension), address(accountV1Logic), Constants.upgradeProof1To2, ""
         );
         trustedCreditor = new TrustedCreditorMock();
+        vm.stopPrank();
+
+        // Set the Guardians.
+        vm.startPrank(users.creatorAddress);
+        factory.changeGuardian(users.guardian);
+        mainRegistryExtension.changeGuardian(users.guardian);
         vm.stopPrank();
 
         // Add Pricing Modules to the Main Registry.

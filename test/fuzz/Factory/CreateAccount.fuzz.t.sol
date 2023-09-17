@@ -24,6 +24,72 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_createAccount_Paused(uint256 salt, address sender, address guardian) public {
+        // When: guardian pauses the contract
+        vm.warp(35 days);
+        vm.prank(users.guardian);
+        factory.pause();
+
+        // Then: Reverted
+        vm.prank(sender);
+        vm.expectRevert(FunctionIsPaused.selector);
+        factory.createAccount(salt, 0, address(0), address(0));
+    }
+
+    function testFuzz_Revert_createAccount_CreateNonExistingAccountVersion(uint16 accountVersion) public {
+        uint256 currentVersion = factory.latestAccountVersion();
+        vm.assume(accountVersion > currentVersion);
+
+        vm.expectRevert("FTRY_CV: Unknown Account version");
+        factory.createAccount(
+            uint256(keccak256(abi.encodePacked(accountVersion, block.timestamp))),
+            accountVersion,
+            address(0),
+            address(0)
+        );
+    }
+
+    function testFuzz_Revert_createAccount_FromBlockedVersion(
+        uint8 accountVersion,
+        uint8 versionsToMake,
+        uint8[] calldata versionsToBlock
+    ) public {
+        AccountVariableVersion account_ = new AccountVariableVersion(0);
+
+        vm.assume(versionsToBlock.length < 10 && versionsToBlock.length > 0);
+        vm.assume(uint256(versionsToMake) + 1 < type(uint8).max);
+        vm.assume(accountVersion <= versionsToMake + 1);
+        for (uint256 i; i < versionsToMake; ++i) {
+            //create vault logic with the right version
+            //the first vault version to add is 2, so we add 2 to the index
+            account_.setAccountVersion(uint16(i + 2));
+
+            vm.prank(users.creatorAddress);
+            factory.setNewAccountInfo(address(mainRegistryExtension), address(account_), Constants.upgradeRoot1To2, "");
+        }
+
+        for (uint256 y; y < versionsToBlock.length; ++y) {
+            if (versionsToBlock[y] == 0 || versionsToBlock[y] > factory.latestAccountVersion()) {
+                continue;
+            }
+            vm.prank(users.creatorAddress);
+            factory.blockAccountVersion(versionsToBlock[y]);
+        }
+
+        for (uint256 z; z < versionsToBlock.length; ++z) {
+            if (versionsToBlock[z] == 0 || versionsToBlock[z] > factory.latestAccountVersion()) {
+                continue;
+            }
+            vm.expectRevert("FTRY_CV: Account version blocked");
+            factory.createAccount(
+                uint256(keccak256(abi.encodePacked(versionsToBlock[z], block.timestamp))),
+                versionsToBlock[z],
+                address(0),
+                address(0)
+            );
+        }
+    }
+
     function testFuzz_Success_createAccount_DeployAccountWithNoCreditor(uint256 salt) public {
         // We assume that salt > 0 as we already deployed a Account with all inputs to 0
         vm.assume(salt > 0);
@@ -97,82 +163,5 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         address proxy1 = factory.createAccount(salt, 0, address(0), address(0));
 
         assertTrue(proxy0 != proxy1);
-    }
-
-    function testFuzz_Revert_createAccount_CreateNonExistingAccountVersion(uint16 accountVersion) public {
-        uint256 currentVersion = factory.latestAccountVersion();
-        vm.assume(accountVersion > currentVersion);
-
-        vm.expectRevert("FTRY_CV: Unknown Account version");
-        factory.createAccount(
-            uint256(keccak256(abi.encodePacked(accountVersion, block.timestamp))),
-            accountVersion,
-            address(0),
-            address(0)
-        );
-    }
-
-    function testFuzz_Revert_createAccount_FromBlockedVersion(
-        uint8 accountVersion,
-        uint8 versionsToMake,
-        uint8[] calldata versionsToBlock
-    ) public {
-        AccountVariableVersion account_ = new AccountVariableVersion(0);
-
-        vm.assume(versionsToBlock.length < 10 && versionsToBlock.length > 0);
-        vm.assume(uint256(versionsToMake) + 1 < type(uint8).max);
-        vm.assume(accountVersion <= versionsToMake + 1);
-        for (uint256 i; i < versionsToMake; ++i) {
-            //create vault logic with the right version
-            //the first vault version to add is 2, so we add 2 to the index
-            account_.setAccountVersion(uint16(i + 2));
-
-            vm.prank(users.creatorAddress);
-            factory.setNewAccountInfo(address(mainRegistryExtension), address(account_), Constants.upgradeRoot1To2, "");
-        }
-
-        for (uint256 y; y < versionsToBlock.length; ++y) {
-            if (versionsToBlock[y] == 0 || versionsToBlock[y] > factory.latestAccountVersion()) {
-                continue;
-            }
-            vm.prank(users.creatorAddress);
-            factory.blockAccountVersion(versionsToBlock[y]);
-        }
-
-        for (uint256 z; z < versionsToBlock.length; ++z) {
-            if (versionsToBlock[z] == 0 || versionsToBlock[z] > factory.latestAccountVersion()) {
-                continue;
-            }
-            vm.expectRevert("FTRY_CV: Account version blocked");
-            factory.createAccount(
-                uint256(keccak256(abi.encodePacked(versionsToBlock[z], block.timestamp))),
-                versionsToBlock[z],
-                address(0),
-                address(0)
-            );
-        }
-    }
-
-    function testFuzz_Revert_createAccount_Paused(uint256 salt, address sender, address guardian) public {
-        // We assume that salt > 0 as we already deployed a Account with all inputs to 0
-        vm.assume(salt > 0);
-        vm.assume(sender != address(0));
-        vm.assume(guardian != address(0));
-        vm.assume(sender != guardian);
-
-        // Given: variables and initialization
-        vm.startPrank(users.creatorAddress);
-        factory.changeGuardian(guardian);
-        vm.stopPrank();
-        vm.warp(35 days);
-
-        // When: guardian pauses the contract
-        vm.prank(guardian);
-        factory.pause();
-
-        // Then: Reverted
-        vm.prank(sender);
-        vm.expectRevert(FunctionIsPaused.selector);
-        factory.createAccount(salt, 0, address(0), address(0));
     }
 }

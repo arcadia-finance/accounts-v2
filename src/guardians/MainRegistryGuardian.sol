@@ -101,11 +101,9 @@ abstract contract MainRegistryGuardian is BaseGuardian {
      */
     function unPause() external override {
         require(block.timestamp > pauseTimestamp + 30 days, "G_UP: Cannot unPause");
-        if (withdrawPaused || depositPaused) {
-            withdrawPaused = false;
-            depositPaused = false;
+        withdrawPaused = false;
+        depositPaused = false;
 
-            emit PauseUpdate(false, false);
-        }
+        emit PauseUpdate(false, false);
     }
 }
