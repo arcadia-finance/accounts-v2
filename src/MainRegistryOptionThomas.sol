@@ -348,10 +348,10 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @param underlyingAssetId The underlying asset ID.
      * @param underlyingAssetAmount The underlying asset amount.
      */
-    function getExposureUnderlyingAssetAfterDeposit(
+    function getUsdExposureUnderlyingAssetAfterDeposit(
         address underlyingAsset,
         uint256 underlyingAssetId,
-        uint256 underlyingAssetAmount
+        int256 underlyingAssetAmount
     ) external onlyPricingModule returns (uint256 underlyingValue) {
         (, underlyingValue) = IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule)
             .processIndirectDeposit(underlyingAsset, underlyingAssetId, underlyingAssetAmount);
@@ -363,10 +363,10 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @param underlyingAssetId The underlying asset ID.
      * @param underlyingAssetAmount The underlying asset amount.
      */
-    function getExposureUnderlyingAssetAfterWithdrawal(
+    function getUsdExposureUnderlyingAssetAfterWithdrawal(
         address underlyingAsset,
         uint256 underlyingAssetId,
-        uint256 underlyingAssetAmount
+        int256 underlyingAssetAmount
     ) external onlyPricingModule returns (uint256 underlyingValue) {
         (, underlyingValue) = IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule)
             .processIndirectWithdrawal(underlyingAsset, underlyingAssetId, underlyingAssetAmount);

@@ -251,7 +251,13 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
         emit MaxExposureSet(asset, uint128(maxExposure));
     }
 
-    function processDirectDeposit(address asset, uint256, uint256 amount) external virtual onlyMainReg {
+    /**
+     * @notice Increases the exposure to an asset on deposit.
+     * @param asset The contract address of the asset.
+     * param id The Id of the asset.
+     * @param amount The amount of tokens.
+     */
+    function processDirectDeposit(address asset, uint256, uint256 amount) public virtual onlyMainReg {
         // Cache exposureLast.
         uint256 exposureLast = exposure[asset].exposure;
 
@@ -260,8 +266,14 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
         exposure[asset].exposure = uint128(exposureLast) + uint128(amount);
     }
 
+    /**
+     * @notice Increases the exposure to an underlying asset on deposit.
+     * @param asset The contract address of the asset.
+     * param id The Id of the asset.
+     * @param amount The amount of tokens.
+     */
     function processIndirectDeposit(address asset, uint256, int256 amount)
-        external
+        public
         virtual
         onlyMainReg
         returns (bool primaryFlag, uint256 valueInUsd)
@@ -297,7 +309,7 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
      * @param amount The amount of tokens.
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
-    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual onlyMainReg {
+    function processDirectWithdrawal(address asset, uint256, uint256 amount) public virtual onlyMainReg {
         // Cache exposureLast.
         uint256 exposureLast = exposure[asset].exposure;
 
@@ -306,8 +318,14 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
             : exposure[asset].exposure = 0;
     }
 
+    /**
+     * @notice Decreases the exposure to an asset on withdrawal.
+     * @param asset The contract address of the asset.
+     * param id The Id of the asset.
+     * @param amount The amount of tokens.
+     */
     function processIndirectWithdrawal(address asset, uint256, int256 amount)
-        external
+        public
         virtual
         onlyMainReg
         returns (bool primaryFlag, uint256 valueInUsd)

@@ -9,7 +9,6 @@ import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
 
 /**
  * @title Pricing Module for Standard ERC20 tokens.

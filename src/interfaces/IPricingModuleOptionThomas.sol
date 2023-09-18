@@ -39,9 +39,13 @@ interface IPricingModule {
      */
     function processDirectDeposit(address asset, uint256 id, uint256 amount) external;
 
-    function processIndirectDeposit(address asset, uint256 id, uint256 amount)
-        external
-        returns (bool primaryFlag, uint256 value);
+    /**
+     * @notice Increases the exposure to an underlying asset on deposit.
+     * @param asset The contract address of the asset.
+     * @param id The Id of the asset.
+     * @param amount The amount of tokens.
+     */
+    function processIndirectDeposit(address asset, uint256 id, int256 amount) external returns (bool, uint256);
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
@@ -51,7 +55,11 @@ interface IPricingModule {
      */
     function processDirectWithdrawal(address asset, uint256 id, uint256 amount) external;
 
-    function processIndirectWithdrawal(address asset, uint256 id, uint256 amount)
-        external
-        returns (bool primaryFlag, uint256 value);
+    /**
+     * @notice Decreases the exposure to an underlying asset on withdrawal.
+     * @param asset The contract address of the asset.
+     * @param id The Id of the asset.
+     * @param amount The amount of tokens.
+     */
+    function processIndirectWithdrawal(address asset, uint256 id, int256 amount) external returns (bool, uint256);
 }

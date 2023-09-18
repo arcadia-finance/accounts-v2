@@ -27,10 +27,10 @@ interface IMainRegistry {
      * @param underlyingAssetId The underlying asset ID.
      * @param underlyingAssetAmount The underlying asset amount.
      */
-    function getExposureUnderlyingAssetAfterDeposit(
+    function getUsdExposureUnderlyingAssetAfterDeposit(
         address underlyingAsset,
         uint256 underlyingAssetId,
-        uint256 underlyingAssetAmount
+        int256 underlyingAssetAmount
     ) external returns (uint256 underlyingValue);
 
     /**
@@ -39,9 +39,9 @@ interface IMainRegistry {
      * @param underlyingAssetId The underlying asset ID.
      * @param underlyingAssetAmount The underlying asset amount.
      */
-    function getExposureUnderlyingAssetAfterWithdrawal(
+    function getUsdExposureUnderlyingAssetAfterWithdrawal(
         address underlyingAsset,
         uint256 underlyingAssetId,
-        uint256 underlyingAssetAmount
+        int256 underlyingAssetAmount
     ) external returns (uint256 underlyingValue);
 }
