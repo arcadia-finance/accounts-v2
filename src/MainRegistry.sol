@@ -10,7 +10,7 @@ import { IPricingModule } from "./interfaces/IPricingModule.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { RiskModule } from "./RiskModule.sol";
-import { MainRegistryGuardian } from "./security/MainRegistryGuardian.sol";
+import { MainRegistryGuardian } from "./guardians/MainRegistryGuardian.sol";
 
 /**
  * @title Main Asset registry
@@ -281,7 +281,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * 0 = ERC20.
      * 1 = ERC721.
      * 2 = ERC1155.
-     * @dev processDeposit in the pricing module checks whether it's allowlisted and updates the exposure.
+     * @dev increaseExposure in the pricing module checks whether it's allowlisted and updates the exposure.
      */
     function batchProcessDeposit(
         address[] calldata assetAddresses,

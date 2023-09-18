@@ -470,7 +470,7 @@ contract UniswapV3PricingModule is PricingModule {
             INonfungiblePositionManager(asset).positions(assetId);
 
         //
-        require(liquidity > 0, "PMUV3_PD: 0 liquidity");
+        require(liquidity > 0, "PMUV3_IE: 0 liquidity");
 
         // Since liquidity of a position can be increased by a non-owner, we have to store the liquidity during deposit.
         // Otherwise the max exposure checks can be circumvented.
@@ -493,8 +493,8 @@ contract UniswapV3PricingModule is PricingModule {
 
             // The liquidity must be in an acceptable range (from 0.2x to 5X the current price).
             // Tick difference defined as: (sqrt(1.0001))log(sqrt(5)) = 16095.2
-            require(tickCurrent - tickLower <= MAX_TICK_DIFFERENCE, "PMUV3_PD: Tlow not in limits");
-            require(tickUpper - tickCurrent <= MAX_TICK_DIFFERENCE, "PMUV3_PD: Tup not in limits");
+            require(tickCurrent - tickLower <= MAX_TICK_DIFFERENCE, "PMUV3_IE: Tlow not in limits");
+            require(tickUpper - tickCurrent <= MAX_TICK_DIFFERENCE, "PMUV3_IE: Tup not in limits");
         }
 
         // Cache sqrtRatio.
@@ -510,8 +510,8 @@ contract UniswapV3PricingModule is PricingModule {
         uint256 exposure1 = amount1Max + exposure[token1].exposure;
 
         // Check that exposure doesn't exceed maxExposure
-        require(exposure0 <= exposure[token0].maxExposure, "PMUV3_PD: Exposure0 not in limits");
-        require(exposure1 <= exposure[token1].maxExposure, "PMUV3_PD: Exposure1 not in limits");
+        require(exposure0 <= exposure[token0].maxExposure, "PMUV3_IE: Exposure0 not in limits");
+        require(exposure1 <= exposure[token1].maxExposure, "PMUV3_IE: Exposure1 not in limits");
 
         // Update exposure
         // Unsafe casts: we already know from previous requires that exposure is smaller than maxExposure (uint128).
