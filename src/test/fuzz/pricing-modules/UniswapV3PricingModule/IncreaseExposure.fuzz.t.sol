@@ -76,7 +76,7 @@ contract IncreaseExposure_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingMo
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_PD: 0 liquidity");
+        vm.expectRevert("PMUV3_IE: 0 liquidity");
         uniV3PricingModule.increaseExposure(address(nonfungiblePositionManager), tokenId, 0);
         vm.stopPrank();
     }
@@ -116,7 +116,7 @@ contract IncreaseExposure_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingMo
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_PD: Tlow not in limits");
+        vm.expectRevert("PMUV3_IE: Tlow not in limits");
         uniV3PricingModule.increaseExposure(address(nonfungiblePositionManager), tokenId, 0);
         vm.stopPrank();
     }
@@ -157,7 +157,7 @@ contract IncreaseExposure_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingMo
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_PD: Tup not in limits");
+        vm.expectRevert("PMUV3_IE: Tup not in limits");
         uniV3PricingModule.increaseExposure(address(nonfungiblePositionManager), tokenId, 0);
         vm.stopPrank();
     }
@@ -214,7 +214,7 @@ contract IncreaseExposure_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingMo
         vm.stopPrank();
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_PD: Exposure0 not in limits");
+        vm.expectRevert("PMUV3_IE: Exposure0 not in limits");
         uniV3PricingModule.increaseExposure(address(nonfungiblePositionManager), tokenId, 0);
         vm.stopPrank();
     }
@@ -271,7 +271,7 @@ contract IncreaseExposure_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingMo
         vm.stopPrank();
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_PD: Exposure1 not in limits");
+        vm.expectRevert("PMUV3_IE: Exposure1 not in limits");
         uniV3PricingModule.increaseExposure(address(nonfungiblePositionManager), tokenId, 0);
         vm.stopPrank();
     }

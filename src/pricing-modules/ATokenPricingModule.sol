@@ -147,6 +147,7 @@ contract ATokenPricingModule is PricingModule {
      * param assetId The Id of the asset.
      * @param amount The amount of tokens.
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens can be deposited.
+     * TODO Check for gas to avoid two storage reads below
      */
     function increaseExposure(address asset, uint256, uint256 amount) external override onlyMainReg {
         require(
