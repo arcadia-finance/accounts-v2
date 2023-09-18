@@ -11,7 +11,7 @@ import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingMo
 /**
  * @notice Fuzz tests for the "setExposureOfAsset" of contract "AbstractPricingModule".
  */
-contract SetExposureOfAsset_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
+contract SetExposureOfAsset_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

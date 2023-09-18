@@ -281,7 +281,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * 0 = ERC20.
      * 1 = ERC721.
      * 2 = ERC1155.
-     * @dev processDeposit in the pricing module checks whether it's allowlisted and updates the exposure.
+     * @dev increaseExposure in the pricing module checks whether it's allowlisted and updates the exposure.
      */
     function batchProcessDeposit(
         address[] calldata assetAddresses,
@@ -297,8 +297,8 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             assetAddress = assetAddresses[i];
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 
-            IPricingModule(assetToAssetInformation[assetAddress].pricingModule).processDeposit(
-                msg.sender, assetAddress, assetIds[i], amounts[i]
+            IPricingModule(assetToAssetInformation[assetAddress].pricingModule).increaseExposure(
+                assetAddress, assetIds[i], amounts[i]
             );
 
             unchecked {
@@ -332,14 +332,46 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             assetAddress = assetAddresses[i];
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 
-            IPricingModule(assetToAssetInformation[assetAddress].pricingModule).processWithdrawal(
-                msg.sender, assetAddress, assetIds[i], amounts[i]
+            IPricingModule(assetToAssetInformation[assetAddress].pricingModule).decreaseExposure(
+                assetAddress, assetIds[i], amounts[i]
             );
 
             unchecked {
                 ++i;
             }
         }
+    }
+
+    /**
+     * @notice This function is called by pricing modules of non-primary assets in order to increase the exposure of the underlying asset.
+     * @param underlyingAsset The underlying asset of a non-primary asset.
+     * @param underlyingAssetId The underlying asset ID.
+     * @param underlyingAssetAmount The underlying asset amount.
+     */
+    function increaseExposureUnderlyingAsset(
+        address underlyingAsset,
+        uint256 underlyingAssetId,
+        uint256 underlyingAssetAmount
+    ) external onlyPricingModule {
+        IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule).increaseExposure(
+            underlyingAsset, underlyingAssetId, underlyingAssetAmount
+        );
+    }
+
+    /**
+     * @notice This function is called by pricing modules of non-primary assets in order to decrease the exposure of the underlying asset.
+     * @param underlyingAsset The underlying asset of a non-primary asset.
+     * @param underlyingAssetId The underlying asset ID.
+     * @param underlyingAssetAmount The underlying asset amount.
+     */
+    function decreaseExposureUnderlyingAsset(
+        address underlyingAsset,
+        uint256 underlyingAssetId,
+        uint256 underlyingAssetAmount
+    ) external onlyPricingModule {
+        IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule).increaseExposure(
+            underlyingAsset, underlyingAssetId, underlyingAssetAmount
+        );
     }
 
     /* ///////////////////////////////////////////////////////////////

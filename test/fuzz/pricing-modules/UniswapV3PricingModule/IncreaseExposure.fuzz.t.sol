@@ -17,9 +17,9 @@ import { LiquidityAmounts } from "../../../../src/pricing-modules/UniswapV3/libr
 import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
- * @notice Fuzz tests for the "processDeposit" of contract "UniswapV3PricingModule".
+ * @notice Fuzz tests for the "increaseExposure" of contract "UniswapV3PricingModule".
  */
-contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuzz_Test {
+contract IncreaseExposure_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -43,18 +43,18 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processDeposit_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
+    function testFuzz_Revert_increaseExposure_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
         public
     {
         vm.assume(unprivilegedAddress != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        uniV3PricingModule.processDeposit(address(0), asset, id, 0);
+        uniV3PricingModule.increaseExposure(asset, id, 0);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_processDeposit_ZeroLiquidity() public {
+    function testFuzz_Revert_increaseExposure_ZeroLiquidity() public {
         // Create Uniswap V3 pool initiated at tick 0 with cardinality 300.
         pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(0), 300);
 
@@ -77,12 +77,12 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_PD: 0 liquidity");
-        uniV3PricingModule.processDeposit(address(0), address(nonfungiblePositionManager), tokenId, 0);
+        vm.expectRevert("PMUV3_IE: 0 liquidity");
+        uniV3PricingModule.increaseExposure(address(nonfungiblePositionManager), tokenId, 0);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_processDeposit_BelowAcceptedRange(
+    function testFuzz_Revert_increaseExposure_BelowAcceptedRange(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -117,12 +117,12 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_PD: Tlow not in limits");
-        uniV3PricingModule.processDeposit(address(0), address(nonfungiblePositionManager), tokenId, 0);
+        vm.expectRevert("PMUV3_IE: Tlow not in limits");
+        uniV3PricingModule.increaseExposure(address(nonfungiblePositionManager), tokenId, 0);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_processDeposit_AboveAcceptedRange(
+    function testFuzz_Revert_increaseExposure_AboveAcceptedRange(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -158,12 +158,12 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_PD: Tup not in limits");
-        uniV3PricingModule.processDeposit(address(0), address(nonfungiblePositionManager), tokenId, 0);
+        vm.expectRevert("PMUV3_IE: Tup not in limits");
+        uniV3PricingModule.increaseExposure(address(nonfungiblePositionManager), tokenId, 0);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_processDeposit_ExposureToken0ExceedingMax(
+    function testFuzz_Revert_increaseExposure_ExposureToken0ExceedingMax(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -215,12 +215,12 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
         vm.stopPrank();
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_PD: Exposure0 not in limits");
-        uniV3PricingModule.processDeposit(address(0), address(nonfungiblePositionManager), tokenId, 0);
+        vm.expectRevert("PMUV3_IE: Exposure0 not in limits");
+        uniV3PricingModule.increaseExposure(address(nonfungiblePositionManager), tokenId, 0);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_processDeposit_ExposureToken1ExceedingMax(
+    function testFuzz_Revert_increaseExposure_ExposureToken1ExceedingMax(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -272,12 +272,12 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
         vm.stopPrank();
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_PD: Exposure1 not in limits");
-        uniV3PricingModule.processDeposit(address(0), address(nonfungiblePositionManager), tokenId, 0);
+        vm.expectRevert("PMUV3_IE: Exposure1 not in limits");
+        uniV3PricingModule.increaseExposure(address(nonfungiblePositionManager), tokenId, 0);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_processDeposit(
+    function testFuzz_Success_increaseExposure(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -335,7 +335,7 @@ contract ProcessDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModu
         vm.stopPrank();
 
         vm.prank(address(mainRegistryExtension));
-        uniV3PricingModule.processDeposit(address(0), address(nonfungiblePositionManager), tokenId, 0);
+        uniV3PricingModule.increaseExposure(address(nonfungiblePositionManager), tokenId, 0);
 
         (, uint128 exposure0) = uniV3PricingModule.exposure(address(token0));
         (, uint128 exposure1) = uniV3PricingModule.exposure(address(token1));

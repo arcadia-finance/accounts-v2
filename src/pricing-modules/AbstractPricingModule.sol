@@ -250,29 +250,27 @@ abstract contract PricingModule is Owned, IPricingModule {
     }
 
     /**
-     * @notice Processes the deposit of an asset.
-     * param account The contract address of the Account where the asset is transferred to.
+     * @notice Increases the exposure to an asset on deposit.
      * @param asset The contract address of the asset.
      * param assetId The Id of the asset.
      * @param amount The amount of tokens.
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens can be deposited.
      */
-    function processDeposit(address, address asset, uint256, uint256 amount) external virtual onlyMainReg {
+    function increaseExposure(address asset, uint256, uint256 amount) external virtual onlyMainReg {
         require(
-            exposure[asset].exposure + uint128(amount) <= exposure[asset].maxExposure, "APM_PD: Exposure not in limits"
+            exposure[asset].exposure + uint128(amount) <= exposure[asset].maxExposure, "APM_IE: Exposure not in limits"
         );
         exposure[asset].exposure += uint128(amount);
     }
 
     /**
-     * @notice Processes the withdrawal an asset.
-     * param account The address of the Account where the asset is withdrawn from
+     * @notice Decreases the exposure to an asset on withdrawal.
      * @param asset The contract address of the asset.
      * param assetId The Id of the asset.
      * @param amount The amount of tokens.
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
-    function processWithdrawal(address, address asset, uint256, uint256 amount) external virtual onlyMainReg {
+    function decreaseExposure(address asset, uint256, uint256 amount) external virtual onlyMainReg {
         exposure[asset].exposure >= amount ? exposure[asset].exposure -= uint128(amount) : exposure[asset].exposure = 0;
     }
 }

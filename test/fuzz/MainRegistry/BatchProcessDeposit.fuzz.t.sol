@@ -93,7 +93,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(address(proxyAccount));
-        vm.expectRevert("APM_PD: Exposure not in limits");
+        vm.expectRevert("APM_IE: Exposure not in limits");
         mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }

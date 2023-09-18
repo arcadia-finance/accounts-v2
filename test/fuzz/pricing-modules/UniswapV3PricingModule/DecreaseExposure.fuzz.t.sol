@@ -15,9 +15,9 @@ import { LiquidityAmounts } from "../../../../src/pricing-modules/UniswapV3/libr
 import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
- * @notice Fuzz tests for the "processWithdrawal" of contract "UniswapV3PricingModule".
+ * @notice Fuzz tests for the "decreaseExposure" of contract "UniswapV3PricingModule".
  */
-contract ProcessWithdrawal_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuzz_Test {
+contract DecreaseExposure_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -41,18 +41,18 @@ contract ProcessWithdrawal_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingM
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processWithdrawal_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
+    function testFuzz_Revert_decreaseExposure_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
         public
     {
         vm.assume(unprivilegedAddress != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        uniV3PricingModule.processWithdrawal(address(0), asset, id, 0);
+        uniV3PricingModule.decreaseExposure(asset, id, 0);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_processWithdrawal(
+    function testFuzz_Success_decreaseExposure(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -114,10 +114,10 @@ contract ProcessWithdrawal_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingM
 
         // Deposit assets (necessary to update the position in the Pricing Module).
         vm.prank(address(mainRegistryExtension));
-        uniV3PricingModule.processDeposit(address(0), address(nonfungiblePositionManager), tokenId, 0);
+        uniV3PricingModule.increaseExposure(address(nonfungiblePositionManager), tokenId, 0);
 
         vm.prank(address(mainRegistryExtension));
-        uniV3PricingModule.processWithdrawal(address(0), address(nonfungiblePositionManager), tokenId, 0);
+        uniV3PricingModule.decreaseExposure(address(nonfungiblePositionManager), tokenId, 0);
 
         (, uint128 exposure0) = uniV3PricingModule.exposure(address(token0));
         (, uint128 exposure1) = uniV3PricingModule.exposure(address(token1));

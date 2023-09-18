@@ -405,8 +405,7 @@ contract UniswapV3WithFeesPricingModule is PricingModule {
     }
 
     /**
-     * @notice Processes the deposit of an asset.
-     * param account The contract address of the Account where the asset is transferred to.
+     * @notice Increases the exposure to an asset on deposit.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * param amount The amount of tokens.
@@ -419,11 +418,11 @@ contract UniswapV3WithFeesPricingModule is PricingModule {
      * The chosen max range (from 0.2x to 5X the current price) is a trade-off between not hindering normal usage of LPs and
      * making it expensive for malicious actors to manipulate exposures (now they have to deposit at least 20% of the max exposure).
      */
-    function processDeposit(address, address asset, uint256 assetId, uint256) external override onlyMainReg {
+    function increaseExposure(address asset, uint256 assetId, uint256) external override onlyMainReg {
         (,, address token0, address token1,, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) =
             INonfungiblePositionManager(asset).positions(assetId);
 
-        require(liquidity > 0, "PMUV3_PD: 0 liquidity");
+        require(liquidity > 0, "PMUV3_IE: 0 liquidity");
 
         // Since liquidity of a position can be increased by a non-owner, we have to store the liquidity during deposit.
         // Otherwise the max exposure checks can be circumvented.
@@ -440,8 +439,8 @@ contract UniswapV3WithFeesPricingModule is PricingModule {
 
             // The liquidity must be in an acceptable range (from 0.2x to 5x the current price).
             // Tick difference defined as: (sqrt(1.0001))log(sqrt(5)) = 16095.2
-            require(tickCurrent - tickLower <= MAX_TICK_DIFFERENCE, "PMUV3_PD: Tlow not in limits");
-            require(tickUpper - tickCurrent <= MAX_TICK_DIFFERENCE, "PMUV3_PD: Tup not in limits");
+            require(tickCurrent - tickLower <= MAX_TICK_DIFFERENCE, "PMUV3_IE: Tlow not in limits");
+            require(tickUpper - tickCurrent <= MAX_TICK_DIFFERENCE, "PMUV3_IE: Tup not in limits");
         }
 
         // Cache sqrtRatio.
@@ -457,8 +456,8 @@ contract UniswapV3WithFeesPricingModule is PricingModule {
         uint256 exposure1 = amount1Max + exposure[token1].exposure;
 
         // Check that exposure doesn't exceed maxExposure
-        require(exposure0 <= exposure[token0].maxExposure, "PMUV3_PD: Exposure0 not in limits");
-        require(exposure1 <= exposure[token1].maxExposure, "PMUV3_PD: Exposure1 not in limits");
+        require(exposure0 <= exposure[token0].maxExposure, "PMUV3_IE: Exposure0 not in limits");
+        require(exposure1 <= exposure[token1].maxExposure, "PMUV3_IE: Exposure1 not in limits");
 
         // Update exposure
         // Unsafe casts: we already know from previous requires that exposure is smaller than maxExposure (uint128).
@@ -495,7 +494,7 @@ contract UniswapV3WithFeesPricingModule is PricingModule {
      * param amount The amount of tokens.
      * @dev Unsafe cast to uint128, we know that the same cast did not overflow in deposit().
      */
-    function processWithdrawal(address, address asset, uint256 assetId, uint256) external override onlyMainReg {
+    function decreaseExposure(address asset, uint256 assetId, uint256) external override onlyMainReg {
         // Cache sqrtRatio.
         uint160 sqrtRatioLowerX96 = TickMath.getSqrtRatioAtTick(positions[asset][assetId].tickLower);
         uint160 sqrtRatioUpperX96 = TickMath.getSqrtRatioAtTick(positions[asset][assetId].tickUpper);
