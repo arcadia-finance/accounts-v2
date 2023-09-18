@@ -30,7 +30,7 @@ contract ChangeGuardian_BaseGuardian_Fuzz_Test is BaseGuardian_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testSuccess_changeGuardian(address newGuardian) public {
+    function testFuzz_Success_changeGuardian(address newGuardian) public {
         address oldGuardian = baseGuardian.guardian();
 
         vm.startPrank(users.creatorAddress);

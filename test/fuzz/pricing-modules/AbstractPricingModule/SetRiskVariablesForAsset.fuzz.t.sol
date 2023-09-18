@@ -12,7 +12,7 @@ import { PricingModule, RiskConstants } from "../../../../src/pricing-modules/Ab
 /**
  * @notice Fuzz tests for the "_setRiskVariablesForAsset" of contract "AbstractPricingModule".
  */
-contract SetRiskVariablesForAsset_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
+contract SetRiskVariablesForAsset_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                               SETUP

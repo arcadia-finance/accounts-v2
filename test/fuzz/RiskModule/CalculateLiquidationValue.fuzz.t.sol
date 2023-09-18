@@ -22,7 +22,7 @@ contract CalculateLiquidationValue_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_calculateLiquidationValue(
+    function testFuzz_Success_calculateLiquidationValue(
         uint128 firstValue,
         uint128 secondValue,
         uint16 firstLiqFactor,

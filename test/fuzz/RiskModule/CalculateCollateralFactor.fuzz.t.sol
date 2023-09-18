@@ -22,7 +22,7 @@ contract CalculateCollateralFactor_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testSuccess_calculateCollateralFactor(
+    function testFuzz_Success_calculateCollateralFactor(
         uint128 firstValue,
         uint128 secondValue,
         uint16 firstCollFactor,
