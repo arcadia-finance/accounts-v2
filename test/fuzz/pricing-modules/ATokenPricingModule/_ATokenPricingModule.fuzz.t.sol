@@ -23,7 +23,6 @@ abstract contract ATokenPricingModule_Fuzz_Test is Fuzz_Test {
     uint16 internal liquidationFactor = RiskConstants.DEFAULT_LIQUIDATION_FACTOR;
 
     ATokenMock public aToken1;
-    ATokenMock public aToken2;
 
     /* ///////////////////////////////////////////////////////////////
                           TEST CONTRACTS
@@ -38,12 +37,9 @@ abstract contract ATokenPricingModule_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.prank(users.tokenCreatorAddress);
         aToken1 =
             new ATokenMock(address(mockERC20.token1), "Mocked AAVE Token 1", "maTOKEN1", mockERC20.token1.decimals());
-        aToken2 =
-            new ATokenMock(address(mockERC20.token2), "Mocked AAVE Token 2", "maTOKEN2", mockERC20.token2.decimals());
-        vm.stopPrank();
 
         vm.startPrank(users.creatorAddress);
         aTokenPricingModule = new ATokenPricingModule(
@@ -52,7 +48,6 @@ abstract contract ATokenPricingModule_Fuzz_Test is Fuzz_Test {
             0,address(erc20PricingModule)
         );
         mainRegistryExtension.addPricingModule(address(aTokenPricingModule));
-        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput, type(uint128).max);
         vm.stopPrank();
     }
 }

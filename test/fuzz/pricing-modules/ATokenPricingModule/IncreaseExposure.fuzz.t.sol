@@ -17,15 +17,20 @@ contract IncreaseExposure_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_F
 
     function setUp() public override {
         ATokenPricingModule_Fuzz_Test.setUp();
+
+        vm.prank(users.creatorAddress);
+        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput, type(uint128).max);
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_increaseExposure_NonMainRegistry(address unprivilegedAddress_, address asset, uint128 amount)
-        public
-    {
+    function testFuzz_Revert_increaseExposure_NonMainRegistry(
+        address unprivilegedAddress_,
+        address asset,
+        uint128 amount
+    ) public {
         vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress_);
