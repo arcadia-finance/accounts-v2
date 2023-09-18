@@ -9,9 +9,9 @@ import { Constants, AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingMo
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
- * @notice Fuzz tests for the "processWithdrawal" of contract "AbstractPricingModule".
+ * @notice Fuzz tests for the "increaseExposure" of contract "AbstractPricingModule".
  */
-contract ProcessWithdrawal_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
+contract IncreaseExposure_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -23,59 +23,48 @@ contract ProcessWithdrawal_OracleHub_Fuzz_Test is AbstractPricingModule_Fuzz_Tes
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processWithdrawal_NonMainRegistry(
+    function testFuzz_Revert_increaseExposure_NonMainRegistry(
         address unprivilegedAddress_,
         address asset,
-        uint128 id,
-        uint128 amount,
-        address account_
+        uint128 amount
     ) public {
         vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        pricingModule.processWithdrawal(account_, asset, id, amount);
+        pricingModule.increaseExposure(asset, 0, amount);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_processWithdrawal(
+    function testFuzz_Revert_increaseExposure_OverExposure(
         address asset,
         uint128 exposure,
         uint128 amount,
-        uint128 maxExposure,
-        uint128 id,
-        address account_
+        uint128 maxExposure
     ) public {
-        vm.assume(maxExposure >= exposure);
-        vm.assume(exposure >= amount);
+        vm.assume(exposure <= type(uint128).max - amount);
+        vm.assume(exposure + amount > maxExposure);
         pricingModule.setExposure(asset, exposure, maxExposure);
 
-        vm.prank(address(mainRegistryExtension));
-        pricingModule.processWithdrawal(account_, asset, id, amount);
-
-        (, uint128 actualExposure) = pricingModule.exposure(address(asset));
-        uint128 expectedExposure = exposure - amount;
-
-        assertEq(actualExposure, expectedExposure);
+        vm.startPrank(address(mainRegistryExtension));
+        vm.expectRevert("APM_IE: Exposure not in limits");
+        pricingModule.increaseExposure(address(asset), 0, amount);
+        vm.stopPrank();
     }
 
-    function testFuzz_Success_processWithdrawal_withAmountGreaterThanExposure(
-        address asset,
-        uint128 exposure,
-        uint128 amount,
-        uint128 maxExposure,
-        uint128 id,
-        address account_
-    ) public {
-        vm.assume(maxExposure >= exposure);
-        vm.assume(exposure < amount);
+    function testFuzz_Success_increaseExposure(address asset, uint128 exposure, uint128 amount, uint128 maxExposure)
+        public
+    {
+        vm.assume(exposure <= type(uint128).max - amount);
+        vm.assume(exposure + amount <= maxExposure);
         pricingModule.setExposure(asset, exposure, maxExposure);
 
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processWithdrawal(account_, asset, id, amount);
+        pricingModule.increaseExposure(address(asset), 0, amount);
 
         (, uint128 actualExposure) = pricingModule.exposure(address(asset));
+        uint128 expectedExposure = exposure + amount;
 
-        assertEq(actualExposure, 0);
+        assertEq(actualExposure, expectedExposure);
     }
 }

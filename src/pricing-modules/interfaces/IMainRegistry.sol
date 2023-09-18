@@ -20,4 +20,28 @@ interface IMainRegistry {
      * 2 = ERC1155.
      */
     function addAsset(address asset, uint256 assetType) external;
+
+    /**
+     * @notice This function is called by pricing modules of non-primary assets in order to increase the exposure of the underlying asset.
+     * @param underlyingAsset The underlying asset of a non-primary asset.
+     * @param underlyingAssetId The underlying asset ID.
+     * @param underlyingAssetAmount The underlying asset amount.
+     */
+    function increaseExposureUnderlyingAsset(
+        address underlyingAsset,
+        uint256 underlyingAssetId,
+        uint256 underlyingAssetAmount
+    ) external;
+
+    /**
+     * @notice This function is called by pricing modules of non-primary assets in order to decrease the exposure of the underlying asset.
+     * @param underlyingAsset The underlying asset of a non-primary asset.
+     * @param underlyingAssetId The underlying asset ID.
+     * @param underlyingAssetAmount The underlying asset amount.
+     */
+    function decreaseExposureUnderlyingAsset(
+        address underlyingAsset,
+        uint256 underlyingAssetId,
+        uint256 underlyingAssetAmount
+    ) external;
 }

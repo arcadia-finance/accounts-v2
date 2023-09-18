@@ -71,6 +71,30 @@ interface IMainRegistry {
     ) external returns (uint256[] memory);
 
     /**
+     * @notice This function is called by pricing modules of non-primary assets in order to increase the exposure of the underlying asset.
+     * @param underlyingAsset The underlying asset of a non-primary asset.
+     * @param underlyingAssetId The underlying asset ID.
+     * @param underlyingAssetAmount The underlying asset amount.
+     */
+    function increaseExposureUnderlyingAsset(
+        address underlyingAsset,
+        uint256 underlyingAssetId,
+        uint256 underlyingAssetAmount
+    ) external;
+
+    /**
+     * @notice This function is called by pricing modules of non-primary assets in order to decrease the exposure of the underlying asset.
+     * @param underlyingAsset The underlying asset of a non-primary asset.
+     * @param underlyingAssetId The underlying asset ID.
+     * @param underlyingAssetAmount The underlying asset amount.
+     */
+    function decreaseExposureUnderlyingAsset(
+        address underlyingAsset,
+        uint256 underlyingAssetId,
+        uint256 underlyingAssetAmount
+    ) external;
+
+    /**
      * @notice Calculates the combined value of a combination of assets, denominated in a given BaseCurrency.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
