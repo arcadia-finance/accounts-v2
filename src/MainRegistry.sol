@@ -10,7 +10,7 @@ import { IPricingModule } from "./interfaces/IPricingModule.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { RiskModule } from "./RiskModule.sol";
-import { MainRegistryGuardian } from "./security/MainRegistryGuardian.sol";
+import { MainRegistryGuardian } from "./guardians/MainRegistryGuardian.sol";
 
 /**
  * @title Main Asset registry
