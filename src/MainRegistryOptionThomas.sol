@@ -346,30 +346,40 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @notice This function is called by pricing modules of non-primary assets in order to increase the exposure of the underlying asset.
      * @param underlyingAsset The underlying asset of a non-primary asset.
      * @param underlyingAssetId The underlying asset ID.
-     * @param underlyingAssetAmount The underlying asset amount.
+     * @param exposureAssetToUnderlyingAsset.
+     * @param deltaExposureAssetToUnderlyingAsset.
      */
     function getUsdExposureUnderlyingAssetAfterDeposit(
         address underlyingAsset,
         uint256 underlyingAssetId,
-        int256 underlyingAssetAmount
-    ) external onlyPricingModule returns (uint256 underlyingValue) {
-        (, underlyingValue) = IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule)
-            .processIndirectDeposit(underlyingAsset, underlyingAssetId, underlyingAssetAmount);
+        uint256 exposureAssetToUnderlyingAsset,
+        int256 deltaExposureAssetToUnderlyingAsset
+    ) external onlyPricingModule returns (uint256 usdValueExposureAssetToUnderlyingAsset) {
+        (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule(
+            assetToAssetInformation[underlyingAsset].pricingModule
+        ).processIndirectDeposit(
+            underlyingAsset, underlyingAssetId, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
+        );
     }
 
     /**
      * @notice This function is called by pricing modules of non-primary assets in order to decrease the exposure of the underlying asset.
      * @param underlyingAsset The underlying asset of a non-primary asset.
      * @param underlyingAssetId The underlying asset ID.
-     * @param underlyingAssetAmount The underlying asset amount.
+     * @param exposureAssetToUnderlyingAsset.
+     * @param deltaExposureAssetToUnderlyingAsset.
      */
     function getUsdExposureUnderlyingAssetAfterWithdrawal(
         address underlyingAsset,
         uint256 underlyingAssetId,
-        int256 underlyingAssetAmount
-    ) external onlyPricingModule returns (uint256 underlyingValue) {
-        (, underlyingValue) = IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule)
-            .processIndirectWithdrawal(underlyingAsset, underlyingAssetId, underlyingAssetAmount);
+        uint256 exposureAssetToUnderlyingAsset,
+        int256 deltaExposureAssetToUnderlyingAsset
+    ) external onlyPricingModule returns (uint256 usdValueExposureAssetToUnderlyingAsset) {
+        (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule(
+            assetToAssetInformation[underlyingAsset].pricingModule
+        ).processIndirectWithdrawal(
+            underlyingAsset, underlyingAssetId, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
+        );
     }
 
     /* ///////////////////////////////////////////////////////////////

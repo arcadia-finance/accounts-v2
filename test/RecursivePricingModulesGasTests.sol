@@ -106,8 +106,8 @@ contract Fuzz_Test is Base_Test {
 
         // Set max USD exposures.
         vm.startPrank(users.creatorAddress);
-        middleErc4626PricingModule.setMaxUsdExposure(type(uint128).max);
-        upperErc4626PricingModule.setMaxUsdExposure(type(uint128).max);
+        middleErc4626PricingModule.setMaxUsdExposureProtocol(type(uint128).max);
+        upperErc4626PricingModule.setMaxUsdExposureProtocol(type(uint128).max);
 
         // Set rates
         tokenToUsd = 1 ** Constants.tokenOracleDecimals;
@@ -222,6 +222,36 @@ contract Fuzz_Test is Base_Test {
 
         vm.prank(users.accountOwner);
         proxyAccount.withdraw(assetAddresses, assetIds, assetAmounts);
+    }
+
+    function testGas_ChangingRate() public {
+        address[] memory assetAddresses = new address[](3);
+        assetAddresses[0] = address(primaryToken);
+        assetAddresses[1] = address(middleToken);
+        assetAddresses[2] = address(upperToken);
+
+        uint256[] memory assetIds = new uint256[](3);
+
+        uint256[] memory assetAmounts = new uint256[](3);
+        assetAmounts[0] = 100 * 10 ** Constants.tokenDecimals;
+        assetAmounts[1] = 10 * 10 ** Constants.tokenDecimals;
+        assetAmounts[2] = 1 * 10 ** Constants.tokenDecimals;
+
+        vm.prank(users.accountOwner);
+        proxyAccount.deposit(assetAddresses, assetIds, assetAmounts);
+
+        vm.prank(users.tokenCreatorAddress);
+        primaryToken.mint(address(middleToken), 11 * 10 ** Constants.tokenDecimals);
+
+        assetAddresses = new address[](1);
+        assetAddresses[0] = address(upperToken);
+
+        assetIds = new uint256[](1);
+
+        assetAmounts = new uint256[](1);
+
+        vm.prank(users.accountOwner);
+        proxyAccount.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

@@ -23,9 +23,9 @@ abstract contract DerivedPricingModule is Owned, IPricingModule {
     ////////////////////////////////////////////////////////////// */
 
     // The maximum total exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
-    uint256 maxUsdExposure;
+    uint256 maxUsdExposureProtocol;
     // The actual exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
-    uint256 usdExposure;
+    uint256 usdExposureProtocol;
 
     // The contract address of the MainRegistry.
     address public immutable mainRegistry;
@@ -49,7 +49,7 @@ abstract contract DerivedPricingModule is Owned, IPricingModule {
     ////////////////////////////////////////////////////////////// */
 
     event RiskManagerUpdated(address riskManager);
-    event MaxUsdExposureSet(uint256 maxExposure);
+    event MaxUsdExposureProtocolSet(uint256 maxExposure);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -141,23 +141,23 @@ abstract contract DerivedPricingModule is Owned, IPricingModule {
 
     /**
      * @notice Sets the maximum exposure for the protocol.
-     * @param maxUsdExposure_ The maximum total exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
+     * @param maxUsdExposureProtocol_ The maximum total exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
      * @dev Can only be called by the Risk Manager, which can be different from the owner.
      */
-    function setMaxUsdExposure(uint256 maxUsdExposure_) public virtual onlyRiskManager {
-        maxUsdExposure = maxUsdExposure_;
+    function setMaxUsdExposureProtocol(uint256 maxUsdExposureProtocol_) public virtual onlyRiskManager {
+        maxUsdExposureProtocol = maxUsdExposureProtocol_;
 
-        emit MaxUsdExposureSet(maxUsdExposure_);
+        emit MaxUsdExposureProtocolSet(maxUsdExposureProtocol_);
     }
 
     function processDirectDeposit(address asset, uint256, uint256 amount) external virtual onlyMainReg { }
 
-    function processIndirectDeposit(address asset, uint256, int256 amount)
-        external
-        virtual
-        onlyMainReg
-        returns (bool primaryFlag, uint256 valueInUsd)
-    { }
+    function processIndirectDeposit(
+        address asset,
+        uint256,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) external virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
@@ -168,10 +168,10 @@ abstract contract DerivedPricingModule is Owned, IPricingModule {
      */
     function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual onlyMainReg { }
 
-    function processIndirectWithdrawal(address asset, uint256, int256 amount)
-        external
-        virtual
-        onlyMainReg
-        returns (bool primaryFlag, uint256 valueInUsd)
-    { }
+    function processIndirectWithdrawal(
+        address asset,
+        uint256,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) external virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
 }

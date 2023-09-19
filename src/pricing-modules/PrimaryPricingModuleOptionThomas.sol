@@ -4,6 +4,8 @@
  */
 pragma solidity 0.8.19;
 
+import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
+
 import { IMainRegistry } from "./interfaces/IMainRegistryOptionThomas.sol";
 import { IPricingModule } from "../interfaces/IPricingModuleOptionThomas.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
@@ -14,6 +16,7 @@ import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
  * @author Pragma Labs
  */
 abstract contract PrimaryPricingModule is Owned, IPricingModule {
+    using FixedPointMathLib for uint256;
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
@@ -266,51 +269,49 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
         require(exposureLast + uint128(amount) <= exposure[asset].maxExposure, "APM_IE: Exposure not in limits");
 
         exposure[asset].exposure = uint128(exposureLast) + uint128(amount);
-        emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureLast) + uint128(amount));
+        emit AssetExposureChanged(asset, uint128(exposureLast), exposure[asset].exposure);
     }
 
     /**
      * @notice Increases the exposure to an underlying asset on deposit.
      * @param asset The contract address of the asset.
      * param id The Id of the asset.
-     * @param amount The amount of tokens.
+     * @param exposureUpperAssetToAsset .
+     * @param deltaExposureUpperAssetToAsset .
      */
-    function processIndirectDeposit(address asset, uint256, int256 amount)
-        public
-        virtual
-        onlyMainReg
-        returns (bool primaryFlag, uint256 valueInUsd)
-    {
+    function processIndirectDeposit(
+        address asset,
+        uint256,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         // Cache exposureLast.
         uint256 exposureLast = exposure[asset].exposure;
 
-        if (amount > 0) {
-            require(
-                exposureLast + uint128(uint256(amount)) <= exposure[asset].maxExposure, "APM_IE: Exposure not in limits"
-            );
-
-            exposure[asset].exposure = uint128(exposureLast) + uint128(uint256(amount));
-            emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureLast) + uint128(uint256(amount)));
+        uint256 exposureAsset;
+        if (deltaExposureUpperAssetToAsset > 0) {
+            exposureAsset = exposureLast + uint256(deltaExposureUpperAssetToAsset);
+            require(exposureAsset <= exposure[asset].maxExposure, "APM_IE: Exposure not in limits");
         } else {
-            uint256 amount_ = uint256(-amount);
-            exposureLast >= amount_
-                ? exposure[asset].exposure = uint128(exposureLast) - uint128(amount_)
-                : exposure[asset].exposure = 0;
-            emit AssetExposureChanged(
-                asset,
-                uint128(exposureLast),
-                exposureLast >= amount_
-                    ? exposure[asset].exposure = uint128(exposureLast) - uint128(amount_)
-                    : exposure[asset].exposure = 0
-            );
+            exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
+                ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
+                : 0;
         }
+        exposure[asset].exposure = uint128(exposureAsset);
+
+        emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureAsset));
 
         // Get Value in Usd
-        (valueInUsd,,) = getValue(
-            IPricingModule.GetValueInput({ asset: asset, assetId: 0, assetAmount: uint256(amount), baseCurrency: 0 })
+        (usdValueExposureUpperAssetToAsset,,) = getValue(
+            IPricingModule.GetValueInput({
+                asset: asset,
+                assetId: 0,
+                assetAmount: exposureUpperAssetToAsset,
+                baseCurrency: 0
+            })
         );
 
-        return (PRIMARY_FLAG, valueInUsd);
+        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
     }
 
     /**
@@ -328,53 +329,48 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
             ? exposure[asset].exposure = uint128(exposureLast) - uint128(amount)
             : exposure[asset].exposure = 0;
 
-        emit AssetExposureChanged(
-            asset,
-            uint128(exposureLast),
-            exposureLast >= amount
-                ? exposure[asset].exposure = uint128(exposureLast) - uint128(amount)
-                : exposure[asset].exposure = 0
-        );
+        emit AssetExposureChanged(asset, uint128(exposureLast), exposure[asset].exposure);
     }
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
      * @param asset The contract address of the asset.
      * param id The Id of the asset.
-     * @param amount The amount of tokens.
+     * @param exposureUpperAssetToAsset .
+     * @param deltaExposureUpperAssetToAsset .
      */
-    function processIndirectWithdrawal(address asset, uint256, int256 amount)
-        public
-        virtual
-        onlyMainReg
-        returns (bool primaryFlag, uint256 valueInUsd)
-    {
+    function processIndirectWithdrawal(
+        address asset,
+        uint256,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         // Cache exposureLast.
         uint256 exposureLast = exposure[asset].exposure;
 
-        if (amount > 0) {
-            exposureLast >= uint256(amount)
-                ? exposure[asset].exposure = uint128(exposureLast) - uint128(uint256(amount))
-                : exposure[asset].exposure = 0;
-            emit AssetExposureChanged(
-                asset,
-                uint128(exposureLast),
-                exposureLast >= uint256(amount)
-                    ? exposure[asset].exposure = uint128(exposureLast) - uint128(uint256(amount))
-                    : exposure[asset].exposure = 0
-            );
+        uint256 exposureAsset;
+        if (deltaExposureUpperAssetToAsset > 0) {
+            exposureAsset = exposureLast - uint256(-deltaExposureUpperAssetToAsset);
+            require(exposureAsset <= type(uint128).max, "APM_IE: Overflow");
         } else {
-            uint256 amount_ = uint256(-amount);
-            require(exposureLast + amount_ <= type(uint128).max, "APM_IE: Overflow");
-            exposure[asset].exposure = uint128(exposureLast) - uint128(amount_);
-            emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureLast) - uint128(amount_));
+            exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
+                ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
+                : 0;
         }
+        exposure[asset].exposure = uint128(exposureAsset);
+
+        emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureAsset));
 
         // Get Value in Usd
-        (valueInUsd,,) = getValue(
-            IPricingModule.GetValueInput({ asset: asset, assetId: 0, assetAmount: uint256(-amount), baseCurrency: 0 })
+        (usdValueExposureUpperAssetToAsset,,) = getValue(
+            IPricingModule.GetValueInput({
+                asset: asset,
+                assetId: 0,
+                assetAmount: exposureUpperAssetToAsset,
+                baseCurrency: 0
+            })
         );
 
-        return (PRIMARY_FLAG, valueInUsd);
+        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
     }
 }

@@ -21,9 +21,10 @@ contract ERC4626PricingModule is DerivedPricingModule {
     mapping(address => AssetInformation) public assetToInformation;
 
     struct AssetInformation {
+        uint128 exposureAssetLast;
+        uint128 usdValueExposureAssetLast;
         address underlyingAsset;
-        uint128 assetExposureLast;
-        uint128 conversionRateLast;
+        uint128 exposureAssetToUnderlyingAssetLast;
     }
 
     event UsdExposureChanged(uint256 oldExposure, uint256 newExposure);
@@ -73,11 +74,12 @@ contract ERC4626PricingModule is DerivedPricingModule {
      * @dev struct is not taken into memory; saves 6613 gas
      * @param asset The Token address of the asset
      */
-    function getAssetInformation(address asset) external view returns (address, uint128, uint128) {
+    function getAssetInformation(address asset) external view returns (uint128, uint128, address, uint128) {
         return (
+            assetToInformation[asset].exposureAssetLast,
+            assetToInformation[asset].usdValueExposureAssetLast,
             assetToInformation[asset].underlyingAsset,
-            assetToInformation[asset].assetExposureLast,
-            assetToInformation[asset].conversionRateLast
+            assetToInformation[asset].exposureAssetToUnderlyingAssetLast
         );
     }
 
@@ -131,189 +133,243 @@ contract ERC4626PricingModule is DerivedPricingModule {
      * @param amount The amount of tokens.
      */
     function processDirectDeposit(address asset, uint256, uint256 amount) public override onlyMainReg {
-        (int256 deltaUnderlyingAssetExposureTotal,) = _getDeltaUnderlyingAssetExposure(asset, int256(amount));
+        // Calculate and update the new exposure to "Asset".
+        uint256 exposureAsset = _getExposureAsset(asset, int256(amount));
 
-        // Get the USD Value of the total change in exposure to the underlying assets.
+        // Get the current flashloan resistant Conversion rate from the asset to it's underlying asset(s) (with 18 decimals precision).
+        uint256 conversionRate = _getConversionRate(asset);
+
+        // Calculate and update the total exposure, and the delta since last interaction, of "Asset" to "Underlying Asset".
+        (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) =
+            _getUnderlyingAssetExposures(asset, exposureAsset, conversionRate);
+
+        // Get the USD Value of the total exposure of "Asset" for "Underlying Asset.
         // If "underlyingAsset" has one or more underlying assets itself, the lower level
         // Pricing Modules will recursively update their respective exposures and return
-        // the requested USD value of the delta in exposure by the higher level Pricing Module.
-        uint256 deltaUsdExposure = IMainRegistry(mainRegistry).getUsdExposureUnderlyingAssetAfterDeposit(
-            assetToInformation[asset].underlyingAsset, 0, deltaUnderlyingAssetExposureTotal
+        // the requested USD value to this Pricing Module.
+        uint256 usdValueExposureAssetToUnderlyingAsset = IMainRegistry(mainRegistry)
+            .getUsdExposureUnderlyingAssetAfterDeposit(
+            assetToInformation[asset].underlyingAsset,
+            0,
+            exposureAssetToUnderlyingAsset,
+            deltaExposureAssetToUnderlyingAsset
         );
 
-        // Cache usdExposure.
-        uint256 usdExposureLast = usdExposure;
+        // For assets with only one Underlying asset, "usdValueExposureAsset" equals "usdValueExposureAssetToUnderlyingAsset"
+        uint256 usdValueExposureAsset = usdValueExposureAssetToUnderlyingAsset;
 
-        if (deltaUsdExposure >= 0) {
-            require(usdExposureLast + deltaUsdExposure <= maxUsdExposure, "APM_IE: Exposure not in limits");
-            usdExposure = usdExposureLast + deltaUsdExposure;
-            emit UsdExposureChanged(usdExposureLast, usdExposureLast + deltaUsdExposure);
-        } else {
-            usdExposure = usdExposureLast >= deltaUsdExposure ? usdExposureLast - deltaUsdExposure : 0;
-            emit UsdExposureChanged(
-                usdExposureLast, usdExposureLast >= deltaUsdExposure ? usdExposureLast - deltaUsdExposure : 0
+        // Cache usdValueExposureAssetLast and update usdValueExposureAssetLast.
+        uint256 usdValueExposureAssetLast = assetToInformation[asset].usdValueExposureAssetLast;
+        assetToInformation[asset].usdValueExposureAssetLast = uint128(usdValueExposureAsset);
+
+        // Cache usdExposureProtocol.
+        uint256 usdExposureProtocolLast = usdExposureProtocol;
+
+        // Update usdExposureProtocolLast.
+        if (usdValueExposureAsset >= usdValueExposureAssetLast) {
+            require(
+                usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast <= maxUsdExposureProtocol,
+                "APM_IE: Exposure not in limits"
             );
+            usdExposureProtocol = usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast;
+        } else {
+            usdExposureProtocol = usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
+                ? usdExposureProtocolLast - usdValueExposureAsset + usdValueExposureAssetLast
+                : 0;
         }
+
+        emit UsdExposureChanged(usdExposureProtocolLast, usdExposureProtocol);
     }
 
-    function processIndirectDeposit(address asset, uint256, int256 amount)
-        public
-        override
-        onlyMainReg
-        returns (bool primaryFlag, uint256 valueDepositInUsd)
-    {
-        (int256 deltaUnderlyingAssetExposureTotal, int256 deltaUnderlyingAssetExposureNewDeposit) =
-            _getDeltaUnderlyingAssetExposure(asset, amount);
+    function processIndirectDeposit(
+        address asset,
+        uint256,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+        // Calculate and update the new exposure to "Asset".
+        uint256 exposureAsset = _getExposureAsset(asset, deltaExposureUpperAssetToAsset);
 
-        // Get the USD Value of the total change in exposure to the underlying assets.
+        // Get the current flashloan resistant Conversion rate from the asset to it's underlying asset(s) (with 18 decimals precision).
+        uint256 conversionRate = _getConversionRate(asset);
+
+        // Calculate and update the total exposure, and the delta since last interaction, of "Asset" to "Underlying Asset".
+        (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) =
+            _getUnderlyingAssetExposures(asset, exposureAsset, conversionRate);
+
+        // Get the USD Value of the total exposure of "Asset" for "Underlying Asset.
         // If "underlyingAsset" has one or more underlying assets itself, the lower level
         // Pricing Modules will recursively update their respective exposures and return
-        // the requested USD value of the delta in exposure by the higher level Pricing Module.
-        uint256 deltaUsdExposure = IMainRegistry(mainRegistry).getUsdExposureUnderlyingAssetAfterDeposit(
-            assetToInformation[asset].underlyingAsset, 0, deltaUnderlyingAssetExposureTotal
+        // the requested USD value to this Pricing Module.
+        uint256 usdValueExposureAssetToUnderlyingAsset = IMainRegistry(mainRegistry)
+            .getUsdExposureUnderlyingAssetAfterDeposit(
+            assetToInformation[asset].underlyingAsset,
+            0,
+            exposureAssetToUnderlyingAsset,
+            deltaExposureAssetToUnderlyingAsset
         );
 
-        // Cache usdExposure.
-        uint256 usdExposureLast = usdExposure;
+        // For assets with only one Underlying asset, "usdValueExposureAsset" equals "usdValueExposureAssetToUnderlyingAsset"
+        uint256 usdValueExposureAsset = usdValueExposureAssetToUnderlyingAsset;
 
-        // Calculate the updated USD exposure, and check if it did not exceed the protocols exposure limit.
-        if (deltaUnderlyingAssetExposureTotal >= 0) {
-            require(usdExposureLast + deltaUsdExposure <= maxUsdExposure, "APM_IE: Exposure not in limits");
-            usdExposure = usdExposureLast + deltaUsdExposure;
-            emit UsdExposureChanged(usdExposureLast, usdExposureLast + deltaUsdExposure);
-        } else {
-            usdExposure = usdExposureLast >= deltaUsdExposure ? usdExposureLast - deltaUsdExposure : 0;
-            emit UsdExposureChanged(
-                usdExposureLast, usdExposureLast >= deltaUsdExposure ? usdExposureLast - deltaUsdExposure : 0
+        // Cache usdValueExposureAssetLast and update usdValueExposureAssetLast.
+        uint256 usdValueExposureAssetLast = assetToInformation[asset].usdValueExposureAssetLast;
+        assetToInformation[asset].usdValueExposureAssetLast = uint128(usdValueExposureAsset);
+
+        // Cache usdExposureProtocol.
+        uint256 usdExposureProtocolLast = usdExposureProtocol;
+
+        // Update usdExposureProtocolLast.
+        if (usdValueExposureAsset >= usdValueExposureAssetLast) {
+            require(
+                usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast <= maxUsdExposureProtocol,
+                "APM_IE: Exposure not in limits"
             );
-
-            // ToDo: use proper signed math library
-            deltaUnderlyingAssetExposureTotal = -deltaUnderlyingAssetExposureTotal;
+            usdExposureProtocol = usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast;
+        } else {
+            usdExposureProtocol = usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
+                ? usdExposureProtocolLast - usdValueExposureAsset + usdValueExposureAssetLast
+                : 0;
         }
 
-        deltaUnderlyingAssetExposureNewDeposit = deltaUnderlyingAssetExposureNewDeposit >= 0
-            ? deltaUnderlyingAssetExposureNewDeposit
-            : -deltaUnderlyingAssetExposureNewDeposit;
+        emit UsdExposureChanged(usdExposureProtocolLast, usdExposureProtocol);
 
-        // Calculate the USD value of the deposited assets to the higher level Pricing Module.
-        // ToDo: use proper signed math library
-        valueDepositInUsd = deltaUsdExposure.mulDivDown(
-            uint256(deltaUnderlyingAssetExposureNewDeposit), uint256(deltaUnderlyingAssetExposureTotal)
-        );
+        // Calculate the USD value of the exposure of the Upper Asset to the Underlying asset.
+        usdValueExposureUpperAssetToAsset = usdValueExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
 
-        return (PRIMARY_FLAG, valueDepositInUsd);
+        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
     }
 
     function processDirectWithdrawal(address asset, uint256, uint256 amount) public override onlyMainReg {
-        (int256 deltaUnderlyingAssetExposureTotal,) = _getDeltaUnderlyingAssetExposure(asset, -int256(amount));
+        // Calculate and update the new exposure to "Asset".
+        uint256 exposureAsset = _getExposureAsset(asset, -int256(amount));
 
-        // Get the USD Value of the total change in exposure to the underlying assets.
-        // If "underlyingAsset" has one or more underlying assets itself, the lower level
-        // Pricing Modules will recursively update their respective exposures and return
-        // the requested USD value of the delta in exposure by the higher level Pricing Module.
-        uint256 deltaUsdExposure = IMainRegistry(mainRegistry).getUsdExposureUnderlyingAssetAfterWithdrawal(
-            assetToInformation[asset].underlyingAsset, 0, deltaUnderlyingAssetExposureTotal
-        );
-
-        // Cache usdExposure.
-        uint256 usdExposureLast = usdExposure;
-
-        if (deltaUnderlyingAssetExposureTotal >= 0) {
-            require(usdExposureLast + deltaUsdExposure <= type(uint128).max, "APM_IE: Overflow");
-            usdExposure = usdExposureLast + deltaUsdExposure;
-            emit UsdExposureChanged(usdExposureLast, usdExposureLast + deltaUsdExposure);
-        } else {
-            usdExposure = usdExposureLast >= deltaUsdExposure ? usdExposureLast - deltaUsdExposure : 0;
-            emit UsdExposureChanged(
-                usdExposureLast, usdExposureLast >= deltaUsdExposure ? usdExposureLast - deltaUsdExposure : 0
-            );
-        }
-    }
-
-    function processIndirectWithdrawal(address asset, uint256, int256 amount)
-        public
-        override
-        onlyMainReg
-        returns (bool primaryFlag, uint256 valueDepositInUsd)
-    {
-        (int256 deltaUnderlyingAssetExposureTotal, int256 deltaUnderlyingAssetExposureNewDeposit) =
-            _getDeltaUnderlyingAssetExposure(asset, amount);
-
-        // Get the USD Value of the total change in exposure to the underlying assets.
-        // If "underlyingAsset" has one or more underlying assets itself, the lower level
-        // Pricing Modules will recursively update their respective exposures and return
-        // the requested USD value of the delta in exposure by the higher level Pricing Module.
-        uint256 deltaUsdExposure = IMainRegistry(mainRegistry).getUsdExposureUnderlyingAssetAfterWithdrawal(
-            assetToInformation[asset].underlyingAsset, 0, deltaUnderlyingAssetExposureTotal
-        );
-
-        // Cache usdExposure.
-        uint256 usdExposureLast = usdExposure;
-
-        // Calculate the updated USD exposure, and check if it did not exceed the protocols exposure limit.
-        if (deltaUnderlyingAssetExposureTotal >= 0) {
-            usdExposure = usdExposureLast + deltaUsdExposure;
-            emit UsdExposureChanged(usdExposureLast, usdExposureLast + deltaUsdExposure);
-        } else {
-            usdExposure = usdExposureLast >= deltaUsdExposure ? usdExposureLast - deltaUsdExposure : 0;
-            emit UsdExposureChanged(
-                usdExposureLast, usdExposureLast >= deltaUsdExposure ? usdExposureLast - deltaUsdExposure : 0
-            );
-            // ToDo: use proper signed math library
-            deltaUnderlyingAssetExposureTotal = -deltaUnderlyingAssetExposureTotal;
-        }
-
-        deltaUnderlyingAssetExposureNewDeposit = deltaUnderlyingAssetExposureNewDeposit >= 0
-            ? deltaUnderlyingAssetExposureNewDeposit
-            : -deltaUnderlyingAssetExposureNewDeposit;
-
-        // Calculate the USD value of the deposited assets to the higher level Pricing Module.
-        // ToDo: use proper signed math library
-        valueDepositInUsd = deltaUsdExposure.mulDivDown(
-            uint256(deltaUnderlyingAssetExposureNewDeposit), uint256(deltaUnderlyingAssetExposureTotal)
-        );
-
-        return (PRIMARY_FLAG, valueDepositInUsd);
-    }
-
-    function _getDeltaUnderlyingAssetExposure(address asset, int256 amount)
-        internal
-        returns (int256 deltaUnderlyingAssetExposureTotal, int256 deltaUnderlyingAssetExposureNewDeposit)
-    {
         // Get the current flashloan resistant Conversion rate from the asset to it's underlying asset(s) (with 18 decimals precision).
-        uint256 conversionRateNew = _getConversionRate(asset);
-        // Cache the old Conversion rate and overwrite it with current rate.
-        uint256 conversionRateLast = assetToInformation[asset].conversionRateLast;
-        assetToInformation[asset].conversionRateLast = uint128(conversionRateNew);
+        uint256 conversionRate = _getConversionRate(asset);
 
+        // Calculate and update the total exposure, and the delta since last interaction, of "Asset" to "Underlying Asset".
+        (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) =
+            _getUnderlyingAssetExposures(asset, exposureAsset, conversionRate);
+
+        // Get the USD Value of the total exposure of "Asset" for "Underlying Asset.
+        // If "underlyingAsset" has one or more underlying assets itself, the lower level
+        // Pricing Modules will recursively update their respective exposures and return
+        // the requested USD value to this Pricing Module.
+        uint256 usdValueExposureAssetToUnderlyingAsset = IMainRegistry(mainRegistry)
+            .getUsdExposureUnderlyingAssetAfterWithdrawal(
+            assetToInformation[asset].underlyingAsset,
+            0,
+            exposureAssetToUnderlyingAsset,
+            deltaExposureAssetToUnderlyingAsset
+        );
+
+        // For assets with only one Underlying asset, "usdValueExposureAsset" equals "usdValueExposureAssetToUnderlyingAsset"
+        uint256 usdValueExposureAsset = usdValueExposureAssetToUnderlyingAsset;
+
+        // Cache usdValueExposureAssetLast and update usdValueExposureAssetLast.
+        uint256 usdValueExposureAssetLast = assetToInformation[asset].usdValueExposureAssetLast;
+        assetToInformation[asset].usdValueExposureAssetLast = uint128(usdValueExposureAsset);
+
+        // Cache usdExposureProtocol.
+        uint256 usdExposureProtocolLast = usdExposureProtocol;
+
+        // Update usdExposureProtocolLast.
+        if (usdValueExposureAsset >= usdValueExposureAssetLast) {
+            usdExposureProtocol = usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast;
+        } else {
+            usdExposureProtocol = usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
+                ? usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast
+                : 0;
+        }
+
+        emit UsdExposureChanged(usdExposureProtocolLast, usdExposureProtocol);
+    }
+
+    function processIndirectWithdrawal(
+        address asset,
+        uint256,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+        // Calculate and update the new exposure to "Asset".
+        uint256 exposureAsset = _getExposureAsset(asset, deltaExposureUpperAssetToAsset);
+
+        // Get the current flashloan resistant Conversion rate from the asset to it's underlying asset(s) (with 18 decimals precision).
+        uint256 conversionRate = _getConversionRate(asset);
+
+        // Calculate and update the total exposure, and the delta since last interaction, of "Asset" to "Underlying Asset".
+        (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) =
+            _getUnderlyingAssetExposures(asset, exposureAsset, conversionRate);
+
+        // Get the USD Value of the total exposure of "Asset" for "Underlying Asset.
+        // If "underlyingAsset" has one or more underlying assets itself, the lower level
+        // Pricing Modules will recursively update their respective exposures and return
+        // the requested USD value to this Pricing Module.
+        uint256 usdValueExposureAssetToUnderlyingAsset = IMainRegistry(mainRegistry)
+            .getUsdExposureUnderlyingAssetAfterWithdrawal(
+            assetToInformation[asset].underlyingAsset,
+            0,
+            exposureAssetToUnderlyingAsset,
+            deltaExposureAssetToUnderlyingAsset
+        );
+
+        // For assets with only one Underlying asset, "usdValueExposureAsset" equals "usdValueExposureAssetToUnderlyingAsset"
+        uint256 usdValueExposureAsset = usdValueExposureAssetToUnderlyingAsset;
+
+        // Cache usdValueExposureAssetLast and update usdValueExposureAssetLast.
+        uint256 usdValueExposureAssetLast = assetToInformation[asset].usdValueExposureAssetLast;
+        assetToInformation[asset].usdValueExposureAssetLast = uint128(usdValueExposureAsset);
+
+        // Cache usdExposureProtocol.
+        uint256 usdExposureProtocolLast = usdExposureProtocol;
+
+        // Update usdExposureProtocolLast.
+        if (usdValueExposureAsset >= usdValueExposureAssetLast) {
+            usdExposureProtocol = usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast;
+        } else {
+            usdExposureProtocol = usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
+                ? usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast
+                : 0;
+        }
+
+        emit UsdExposureChanged(usdExposureProtocolLast, usdExposureProtocol);
+
+        // Calculate the USD value of the exposure of the Upper Asset to the Underlying asset.
+        if (exposureUpperAssetToAsset == exposureAsset) {
+            // Avoid devide by zero if both are 0.
+            usdValueExposureUpperAssetToAsset = usdValueExposureAsset;
+        } else {
+            usdValueExposureUpperAssetToAsset =
+                usdValueExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
+        }
+
+        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
+    }
+
+    function _getExposureAsset(address asset, int256 deltaAsset) internal returns (uint256 exposureAsset) {
         // Cache the old exposure to the asset.
-        uint256 assetExposureLast = assetToInformation[asset].assetExposureLast;
-
-        // Calculate the change in exposure to the underlying assets due to the deposit (positive number is an increase in underlying assets).
-        // ToDo: Use signed arithmetic library
-        if (amount > 0) {
-            deltaUnderlyingAssetExposureNewDeposit = int256(uint256(amount).mulDivDown(conversionRateNew, 1e18));
-            // ToDo: safecast?
-            assetToInformation[asset].assetExposureLast = uint128(assetExposureLast + uint256(amount));
+        uint256 exposureAssetLast = assetToInformation[asset].exposureAssetLast;
+        // Calculate and store the new exposure.
+        if (deltaAsset > 0) {
+            exposureAsset = exposureAssetLast + uint256(deltaAsset);
         } else {
-            // ToDo: is caching uint256(-amount) cheaper?
-            deltaUnderlyingAssetExposureNewDeposit = -int256(uint256(-amount).mulDivDown(conversionRateNew, 1e18));
-            assetToInformation[asset].assetExposureLast =
-                assetExposureLast >= uint256(-amount) ? uint128(assetExposureLast - uint256(-amount)) : 0;
+            exposureAsset = exposureAssetLast > uint256(-deltaAsset) ? exposureAssetLast - uint256(-deltaAsset) : 0;
         }
+        assetToInformation[asset].exposureAssetLast = uint128(exposureAsset); // ToDo: safecast?
+    }
 
-        // Calculate the change in exposure to the underlying assets due to the change in Conversion Rate
-        // since the last interaction with the asset (positive number is an increase in underlying assets).
-        int256 deltaUnderlyingAssetExposureLast;
-        if (conversionRateNew >= conversionRateLast) {
-            deltaUnderlyingAssetExposureLast =
-                int256(assetExposureLast.mulDivDown(conversionRateNew - conversionRateLast, 1e18));
-        } else {
-            deltaUnderlyingAssetExposureLast =
-                -int256(assetExposureLast.mulDivDown(conversionRateLast - conversionRateNew, 1e18));
-        }
+    function _getUnderlyingAssetExposures(address asset, uint256 exposureAsset, uint256 conversionRate)
+        internal
+        returns (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset)
+    {
+        // Calculate the total exposure of the asset to a underlying asset.
+        exposureAssetToUnderlyingAsset = exposureAsset.mulDivDown(conversionRate, 1e18);
 
-        // Calculate the total change in exposure to the underlying assets.
-        deltaUnderlyingAssetExposureTotal = deltaUnderlyingAssetExposureLast + deltaUnderlyingAssetExposureNewDeposit;
+        // Calculate the change in exposure to the underlying assets since last interaction.
+        deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAsset)
+            - int256(uint256(assetToInformation[asset].exposureAssetToUnderlyingAssetLast));
+
+        // Update "exposureAssetToUnderlyingAssetLast".
+        assetToInformation[asset].exposureAssetToUnderlyingAssetLast = uint128(exposureAssetToUnderlyingAsset);
     }
 }
