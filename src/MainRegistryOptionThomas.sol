@@ -375,7 +375,6 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     /* ///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     /////////////////////////////////////////////////////////////// */
-
     /**
      * @notice Calculates the value per asset, denominated in a given BaseCurrency.
      * @param assetAddresses Array of the contract addresses of the assets.
@@ -559,5 +558,14 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, assetToBaseCurrency[baseCurrency]);
 
         liquidationValue = RiskModule.calculateLiquidationValue(valuesAndRiskVarPerAsset);
+    }
+
+    function getValueUnderlyingAsset(IPricingModule.GetValueInput memory getValueInput)
+        external
+        view
+        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
+    {
+        (valueInUsd, collateralFactor, liquidationFactor) =
+            IPricingModule(assetToAssetInformation[getValueInput.asset].pricingModule).getValue(getValueInput);
     }
 }

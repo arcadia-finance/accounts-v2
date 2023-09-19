@@ -73,6 +73,8 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
     );
     event MaxExposureSet(address indexed asset, uint128 maxExposure);
 
+    event AssetExposureChanged(address asset, uint128 oldExposure, uint128 newExposure);
+
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
@@ -264,6 +266,7 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
         require(exposureLast + uint128(amount) <= exposure[asset].maxExposure, "APM_IE: Exposure not in limits");
 
         exposure[asset].exposure = uint128(exposureLast) + uint128(amount);
+        emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureLast) + uint128(amount));
     }
 
     /**
@@ -287,11 +290,19 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
             );
 
             exposure[asset].exposure = uint128(exposureLast) + uint128(uint256(amount));
+            emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureLast) + uint128(uint256(amount)));
         } else {
             uint256 amount_ = uint256(-amount);
             exposureLast >= amount_
                 ? exposure[asset].exposure = uint128(exposureLast) - uint128(amount_)
                 : exposure[asset].exposure = 0;
+            emit AssetExposureChanged(
+                asset,
+                uint128(exposureLast),
+                exposureLast >= amount_
+                    ? exposure[asset].exposure = uint128(exposureLast) - uint128(amount_)
+                    : exposure[asset].exposure = 0
+            );
         }
 
         // Get Value in Usd
@@ -316,6 +327,14 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
         exposureLast >= amount
             ? exposure[asset].exposure = uint128(exposureLast) - uint128(amount)
             : exposure[asset].exposure = 0;
+
+        emit AssetExposureChanged(
+            asset,
+            uint128(exposureLast),
+            exposureLast >= amount
+                ? exposure[asset].exposure = uint128(exposureLast) - uint128(amount)
+                : exposure[asset].exposure = 0
+        );
     }
 
     /**
@@ -337,15 +356,23 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
             exposureLast >= uint256(amount)
                 ? exposure[asset].exposure = uint128(exposureLast) - uint128(uint256(amount))
                 : exposure[asset].exposure = 0;
+            emit AssetExposureChanged(
+                asset,
+                uint128(exposureLast),
+                exposureLast >= uint256(amount)
+                    ? exposure[asset].exposure = uint128(exposureLast) - uint128(uint256(amount))
+                    : exposure[asset].exposure = 0
+            );
         } else {
             uint256 amount_ = uint256(-amount);
             require(exposureLast + amount_ <= type(uint128).max, "APM_IE: Overflow");
-            exposure[asset].exposure = uint128(exposureLast) + uint128(amount_);
+            exposure[asset].exposure = uint128(exposureLast) - uint128(amount_);
+            emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureLast) - uint128(amount_));
         }
 
         // Get Value in Usd
         (valueInUsd,,) = getValue(
-            IPricingModule.GetValueInput({ asset: asset, assetId: 0, assetAmount: uint256(amount), baseCurrency: 0 })
+            IPricingModule.GetValueInput({ asset: asset, assetId: 0, assetAmount: uint256(-amount), baseCurrency: 0 })
         );
 
         return (PRIMARY_FLAG, valueInUsd);

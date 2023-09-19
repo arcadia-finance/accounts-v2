@@ -4,6 +4,8 @@
  */
 pragma solidity 0.8.19;
 
+import { IPricingModule } from "../../interfaces/IPricingModuleOptionThomas.sol";
+
 interface IMainRegistry {
     /**
      * @notice Returns the number of baseCurrencies.
@@ -20,6 +22,11 @@ interface IMainRegistry {
      * 2 = ERC1155.
      */
     function addAsset(address asset, uint256 assetType) external;
+
+    function getValueUnderlyingAsset(IPricingModule.GetValueInput memory getValueInput)
+        external
+        view
+        returns (uint256, uint256, uint256);
 
     /**
      * @notice This function is called by pricing modules of non-primary assets in order to increase the exposure of the underlying asset.
