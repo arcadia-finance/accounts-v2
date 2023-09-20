@@ -174,7 +174,7 @@ contract ERC4626PricingModule is DerivedPricingModule {
             usdExposureProtocol = usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast;
         } else {
             usdExposureProtocol = usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
-                ? usdExposureProtocolLast - usdValueExposureAsset + usdValueExposureAssetLast
+                ? usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast
                 : 0;
         }
 
@@ -228,7 +228,7 @@ contract ERC4626PricingModule is DerivedPricingModule {
             usdExposureProtocol = usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast;
         } else {
             usdExposureProtocol = usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
-                ? usdExposureProtocolLast - usdValueExposureAsset + usdValueExposureAssetLast
+                ? usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast
                 : 0;
         }
 

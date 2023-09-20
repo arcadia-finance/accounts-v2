@@ -224,7 +224,7 @@ contract Fuzz_Test is Base_Test {
         proxyAccount.withdraw(assetAddresses, assetIds, assetAmounts);
     }
 
-    function testGas_ChangingRate() public {
+    function testGas_ChangingRate_Up() public {
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(primaryToken);
         assetAddresses[1] = address(middleToken);
@@ -242,6 +242,36 @@ contract Fuzz_Test is Base_Test {
 
         vm.prank(users.tokenCreatorAddress);
         primaryToken.mint(address(middleToken), 11 * 10 ** Constants.tokenDecimals);
+
+        assetAddresses = new address[](1);
+        assetAddresses[0] = address(upperToken);
+
+        assetIds = new uint256[](1);
+
+        assetAmounts = new uint256[](1);
+
+        vm.prank(users.accountOwner);
+        proxyAccount.deposit(assetAddresses, assetIds, assetAmounts);
+    }
+
+    function testGas_ChangingRate_Down() public {
+        address[] memory assetAddresses = new address[](3);
+        assetAddresses[0] = address(primaryToken);
+        assetAddresses[1] = address(middleToken);
+        assetAddresses[2] = address(upperToken);
+
+        uint256[] memory assetIds = new uint256[](3);
+
+        uint256[] memory assetAmounts = new uint256[](3);
+        assetAmounts[0] = 100 * 10 ** Constants.tokenDecimals;
+        assetAmounts[1] = 10 * 10 ** Constants.tokenDecimals;
+        assetAmounts[2] = 1 * 10 ** Constants.tokenDecimals;
+
+        vm.prank(users.accountOwner);
+        proxyAccount.deposit(assetAddresses, assetIds, assetAmounts);
+
+        vm.prank(address(upperToken));
+        middleToken.transfer(users.accountOwner, 5 * 10 ** (Constants.tokenDecimals - 1));
 
         assetAddresses = new address[](1);
         assetAddresses[0] = address(upperToken);
