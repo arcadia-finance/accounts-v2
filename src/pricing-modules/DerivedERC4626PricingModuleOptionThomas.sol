@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { DerivedPricingModule } from "./DerivedPricingModuleOptionThomas.sol";
+import { DerivedPricingModule } from "./AbstractDerivedPricingModule.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistryOptionThomas.sol";
 import { IERC4626 } from "../interfaces/IERC4626.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";

@@ -4,25 +4,19 @@
  */
 pragma solidity 0.8.19;
 
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-
-import { IMainRegistry } from "./interfaces/IMainRegistryOptionThomas.sol";
-import { IPricingModule } from "../interfaces/IPricingModuleOptionThomas.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IPricingModule_New } from "../interfaces/IPricingModule_New.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 
 /**
- * @title Primary Pricing Module.
+ * @title Abstract Pricing Module
  * @author Pragma Labs
+ * @notice Abstract contract with the minimal implementation of a Pricing Module.
+ * @dev No end-user should directly interact with Pricing Module, only the Main Registry, Oracle-Hub
+ * or the contract owner.
  */
-abstract contract PrimaryPricingModule is Owned, IPricingModule {
-    using FixedPointMathLib for uint256;
-    /* //////////////////////////////////////////////////////////////
-                                CONSTANTS
-    ////////////////////////////////////////////////////////////// */
-
-    bool internal constant PRIMARY_FLAG = true;
-
+abstract contract PricingModule is Owned, IPricingModule_New {
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
@@ -41,16 +35,9 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
 
     // Map asset => flag.
     mapping(address => bool) public inPricingModule;
-    // Map asset => exposureInformation.
-    mapping(address => Exposure) public exposure;
+
     // Map asset => baseCurrencyIdentifier => riskVariables.
     mapping(address => mapping(uint256 => RiskVars)) public assetRiskVars;
-
-    // Struct with information about the exposure of a specific asset.
-    struct Exposure {
-        uint128 maxExposure; // The maximum protocol wide exposure to an asset.
-        uint128 exposure; // The actual protocol wide exposure to an asset.
-    }
 
     // Struct with the risk variables of a specific asset for a specific baseCurrency.
     struct RiskVars {
@@ -74,8 +61,6 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
     event RiskVariablesSet(
         address indexed asset, uint8 indexed baseCurrencyId, uint16 collateralFactor, uint16 liquidationFactor
     );
-    event MaxExposureSet(address indexed asset, uint128 maxExposure);
-
     event AssetExposureChanged(address asset, uint128 oldExposure, uint128 newExposure);
 
     /* //////////////////////////////////////////////////////////////
@@ -127,21 +112,6 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
         riskManager = riskManager_;
 
         emit RiskManagerUpdated(riskManager_);
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                        WHITE LIST MANAGEMENT
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Checks for a token address and the corresponding Id if it is white-listed.
-     * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
-     * @return A boolean, indicating if the asset is whitelisted.
-     * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
-     */
-    function isAllowListed(address asset, uint256) public view virtual returns (bool) {
-        return exposure[asset].maxExposure != 0;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -243,134 +213,21 @@ abstract contract PrimaryPricingModule is Owned, IPricingModule {
         emit RiskVariablesSet(asset, uint8(baseCurrency), riskVars.collateralFactor, riskVars.liquidationFactor);
     }
 
-    /**
-     * @notice Sets the maximum exposure for an asset.
-     * @param asset The contract address of the asset.
-     * @param maxExposure The maximum protocol wide exposure to the asset.
-     * @dev Can only be called by the Risk Manager, which can be different from the owner.
-     */
-    function setExposureOfAsset(address asset, uint256 maxExposure) public virtual onlyRiskManager {
-        require(maxExposure <= type(uint128).max, "APM_SEA: Max Exp. not in limits");
-        exposure[asset].maxExposure = uint128(maxExposure);
+    function processDirectDeposit(address asset, uint256, uint256 amount) external virtual onlyMainReg { }
 
-        emit MaxExposureSet(asset, uint128(maxExposure));
-    }
-
-    /**
-     * @notice Increases the exposure to an asset on deposit.
-     * @param asset The contract address of the asset.
-     * param id The Id of the asset.
-     * @param amount The amount of tokens.
-     */
-    function processDirectDeposit(address asset, uint256, uint256 amount) public virtual onlyMainReg {
-        // Cache exposureLast.
-        uint256 exposureLast = exposure[asset].exposure;
-
-        require(exposureLast + uint128(amount) <= exposure[asset].maxExposure, "APM_IE: Exposure not in limits");
-
-        exposure[asset].exposure = uint128(exposureLast) + uint128(amount);
-        emit AssetExposureChanged(asset, uint128(exposureLast), exposure[asset].exposure);
-    }
-
-    /**
-     * @notice Increases the exposure to an underlying asset on deposit.
-     * @param asset The contract address of the asset.
-     * param id The Id of the asset.
-     * @param exposureUpperAssetToAsset .
-     * @param deltaExposureUpperAssetToAsset .
-     */
     function processIndirectDeposit(
         address asset,
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
-        // Cache exposureLast.
-        uint256 exposureLast = exposure[asset].exposure;
+    ) external virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
 
-        uint256 exposureAsset;
-        if (deltaExposureUpperAssetToAsset > 0) {
-            exposureAsset = exposureLast + uint256(deltaExposureUpperAssetToAsset);
-            require(exposureAsset <= exposure[asset].maxExposure, "APM_IE: Exposure not in limits");
-        } else {
-            exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
-                ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
-                : 0;
-        }
-        exposure[asset].exposure = uint128(exposureAsset);
+    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual onlyMainReg { }
 
-        emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureAsset));
-
-        // Get Value in Usd
-        (usdValueExposureUpperAssetToAsset,,) = getValue(
-            IPricingModule.GetValueInput({
-                asset: asset,
-                assetId: 0,
-                assetAmount: exposureUpperAssetToAsset,
-                baseCurrency: 0
-            })
-        );
-
-        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
-    }
-
-    /**
-     * @notice Decreases the exposure to an asset on withdrawal.
-     * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
-     * @param amount The amount of tokens.
-     * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
-     */
-    function processDirectWithdrawal(address asset, uint256, uint256 amount) public virtual onlyMainReg {
-        // Cache exposureLast.
-        uint256 exposureLast = exposure[asset].exposure;
-
-        exposureLast >= amount
-            ? exposure[asset].exposure = uint128(exposureLast) - uint128(amount)
-            : exposure[asset].exposure = 0;
-
-        emit AssetExposureChanged(asset, uint128(exposureLast), exposure[asset].exposure);
-    }
-
-    /**
-     * @notice Decreases the exposure to an asset on withdrawal.
-     * @param asset The contract address of the asset.
-     * param id The Id of the asset.
-     * @param exposureUpperAssetToAsset .
-     * @param deltaExposureUpperAssetToAsset .
-     */
     function processIndirectWithdrawal(
         address asset,
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
-        // Cache exposureLast.
-        uint256 exposureLast = exposure[asset].exposure;
-
-        uint256 exposureAsset;
-        if (deltaExposureUpperAssetToAsset > 0) {
-            exposureAsset = exposureLast - uint256(-deltaExposureUpperAssetToAsset);
-            require(exposureAsset <= type(uint128).max, "APM_IE: Overflow");
-        } else {
-            exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
-                ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
-                : 0;
-        }
-        exposure[asset].exposure = uint128(exposureAsset);
-
-        emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureAsset));
-
-        // Get Value in Usd
-        (usdValueExposureUpperAssetToAsset,,) = getValue(
-            IPricingModule.GetValueInput({
-                asset: asset,
-                assetId: 0,
-                assetAmount: exposureUpperAssetToAsset,
-                baseCurrency: 0
-            })
-        );
-
-        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
-    }
+    ) external virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
 }

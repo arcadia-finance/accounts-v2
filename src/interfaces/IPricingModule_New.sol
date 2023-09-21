@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-interface IPricingModule {
+interface IPricingModule_New {
     // A Struct with the input variables for the function getValue() (avoid stack to deep).
     struct GetValueInput {
         address asset; // The contract address of the asset.
