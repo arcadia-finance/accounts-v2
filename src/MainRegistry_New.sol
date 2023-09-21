@@ -6,8 +6,8 @@ pragma solidity 0.8.19;
 
 import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
-import { IPricingModule } from "./interfaces/IPricingModuleOptionThomas.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistryOptionThomas.sol";
+import { IPricingModule } from "./interfaces/IPricingModule_New.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry_New.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { RiskModule } from "./RiskModule.sol";
 import { MainRegistryGuardian } from "./guardians/MainRegistryGuardian.sol";

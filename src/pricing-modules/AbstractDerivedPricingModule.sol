@@ -5,10 +5,10 @@
 pragma solidity 0.8.19;
 
 import { PricingModule } from "./AbstractPricingModule_New.sol";
-import { IPricingModule_New } from "../interfaces/IPricingModule_New.sol";
+import { IPricingModule } from "../interfaces/IPricingModule_New.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistryOptionThomas.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry_New.sol";
 
 /**
  * @title Derived Pricing Module.
@@ -68,17 +68,26 @@ abstract contract DerivedPricingModule is PricingModule {
     { }
 
     /*///////////////////////////////////////////////////////////////
-                        WHITE LIST MANAGEMENT
+                        ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Checks for a token address and the corresponding Id if it is white-listed.
-     * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
-     * @return A boolean, indicating if the asset is whitelisted.
-     * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
+     * @notice Returns the information that is stored in the Sub-registry for a given asset
+     * @dev struct is not taken into memory; saves 6613 gas
+     * @param asset The Token address of the asset
      */
-    function isAllowListed(address asset, uint256) public view virtual returns (bool) { }
+    function getAssetInformation(address asset)
+        external
+        view
+        returns (uint128, uint128, address[] memory, uint128[] memory)
+    {
+        return (
+            assetToInformation[asset].exposureAssetLast,
+            assetToInformation[asset].usdValueExposureAssetLast,
+            assetToInformation[asset].underlyingAssets,
+            assetToInformation[asset].exposureAssetToUnderlyingAssetsLast
+        );
+    }
 
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
@@ -112,11 +121,11 @@ abstract contract DerivedPricingModule is PricingModule {
      * param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256, uint256 amount) external virtual onlyMainReg {
+    function processDirectDeposit(address asset, uint256, uint256 amount) external virtual override onlyMainReg {
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getExposureAsset(asset, int256(amount));
 
-        _processAction(asset, 0, exposureAsset);
+        _processDeposit(asset, 0, exposureAsset);
     }
 
     /**
@@ -131,11 +140,11 @@ abstract contract DerivedPricingModule is PricingModule {
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) external virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getExposureAsset(asset, deltaExposureUpperAssetToAsset);
 
-        uint256 usdValueExposureAsset = _processAction(asset, 0, exposureAsset);
+        uint256 usdValueExposureAsset = _processDeposit(asset, 0, exposureAsset);
 
         // Calculate the USD value of the exposure of the Upper Asset to the Underlying asset.
         usdValueExposureUpperAssetToAsset = usdValueExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
@@ -150,12 +159,12 @@ abstract contract DerivedPricingModule is PricingModule {
      * @param amount The amount of tokens.
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
-    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual onlyMainReg {
+    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual override onlyMainReg {
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getExposureAsset(asset, -int256(amount));
 
-        _processAction(asset, 0, exposureAsset);
-     }
+        _processWithdrawal(asset, 0, exposureAsset);
+    }
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
@@ -169,11 +178,11 @@ abstract contract DerivedPricingModule is PricingModule {
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { 
+    ) external virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getExposureAsset(asset, deltaExposureUpperAssetToAsset);
 
-        uint256 usdValueExposureAsset = _processAction(asset, 0, exposureAsset);
+        uint256 usdValueExposureAsset = _processWithdrawal(asset, 0, exposureAsset);
 
         // Calculate the USD value of the exposure of the Upper Asset to the Underlying asset.
         usdValueExposureUpperAssetToAsset = usdValueExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
@@ -187,7 +196,7 @@ abstract contract DerivedPricingModule is PricingModule {
      * param id The Id of the asset.
      * @param exposureAsset The updated exposure to the asset.
      */
-    function _processAction(address asset, uint256, uint256 exposureAsset)
+    function _processDeposit(address asset, uint256, uint256 exposureAsset)
         internal
         virtual
         onlyMainReg
@@ -197,7 +206,7 @@ abstract contract DerivedPricingModule is PricingModule {
         address[] memory underlyingAssets = assetToInformation[asset].underlyingAssets;
 
         uint256 usdValueExposureAssetToUnderlyingAssets;
-        for (uint256 i; i < numberOfUnderlyingAssets;) {
+        for (uint8 i; i < assetToInformation[asset].underlyingAssets.length;) {
             // Get the current flashloan resistant Conversion rate from the asset to it's underlying asset(s) (with 18 decimals precision).
             uint256 conversionRate = _getConversionRate(asset, underlyingAssets[i]);
 
@@ -219,7 +228,7 @@ abstract contract DerivedPricingModule is PricingModule {
             }
         }
 
-        usdValueExposureAsset = usdValueExposureAssetToUnderlyingAsset;
+        usdValueExposureAsset = usdValueExposureAssetToUnderlyingAssets;
 
         // Cache usdValueExposureAssetLast and update usdValueExposureAssetLast.
         uint256 usdValueExposureAssetLast = assetToInformation[asset].usdValueExposureAssetLast;
@@ -234,6 +243,65 @@ abstract contract DerivedPricingModule is PricingModule {
                 usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast <= maxUsdExposureProtocol,
                 "ADPM_PDD: Exposure not in limits"
             );
+            usdExposureProtocol = usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast;
+        } else {
+            usdExposureProtocol = usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
+                ? usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast
+                : 0;
+        }
+
+        emit UsdExposureChanged(usdExposureProtocolLast, usdExposureProtocol);
+    }
+
+    /**
+     * @notice Increases the exposure to an asset on deposit.
+     * @param asset The contract address of the asset.
+     * param id The Id of the asset.
+     * @param exposureAsset The updated exposure to the asset.
+     */
+    function _processWithdrawal(address asset, uint256, uint256 exposureAsset)
+        internal
+        virtual
+        onlyMainReg
+        returns (uint256 usdValueExposureAsset)
+    {
+        // Cache values
+        address[] memory underlyingAssets = assetToInformation[asset].underlyingAssets;
+
+        uint256 usdValueExposureAssetToUnderlyingAssets;
+        for (uint8 i; i < assetToInformation[asset].underlyingAssets.length;) {
+            // Get the current flashloan resistant Conversion rate from the asset to it's underlying asset(s) (with 18 decimals precision).
+            uint256 conversionRate = _getConversionRate(asset, underlyingAssets[i]);
+
+            // Calculate and update the total exposure, and the delta since last interaction, of "Asset" to "Underlying Asset".
+            (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) =
+                _getUnderlyingAssetExposures(asset, exposureAsset, conversionRate, i);
+
+            // Get the USD Value of the total exposure of "Asset" for "Underlying Asset.
+            // If "underlyingAsset" has one or more underlying assets itself, the lower level
+            // Pricing Modules will recursively update their respective exposures and return
+            // the requested USD value to this Pricing Module.
+            usdValueExposureAssetToUnderlyingAssets += IMainRegistry(mainRegistry)
+                .getUsdExposureUnderlyingAssetAfterWithdrawal(
+                underlyingAssets[i], 0, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
+            );
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        usdValueExposureAsset = usdValueExposureAssetToUnderlyingAssets;
+
+        // Cache usdValueExposureAssetLast and update usdValueExposureAssetLast.
+        uint256 usdValueExposureAssetLast = assetToInformation[asset].usdValueExposureAssetLast;
+        assetToInformation[asset].usdValueExposureAssetLast = uint128(usdValueExposureAsset);
+
+        // Cache usdExposureProtocol.
+        uint256 usdExposureProtocolLast = usdExposureProtocol;
+
+        // Update usdExposureProtocolLast.
+        if (usdValueExposureAsset >= usdValueExposureAssetLast) {
             usdExposureProtocol = usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast;
         } else {
             usdExposureProtocol = usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
@@ -269,7 +337,7 @@ abstract contract DerivedPricingModule is PricingModule {
      * @param conversionRate The conversion rate of the asset to the underlying asset.
      * @param index The index of the underlying asset in assetToInformation[asset].underlyingAssets.
      * @return exposureAssetToUnderlyingAsset The updated amount of exposure to the asset's underlying asset.
-     * @return deltaExposureAssetToUnderlyingAssetc The increase or decrease in exposure to the asset's underlying asset since last update.
+     * @return deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure to the asset's underlying asset since last update.
      */
     function _getUnderlyingAssetExposures(address asset, uint256 exposureAsset, uint256 conversionRate, uint8 index)
         internal
@@ -280,9 +348,9 @@ abstract contract DerivedPricingModule is PricingModule {
 
         // Calculate the change in exposure to the underlying assets since last interaction.
         deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAsset)
-            - int256(uint256(assetToInformation[asset].exposureAssetToUnderlyingAssetsLast[i]));
+            - int256(uint256(assetToInformation[asset].exposureAssetToUnderlyingAssetsLast[index]));
 
         // Update "exposureAssetToUnderlyingAssetLast".
-        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast[i] = uint128(exposureAssetToUnderlyingAsset);
+        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast[index] = uint128(exposureAssetToUnderlyingAsset);
     }
 }

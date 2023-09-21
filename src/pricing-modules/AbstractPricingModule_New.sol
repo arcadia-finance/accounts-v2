@@ -5,7 +5,7 @@
 pragma solidity 0.8.19;
 
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
-import { IPricingModule_New } from "../interfaces/IPricingModule_New.sol";
+import { IPricingModule } from "../interfaces/IPricingModule_New.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 
@@ -16,7 +16,7 @@ import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
  * @dev No end-user should directly interact with Pricing Module, only the Main Registry, Oracle-Hub
  * or the contract owner.
  */
-abstract contract PricingModule is Owned, IPricingModule_New {
+abstract contract PricingModule is Owned, IPricingModule {
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
@@ -100,6 +100,19 @@ abstract contract PricingModule is Owned, IPricingModule_New {
 
         emit RiskManagerUpdated(riskManager_);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                        WHITE LIST MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Checks for a token address and the corresponding Id if it is white-listed.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is whitelisted.
+     * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
+     */
+    function isAllowListed(address asset, uint256) public view virtual returns (bool) { }
 
     /*///////////////////////////////////////////////////////////////
                     RISK MANAGER MANAGEMENT

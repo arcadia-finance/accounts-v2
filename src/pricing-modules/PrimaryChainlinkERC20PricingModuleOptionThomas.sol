@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { PrimaryPricingModule, IPricingModule } from "./PrimaryPricingModuleOptionThomas.sol";
+import { PrimaryPricingModule, IPricingModule } from "./AbstractPrimaryPricingModule.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";

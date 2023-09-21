@@ -4,8 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { IMainRegistry } from "./interfaces/IMainRegistryOptionThomas.sol";
-import { IPricingModule } from "../interfaces/IPricingModule.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry_New.sol";
+import { IPricingModule } from "../interfaces/IPricingModule_New.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 import { PricingModule } from "./AbstractPricingModule_New.sol";
@@ -15,7 +15,7 @@ import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
  * @title Primary Pricing Module.
  * @author Pragma Labs
  */
-abstract contract AbstractPrimaryPricingModule is PricingModule {
+abstract contract PrimaryPricingModule is PricingModule {
     using FixedPointMathLib for uint256;
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
@@ -70,7 +70,7 @@ abstract contract AbstractPrimaryPricingModule is PricingModule {
      * @return A boolean, indicating if the asset is whitelisted.
      * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
      */
-    function isAllowListed(address asset, uint256) public view virtual returns (bool) {
+    function isAllowListed(address asset, uint256) public view virtual override returns (bool) {
         return exposure[asset].maxExposure != 0;
     }
 

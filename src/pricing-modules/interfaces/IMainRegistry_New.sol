@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { IPricingModule } from "../../interfaces/IPricingModuleOptionThomas.sol";
+import { IPricingModule } from "../../interfaces/IPricingModule_New.sol";
 
 interface IMainRegistry {
     /**

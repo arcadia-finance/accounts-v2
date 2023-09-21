@@ -13,8 +13,9 @@ import { ArcadiaOracle } from "./utils/mocks/ArcadiaOracle.sol";
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/AccountV1.sol";
 
-import { PrimaryPricingModule } from "../src/pricing-modules/PrimaryPricingModuleOptionThomas.sol";
-import { MainRegistry } from "../src/MainRegistryOptionThomas.sol";
+import { PrimaryPricingModule } from "../src/pricing-modules/AbstractPrimaryPricingModule.sol";
+import { PricingModule } from "../src/pricing-modules/AbstractPricingModule_New.sol";
+import { MainRegistry } from "../src/MainRegistry_New.sol";
 import { PrimaryChainlinkERC20PricingModule } from
     "../src/pricing-modules/PrimaryChainlinkERC20PricingModuleOptionThomas.sol";
 import { ERC4626PricingModule } from "../src/pricing-modules/DerivedERC4626PricingModuleOptionThomas.sol";
@@ -130,7 +131,7 @@ contract Fuzz_Test is Base_Test {
 
         // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
         PrimaryPricingModule.RiskVarInput[] memory riskVarsToken = new PrimaryPricingModule.RiskVarInput[](1);
-        riskVarsToken[0] = PrimaryPricingModule.RiskVarInput({
+        riskVarsToken[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: Constants.tokenToStableCollFactor,
