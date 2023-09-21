@@ -112,7 +112,7 @@ abstract contract DerivedPricingModule is PricingModule {
      * param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256, uint256 amount) external virtual override onlyMainReg {
+    function processDirectDeposit(address asset, uint256, uint256 amount) external virtual onlyMainReg {
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getExposureAsset(asset, int256(amount));
 
@@ -131,7 +131,7 @@ abstract contract DerivedPricingModule is PricingModule {
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) external virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getExposureAsset(asset, deltaExposureUpperAssetToAsset);
 
@@ -150,7 +150,7 @@ abstract contract DerivedPricingModule is PricingModule {
      * @param amount The amount of tokens.
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
-    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual override onlyMainReg {
+    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual onlyMainReg {
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getExposureAsset(asset, -int256(amount));
 
@@ -169,7 +169,7 @@ abstract contract DerivedPricingModule is PricingModule {
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { 
+    ) external virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { 
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getExposureAsset(asset, deltaExposureUpperAssetToAsset);
 
@@ -190,7 +190,6 @@ abstract contract DerivedPricingModule is PricingModule {
     function _processAction(address asset, uint256, uint256 exposureAsset)
         internal
         virtual
-        override
         onlyMainReg
         returns (uint256 usdValueExposureAsset)
     {
