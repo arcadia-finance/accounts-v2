@@ -71,24 +71,24 @@ library DeployBytes {
 }
 
 library DeployRiskConstantsBase {
-    uint16 public constant comp_collFact_1 = 76; //eth
-    uint16 public constant comp_collFact_2 = 86; //usdc
-    uint16 public constant comp_liqFact_1 = 84; //eth
-    uint16 public constant comp_liqFact_2 = 94; //usdc
+    uint16 public constant comp_collFact_1 = 70; //eth
+    uint16 public constant comp_collFact_2 = 65; //usdc
+    uint16 public constant comp_liqFact_1 = 77; //eth
+    uint16 public constant comp_liqFact_2 = 72; //usdc
 
-    uint16 public constant dai_collFact_1 = 76; //eth
-    uint16 public constant dai_collFact_2 = 86; //usdc
-    uint16 public constant dai_liqFact_1 = 84; //eth
-    uint16 public constant dai_liqFact_2 = 94; //usdc
+    uint16 public constant dai_collFact_1 = 80; //eth
+    uint16 public constant dai_collFact_2 = 88; //usdc
+    uint16 public constant dai_liqFact_1 = 85; //eth
+    uint16 public constant dai_liqFact_2 = 92; //usdc
 
-    uint16 public constant eth_collFact_1 = 76; //eth
-    uint16 public constant eth_collFact_2 = 86; //usdc
-    uint16 public constant eth_liqFact_1 = 84; //eth
-    uint16 public constant eth_liqFact_2 = 94; //usdc
+    uint16 public constant eth_collFact_1 = 90; //eth
+    uint16 public constant eth_collFact_2 = 80; //usdc
+    uint16 public constant eth_liqFact_1 = 94; //eth
+    uint16 public constant eth_liqFact_2 = 85; //usdc
 
-    uint16 public constant usdc_collFact_1 = 76; //eth
-    uint16 public constant usdc_collFact_2 = 86; //usdc
-    uint16 public constant usdc_liqFact_1 = 84; //eth
+    uint16 public constant usdc_collFact_1 = 80; //eth
+    uint16 public constant usdc_collFact_2 = 90; //usdc
+    uint16 public constant usdc_liqFact_1 = 85; //eth
     uint16 public constant usdc_liqFact_2 = 94; //usdc
 
     uint16 public constant wbtc_collFact_1 = 76; //eth
@@ -96,15 +96,15 @@ library DeployRiskConstantsBase {
     uint16 public constant wbtc_liqFact_1 = 84; //eth
     uint16 public constant wbtc_liqFact_2 = 94; //usdc
 
-    uint16 public constant cbeth_collFact_1 = 76; //eth
-    uint16 public constant cbeth_collFact_2 = 86; //usdc
-    uint16 public constant cbeth_liqFact_1 = 84; //eth
-    uint16 public constant cbeth_liqFact_2 = 94; //usdc
+    uint16 public constant cbeth_collFact_1 = 85; //eth
+    uint16 public constant cbeth_collFact_2 = 75; //usdc
+    uint16 public constant cbeth_liqFact_1 = 92; //eth
+    uint16 public constant cbeth_liqFact_2 = 82; //usdc
 
-    uint16 public constant reth_collFact_1 = 76; //eth
-    uint16 public constant reth_collFact_2 = 86; //usdc
-    uint16 public constant reth_liqFact_1 = 84; //eth
-    uint16 public constant reth_liqFact_2 = 94; //usdc
+    uint16 public constant reth_collFact_1 = 85; //eth
+    uint16 public constant reth_collFact_2 = 75; //usdc
+    uint16 public constant reth_liqFact_1 = 92; //eth
+    uint16 public constant reth_liqFact_2 = 82; //usdc
 
     uint16 public constant sushi_collFact_1 = 76; //eth
     uint16 public constant sushi_collFact_2 = 86; //usdc
