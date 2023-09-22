@@ -181,7 +181,7 @@ abstract contract PrimaryPricingModule is PricingModule {
 
         uint256 exposureAsset;
         if (deltaExposureUpperAssetToAsset > 0) {
-            exposureAsset = exposureLast - uint256(-deltaExposureUpperAssetToAsset);
+            exposureAsset = exposureLast + uint256(deltaExposureUpperAssetToAsset);
             require(exposureAsset <= type(uint128).max, "APPM_PIW: Overflow");
         } else {
             exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)

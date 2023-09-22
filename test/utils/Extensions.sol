@@ -11,7 +11,8 @@ import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
 import { MainRegistryGuardian } from "../../src/guardians/MainRegistryGuardian.sol";
 import { MainRegistry } from "../../src/MainRegistry.sol";
-import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
+import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PrimaryPricingModule } from "../../src/pricing-modules/AbstractPrimaryPricingModule.sol";
 import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
 import { UniswapV3WithFeesPricingModule } from "../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
 
@@ -103,6 +104,12 @@ contract AbstractPricingModuleExtension is PricingModule {
     function setRiskVariables(address asset, uint256 basecurrency, RiskVars memory riskVars_) public {
         _setRiskVariables(asset, basecurrency, riskVars_);
     }
+}
+
+contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule {
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
+        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    { }
 
     function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
         exposure[asset].exposure = exposure_;

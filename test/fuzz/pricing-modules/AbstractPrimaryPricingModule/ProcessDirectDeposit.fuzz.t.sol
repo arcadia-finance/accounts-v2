@@ -4,26 +4,24 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingModule.fuzz.t.sol";
-
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { Constants, AbstractPrimaryPricingModule_Fuzz_Test } from "./_AbstractPrimaryPricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "increaseExposure" of contract "AbstractPricingModule".
+ * @notice Fuzz tests for the "processDirectDeposit" of contract "AbstractPrimaryPricingModule".
  */
-contract IncreaseExposure_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
+contract ProcessDirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPrimaryPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        AbstractPricingModule_Fuzz_Test.setUp();
+        AbstractPrimaryPricingModule_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_increaseExposure_NonMainRegistry(
+    function testFuzz_Revert_processDirectDeposit_NonMainRegistry(
         address unprivilegedAddress_,
         address asset,
         uint128 amount
@@ -32,11 +30,11 @@ contract IncreaseExposure_AbstractPricingModule_Fuzz_Test is AbstractPricingModu
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        pricingModule.increaseExposure(asset, 0, amount);
+        pricingModule.processDirectDeposit(asset, 0, amount);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_increaseExposure_OverExposure(
+    function testFuzz_Revert_processDirectDeposit_OverExposure(
         address asset,
         uint128 exposure,
         uint128 amount,
@@ -47,12 +45,12 @@ contract IncreaseExposure_AbstractPricingModule_Fuzz_Test is AbstractPricingModu
         pricingModule.setExposure(asset, exposure, maxExposure);
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("APM_IE: Exposure not in limits");
-        pricingModule.increaseExposure(address(asset), 0, amount);
+        vm.expectRevert("APPM_PDD: Exposure not in limits");
+        pricingModule.processDirectDeposit(address(asset), 0, amount);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_increaseExposure(address asset, uint128 exposure, uint128 amount, uint128 maxExposure)
+    function testFuzz_Success_processDirectDeposit(address asset, uint128 exposure, uint128 amount, uint128 maxExposure)
         public
     {
         vm.assume(exposure <= type(uint128).max - amount);
@@ -60,7 +58,7 @@ contract IncreaseExposure_AbstractPricingModule_Fuzz_Test is AbstractPricingModu
         pricingModule.setExposure(asset, exposure, maxExposure);
 
         vm.prank(address(mainRegistryExtension));
-        pricingModule.increaseExposure(address(asset), 0, amount);
+        pricingModule.processDirectDeposit(address(asset), 0, amount);
 
         (, uint128 actualExposure) = pricingModule.exposure(address(asset));
         uint128 expectedExposure = exposure + amount;

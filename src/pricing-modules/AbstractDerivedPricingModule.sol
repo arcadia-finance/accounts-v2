@@ -241,7 +241,7 @@ abstract contract DerivedPricingModule is PricingModule {
         if (usdValueExposureAsset >= usdValueExposureAssetLast) {
             require(
                 usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast <= maxUsdExposureProtocol,
-                "ADPM_PDD: Exposure not in limits"
+                "ADPM_PD: Exposure not in limits"
             );
             usdExposureProtocol = usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast;
         } else {
