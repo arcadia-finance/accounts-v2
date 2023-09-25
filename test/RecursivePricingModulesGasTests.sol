@@ -15,7 +15,7 @@ import { AccountV1 } from "../src/AccountV1.sol";
 
 import { PrimaryPricingModule } from "../src/pricing-modules/AbstractPrimaryPricingModule.sol";
 import { PricingModule } from "../src/pricing-modules/AbstractPricingModule_New.sol";
-import { MainRegistry } from "../src/MainRegistry_New.sol";
+import { MainRegistry_New } from "../src/MainRegistry_New.sol";
 import { PrimaryChainlinkERC20PricingModule } from
     "../src/pricing-modules/PrimaryChainlinkERC20PricingModuleOptionThomas.sol";
 import { ERC4626PricingModule } from "../src/pricing-modules/DerivedERC4626PricingModuleOptionThomas.sol";
@@ -55,7 +55,7 @@ contract Fuzz_Test is Base_Test {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    MainRegistry internal mainRegistry;
+    MainRegistry_New internal mainRegistry;
     PrimaryChainlinkERC20PricingModule internal erc20PricingModule_;
     ERC4626PricingModule internal middleErc4626PricingModule;
     ERC4626PricingModule internal upperErc4626PricingModule;
@@ -88,7 +88,7 @@ contract Fuzz_Test is Base_Test {
         // Deploy test contracts.
         vm.startPrank(users.creatorAddress);
         factory = new Factory();
-        mainRegistry = new MainRegistry(address(factory));
+        mainRegistry = new MainRegistry_New(address(factory));
         erc20PricingModule_ = new PrimaryChainlinkERC20PricingModule(address(mainRegistry), address(oracleHub), 0);
         middleErc4626PricingModule = new ERC4626PricingModule(address(mainRegistry), address(oracleHub), 0);
         upperErc4626PricingModule = new ERC4626PricingModule(address(mainRegistry), address(oracleHub), 0);

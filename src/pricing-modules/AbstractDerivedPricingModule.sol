@@ -28,12 +28,11 @@ abstract contract DerivedPricingModule is PricingModule {
 
     // TODO: uint128 should be enough for USD Exposure ?
     // The maximum total exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
-    uint256 maxUsdExposureProtocol;
+    uint256 public maxUsdExposureProtocol;
     // The actual exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
-    uint256 usdExposureProtocol;
+    uint256 public usdExposureProtocol;
 
     // Map asset => assetExposure.
-    mapping(address => uint256) public assetExposure;
     mapping(address => AssetInformation) public assetToInformation;
 
     struct AssetInformation {
@@ -146,8 +145,12 @@ abstract contract DerivedPricingModule is PricingModule {
 
         uint256 usdValueExposureAsset = _processDeposit(asset, 0, exposureAsset);
 
-        // Calculate the USD value of the exposure of the Upper Asset to the Underlying asset.
-        usdValueExposureUpperAssetToAsset = usdValueExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
+        if (exposureAsset == 0 || usdValueExposureAsset == 0) {
+            usdValueExposureUpperAssetToAsset = 0;
+        } else {
+            // Calculate the USD value of the exposure of the Upper Asset to the Underlying asset.
+            usdValueExposureUpperAssetToAsset = usdValueExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
+        }
 
         return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
     }
@@ -184,8 +187,12 @@ abstract contract DerivedPricingModule is PricingModule {
 
         uint256 usdValueExposureAsset = _processWithdrawal(asset, 0, exposureAsset);
 
-        // Calculate the USD value of the exposure of the Upper Asset to the Underlying asset.
-        usdValueExposureUpperAssetToAsset = usdValueExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
+        if (exposureAsset == 0 || usdValueExposureAsset == 0) {
+            usdValueExposureUpperAssetToAsset = 0;
+        } else {
+            // Calculate the USD value of the exposure of the Upper Asset to the Underlying asset.
+            usdValueExposureUpperAssetToAsset = usdValueExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
+        }
 
         return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
     }

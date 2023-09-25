@@ -18,7 +18,7 @@ import { MainRegistryGuardian } from "./guardians/MainRegistryGuardian.sol";
  * @notice The Main Registry stores basic information for each token that can, or could at some point, be deposited in the Accounts.
  * @dev No end-user should directly interact with the Main Registry, only Accounts, Pricing Modules or the contract owner.
  */
-contract MainRegistry is IMainRegistry, MainRegistryGuardian {
+contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
     using FixedPointMathLib for uint256;
 
     /* //////////////////////////////////////////////////////////////

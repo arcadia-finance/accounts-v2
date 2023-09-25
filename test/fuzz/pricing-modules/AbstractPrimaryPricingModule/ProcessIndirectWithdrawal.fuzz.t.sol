@@ -55,7 +55,6 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is Abs
         vm.stopPrank();
     }
 
-
     function testFuzz_Success_processIndirectWithdrawal_positiveDelta(
         address asset,
         uint128 exposure,
