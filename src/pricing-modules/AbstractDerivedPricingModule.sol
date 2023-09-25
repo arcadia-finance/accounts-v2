@@ -131,8 +131,8 @@ abstract contract DerivedPricingModule is PricingModule {
      * @notice Increases the exposure to an underlying asset on deposit.
      * @param asset The contract address of the asset.
      * param id The Id of the asset.
-     * @param exposureUpperAssetToAsset .
-     * @param deltaExposureUpperAssetToAsset .
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function processIndirectDeposit(
         address asset,
@@ -171,11 +171,11 @@ abstract contract DerivedPricingModule is PricingModule {
     }
 
     /**
-     * @notice Decreases the exposure to an asset on withdrawal.
+     * @notice Decreases the exposure to an underlying asset on withdrawal.
      * @param asset The contract address of the asset.
      * param id The Id of the asset.
-     * @param exposureUpperAssetToAsset .
-     * @param deltaExposureUpperAssetToAsset .
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function processIndirectWithdrawal(
         address asset,

@@ -23,16 +23,11 @@ interface IMainRegistry {
      */
     function addAsset(address asset, uint256 assetType) external;
 
-    function getValueUnderlyingAsset(IPricingModule.GetValueInput memory getValueInput)
-        external
-        view
-        returns (uint256, uint256, uint256);
-
     /**
      * @notice This function is called by pricing modules of non-primary assets in order to increase the exposure of the underlying asset.
      * @param underlyingAsset The underlying asset of a non-primary asset.
-     * @param exposureAssetToUnderlyingAsset.
-     * @param deltaExposureAssetToUnderlyingAsset.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function getUsdExposureUnderlyingAssetAfterDeposit(
         address underlyingAsset,
@@ -45,8 +40,8 @@ interface IMainRegistry {
      * @notice This function is called by pricing modules of non-primary assets in order to decrease the exposure of the underlying asset.
      * @param underlyingAsset The underlying asset of a non-primary asset.
      * @param underlyingAssetId The underlying asset ID.
-     * @param exposureAssetToUnderlyingAsset.
-     * @param deltaExposureAssetToUnderlyingAsset.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function getUsdExposureUnderlyingAssetAfterWithdrawal(
         address underlyingAsset,

@@ -346,8 +346,8 @@ contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
      * @notice This function is called by pricing modules of non-primary assets in order to increase the exposure of the underlying asset.
      * @param underlyingAsset The underlying asset of a non-primary asset.
      * @param underlyingAssetId The underlying asset ID.
-     * @param exposureAssetToUnderlyingAsset.
-     * @param deltaExposureAssetToUnderlyingAsset.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function getUsdExposureUnderlyingAssetAfterDeposit(
         address underlyingAsset,
@@ -366,8 +366,8 @@ contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
      * @notice This function is called by pricing modules of non-primary assets in order to decrease the exposure of the underlying asset.
      * @param underlyingAsset The underlying asset of a non-primary asset.
      * @param underlyingAssetId The underlying asset ID.
-     * @param exposureAssetToUnderlyingAsset.
-     * @param deltaExposureAssetToUnderlyingAsset.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function getUsdExposureUnderlyingAssetAfterWithdrawal(
         address underlyingAsset,
@@ -568,14 +568,5 @@ contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
             getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, assetToBaseCurrency[baseCurrency]);
 
         liquidationValue = RiskModule.calculateLiquidationValue(valuesAndRiskVarPerAsset);
-    }
-
-    function getValueUnderlyingAsset(IPricingModule.GetValueInput memory getValueInput)
-        external
-        view
-        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
-    {
-        (valueInUsd, collateralFactor, liquidationFactor) =
-            IPricingModule(assetToAssetInformation[getValueInput.asset].pricingModule).getValue(getValueInput);
     }
 }

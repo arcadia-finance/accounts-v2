@@ -226,8 +226,21 @@ abstract contract PricingModule is Owned, IPricingModule {
         emit RiskVariablesSet(asset, uint8(baseCurrency), riskVars.collateralFactor, riskVars.liquidationFactor);
     }
 
+    /**
+     * @notice Increases the exposure to an asset on deposit.
+     * @param asset The contract address of the asset.
+     * param id The Id of the asset.
+     * @param amount The amount of tokens.
+     */
     function processDirectDeposit(address asset, uint256, uint256 amount) external virtual onlyMainReg { }
 
+    /**
+     * @notice Increases the exposure to an underlying asset on deposit.
+     * @param asset The contract address of the asset.
+     * param id The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     */
     function processIndirectDeposit(
         address asset,
         uint256,
@@ -235,8 +248,22 @@ abstract contract PricingModule is Owned, IPricingModule {
         int256 deltaExposureUpperAssetToAsset
     ) external virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
 
+    /**
+     * @notice Decreases the exposure to an asset on withdrawal.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @param amount The amount of tokens.
+     * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
+     */
     function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual onlyMainReg { }
 
+    /**
+     * @notice Decreases the exposure to an asset on withdrawal.
+     * @param asset The contract address of the asset.
+     * param id The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     */
     function processIndirectWithdrawal(
         address asset,
         uint256,
