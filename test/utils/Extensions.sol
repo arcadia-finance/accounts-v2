@@ -164,12 +164,6 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         usdExposureProtocol = usdExposureProtocol_;
     }
 
-    function setExposureAssetToUnderlyingAssetsLast(address asset, uint128[] memory exposureAssetToUnderlyingAssetLast)
-        public
-    {
-        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast = exposureAssetToUnderlyingAssetLast;
-    }
-
     function setConversionRate(uint256 newConversionRate) public {
         conversionRate = newConversionRate;
     }
