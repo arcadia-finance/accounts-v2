@@ -64,12 +64,16 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         assert(derivedPricingModule.usdExposureProtocol() == exposureAssetLast);
 
         vm.prank(address(mainRegistryExtension_New));
-        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
+            asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
 
         // After check, exposures should have increased
         (, uint128 AfterExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
         assert(AfterExposureUnderlyingAsset == exposureAssetLast + uint256(deltaExposureUpperAssetToAsset));
-        assert(derivedPricingModule.usdExposureProtocol() == exposureAssetLast + uint256(deltaExposureUpperAssetToAsset));
+        assert(
+            derivedPricingModule.usdExposureProtocol() == exposureAssetLast + uint256(deltaExposureUpperAssetToAsset)
+        );
         assert(PRIMARY_FLAG == false);
         assert(usdValueExposureUpperAssetToAsset == exposureUpperAssetToAsset);
     }
@@ -113,12 +117,16 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         assert(derivedPricingModule.usdExposureProtocol() == exposureAssetLast);
 
         vm.prank(address(mainRegistryExtension_New));
-        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
+            asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
 
         // After check, exposures should have increased
         (, uint128 AfterExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
         assert(AfterExposureUnderlyingAsset == exposureAssetLast - uint256(-deltaExposureUpperAssetToAsset));
-        assert(derivedPricingModule.usdExposureProtocol() == exposureAssetLast - uint256(-deltaExposureUpperAssetToAsset));
+        assert(
+            derivedPricingModule.usdExposureProtocol() == exposureAssetLast - uint256(-deltaExposureUpperAssetToAsset)
+        );
         assert(PRIMARY_FLAG == false);
         assert(usdValueExposureUpperAssetToAsset == exposureUpperAssetToAsset);
     }
@@ -162,7 +170,9 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         assert(derivedPricingModule.usdExposureProtocol() == exposureAssetLast);
 
         vm.prank(address(mainRegistryExtension_New));
-        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
+            asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
 
         // After check, exposures should have increased
         (, uint128 AfterExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);

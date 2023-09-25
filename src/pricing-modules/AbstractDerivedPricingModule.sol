@@ -149,7 +149,8 @@ abstract contract DerivedPricingModule is PricingModule {
             usdValueExposureUpperAssetToAsset = 0;
         } else {
             // Calculate the USD value of the exposure of the Upper Asset to the Underlying asset.
-            usdValueExposureUpperAssetToAsset = usdValueExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
+            usdValueExposureUpperAssetToAsset =
+                usdValueExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
         }
 
         return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
@@ -191,7 +192,8 @@ abstract contract DerivedPricingModule is PricingModule {
             usdValueExposureUpperAssetToAsset = 0;
         } else {
             // Calculate the USD value of the exposure of the Upper Asset to the Underlying asset.
-            usdValueExposureUpperAssetToAsset = usdValueExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
+            usdValueExposureUpperAssetToAsset =
+                usdValueExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
         }
 
         return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
