@@ -8,6 +8,7 @@ import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardER
 
 import { ERC4626DifferentDecimals } from "../../.././utils/mocks/ERC4626DifferentDecimals.sol";
 import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { StandardERC4626PricingModule } from "../../../../src/pricing-modules/StandardERC4626PricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "StandardERC4626PricingModule".
@@ -28,7 +29,7 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
-        erc4626PricingModule.addAsset(asset, emptyRiskVarInput, type(uint128).max);
+        erc4626PricingModule.addAsset(asset, emptyRiskVarInput_New);
         vm.stopPrank();
     }
 
@@ -40,15 +41,15 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
 
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("PM4626_AA: Decimals don't match");
-        erc4626PricingModule.addAsset(address(ybToken), emptyRiskVarInput, type(uint128).max);
+        erc4626PricingModule.addAsset(address(ybToken), emptyRiskVarInput_New);
         vm.stopPrank();
     }
 
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput, type(uint128).max);
+        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput_New);
         vm.expectRevert("PM4626_AA: already added");
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput, type(uint128).max);
+        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput_New);
         vm.stopPrank();
 
         assertTrue(erc4626PricingModule.inPricingModule(address(ybToken1)));
@@ -56,19 +57,19 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
 
     function testFuzz_Success_addAsset_EmptyListRiskVariables() public {
         vm.startPrank(users.creatorAddress);
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput, type(uint128).max);
+        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput_New);
         vm.stopPrank();
 
         assertTrue(erc4626PricingModule.inPricingModule(address(ybToken1)));
         assertEq(erc4626PricingModule.assetsInPricingModule(0), address(ybToken1));
-        (uint64 assetUnit, address underlyingAsset, address[] memory oracles) =
-            erc4626PricingModule.getAssetInformation(address(ybToken1));
+
+        (uint64 assetUnit) = erc4626PricingModule.erc4626AssetToInformation(address(ybToken1));
+
         assertEq(assetUnit, 10 ** mockERC20.token1.decimals());
-        assertEq(underlyingAsset, address(mockERC20.token1));
-        for (uint256 i; i < oracleToken1ToUsdArr.length; ++i) {
-            assertEq(oracles[i], oracleToken1ToUsdArr[i]);
-        }
+
         assertTrue(erc4626PricingModule.isAllowListed(address(ybToken1), 0));
+        // We ensure that the correct oracle from the underlying asset was added in 
+        // ERC4626AssetInformation through our testing of GetValue().
     }
 
     function testFuzz_Success_addAsset_NonFullListRiskVariables() public {
@@ -81,7 +82,7 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
             liquidationFactor: liquidationFactor
         });
 
-        erc4626PricingModule.addAsset(address(ybToken1), riskVars_, type(uint128).max);
+        erc4626PricingModule.addAsset(address(ybToken1), riskVars_);
         vm.stopPrank();
 
         assertTrue(erc4626PricingModule.inPricingModule(address(ybToken1)));

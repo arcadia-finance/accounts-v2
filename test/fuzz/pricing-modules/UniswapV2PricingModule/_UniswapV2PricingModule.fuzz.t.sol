@@ -117,7 +117,7 @@ abstract contract UniswapV2PricingModule_Fuzz_Test is Fuzz_Test {
                 isActive: true
             })
         );
-        erc20PricingModule.addAsset(address(token), oracleTokenToUsdArr, emptyRiskVarInput, type(uint128).max);
+        erc20PricingModule.addAsset(address(token), oracleTokenToUsdArr, emptyRiskVarInput_New, type(uint128).max);
         vm.stopPrank();
     }
 

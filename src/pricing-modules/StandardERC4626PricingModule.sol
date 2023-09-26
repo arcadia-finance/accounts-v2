@@ -4,7 +4,6 @@
  */
 pragma solidity 0.8.19;
 
-//import { PricingModule, IMainRegistry } from "./AbstractPricingModule.sol";
 import { DerivedPricingModule} from "./AbstractDerivedPricingModule.sol";
 import { IMainRegistry_New } from "./interfaces/IMainRegistry_New.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
@@ -21,7 +20,7 @@ import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 contract StandardERC4626PricingModule is DerivedPricingModule {
     using FixedPointMathLib for uint256;
 
-    mapping(address => AssetInformation) public assetToInformation;
+    mapping(address => ERC4626AssetInformation) public erc4626AssetToInformation;
     address public immutable erc20PricingModule;
 
     struct ERC4626AssetInformation {
@@ -53,7 +52,6 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
      * @notice Adds a new asset to the ATokenPricingModule.
      * @param asset The contract address of the asset
      * @param riskVars An array of Risk Variables for the asset
-     * @param maxExposure The maximum exposure of the asset in its own decimals
      * @dev Only the Collateral Factor, Liquidation Threshold and basecurrency are taken into account.
      * If no risk variables are provided, the asset is added with the risk variables set to zero, meaning it can't be used as collateral.
      * @dev RiskVarInput.asset can be zero as it is not taken into account.
@@ -61,7 +59,7 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
      * @dev The assets are added in the Main-Registry as well.
      * @dev Assets can't have more than 18 decimals.
      */
-    function addAsset(address asset, RiskVarInput[] calldata riskVars, uint256 maxExposure) external onlyOwner {
+    function addAsset(address asset, RiskVarInput[] calldata riskVars) external onlyOwner {
         uint256 assetUnit = 10 ** IERC4626(asset).decimals();
         address underlyingAsset = address(IERC4626(asset).asset());
 
@@ -74,32 +72,17 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
         inPricingModule[asset] = true;
         assetsInPricingModule.push(asset);
 
-        assetToInformation[asset].assetUnit = uint64(assetUnit);
-        assetToInformation[asset].underlyingAsset = underlyingAsset;
-        assetToInformation[asset].underlyingAssetOracles = underlyingAssetOracles;
-        _setRiskVariablesForAsset(asset, riskVars);
+        erc4626AssetToInformation[asset].assetUnit = uint64(assetUnit);
+        erc4626AssetToInformation[asset].underlyingAssetOracles = underlyingAssetOracles;
 
-        require(maxExposure <= type(uint128).max, "PM4626_AA: Max Exposure not in limits");
-        exposure[asset].maxExposure = uint128(maxExposure);
+        address[] memory underlyingAssets = new address[](1);
+        underlyingAssets[0] = underlyingAsset;
+        assetToInformation[asset].underlyingAssets = underlyingAssets;
+
+        _setRiskVariablesForAsset(asset, riskVars);
 
         //Will revert in MainRegistry if asset can't be added
         IMainRegistry_New(mainRegistry).addAsset(asset, assetType);
-    }
-
-    /**
-     * @notice Returns the information that is stored in the Sub-registry for a given asset
-     * @dev struct is not taken into memory; saves 6613 gas
-     * @param asset The Token address of the asset
-     * @return assetDecimals The number of decimals of the asset
-     * @return underlyingAssetAddress The Token address of the underlying asset
-     * @return underlyingAssetOracles The list of addresses of the oracles to get the exchange rate of the underlying asset in USD
-     */
-    function getAssetInformation(address asset) external view returns (uint64, address, address[] memory) {
-        return (
-            assetToInformation[asset].assetUnit,
-            assetToInformation[asset].underlyingAsset,
-            assetToInformation[asset].underlyingAssetOracles
-        );
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -128,11 +111,11 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
         uint256 rateInUsd =
-            IOraclesHub(oracleHub).getRateInUsd(assetToInformation[getValueInput.asset].underlyingAssetOracles);
+            IOraclesHub(oracleHub).getRateInUsd(erc4626AssetToInformation[getValueInput.asset].underlyingAssetOracles);
 
         uint256 assetAmount = IERC4626(getValueInput.asset).convertToAssets(getValueInput.assetAmount);
 
-        valueInUsd = assetAmount.mulDivDown(rateInUsd, assetToInformation[getValueInput.asset].assetUnit);
+        valueInUsd = assetAmount.mulDivDown(rateInUsd, erc4626AssetToInformation[getValueInput.asset].assetUnit);
 
         collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
         liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;

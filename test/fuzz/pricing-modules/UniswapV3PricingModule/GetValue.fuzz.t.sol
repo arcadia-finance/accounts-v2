@@ -16,6 +16,7 @@ import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/Ti
 import {
     IPricingModule, PricingModule
 } from "../../../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
+import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
 
 /**
  * @notice Fuzz tests for the "getValue" of contract "UniswapV3PricingModule".
@@ -151,14 +152,14 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         uniV3PricingModule.setExposureOfAsset(address(token1), type(uint128).max);
         vm.stopPrank();
 
-        PricingModule.RiskVarInput[] memory riskVarInputs = new PricingModule.RiskVarInput[](2);
-        riskVarInputs[0] = PricingModule.RiskVarInput({
+        PricingModule_New.RiskVarInput[] memory riskVarInputs = new PricingModule_New.RiskVarInput[](2);
+        riskVarInputs[0] = PricingModule_New.RiskVarInput({
             asset: address(token0),
             baseCurrency: 0,
             collateralFactor: uint16(collFactor0),
             liquidationFactor: uint16(liqFactor0)
         });
-        riskVarInputs[1] = PricingModule.RiskVarInput({
+        riskVarInputs[1] = PricingModule_New.RiskVarInput({
             asset: address(token1),
             baseCurrency: 0,
             collateralFactor: uint16(collFactor1),
