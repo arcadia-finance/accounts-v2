@@ -70,7 +70,7 @@ abstract contract DerivedPricingModule is PricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the information that is stored in the Sub-registry for a given asset
+     * @notice Returns the information that is stored in the Pricing Module for a given asset
      * @dev struct is not taken into memory; saves 6613 gas
      * @param asset The Token address of the asset
      */
@@ -91,6 +91,12 @@ abstract contract DerivedPricingModule is PricingModule {
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
+    /**
+     * @notice Calculates the conversion rate of an asset to its underlying asset.
+     * @param asset The asset to calculate the conversion rate for.
+     * @param underlyingAsset The asset to which we have to get the conversion rate.
+     * @return conversionRate The conversion rate of the asset to its underlying asset.
+     */
     function _getConversionRate(address asset, address underlyingAsset)
         internal
         view
@@ -147,7 +153,7 @@ abstract contract DerivedPricingModule is PricingModule {
         if (exposureAsset == 0 || usdValueExposureAsset == 0) {
             usdValueExposureUpperAssetToAsset = 0;
         } else {
-            // Calculate the USD value of the exposure of the Upper Asset to the Underlying asset.
+            // Calculate the USD value of the exposure of the upper asset to the underlying asset.
             usdValueExposureUpperAssetToAsset =
                 usdValueExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
         }
