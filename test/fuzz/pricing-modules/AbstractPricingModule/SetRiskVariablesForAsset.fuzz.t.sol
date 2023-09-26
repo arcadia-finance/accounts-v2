@@ -5,9 +5,10 @@
 pragma solidity 0.8.19;
 
 import { Constants, AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingModule.fuzz.t.sol";
+import { RiskConstants } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
-import { PricingModule, RiskConstants } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
 
 /**
  * @notice Fuzz tests for the "_setRiskVariablesForAsset" of contract "AbstractPricingModule".
@@ -27,7 +28,7 @@ contract SetRiskVariablesForAsset_AbstractPricingModule_Fuzz_Test is AbstractPri
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_setRiskVariablesForAsset_BaseCurrencyNotInLimits(
         address asset,
-        PricingModule.RiskVarInput[] memory riskVarInputs,
+        PricingModule_New.RiskVarInput[] memory riskVarInputs,
         uint256 baseCurrencyCounter
     ) public {
         vm.assume(riskVarInputs.length > 0);
@@ -44,7 +45,7 @@ contract SetRiskVariablesForAsset_AbstractPricingModule_Fuzz_Test is AbstractPri
 
     function testFuzz_Success_setRiskVariablesForAsset(
         address asset,
-        PricingModule.RiskVarInput[2] memory riskVarInputs
+        PricingModule_New.RiskVarInput[2] memory riskVarInputs
     ) public {
         vm.assume(riskVarInputs[0].baseCurrency != riskVarInputs[1].baseCurrency);
 

@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
-import { IPricingModule } from "./interfaces/IPricingModule_New.sol";
+import { IPricingModule_New } from "./interfaces/IPricingModule_New.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry_New.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { RiskModule } from "./RiskModule.sol";
@@ -297,7 +297,7 @@ contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
             assetAddress = assetAddresses[i];
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 
-            IPricingModule(assetToAssetInformation[assetAddress].pricingModule).processDirectDeposit(
+            IPricingModule_New(assetToAssetInformation[assetAddress].pricingModule).processDirectDeposit(
                 assetAddress, assetIds[i], amounts[i]
             );
 
@@ -332,7 +332,7 @@ contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
             assetAddress = assetAddresses[i];
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 
-            IPricingModule(assetToAssetInformation[assetAddress].pricingModule).processDirectWithdrawal(
+            IPricingModule_New(assetToAssetInformation[assetAddress].pricingModule).processDirectWithdrawal(
                 assetAddress, assetIds[i], amounts[i]
             );
 
@@ -355,7 +355,7 @@ contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
     ) external onlyPricingModule returns (uint256 usdValueExposureAssetToUnderlyingAsset) {
-        (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule(
+        (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule_New(
             assetToAssetInformation[underlyingAsset].pricingModule
         ).processIndirectDeposit(
             underlyingAsset, underlyingAssetId, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
@@ -375,7 +375,7 @@ contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
     ) external onlyPricingModule returns (uint256 usdValueExposureAssetToUnderlyingAsset) {
-        (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule(
+        (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule_New(
             assetToAssetInformation[underlyingAsset].pricingModule
         ).processIndirectWithdrawal(
             underlyingAsset, underlyingAssetId, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
@@ -411,7 +411,7 @@ contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
             new RiskModule.AssetValueAndRiskVariables[](assetAddressesLength);
 
         // Cache variables.
-        IPricingModule.GetValueInput memory getValueInput;
+        IPricingModule_New.GetValueInput memory getValueInput;
         getValueInput.baseCurrency = baseCurrency;
         BaseCurrencyInformation memory baseCurrencyInformation = baseCurrencyToInformation[baseCurrency];
         int256 rateBaseCurrencyToUsd;
@@ -437,7 +437,7 @@ contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
             if (assetAddress == baseCurrencyInformation.assetAddress) {
                 valuesAndRiskVarPerAsset[i].valueInBaseCurrency = assetAmounts[i];
                 (valuesAndRiskVarPerAsset[i].collateralFactor, valuesAndRiskVarPerAsset[i].liquidationFactor) =
-                IPricingModule(assetToAssetInformation[assetAddress].pricingModule).getRiskVariables(
+                IPricingModule_New(assetToAssetInformation[assetAddress].pricingModule).getRiskVariables(
                     assetAddress, baseCurrency
                 );
 
@@ -453,7 +453,7 @@ contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
                     valueInUsd,
                     valuesAndRiskVarPerAsset[i].collateralFactor,
                     valuesAndRiskVarPerAsset[i].liquidationFactor
-                ) = IPricingModule(assetToAssetInformation[assetAddress].pricingModule).getValue(getValueInput);
+                ) = IPricingModule_New(assetToAssetInformation[assetAddress].pricingModule).getValue(getValueInput);
 
                 // Calculate "valueInBaseCurrency" from "valueInUsd" by dividing by the "rateBaseCurrencyToUsd".
                 // Bring the "valueInBaseCurrency" from internal 18 decimals to the actual number of decimals of "baseCurrency".

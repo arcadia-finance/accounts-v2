@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
 
-import { PricingModule } from "../../../../src/pricing-modules/StandardERC20PricingModule.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "UniswapV2PricingModule".

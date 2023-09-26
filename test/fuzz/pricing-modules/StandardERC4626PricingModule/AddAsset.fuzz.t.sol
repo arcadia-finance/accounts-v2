@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
 
 import { ERC4626DifferentDecimals } from "../../.././utils/mocks/ERC4626DifferentDecimals.sol";
-import { PricingModule } from "../../../../src/pricing-modules/StandardERC20PricingModule.sol";
+import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "StandardERC4626PricingModule".
@@ -73,8 +73,8 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
 
     function testFuzz_Success_addAsset_NonFullListRiskVariables() public {
         vm.startPrank(users.creatorAddress);
-        PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](1);
-        riskVars_[0] = PricingModule.RiskVarInput({
+        PricingModule_New.RiskVarInput[] memory riskVars_ = new PricingModule_New.RiskVarInput[](1);
+        riskVars_[0] = PricingModule_New.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: collateralFactor,

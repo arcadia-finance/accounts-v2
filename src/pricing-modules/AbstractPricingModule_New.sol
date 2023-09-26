@@ -4,8 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
-import { IPricingModule } from "../interfaces/IPricingModule_New.sol";
+import { IMainRegistry_New } from "./interfaces/IMainRegistry_New.sol";
+import { IPricingModule_New } from "../interfaces/IPricingModule_New.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 
@@ -16,7 +16,7 @@ import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
  * @dev No end-user should directly interact with Pricing Module, only the Main Registry, Oracle-Hub
  * or the contract owner.
  */
-abstract contract PricingModule is Owned, IPricingModule {
+abstract contract PricingModule_New is Owned, IPricingModule_New {
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
@@ -161,7 +161,7 @@ abstract contract PricingModule is Owned, IPricingModule {
      * @dev Can only be called by the Risk Manager, which can be different from the owner.
      */
     function setBatchRiskVariables(RiskVarInput[] memory riskVarInputs) public virtual onlyRiskManager {
-        uint256 baseCurrencyCounter = IMainRegistry(mainRegistry).baseCurrencyCounter();
+        uint256 baseCurrencyCounter = IMainRegistry_New(mainRegistry).baseCurrencyCounter();
         uint256 riskVarInputsLength = riskVarInputs.length;
 
         for (uint256 i; i < riskVarInputsLength;) {
@@ -190,7 +190,7 @@ abstract contract PricingModule is Owned, IPricingModule {
      * @dev The asset slot in the RiskVarInput struct is ignored for this function.
      */
     function _setRiskVariablesForAsset(address asset, RiskVarInput[] memory riskVarInputs) internal virtual {
-        uint256 baseCurrencyCounter = IMainRegistry(mainRegistry).baseCurrencyCounter();
+        uint256 baseCurrencyCounter = IMainRegistry_New(mainRegistry).baseCurrencyCounter();
         uint256 riskVarInputsLength = riskVarInputs.length;
 
         for (uint256 i; i < riskVarInputsLength;) {

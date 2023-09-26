@@ -9,6 +9,7 @@ import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils
 import { MainRegistry } from "../../src/MainRegistry.sol";
 import { OracleHub } from "../../src/OracleHub.sol";
 import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
+import { PricingModule_New } from "../../src/pricing-modules/AbstractPricingModule_New.sol";
 import { TrustedCreditorMock } from ".././utils/mocks/TrustedCreditorMock.sol";
 import { Proxy } from "../../src/Proxy.sol";
 import { ERC20Mock } from ".././utils/mocks/ERC20Mock.sol";
@@ -229,6 +230,49 @@ abstract contract Fuzz_Test is Base_Test {
             })
         );
 
+        // TODO: delete the below when migration done
+        PricingModule_New.RiskVarInput[] memory riskVarsStable_New = new PricingModule_New.RiskVarInput[](3);
+        PricingModule_New.RiskVarInput[] memory riskVarsToken_New = new PricingModule_New.RiskVarInput[](3);
+
+        riskVarsStable_New[0] = PricingModule_New.RiskVarInput({
+            baseCurrency: 0,
+            asset: address(0),
+            collateralFactor: Constants.stableToStableCollFactor,
+            liquidationFactor: Constants.stableToStableLiqFactor
+        });
+        riskVarsStable_New[1] = PricingModule_New.RiskVarInput({
+            baseCurrency: 1,
+            asset: address(0),
+            collateralFactor: Constants.stableToStableCollFactor,
+            liquidationFactor: Constants.stableToStableLiqFactor
+        });
+        riskVarsStable_New[2] = PricingModule_New.RiskVarInput({
+            baseCurrency: 2,
+            asset: address(0),
+            collateralFactor: Constants.tokenToStableCollFactor,
+            liquidationFactor: Constants.tokenToStableLiqFactor
+        });
+
+        riskVarsToken_New[0] = PricingModule_New.RiskVarInput({
+            baseCurrency: 0,
+            asset: address(0),
+            collateralFactor: Constants.tokenToStableCollFactor,
+            liquidationFactor: Constants.tokenToStableLiqFactor
+        });
+        riskVarsToken_New[1] = PricingModule_New.RiskVarInput({
+            baseCurrency: 1,
+            asset: address(0),
+            collateralFactor: Constants.tokenToStableCollFactor,
+            liquidationFactor: Constants.tokenToStableLiqFactor
+        });
+        riskVarsToken_New[2] = PricingModule_New.RiskVarInput({
+            baseCurrency: 2,
+            asset: address(0),
+            collateralFactor: Constants.tokenToTokenLiqFactor,
+            liquidationFactor: Constants.tokenToTokenLiqFactor
+        });
+
+
         // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
         PricingModule.RiskVarInput[] memory riskVarsStable = new PricingModule.RiskVarInput[](3);
         PricingModule.RiskVarInput[] memory riskVarsToken = new PricingModule.RiskVarInput[](3);
@@ -277,13 +321,13 @@ abstract contract Fuzz_Test is Base_Test {
         oracleToken2ToUsdArr[0] = address(mockOracles.token2ToUsd);
 
         erc20PricingModule.addAsset(
-            address(mockERC20.stable1), oracleStable1ToUsdArr, riskVarsStable, type(uint128).max
+            address(mockERC20.stable1), oracleStable1ToUsdArr, riskVarsStable_New, type(uint128).max
         );
         erc20PricingModule.addAsset(
-            address(mockERC20.stable2), oracleStable2ToUsdArr, riskVarsStable, type(uint128).max
+            address(mockERC20.stable2), oracleStable2ToUsdArr, riskVarsStable_New, type(uint128).max
         );
-        erc20PricingModule.addAsset(address(mockERC20.token1), oracleToken1ToUsdArr, riskVarsToken, type(uint128).max);
-        erc20PricingModule.addAsset(address(mockERC20.token2), oracleToken2ToUsdArr, riskVarsToken, type(uint128).max);
+        erc20PricingModule.addAsset(address(mockERC20.token1), oracleToken1ToUsdArr, riskVarsToken_New, type(uint128).max);
+        erc20PricingModule.addAsset(address(mockERC20.token2), oracleToken2ToUsdArr, riskVarsToken_New, type(uint128).max);
 
         // Add NFT1 to the floorERC721PricingModule.
         oracleNft1ToToken1ToUsd[0] = address(mockOracles.nft1ToToken1);

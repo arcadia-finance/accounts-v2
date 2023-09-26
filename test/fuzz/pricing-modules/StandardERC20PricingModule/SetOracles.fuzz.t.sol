@@ -47,7 +47,7 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
 
         vm.prank(users.creatorAddress);
         erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
+            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput_New, type(uint128).max
         );
 
         vm.startPrank(users.creatorAddress);
@@ -59,7 +59,7 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
     function testFuzz_Revert_setOracles_ActiveOracle() public {
         vm.prank(users.creatorAddress);
         erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
+            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput_New, type(uint128).max
         );
 
         vm.startPrank(users.creatorAddress);
@@ -71,7 +71,7 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
     function testFuzz_Revert_setOracles_BadOracleSequence() public {
         vm.prank(users.creatorAddress);
         erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
+            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput_New, type(uint128).max
         );
 
         vm.prank(users.defaultTransmitter);
@@ -87,7 +87,7 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
     function testFuzz_Success_setOracles() public {
         vm.prank(users.creatorAddress);
         erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
+            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput_New, type(uint128).max
         );
 
         vm.prank(users.defaultTransmitter);

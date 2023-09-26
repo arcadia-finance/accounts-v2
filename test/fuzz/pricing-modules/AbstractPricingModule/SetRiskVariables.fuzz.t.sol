@@ -5,8 +5,8 @@
 pragma solidity 0.8.19;
 
 import { Constants, AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingModule.fuzz.t.sol";
-
-import { PricingModule, RiskConstants } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { RiskConstants } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
 
 /**
  * @notice Fuzz tests for the "_setRiskVariables" of contract "AbstractPricingModule".
@@ -26,7 +26,7 @@ contract SetRiskVariables_AbstractPricingModule_Fuzz_Test is AbstractPricingModu
     function testFuzz_Revert_setRiskVariables_CollateralFactorOutOfLimits(
         address asset,
         uint256 baseCurrency,
-        PricingModule.RiskVars memory riskVars_
+        PricingModule_New.RiskVars memory riskVars_
     ) public {
         vm.assume(riskVars_.collateralFactor > RiskConstants.MAX_COLLATERAL_FACTOR);
 
@@ -41,7 +41,7 @@ contract SetRiskVariables_AbstractPricingModule_Fuzz_Test is AbstractPricingModu
     function testFuzz_Revert_setRiskVariables_LiquidationThresholdOutOfLimits(
         address asset,
         uint256 baseCurrency,
-        PricingModule.RiskVars memory riskVars_
+        PricingModule_New.RiskVars memory riskVars_
     ) public {
         vm.assume(riskVars_.collateralFactor <= RiskConstants.MAX_COLLATERAL_FACTOR);
 
@@ -58,7 +58,7 @@ contract SetRiskVariables_AbstractPricingModule_Fuzz_Test is AbstractPricingModu
     function testFuzz_Success_setRiskVariables(
         address asset,
         uint8 baseCurrency,
-        PricingModule.RiskVars memory riskVars_
+        PricingModule_New.RiskVars memory riskVars_
     ) public {
         vm.assume(riskVars_.collateralFactor <= RiskConstants.MAX_COLLATERAL_FACTOR);
         vm.assume(riskVars_.liquidationFactor <= RiskConstants.MAX_LIQUIDATION_FACTOR);

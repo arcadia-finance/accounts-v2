@@ -4,7 +4,9 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule, IMainRegistry } from "./AbstractPricingModule.sol";
+//import { PricingModule, IMainRegistry } from "./AbstractPricingModule.sol";
+import { DerivedPricingModule} from "./AbstractDerivedPricingModule.sol";
+import { IMainRegistry_New } from "./interfaces/IMainRegistry_New.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 import { IERC4626 } from "../interfaces/IERC4626.sol";
 import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
@@ -16,15 +18,14 @@ import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
  * @notice The StandardERC4626Registry stores pricing logic and basic information for ERC4626 tokens for which the underlying assets have direct price feed.
  * @dev No end-user should directly interact with the StandardERC4626Registry, only the Main-registry, Oracle-Hub or the contract owner
  */
-contract StandardERC4626PricingModule is PricingModule {
+contract StandardERC4626PricingModule is DerivedPricingModule {
     using FixedPointMathLib for uint256;
 
     mapping(address => AssetInformation) public assetToInformation;
     address public immutable erc20PricingModule;
 
-    struct AssetInformation {
+    struct ERC4626AssetInformation {
         uint64 assetUnit;
-        address underlyingAsset;
         address[] underlyingAssetOracles;
     }
 
@@ -39,7 +40,7 @@ contract StandardERC4626PricingModule is PricingModule {
      * @param erc20PricingModule_ The address of the Pricing Module for standard ERC20 tokens.
      */
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address erc20PricingModule_)
-        PricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
+        DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
     {
         erc20PricingModule = erc20PricingModule_;
     }
@@ -82,7 +83,7 @@ contract StandardERC4626PricingModule is PricingModule {
         exposure[asset].maxExposure = uint128(maxExposure);
 
         //Will revert in MainRegistry if asset can't be added
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
+        IMainRegistry_New(mainRegistry).addAsset(asset, assetType);
     }
 
     /**

@@ -5,9 +5,8 @@
 pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
-
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
 import { AbstractPricingModuleExtension } from "../../../utils/Extensions.sol";
+import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
 
 /**
  * @notice Common logic needed by all "AbstractPricingModule" fuzz tests.
@@ -17,7 +16,7 @@ abstract contract AbstractPricingModule_Fuzz_Test is Fuzz_Test {
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    PricingModule.RiskVarInput[] riskVarInputs_;
+    PricingModule_New.RiskVarInput[] riskVarInputs_;
 
     /*////////////////////////////////////////////////////////////////
                             TEST CONTRACTS

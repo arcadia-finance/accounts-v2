@@ -4,9 +4,9 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule, IPricingModule } from "./AbstractPricingModule.sol";
+import { PrimaryPricingModule, IPricingModule_New } from "./AbstractPrimaryPricingModule.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IMainRegistry_New } from "./interfaces/IMainRegistry_New.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
@@ -18,7 +18,7 @@ import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingM
  * @dev No end-user should directly interact with the StandardERC20PricingModule, only the Main-registry,
  * Oracle-Hub or the contract owner.
  */
-contract StandardERC20PricingModule is PricingModule, IStandardERC20PricingModule {
+contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20PricingModule {
     using FixedPointMathLib for uint256;
 
     /* //////////////////////////////////////////////////////////////
@@ -47,7 +47,7 @@ contract StandardERC20PricingModule is PricingModule, IStandardERC20PricingModul
      * 2 = ERC1155.
      */
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        PricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
+        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
     { }
 
     /*///////////////////////////////////////////////////////////////
@@ -90,7 +90,7 @@ contract StandardERC20PricingModule is PricingModule, IStandardERC20PricingModul
         emit MaxExposureSet(asset, maxExposure);
 
         // Will revert in MainRegistry if asset can't be added.
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
+        IMainRegistry_New(mainRegistry).addAsset(asset, assetType);
     }
 
     /**
@@ -153,7 +153,7 @@ contract StandardERC20PricingModule is PricingModule, IStandardERC20PricingModul
      * However no check in StandardERC20PricingModule is necessary, since the check if the asset is allow listed (and hence added to PricingModule)
      * is already done in the MainRegistry.
      */
-    function getValue(IPricingModule.GetValueInput memory getValueInput)
+    function getValue(IPricingModule_New.GetValueInput memory getValueInput)
         public
         view
         override

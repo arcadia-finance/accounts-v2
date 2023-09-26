@@ -6,8 +6,6 @@ pragma solidity 0.8.19;
 
 import { Constants, AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
 
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
-
 /**
  * @notice Fuzz tests for the "processDirectWithdrawal" of contract "AbstractDerivedPricingModule".
  * @notice Tests performed here will validate the recursion flow of derived pricing modules.

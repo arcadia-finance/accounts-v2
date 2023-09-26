@@ -4,9 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { IPricingModule } from "../../interfaces/IPricingModule_New.sol";
-
-interface IMainRegistry {
+interface IMainRegistry_New {
     /**
      * @notice Returns the number of baseCurrencies.
      * @return Counter for the number of baseCurrencies in use.

@@ -11,6 +11,7 @@ import { AccountV1 } from "../src/AccountV1.sol";
 import { AccountV2 } from "./utils/mocks/AccountV2.sol";
 import { MainRegistryExtension } from "./utils/Extensions.sol";
 import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
+import { PricingModule_New } from "../src/pricing-modules/AbstractPricingModule_New.sol";
 import { OracleHub } from "../src/OracleHub.sol";
 import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
 import { FloorERC721PricingModule } from "../src/pricing-modules/FloorERC721PricingModule.sol";
@@ -37,6 +38,8 @@ abstract contract Base_Test is Test, Events, Errors {
     address internal initBaseCurrency;
 
     PricingModule.RiskVarInput[] emptyRiskVarInput;
+    // NOTE: delete the below after migration
+    PricingModule_New.RiskVarInput[] emptyRiskVarInput_New;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS

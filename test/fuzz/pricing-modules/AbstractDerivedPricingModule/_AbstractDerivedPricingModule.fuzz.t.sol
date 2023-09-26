@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
 import {
     AbstractDerivedPricingModuleExtension,
     AbstractPrimaryPricingModuleExtension,

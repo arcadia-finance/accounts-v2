@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { PrimaryPricingModule, IPricingModule } from "./AbstractPrimaryPricingModule.sol";
+import { PrimaryPricingModule, IPricingModule_New } from "./AbstractPrimaryPricingModule.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
@@ -151,7 +151,7 @@ contract PrimaryChainlinkERC20PricingModule is PrimaryPricingModule {
      * However no check in StandardERC20PricingModule is necessary, since the check if the asset is allow listed (and hence added to PricingModule)
      * is already done in the MainRegistry.
      */
-    function getValue(IPricingModule.GetValueInput memory getValueInput)
+    function getValue(IPricingModule_New.GetValueInput memory getValueInput)
         public
         view
         override

@@ -13,7 +13,7 @@ import { MainRegistryGuardian } from "../../src/guardians/MainRegistryGuardian.s
 import { MainRegistry } from "../../src/MainRegistry.sol";
 import { MainRegistry_New } from "../../src/MainRegistry_New.sol";
 import { IMainRegistry } from "../../src/interfaces/IMainRegistry_New.sol";
-import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule_New } from "../../src/pricing-modules/AbstractPricingModule_New.sol";
 import { PrimaryPricingModule } from "../../src/pricing-modules/AbstractPrimaryPricingModule.sol";
 import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
 import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
@@ -113,9 +113,9 @@ contract MainRegistryExtension_New is MainRegistry_New {
     }
 }
 
-contract AbstractPricingModuleExtension is PricingModule {
+contract AbstractPricingModuleExtension is PricingModule_New {
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
+        PricingModule_New(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
     function setRiskVariablesForAsset(address asset, RiskVarInput[] memory riskVarInputs) public {

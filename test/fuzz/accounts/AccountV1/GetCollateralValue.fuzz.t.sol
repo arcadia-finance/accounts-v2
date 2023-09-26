@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 
 /**
@@ -39,7 +39,7 @@ contract GetCollateralValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         collateralFactor = uint8(bound(collateralFactor, 0, RiskConstants.RISK_VARIABLES_UNIT));
 
         // Set Collateral factor of "stable1" for "stable1" to "liquidationFactor".
-        PricingModule.RiskVarInput[] memory riskVarInput = new PricingModule.RiskVarInput[](1);
+        PricingModule_New.RiskVarInput[] memory riskVarInput = new PricingModule_New.RiskVarInput[](1);
         riskVarInput[0].asset = address(mockERC20.stable1);
         riskVarInput[0].baseCurrency = uint8(mainRegistryExtension.assetToBaseCurrency(address(mockERC20.stable1)));
         riskVarInput[0].collateralFactor = collateralFactor;
