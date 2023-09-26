@@ -4,10 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { IMainRegistry } from "./interfaces/IMainRegistry_New.sol";
 import { IPricingModule } from "../interfaces/IPricingModule_New.sol";
-import { RiskConstants } from "../libraries/RiskConstants.sol";
-import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 import { PricingModule } from "./AbstractPricingModule_New.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 

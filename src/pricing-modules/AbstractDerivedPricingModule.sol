@@ -5,7 +5,6 @@
 pragma solidity 0.8.19;
 
 import { PricingModule } from "./AbstractPricingModule_New.sol";
-import { IPricingModule } from "../interfaces/IPricingModule_New.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry_New.sol";
@@ -215,8 +214,9 @@ abstract contract DerivedPricingModule is PricingModule {
         address[] memory underlyingAssets = assetToInformation[asset].underlyingAssets;
 
         uint256 usdValueExposureAssetToUnderlyingAssets;
-        for (uint8 i; i < assetToInformation[asset].underlyingAssets.length;) {
-            // Get the current flashloan resistant Conversion rate from the asset to it's underlying asset(s) (with 18 decimals precision).
+        // ToDo: Find a method to limit number of underlying assets below
+        for (uint256 i; i < underlyingAssets.length;) {
+            // Get the current flashloan resistant Conversion rate from the asset to its underlying asset(s) (with 18 decimals precision).
             uint256 conversionRate = _getConversionRate(asset, underlyingAssets[i]);
 
             // Calculate and update the total exposure, and the delta since last interaction, of "Asset" to "Underlying Asset".
@@ -348,7 +348,7 @@ abstract contract DerivedPricingModule is PricingModule {
      * @return exposureAssetToUnderlyingAsset The updated amount of exposure to the asset's underlying asset.
      * @return deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure to the asset's underlying asset since last update.
      */
-    function _getUnderlyingAssetExposures(address asset, uint256 exposureAsset, uint256 conversionRate, uint8 index)
+    function _getUnderlyingAssetExposures(address asset, uint256 exposureAsset, uint256 conversionRate, uint256 index)
         internal
         returns (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset)
     {
