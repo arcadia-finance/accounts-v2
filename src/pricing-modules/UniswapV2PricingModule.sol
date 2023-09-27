@@ -4,11 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule, IMainRegistry } from "./AbstractPricingModule.sol";
+import { DerivedPricingModule, IMainRegistry_New } from "./AbstractDerivedPricingModule.sol";
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { PRBMath } from "../libraries/PRBMath.sol";
+import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 
 /**
  * @title Pricing-Module for Uniswap V2 LP tokens
@@ -18,7 +19,7 @@ import { PRBMath } from "../libraries/PRBMath.sol";
  * @dev Most logic in this contract is a modifications of
  *      https://github.com/Uniswap/v2-periphery/blob/master/contracts/libraries/UniswapV2LiquidityMathLibrary.sol#L23
  */
-contract UniswapV2PricingModule is PricingModule {
+contract UniswapV2PricingModule is DerivedPricingModule {
     using FixedPointMathLib for uint256;
     using PRBMath for uint256;
 
@@ -27,13 +28,6 @@ contract UniswapV2PricingModule is PricingModule {
     address public immutable erc20PricingModule;
 
     bool public feeOn;
-
-    mapping(address => AssetInformation) public assetToInformation;
-
-    struct AssetInformation {
-        address token0;
-        address token1;
-    }
 
     /**
      * @notice A Pricing-Module must always be initialised with the address of the Main-Registry and of the Oracle-Hub
@@ -52,9 +46,24 @@ contract UniswapV2PricingModule is PricingModule {
         uint256 assetType_,
         address uniswapV2Factory_,
         address erc20PricingModule_
-    ) PricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender) {
+    ) DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender) {
         uniswapV2Factory = uniswapV2Factory_;
         erc20PricingModule = erc20PricingModule_;
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        WHITE LIST MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Checks for a token address and the corresponding Id if it is white-listed.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is whitelisted.
+     */
+    function isAllowListed(address asset, uint256) public view override returns (bool) {
+        // NOTE: To change based on discussion to enable or disable deposits for certain assets
+        return inPricingModule[asset];
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -76,7 +85,6 @@ contract UniswapV2PricingModule is PricingModule {
      * @notice Adds a new asset to the UniswapV2PricingModule.
      * @param asset The contract address of the asset
      * @param riskVars An array of Risk Variables for the asset
-     * @param maxExposure The maximum exposure of the asset in its own decimals
      * @dev Only the Collateral Factor, Liquidation Threshold and basecurrency are taken into account.
      * If no risk variables are provided, the asset is added with the risk variables set to zero, meaning it can't be used as collateral.
      * @dev RiskVarInput.asset can be zero as it is not taken into account.
@@ -84,31 +92,58 @@ contract UniswapV2PricingModule is PricingModule {
      * @dev The assets are added in the Main-Registry as well.
      * @dev Assets can't have more than 18 decimals.
      */
-    function addAsset(address asset, RiskVarInput[] calldata riskVars, uint256 maxExposure) external onlyOwner {
+    function addAsset(address asset, RiskVarInput[] calldata riskVars) external onlyOwner {
         address token0 = IUniswapV2Pair(asset).token0();
         address token1 = IUniswapV2Pair(asset).token1();
 
-        require(PricingModule(erc20PricingModule).isAllowListed(token0, 0), "PMUV2_AA: TOKENO_NOT_WHITELISTED");
-        require(PricingModule(erc20PricingModule).isAllowListed(token1, 0), "PMUV2_AA: TOKEN1_NOT_WHITELISTED");
+        require(PrimaryPricingModule(erc20PricingModule).isAllowListed(token0, 0), "PMUV2_AA: TOKENO_NOT_WHITELISTED");
+        require(PrimaryPricingModule(erc20PricingModule).isAllowListed(token1, 0), "PMUV2_AA: TOKEN1_NOT_WHITELISTED");
+
+        address[] memory underlyingAssets = new address[](2);
+        underlyingAssets[0] = token0;
+        underlyingAssets[1] = token1;
+        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](2);
+
+        assetToInformation[asset].underlyingAssets = underlyingAssets;
+        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast = exposureAssetToUnderlyingAssetsLast;
 
         require(!inPricingModule[asset], "PMUV2_AA: already added");
         inPricingModule[asset] = true;
         assetsInPricingModule.push(asset);
 
-        assetToInformation[asset].token0 = token0;
-        assetToInformation[asset].token1 = token1;
         _setRiskVariablesForAsset(asset, riskVars);
 
-        require(maxExposure <= type(uint128).max, "PMUV2_AA: Max Exposure not in limits");
-        exposure[asset].maxExposure = uint128(maxExposure);
-
         //Will revert in MainRegistry if asset can't be added
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
+        IMainRegistry_New(mainRegistry).addAsset(asset, assetType);
     }
 
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
+
+    // TODO: adapt conversion rate to return array
+    function _getConversionRate(address asset, address underlyingAsset)
+        internal
+        view
+        override
+        returns (uint256 conversionRate)
+    {
+        address token0 = assetToInformation[asset].underlyingAssets[0];
+        address token1 = assetToInformation[asset].underlyingAssets[1];
+
+        (uint256 trustedUsdPriceToken0,,) = DerivedPricingModule(erc20PricingModule).getValue(
+            GetValueInput({ asset: token0, assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
+        );
+
+        (uint256 trustedUsdPriceToken1,,) = DerivedPricingModule(erc20PricingModule).getValue(
+            GetValueInput({ asset: token1, assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
+        );
+
+        (uint256 token0Amount, uint256 token1Amount) =
+            _getTrustedTokenAmounts(asset, trustedUsdPriceToken0, trustedUsdPriceToken1, FixedPointMathLib.WAD);
+
+        underlyingAsset == token0 ? conversionRate = token0Amount : conversionRate = token1Amount;
+    }
 
     /**
      * @notice Returns the value of a Uniswap V2 LP-token
@@ -135,17 +170,17 @@ contract UniswapV2PricingModule is PricingModule {
         // To calculate the liquidity value after arbitrage, what matters is the ratio of the price of token0 compared to the price of token1
         // Hence we need to use a trusted external price for an equal amount of tokens,
         // we use for both tokens the USD price of 1 WAD (10**18) to guarantee precision.
-        (uint256 trustedUsdPriceToken0,,) = PricingModule(erc20PricingModule).getValue(
+        (uint256 trustedUsdPriceToken0,,) = DerivedPricingModule(erc20PricingModule).getValue(
             GetValueInput({
-                asset: assetToInformation[getValueInput.asset].token0,
+                asset: assetToInformation[getValueInput.asset].underlyingAssets[0],
                 assetId: 0,
                 assetAmount: FixedPointMathLib.WAD,
                 baseCurrency: 0
             })
         );
-        (uint256 trustedUsdPriceToken1,,) = PricingModule(erc20PricingModule).getValue(
+        (uint256 trustedUsdPriceToken1,,) = DerivedPricingModule(erc20PricingModule).getValue(
             GetValueInput({
-                asset: assetToInformation[getValueInput.asset].token1,
+                asset: assetToInformation[getValueInput.asset].underlyingAssets[1],
                 assetId: 0,
                 assetAmount: FixedPointMathLib.WAD,
                 baseCurrency: 0

@@ -7,7 +7,8 @@ pragma solidity 0.8.19;
 import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./_StandardERC20PricingModule.fuzz.t.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import {
-    PrimaryPricingModule, StandardERC20PricingModule
+    PrimaryPricingModule,
+    StandardERC20PricingModule
 } from "../../../../src/pricing-modules/StandardERC20PricingModule.sol";
 import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
 import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
@@ -59,7 +60,9 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
     function testFuzz_Revert_addAsset_BadOracleSequence() public {
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("OH_COS: Min 1 Oracle");
-        erc20PricingModule.addAsset(address(mockERC20.token4), new address[](0), emptyRiskVarInput_New, type(uint128).max);
+        erc20PricingModule.addAsset(
+            address(mockERC20.token4), new address[](0), emptyRiskVarInput_New, type(uint128).max
+        );
         vm.stopPrank();
     }
 

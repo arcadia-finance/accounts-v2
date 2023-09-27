@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, FloorERC721PricingModule_Fuzz_Test } from "./_FloorERC721PricingModule.fuzz.t.sol";
 
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
+import { IPricingModule_New } from "../../../../src/interfaces/IPricingModule_New.sol";
 
 /**
  * @notice Fuzz tests for the "getValue" of contract "FloorERC721PricingModule".
@@ -22,7 +22,7 @@ contract GetValue_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
         // Add Nft2 (which has an oracle directly to usd).
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
         );
     }
 
@@ -38,7 +38,7 @@ contract GetValue_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
         vm.prank(users.defaultTransmitter);
         mockOracles.nft2ToUsd.transmit(int256(rateNft2ToUsd));
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
+        IPricingModule_New.GetValueInput memory getValueInput = IPricingModule_New.GetValueInput({
             asset: address(mockERC721.nft2),
             assetId: 0,
             assetAmount: 1,

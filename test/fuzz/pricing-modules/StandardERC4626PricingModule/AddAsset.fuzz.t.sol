@@ -64,11 +64,22 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         assertEq(erc4626PricingModule.assetsInPricingModule(0), address(ybToken1));
 
         (uint64 assetUnit) = erc4626PricingModule.erc4626AssetToInformation(address(ybToken1));
-
         assertEq(assetUnit, 10 ** mockERC20.token1.decimals());
 
+        (
+            uint128 exposureAssetLast,
+            uint128 usdValueExposureAssetLast,
+            address[] memory underlyingAssets,
+            uint128[] memory exposureAssetToUnderlyingAssetsLast
+        ) = erc4626PricingModule.getAssetInformation(address(ybToken1));
+
+        assertEq(exposureAssetLast, 0);
+        assertEq(usdValueExposureAssetLast, 0);
+        assertEq(underlyingAssets[0], address(mockERC20.token1));
+        assertEq(exposureAssetToUnderlyingAssetsLast[0], 0);
+
         assertTrue(erc4626PricingModule.isAllowListed(address(ybToken1), 0));
-        // We ensure that the correct oracle from the underlying asset was added in 
+        // We ensure that the correct oracle from the underlying asset was added in
         // ERC4626AssetInformation through our testing of GetValue().
     }
 

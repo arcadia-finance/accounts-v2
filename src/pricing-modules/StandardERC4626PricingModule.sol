@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { DerivedPricingModule} from "./AbstractDerivedPricingModule.sol";
+import { DerivedPricingModule } from "./AbstractDerivedPricingModule.sol";
 import { IMainRegistry_New } from "./interfaces/IMainRegistry_New.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 import { IERC4626 } from "../interfaces/IERC4626.sol";
@@ -45,6 +45,21 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
     }
 
     /*///////////////////////////////////////////////////////////////
+                        WHITE LIST MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Checks for a token address and the corresponding Id if it is white-listed.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is whitelisted.
+     */
+    function isAllowListed(address asset, uint256) public view override returns (bool) {
+        // NOTE: To change based on discussion to enable or disable deposits for certain assets
+        return inPricingModule[asset];
+    }
+
+    /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
@@ -77,7 +92,10 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
 
         address[] memory underlyingAssets = new address[](1);
         underlyingAssets[0] = underlyingAsset;
+        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](1);
+
         assetToInformation[asset].underlyingAssets = underlyingAssets;
+        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast = exposureAssetToUnderlyingAssetsLast;
 
         _setRiskVariablesForAsset(asset, riskVars);
 
@@ -88,6 +106,10 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
+
+    function _getConversionRate(address asset, address) internal view override returns (uint256 conversionRate) {
+        conversionRate = IERC4626(asset).convertToAssets(1e18);
+    }
 
     /**
      * @notice Returns the value of a certain asset, denominated in USD or in another BaseCurrency

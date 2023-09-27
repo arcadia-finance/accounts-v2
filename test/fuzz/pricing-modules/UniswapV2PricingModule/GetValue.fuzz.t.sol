@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
 
 import { UniswapV2PairMock } from "../../.././utils/mocks/UniswapV2PairMock.sol";
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
+import { IPricingModule_New } from "../../../../src/interfaces/IPricingModule_New.sol";
 
 /**
  * @notice Fuzz tests for the "getValue" of contract "UniswapV2PricingModule".
@@ -63,7 +63,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
         pairToken1Token2 =
             UniswapV2PairMock(uniswapV2Factory.createPair(address(mockERC20.token2), address(mockERC20.token1)));
         vm.prank(users.creatorAddress);
-        uniswapV2PricingModule.addAsset(address(pairToken1Token2), emptyRiskVarInput, type(uint128).max);
+        uniswapV2PricingModule.addAsset(address(pairToken1Token2), emptyRiskVarInput_New);
 
         // Mint LP
         vm.assume(uint256(amountToken2) * amountToken1 > pairToken1Token2.MINIMUM_LIQUIDITY()); //min liquidity in uniswap pool
@@ -75,7 +75,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
             > type(uint256).max / Constants.WAD / Constants.WAD * 10 ** _oracleToken1ToUsdDecimals; // trustedPriceToken1ToUsd overflows
         vm.assume(cond0 || cond1);
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
+        IPricingModule_New.GetValueInput memory getValueInput = IPricingModule_New.GetValueInput({
             asset: address(pairToken1Token2),
             assetId: 0,
             assetAmount: pairToken1Token2.totalSupply(),
@@ -123,7 +123,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
         pairToken1Token2 =
             UniswapV2PairMock(uniswapV2Factory.createPair(address(mockERC20.token2), address(mockERC20.token1)));
         vm.prank(users.creatorAddress);
-        uniswapV2PricingModule.addAsset(address(pairToken1Token2), emptyRiskVarInput, type(uint128).max);
+        uniswapV2PricingModule.addAsset(address(pairToken1Token2), emptyRiskVarInput_New);
 
         // Mint a variable amount of balanced LP, for a given amountToken2
         vm.assume(
@@ -159,7 +159,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
             Constants.WAD * _rateToken1ToUsd / 10 ** _oracleToken1ToUsdDecimals * amountToken1 / 10 ** _token1Decimals;
         uint256 expectedValueInUsd = valueToken2 + valueToken1;
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
+        IPricingModule_New.GetValueInput memory getValueInput = IPricingModule_New.GetValueInput({
             asset: address(pairToken1Token2),
             assetId: 0,
             assetAmount: pairToken1Token2.totalSupply(),

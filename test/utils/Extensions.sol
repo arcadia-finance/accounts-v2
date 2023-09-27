@@ -18,6 +18,7 @@ import { PrimaryPricingModule } from "../../src/pricing-modules/AbstractPrimaryP
 import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
 import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
 import { UniswapV3WithFeesPricingModule } from "../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
+import { StandardERC4626PricingModule } from "../../src/pricing-modules/StandardERC4626PricingModule.sol";
 
 contract AccountExtension is AccountV1 {
     constructor() AccountV1() { }
@@ -282,5 +283,15 @@ contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule {
 
     function getFeeAmounts(address asset, uint256 id) public view returns (uint256 amount0, uint256 amount1) {
         (amount0, amount1) = _getFeeAmounts(asset, id);
+    }
+}
+
+contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
+        StandardERC4626PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    { }
+
+    function getConversionRate(address asset, address) public view returns (uint256 conversionRate) {
+        conversionRate = _getConversionRate(asset, address(0));
     }
 }

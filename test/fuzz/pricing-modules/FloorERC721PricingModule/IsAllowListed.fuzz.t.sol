@@ -26,7 +26,7 @@ contract IsAllowListed_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingM
         vm.prank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, 9999, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
+            address(mockERC721.nft2), 0, 9999, oracleNft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
         );
 
         // Then: address(mockERC721.nft2) should return true on isAllowListed for id's 0 to 9999
@@ -49,7 +49,7 @@ contract IsAllowListed_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingM
         vm.prank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 10, 999, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
+            address(mockERC721.nft2), 10, 999, oracleNft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
         );
 
         // Then: isAllowListed for address(mockERC721.nft2) should return false

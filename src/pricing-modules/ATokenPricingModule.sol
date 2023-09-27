@@ -4,7 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule, IMainRegistry } from "./AbstractPricingModule.sol";
+import { DerivedPricingModule } from "./AbstractDerivedPricingModule.sol";
+import { IMainRegistry_New } from "./interfaces/IMainRegistry_New.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 import { IAToken } from "./interfaces/IAToken.sol";
 import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
@@ -17,15 +18,14 @@ import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib
  * @notice The ATokenPricingModule stores pricing logic and basic information for yield bearing Aave ERC20 tokens for which a direct price feed exists
  * @dev No end-user should directly interact with the ATokenPricingModule, only the Main-registry, Oracle-Hub or the contract owner
  */
-contract ATokenPricingModule is PricingModule {
+contract ATokenPricingModule is DerivedPricingModule {
     using FixedPointMathLib for uint256;
 
-    mapping(address => AssetInformation) public assetToInformation;
+    mapping(address => ATokenAssetInformation) public aTokenAssetToInformation;
     address public immutable erc20PricingModule;
 
-    struct AssetInformation {
+    struct ATokenAssetInformation {
         uint64 assetUnit;
-        address underlyingAsset;
         address[] underlyingAssetOracles;
     }
 
@@ -40,9 +40,24 @@ contract ATokenPricingModule is PricingModule {
      * @param erc20PricingModule_ The address of the Pricing Module for standard ERC20 tokens.
      */
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address erc20PricingModule_)
-        PricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
+        DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
     {
         erc20PricingModule = erc20PricingModule_;
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        WHITE LIST MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Checks for a token address and the corresponding Id if it is white-listed.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is whitelisted.
+     */
+    function isAllowListed(address asset, uint256) public view override returns (bool) {
+        // NOTE: To change based on discussion to enable or disable deposits for certain assets
+        return inPricingModule[asset];
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -53,7 +68,6 @@ contract ATokenPricingModule is PricingModule {
      * @notice Adds a new asset to the ATokenPricingModule.
      * @param asset The contract address of the asset
      * @param riskVars An array of Risk Variables for the asset
-     * @param maxExposure The maximum exposure of the asset in its own decimals
      * @dev Only the Collateral Factor, Liquidation Threshold and basecurrency are taken into account.
      * If no risk variables are provided, the asset is added with the risk variables set to zero, meaning it can't be used as collateral.
      * @dev RiskVarInput.asset can be zero as it is not taken into account.
@@ -61,7 +75,7 @@ contract ATokenPricingModule is PricingModule {
      * @dev The assets are added in the Main-Registry as well.
      * @dev Assets can't have more than 18 decimals.
      */
-    function addAsset(address asset, RiskVarInput[] calldata riskVars, uint256 maxExposure) external onlyOwner {
+    function addAsset(address asset, RiskVarInput[] calldata riskVars) external onlyOwner {
         uint256 assetUnit = 10 ** IERC20(asset).decimals();
         address underlyingAsset = IAToken(asset).UNDERLYING_ASSET_ADDRESS();
 
@@ -74,32 +88,20 @@ contract ATokenPricingModule is PricingModule {
         inPricingModule[asset] = true;
         assetsInPricingModule.push(asset);
 
-        assetToInformation[asset].assetUnit = uint64(assetUnit); //Can unsafe cast to uint64, we previously checked it is smaller than 10e18
-        assetToInformation[asset].underlyingAsset = underlyingAsset;
-        assetToInformation[asset].underlyingAssetOracles = underlyingAssetOracles;
+        aTokenAssetToInformation[asset].assetUnit = uint64(assetUnit); //Can unsafe cast to uint64, we previously checked it is smaller than 10e18
+        aTokenAssetToInformation[asset].underlyingAssetOracles = underlyingAssetOracles;
+
+        address[] memory underlyingAssets = new address[](1);
+        underlyingAssets[0] = underlyingAsset;
+        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](1);
+
+        assetToInformation[asset].underlyingAssets = underlyingAssets;
+        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast = exposureAssetToUnderlyingAssetsLast;
+
         _setRiskVariablesForAsset(asset, riskVars);
 
-        require(maxExposure <= type(uint128).max, "PMAT_AA: Max Exposure not in limits");
-        exposure[asset].maxExposure = uint128(maxExposure);
-
         //Will revert in MainRegistry if asset can't be added
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
-    }
-
-    /**
-     * @notice Returns the information that is stored in the Pricing Module for a given asset
-     * @dev struct is not taken into memory; saves 6613 gas
-     * @param asset The Token address of the asset
-     * @return assetUnit The number of decimals of the asset
-     * @return underlyingAssetAddress The Token address of the underlyting asset
-     * @return underlyingAsseOracleoracleAddresses The list of addresses of the oracles to get the exchange rate of the underlying asset in USD
-     */
-    function getAssetInformation(address asset) external view returns (uint64, address, address[] memory) {
-        return (
-            assetToInformation[asset].assetUnit,
-            assetToInformation[asset].underlyingAsset,
-            assetToInformation[asset].underlyingAssetOracles
-        );
+        IMainRegistry_New(mainRegistry).addAsset(asset, assetType);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -128,10 +130,10 @@ contract ATokenPricingModule is PricingModule {
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
         uint256 rateInUsd =
-            IOraclesHub(oracleHub).getRateInUsd(assetToInformation[getValueInput.asset].underlyingAssetOracles);
+            IOraclesHub(oracleHub).getRateInUsd(aTokenAssetToInformation[getValueInput.asset].underlyingAssetOracles);
 
         valueInUsd =
-            (getValueInput.assetAmount).mulDivDown(rateInUsd, assetToInformation[getValueInput.asset].assetUnit);
+            (getValueInput.assetAmount).mulDivDown(rateInUsd, aTokenAssetToInformation[getValueInput.asset].assetUnit);
 
         collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
         liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;

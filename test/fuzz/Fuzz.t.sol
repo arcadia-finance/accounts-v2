@@ -272,7 +272,6 @@ abstract contract Fuzz_Test is Base_Test {
             liquidationFactor: Constants.tokenToTokenLiqFactor
         });
 
-
         // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
         PricingModule.RiskVarInput[] memory riskVarsStable = new PricingModule.RiskVarInput[](3);
         PricingModule.RiskVarInput[] memory riskVarsToken = new PricingModule.RiskVarInput[](3);
@@ -326,15 +325,19 @@ abstract contract Fuzz_Test is Base_Test {
         erc20PricingModule.addAsset(
             address(mockERC20.stable2), oracleStable2ToUsdArr, riskVarsStable_New, type(uint128).max
         );
-        erc20PricingModule.addAsset(address(mockERC20.token1), oracleToken1ToUsdArr, riskVarsToken_New, type(uint128).max);
-        erc20PricingModule.addAsset(address(mockERC20.token2), oracleToken2ToUsdArr, riskVarsToken_New, type(uint128).max);
+        erc20PricingModule.addAsset(
+            address(mockERC20.token1), oracleToken1ToUsdArr, riskVarsToken_New, type(uint128).max
+        );
+        erc20PricingModule.addAsset(
+            address(mockERC20.token2), oracleToken2ToUsdArr, riskVarsToken_New, type(uint128).max
+        );
 
         // Add NFT1 to the floorERC721PricingModule.
         oracleNft1ToToken1ToUsd[0] = address(mockOracles.nft1ToToken1);
         oracleNft1ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
 
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft1), 0, 999, oracleNft1ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
+            address(mockERC721.nft1), 0, 999, oracleNft1ToToken1ToUsd, emptyRiskVarInput_New, type(uint128).max
         );
 
         // Add ERC1155 contract to the floorERC1155PricingModule

@@ -5,10 +5,8 @@
 pragma solidity 0.8.19;
 
 import { Constants, ATokenPricingModule_Fuzz_Test } from "./_ATokenPricingModule.fuzz.t.sol";
-
+import { IPricingModule_New } from "../../../../src/interfaces/IPricingModule_New.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
-
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "getValue" of contract "ATokenPricingModule".
@@ -40,9 +38,9 @@ contract GetValue_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
 
         vm.prank(users.creatorAddress);
-        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput, type(uint128).max);
+        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput_New);
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
+        IPricingModule_New.GetValueInput memory getValueInput = IPricingModule_New.GetValueInput({
             asset: address(aToken1),
             assetId: 0,
             assetAmount: amountToken1,
@@ -69,13 +67,13 @@ contract GetValue_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
 
         vm.prank(users.creatorAddress);
-        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput, type(uint128).max);
+        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput_New);
 
         uint256 expectedValueInUsd = (
             (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals) * amountToken1
         ) / 10 ** Constants.tokenDecimals;
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
+        IPricingModule_New.GetValueInput memory getValueInput = IPricingModule_New.GetValueInput({
             asset: address(aToken1),
             assetId: 0,
             assetAmount: amountToken1,
