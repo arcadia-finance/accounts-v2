@@ -25,7 +25,7 @@ contract ProcessDirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstract
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processDirectDeposit_NotMainRegistry(
+    function testFuzz_Revert_processDirectDeposit_NonMainRegistry(
         address unprivilegedAddress_,
         address asset,
         uint256 id,
@@ -77,7 +77,10 @@ contract ProcessDirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstract
         vm.stopPrank();
     }
 
-    function testFuzz_Success_processDirectDeposit(
+    // For the cases in which a deposit would lead to an overall decrease in protocol usd exposure,
+    // such scenarios are covered via testing done in processIndirectDeposit.fuzz.t.sol ending with
+    // _negativeDeltaLessThanPreviousExposure and _negativeDeltaGreaterThanPreviousExposure
+    function testFuzz_Success_processDirectDeposit_increaseOfProtocolUsdExposure(
         address asset,
         address underlyingAsset,
         uint128 exposureAssetLast,

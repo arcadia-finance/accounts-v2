@@ -128,9 +128,16 @@ contract AbstractPricingModuleExtension is PricingModule {
 }
 
 contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule {
+    // Price is 1 by default
+    uint256 assetUnitPrice = 1;
+
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
         PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
+
+    function setPrice(uint256 assetUnitPrice_) public {
+        assetUnitPrice = assetUnitPrice_;
+    }
 
     function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
         exposure[asset].exposure = exposure_;
@@ -141,12 +148,12 @@ contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule {
     // getValue() will be tested separately per PM.
     function getValue(GetValueInput memory getValueInput)
         public
-        pure
+        view
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
         // we assume a price of 1 for this testing purpose
-        valueInUsd = getValueInput.assetAmount;
+        valueInUsd = getValueInput.assetAmount * assetUnitPrice;
         collateralFactor = 0;
         liquidationFactor = 0;
     }
@@ -157,8 +164,7 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
-    uint256 conversionRate;
-    uint256 assetUnitPrice;
+    uint256 public conversionRate;
 
     function setExposure(uint256 maxUsdExposureProtocol_, uint256 usdExposureProtocol_) public {
         maxUsdExposureProtocol = maxUsdExposureProtocol_;
@@ -167,10 +173,6 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
 
     function setConversionRate(uint256 newConversionRate) public {
         conversionRate = newConversionRate;
-    }
-
-    function setPrice(uint256 assetUnitPrice_) public {
-        assetUnitPrice = assetUnitPrice_;
     }
 
     function setAssetInformation(
@@ -198,15 +200,6 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
 
     function _getConversionRate(address, address) internal view override returns (uint256 conversionRate_) {
         conversionRate_ = conversionRate;
-    }
-
-    function getValue(GetValueInput memory getValueInput)
-        public
-        view
-        override
-        returns (uint256 valueInUsd, uint256, uint256)
-    {
-        valueInUsd = getValueInput.assetAmount * assetUnitPrice;
     }
 }
 
