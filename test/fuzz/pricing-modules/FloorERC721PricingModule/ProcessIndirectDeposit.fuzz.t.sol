@@ -52,7 +52,7 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         assertEq(actualExposure, 0);
     }
 
-    function testFuzz_Revert_processDirectDeposit_OverExposure(uint256 assetId) public {
+    function testFuzz_Revert_processIndirectDeposit_OverExposure(uint256 assetId) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput_New, 1

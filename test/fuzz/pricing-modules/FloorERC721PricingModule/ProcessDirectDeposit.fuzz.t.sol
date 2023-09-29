@@ -46,7 +46,7 @@ contract ProcessDirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721P
         vm.startPrank(address(mainRegistryExtension));
         floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), assetId, 1);
 
-        vm.expectRevert("PM721_IE: Exposure not in limits");
+        vm.expectRevert("PM721_PDD: Exposure not in limits");
         floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), assetId, 1);
         vm.stopPrank();
     }
@@ -57,7 +57,7 @@ contract ProcessDirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721P
         floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, 0, oracleNft2ToUsdArr, emptyRiskVarInput_New, 1);
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PM721_IE: ID not allowed");
+        vm.expectRevert("PM721_PDD: ID not allowed");
         floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), assetId, 1);
         vm.stopPrank();
 
@@ -73,7 +73,7 @@ contract ProcessDirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721P
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PM721_IE: Amount not 1");
+        vm.expectRevert("PM721_PDD: Amount not 1");
         floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), assetId, amount);
         vm.stopPrank();
 

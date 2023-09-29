@@ -43,7 +43,7 @@ contract ProcessDirectWithdrawal_FloorERC721PricingModule_Fuzz_Test is FloorERC7
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PM721_DE: Amount not 1");
+        vm.expectRevert("PM721_PDW: Amount not 1");
         floorERC721PricingModule.processDirectWithdrawal(address(mockERC721.nft2), assetId, amount);
         vm.stopPrank();
     }
