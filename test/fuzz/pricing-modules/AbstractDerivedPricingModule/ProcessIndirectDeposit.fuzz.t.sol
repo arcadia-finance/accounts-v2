@@ -174,7 +174,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
             asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 
-        // After check, exposures should have increased
+        // After check, exposures should be equal to 0
         (, uint128 AfterExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
         assert(AfterExposureUnderlyingAsset == 0);
         assert(derivedPricingModule.usdExposureProtocol() == 0);

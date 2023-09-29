@@ -23,6 +23,17 @@ contract SetMaxExposure_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_setMaxUsdExposureProtocol_NonRiskManager(
+        address unprivilegedAddress_,
+        uint256 maxExposureInUsd
+    ) public {
+        vm.assume(unprivilegedAddress_ != users.creatorAddress);
+
+        vm.startPrank(unprivilegedAddress_);
+        vm.expectRevert("APM: ONLY_RISK_MANAGER");
+        derivedPricingModule.setMaxUsdExposureProtocol(maxExposureInUsd);
+        vm.stopPrank();
+    }
 
     function testFuzz_Success_setMaxUsdExposureProtocol(uint256 maxExposureInUsd) public {
         vm.prank(derivedPricingModule.riskManager());
