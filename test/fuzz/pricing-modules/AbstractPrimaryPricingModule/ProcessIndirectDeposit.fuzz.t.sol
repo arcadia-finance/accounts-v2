@@ -62,6 +62,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
         int256 deltaExposureUpperAssetToAsset,
         uint128 maxExposure
     ) public {
+        vm.assume(deltaExposureUpperAssetToAsset > 0);
         vm.assume(uint256(deltaExposureUpperAssetToAsset) < type(uint128).max);
         vm.assume(exposure <= type(uint128).max - uint256(deltaExposureUpperAssetToAsset));
         vm.assume(exposure + uint256(deltaExposureUpperAssetToAsset) <= maxExposure);

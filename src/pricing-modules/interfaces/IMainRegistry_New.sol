@@ -29,7 +29,7 @@ interface IMainRegistry {
      * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
-    function getUsdExposureUnderlyingAssetAfterDeposit(
+    function getUsdValueExposureToUnderlyingAssetAfterDeposit(
         address underlyingAsset,
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
@@ -43,7 +43,7 @@ interface IMainRegistry {
      * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
-    function getUsdExposureUnderlyingAssetAfterWithdrawal(
+    function getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
         address underlyingAsset,
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,

@@ -158,6 +158,7 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
     { }
 
     uint256 conversionRate;
+    uint256 assetUnitPrice;
 
     function setExposure(uint256 maxUsdExposureProtocol_, uint256 usdExposureProtocol_) public {
         maxUsdExposureProtocol = maxUsdExposureProtocol_;
@@ -166,6 +167,10 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
 
     function setConversionRate(uint256 newConversionRate) public {
         conversionRate = newConversionRate;
+    }
+
+    function setPrice(uint256 assetUnitPrice_) public {
+        assetUnitPrice = assetUnitPrice_;
     }
 
     function setAssetInformation(
@@ -193,6 +198,15 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
 
     function _getConversionRate(address, address) internal view override returns (uint256 conversionRate_) {
         conversionRate_ = conversionRate;
+    }
+
+    function getValue(GetValueInput memory getValueInput)
+        public
+        view
+        override
+        returns (uint256 valueInUsd, uint256, uint256)
+    {
+        valueInUsd = getValueInput.assetAmount * assetUnitPrice;
     }
 }
 
