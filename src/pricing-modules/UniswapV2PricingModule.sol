@@ -5,6 +5,7 @@
 pragma solidity 0.8.19;
 
 import { DerivedPricingModule, IMainRegistry_New } from "./AbstractDerivedPricingModule.sol";
+import { PricingModule_New } from "./AbstractPricingModule_New.sol";
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -25,7 +26,6 @@ contract UniswapV2PricingModule is DerivedPricingModule {
 
     uint256 public constant poolUnit = 1_000_000_000_000_000_000;
     address public immutable uniswapV2Factory;
-    address public immutable erc20PricingModule;
 
     bool public feeOn;
 
@@ -38,17 +38,11 @@ contract UniswapV2PricingModule is DerivedPricingModule {
      * 1 = ERC721
      * 2 = ERC1155
      * @param uniswapV2Factory_ The factory for Uniswap V2 pairs
-     * @param erc20PricingModule_ The address of the Pricing Module for standard ERC20 tokens.
      */
-    constructor(
-        address mainRegistry_,
-        address oracleHub_,
-        uint256 assetType_,
-        address uniswapV2Factory_,
-        address erc20PricingModule_
-    ) DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender) {
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address uniswapV2Factory_)
+        DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
+    {
         uniswapV2Factory = uniswapV2Factory_;
-        erc20PricingModule = erc20PricingModule_;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -96,8 +90,11 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         address token0 = IUniswapV2Pair(asset).token0();
         address token1 = IUniswapV2Pair(asset).token1();
 
-        require(PrimaryPricingModule(erc20PricingModule).isAllowListed(token0, 0), "PMUV2_AA: TOKENO_NOT_WHITELISTED");
-        require(PrimaryPricingModule(erc20PricingModule).isAllowListed(token1, 0), "PMUV2_AA: TOKEN1_NOT_WHITELISTED");
+        address token0PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token0);
+        address token1PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token1);
+
+        require(PricingModule_New(token0PricingModule).isAllowListed(token0, 0), "PMUV2_AA: TOKENO_NOT_WHITELISTED");
+        require(PricingModule_New(token1PricingModule).isAllowListed(token1, 0), "PMUV2_AA: TOKEN1_NOT_WHITELISTED");
 
         address[] memory underlyingAssets = new address[](2);
         underlyingAssets[0] = token0;
@@ -131,11 +128,14 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         address token0 = assetToInformation[asset].underlyingAssets[0];
         address token1 = assetToInformation[asset].underlyingAssets[1];
 
-        (uint256 trustedUsdPriceToken0,,) = DerivedPricingModule(erc20PricingModule).getValue(
+        address token0PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token0);
+        address token1PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token1);
+
+        (uint256 trustedUsdPriceToken0,,) = PricingModule_New(token0PricingModule).getValue(
             GetValueInput({ asset: token0, assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
         );
 
-        (uint256 trustedUsdPriceToken1,,) = DerivedPricingModule(erc20PricingModule).getValue(
+        (uint256 trustedUsdPriceToken1,,) = PricingModule_New(token1PricingModule).getValue(
             GetValueInput({ asset: token1, assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
         );
 
@@ -167,24 +167,19 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
+        address token0 = assetToInformation[getValueInput.asset].underlyingAssets[0];
+        address token1 = assetToInformation[getValueInput.asset].underlyingAssets[1];
+
+        address token0PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token0);
+        address token1PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token1);
         // To calculate the liquidity value after arbitrage, what matters is the ratio of the price of token0 compared to the price of token1
         // Hence we need to use a trusted external price for an equal amount of tokens,
         // we use for both tokens the USD price of 1 WAD (10**18) to guarantee precision.
-        (uint256 trustedUsdPriceToken0,,) = DerivedPricingModule(erc20PricingModule).getValue(
-            GetValueInput({
-                asset: assetToInformation[getValueInput.asset].underlyingAssets[0],
-                assetId: 0,
-                assetAmount: FixedPointMathLib.WAD,
-                baseCurrency: 0
-            })
+        (uint256 trustedUsdPriceToken0,,) = PricingModule_New(token0PricingModule).getValue(
+            GetValueInput({ asset: token0, assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
         );
-        (uint256 trustedUsdPriceToken1,,) = DerivedPricingModule(erc20PricingModule).getValue(
-            GetValueInput({
-                asset: assetToInformation[getValueInput.asset].underlyingAssets[1],
-                assetId: 0,
-                assetAmount: FixedPointMathLib.WAD,
-                baseCurrency: 0
-            })
+        (uint256 trustedUsdPriceToken1,,) = PricingModule_New(token1PricingModule).getValue(
+            GetValueInput({ asset: token1, assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
         );
 
         //

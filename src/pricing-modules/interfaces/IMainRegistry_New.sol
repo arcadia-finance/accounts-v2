@@ -5,6 +5,9 @@
 pragma solidity 0.8.19;
 
 interface IMainRegistry_New {
+    //todo
+    function getPricingModuleOfAsset(address asset) external view returns (address pricingModule);
+
     /**
      * @notice Returns the number of baseCurrencies.
      * @return Counter for the number of baseCurrencies in use.

@@ -198,13 +198,9 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
 }
 
 contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
-    constructor(
-        address mainRegistry_,
-        address oracleHub_,
-        uint256 assetType_,
-        address uniswapV2Factory_,
-        address erc20PricingModule_
-    ) UniswapV2PricingModule(mainRegistry_, oracleHub_, assetType_, uniswapV2Factory_, erc20PricingModule_) { }
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address uniswapV2Factory_)
+        UniswapV2PricingModule(mainRegistry_, oracleHub_, assetType_, uniswapV2Factory_)
+    { }
 
     function getTrustedTokenAmounts(
         address pair,
@@ -250,6 +246,10 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
         returns (uint256 amountOut)
     {
         amountOut = _getAmountOut(amountIn, reserveIn, reserveOut);
+    }
+
+    function getConversionRate(address asset, address underlyingAsset) public view returns (uint256 conversionRate) {
+        conversionRate = _getConversionRate(asset, underlyingAsset);
     }
 }
 
