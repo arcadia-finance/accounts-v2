@@ -94,14 +94,14 @@ abstract contract DerivedPricingModule is PricingModule {
     /**
      * @notice Calculates the conversion rate of an asset to its underlying asset.
      * @param asset The asset to calculate the conversion rate for.
-     * @param underlyingAsset The asset to which we have to get the conversion rate.
-     * @return conversionRate The conversion rate of the asset to its underlying asset.
+     * @param underlyingAssets The assets to which we have to get the conversion rate.
+     * @return conversionRates The conversion rate of the asset to its underlying assets.
      */
-    function _getConversionRate(address asset, address underlyingAsset)
+    function _getConversionRates(address asset, address[] memory underlyingAssets)
         internal
         view
         virtual
-        returns (uint256 conversionRate)
+        returns (uint256[] memory conversionRates)
     { }
 
     /*///////////////////////////////////////////////////////////////
@@ -218,14 +218,15 @@ abstract contract DerivedPricingModule is PricingModule {
         // Cache values
         address[] memory underlyingAssets = assetToInformation[asset].underlyingAssets;
 
-        // ToDo: Find a method to limit number of underlying assets below
-        for (uint256 i; i < underlyingAssets.length;) {
-            // Get the current flashloan resistant Conversion rate from the asset to its underlying asset(s) (with 18 decimals precision).
-            uint256 conversionRate = _getConversionRate(asset, underlyingAssets[i]);
+        // Get the current flashloan resistant Conversion rate from the asset to its underlying asset(s) (with 18 decimals precision).
+        uint256[] memory conversionRates = _getConversionRates(asset, underlyingAssets);
 
+        uint256 exposureAssetToUnderlyingAsset;
+        int256 deltaExposureAssetToUnderlyingAsset;
+        for (uint256 i; i < underlyingAssets.length;) {
             // Calculate and update the total exposure, and the delta since last interaction, of "Asset" to "Underlying Asset".
-            (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) =
-                _getAndUpdateUnderlyingAssetExposure(asset, exposureAsset, conversionRate, i);
+            (exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset) =
+                _getAndUpdateExposureUnderlyingAsset(asset, exposureAsset, conversionRates[i], i);
 
             // Get the USD Value of the total exposure of "Asset" for "Underlying Asset.
             // If "underlyingAsset" has one or more underlying assets itself, the lower level
@@ -248,15 +249,16 @@ abstract contract DerivedPricingModule is PricingModule {
         uint256 usdExposureProtocolLast = usdExposureProtocol;
 
         // Update usdExposureProtocolLast.
+        // ToDo: also in else case a deposit should be blocked if final exposure is bigger as maxExposure?.
         if (usdValueExposureAsset >= usdValueExposureAssetLast) {
             require(
-                usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast <= maxUsdExposureProtocol,
+                usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast) <= maxUsdExposureProtocol,
                 "ADPM_PD: Exposure not in limits"
             );
-            usdExposureProtocol = usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast;
+            usdExposureProtocol = usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast);
         } else {
             usdExposureProtocol = usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
-                ? usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast
+                ? usdExposureProtocolLast - (usdValueExposureAssetLast - usdValueExposureAsset)
                 : 0;
         }
 
@@ -277,13 +279,15 @@ abstract contract DerivedPricingModule is PricingModule {
         // Cache values
         address[] memory underlyingAssets = assetToInformation[asset].underlyingAssets;
 
-        for (uint8 i; i < assetToInformation[asset].underlyingAssets.length;) {
-            // Get the current flashloan resistant Conversion rate from the asset to it's underlying asset(s) (with 18 decimals precision).
-            uint256 conversionRate = _getConversionRate(asset, underlyingAssets[i]);
+        // Get the current flashloan resistant Conversion rate from the asset to its underlying asset(s) (with 18 decimals precision).
+        uint256[] memory conversionRates = _getConversionRates(asset, underlyingAssets);
 
+        uint256 exposureAssetToUnderlyingAsset;
+        int256 deltaExposureAssetToUnderlyingAsset;
+        for (uint256 i; i < assetToInformation[asset].underlyingAssets.length;) {
             // Calculate and update the total exposure, and the delta since last interaction, of "Asset" to "Underlying Asset".
-            (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) =
-                _getAndUpdateUnderlyingAssetExposure(asset, exposureAsset, conversionRate, i);
+            (exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset) =
+                _getAndUpdateExposureUnderlyingAsset(asset, exposureAsset, conversionRates[i], i);
 
             // Get the USD Value of the total exposure of "Asset" for "Underlying Asset.
             // If "underlyingAsset" has one or more underlying assets itself, the lower level
@@ -307,10 +311,10 @@ abstract contract DerivedPricingModule is PricingModule {
 
         // Update usdExposureProtocolLast.
         if (usdValueExposureAsset >= usdValueExposureAssetLast) {
-            usdExposureProtocol = usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast;
+            usdExposureProtocol = usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast);
         } else {
             usdExposureProtocol = usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
-                ? usdExposureProtocolLast + usdValueExposureAsset - usdValueExposureAssetLast
+                ? usdExposureProtocolLast - (usdValueExposureAssetLast - usdValueExposureAsset)
                 : 0;
         }
 
@@ -344,7 +348,7 @@ abstract contract DerivedPricingModule is PricingModule {
      * @return exposureAssetToUnderlyingAsset The updated amount of exposure to the asset's underlying asset.
      * @return deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure to the asset's underlying asset since last update.
      */
-    function _getAndUpdateUnderlyingAssetExposure(
+    function _getAndUpdateExposureUnderlyingAsset(
         address asset,
         uint256 exposureAsset,
         uint256 conversionRate,
@@ -358,6 +362,6 @@ abstract contract DerivedPricingModule is PricingModule {
             - int256(uint256(assetToInformation[asset].exposureAssetToUnderlyingAssetsLast[index]));
 
         // Update "exposureAssetToUnderlyingAssetLast".
-        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast[index] = uint128(exposureAssetToUnderlyingAsset);
+        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast[index] = uint128(exposureAssetToUnderlyingAsset); // ToDo: safecast?
     }
 }

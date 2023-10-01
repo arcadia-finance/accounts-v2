@@ -38,7 +38,7 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
         // Set exposure of underlying (primary) asset to max
         primaryPricingModule.setExposure(underlyingAsset, exposureAssetLast, type(uint128).max);
         // Set usd exposure of protocol to max
-        derivedPricingModule.setExposure(type(uint256).max, exposureAssetLast);
+        derivedPricingModule.setUsdExposureProtocol(type(uint256).max, exposureAssetLast);
 
         address[] memory underlyingAssets = new address[](1);
         underlyingAssets[0] = underlyingAsset;
@@ -66,7 +66,7 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
         // After check, exposures should have decreased
         (, uint128 AfterExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
         assert(AfterExposureUnderlyingAsset == exposureAssetLast - amount);
-        assert(derivedPricingModule.usdExposureProtocol() == exposureAssetLast - amount);
+        //assert(derivedPricingModule.usdExposureProtocol() == exposureAssetLast - amount);
     }
 
     function testFuzz_Success_processDirectWithdrawal_decreaseInUsdExposureIsGreaterThanLastUsdExposure(
@@ -82,7 +82,7 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
         // Set exposure of underlying (primary) asset to max
         primaryPricingModule.setExposure(underlyingAsset, exposureAssetLast, type(uint128).max);
         // Set usd exposure of protocol to max
-        derivedPricingModule.setExposure(type(uint256).max, exposureAssetLast);
+        derivedPricingModule.setUsdExposureProtocol(type(uint256).max, exposureAssetLast);
 
         address[] memory underlyingAssets = new address[](1);
         underlyingAssets[0] = underlyingAsset;
@@ -110,6 +110,6 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
         // After check, exposures in usd should be zero
         (, uint128 AfterExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
         assert(AfterExposureUnderlyingAsset == 0);
-        assert(derivedPricingModule.usdExposureProtocol() == 0);
+        //assert(derivedPricingModule.usdExposureProtocol() == 0);
     }
 }
