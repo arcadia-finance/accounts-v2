@@ -151,7 +151,7 @@ abstract contract Base_Test is Test, Events, Errors {
 
         // Get the bytecode of UniswapV3PricingModuleExtension.
         args = abi.encode(
-            address(mainRegistryExtension), address(oracleHub), users.creatorAddress, address(erc20PricingModule)
+            address(mainRegistryExtension), address(oracleHub), users.creatorAddress
         );
         bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3PricingModuleExtension"), args);
 

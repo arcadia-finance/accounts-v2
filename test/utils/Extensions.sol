@@ -17,7 +17,7 @@ import { PricingModule_New } from "../../src/pricing-modules/AbstractPricingModu
 import { PrimaryPricingModule } from "../../src/pricing-modules/AbstractPrimaryPricingModule.sol";
 import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
 import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
-import { UniswapV3WithFeesPricingModule } from "../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
+import { UniswapV3WithFeesPricingModule_New } from "../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule_New.sol";
 import { StandardERC4626PricingModule } from "../../src/pricing-modules/StandardERC4626PricingModule.sol";
 
 contract AccountExtension is AccountV1 {
@@ -288,9 +288,9 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
     }
 }
 
-contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule {
+contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule_New {
     constructor(address mainRegistry_, address oracleHub_, address riskManager_, address erc20PricingModule_)
-        UniswapV3WithFeesPricingModule(mainRegistry_, oracleHub_, riskManager_, erc20PricingModule_)
+        UniswapV3WithFeesPricingModule_New(mainRegistry_, oracleHub_, riskManager_)
     { }
 
     function getPrincipalAmounts(
@@ -309,11 +309,6 @@ contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule {
 
     function getTrustedTickCurrent(address token0, address token1) public view returns (int256 tickCurrent) {
         return _getTrustedTickCurrent(token0, token1);
-    }
-
-    function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
-        exposure[asset].exposure = exposure_;
-        exposure[asset].maxExposure = maxExposure;
     }
 
     function getFeeAmounts(address asset, uint256 id) public view returns (uint256 amount0, uint256 amount1) {

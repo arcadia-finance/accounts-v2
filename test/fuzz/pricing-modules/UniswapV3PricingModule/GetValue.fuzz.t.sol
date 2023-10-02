@@ -14,8 +14,8 @@ import { IUniswapV3PoolExtension } from
 import { LiquidityAmounts } from "../../../../src/pricing-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
 import {
-    IPricingModule, PricingModule
-} from "../../../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
+    IPricingModule_New, DerivedPricingModule
+} from "../../../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule_New.sol";
 import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
 
 /**
@@ -95,17 +95,23 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         addUnderlyingTokenToArcadia(address(token0), int256(uint256(vars.priceToken0)));
         addUnderlyingTokenToArcadia(address(token1), int256(uint256(vars.priceToken1)));
 
-        vm.startPrank(users.creatorAddress);
-        uniV3PricingModule.setExposureOfAsset(address(token0), type(uint128).max);
-        uniV3PricingModule.setExposureOfAsset(address(token1), type(uint128).max);
-        vm.stopPrank();
+        // Add ERC20 tokens to erc20PricingModule
+        address[] memory oracleToken0 = new address[](1);
+        oracleToken0[0] = address(mockOracles.token1ToUsd);
+        address[] memory oracleToken1 = new address[](1);
+        oracleToken1[0] = address(mockOracles.token2ToUsd);
+        
+        erc20PricingModule.addAsset(address(token0), oracleToken0, emptyRiskVarInput_New, type(uint128).max);
+        erc20PricingModule.addAsset(address(token1), oracleToken1, emptyRiskVarInput_New, type(uint128).max);
+
+        // add asset to UniV3 pricing module
 
         // Calculate the expected value
         uint256 valueToken0 = 1e18 * uint256(vars.priceToken0) * amount0 / 10 ** vars.decimals0;
         uint256 valueToken1 = 1e18 * uint256(vars.priceToken1) * amount1 / 10 ** vars.decimals1;
 
         (uint256 actualValueInUsd,,) = uniV3PricingModule.getValue(
-            IPricingModule.GetValueInput({
+            IPricingModule_New.GetValueInput({
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
@@ -172,7 +178,7 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         uint256 expectedLiqFactor = liqFactor0 < liqFactor1 ? liqFactor0 : liqFactor1;
 
         (, uint256 actualCollFactor, uint256 actualLiqFactor) = uniV3PricingModule.getValue(
-            IPricingModule.GetValueInput({
+            IPricingModule_New.GetValueInput({
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
