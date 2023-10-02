@@ -23,160 +23,140 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-
-    function testFuzz_Success_processIndirectDeposit_positiveDelta(
+    function testFuzz_Revert_processIndirectDeposit_NonMainRegistry(
+        address unprivilegedAddress_,
         address asset,
-        address underlyingAsset,
-        uint128 exposureAssetLast,
-        int256 deltaExposureUpperAssetToAsset,
         uint256 id,
-        uint256 exposureUpperAssetToAsset
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(deltaExposureUpperAssetToAsset > 0);
-        vm.assume(uint256(deltaExposureUpperAssetToAsset) < type(uint128).max - exposureAssetLast);
-        vm.assume(exposureUpperAssetToAsset < type(uint128).max);
+        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension_New));
 
-        // Set exposure of underlying (primary) asset to max
-        primaryPricingModule.setExposure(underlyingAsset, exposureAssetLast, type(uint128).max);
-        // Set usd exposure of protocol to max
-        derivedPricingModule.setExposure(type(uint256).max, exposureAssetLast);
-
-        address[] memory underlyingAssets = new address[](1);
-        underlyingAssets[0] = underlyingAsset;
-        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](1);
-        exposureAssetToUnderlyingAssetsLast[0] = exposureAssetLast;
-
-        // Add asset to pricing module
-        derivedPricingModule.addAsset(asset, underlyingAssets);
-        // Set asset info
-        derivedPricingModule.setAssetInformation(
-            asset, exposureAssetLast, exposureAssetLast, exposureAssetToUnderlyingAssetsLast
-        );
-
-        // Set the pricing module for the underlying asset in MainRegistry
-        mainRegistryExtension_New.setPricingModuleForAsset(underlyingAsset, address(primaryPricingModule));
-
-        // Pre check
-        (, uint128 PreExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
-        assert(PreExposureUnderlyingAsset == exposureAssetLast);
-        assert(derivedPricingModule.usdExposureProtocol() == exposureAssetLast);
-
-        vm.prank(address(mainRegistryExtension_New));
-        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
+        vm.startPrank(unprivilegedAddress_);
+        vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
+        derivedPricingModule.processIndirectDeposit(
             asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
-
-        // After check, exposures should have increased
-        (, uint128 AfterExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
-        assert(AfterExposureUnderlyingAsset == exposureAssetLast + uint256(deltaExposureUpperAssetToAsset));
-        assert(
-            derivedPricingModule.usdExposureProtocol() == exposureAssetLast + uint256(deltaExposureUpperAssetToAsset)
-        );
-        assert(PRIMARY_FLAG == false);
-        assert(usdValueExposureUpperAssetToAsset == exposureUpperAssetToAsset);
+        vm.stopPrank();
     }
 
-    function testFuzz_Success_processIndirectDeposit_negativeDeltaLessThanPreviousExposure(
-        address asset,
-        address underlyingAsset,
-        uint128 exposureAssetLast,
-        int256 deltaExposureUpperAssetToAsset,
+    function testFuzz_Success_processIndirectDeposit_ZeroExposureAsset(
+        DerivedPricingModuleProtocolState memory protocolState,
+        DerivedPricingModuleAssetState memory assetState,
+        UnderlyingPricingModuleState memory underlyingPMState,
         uint256 id,
-        uint256 exposureUpperAssetToAsset
+        uint256 exposureUpperAssetToAsset,
+        uint256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(deltaExposureUpperAssetToAsset < 0);
-        vm.assume(deltaExposureUpperAssetToAsset > type(int128).min);
-        vm.assume(uint256(-deltaExposureUpperAssetToAsset) < exposureAssetLast);
-        vm.assume(exposureUpperAssetToAsset < type(uint128).max);
+        // Given: exposureAsset is zero Underflow on exposureAsset (test-case).
+        deltaExposureUpperAssetToAsset =
+            bound(deltaExposureUpperAssetToAsset, assetState.exposureAssetLast, uint256(type(int256).max));
+        int256 deltaExposureUpperAssetToAsset_ = -int256(deltaExposureUpperAssetToAsset);
 
-        // Set exposure of underlying (primary) asset to max
-        primaryPricingModule.setExposure(underlyingAsset, exposureAssetLast, type(uint128).max);
-        // Set usd exposure of protocol to max
-        derivedPricingModule.setExposure(type(uint256).max, exposureAssetLast);
-
-        address[] memory underlyingAssets = new address[](1);
-        underlyingAssets[0] = underlyingAsset;
-        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](1);
-        exposureAssetToUnderlyingAssetsLast[0] = exposureAssetLast;
-
-        // Add asset to pricing module
-        derivedPricingModule.addAsset(asset, underlyingAssets);
-        // Set asset info
-        derivedPricingModule.setAssetInformation(
-            asset, exposureAssetLast, exposureAssetLast, exposureAssetToUnderlyingAssetsLast
+        // And: Deposit does not revert.
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_) =
+        givenNonRevertingDeposit(
+            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
         );
 
-        // Set the pricing module for the underlying asset in MainRegistry
-        mainRegistryExtension_New.setPricingModuleForAsset(underlyingAsset, address(primaryPricingModule));
+        // And: State is persisted.
+        setDerivedPricingModuleProtocolState(protocolState);
+        setDerivedPricingModuleAssetState(assetState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
-        // Pre check
-        (, uint128 PreExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
-        assert(PreExposureUnderlyingAsset == exposureAssetLast);
-        assert(derivedPricingModule.usdExposureProtocol() == exposureAssetLast);
-
+        // When: "MainRegistry" calls "processDirectDeposit".
         vm.prank(address(mainRegistryExtension_New));
         (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
-            asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            assetState.asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
         );
 
-        // After check, exposures should have increased
-        (, uint128 AfterExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
-        assert(AfterExposureUnderlyingAsset == exposureAssetLast - uint256(-deltaExposureUpperAssetToAsset));
-        assert(
-            derivedPricingModule.usdExposureProtocol() == exposureAssetLast - uint256(-deltaExposureUpperAssetToAsset)
-        );
-        assert(PRIMARY_FLAG == false);
-        assert(usdValueExposureUpperAssetToAsset == exposureUpperAssetToAsset);
+        // Then: PRIMARY_FLAG is false.
+        assertFalse(PRIMARY_FLAG);
+
+        // And:
+        assertEq(usdValueExposureUpperAssetToAsset, 0);
     }
 
-    function testFuzz_Success_processIndirectDeposit_negativeDeltaGreaterThanPreviousExposure(
-        address asset,
-        address underlyingAsset,
-        uint128 exposureAssetLast,
-        int256 deltaExposureUpperAssetToAsset,
+    function testFuzz_Success_processIndirectDeposit_ZeroUsdValueExposureAsset(
+        DerivedPricingModuleProtocolState memory protocolState,
+        DerivedPricingModuleAssetState memory assetState,
+        UnderlyingPricingModuleState memory underlyingPMState,
         uint256 id,
-        uint256 exposureUpperAssetToAsset
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(deltaExposureUpperAssetToAsset < 0);
-        vm.assume(deltaExposureUpperAssetToAsset > type(int128).min);
-        vm.assume(uint256(-deltaExposureUpperAssetToAsset) > exposureAssetLast);
-        vm.assume(exposureUpperAssetToAsset < type(uint128).max);
+        // Given: "usdValueExposureAsset" is 0 (test-case).
+        underlyingPMState.usdValueExposureToUnderlyingAsset = 0;
 
-        // Set exposure of underlying (primary) asset to max
-        primaryPricingModule.setExposure(underlyingAsset, exposureAssetLast, type(uint128).max);
-        // Set usd exposure of protocol to max
-        derivedPricingModule.setExposure(type(uint256).max, exposureAssetLast);
-
-        address[] memory underlyingAssets = new address[](1);
-        underlyingAssets[0] = underlyingAsset;
-        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](1);
-        exposureAssetToUnderlyingAssetsLast[0] = exposureAssetLast;
-
-        // Add asset to pricing module
-        derivedPricingModule.addAsset(asset, underlyingAssets);
-        // Set asset info
-        derivedPricingModule.setAssetInformation(
-            asset, exposureAssetLast, exposureAssetLast, exposureAssetToUnderlyingAssetsLast
+        // And: Deposit does not revert.
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
+        givenNonRevertingDeposit(
+            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 
-        // Set the pricing module for the underlying asset in MainRegistry
-        mainRegistryExtension_New.setPricingModuleForAsset(underlyingAsset, address(primaryPricingModule));
+        // And: State is persisted.
+        setDerivedPricingModuleProtocolState(protocolState);
+        setDerivedPricingModuleAssetState(assetState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
-        // Pre check
-        (, uint128 PreExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
-        assert(PreExposureUnderlyingAsset == exposureAssetLast);
-        assert(derivedPricingModule.usdExposureProtocol() == exposureAssetLast);
-
+        // When: "MainRegistry" calls "processIndirectDeposit".
         vm.prank(address(mainRegistryExtension_New));
         (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
-            asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            assetState.asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 
-        // After check, exposures should have increased
-        (, uint128 AfterExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
-        assert(AfterExposureUnderlyingAsset == 0);
-        assert(derivedPricingModule.usdExposureProtocol() == 0);
-        assert(PRIMARY_FLAG == false);
-        assert(usdValueExposureUpperAssetToAsset == 0);
+        // Then: PRIMARY_FLAG is false.
+        assertFalse(PRIMARY_FLAG);
+
+        // Correct "usdValueExposureUpperAssetToAsset" is returned.
+        assertEq(usdValueExposureUpperAssetToAsset, 0);
+    }
+
+    function testFuzz_Success_processIndirectDeposit_NonZeroValues(
+        DerivedPricingModuleProtocolState memory protocolState,
+        DerivedPricingModuleAssetState memory assetState,
+        UnderlyingPricingModuleState memory underlyingPMState,
+        uint256 id,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public {
+        // Given: "usdValueExposureToUnderlyingAsset" is not zero (test-case).
+        underlyingPMState.usdValueExposureToUnderlyingAsset =
+            bound(underlyingPMState.usdValueExposureToUnderlyingAsset, 1, type(uint128).max);
+
+        // And: Deposit does not revert.
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
+        givenNonRevertingDeposit(
+            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
+
+        // And: exposureAsset is not zero (test-case).
+        uint256 exposureAsset;
+        if (deltaExposureUpperAssetToAsset > 0) {
+            exposureAsset = assetState.exposureAssetLast + uint256(deltaExposureUpperAssetToAsset);
+            vm.assume(exposureAsset != 0);
+        } else {
+            vm.assume(uint256(-deltaExposureUpperAssetToAsset) < assetState.exposureAssetLast);
+            exposureAsset = uint256(assetState.exposureAssetLast) - uint256(-deltaExposureUpperAssetToAsset);
+        }
+
+        // And: State is persisted.
+        setDerivedPricingModuleProtocolState(protocolState);
+        setDerivedPricingModuleAssetState(assetState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+
+        // When: "MainRegistry" calls "processIndirectDeposit".
+        vm.prank(address(mainRegistryExtension_New));
+        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
+            assetState.asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
+
+        // Then: PRIMARY_FLAG is false.
+        assertFalse(PRIMARY_FLAG);
+
+        // And: Correct "usdValueExposureUpperAssetToAsset" is returned.
+        uint256 usdValueExposureUpperAssetToAssetExpected =
+            underlyingPMState.usdValueExposureToUnderlyingAsset * exposureUpperAssetToAsset / exposureAsset;
+        assertEq(usdValueExposureUpperAssetToAsset, usdValueExposureUpperAssetToAssetExpected);
     }
 }

@@ -109,6 +109,22 @@ contract ATokenPricingModule is DerivedPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
+     * @notice Calculates the conversion rate of an asset to its underlying asset.
+     * param asset The asset to calculate the conversion rate for.
+     * param underlyingAssets The assets to which we have to get the conversion rate.
+     * @return conversionRates The conversion rate of the asset to its underlying assets.
+     */
+    function _getConversionRates(address, address[] memory)
+        internal
+        pure
+        override
+        returns (uint256[] memory conversionRates)
+    {
+        conversionRates = new uint256[](1);
+        conversionRates[0] = 1e18;
+    }
+
+    /**
      * @notice Returns the value of a certain asset, denominated in USD or in another BaseCurrency
      * @param getValueInput A Struct with all the information neccessary to get the value of an asset
      * - asset: The contract address of the asset

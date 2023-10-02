@@ -107,8 +107,20 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
-    function _getConversionRate(address asset, address) internal view override returns (uint256 conversionRate) {
-        conversionRate = IERC4626(asset).convertToAssets(1e18);
+    /**
+     * @notice Calculates the conversion rate of an asset to its underlying asset.
+     * @param asset The asset to calculate the conversion rate for.
+     * param underlyingAssets The assets to which we have to get the conversion rate.
+     * @return conversionRates The conversion rate of the asset to its underlying assets.
+     */
+    function _getConversionRates(address asset, address[] memory)
+        internal
+        view
+        override
+        returns (uint256[] memory conversionRates)
+    {
+        conversionRates = new uint256[](1);
+        conversionRates[0] = IERC4626(asset).convertToAssets(1e18);
     }
 
     /**

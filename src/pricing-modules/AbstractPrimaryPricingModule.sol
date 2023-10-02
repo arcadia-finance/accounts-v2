@@ -99,7 +99,10 @@ abstract contract PrimaryPricingModule is PricingModule_New {
 
         require(exposureLast + uint128(amount) <= exposure[asset].maxExposure, "APPM_PDD: Exposure not in limits");
 
-        exposure[asset].exposure = uint128(exposureLast) + uint128(amount);
+        unchecked {
+            exposure[asset].exposure = uint128(exposureLast) + uint128(amount);
+        }
+
         emit AssetExposureChanged(asset, uint128(exposureLast), exposure[asset].exposure);
     }
 

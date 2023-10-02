@@ -4,6 +4,8 @@
  */
 pragma solidity 0.8.19;
 
+import { IPricingModule_New } from "../../interfaces/IPricingModule_New.sol";
+
 interface IMainRegistry_New {
     //todo
     function getPricingModuleOfAsset(address asset) external view returns (address pricingModule);
@@ -30,7 +32,7 @@ interface IMainRegistry_New {
      * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
-    function getUsdExposureUnderlyingAssetAfterDeposit(
+    function getUsdValueExposureToUnderlyingAssetAfterDeposit(
         address underlyingAsset,
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
@@ -44,10 +46,15 @@ interface IMainRegistry_New {
      * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
-    function getUsdExposureUnderlyingAssetAfterWithdrawal(
+    function getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
         address underlyingAsset,
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
     ) external returns (uint256 usdValueExposureAssetToUnderlyingAsset);
+
+    function getUsdValue(IPricingModule_New.GetValueInput memory getValueInput)
+        external
+        view
+        returns (uint256 usdValue);
 }

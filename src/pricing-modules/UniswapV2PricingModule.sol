@@ -118,31 +118,36 @@ contract UniswapV2PricingModule is DerivedPricingModule {
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
-    // TODO: adapt conversion rate to return array
-    function _getConversionRate(address asset, address underlyingAsset)
+    /**
+     * @notice Calculates the conversion rate of an asset to its underlying asset.
+     * @param asset The asset to calculate the conversion rate for.
+     * @param underlyingAssets The assets to which we have to get the conversion rate.
+     * @return conversionRates The conversion rate of the asset to its underlying assets.
+     */
+
+    function _getConversionRates(address asset, address[] memory underlyingAssets)
         internal
         view
         override
-        returns (uint256 conversionRate)
+        returns (uint256[] memory conversionRates)
     {
-        address token0 = assetToInformation[asset].underlyingAssets[0];
-        address token1 = assetToInformation[asset].underlyingAssets[1];
-
-        address token0PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token0);
-        address token1PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token1);
+        address token0PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(underlyingAssets[0]);
+        address token1PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(underlyingAssets[1]);
 
         (uint256 trustedUsdPriceToken0,,) = PricingModule_New(token0PricingModule).getValue(
-            GetValueInput({ asset: token0, assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
+            GetValueInput({ asset: underlyingAssets[0], assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
         );
 
         (uint256 trustedUsdPriceToken1,,) = PricingModule_New(token1PricingModule).getValue(
-            GetValueInput({ asset: token1, assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
+            GetValueInput({ asset: underlyingAssets[1], assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
         );
 
         (uint256 token0Amount, uint256 token1Amount) =
             _getTrustedTokenAmounts(asset, trustedUsdPriceToken0, trustedUsdPriceToken1, FixedPointMathLib.WAD);
 
-        underlyingAsset == token0 ? conversionRate = token0Amount : conversionRate = token1Amount;
+        conversionRates = new uint256[](2);
+        conversionRates[0] = token0Amount;
+        conversionRates[1] = token1Amount;
     }
 
     /**

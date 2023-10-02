@@ -23,91 +23,45 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_processDirectWithdrawal(
+    function testFuzz_Revert_processDirectWithdrawal_NonMainRegistry(
+        address unprivilegedAddress_,
         address asset,
-        address underlyingAsset,
-        uint128 exposureAssetLast,
-        uint128 amount,
-        uint256 id
+        uint256 id,
+        uint128 amount
     ) public {
-        vm.assume(amount > 0);
-        vm.assume(amount <= exposureAssetLast);
+        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension_New));
 
-        // Set exposure of underlying (primary) asset to max
-        primaryPricingModule.setExposure(underlyingAsset, exposureAssetLast, type(uint128).max);
-        // Set usd exposure of protocol to max
-        derivedPricingModule.setExposure(type(uint256).max, exposureAssetLast);
-
-        address[] memory underlyingAssets = new address[](1);
-        underlyingAssets[0] = underlyingAsset;
-        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](1);
-        exposureAssetToUnderlyingAssetsLast[0] = exposureAssetLast;
-
-        // Add asset to pricing module
-        derivedPricingModule.addAsset(asset, underlyingAssets);
-        // Set asset info
-        derivedPricingModule.setAssetInformation(
-            asset, exposureAssetLast, exposureAssetLast, exposureAssetToUnderlyingAssetsLast
-        );
-
-        // Set the pricing module for the underlying asset in MainRegistry
-        mainRegistryExtension_New.setPricingModuleForAsset(underlyingAsset, address(primaryPricingModule));
-
-        // Pre check
-        (, uint128 PreExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
-        assert(PreExposureUnderlyingAsset == exposureAssetLast);
-        assert(derivedPricingModule.usdExposureProtocol() == exposureAssetLast);
-
-        vm.prank(address(mainRegistryExtension_New));
+        vm.startPrank(unprivilegedAddress_);
+        vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
         derivedPricingModule.processDirectWithdrawal(asset, id, amount);
-
-        // After check, exposures should have decreased
-        (, uint128 AfterExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
-        assert(AfterExposureUnderlyingAsset == exposureAssetLast - amount);
-        assert(derivedPricingModule.usdExposureProtocol() == exposureAssetLast - amount);
+        vm.stopPrank();
     }
 
-    function testFuzz_Success_processDirectWithdrawal_decreaseInUsdExposureIsGreaterThanLastUsdExposure(
-        address asset,
-        address underlyingAsset,
-        uint128 exposureAssetLast,
-        uint128 amount,
-        uint256 id
+    function testFuzz_Success_processDirectWithdrawal(
+        DerivedPricingModuleProtocolState memory protocolState,
+        DerivedPricingModuleAssetState memory assetState,
+        UnderlyingPricingModuleState memory underlyingPMState,
+        uint256 id,
+        int256 amount
     ) public {
-        vm.assume(amount > 0);
-        vm.assume(amount >= exposureAssetLast);
+        // And: No overflow on negation most negative int256 (this overflows).
+        vm.assume(amount > type(int256).min);
+        amount = amount >= 0 ? -amount : amount;
 
-        // Set exposure of underlying (primary) asset to max
-        primaryPricingModule.setExposure(underlyingAsset, exposureAssetLast, type(uint128).max);
-        // Set usd exposure of protocol to max
-        derivedPricingModule.setExposure(type(uint256).max, exposureAssetLast);
+        // And: Withdrawal does not revert.
+        (protocolState, assetState, underlyingPMState,, amount) =
+            givenNonRevertingWithdrawal(protocolState, assetState, underlyingPMState, 0, amount);
+        assert(amount <= 0);
 
-        address[] memory underlyingAssets = new address[](1);
-        underlyingAssets[0] = underlyingAsset;
-        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](1);
-        exposureAssetToUnderlyingAssetsLast[0] = exposureAssetLast;
+        // And: State is persisted.
+        setDerivedPricingModuleProtocolState(protocolState);
+        setDerivedPricingModuleAssetState(assetState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
-        // Add asset to pricing module
-        derivedPricingModule.addAsset(asset, underlyingAssets);
-        // Set asset info
-        derivedPricingModule.setAssetInformation(
-            asset, exposureAssetLast, exposureAssetLast, exposureAssetToUnderlyingAssetsLast
-        );
-
-        // Set the pricing module for the underlying asset in MainRegistry
-        mainRegistryExtension_New.setPricingModuleForAsset(underlyingAsset, address(primaryPricingModule));
-
-        // Pre check
-        (, uint128 PreExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
-        assert(PreExposureUnderlyingAsset == exposureAssetLast);
-        assert(derivedPricingModule.usdExposureProtocol() == exposureAssetLast);
-
+        // When: "MainRegistry" calls "processDirectWithdrawal".
         vm.prank(address(mainRegistryExtension_New));
-        derivedPricingModule.processDirectWithdrawal(asset, id, amount);
+        derivedPricingModule.processDirectWithdrawal(assetState.asset, id, uint256(-amount));
 
-        // After check, exposures in usd should be zero
-        (, uint128 AfterExposureUnderlyingAsset) = primaryPricingModule.exposure(underlyingAsset);
-        assert(AfterExposureUnderlyingAsset == 0);
-        assert(derivedPricingModule.usdExposureProtocol() == 0);
+        // Then: Transaction does not revert.
     }
 }

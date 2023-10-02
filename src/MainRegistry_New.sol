@@ -354,7 +354,7 @@ contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
      * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
-    function getUsdExposureUnderlyingAssetAfterDeposit(
+    function getUsdValueExposureToUnderlyingAssetAfterDeposit(
         address underlyingAsset,
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
@@ -374,7 +374,7 @@ contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
      * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
-    function getUsdExposureUnderlyingAssetAfterWithdrawal(
+    function getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
         address underlyingAsset,
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
@@ -390,6 +390,17 @@ contract MainRegistry_New is IMainRegistry, MainRegistryGuardian {
     /* ///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     /////////////////////////////////////////////////////////////// */
+
+    function getUsdValue(IPricingModule_New.GetValueInput memory getValueInput)
+        external
+        view
+        returns (uint256 usdValue)
+    {
+        // Fetch the Value and the risk variables in the PricingModule.
+        (usdValue,,) =
+            IPricingModule_New(assetToAssetInformation[getValueInput.asset].pricingModule).getValue(getValueInput);
+    }
+
     /**
      * @notice Calculates the value per asset, denominated in a given BaseCurrency.
      * @param assetAddresses Array of the contract addresses of the assets.

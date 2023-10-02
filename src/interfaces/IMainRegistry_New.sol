@@ -4,6 +4,8 @@
  */
 pragma solidity 0.8.19;
 
+import { IPricingModule_New } from "./IPricingModule_New.sol";
+
 interface IMainRegistry {
     /**
      * @notice Adds a new asset to the Main Registry.
@@ -124,4 +126,6 @@ interface IMainRegistry {
         uint256[] calldata assetAmounts,
         address baseCurrency
     ) external view returns (uint256);
+
+    function getUsdValue(IPricingModule_New.GetValueInput memory getValueInput) external view returns (uint256);
 }

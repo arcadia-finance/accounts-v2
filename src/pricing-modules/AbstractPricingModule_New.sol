@@ -232,7 +232,7 @@ abstract contract PricingModule_New is Owned, IPricingModule_New {
      * param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256, uint256 amount) external virtual onlyMainReg { }
+    function processDirectDeposit(address asset, uint256, uint256 amount) external virtual { }
 
     /**
      * @notice Increases the exposure to an underlying asset on deposit.
@@ -246,7 +246,7 @@ abstract contract PricingModule_New is Owned, IPricingModule_New {
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
+    ) external virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
@@ -255,7 +255,7 @@ abstract contract PricingModule_New is Owned, IPricingModule_New {
      * @param amount The amount of tokens.
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
-    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual onlyMainReg { }
+    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual { }
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
@@ -269,5 +269,5 @@ abstract contract PricingModule_New is Owned, IPricingModule_New {
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
+    ) external virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
 }

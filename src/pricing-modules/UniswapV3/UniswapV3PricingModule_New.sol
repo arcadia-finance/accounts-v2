@@ -83,7 +83,7 @@ contract UniswapV3PricingModule is DerivedPricingModule {
      */
     constructor(address mainRegistry_, address oracleHub_, address riskManager_)
         DerivedPricingModule(mainRegistry_, oracleHub_, 1, riskManager_)
-    {}
+    { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -138,10 +138,10 @@ contract UniswapV3PricingModule is DerivedPricingModule {
     /**
      * @notice Checks for a token address and the corresponding Id if it is allow-listed.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * param assetId The Id of the asset.
      * @return A boolean, indicating if the asset is whitelisted.
      */
-    function isAllowListed(address asset, uint256 assetId) public view override returns (bool) {
+    function isAllowListed(address asset, uint256) public view override returns (bool) {
         // NOTE: To change based on discussion to enable or disable deposits for certain assets
         return inPricingModule[asset];
     }
@@ -151,12 +151,17 @@ contract UniswapV3PricingModule is DerivedPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Calculates the conversion rate of an asset to its underlying assets.
+     * @notice Calculates the conversion rate of an asset to its underlying asset.
      * @param asset The asset to calculate the conversion rate for.
-     * @param underlyingAsset The assets to which we have to get the conversion rate.
-     * @return conversionRate The conversion rate of the asset to its underlying assets.
+     * param underlyingAssets The assets to which we have to get the conversion rate.
+     * @return conversionRates The conversion rate of the asset to its underlying assets.
      */
-    function _getConversionRate(address asset, address underlyingAsset) internal view override returns (uint256 conversionRate) {
+    function _getConversionRates(address asset, address[] memory underlyingAssets)
+        internal
+        view
+        override
+        returns (uint256[] memory conversionRates)
+    {
         // Note: to implement
     }
 
@@ -191,10 +196,6 @@ contract UniswapV3PricingModule is DerivedPricingModule {
         uint256 principal0;
         uint256 principal1;
 
-        // Get the pricing module of the underlying asset
-        address token0PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token0);
-        address token1PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token1);
-
         {
             int24 tickLower;
             int24 tickUpper;
@@ -203,10 +204,10 @@ contract UniswapV3PricingModule is DerivedPricingModule {
 
             // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
             // sufficient precision.
-            (usdPriceToken0,,) = IPricingModule_New(token0PricingModule).getValue(
+            usdPriceToken0 = IMainRegistry_New(mainRegistry).getUsdValue(
                 GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
             );
-            (usdPriceToken1,,) = IPricingModule_New(token1PricingModule).getValue(
+            usdPriceToken1 = IMainRegistry_New(mainRegistry).getUsdValue(
                 GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
             );
 
@@ -231,10 +232,12 @@ contract UniswapV3PricingModule is DerivedPricingModule {
 
         {
             // Fetch the risk variables of the underlying tokens for the given baseCurrency.
-            (uint256 collateralFactor0, uint256 liquidationFactor0) =
-                IPricingModule_New(token0PricingModule).getRiskVariables(token0, baseCurrency);
-            (uint256 collateralFactor1, uint256 liquidationFactor1) =
-                IPricingModule_New(token1PricingModule).getRiskVariables(token1, baseCurrency);
+            (uint256 collateralFactor0, uint256 liquidationFactor0) = IPricingModule_New(
+                IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token0)
+            ).getRiskVariables(token0, baseCurrency);
+            (uint256 collateralFactor1, uint256 liquidationFactor1) = IPricingModule_New(
+                IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token1)
+            ).getRiskVariables(token1, baseCurrency);
 
             // We take the most conservative (lowest) factor of both underlying assets.
             // If one token loses in value compared to the other token, Liquidity Providers will be relatively more exposed

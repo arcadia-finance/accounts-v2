@@ -129,9 +129,16 @@ contract AbstractPricingModuleExtension is PricingModule_New {
 }
 
 contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule {
+    // Price is 1 by default
+    uint256 usdValueExposureToUnderlyingAsset = 1;
+
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
         PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
+
+    function setPrice(uint256 usdValueExposureToUnderlyingAsset_) public {
+        usdValueExposureToUnderlyingAsset = usdValueExposureToUnderlyingAsset_;
+    }
 
     function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
         exposure[asset].exposure = exposure_;
@@ -140,14 +147,14 @@ contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule {
 
     // The function below is only needed in the case of testing for the "AbstractDerivedPricingModule", in order for the Primary Asset to return a value
     // getValue() will be tested separately per PM.
-    function getValue(GetValueInput memory getValueInput)
+    function getValue(GetValueInput memory)
         public
-        pure
+        view
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
         // we assume a price of 1 for this testing purpose
-        valueInUsd = getValueInput.assetAmount;
+        valueInUsd = usdValueExposureToUnderlyingAsset;
         collateralFactor = 0;
         liquidationFactor = 0;
     }
@@ -158,9 +165,9 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
-    uint256 conversionRate;
+    uint256 public conversionRate;
 
-    function setExposure(uint256 maxUsdExposureProtocol_, uint256 usdExposureProtocol_) public {
+    function setUsdExposureProtocol(uint256 maxUsdExposureProtocol_, uint256 usdExposureProtocol_) public {
         maxUsdExposureProtocol = maxUsdExposureProtocol_;
         usdExposureProtocol = usdExposureProtocol_;
     }
@@ -186,14 +193,38 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         assetsInPricingModule.push(asset);
 
         assetToInformation[asset].underlyingAssets = underlyingAssets_;
-
-        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](underlyingAssets_.length);
-
-        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast = exposureAssetToUnderlyingAssetsLast;
     }
 
-    function _getConversionRate(address, address) internal view override returns (uint256 conversionRate_) {
-        conversionRate_ = conversionRate;
+    function processDeposit(address asset, uint256 exposureAsset) public returns (uint256 usdValueExposureAsset) {
+        usdValueExposureAsset = _processDeposit(asset, 0, exposureAsset);
+    }
+
+    function getAndUpdateExposureAsset(address asset, int256 deltaAsset) public returns (uint256 exposureAsset) {
+        exposureAsset = _getAndUpdateExposureAsset(asset, deltaAsset);
+    }
+
+    function processWithdrawal(address asset, uint256 exposureAsset) public returns (uint256 usdValueExposureAsset) {
+        usdValueExposureAsset = _processWithdrawal(asset, 0, exposureAsset);
+    }
+
+    function getAndUpdateExposureUnderlyingAsset(
+        address asset,
+        uint256 exposureAsset,
+        uint256 conversionRate_,
+        uint256 index
+    ) public returns (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) {
+        (exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset) =
+            _getAndUpdateExposureUnderlyingAsset(asset, exposureAsset, conversionRate_, index);
+    }
+
+    function _getConversionRates(address, address[] memory)
+        internal
+        view
+        override
+        returns (uint256[] memory conversionRate_)
+    {
+        conversionRate_ = new uint256[](1);
+        conversionRate_[0] = conversionRate;
     }
 }
 
@@ -248,8 +279,12 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
         amountOut = _getAmountOut(amountIn, reserveIn, reserveOut);
     }
 
-    function getConversionRate(address asset, address underlyingAsset) public view returns (uint256 conversionRate) {
-        conversionRate = _getConversionRate(asset, underlyingAsset);
+    function getConversionRate(address asset, address[] memory underlyingAssets)
+        public
+        view
+        returns (uint256[] memory conversionRates)
+    {
+        conversionRates = _getConversionRates(asset, underlyingAssets);
     }
 }
 
@@ -291,7 +326,11 @@ contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
         StandardERC4626PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
-    function getConversionRate(address asset, address) public view returns (uint256 conversionRate) {
-        conversionRate = _getConversionRate(asset, address(0));
+    function getConversionRates(address asset, address[] memory underlyingAssets)
+        public
+        view
+        returns (uint256[] memory conversionRates)
+    {
+        conversionRates = _getConversionRates(asset, underlyingAssets);
     }
 }

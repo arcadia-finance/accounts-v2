@@ -64,11 +64,14 @@ contract GetConversionRate_StandardERC4626PricingModule_Fuzz_Test is StandardERC
 
         uint256 expectedConversionRate =
             ((uint256(depositAmount) + uint256(yield)) * 10 ** 6 / ybToken2.totalSupply()) * 10 ** 12;
-        uint256 conversionRate = erc4626PricingModuleExtension.getConversionRate(address(ybToken2), address(0));
+
+        address[] memory emptyArray = new address[](1);
+        uint256[] memory conversionRates =
+            erc4626PricingModuleExtension.getConversionRates(address(ybToken2), emptyArray);
 
         // "conversionRate" will always return in 18 decimals, as underlying token has 6 decimals we could lose some precision in our calculation of "expectedConversionRate", thus we divide by 10 ** 12.
-        assertEq(expectedConversionRate / 10e12, conversionRate / 10e12);
+        assertEq(expectedConversionRate / 10e12, conversionRates[0] / 10e12);
         emit log_named_uint("expectedConversionRate", expectedConversionRate);
-        emit log_named_uint("conversionRate", conversionRate);
+        emit log_named_uint("conversionRate", conversionRates[0]);
     }
 }
