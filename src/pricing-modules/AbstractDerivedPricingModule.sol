@@ -95,10 +95,11 @@ abstract contract DerivedPricingModule is PricingModule_New {
     /**
      * @notice Calculates the conversion rate of an asset to its underlying asset.
      * @param asset The asset to calculate the conversion rate for.
+     * @param assetId The id of the asset to calculate the conversion rate for.
      * @param underlyingAssets The assets to which we have to get the conversion rate.
      * @return conversionRates The conversion rate of the asset to its underlying assets.
      */
-    function _getConversionRates(address asset, address[] memory underlyingAssets)
+    function _getConversionRates(address asset, uint256 assetId, address[] memory underlyingAssets)
         internal
         view
         virtual
@@ -142,14 +143,14 @@ abstract contract DerivedPricingModule is PricingModule_New {
      */
     function processIndirectDeposit(
         address asset,
-        uint256,
+        uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) external virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getAndUpdateExposureAsset(asset, deltaExposureUpperAssetToAsset);
 
-        uint256 usdValueExposureAsset = _processDeposit(asset, 0, exposureAsset);
+        uint256 usdValueExposureAsset = _processDeposit(asset, assetId, exposureAsset);
 
         if (exposureAsset == 0 || usdValueExposureAsset == 0) {
             usdValueExposureUpperAssetToAsset = 0;
@@ -165,15 +166,15 @@ abstract contract DerivedPricingModule is PricingModule_New {
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
      * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
+     * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
-    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual override onlyMainReg {
+    function processDirectWithdrawal(address asset, uint256 assetId, uint256 amount) external virtual override onlyMainReg {
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getAndUpdateExposureAsset(asset, -int256(amount));
 
-        _processWithdrawal(asset, 0, exposureAsset);
+        _processWithdrawal(asset, assetId, exposureAsset);
     }
 
     /**
@@ -208,10 +209,10 @@ abstract contract DerivedPricingModule is PricingModule_New {
     /**
      * @notice Increases the exposure to an asset on deposit.
      * @param asset The contract address of the asset.
-     * param id The Id of the asset.
+     * @param assetId The Id of the asset.
      * @param exposureAsset The updated exposure to the asset.
      */
-    function _processDeposit(address asset, uint256, uint256 exposureAsset)
+    function _processDeposit(address asset, uint256 assetId, uint256 exposureAsset)
         internal
         virtual
         returns (uint256 usdValueExposureAsset)
@@ -220,7 +221,7 @@ abstract contract DerivedPricingModule is PricingModule_New {
         address[] memory underlyingAssets = assetToInformation[asset].underlyingAssets;
 
         // Get the current flashloan resistant Conversion rate from the asset to its underlying asset(s) (with 18 decimals precision).
-        uint256[] memory conversionRates = _getConversionRates(asset, underlyingAssets);
+        uint256[] memory conversionRates = _getConversionRates(asset, assetId, underlyingAssets);
 
         uint256 exposureAssetToUnderlyingAsset;
         int256 deltaExposureAssetToUnderlyingAsset;
@@ -272,7 +273,7 @@ abstract contract DerivedPricingModule is PricingModule_New {
      * param id The Id of the asset.
      * @param exposureAsset The updated exposure to the asset.
      */
-    function _processWithdrawal(address asset, uint256, uint256 exposureAsset)
+    function _processWithdrawal(address asset, uint256 assetId, uint256 exposureAsset)
         internal
         virtual
         returns (uint256 usdValueExposureAsset)
@@ -281,7 +282,7 @@ abstract contract DerivedPricingModule is PricingModule_New {
         address[] memory underlyingAssets = assetToInformation[asset].underlyingAssets;
 
         // Get the current flashloan resistant Conversion rate from the asset to its underlying asset(s) (with 18 decimals precision).
-        uint256[] memory conversionRates = _getConversionRates(asset, underlyingAssets);
+        uint256[] memory conversionRates = _getConversionRates(asset, assetId, underlyingAssets);
 
         uint256 exposureAssetToUnderlyingAsset;
         int256 deltaExposureAssetToUnderlyingAsset;

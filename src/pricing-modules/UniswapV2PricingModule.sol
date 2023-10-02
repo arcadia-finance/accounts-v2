@@ -121,11 +121,11 @@ contract UniswapV2PricingModule is DerivedPricingModule {
     /**
      * @notice Calculates the conversion rate of an asset to its underlying asset.
      * @param asset The asset to calculate the conversion rate for.
+     * param assetId The id of the asset to calculate the conversion rate for.
      * @param underlyingAssets The assets to which we have to get the conversion rate.
      * @return conversionRates The conversion rate of the asset to its underlying assets.
      */
-
-    function _getConversionRates(address asset, address[] memory underlyingAssets)
+    function _getConversionRates(address asset, uint256, address[] memory underlyingAssets)
         internal
         view
         override

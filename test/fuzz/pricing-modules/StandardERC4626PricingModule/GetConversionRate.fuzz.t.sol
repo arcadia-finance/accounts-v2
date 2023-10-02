@@ -52,7 +52,7 @@ contract GetConversionRate_StandardERC4626PricingModule_Fuzz_Test is StandardERC
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getConversionRate(uint128 depositAmount, uint96 yield) public {
+    function testFuzz_Success_getConversionRate(uint128 depositAmount, uint256 assetId, uint96 yield) public {
         vm.assume(depositAmount > 0);
         // Mint tokens, do a deposit, an send tokens to vault (=yield)
         vm.startPrank(users.accountOwner);
@@ -67,7 +67,7 @@ contract GetConversionRate_StandardERC4626PricingModule_Fuzz_Test is StandardERC
 
         address[] memory emptyArray = new address[](1);
         uint256[] memory conversionRates =
-            erc4626PricingModuleExtension.getConversionRates(address(ybToken2), emptyArray);
+            erc4626PricingModuleExtension.getConversionRates(address(ybToken2), assetId, emptyArray);
 
         // "conversionRate" will always return in 18 decimals, as underlying token has 6 decimals we could lose some precision in our calculation of "expectedConversionRate", thus we divide by 10 ** 12.
         assertEq(expectedConversionRate / 10e12, conversionRates[0] / 10e12);

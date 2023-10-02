@@ -156,7 +156,7 @@ contract UniswapV3PricingModule is DerivedPricingModule {
      * param underlyingAssets The assets to which we have to get the conversion rate.
      * @return conversionRates The conversion rate of the asset to its underlying assets.
      */
-    function _getConversionRates(address asset, address[] memory underlyingAssets)
+    function _getConversionRates(address asset, uint256 assetId, address[] memory underlyingAssets)
         internal
         view
         override

@@ -217,7 +217,7 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
             _getAndUpdateExposureUnderlyingAsset(asset, exposureAsset, conversionRate_, index);
     }
 
-    function _getConversionRates(address, address[] memory)
+    function _getConversionRates(address, uint256, address[] memory)
         internal
         view
         override
@@ -279,12 +279,12 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
         amountOut = _getAmountOut(amountIn, reserveIn, reserveOut);
     }
 
-    function getConversionRate(address asset, address[] memory underlyingAssets)
+    function getConversionRate(address asset, uint256 assetId, address[] memory underlyingAssets)
         public
         view
         returns (uint256[] memory conversionRates)
     {
-        conversionRates = _getConversionRates(asset, underlyingAssets);
+        conversionRates = _getConversionRates(asset, assetId, underlyingAssets);
     }
 }
 
@@ -326,11 +326,11 @@ contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
         StandardERC4626PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
-    function getConversionRates(address asset, address[] memory underlyingAssets)
+    function getConversionRates(address asset, uint256 assetId, address[] memory underlyingAssets)
         public
         view
         returns (uint256[] memory conversionRates)
     {
-        conversionRates = _getConversionRates(asset, underlyingAssets);
+        conversionRates = _getConversionRates(asset, assetId, underlyingAssets);
     }
 }
