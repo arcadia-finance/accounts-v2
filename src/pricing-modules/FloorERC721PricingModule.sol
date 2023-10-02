@@ -144,7 +144,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @dev amount of a deposit in ERC721 pricing module must be 1
      */
     function processDirectDeposit(address asset, uint256 assetId, uint256 amount) external override onlyMainReg {
-        require(isIdInRange(asset, assetId), "PM721_IE: PDD not allowed");
+        require(isIdInRange(asset, assetId), "PM721_PDD: ID not allowed");
         require(amount == 1, "PM721_PDD: Amount not 1");
         require(exposure[asset].exposure + 1 <= exposure[asset].maxExposure, "PM721_PDD: Exposure not in limits");
 
