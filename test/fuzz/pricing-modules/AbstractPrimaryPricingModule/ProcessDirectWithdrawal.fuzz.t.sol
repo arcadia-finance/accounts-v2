@@ -4,40 +4,37 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingModule.fuzz.t.sol";
-
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { Constants, AbstractPrimaryPricingModule_Fuzz_Test } from "./_AbstractPrimaryPricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "decreaseExposure" of contract "AbstractPricingModule".
+ * @notice Fuzz tests for the "processDirectWithdrawal" of contract "AbstractPrimaryPricingModule".
  */
-contract DecreaseExposure_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
+contract ProcessDirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPrimaryPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        AbstractPricingModule_Fuzz_Test.setUp();
+        AbstractPrimaryPricingModule_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_decreaseExposure_NonMainRegistry(
+    function testFuzz_Revert_processDirectWithdrawal_NonMainRegistry(
         address unprivilegedAddress_,
         address asset,
-        uint128 id,
         uint128 amount
     ) public {
         vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        pricingModule.decreaseExposure(asset, id, amount);
+        pricingModule.processDirectWithdrawal(asset, 0, amount);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_decreaseExposure(
+    function testFuzz_Success_processDirectWithdrawal(
         address asset,
         uint128 exposure,
         uint128 amount,
@@ -49,7 +46,7 @@ contract DecreaseExposure_AbstractPricingModule_Fuzz_Test is AbstractPricingModu
         pricingModule.setExposure(asset, exposure, maxExposure);
 
         vm.prank(address(mainRegistryExtension));
-        pricingModule.decreaseExposure(asset, id, amount);
+        pricingModule.processDirectWithdrawal(asset, id, amount);
 
         (, uint128 actualExposure) = pricingModule.exposure(address(asset));
         uint128 expectedExposure = exposure - amount;
@@ -57,7 +54,7 @@ contract DecreaseExposure_AbstractPricingModule_Fuzz_Test is AbstractPricingModu
         assertEq(actualExposure, expectedExposure);
     }
 
-    function testFuzz_Success_decreaseExposure_withAmountGreaterThanExposure(
+    function testFuzz_Success_processDirectWithdrawal_withAmountGreaterThanExposure(
         address asset,
         uint128 exposure,
         uint128 amount,
@@ -69,7 +66,7 @@ contract DecreaseExposure_AbstractPricingModule_Fuzz_Test is AbstractPricingModu
         pricingModule.setExposure(asset, exposure, maxExposure);
 
         vm.prank(address(mainRegistryExtension));
-        pricingModule.decreaseExposure(asset, id, amount);
+        pricingModule.processDirectWithdrawal(asset, id, amount);
 
         (, uint128 actualExposure) = pricingModule.exposure(address(asset));
 

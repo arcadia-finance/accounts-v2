@@ -11,7 +11,11 @@ import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
 import { MainRegistryGuardian } from "../../src/guardians/MainRegistryGuardian.sol";
 import { MainRegistry } from "../../src/MainRegistry.sol";
-import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
+import { MainRegistry_New } from "../../src/MainRegistry_New.sol";
+import { IMainRegistry } from "../../src/interfaces/IMainRegistry_New.sol";
+import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PrimaryPricingModule } from "../../src/pricing-modules/AbstractPrimaryPricingModule.sol";
+import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
 import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
 import { UniswapV3WithFeesPricingModule } from "../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
 
@@ -89,6 +93,24 @@ contract MainRegistryExtension is MainRegistry {
     function setAssetType(address asset, uint96 assetType) public {
         assetToAssetInformation[asset].assetType = assetType;
     }
+
+    function setPricingModuleForAsset(address asset, address pricingModule) public {
+        assetToAssetInformation[asset].pricingModule = pricingModule;
+    }
+}
+
+contract MainRegistryExtension_New is MainRegistry_New {
+    using FixedPointMathLib for uint256;
+
+    constructor(address factory_) MainRegistry_New(factory_) { }
+
+    function setAssetType(address asset, uint96 assetType) public {
+        assetToAssetInformation[asset].assetType = assetType;
+    }
+
+    function setPricingModuleForAsset(address asset, address pricingModule) public {
+        assetToAssetInformation[asset].pricingModule = pricingModule;
+    }
 }
 
 contract AbstractPricingModuleExtension is PricingModule {
@@ -103,10 +125,105 @@ contract AbstractPricingModuleExtension is PricingModule {
     function setRiskVariables(address asset, uint256 basecurrency, RiskVars memory riskVars_) public {
         _setRiskVariables(asset, basecurrency, riskVars_);
     }
+}
+
+contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule {
+    // Price is 1 by default
+    uint256 usdValueExposureToUnderlyingAsset = 1;
+
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
+        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    { }
+
+    function setPrice(uint256 usdValueExposureToUnderlyingAsset_) public {
+        usdValueExposureToUnderlyingAsset = usdValueExposureToUnderlyingAsset_;
+    }
 
     function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
         exposure[asset].exposure = exposure_;
         exposure[asset].maxExposure = maxExposure;
+    }
+
+    // The function below is only needed in the case of testing for the "AbstractDerivedPricingModule", in order for the Primary Asset to return a value
+    // getValue() will be tested separately per PM.
+    function getValue(GetValueInput memory)
+        public
+        view
+        override
+        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
+    {
+        // we assume a price of 1 for this testing purpose
+        valueInUsd = usdValueExposureToUnderlyingAsset;
+        collateralFactor = 0;
+        liquidationFactor = 0;
+    }
+}
+
+contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
+        DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    { }
+
+    uint256 public conversionRate;
+
+    function setUsdExposureProtocol(uint256 maxUsdExposureProtocol_, uint256 usdExposureProtocol_) public {
+        maxUsdExposureProtocol = maxUsdExposureProtocol_;
+        usdExposureProtocol = usdExposureProtocol_;
+    }
+
+    function setConversionRate(uint256 newConversionRate) public {
+        conversionRate = newConversionRate;
+    }
+
+    function setAssetInformation(
+        address asset,
+        uint128 exposureAssetLast_,
+        uint128 usdValueExposureAssetLast_,
+        uint128[] memory exposureAssetToUnderlyingAssetLast
+    ) public {
+        assetToInformation[asset].exposureAssetLast = exposureAssetLast_;
+        assetToInformation[asset].usdValueExposureAssetLast = usdValueExposureAssetLast_;
+        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast = exposureAssetToUnderlyingAssetLast;
+    }
+
+    function addAsset(address asset, address[] memory underlyingAssets_) public {
+        require(!inPricingModule[asset], "ADPME_AA: already added");
+        inPricingModule[asset] = true;
+        assetsInPricingModule.push(asset);
+
+        assetToInformation[asset].underlyingAssets = underlyingAssets_;
+    }
+
+    function processDeposit(address asset, uint256 exposureAsset) public returns (uint256 usdValueExposureAsset) {
+        usdValueExposureAsset = _processDeposit(asset, 0, exposureAsset);
+    }
+
+    function getAndUpdateExposureAsset(address asset, int256 deltaAsset) public returns (uint256 exposureAsset) {
+        exposureAsset = _getAndUpdateExposureAsset(asset, deltaAsset);
+    }
+
+    function processWithdrawal(address asset, uint256 exposureAsset) public returns (uint256 usdValueExposureAsset) {
+        usdValueExposureAsset = _processWithdrawal(asset, 0, exposureAsset);
+    }
+
+    function getAndUpdateExposureUnderlyingAsset(
+        address asset,
+        uint256 exposureAsset,
+        uint256 conversionRate_,
+        uint256 index
+    ) public returns (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) {
+        (exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset) =
+            _getAndUpdateExposureUnderlyingAsset(asset, exposureAsset, conversionRate_, index);
+    }
+
+    function _getConversionRates(address, address[] memory)
+        internal
+        view
+        override
+        returns (uint256[] memory conversionRate_)
+    {
+        conversionRate_ = new uint256[](1);
+        conversionRate_[0] = conversionRate;
     }
 }
 

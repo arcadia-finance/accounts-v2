@@ -4,20 +4,18 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingModule.fuzz.t.sol";
-
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { Constants, AbstractPrimaryPricingModule_Fuzz_Test } from "./_AbstractPrimaryPricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "setExposureOfAsset" of contract "AbstractPricingModule".
+ * @notice Fuzz tests for the "setExposureOfAsset" of contract "AbstractPrimaryPricingModule".
  */
-contract SetExposureOfAsset_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
+contract SetExposureOfAsset_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPrimaryPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        AbstractPricingModule_Fuzz_Test.setUp();
+        AbstractPrimaryPricingModule_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -32,6 +30,15 @@ contract SetExposureOfAsset_AbstractPricingModule_Fuzz_Test is AbstractPricingMo
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_RISK_MANAGER");
+        pricingModule.setExposureOfAsset(asset, maxExposure);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_setExposureOfAsset_maxExposureNotInLimits(uint256 maxExposure, address asset) public {
+        vm.assume(maxExposure > type(uint128).max);
+
+        vm.startPrank(users.creatorAddress);
+        vm.expectRevert("APPM_SEA: Max Exp. not in limits");
         pricingModule.setExposureOfAsset(asset, maxExposure);
         vm.stopPrank();
     }

@@ -6,24 +6,21 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
-import { AbstractPricingModuleExtension } from "../../../utils/Extensions.sol";
+import { AbstractPrimaryPricingModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
- * @notice Common logic needed by all "AbstractPricingModule" fuzz tests.
+ * @notice Common logic needed by all "AbstractPrimaryPricingModule" fuzz tests.
  */
-abstract contract AbstractPricingModule_Fuzz_Test is Fuzz_Test {
+abstract contract AbstractPrimaryPricingModule_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
-
-    PricingModule.RiskVarInput[] riskVarInputs_;
 
     /*////////////////////////////////////////////////////////////////
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AbstractPricingModuleExtension internal pricingModule;
+    AbstractPrimaryPricingModuleExtension internal pricingModule;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -34,6 +31,6 @@ abstract contract AbstractPricingModule_Fuzz_Test is Fuzz_Test {
 
         vm.prank(users.creatorAddress);
         pricingModule =
-        new AbstractPricingModuleExtension(address(mainRegistryExtension), address(oracleHub), 0, users.creatorAddress);
+        new AbstractPrimaryPricingModuleExtension(address(mainRegistryExtension), address(oracleHub), 0, users.creatorAddress);
     }
 }
