@@ -124,20 +124,20 @@ abstract contract DerivedPricingModule is PricingModule_New {
     /**
      * @notice Increases the exposure to an asset on deposit.
      * @param asset The contract address of the asset.
-     * param id The Id of the asset.
+     * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256, uint256 amount) external virtual override onlyMainReg {
+    function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public virtual override onlyMainReg {
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getAndUpdateExposureAsset(asset, int256(amount));
 
-        _processDeposit(asset, 0, exposureAsset);
+        _processDeposit(asset, assetId, exposureAsset);
     }
 
     /**
      * @notice Increases the exposure to an underlying asset on deposit.
      * @param asset The contract address of the asset.
-     * param id The Id of the asset.
+     * @param assetId The Id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
@@ -146,7 +146,7 @@ abstract contract DerivedPricingModule is PricingModule_New {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getAndUpdateExposureAsset(asset, deltaExposureUpperAssetToAsset);
 
@@ -191,14 +191,14 @@ abstract contract DerivedPricingModule is PricingModule_New {
      */
     function processIndirectWithdrawal(
         address asset,
-        uint256,
+        uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) external virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getAndUpdateExposureAsset(asset, deltaExposureUpperAssetToAsset);
 
-        uint256 usdValueExposureAsset = _processWithdrawal(asset, 0, exposureAsset);
+        uint256 usdValueExposureAsset = _processWithdrawal(asset, assetId, exposureAsset);
 
         if (exposureAsset == 0 || usdValueExposureAsset == 0) {
             usdValueExposureUpperAssetToAsset = 0;

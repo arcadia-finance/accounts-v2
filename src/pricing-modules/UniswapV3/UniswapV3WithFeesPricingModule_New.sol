@@ -121,9 +121,9 @@ contract UniswapV3WithFeesPricingModule_New is DerivedPricingModule {
         view
         override
         returns (uint256[] memory conversionRates)
-    {   
+    {
         address factory = assetToV3Factory[asset];
-        
+
         (
             ,
             ,
@@ -152,12 +152,10 @@ contract UniswapV3WithFeesPricingModule_New is DerivedPricingModule {
 
             // Add fees accumulated for each token per LP token.
             unchecked {
-                tokensOwed0 += FullMath.mulDiv(
-                    feeGrowthInside0CurrentX128 - feeGrowthInside0LastX128, 1e18, FixedPoint128.Q128
-                );
-                tokensOwed1 += FullMath.mulDiv(
-                    feeGrowthInside1CurrentX128 - feeGrowthInside1LastX128, 1e18, FixedPoint128.Q128
-                );
+                tokensOwed0 +=
+                    FullMath.mulDiv(feeGrowthInside0CurrentX128 - feeGrowthInside0LastX128, 1e18, FixedPoint128.Q128);
+                tokensOwed1 +=
+                    FullMath.mulDiv(feeGrowthInside1CurrentX128 - feeGrowthInside1LastX128, 1e18, FixedPoint128.Q128);
             }
         }
 
@@ -169,7 +167,8 @@ contract UniswapV3WithFeesPricingModule_New is DerivedPricingModule {
             GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 
-        (uint256 principalAmountToken0, uint256 principalAmountToken1) = _getPrincipalAmounts(tickLower, tickUpper, 1e18, trustedPriceToken0, trustedPriceToken1);
+        (uint256 principalAmountToken0, uint256 principalAmountToken1) =
+            _getPrincipalAmounts(tickLower, tickUpper, 1e18, trustedPriceToken0, trustedPriceToken1);
 
         // Add principal amount to fees
         tokensOwed0 += principalAmountToken0;
@@ -460,5 +459,64 @@ contract UniswapV3WithFeesPricingModule_New is DerivedPricingModule {
         uint160 sqrtPriceX96 = _getSqrtPriceX96(priceToken0, priceToken1);
 
         tickCurrent = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
+    }
+
+    /**
+     * @notice Increases the exposure to an asset on deposit.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param amount The amount of tokens.
+     */
+    function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public override onlyMainReg {
+        (,, address token0, address token1,, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) =
+            INonfungiblePositionManager(asset).positions(assetId);
+
+        require(liquidity > 0, "PMUV3_IE: 0 liquidity");
+
+        // Since liquidity of a position can be increased by a non-owner, we have to store the liquidity during deposit.
+        // Otherwise the max exposure checks can be circumvented.
+        // TODO: gas optimization => more efficient to only store liquidity and get other info from nftPositionManager on _getPosition() ?
+        positions[asset][assetId] = Position({
+            token0: token0,
+            token1: token1,
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            liquidity: liquidity
+        });
+
+        super.processDirectDeposit(asset, assetId, amount);
+    }
+
+    /**
+     * @notice Increases the exposure to an underlying asset on deposit.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     */
+    function processIndirectDeposit(
+        address asset,
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+        (,, address token0, address token1,, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) =
+            INonfungiblePositionManager(asset).positions(assetId);
+
+        require(liquidity > 0, "PMUV3_IE: 0 liquidity");
+
+        // Since liquidity of a position can be increased by a non-owner, we have to store the liquidity during deposit.
+        // Otherwise the max exposure checks can be circumvented.
+        // TODO: gas optimization => more efficient to only store liquidity and get other info from nftPositionManager on _getPosition() ?
+        positions[asset][assetId] = Position({
+            token0: token0,
+            token1: token1,
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            liquidity: liquidity
+        });
+
+        (primaryFlag, usdValueExposureUpperAssetToAsset) =
+            super.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
     }
 }
