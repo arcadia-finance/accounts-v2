@@ -28,7 +28,7 @@ import { SafeCastLib } from "lib/solmate/src/utils/SafeCastLib.sol";
  * @dev No end-user should directly interact with the UniswapV3PricingModule, only the Main-registry,
  * or the contract owner.
  */
-contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
+contract UniswapV3WithFeesPricingModule_New is DerivedPricingModule {
     using FixedPointMathLib for uint256;
 
     /* //////////////////////////////////////////////////////////////
@@ -112,17 +112,72 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
     /**
      * @notice Calculates the conversion rate of an asset to its underlying asset.
      * @param asset The asset to calculate the conversion rate for.
+     * @param assetId The id of the asset to calculate the conversion rate for.
      * param underlyingAssets The assets to which we have to get the conversion rate.
      * @return conversionRates The conversion rate of the asset to its underlying assets.
      */
-    function _getConversionRates(address asset, uint256 assetId, address[] memory underlyingAssets)
+    function _getConversionRates(address asset, uint256 assetId, address[] memory)
         internal
         view
         override
         returns (uint256[] memory conversionRates)
-    {
-        // Note: to implement
+    {   
+        address factory = assetToV3Factory[asset];
+        
+        (
+            ,
+            ,
+            address token0,
+            address token1,
+            uint24 fee,
+            int24 tickLower,
+            int24 tickUpper,
+            , // gas: cheaper to use uint256 instead of uint128.
+            uint256 feeGrowthInside0LastX128,
+            uint256 feeGrowthInside1LastX128,
+            uint256 tokensOwed0, // gas: cheaper to use uint256 instead of uint128.
+            uint256 tokensOwed1 // gas: cheaper to use uint256 instead of uint128.
+        ) = INonfungiblePositionManager(asset).positions(assetId);
 
+        {
+            (uint256 feeGrowthInside0CurrentX128, uint256 feeGrowthInside1CurrentX128) =
+                _getFeeGrowthInside(factory, token0, token1, fee, tickLower, tickUpper);
+
+            // Calculate the total amount of fees by adding the already realized fees (tokensOwed),
+            // to the accumulated fees since the last time the position was updated:
+            // (feeGrowthInsideCurrentX128 - feeGrowthInsideLastX128).
+            // Fee calculations in NonfungiblePositionManager.sol overflow (without reverting) when
+            // one or both terms, or their sum, is bigger than a uint128.
+            // This is however much bigger than any realistic situation.
+
+            // Add fees accumulated for each token per LP token.
+            unchecked {
+                tokensOwed0 += FullMath.mulDiv(
+                    feeGrowthInside0CurrentX128 - feeGrowthInside0LastX128, 1e18, FixedPoint128.Q128
+                );
+                tokensOwed1 += FullMath.mulDiv(
+                    feeGrowthInside1CurrentX128 - feeGrowthInside1LastX128, 1e18, FixedPoint128.Q128
+                );
+            }
+        }
+
+        uint256 trustedPriceToken0 = IMainRegistry_New(mainRegistry).getUsdValue(
+            GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
+        );
+
+        uint256 trustedPriceToken1 = IMainRegistry_New(mainRegistry).getUsdValue(
+            GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
+        );
+
+        (uint256 principalAmountToken0, uint256 principalAmountToken1) = _getPrincipalAmounts(tickLower, tickUpper, 1e18, trustedPriceToken0, trustedPriceToken1);
+
+        // Add principal amount to fees
+        tokensOwed0 += principalAmountToken0;
+        tokensOwed1 += principalAmountToken1;
+
+        conversionRates = new uint256[](2);
+        conversionRates[0] = tokensOwed0;
+        conversionRates[1] = tokensOwed1;
     }
 
     /**

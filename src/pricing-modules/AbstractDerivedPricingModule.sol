@@ -170,7 +170,12 @@ abstract contract DerivedPricingModule is PricingModule_New {
      * @param amount The amount of tokens.
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
-    function processDirectWithdrawal(address asset, uint256 assetId, uint256 amount) external virtual override onlyMainReg {
+    function processDirectWithdrawal(address asset, uint256 assetId, uint256 amount)
+        external
+        virtual
+        override
+        onlyMainReg
+    {
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getAndUpdateExposureAsset(asset, -int256(amount));
 

@@ -12,7 +12,7 @@ import { AccountV1 } from "../src/AccountV1.sol";
 import { MainRegistry } from "../src/MainRegistry.sol";
 import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
 import { PricingModule_New } from "../src/pricing-modules/AbstractPricingModule_New.sol";
-import { UniswapV3PricingModule } from "../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
+import { UniswapV3WithFeesPricingModule } from "../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
 
 import { ActionMultiCallV2 } from "../src/actions/MultiCallV2.sol";
@@ -34,7 +34,7 @@ contract ArcadiaAccountDeployment is Test {
     OracleHub public oracleHub;
     MainRegistry public mainRegistry;
     StandardERC20PricingModule public standardERC20PricingModule;
-    UniswapV3PricingModule public uniswapV3PricingModule;
+    UniswapV3WithFeesPricingModule public uniswapV3PricingModule;
     ActionMultiCallV2 public actionMultiCall;
 
     ILendingPool public wethLendingPool;
@@ -288,7 +288,7 @@ contract ArcadiaAccountDeployment is Test {
             0
         );
         uniswapV3PricingModule =
-        new UniswapV3PricingModule(address(mainRegistry), address(oracleHub), deployerAddress, address(standardERC20PricingModule));
+        new UniswapV3WithFeesPricingModule(address(mainRegistry), address(oracleHub), deployerAddress, address(standardERC20PricingModule));
 
         account = new AccountV1();
         actionMultiCall = new ActionMultiCallV2();

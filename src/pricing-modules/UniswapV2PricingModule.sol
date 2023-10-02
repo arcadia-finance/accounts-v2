@@ -131,19 +131,16 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         override
         returns (uint256[] memory conversionRates)
     {
-        address token0PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(underlyingAssets[0]);
-        address token1PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(underlyingAssets[1]);
-
-        (uint256 trustedUsdPriceToken0,,) = PricingModule_New(token0PricingModule).getValue(
-            GetValueInput({ asset: underlyingAssets[0], assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
+        uint256 trustedUsdPriceToken0 = IMainRegistry_New(mainRegistry).getUsdValue(
+            GetValueInput({ asset: underlyingAssets[0], assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 
-        (uint256 trustedUsdPriceToken1,,) = PricingModule_New(token1PricingModule).getValue(
-            GetValueInput({ asset: underlyingAssets[1], assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
+        uint256 trustedUsdPriceToken1 = IMainRegistry_New(mainRegistry).getUsdValue(
+            GetValueInput({ asset: underlyingAssets[1], assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 
         (uint256 token0Amount, uint256 token1Amount) =
-            _getTrustedTokenAmounts(asset, trustedUsdPriceToken0, trustedUsdPriceToken1, FixedPointMathLib.WAD);
+            _getTrustedTokenAmounts(asset, trustedUsdPriceToken0, trustedUsdPriceToken1, 1e18);
 
         conversionRates = new uint256[](2);
         conversionRates[0] = token0Amount;
@@ -175,16 +172,14 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         address token0 = assetToInformation[getValueInput.asset].underlyingAssets[0];
         address token1 = assetToInformation[getValueInput.asset].underlyingAssets[1];
 
-        address token0PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token0);
-        address token1PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token1);
         // To calculate the liquidity value after arbitrage, what matters is the ratio of the price of token0 compared to the price of token1
         // Hence we need to use a trusted external price for an equal amount of tokens,
         // we use for both tokens the USD price of 1 WAD (10**18) to guarantee precision.
-        (uint256 trustedUsdPriceToken0,,) = PricingModule_New(token0PricingModule).getValue(
-            GetValueInput({ asset: token0, assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
+        uint256 trustedUsdPriceToken0 = IMainRegistry_New(mainRegistry).getUsdValue(
+            GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
-        (uint256 trustedUsdPriceToken1,,) = PricingModule_New(token1PricingModule).getValue(
-            GetValueInput({ asset: token1, assetId: 0, assetAmount: FixedPointMathLib.WAD, baseCurrency: 0 })
+        uint256 trustedUsdPriceToken1 = IMainRegistry_New(mainRegistry).getUsdValue(
+            GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 
         //
@@ -193,8 +188,8 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         );
         // trustedUsdPriceToken0 is the value of token0 in USD with 18 decimals precision for 1 WAD of tokens,
         // we need to recalculate to find the value of the actual amount of underlying token0 in the liquidity position.
-        valueInUsd = FixedPointMathLib.mulDivDown(token0Amount, trustedUsdPriceToken0, FixedPointMathLib.WAD)
-            + FixedPointMathLib.mulDivDown(token1Amount, trustedUsdPriceToken1, FixedPointMathLib.WAD);
+        valueInUsd = FixedPointMathLib.mulDivDown(token0Amount, trustedUsdPriceToken0, 1e18)
+            + FixedPointMathLib.mulDivDown(token1Amount, trustedUsdPriceToken1, 1e18);
 
         collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
         liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;
