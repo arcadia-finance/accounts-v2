@@ -136,4 +136,104 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
         return (protocolState, assetState, underlyingPMState);
     }
+
+    function givenNonRevertingWithdrawal(
+        DerivedPricingModuleProtocolState memory protocolState,
+        DerivedPricingModuleAssetState memory assetState,
+        UnderlyingPricingModuleState memory underlyingPMState,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    )
+        internal
+        view
+        returns (
+            DerivedPricingModuleProtocolState memory,
+            DerivedPricingModuleAssetState memory,
+            UnderlyingPricingModuleState memory,
+            uint256,
+            int256
+        )
+    {
+        // Given: "usdValueExposureToUnderlyingAsset" does not overflow.
+        underlyingPMState.usdValueExposureToUnderlyingAsset =
+            bound(underlyingPMState.usdValueExposureToUnderlyingAsset, 0, type(uint128).max);
+
+        // And: "usdValueExposureUpperAssetToAsset" does not overflow (unrealistic big values).
+        if (underlyingPMState.usdValueExposureToUnderlyingAsset != 0) {
+            exposureUpperAssetToAsset = bound(
+                exposureUpperAssetToAsset, 0, type(uint256).max / underlyingPMState.usdValueExposureToUnderlyingAsset
+            );
+        }
+
+        // Calculate exposureAsset.
+        uint256 exposureAsset;
+        if (deltaExposureUpperAssetToAsset > 0) {
+            // Given: No overflow on exposureAsset.
+            deltaExposureUpperAssetToAsset = int256(
+                bound(uint256(deltaExposureUpperAssetToAsset), 0, type(uint128).max - assetState.exposureAssetLast)
+            );
+
+            exposureAsset = assetState.exposureAssetLast + uint256(deltaExposureUpperAssetToAsset);
+        } else {
+            // And: No overflow on negation most negative int256 (this overflows).
+            vm.assume(deltaExposureUpperAssetToAsset > type(int256).min);
+
+            if (uint256(-deltaExposureUpperAssetToAsset) < assetState.exposureAssetLast) {
+                exposureAsset = uint256(assetState.exposureAssetLast) - uint256(-deltaExposureUpperAssetToAsset);
+            }
+        }
+
+        // And: No overflow on exposureAssetToUnderlyingAsset.
+        if (exposureAsset != 0) {
+            assetState.conversionRate =
+                bound(assetState.conversionRate, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
+        }
+
+        if (underlyingPMState.usdValueExposureToUnderlyingAsset >= assetState.usdValueExposureAssetLast) {
+            // And: "usdExposureProtocol" does not overflow (unrealistically big).
+            protocolState.usdExposureProtocolLast = bound(
+                protocolState.usdExposureProtocolLast,
+                assetState.usdValueExposureAssetLast,
+                type(uint256).max
+                    - (underlyingPMState.usdValueExposureToUnderlyingAsset - assetState.usdValueExposureAssetLast)
+            );
+        }
+
+        return (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+    }
+
+    function givenNonRevertingDeposit(
+        DerivedPricingModuleProtocolState memory protocolState,
+        DerivedPricingModuleAssetState memory assetState,
+        UnderlyingPricingModuleState memory underlyingPMState,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    )
+        internal
+        view
+        returns (
+            DerivedPricingModuleProtocolState memory,
+            DerivedPricingModuleAssetState memory,
+            UnderlyingPricingModuleState memory,
+            uint256,
+            int256
+        )
+    {
+        // Identical bounds as for Withdrawals.
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
+        givenNonRevertingWithdrawal(
+            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
+
+        // And: exposure does not exceeds max exposure.
+        if (underlyingPMState.usdValueExposureToUnderlyingAsset >= assetState.usdValueExposureAssetLast) {
+            uint256 usdExposureProtocolExpected = protocolState.usdExposureProtocolLast
+                + (underlyingPMState.usdValueExposureToUnderlyingAsset - assetState.usdValueExposureAssetLast);
+
+            protocolState.maxUsdExposureProtocol =
+                bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected, type(uint256).max);
+        }
+
+        return (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+    }
 }
