@@ -10,7 +10,7 @@ import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPrici
 import {
     AbstractDerivedPricingModuleExtension,
     AbstractPrimaryPricingModuleExtension,
-    MainRegistryExtension_New
+    MainRegistryExtension
 } from "../../../utils/Extensions.sol";
 import { AbstractPrimaryPricingModuleExtension } from "../../../utils/Extensions.sol";
 
@@ -47,7 +47,7 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
     AbstractDerivedPricingModuleExtension internal derivedPricingModule;
     AbstractPrimaryPricingModuleExtension internal primaryPricingModule;
-    MainRegistryExtension_New internal mainRegistryExtension_New;
+    MainRegistryExtension internal mainRegistryExtension_New;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -58,7 +58,7 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        mainRegistryExtension_New = new MainRegistryExtension_New(address(factory));
+        mainRegistryExtension_New = new MainRegistryExtension(address(factory));
 
         derivedPricingModule =
         new AbstractDerivedPricingModuleExtension(address(mainRegistryExtension_New), address(oracleHub), 0, users.creatorAddress);

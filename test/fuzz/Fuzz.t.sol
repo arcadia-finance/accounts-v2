@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Base_Test, Constants } from "../Base.t.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
-import { MainRegistry } from "../../src/MainRegistry.sol";
+import { MainRegistry_New } from "../../src/MainRegistry_New.sol";
 import { OracleHub } from "../../src/OracleHub.sol";
 import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
 import { PricingModule_New } from "../../src/pricing-modules/AbstractPricingModule_New.sol";
@@ -143,7 +143,7 @@ abstract contract Fuzz_Test is Base_Test {
         // Add STABLE1 AND TOKEN1 as baseCurrencies in MainRegistry
         vm.startPrank(mainRegistryExtension.owner());
         mainRegistryExtension.addBaseCurrency(
-            MainRegistry.BaseCurrencyInformation({
+            MainRegistry_New.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
                 assetAddress: address(mockERC20.stable1),
                 baseCurrencyToUsdOracle: address(mockOracles.stable1ToUsd),
@@ -153,7 +153,7 @@ abstract contract Fuzz_Test is Base_Test {
         );
 
         mainRegistryExtension.addBaseCurrency(
-            MainRegistry.BaseCurrencyInformation({
+            MainRegistry_New.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
                 assetAddress: address(mockERC20.token1),
                 baseCurrencyToUsdOracle: address(mockOracles.token1ToUsd),
@@ -273,46 +273,6 @@ abstract contract Fuzz_Test is Base_Test {
         });
 
         // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
-        PricingModule.RiskVarInput[] memory riskVarsStable = new PricingModule.RiskVarInput[](3);
-        PricingModule.RiskVarInput[] memory riskVarsToken = new PricingModule.RiskVarInput[](3);
-
-        riskVarsStable[0] = PricingModule.RiskVarInput({
-            baseCurrency: 0,
-            asset: address(0),
-            collateralFactor: Constants.stableToStableCollFactor,
-            liquidationFactor: Constants.stableToStableLiqFactor
-        });
-        riskVarsStable[1] = PricingModule.RiskVarInput({
-            baseCurrency: 1,
-            asset: address(0),
-            collateralFactor: Constants.stableToStableCollFactor,
-            liquidationFactor: Constants.stableToStableLiqFactor
-        });
-        riskVarsStable[2] = PricingModule.RiskVarInput({
-            baseCurrency: 2,
-            asset: address(0),
-            collateralFactor: Constants.tokenToStableCollFactor,
-            liquidationFactor: Constants.tokenToStableLiqFactor
-        });
-
-        riskVarsToken[0] = PricingModule.RiskVarInput({
-            baseCurrency: 0,
-            asset: address(0),
-            collateralFactor: Constants.tokenToStableCollFactor,
-            liquidationFactor: Constants.tokenToStableLiqFactor
-        });
-        riskVarsToken[1] = PricingModule.RiskVarInput({
-            baseCurrency: 1,
-            asset: address(0),
-            collateralFactor: Constants.tokenToStableCollFactor,
-            liquidationFactor: Constants.tokenToStableLiqFactor
-        });
-        riskVarsToken[2] = PricingModule.RiskVarInput({
-            baseCurrency: 2,
-            asset: address(0),
-            collateralFactor: Constants.tokenToTokenLiqFactor,
-            liquidationFactor: Constants.tokenToTokenLiqFactor
-        });
 
         oracleStable1ToUsdArr[0] = address(mockOracles.stable1ToUsd);
         oracleStable2ToUsdArr[0] = address(mockOracles.stable2ToUsd);

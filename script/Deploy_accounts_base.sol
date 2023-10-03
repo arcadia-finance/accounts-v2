@@ -9,7 +9,7 @@ import { DeployAddresses, DeployNumbers, DeployBytes, DeployRiskConstantsBase } 
 
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/AccountV1.sol";
-import { MainRegistry } from "../src/MainRegistry.sol";
+import { MainRegistry_New } from "../src/MainRegistry_New.sol";
 import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
 import { PricingModule_New } from "../src/pricing-modules/AbstractPricingModule_New.sol";
 import { UniswapV3WithFeesPricingModule } from "../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";

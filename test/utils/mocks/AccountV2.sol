@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { ERC20, SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { IERC721 } from "../../../src/interfaces/IERC721.sol";
 import { IERC1155 } from "../../../src/interfaces/IERC1155.sol";
-import { IMainRegistry } from "../../../src/interfaces/IMainRegistry.sol";
+import { IMainRegistry } from "../../../src/interfaces/IMainRegistry_New.sol";
 import { ITrustedCreditor } from "../../../src/interfaces/ITrustedCreditor.sol";
 import { IActionBase, ActionData } from "../../../src/interfaces/IActionBase.sol";
 import { IFactory } from "../../../src/interfaces/IFactory.sol";

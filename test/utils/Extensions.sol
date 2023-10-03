@@ -10,7 +10,6 @@ import { AccountV1 } from "../../src/AccountV1.sol";
 import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
 import { MainRegistryGuardian } from "../../src/guardians/MainRegistryGuardian.sol";
-import { MainRegistry } from "../../src/MainRegistry.sol";
 import { MainRegistry_New } from "../../src/MainRegistry_New.sol";
 import { IMainRegistry } from "../../src/interfaces/IMainRegistry_New.sol";
 import { PricingModule_New } from "../../src/pricing-modules/AbstractPricingModule_New.sol";
@@ -87,21 +86,7 @@ contract MainRegistryGuardianExtension is MainRegistryGuardian {
     }
 }
 
-contract MainRegistryExtension is MainRegistry {
-    using FixedPointMathLib for uint256;
-
-    constructor(address factory_) MainRegistry(factory_) { }
-
-    function setAssetType(address asset, uint96 assetType) public {
-        assetToAssetInformation[asset].assetType = assetType;
-    }
-
-    function setPricingModuleForAsset(address asset, address pricingModule) public {
-        assetToAssetInformation[asset].pricingModule = pricingModule;
-    }
-}
-
-contract MainRegistryExtension_New is MainRegistry_New {
+contract MainRegistryExtension is MainRegistry_New {
     using FixedPointMathLib for uint256;
 
     constructor(address factory_) MainRegistry_New(factory_) { }
