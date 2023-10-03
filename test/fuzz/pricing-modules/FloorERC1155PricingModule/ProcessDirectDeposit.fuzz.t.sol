@@ -46,7 +46,7 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PM1155_IE: Exposure not in limits");
+        vm.expectRevert("APPM_PDD: Exposure not in limits");
         floorERC1155PricingModule.processDirectDeposit(address(mockERC1155.sft2), 1, amount);
         vm.stopPrank();
     }
@@ -59,7 +59,7 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PM1155_IE: ID not allowed");
+        vm.expectRevert("PM1155_PDD: ID not allowed");
         floorERC1155PricingModule.processDirectDeposit(address(mockERC1155.sft2), assetId, amount);
         vm.stopPrank();
 
@@ -67,7 +67,7 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
         assertEq(actualExposure, 0);
     }
 
-    function testFuzz_Success_processDirectDeposit_Positive(uint128 amount) public {
+    function testFuzz_Success_processDirectDeposit(uint128 amount) public {
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
             address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
