@@ -22,8 +22,7 @@ import { LiquidityAmountsExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
-import { PricingModule, IPricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
-import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV3PricingModule" fuzz tests.
@@ -153,8 +152,8 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
         ArcadiaOracle oracle = initMockedOracle(0, "Token / USD");
         address[] memory oracleArr = new address[](1);
         oracleArr[0] = address(oracle);
-        PricingModule_New.RiskVarInput[] memory riskVars = new PricingModule_New.RiskVarInput[](1);
-        riskVars[0] = PricingModule_New.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVars = new PricingModule.RiskVarInput[](1);
+        riskVars[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: 80,

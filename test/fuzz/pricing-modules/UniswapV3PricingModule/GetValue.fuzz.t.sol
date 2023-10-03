@@ -14,10 +14,10 @@ import { IUniswapV3PoolExtension } from
 import { LiquidityAmounts } from "../../../../src/pricing-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
 import {
-    IPricingModule_New,
+    IPricingModule,
     DerivedPricingModule
-} from "../../../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule_New.sol";
-import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+} from "../../../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "getValue" of contract "UniswapV3PricingModule".
@@ -102,8 +102,8 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         address[] memory oracleToken1 = new address[](1);
         oracleToken1[0] = address(mockOracles.token2ToUsd);
 
-        erc20PricingModule.addAsset(address(token0), oracleToken0, emptyRiskVarInput_New, type(uint128).max);
-        erc20PricingModule.addAsset(address(token1), oracleToken1, emptyRiskVarInput_New, type(uint128).max);
+        erc20PricingModule.addAsset(address(token0), oracleToken0, emptyRiskVarInput, type(uint128).max);
+        erc20PricingModule.addAsset(address(token1), oracleToken1, emptyRiskVarInput, type(uint128).max);
 
         // add asset to UniV3 pricing module
 
@@ -112,7 +112,7 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         uint256 valueToken1 = 1e18 * uint256(vars.priceToken1) * amount1 / 10 ** vars.decimals1;
 
         (uint256 actualValueInUsd,,) = uniV3PricingModule.getValue(
-            IPricingModule_New.GetValueInput({
+            IPricingModule.GetValueInput({
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
@@ -155,14 +155,14 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         addUnderlyingTokenToArcadia(address(token0), 1);
         addUnderlyingTokenToArcadia(address(token1), 1);
 
-        PricingModule_New.RiskVarInput[] memory riskVarInputs = new PricingModule_New.RiskVarInput[](2);
-        riskVarInputs[0] = PricingModule_New.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVarInputs = new PricingModule.RiskVarInput[](2);
+        riskVarInputs[0] = PricingModule.RiskVarInput({
             asset: address(token0),
             baseCurrency: 0,
             collateralFactor: uint16(collFactor0),
             liquidationFactor: uint16(liqFactor0)
         });
-        riskVarInputs[1] = PricingModule_New.RiskVarInput({
+        riskVarInputs[1] = PricingModule.RiskVarInput({
             asset: address(token1),
             baseCurrency: 0,
             collateralFactor: uint16(collFactor1),
@@ -175,7 +175,7 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         uint256 expectedLiqFactor = liqFactor0 < liqFactor1 ? liqFactor0 : liqFactor1;
 
         (, uint256 actualCollFactor, uint256 actualLiqFactor) = uniV3PricingModule.getValue(
-            IPricingModule_New.GetValueInput({
+            IPricingModule.GetValueInput({
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,

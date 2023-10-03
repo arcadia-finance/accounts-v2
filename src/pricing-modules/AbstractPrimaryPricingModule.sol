@@ -4,18 +4,18 @@
  */
 pragma solidity 0.8.19;
 
-import { IMainRegistry_New } from "./interfaces/IMainRegistry_New.sol";
-import { IPricingModule_New } from "../interfaces/IPricingModule_New.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IPricingModule } from "../interfaces/IPricingModule.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
-import { PricingModule_New } from "./AbstractPricingModule_New.sol";
+import { PricingModule } from "./AbstractPricingModule.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 
 /**
  * @title Primary Pricing Module.
  * @author Pragma Labs
  */
-abstract contract PrimaryPricingModule is PricingModule_New {
+abstract contract PrimaryPricingModule is PricingModule {
     using FixedPointMathLib for uint256;
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
@@ -56,7 +56,7 @@ abstract contract PrimaryPricingModule is PricingModule_New {
      * 2 = ERC1155
      */
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address erc20PricingModule_)
-        PricingModule_New(mainRegistry_, oracleHub_, assetType_, msg.sender)
+        PricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
     { }
 
     /*///////////////////////////////////////////////////////////////
@@ -137,7 +137,7 @@ abstract contract PrimaryPricingModule is PricingModule_New {
 
         // Get Value in Usd
         (usdValueExposureUpperAssetToAsset,,) = getValue(
-            IPricingModule_New.GetValueInput({
+            IPricingModule.GetValueInput({
                 asset: asset,
                 assetId: 0,
                 assetAmount: exposureUpperAssetToAsset,
@@ -197,7 +197,7 @@ abstract contract PrimaryPricingModule is PricingModule_New {
 
         // Get Value in Usd
         (usdValueExposureUpperAssetToAsset,,) = getValue(
-            IPricingModule_New.GetValueInput({
+            IPricingModule.GetValueInput({
                 asset: asset,
                 assetId: 0,
                 assetAmount: exposureUpperAssetToAsset,

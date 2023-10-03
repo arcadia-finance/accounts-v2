@@ -5,7 +5,7 @@
 pragma solidity 0.8.19;
 
 import { DerivedPricingModule } from "./AbstractDerivedPricingModule.sol";
-import { IMainRegistry_New } from "./interfaces/IMainRegistry_New.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 import { IERC4626 } from "../interfaces/IERC4626.sol";
 import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
@@ -100,7 +100,7 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
         _setRiskVariablesForAsset(asset, riskVars);
 
         //Will revert in MainRegistry if asset can't be added
-        IMainRegistry_New(mainRegistry).addAsset(asset, assetType);
+        IMainRegistry(mainRegistry).addAsset(asset, assetType);
     }
 
     /*///////////////////////////////////////////////////////////////

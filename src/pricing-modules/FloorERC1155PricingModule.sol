@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { PrimaryPricingModule, IMainRegistry_New } from "./AbstractPrimaryPricingModule.sol";
+import { PrimaryPricingModule, IMainRegistry } from "./AbstractPrimaryPricingModule.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 
 /**
@@ -74,7 +74,7 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
         exposure[asset].maxExposure = uint128(maxExposure);
 
         //Will revert in MainRegistry if asset can't be added
-        IMainRegistry_New(mainRegistry).addAsset(asset, assetType);
+        IMainRegistry(mainRegistry).addAsset(asset, assetType);
     }
 
     /**

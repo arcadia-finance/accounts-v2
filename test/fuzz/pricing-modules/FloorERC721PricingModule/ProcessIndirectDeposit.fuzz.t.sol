@@ -5,7 +5,7 @@
 pragma solidity 0.8.19;
 
 import { Constants, FloorERC721PricingModule_Fuzz_Test } from "./_FloorERC721PricingModule.fuzz.t.sol";
-import { IPricingModule_New } from "../../../../src/interfaces/IPricingModule_New.sol";
+import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "processIndirectDeposit" of contract "FloorERC721PricingModule".
@@ -27,7 +27,7 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
     {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
 
         vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
@@ -41,7 +41,7 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
     function testFuzz_Revert_processIndirectDeposit_WrongID(uint256 assetId) public {
         vm.assume(assetId > 0); //Not in range
         vm.prank(users.creatorAddress);
-        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, 0, oracleNft2ToUsdArr, emptyRiskVarInput_New, 1);
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, 0, oracleNft2ToUsdArr, emptyRiskVarInput, 1);
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("PM721_PID: ID not allowed");
@@ -55,7 +55,7 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
     function testFuzz_Revert_processIndirectDeposit_OverExposure(uint256 assetId) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput_New, 1
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1
         );
 
         vm.startPrank(address(mainRegistryExtension));
@@ -79,10 +79,10 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
 
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput_New, maxExposure
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, maxExposure
         );
 
-        IPricingModule_New.GetValueInput memory getValueInput = IPricingModule_New.GetValueInput({
+        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(mockERC721.nft2),
             assetId: 0,
             assetAmount: 1,
@@ -117,14 +117,14 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
 
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput_New, maxExposure
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, maxExposure
         );
 
         floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), 1, 1);
         floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), 2, 1);
         floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), 3, 1);
 
-        IPricingModule_New.GetValueInput memory getValueInput = IPricingModule_New.GetValueInput({
+        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(mockERC721.nft2),
             assetId: 0,
             assetAmount: 1,

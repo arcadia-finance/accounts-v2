@@ -26,7 +26,7 @@ contract ProcessDirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721P
     {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
 
         vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
@@ -40,7 +40,7 @@ contract ProcessDirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721P
     function testFuzz_Revert_processDirectDeposit_OverExposure(uint256 assetId) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput_New, 1
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1
         );
 
         vm.startPrank(address(mainRegistryExtension));
@@ -54,7 +54,7 @@ contract ProcessDirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721P
     function testFuzz_Revert_processDirectDeposit_WrongID(uint256 assetId) public {
         vm.assume(assetId > 0); //Not in range
         vm.prank(users.creatorAddress);
-        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, 0, oracleNft2ToUsdArr, emptyRiskVarInput_New, 1);
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, 0, oracleNft2ToUsdArr, emptyRiskVarInput, 1);
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("PM721_PDD: ID not allowed");
@@ -69,7 +69,7 @@ contract ProcessDirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721P
         vm.assume(amount != 1); //Not in range
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput_New, 1
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1
         );
 
         vm.startPrank(address(mainRegistryExtension));
@@ -84,7 +84,7 @@ contract ProcessDirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721P
     function testFuzz_Success_processDirectDeposit(uint256 assetId) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput_New, 1
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1
         );
 
         vm.prank(address(mainRegistryExtension));

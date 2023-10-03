@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule, IPricingModule } from "../AbstractPricingModule.sol";
+import { DerivedPricingModule, IPricingModule } from "../AbstractDerivedPricingModule.sol";
 import { IMainRegistry } from "../interfaces/IMainRegistry.sol";
 import { INonfungiblePositionManager } from "./interfaces/INonfungiblePositionManager.sol";
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
@@ -28,7 +28,7 @@ import { SafeCastLib } from "lib/solmate/src/utils/SafeCastLib.sol";
  * @dev No end-user should directly interact with the UniswapV3PricingModule, only the Main-registry,
  * or the contract owner.
  */
-contract UniswapV3WithFeesPricingModule is PricingModule {
+contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
     using FixedPointMathLib for uint256;
 
     /* //////////////////////////////////////////////////////////////
@@ -44,9 +44,6 @@ contract UniswapV3WithFeesPricingModule is PricingModule {
 
     // Map asset => id => positionInformation.
     mapping(address => mapping(uint256 => Position)) internal positions;
-
-    // The Arcadia Pricing Module for standard ERC20 tokens (the underlying assets).
-    PricingModule immutable erc20PricingModule;
 
     // Struct with information of a specific Liquidity Position.
     struct Position {
@@ -65,14 +62,11 @@ contract UniswapV3WithFeesPricingModule is PricingModule {
      * @param mainRegistry_ The contract address of the MainRegistry.
      * @param oracleHub_ The contract address of the OracleHub.
      * @param riskManager_ The address of the Risk Manager.
-     * @param erc20PricingModule_ The contract address of the Pricing Module for ERC20s
      * @dev AssetType for Uniswap V3 Liquidity Positions (ERC721) is 1.
      */
-    constructor(address mainRegistry_, address oracleHub_, address riskManager_, address erc20PricingModule_)
-        PricingModule(mainRegistry_, oracleHub_, 1, riskManager_)
-    {
-        erc20PricingModule = PricingModule(erc20PricingModule_);
-    }
+    constructor(address mainRegistry_, address oracleHub_, address riskManager_)
+        DerivedPricingModule(mainRegistry_, oracleHub_, 1, riskManager_)
+    { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -103,35 +97,87 @@ contract UniswapV3WithFeesPricingModule is PricingModule {
     /**
      * @notice Checks for a token address and the corresponding Id if it is allow-listed.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * param assetId The Id of the asset.
      * @return A boolean, indicating if the asset is whitelisted.
      */
-    function isAllowListed(address asset, uint256 assetId) public view override returns (bool) {
-        if (!inPricingModule[asset]) return false;
-
-        try INonfungiblePositionManager(asset).positions(assetId) returns (
-            uint96,
-            address,
-            address token0,
-            address token1,
-            uint24,
-            int24,
-            int24,
-            uint128,
-            uint256,
-            uint256,
-            uint128,
-            uint128
-        ) {
-            return exposure[token0].maxExposure != 0 && exposure[token1].maxExposure != 0;
-        } catch {
-            return false;
-        }
+    function isAllowListed(address asset, uint256) public view override returns (bool) {
+        // NOTE: To change based on discussion to enable or disable deposits for certain assets
+        return inPricingModule[asset];
     }
 
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Calculates the conversion rate of an asset to its underlying asset.
+     * @param asset The asset to calculate the conversion rate for.
+     * @param assetId The id of the asset to calculate the conversion rate for.
+     * param underlyingAssets The assets to which we have to get the conversion rate.
+     * @return conversionRates The conversion rate of the asset to its underlying assets.
+     */
+    function _getConversionRates(address asset, uint256 assetId, address[] memory)
+        internal
+        view
+        override
+        returns (uint256[] memory conversionRates)
+    {
+        address factory = assetToV3Factory[asset];
+
+        (
+            ,
+            ,
+            address token0,
+            address token1,
+            uint24 fee,
+            int24 tickLower,
+            int24 tickUpper,
+            , // gas: cheaper to use uint256 instead of uint128.
+            uint256 feeGrowthInside0LastX128,
+            uint256 feeGrowthInside1LastX128,
+            uint256 tokensOwed0, // gas: cheaper to use uint256 instead of uint128.
+            uint256 tokensOwed1 // gas: cheaper to use uint256 instead of uint128.
+        ) = INonfungiblePositionManager(asset).positions(assetId);
+
+        {
+            (uint256 feeGrowthInside0CurrentX128, uint256 feeGrowthInside1CurrentX128) =
+                _getFeeGrowthInside(factory, token0, token1, fee, tickLower, tickUpper);
+
+            // Calculate the total amount of fees by adding the already realized fees (tokensOwed),
+            // to the accumulated fees since the last time the position was updated:
+            // (feeGrowthInsideCurrentX128 - feeGrowthInsideLastX128).
+            // Fee calculations in NonfungiblePositionManager.sol overflow (without reverting) when
+            // one or both terms, or their sum, is bigger than a uint128.
+            // This is however much bigger than any realistic situation.
+
+            // Add fees accumulated for each token per LP token.
+            unchecked {
+                tokensOwed0 +=
+                    FullMath.mulDiv(feeGrowthInside0CurrentX128 - feeGrowthInside0LastX128, 1e18, FixedPoint128.Q128);
+                tokensOwed1 +=
+                    FullMath.mulDiv(feeGrowthInside1CurrentX128 - feeGrowthInside1LastX128, 1e18, FixedPoint128.Q128);
+            }
+        }
+
+        uint256 trustedPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
+            GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
+        );
+
+        uint256 trustedPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
+            GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
+        );
+
+        (uint256 principalAmountToken0, uint256 principalAmountToken1) =
+            _getPrincipalAmounts(tickLower, tickUpper, 1e18, trustedPriceToken0, trustedPriceToken1);
+
+        // Add principal amount to fees
+        tokensOwed0 += principalAmountToken0;
+        tokensOwed1 += principalAmountToken1;
+
+        conversionRates = new uint256[](2);
+        conversionRates[0] = tokensOwed0;
+        conversionRates[1] = tokensOwed1;
+    }
 
     /**
      * @notice Returns the value of a Uniswap V3 Liquidity Range.
@@ -163,6 +209,7 @@ contract UniswapV3WithFeesPricingModule is PricingModule {
         uint256 usdPriceToken1;
         uint256 principal0;
         uint256 principal1;
+
         {
             int24 tickLower;
             int24 tickUpper;
@@ -171,10 +218,10 @@ contract UniswapV3WithFeesPricingModule is PricingModule {
 
             // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
             // sufficient precision.
-            (usdPriceToken0,,) = PricingModule(erc20PricingModule).getValue(
+            usdPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
                 GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
             );
-            (usdPriceToken1,,) = PricingModule(erc20PricingModule).getValue(
+            usdPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
                 GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
             );
 
@@ -199,10 +246,12 @@ contract UniswapV3WithFeesPricingModule is PricingModule {
 
         {
             // Fetch the risk variables of the underlying tokens for the given baseCurrency.
-            (uint256 collateralFactor0, uint256 liquidationFactor0) =
-                PricingModule(erc20PricingModule).getRiskVariables(token0, baseCurrency);
-            (uint256 collateralFactor1, uint256 liquidationFactor1) =
-                PricingModule(erc20PricingModule).getRiskVariables(token1, baseCurrency);
+            (uint256 collateralFactor0, uint256 liquidationFactor0) = IPricingModule(
+                IMainRegistry(mainRegistry).getPricingModuleOfAsset(token0)
+            ).getRiskVariables(token0, baseCurrency);
+            (uint256 collateralFactor1, uint256 liquidationFactor1) = IPricingModule(
+                IMainRegistry(mainRegistry).getPricingModuleOfAsset(token1)
+            ).getRiskVariables(token1, baseCurrency);
 
             // We take the most conservative (lowest) factor of both underlying assets.
             // If one token loses in value compared to the other token, Liquidity Providers will be relatively more exposed
@@ -388,96 +437,22 @@ contract UniswapV3WithFeesPricingModule is PricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Sets the maximum exposure for an underlying asset.
-     * @param asset The contract address of the underlying asset.
-     * @param maxExposure The maximum protocol wide exposure to the underlying asset.
-     * @dev Can only be called by the Risk Manager, which can be different from the owner.
-     */
-    function setExposureOfAsset(address asset, uint256 maxExposure) public override {
-        // Authorization that only Risk Manager can set a new maxExposure is done in parent function.
-        super.setExposureOfAsset(asset, maxExposure);
-
-        // If the maximum exposure for an asset is set for the first time, check that the asset can be priced
-        // by the erc20PricingModule.
-        if (exposure[asset].exposure == 0) {
-            require(PricingModule(erc20PricingModule).inPricingModule(asset), "PMUV3_SEOA: Unknown asset");
-        }
-    }
-
-    /**
-     * @notice Increases the exposure to an asset on deposit.
-     * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
-     * param amount The amount of tokens.
-     * @dev The exposure caps are not defined per asset (LP token), but for the underlying assets over all Uniswap V3 LP-pools
-     * (and optionally it's forks). Unfortunately it is not possible to use a single exposure across Pricing Modules,
-     * so it does not take into account the exposure in for instance the erc20PricingModule.
-     * @dev We enforce that the lower and upper boundary of the Liquidity Range must be within 5x of the current tick.
-     * Without a limitation, malicious users could max out the the exposure caps (and deny service for other users) of the underlying assets,
-     * by depositing little liquidity in ranges far outside of the current tick.
-     * The chosen max range (from 0.2x to 5X the current price) is a trade-off between not hindering normal usage of LPs and
-     * making it expensive for malicious actors to manipulate exposures (now they have to deposit at least 20% of the max exposure).
-     */
-    function increaseExposure(address asset, uint256 assetId, uint256) external override onlyMainReg {
-        (,, address token0, address token1,, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) =
-            INonfungiblePositionManager(asset).positions(assetId);
-
-        require(liquidity > 0, "PMUV3_IE: 0 liquidity");
-
-        // Since liquidity of a position can be increased by a non-owner, we have to store the liquidity during deposit.
-        // Otherwise the max exposure checks can be circumvented.
-        positions[asset][assetId] = Position({
-            token0: token0,
-            token1: token1,
-            tickLower: tickLower,
-            tickUpper: tickUpper,
-            liquidity: liquidity
-        });
-
-        {
-            int256 tickCurrent = _getTrustedTickCurrent(token0, token1);
-
-            // The liquidity must be in an acceptable range (from 0.2x to 5x the current price).
-            // Tick difference defined as: (sqrt(1.0001))log(sqrt(5)) = 16095.2
-            require(tickCurrent - tickLower <= MAX_TICK_DIFFERENCE, "PMUV3_IE: Tlow not in limits");
-            require(tickUpper - tickCurrent <= MAX_TICK_DIFFERENCE, "PMUV3_IE: Tup not in limits");
-        }
-
-        // Cache sqrtRatio.
-        uint160 sqrtRatioLowerX96 = TickMath.getSqrtRatioAtTick(tickLower);
-        uint160 sqrtRatioUpperX96 = TickMath.getSqrtRatioAtTick(tickUpper);
-
-        // Calculate the maximal possible exposure to each underlying asset.
-        uint256 amount0Max = LiquidityAmounts.getAmount0ForLiquidity(sqrtRatioLowerX96, sqrtRatioUpperX96, liquidity);
-        uint256 amount1Max = LiquidityAmounts.getAmount1ForLiquidity(sqrtRatioLowerX96, sqrtRatioUpperX96, liquidity);
-
-        // Calculate updated exposure.
-        uint256 exposure0 = amount0Max + exposure[token0].exposure;
-        uint256 exposure1 = amount1Max + exposure[token1].exposure;
-
-        // Check that exposure doesn't exceed maxExposure
-        require(exposure0 <= exposure[token0].maxExposure, "PMUV3_IE: Exposure0 not in limits");
-        require(exposure1 <= exposure[token1].maxExposure, "PMUV3_IE: Exposure1 not in limits");
-
-        // Update exposure
-        // Unsafe casts: we already know from previous requires that exposure is smaller than maxExposure (uint128).
-        exposure[token0].exposure = uint128(exposure0);
-        exposure[token1].exposure = uint128(exposure1);
-    }
-
-    /**
      * @notice Calculates the current tick from trusted USD prices of both tokens.
      * @param token0 The contract address of token0.
      * @param token1 The contract address of token1.
      * @return tickCurrent The current tick.
      */
     function _getTrustedTickCurrent(address token0, address token1) internal view returns (int256 tickCurrent) {
+        // Get the pricing modules of the underlying assets
+        address token0PricingModule = IMainRegistry(mainRegistry).getPricingModuleOfAsset(token0);
+        address token1PricingModule = IMainRegistry(mainRegistry).getPricingModuleOfAsset(token1);
+
         // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
         // sufficient precision.
-        (uint256 priceToken0,,) = PricingModule(erc20PricingModule).getValue(
+        (uint256 priceToken0,,) = IPricingModule(token0PricingModule).getValue(
             GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
-        (uint256 priceToken1,,) = PricingModule(erc20PricingModule).getValue(
+        (uint256 priceToken1,,) = IPricingModule(token1PricingModule).getValue(
             GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 
@@ -487,32 +462,61 @@ contract UniswapV3WithFeesPricingModule is PricingModule {
     }
 
     /**
-     * @notice Processes the withdrawal of an asset.
-     * param account The address of the Account where the asset is withdrawn from
+     * @notice Increases the exposure to an asset on deposit.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * param amount The amount of tokens.
-     * @dev Unsafe cast to uint128, we know that the same cast did not overflow in deposit().
+     * @param amount The amount of tokens.
      */
-    function decreaseExposure(address asset, uint256 assetId, uint256) external override onlyMainReg {
-        // Cache sqrtRatio.
-        uint160 sqrtRatioLowerX96 = TickMath.getSqrtRatioAtTick(positions[asset][assetId].tickLower);
-        uint160 sqrtRatioUpperX96 = TickMath.getSqrtRatioAtTick(positions[asset][assetId].tickUpper);
+    function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public override onlyMainReg {
+        (,, address token0, address token1,, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) =
+            INonfungiblePositionManager(asset).positions(assetId);
 
-        // Calculate the maximal possible exposure to each underlying asset.
-        uint128 amount0Max = uint128(
-            LiquidityAmounts.getAmount0ForLiquidity(
-                sqrtRatioLowerX96, sqrtRatioUpperX96, positions[asset][assetId].liquidity
-            )
-        );
-        uint128 amount1Max = uint128(
-            LiquidityAmounts.getAmount1ForLiquidity(
-                sqrtRatioLowerX96, sqrtRatioUpperX96, positions[asset][assetId].liquidity
-            )
-        );
+        require(liquidity > 0, "PMUV3_IE: 0 liquidity");
 
-        // Update exposure to underlying assets.
-        exposure[positions[asset][assetId].token0].exposure -= amount0Max;
-        exposure[positions[asset][assetId].token1].exposure -= amount1Max;
+        // Since liquidity of a position can be increased by a non-owner, we have to store the liquidity during deposit.
+        // Otherwise the max exposure checks can be circumvented.
+        // TODO: gas optimization => more efficient to only store liquidity and get other info from nftPositionManager on _getPosition() ?
+        positions[asset][assetId] = Position({
+            token0: token0,
+            token1: token1,
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            liquidity: liquidity
+        });
+
+        super.processDirectDeposit(asset, assetId, amount);
+    }
+
+    /**
+     * @notice Increases the exposure to an underlying asset on deposit.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     */
+    function processIndirectDeposit(
+        address asset,
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+        (,, address token0, address token1,, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) =
+            INonfungiblePositionManager(asset).positions(assetId);
+
+        require(liquidity > 0, "PMUV3_IE: 0 liquidity");
+
+        // Since liquidity of a position can be increased by a non-owner, we have to store the liquidity during deposit.
+        // Otherwise the max exposure checks can be circumvented.
+        // TODO: gas optimization => more efficient to only store liquidity and get other info from nftPositionManager on _getPosition() ?
+        positions[asset][assetId] = Position({
+            token0: token0,
+            token1: token1,
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            liquidity: liquidity
+        });
+
+        (primaryFlag, usdValueExposureUpperAssetToAsset) =
+            super.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
     }
 }

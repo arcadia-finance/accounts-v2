@@ -24,7 +24,7 @@ contract ProcessDirectWithdrawal_FloorERC721PricingModule_Fuzz_Test is FloorERC7
     function testFuzz_Revert_processDirectWithdrawal_NonMainRegistry(address unprivilegedAddress_) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
 
         vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
@@ -39,7 +39,7 @@ contract ProcessDirectWithdrawal_FloorERC721PricingModule_Fuzz_Test is FloorERC7
         vm.assume(amount != 1); //Not in range
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput_New, 1
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1
         );
 
         vm.startPrank(address(mainRegistryExtension));
@@ -51,7 +51,7 @@ contract ProcessDirectWithdrawal_FloorERC721PricingModule_Fuzz_Test is FloorERC7
     function testFuzz_Success_processDirectWithdrawal(uint256 assetId) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput_New, 1
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1
         );
 
         vm.prank(address(mainRegistryExtension));

@@ -21,10 +21,10 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_increaseExposure_NonMainRegistry(address unprivilegedAddress_, uint128 amount) public {
+    function testFuzz_Revert_processDirectDeposit_NonMainRegistry(address unprivilegedAddress_, uint128 amount) public {
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
+            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
 
         vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
@@ -35,12 +35,12 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_increaseExposure_OverExposure(uint128 amount, uint128 maxExposure) public {
+    function testFuzz_Revert_processDirectDeposit_OverExposure(uint128 amount, uint128 maxExposure) public {
         vm.assume(maxExposure > 0); //Asset is whitelisted
         vm.assume(amount > maxExposure);
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput_New, maxExposure
+            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, maxExposure
         );
 
         vm.startPrank(address(mainRegistryExtension));
@@ -49,11 +49,11 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_increaseExposure_WrongID(uint256 assetId, uint128 amount) public {
+    function testFuzz_Revert_processDirectDeposit_WrongID(uint256 assetId, uint128 amount) public {
         vm.assume(assetId > 0); //Wrong Id
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 0, oracleSft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
+            address(mockERC1155.sft2), 0, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
 
         vm.startPrank(address(mainRegistryExtension));
@@ -65,10 +65,10 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
         assertEq(actualExposure, 0);
     }
 
-    function testFuzz_Success_increaseExposure_Positive(uint128 amount) public {
+    function testFuzz_Success_processDirectDeposit_Positive(uint128 amount) public {
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
+            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
 
         vm.prank(address(mainRegistryExtension));

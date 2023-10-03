@@ -5,7 +5,7 @@
 pragma solidity 0.8.19;
 
 import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
-import { IPricingModule_New } from "../../../../src/interfaces/IPricingModule_New.sol";
+import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 import { ERC4626Mock } from "../../.././utils/mocks/ERC4626Mock.sol";
 import { ERC4626PricingModuleExtension } from "../../../utils/Extensions.sol";
 
@@ -43,8 +43,8 @@ contract GetConversionRate_StandardERC4626PricingModule_Fuzz_Test is StandardERC
         );
         mainRegistryExtension.addPricingModule(address(erc4626PricingModuleExtension));
 
-        erc4626PricingModuleExtension.addAsset(address(ybToken1), emptyRiskVarInput_New);
-        erc4626PricingModuleExtension.addAsset(address(ybToken2), emptyRiskVarInput_New);
+        erc4626PricingModuleExtension.addAsset(address(ybToken1), emptyRiskVarInput);
+        erc4626PricingModuleExtension.addAsset(address(ybToken2), emptyRiskVarInput);
 
         vm.stopPrank();
     }

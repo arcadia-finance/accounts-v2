@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
 
 import { ERC4626DifferentDecimals } from "../../.././utils/mocks/ERC4626DifferentDecimals.sol";
-import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { StandardERC4626PricingModule } from "../../../../src/pricing-modules/StandardERC4626PricingModule.sol";
 
 /**
@@ -29,7 +29,7 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
-        erc4626PricingModule.addAsset(asset, emptyRiskVarInput_New);
+        erc4626PricingModule.addAsset(asset, emptyRiskVarInput);
         vm.stopPrank();
     }
 
@@ -41,15 +41,15 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
 
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("PM4626_AA: Decimals don't match");
-        erc4626PricingModule.addAsset(address(ybToken), emptyRiskVarInput_New);
+        erc4626PricingModule.addAsset(address(ybToken), emptyRiskVarInput);
         vm.stopPrank();
     }
 
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput_New);
+        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput);
         vm.expectRevert("PM4626_AA: already added");
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput_New);
+        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput);
         vm.stopPrank();
 
         assertTrue(erc4626PricingModule.inPricingModule(address(ybToken1)));
@@ -57,7 +57,7 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
 
     function testFuzz_Success_addAsset_EmptyListRiskVariables() public {
         vm.startPrank(users.creatorAddress);
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput_New);
+        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput);
         vm.stopPrank();
 
         assertTrue(erc4626PricingModule.inPricingModule(address(ybToken1)));
@@ -85,8 +85,8 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
 
     function testFuzz_Success_addAsset_NonFullListRiskVariables() public {
         vm.startPrank(users.creatorAddress);
-        PricingModule_New.RiskVarInput[] memory riskVars_ = new PricingModule_New.RiskVarInput[](1);
-        riskVars_[0] = PricingModule_New.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](1);
+        riskVars_[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: collateralFactor,

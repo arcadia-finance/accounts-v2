@@ -9,7 +9,7 @@ import { Constants, Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
 import { AccountV2 } from "../.././utils/mocks/AccountV2.sol";
 import { AccountVariableVersion } from "../.././utils/mocks/AccountVariableVersion.sol";
 import { Factory } from "../../../src/Factory.sol";
-import { MainRegistry_New, MainRegistryExtension } from "../../utils/Extensions.sol";
+import { MainRegistry, MainRegistryExtension } from "../../utils/Extensions.sol";
 
 /**
  * @notice Fuzz tests for the "setNewAccountInfo" of contract "Factory".
@@ -40,7 +40,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         // Add STABLE1 AND TOKEN1 as baseCurrencies in MainRegistry2
         vm.startPrank(mainRegistry2.owner());
         mainRegistry2.addBaseCurrency(
-            MainRegistry_New.BaseCurrencyInformation({
+            MainRegistry.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
                 assetAddress: address(mockERC20.stable1),
                 baseCurrencyToUsdOracle: address(mockOracles.stable1ToUsd),
@@ -50,7 +50,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         );
 
         mainRegistry2.addBaseCurrency(
-            MainRegistry_New.BaseCurrencyInformation({
+            MainRegistry.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
                 assetAddress: address(mockERC20.token1),
                 baseCurrencyToUsdOracle: address(mockOracles.token1ToUsd),
@@ -121,7 +121,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         mainRegistry2 = new MainRegistryExtension(address(factory));
         //Add randomAssetAddress as second basecurrency
         mainRegistry2.addBaseCurrency(
-            MainRegistry_New.BaseCurrencyInformation({
+            MainRegistry.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: 0,
                 assetAddress: randomAssetAddress,
                 baseCurrencyToUsdOracle: 0x0000000000000000000000000000000000000000,
@@ -130,7 +130,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
             })
         );
         mainRegistry2.addBaseCurrency(
-            MainRegistry_New.BaseCurrencyInformation({
+            MainRegistry.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
                 assetAddress: address(mockERC20.token1),
                 baseCurrencyToUsdOracle: address(mockOracles.token1ToUsd),
@@ -243,7 +243,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         // Add a 4th base currency to mainRegistry2 that is not in mainRegistry
         vm.prank(users.creatorAddress);
         mainRegistry2.addBaseCurrency(
-            MainRegistry_New.BaseCurrencyInformation({
+            MainRegistry.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
                 assetAddress: address(mockERC20.stable2),
                 baseCurrencyToUsdOracle: address(mockOracles.stable2ToUsd),

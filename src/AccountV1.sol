@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { IERC721 } from "./interfaces/IERC721.sol";
 import { IERC1155 } from "./interfaces/IERC1155.sol";
-import { IMainRegistry_New } from "./interfaces/IMainRegistry_New.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { ITrustedCreditor } from "./interfaces/ITrustedCreditor.sol";
 import { IActionBase, ActionData } from "./interfaces/IActionBase.sol";
 import { IFactory } from "./interfaces/IFactory.sol";

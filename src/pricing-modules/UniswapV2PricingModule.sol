@@ -4,8 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { DerivedPricingModule, IMainRegistry_New } from "./AbstractDerivedPricingModule.sol";
-import { PricingModule_New } from "./AbstractPricingModule_New.sol";
+import { DerivedPricingModule, IMainRegistry } from "./AbstractDerivedPricingModule.sol";
+import { PricingModule } from "./AbstractPricingModule.sol";
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -90,11 +90,11 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         address token0 = IUniswapV2Pair(asset).token0();
         address token1 = IUniswapV2Pair(asset).token1();
 
-        address token0PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token0);
-        address token1PricingModule = IMainRegistry_New(mainRegistry).getPricingModuleOfAsset(token1);
+        address token0PricingModule = IMainRegistry(mainRegistry).getPricingModuleOfAsset(token0);
+        address token1PricingModule = IMainRegistry(mainRegistry).getPricingModuleOfAsset(token1);
 
-        require(PricingModule_New(token0PricingModule).isAllowListed(token0, 0), "PMUV2_AA: TOKENO_NOT_WHITELISTED");
-        require(PricingModule_New(token1PricingModule).isAllowListed(token1, 0), "PMUV2_AA: TOKEN1_NOT_WHITELISTED");
+        require(PricingModule(token0PricingModule).isAllowListed(token0, 0), "PMUV2_AA: TOKENO_NOT_WHITELISTED");
+        require(PricingModule(token1PricingModule).isAllowListed(token1, 0), "PMUV2_AA: TOKEN1_NOT_WHITELISTED");
 
         address[] memory underlyingAssets = new address[](2);
         underlyingAssets[0] = token0;
@@ -111,7 +111,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         _setRiskVariablesForAsset(asset, riskVars);
 
         //Will revert in MainRegistry if asset can't be added
-        IMainRegistry_New(mainRegistry).addAsset(asset, assetType);
+        IMainRegistry(mainRegistry).addAsset(asset, assetType);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -131,11 +131,11 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         override
         returns (uint256[] memory conversionRates)
     {
-        uint256 trustedUsdPriceToken0 = IMainRegistry_New(mainRegistry).getUsdValue(
+        uint256 trustedUsdPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
             GetValueInput({ asset: underlyingAssets[0], assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 
-        uint256 trustedUsdPriceToken1 = IMainRegistry_New(mainRegistry).getUsdValue(
+        uint256 trustedUsdPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
             GetValueInput({ asset: underlyingAssets[1], assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 
@@ -175,10 +175,10 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         // To calculate the liquidity value after arbitrage, what matters is the ratio of the price of token0 compared to the price of token1
         // Hence we need to use a trusted external price for an equal amount of tokens,
         // we use for both tokens the USD price of 1 WAD (10**18) to guarantee precision.
-        uint256 trustedUsdPriceToken0 = IMainRegistry_New(mainRegistry).getUsdValue(
+        uint256 trustedUsdPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
             GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
-        uint256 trustedUsdPriceToken1 = IMainRegistry_New(mainRegistry).getUsdValue(
+        uint256 trustedUsdPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
             GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 

@@ -30,7 +30,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension_New));
+        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
@@ -65,7 +65,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "MainRegistry" calls "processDirectDeposit".
-        vm.prank(address(mainRegistryExtension_New));
+        vm.prank(address(mainRegistryExtension));
         (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
             assetState.asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
         );
@@ -100,7 +100,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "MainRegistry" calls "processIndirectDeposit".
-        vm.prank(address(mainRegistryExtension_New));
+        vm.prank(address(mainRegistryExtension));
         (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
             assetState.asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
@@ -146,7 +146,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "MainRegistry" calls "processIndirectDeposit".
-        vm.prank(address(mainRegistryExtension_New));
+        vm.prank(address(mainRegistryExtension));
         (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
             assetState.asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );

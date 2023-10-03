@@ -4,9 +4,9 @@
  */
 pragma solidity 0.8.19;
 
-import { PrimaryPricingModule, IPricingModule_New } from "./AbstractPrimaryPricingModule.sol";
+import { PrimaryPricingModule, IPricingModule } from "./AbstractPrimaryPricingModule.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
-import { IMainRegistry_New } from "./interfaces/IMainRegistry_New.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
@@ -90,7 +90,7 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         emit MaxExposureSet(asset, maxExposure);
 
         // Will revert in MainRegistry if asset can't be added.
-        IMainRegistry_New(mainRegistry).addAsset(asset, assetType);
+        IMainRegistry(mainRegistry).addAsset(asset, assetType);
     }
 
     /**
@@ -153,7 +153,7 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
      * However no check in StandardERC20PricingModule is necessary, since the check if the asset is allow listed (and hence added to PricingModule)
      * is already done in the MainRegistry.
      */
-    function getValue(IPricingModule_New.GetValueInput memory getValueInput)
+    function getValue(IPricingModule.GetValueInput memory getValueInput)
         public
         view
         override

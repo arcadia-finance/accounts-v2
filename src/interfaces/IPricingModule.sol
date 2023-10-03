@@ -37,7 +37,21 @@ interface IPricingModule {
      * @param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function increaseExposure(address asset, uint256 id, uint256 amount) external;
+    function processDirectDeposit(address asset, uint256 id, uint256 amount) external;
+
+    /**
+     * @notice Increases the exposure to an underlying asset on deposit.
+     * @param asset The contract address of the asset.
+     * @param id The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     */
+    function processIndirectDeposit(
+        address asset,
+        uint256 id,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) external returns (bool, uint256);
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
@@ -45,5 +59,19 @@ interface IPricingModule {
      * @param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function decreaseExposure(address asset, uint256 id, uint256 amount) external;
+    function processDirectWithdrawal(address asset, uint256 id, uint256 amount) external;
+
+    /**
+     * @notice Decreases the exposure to an underlying asset on withdrawal.
+     * @param asset The contract address of the asset.
+     * @param id The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     */
+    function processIndirectWithdrawal(
+        address asset,
+        uint256 id,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) external returns (bool, uint256);
 }

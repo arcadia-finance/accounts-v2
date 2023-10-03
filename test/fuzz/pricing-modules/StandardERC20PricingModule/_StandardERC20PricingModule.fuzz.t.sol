@@ -8,7 +8,7 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
-import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Common logic needed by all "StandardERC20PricingModule" fuzz tests.

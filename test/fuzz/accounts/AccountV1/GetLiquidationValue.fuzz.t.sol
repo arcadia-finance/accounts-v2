@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
-import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 
 /**
@@ -39,7 +39,7 @@ contract GetLiquidationValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         liquidationFactor = uint8(bound(liquidationFactor, 0, RiskConstants.RISK_VARIABLES_UNIT));
 
         // Set Liquidation factor of "stable1" for "stable1" to "liquidationFactor".
-        PricingModule_New.RiskVarInput[] memory riskVarInput = new PricingModule_New.RiskVarInput[](1);
+        PricingModule.RiskVarInput[] memory riskVarInput = new PricingModule.RiskVarInput[](1);
         riskVarInput[0].asset = address(mockERC20.stable1);
         riskVarInput[0].baseCurrency = uint8(mainRegistryExtension.assetToBaseCurrency(address(mockERC20.stable1)));
         riskVarInput[0].liquidationFactor = liquidationFactor;

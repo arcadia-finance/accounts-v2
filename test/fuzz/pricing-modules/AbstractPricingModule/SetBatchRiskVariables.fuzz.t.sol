@@ -7,8 +7,8 @@ pragma solidity 0.8.19;
 import { Constants, AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingModule.fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
-import { RiskConstants } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
-import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { RiskConstants } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "setBatchRiskVariables" of contract "AbstractPricingModule".
@@ -27,7 +27,7 @@ contract SetBatchRiskVariables_AbstractPricingModule_Fuzz_Test is AbstractPricin
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_setBatchRiskVariables_NonRiskManager(
-        PricingModule_New.RiskVarInput[] memory riskVarInputs,
+        PricingModule.RiskVarInput[] memory riskVarInputs,
         address unprivilegedAddress_
     ) public {
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
@@ -39,7 +39,7 @@ contract SetBatchRiskVariables_AbstractPricingModule_Fuzz_Test is AbstractPricin
     }
 
     function testFuzz_Revert_setBatchRiskVariables_BaseCurrencyNotInLimits(
-        PricingModule_New.RiskVarInput[] memory riskVarInputs,
+        PricingModule.RiskVarInput[] memory riskVarInputs,
         uint256 baseCurrencyCounter
     ) public {
         vm.assume(riskVarInputs.length > 0);
@@ -54,7 +54,7 @@ contract SetBatchRiskVariables_AbstractPricingModule_Fuzz_Test is AbstractPricin
         vm.stopPrank();
     }
 
-    function testFuzz_Success_setBatchRiskVariables(PricingModule_New.RiskVarInput[2] memory riskVarInputs) public {
+    function testFuzz_Success_setBatchRiskVariables(PricingModule.RiskVarInput[2] memory riskVarInputs) public {
         vm.assume(riskVarInputs[0].baseCurrency != riskVarInputs[1].baseCurrency);
         stdstore.target(address(mainRegistryExtension)).sig(mainRegistryExtension.baseCurrencyCounter.selector)
             .checked_write(type(uint256).max);

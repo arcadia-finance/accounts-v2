@@ -6,8 +6,8 @@ pragma solidity 0.8.19;
 
 import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
 
-import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
-import { IPricingModule_New } from "../../../../src/interfaces/IPricingModule_New.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 /**
@@ -49,11 +49,11 @@ contract GetConversionRate_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingM
 
         stdstore.target(address(pairToken1Token2)).sig(pairToken1Token2.totalSupply.selector).checked_write(totalSupply);
 
-        /*         uint256 trustedPriceToken0 = PricingModule_New(token1PricingModule).getValue(
-            IPricingModule_New.GetValueInput({ asset: underlyingTokens[1], assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
+        /*         uint256 trustedPriceToken0 = PricingModule(token1PricingModule).getValue(
+            IPricingModule.GetValueInput({ asset: underlyingTokens[1], assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
-        uint256 trustedPriceToken1 = PricingModule_New(token1PricingModule).getValue(
-            IPricingModule_New.GetValueInput({ asset: underlyingTokens[1], assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
+        uint256 trustedPriceToken1 = PricingModule(token1PricingModule).getValue(
+            IPricingModule.GetValueInput({ asset: underlyingTokens[1], assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         ); */
 
         /*         (uint256 token0AmountActual, uint256 token1AmountActual) = uniswapV2PricingModule.getTrustedTokenAmounts(
@@ -65,7 +65,7 @@ contract GetConversionRate_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingM
 
         // We have to add the asset in order to have info available in pricing module
         /*         vm.prank(users.creatorAddress);
-        uniswapV2PricingModule.addAsset(address(pairToken1Token2), emptyRiskVarInput_New);
+        uniswapV2PricingModule.addAsset(address(pairToken1Token2), emptyRiskVarInput);
 
         uint256 token0ConversionRate = uniswapV2PricingModule.getConversionRate(address(pairToken1Token2), address(mockERC20.token2));
 

@@ -4,17 +4,17 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule_New } from "./AbstractPricingModule_New.sol";
-import { IPricingModule_New } from "../interfaces/IPricingModule_New.sol";
+import { PricingModule } from "./AbstractPricingModule.sol";
+import { IPricingModule } from "../interfaces/IPricingModule.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IMainRegistry_New } from "./interfaces/IMainRegistry_New.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 
 /**
  * @title Derived Pricing Module.
  * @author Pragma Labs
  */
-abstract contract DerivedPricingModule is PricingModule_New {
+abstract contract DerivedPricingModule is PricingModule {
     using FixedPointMathLib for uint256;
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
@@ -63,7 +63,7 @@ abstract contract DerivedPricingModule is PricingModule_New {
      * @param riskManager_ The address of the Risk Manager.
      */
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        PricingModule_New(mainRegistry_, oracleHub_, assetType_, riskManager_)
+        PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
     /*///////////////////////////////////////////////////////////////
@@ -239,7 +239,7 @@ abstract contract DerivedPricingModule is PricingModule_New {
             // If "underlyingAsset" has one or more underlying assets itself, the lower level
             // Pricing Modules will recursively update their respective exposures and return
             // the requested USD value to this Pricing Module.
-            usdValueExposureAsset += IMainRegistry_New(mainRegistry).getUsdValueExposureToUnderlyingAssetAfterDeposit(
+            usdValueExposureAsset += IMainRegistry(mainRegistry).getUsdValueExposureToUnderlyingAssetAfterDeposit(
                 underlyingAssets[i], 0, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
             );
 
@@ -300,7 +300,7 @@ abstract contract DerivedPricingModule is PricingModule_New {
             // If "underlyingAsset" has one or more underlying assets itself, the lower level
             // Pricing Modules will recursively update their respective exposures and return
             // the requested USD value to this Pricing Module.
-            usdValueExposureAsset += IMainRegistry_New(mainRegistry).getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
+            usdValueExposureAsset += IMainRegistry(mainRegistry).getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
                 underlyingAssets[i], 0, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
             );
 

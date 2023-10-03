@@ -8,7 +8,6 @@ import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IPricingModule } from "../interfaces/IPricingModule.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
-import { IPricingModule } from "../interfaces/IPricingModule.sol";
 
 /**
  * @title Abstract Pricing Module
@@ -36,16 +35,9 @@ abstract contract PricingModule is Owned, IPricingModule {
 
     // Map asset => flag.
     mapping(address => bool) public inPricingModule;
-    // Map asset => exposureInformation.
-    mapping(address => Exposure) public exposure;
+
     // Map asset => baseCurrencyIdentifier => riskVariables.
     mapping(address => mapping(uint256 => RiskVars)) public assetRiskVars;
-
-    // Struct with information about the exposure of a specific asset.
-    struct Exposure {
-        uint128 maxExposure; // The maximum protocol wide exposure to an asset.
-        uint128 exposure; // The actual protocol wide exposure to an asset.
-    }
 
     // Struct with the risk variables of a specific asset for a specific baseCurrency.
     struct RiskVars {
@@ -69,7 +61,7 @@ abstract contract PricingModule is Owned, IPricingModule {
     event RiskVariablesSet(
         address indexed asset, uint8 indexed baseCurrencyId, uint16 collateralFactor, uint16 liquidationFactor
     );
-    event MaxExposureSet(address indexed asset, uint128 maxExposure);
+    event AssetExposureChanged(address asset, uint128 oldExposure, uint128 newExposure);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -110,19 +102,6 @@ abstract contract PricingModule is Owned, IPricingModule {
     }
 
     /*///////////////////////////////////////////////////////////////
-                    RISK MANAGER MANAGEMENT
-    ///////////////////////////////////////////////////////////////*/
-    /**
-     * @notice Sets a new Risk Manager.
-     * @param riskManager_ The address of the new Risk Manager.
-     */
-    function setRiskManager(address riskManager_) external onlyOwner {
-        riskManager = riskManager_;
-
-        emit RiskManagerUpdated(riskManager_);
-    }
-
-    /*///////////////////////////////////////////////////////////////
                         WHITE LIST MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
@@ -133,8 +112,19 @@ abstract contract PricingModule is Owned, IPricingModule {
      * @return A boolean, indicating if the asset is whitelisted.
      * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
      */
-    function isAllowListed(address asset, uint256) public view virtual returns (bool) {
-        return exposure[asset].maxExposure != 0;
+    function isAllowListed(address asset, uint256) public view virtual returns (bool) { }
+
+    /*///////////////////////////////////////////////////////////////
+                    RISK MANAGER MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Sets a new Risk Manager.
+     * @param riskManager_ The address of the new Risk Manager.
+     */
+    function setRiskManager(address riskManager_) external onlyOwner {
+        riskManager = riskManager_;
+
+        emit RiskManagerUpdated(riskManager_);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -237,31 +227,26 @@ abstract contract PricingModule is Owned, IPricingModule {
     }
 
     /**
-     * @notice Sets the maximum exposure for an asset.
-     * @param asset The contract address of the asset.
-     * @param maxExposure The maximum protocol wide exposure to the asset.
-     * @dev Can only be called by the Risk Manager, which can be different from the owner.
-     */
-    function setExposureOfAsset(address asset, uint256 maxExposure) public virtual onlyRiskManager {
-        require(maxExposure <= type(uint128).max, "APM_SEA: Max Exp. not in limits");
-        exposure[asset].maxExposure = uint128(maxExposure);
-
-        emit MaxExposureSet(asset, uint128(maxExposure));
-    }
-
-    /**
      * @notice Increases the exposure to an asset on deposit.
      * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
+     * param id The Id of the asset.
      * @param amount The amount of tokens.
-     * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens can be deposited.
      */
-    function increaseExposure(address asset, uint256, uint256 amount) external virtual onlyMainReg {
-        require(
-            exposure[asset].exposure + uint128(amount) <= exposure[asset].maxExposure, "APM_IE: Exposure not in limits"
-        );
-        exposure[asset].exposure += uint128(amount);
-    }
+    function processDirectDeposit(address asset, uint256, uint256 amount) public virtual { }
+
+    /**
+     * @notice Increases the exposure to an underlying asset on deposit.
+     * @param asset The contract address of the asset.
+     * param id The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     */
+    function processIndirectDeposit(
+        address asset,
+        uint256,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
@@ -270,7 +255,19 @@ abstract contract PricingModule is Owned, IPricingModule {
      * @param amount The amount of tokens.
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
-    function decreaseExposure(address asset, uint256, uint256 amount) external virtual onlyMainReg {
-        exposure[asset].exposure >= amount ? exposure[asset].exposure -= uint128(amount) : exposure[asset].exposure = 0;
-    }
+    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual { }
+
+    /**
+     * @notice Decreases the exposure to an asset on withdrawal.
+     * @param asset The contract address of the asset.
+     * param id The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     */
+    function processIndirectWithdrawal(
+        address asset,
+        uint256,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) external virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
 }

@@ -4,8 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { PrimaryPricingModule, IPricingModule_New } from "./AbstractPrimaryPricingModule.sol";
-import { IMainRegistry_New } from "./interfaces/IMainRegistry_New.sol";
+import { PrimaryPricingModule, IPricingModule } from "./AbstractPrimaryPricingModule.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 
 /**
@@ -79,7 +79,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         exposure[asset].maxExposure = uint128(maxExposure);
 
         //Will revert in MainRegistry if asset can't be added
-        IMainRegistry_New(mainRegistry).addAsset(asset, assetType);
+        IMainRegistry(mainRegistry).addAsset(asset, assetType);
     }
 
     /**
@@ -181,7 +181,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
 
         // Get Value in Usd
         (uint256 floorUsdValue,,) =
-            getValue(IPricingModule_New.GetValueInput({ asset: asset, assetId: 0, assetAmount: 1, baseCurrency: 0 }));
+            getValue(IPricingModule.GetValueInput({ asset: asset, assetId: 0, assetAmount: 1, baseCurrency: 0 }));
 
         usdValueExposureUpperAssetToAsset = floorUsdValue * exposureUpperAssetToAsset;
 
@@ -228,7 +228,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
 
         // Get Value in Usd
         (uint256 floorUsdValue,,) =
-            getValue(IPricingModule_New.GetValueInput({ asset: asset, assetId: 0, assetAmount: 1, baseCurrency: 0 }));
+            getValue(IPricingModule.GetValueInput({ asset: asset, assetId: 0, assetAmount: 1, baseCurrency: 0 }));
 
         usdValueExposureUpperAssetToAsset = floorUsdValue * exposureUpperAssetToAsset;
 

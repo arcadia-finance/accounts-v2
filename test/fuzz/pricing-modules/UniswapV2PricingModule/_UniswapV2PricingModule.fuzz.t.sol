@@ -12,7 +12,7 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { ArcadiaOracle } from "../../.././utils/mocks/ArcadiaOracle.sol";
 import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
-import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 import { UniswapV2PairMock } from "../../.././utils/mocks/UniswapV2PairMock.sol";
 import { UniswapV2PricingModuleExtension } from "../../../utils/Extensions.sol";
@@ -116,7 +116,7 @@ abstract contract UniswapV2PricingModule_Fuzz_Test is Fuzz_Test {
                 isActive: true
             })
         );
-        erc20PricingModule.addAsset(address(token), oracleTokenToUsdArr, emptyRiskVarInput_New, type(uint128).max);
+        erc20PricingModule.addAsset(address(token), oracleTokenToUsdArr, emptyRiskVarInput, type(uint128).max);
         vm.stopPrank();
     }
 

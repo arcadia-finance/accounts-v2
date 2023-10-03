@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
-import { PricingModule_New } from "../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule } from "../../../src/pricing-modules/AbstractPricingModule.sol";
 import { ArcadiaOracle } from "../.././utils/mocks/ArcadiaOracle.sol";
 import { ERC20Mock } from "../.././utils/mocks/ERC20Mock.sol";
 import { OracleHub } from "../../../src/OracleHub.sol";
@@ -82,7 +82,7 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
             })
         );
         erc20PricingModule.addAsset(
-            address(mockERC20.token2), oracleAssetToUsdArr, emptyRiskVarInput_New, type(uint128).max
+            address(mockERC20.token2), oracleAssetToUsdArr, emptyRiskVarInput, type(uint128).max
         );
         vm.stopPrank();
 

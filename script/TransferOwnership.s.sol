@@ -8,7 +8,7 @@ import "../lib/forge-std/src/Test.sol";
 import { ArcadiaAddresses, ArcadiaContractAddresses } from "./Constants/TransferOwnershipConstants.sol";
 
 import "../src/Factory.sol";
-import "../src/MainRegistry.sol";
+import {MainRegistry } from "../src/MainRegistry.sol";
 import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
 import { ILiquidator } from "./interfaces/ILiquidator.sol";
 import "../src/OracleHub.sol";

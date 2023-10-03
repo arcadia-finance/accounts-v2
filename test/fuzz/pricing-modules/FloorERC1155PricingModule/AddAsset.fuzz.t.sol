@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModule.fuzz.t.sol";
 
-import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "FloorERC1155PricingModule".
@@ -32,7 +32,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         // Then: addAsset should revert with "UNAUTHORIZED"
         vm.expectRevert("UNAUTHORIZED");
         floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
+            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
 
         vm.stopPrank();
@@ -43,11 +43,11 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset twice
         floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
+            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
         vm.expectRevert("PM1155_AA: already added");
         floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
+            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
         vm.stopPrank();
     }
@@ -57,7 +57,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset with empty list credit ratings
         floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
+            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
         vm.stopPrank();
 
@@ -76,8 +76,8 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
     function testFuzz_Success_addAsset_NonFullListRiskVariables() public {
         vm.startPrank(users.creatorAddress);
         // Given: collateralFactors index 0 is DEFAULT_COLLATERAL_FACTOR, liquidationThresholds index 0 is DEFAULT_LIQUIDATION_FACTOR
-        PricingModule_New.RiskVarInput[] memory riskVars_ = new PricingModule_New.RiskVarInput[](1);
-        riskVars_[0] = PricingModule_New.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](1);
+        riskVars_[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: collateralFactor,
@@ -93,20 +93,20 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
     }
 
     function testFuzz_Success_addAsset_FullListRiskVariables() public {
-        PricingModule_New.RiskVarInput[] memory riskVars_ = new PricingModule_New.RiskVarInput[](3);
-        riskVars_[0] = PricingModule_New.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](3);
+        riskVars_[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: collateralFactor,
             liquidationFactor: liquidationFactor
         });
-        riskVars_[1] = PricingModule_New.RiskVarInput({
+        riskVars_[1] = PricingModule.RiskVarInput({
             baseCurrency: 1,
             asset: address(0),
             collateralFactor: collateralFactor,
             liquidationFactor: liquidationFactor
         });
-        riskVars_[2] = PricingModule_New.RiskVarInput({
+        riskVars_[2] = PricingModule.RiskVarInput({
             baseCurrency: 2,
             asset: address(0),
             collateralFactor: collateralFactor,

@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import {
     AbstractDerivedPricingModuleExtension,
     AbstractPrimaryPricingModuleExtension,
@@ -47,7 +47,6 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
     AbstractDerivedPricingModuleExtension internal derivedPricingModule;
     AbstractPrimaryPricingModuleExtension internal primaryPricingModule;
-    MainRegistryExtension internal mainRegistryExtension_New;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -58,16 +57,14 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        mainRegistryExtension_New = new MainRegistryExtension(address(factory));
-
         derivedPricingModule =
-        new AbstractDerivedPricingModuleExtension(address(mainRegistryExtension_New), address(oracleHub), 0, users.creatorAddress);
+        new AbstractDerivedPricingModuleExtension(address(mainRegistryExtension), address(oracleHub), 0, users.creatorAddress);
 
         primaryPricingModule =
-        new AbstractPrimaryPricingModuleExtension(address(mainRegistryExtension_New), address(oracleHub), 0, users.creatorAddress);
+        new AbstractPrimaryPricingModuleExtension(address(mainRegistryExtension), address(oracleHub), 0, users.creatorAddress);
 
-        mainRegistryExtension_New.addPricingModule(address(derivedPricingModule));
-        mainRegistryExtension_New.addPricingModule(address(primaryPricingModule));
+        mainRegistryExtension.addPricingModule(address(derivedPricingModule));
+        mainRegistryExtension.addPricingModule(address(primaryPricingModule));
 
         // We assume conversion rate and price of underlying asset both equal to 1.
         // Conversion rate and prices of underlying assets will be tested in specific pricing modules.
@@ -107,7 +104,7 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
         UnderlyingPricingModuleState memory underlyingPMState
     ) internal {
         // Set mapping between underlying Asset and its pricing module in the Main Registry.
-        mainRegistryExtension_New.setPricingModuleForAsset(underlyingAsset, address(primaryPricingModule));
+        mainRegistryExtension.setPricingModuleForAsset(underlyingAsset, address(primaryPricingModule));
 
         // Set max exposure of mocked Pricing Module for Underlying assets.
         vm.prank(users.creatorAddress);

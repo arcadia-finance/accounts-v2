@@ -28,17 +28,16 @@ contract Constructor_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskManagerUpdated(riskManager_);
-        UniswapV3WithFeesPricingModule erc20PricingModule_ = new UniswapV3WithFeesPricingModule(
+        UniswapV3WithFeesPricingModule uniV3PricingModule_ = new UniswapV3WithFeesPricingModule(
             mainRegistry_,
             oracleHub_,
-            riskManager_,
-            address(erc20PricingModule)
+            riskManager_
         );
         vm.stopPrank();
 
-        assertEq(erc20PricingModule_.mainRegistry(), mainRegistry_);
-        assertEq(erc20PricingModule_.oracleHub(), oracleHub_);
-        assertEq(erc20PricingModule_.assetType(), 1);
-        assertEq(erc20PricingModule_.riskManager(), riskManager_);
+        assertEq(uniV3PricingModule_.mainRegistry(), mainRegistry_);
+        assertEq(uniV3PricingModule_.oracleHub(), oracleHub_);
+        assertEq(uniV3PricingModule_.assetType(), 1);
+        assertEq(uniV3PricingModule_.riskManager(), riskManager_);
     }
 }

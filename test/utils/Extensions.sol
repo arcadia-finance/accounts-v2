@@ -10,14 +10,14 @@ import { AccountV1 } from "../../src/AccountV1.sol";
 import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
 import { MainRegistryGuardian } from "../../src/guardians/MainRegistryGuardian.sol";
-import { MainRegistry_New } from "../../src/MainRegistry_New.sol";
-import { IMainRegistry } from "../../src/interfaces/IMainRegistry_New.sol";
-import { PricingModule_New } from "../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { MainRegistry } from "../../src/MainRegistry.sol";
+import { IMainRegistry } from "../../src/interfaces/IMainRegistry.sol";
+import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
 import { PrimaryPricingModule } from "../../src/pricing-modules/AbstractPrimaryPricingModule.sol";
 import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
 import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
-import { UniswapV3WithFeesPricingModule_New } from
-    "../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule_New.sol";
+import { UniswapV3WithFeesPricingModule } from
+    "../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
 import { StandardERC4626PricingModule } from "../../src/pricing-modules/StandardERC4626PricingModule.sol";
 
 contract AccountExtension is AccountV1 {
@@ -86,10 +86,10 @@ contract MainRegistryGuardianExtension is MainRegistryGuardian {
     }
 }
 
-contract MainRegistryExtension is MainRegistry_New {
+contract MainRegistryExtension is MainRegistry {
     using FixedPointMathLib for uint256;
 
-    constructor(address factory_) MainRegistry_New(factory_) { }
+    constructor(address factory_) MainRegistry(factory_) { }
 
     function setAssetType(address asset, uint96 assetType) public {
         assetToAssetInformation[asset].assetType = assetType;
@@ -100,9 +100,9 @@ contract MainRegistryExtension is MainRegistry_New {
     }
 }
 
-contract AbstractPricingModuleExtension is PricingModule_New {
+contract AbstractPricingModuleExtension is PricingModule {
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        PricingModule_New(mainRegistry_, oracleHub_, assetType_, riskManager_)
+        PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
     function setRiskVariablesForAsset(address asset, RiskVarInput[] memory riskVarInputs) public {
@@ -274,9 +274,9 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
     }
 }
 
-contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule_New {
+contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule {
     constructor(address mainRegistry_, address oracleHub_, address riskManager_, address erc20PricingModule_)
-        UniswapV3WithFeesPricingModule_New(mainRegistry_, oracleHub_, riskManager_)
+        UniswapV3WithFeesPricingModule(mainRegistry_, oracleHub_, riskManager_)
     { }
 
     function getPrincipalAmounts(

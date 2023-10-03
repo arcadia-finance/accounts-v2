@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Constants, ATokenPricingModule_Fuzz_Test } from "./_ATokenPricingModule.fuzz.t.sol";
 
 import { ATokenMock } from "../../.././utils/mocks/ATokenMock.sol";
-import { PricingModule_New } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "ATokenPricingModule".
@@ -28,7 +28,7 @@ contract AddAsset_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
-        aTokenPricingModule.addAsset(asset, emptyRiskVarInput_New);
+        aTokenPricingModule.addAsset(asset, emptyRiskVarInput);
         vm.stopPrank();
     }
 
@@ -40,15 +40,15 @@ contract AddAsset_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
 
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("PMAT_AA: Decimals don't match");
-        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput_New);
+        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput);
         vm.stopPrank();
     }
 
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
-        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput_New);
+        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput);
         vm.expectRevert("PMAT_AA: already added");
-        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput_New);
+        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput);
         vm.stopPrank();
 
         assertTrue(aTokenPricingModule.inPricingModule(address(aToken1)));
@@ -56,7 +56,7 @@ contract AddAsset_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
 
     function testFuzz_Success_addAsset_EmptyListRiskVariables() public {
         vm.startPrank(users.creatorAddress);
-        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput_New);
+        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput);
         vm.stopPrank();
 
         assertTrue(aTokenPricingModule.inPricingModule(address(aToken1)));
@@ -85,8 +85,8 @@ contract AddAsset_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
 
     function testFuzz_Success_addAsset_NonFullListRiskVariables() public {
         vm.startPrank(users.creatorAddress);
-        PricingModule_New.RiskVarInput[] memory riskVars_ = new PricingModule_New.RiskVarInput[](1);
-        riskVars_[0] = PricingModule_New.RiskVarInput({
+        PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](1);
+        riskVars_[0] = PricingModule.RiskVarInput({
             baseCurrency: 0,
             asset: address(0),
             collateralFactor: collateralFactor,

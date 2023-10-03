@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
-import { MainRegistry_New } from "../../../src/MainRegistry_New.sol";
+import { MainRegistry } from "../../../src/MainRegistry.sol";
 import { RevertingOracle } from "../../utils/mocks/RevertingOracle.sol";
 
 /**
@@ -66,7 +66,7 @@ contract SetOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         vm.prank(users.creatorAddress);
         mainRegistryExtension.addBaseCurrency(
-            MainRegistry_New.BaseCurrencyInformation({
+            MainRegistry.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
                 assetAddress: address(mockERC20.stable2),
                 baseCurrencyToUsdOracle: address(mockOracles.stable2ToUsd),
@@ -96,7 +96,7 @@ contract SetOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         vm.prank(users.creatorAddress);
         mainRegistryExtension.addBaseCurrency(
-            MainRegistry_New.BaseCurrencyInformation({
+            MainRegistry.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
                 assetAddress: address(mockERC20.stable2),
                 baseCurrencyToUsdOracle: address(revertingOracle),
@@ -126,7 +126,7 @@ contract SetOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         vm.prank(users.creatorAddress);
         mainRegistryExtension.addBaseCurrency(
-            MainRegistry_New.BaseCurrencyInformation({
+            MainRegistry.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
                 assetAddress: address(mockERC20.stable2),
                 baseCurrencyToUsdOracle: address(mockOracles.stable2ToUsd),
@@ -161,7 +161,7 @@ contract SetOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         vm.prank(users.creatorAddress);
         mainRegistryExtension.addBaseCurrency(
-            MainRegistry_New.BaseCurrencyInformation({
+            MainRegistry.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
                 assetAddress: address(mockERC20.stable2),
                 baseCurrencyToUsdOracle: address(mockOracles.stable2ToUsd),
@@ -200,7 +200,7 @@ contract SetOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         vm.prank(users.creatorAddress);
         mainRegistryExtension.addBaseCurrency(
-            MainRegistry_New.BaseCurrencyInformation({
+            MainRegistry.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
                 assetAddress: address(mockERC20.stable2),
                 baseCurrencyToUsdOracle: address(mockOracles.stable2ToUsd),

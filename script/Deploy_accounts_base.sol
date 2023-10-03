@@ -9,9 +9,9 @@ import { DeployAddresses, DeployNumbers, DeployBytes, DeployRiskConstantsBase } 
 
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/AccountV1.sol";
-import { MainRegistry_New } from "../src/MainRegistry_New.sol";
+import { MainRegistry } from "../src/MainRegistry.sol";
 import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
-import { PricingModule_New } from "../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
 import { UniswapV3WithFeesPricingModule } from "../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
 
@@ -47,12 +47,12 @@ contract ArcadiaAccountDeployment is Test {
     address[] public oracleCbethToEthToUsdArr = new address[](2);
     address[] public oracleRethToEthToUsdArr = new address[](2);
 
-    PricingModule_New.RiskVarInput[] public riskVarsComp;
-    PricingModule_New.RiskVarInput[] public riskVarsDai;
-    PricingModule_New.RiskVarInput[] public riskVarsEth;
-    PricingModule_New.RiskVarInput[] public riskVarsUsdc;
-    PricingModule_New.RiskVarInput[] public riskVarsCbeth;
-    PricingModule_New.RiskVarInput[] public riskVarsReth;
+    PricingModule.RiskVarInput[] public riskVarsComp;
+    PricingModule.RiskVarInput[] public riskVarsDai;
+    PricingModule.RiskVarInput[] public riskVarsEth;
+    PricingModule.RiskVarInput[] public riskVarsUsdc;
+    PricingModule.RiskVarInput[] public riskVarsCbeth;
+    PricingModule.RiskVarInput[] public riskVarsReth;
 
     OracleHub.OracleInformation public compToUsdOracleInfo;
     OracleHub.OracleInformation public daiToUsdOracleInfo;
@@ -169,7 +169,7 @@ contract ArcadiaAccountDeployment is Test {
         ///////////////////////////////////////////////////////////////*/
 
         riskVarsComp.push(
-            PricingModule_New.RiskVarInput({
+            PricingModule.RiskVarInput({
                 baseCurrency: 0,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.comp_collFact_1,
@@ -177,7 +177,7 @@ contract ArcadiaAccountDeployment is Test {
             })
         );
         riskVarsComp.push(
-            PricingModule_New.RiskVarInput({
+            PricingModule.RiskVarInput({
                 baseCurrency: 1,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.comp_collFact_2,
@@ -186,7 +186,7 @@ contract ArcadiaAccountDeployment is Test {
         );
 
         riskVarsDai.push(
-            PricingModule_New.RiskVarInput({
+            PricingModule.RiskVarInput({
                 baseCurrency: 0,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.dai_collFact_1,
@@ -194,7 +194,7 @@ contract ArcadiaAccountDeployment is Test {
             })
         );
         riskVarsDai.push(
-            PricingModule_New.RiskVarInput({
+            PricingModule.RiskVarInput({
                 baseCurrency: 1,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.dai_collFact_2,
@@ -203,7 +203,7 @@ contract ArcadiaAccountDeployment is Test {
         );
 
         riskVarsEth.push(
-            PricingModule_New.RiskVarInput({
+            PricingModule.RiskVarInput({
                 baseCurrency: 0,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.eth_collFact_1,
@@ -211,7 +211,7 @@ contract ArcadiaAccountDeployment is Test {
             })
         );
         riskVarsEth.push(
-            PricingModule_New.RiskVarInput({
+            PricingModule.RiskVarInput({
                 baseCurrency: 1,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.eth_collFact_2,
@@ -220,7 +220,7 @@ contract ArcadiaAccountDeployment is Test {
         );
 
         riskVarsUsdc.push(
-            PricingModule_New.RiskVarInput({
+            PricingModule.RiskVarInput({
                 baseCurrency: 0,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.usdc_collFact_1,
@@ -228,7 +228,7 @@ contract ArcadiaAccountDeployment is Test {
             })
         );
         riskVarsUsdc.push(
-            PricingModule_New.RiskVarInput({
+            PricingModule.RiskVarInput({
                 baseCurrency: 1,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.usdc_collFact_2,
@@ -237,7 +237,7 @@ contract ArcadiaAccountDeployment is Test {
         );
 
         riskVarsCbeth.push(
-            PricingModule_New.RiskVarInput({
+            PricingModule.RiskVarInput({
                 baseCurrency: 0,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.cbeth_collFact_1,
@@ -245,7 +245,7 @@ contract ArcadiaAccountDeployment is Test {
             })
         );
         riskVarsCbeth.push(
-            PricingModule_New.RiskVarInput({
+            PricingModule.RiskVarInput({
                 baseCurrency: 1,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.cbeth_collFact_2,
@@ -254,7 +254,7 @@ contract ArcadiaAccountDeployment is Test {
         );
 
         riskVarsReth.push(
-            PricingModule_New.RiskVarInput({
+            PricingModule.RiskVarInput({
                 baseCurrency: 0,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.reth_collFact_1,
@@ -262,7 +262,7 @@ contract ArcadiaAccountDeployment is Test {
             })
         );
         riskVarsReth.push(
-            PricingModule_New.RiskVarInput({
+            PricingModule.RiskVarInput({
                 baseCurrency: 1,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.reth_collFact_2,
@@ -288,7 +288,7 @@ contract ArcadiaAccountDeployment is Test {
             0
         );
         uniswapV3PricingModule =
-        new UniswapV3WithFeesPricingModule(address(mainRegistry), address(oracleHub), deployerAddress, address(standardERC20PricingModule));
+        new UniswapV3WithFeesPricingModule(address(mainRegistry), address(oracleHub), deployerAddress);
 
         account = new AccountV1();
         actionMultiCall = new ActionMultiCallV2();
@@ -306,12 +306,12 @@ contract ArcadiaAccountDeployment is Test {
         mainRegistry.addPricingModule(address(standardERC20PricingModule));
         mainRegistry.addPricingModule(address(uniswapV3PricingModule));
 
-        PricingModule_New.RiskVarInput[] memory riskVarsComp_ = riskVarsComp;
-        PricingModule_New.RiskVarInput[] memory riskVarsDai_ = riskVarsDai;
-        PricingModule_New.RiskVarInput[] memory riskVarsEth_ = riskVarsEth;
-        PricingModule_New.RiskVarInput[] memory riskVarsUsdc_ = riskVarsUsdc;
-        PricingModule_New.RiskVarInput[] memory riskVarsCbeth_ = riskVarsCbeth;
-        PricingModule_New.RiskVarInput[] memory riskVarsReth_ = riskVarsReth;
+        PricingModule.RiskVarInput[] memory riskVarsComp_ = riskVarsComp;
+        PricingModule.RiskVarInput[] memory riskVarsDai_ = riskVarsDai;
+        PricingModule.RiskVarInput[] memory riskVarsEth_ = riskVarsEth;
+        PricingModule.RiskVarInput[] memory riskVarsUsdc_ = riskVarsUsdc;
+        PricingModule.RiskVarInput[] memory riskVarsCbeth_ = riskVarsCbeth;
+        PricingModule.RiskVarInput[] memory riskVarsReth_ = riskVarsReth;
 
         standardERC20PricingModule.addAsset(
             DeployAddresses.comp_base,

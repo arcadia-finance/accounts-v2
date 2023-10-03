@@ -26,7 +26,7 @@ contract IsAllowListed_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Pricin
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset
         floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
+            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
         vm.stopPrank();
 
@@ -48,7 +48,7 @@ contract IsAllowListed_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Pricin
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset
         floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
+            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
         vm.stopPrank();
 
