@@ -154,10 +154,6 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         // Add underlying tokens and its oracles to Arcadia.
         addUnderlyingTokenToArcadia(address(token0), 1);
         addUnderlyingTokenToArcadia(address(token1), 1);
-        vm.startPrank(users.creatorAddress);
-        uniV3PricingModule.setExposureOfAsset(address(token0), type(uint128).max);
-        uniV3PricingModule.setExposureOfAsset(address(token1), type(uint128).max);
-        vm.stopPrank();
 
         PricingModule_New.RiskVarInput[] memory riskVarInputs = new PricingModule_New.RiskVarInput[](2);
         riskVarInputs[0] = PricingModule_New.RiskVarInput({

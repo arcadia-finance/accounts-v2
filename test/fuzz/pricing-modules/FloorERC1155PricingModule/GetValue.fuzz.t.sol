@@ -8,7 +8,7 @@ import { Constants, FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155P
 
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
+import { IPricingModule_New } from "../../../../src/interfaces/IPricingModule_New.sol";
 
 /**
  * @notice Fuzz tests for the "getValue" of contract "FloorERC1155PricingModule".
@@ -24,7 +24,7 @@ contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         // Add Sft2 (which has an oracle directly to usd).
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
+            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput_New, type(uint128).max
         );
     }
 
@@ -43,7 +43,7 @@ contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         vm.prank(users.defaultTransmitter);
         mockOracles.sft2ToUsd.transmit(int256(rateSft2ToUsd));
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
+        IPricingModule_New.GetValueInput memory getValueInput = IPricingModule_New.GetValueInput({
             asset: address(mockERC1155.sft2),
             assetId: 1,
             assetAmount: amountSft2,
@@ -72,7 +72,7 @@ contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         vm.prank(users.defaultTransmitter);
         mockOracles.sft2ToUsd.transmit(int256(rateSft2ToUsd));
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
+        IPricingModule_New.GetValueInput memory getValueInput = IPricingModule_New.GetValueInput({
             asset: address(mockERC1155.sft2),
             assetId: 0,
             assetAmount: amountSft2,

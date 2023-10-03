@@ -345,7 +345,7 @@ abstract contract Fuzz_Test is Base_Test {
         oracleSft1ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
 
         floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft1), 1, oracleSft1ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
+            address(mockERC1155.sft1), 1, oracleSft1ToToken1ToUsd, emptyRiskVarInput_New, type(uint128).max
         );
 
         vm.stopPrank();

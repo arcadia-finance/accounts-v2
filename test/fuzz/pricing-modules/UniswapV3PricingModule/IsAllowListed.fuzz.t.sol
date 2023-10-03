@@ -114,10 +114,6 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
         vm.stopPrank();
 
         // Set a maxExposure for tokenA and tokenB greater than 0.
-        vm.startPrank(users.creatorAddress);
-        uniV3PricingModule.setExposure(address(tokenA), 1, maxExposureA);
-        uniV3PricingModule.setExposure(address(tokenB), 1, maxExposureB);
-        vm.stopPrank();
 
         // Test that Uni V3 LP token with allowed exposure to the underlying assets is allowlisted.
         assertTrue(uniV3PricingModule.isAllowListed(address(nonfungiblePositionManager), tokenId));

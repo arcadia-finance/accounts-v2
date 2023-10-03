@@ -232,7 +232,7 @@ abstract contract PricingModule_New is Owned, IPricingModule_New {
      * param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256, uint256 amount) external virtual { }
+    function processDirectDeposit(address asset, uint256, uint256 amount) public virtual { }
 
     /**
      * @notice Increases the exposure to an underlying asset on deposit.
@@ -246,7 +246,7 @@ abstract contract PricingModule_New is Owned, IPricingModule_New {
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
+    ) public virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
