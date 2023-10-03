@@ -93,7 +93,7 @@ abstract contract PrimaryPricingModule is PricingModule_New {
      * param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256, uint256 amount) external virtual override onlyMainReg {
+    function processDirectDeposit(address asset, uint256, uint256 amount) public virtual override onlyMainReg {
         // Cache exposureLast.
         uint256 exposureLast = exposure[asset].exposure;
 
@@ -118,7 +118,7 @@ abstract contract PrimaryPricingModule is PricingModule_New {
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         // Cache exposureLast.
         uint256 exposureLast = exposure[asset].exposure;
 

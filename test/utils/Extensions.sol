@@ -17,7 +17,8 @@ import { PricingModule_New } from "../../src/pricing-modules/AbstractPricingModu
 import { PrimaryPricingModule } from "../../src/pricing-modules/AbstractPrimaryPricingModule.sol";
 import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
 import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
-import { UniswapV3WithFeesPricingModule_New } from "../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule_New.sol";
+import { UniswapV3WithFeesPricingModule_New } from
+    "../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule_New.sol";
 import { StandardERC4626PricingModule } from "../../src/pricing-modules/StandardERC4626PricingModule.sol";
 
 contract AccountExtension is AccountV1 {

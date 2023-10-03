@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule, IMainRegistry } from "./AbstractPricingModule.sol";
+import { PrimaryPricingModule, IMainRegistry_New } from "./AbstractPrimaryPricingModule.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 
 /**
@@ -14,7 +14,7 @@ import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
  * for the floor price of the collection
  * @dev No end-user should directly interact with the FloorERC1155PricingModule, only the Main-registry, Oracle-Hub or the contract owner
  */
-contract FloorERC1155PricingModule is PricingModule {
+contract FloorERC1155PricingModule is PrimaryPricingModule {
     mapping(address => AssetInformation) public assetToInformation;
 
     struct AssetInformation {
@@ -32,7 +32,7 @@ contract FloorERC1155PricingModule is PricingModule {
      * 2 = ERC1155
      */
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        PricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
+        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
     { }
 
     /*///////////////////////////////////////////////////////////////
@@ -74,7 +74,7 @@ contract FloorERC1155PricingModule is PricingModule {
         exposure[asset].maxExposure = uint128(maxExposure);
 
         //Will revert in MainRegistry if asset can't be added
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
+        IMainRegistry_New(mainRegistry).addAsset(asset, assetType);
     }
 
     /**
@@ -112,17 +112,33 @@ contract FloorERC1155PricingModule is PricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Processes the deposit of a token address and the corresponding Id if it is white-listed
-     * @param asset The address of the asset
-     * @param assetId The Id of the asset
-     * @param amount the amount of ERC1155 tokens
-     * @dev Unsafe cast to uint128, meaning it is assumed no more than 10**(20+decimals) tokens can be deposited
+     * @notice Increases the exposure to an asset on deposit.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param amount The amount of tokens.
      */
-    function increaseExposure(address asset, uint256 assetId, uint256 amount) external override onlyMainReg {
-        require(assetId == assetToInformation[asset].id, "PM1155_IE: ID not allowed");
+    function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public override onlyMainReg {
+        require(assetId == assetToInformation[asset].id, "PM1155_PDD: ID not allowed");
 
-        exposure[asset].exposure += uint128(amount);
-        require(exposure[asset].exposure <= exposure[asset].maxExposure, "PM1155_IE: Exposure not in limits");
+        super.processDirectDeposit(asset, assetId, amount);
+    }
+
+    /**
+     * @notice Increases the exposure to an underlying asset on deposit.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     */
+    function processIndirectDeposit(
+        address asset,
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+        require(assetId == assetToInformation[asset].id, "PM1155_PDD: ID not allowed");
+        
+        (primaryFlag, usdValueExposureUpperAssetToAsset) = super.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
     }
 
     /*///////////////////////////////////////////////////////////////

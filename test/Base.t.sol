@@ -150,9 +150,7 @@ abstract contract Base_Test is Test, Events, Errors {
         bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
 
         // Get the bytecode of UniswapV3PricingModuleExtension.
-        args = abi.encode(
-            address(mainRegistryExtension), address(oracleHub), users.creatorAddress
-        );
+        args = abi.encode(address(mainRegistryExtension), address(oracleHub), users.creatorAddress);
         bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3PricingModuleExtension"), args);
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.
