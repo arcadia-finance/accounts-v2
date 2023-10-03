@@ -43,9 +43,11 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processDirectDeposit_NonMainRegistry(address unprivilegedAddress, address asset, uint256 id)
-        public
-    {
+    function testFuzz_Revert_processDirectDeposit_NonMainRegistry(
+        address unprivilegedAddress,
+        address asset,
+        uint256 id
+    ) public {
         vm.assume(unprivilegedAddress != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress);
@@ -324,7 +326,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         // NOTE: to adapt here
 
-/*         (, uint128 exposure0) = uniV3PricingModule.exposure(address(token0));
+        /*         (, uint128 exposure0) = uniV3PricingModule.exposure(address(token0));
         (, uint128 exposure1) = uniV3PricingModule.exposure(address(token1));
         assertEq(exposure0, amount0 + initialExposure0);
         assertEq(exposure1, amount1 + initialExposure1); */

@@ -391,11 +391,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
                           PRICING LOGIC
     /////////////////////////////////////////////////////////////// */
 
-    function getUsdValue(IPricingModule.GetValueInput memory getValueInput)
-        external
-        view
-        returns (uint256 usdValue)
-    {
+    function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256 usdValue) {
         // Fetch the Value and the risk variables in the PricingModule.
         (usdValue,,) =
             IPricingModule(assetToAssetInformation[getValueInput.asset].pricingModule).getValue(getValueInput);

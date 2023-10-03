@@ -53,8 +53,5 @@ interface IMainRegistry {
         int256 deltaExposureAssetToUnderlyingAsset
     ) external returns (uint256 usdValueExposureAssetToUnderlyingAsset);
 
-    function getUsdValue(IPricingModule.GetValueInput memory getValueInput)
-        external
-        view
-        returns (uint256 usdValue);
+    function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256 usdValue);
 }

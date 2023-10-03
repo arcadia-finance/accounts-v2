@@ -284,12 +284,8 @@ abstract contract Fuzz_Test is Base_Test {
         erc20PricingModule.addAsset(
             address(mockERC20.stable2), oracleStable2ToUsdArr, riskVarsStable, type(uint128).max
         );
-        erc20PricingModule.addAsset(
-            address(mockERC20.token1), oracleToken1ToUsdArr, riskVarsToken, type(uint128).max
-        );
-        erc20PricingModule.addAsset(
-            address(mockERC20.token2), oracleToken2ToUsdArr, riskVarsToken, type(uint128).max
-        );
+        erc20PricingModule.addAsset(address(mockERC20.token1), oracleToken1ToUsdArr, riskVarsToken, type(uint128).max);
+        erc20PricingModule.addAsset(address(mockERC20.token2), oracleToken2ToUsdArr, riskVarsToken, type(uint128).max);
 
         // Add NFT1 to the floorERC721PricingModule.
         oracleNft1ToToken1ToUsd[0] = address(mockOracles.nft1ToToken1);

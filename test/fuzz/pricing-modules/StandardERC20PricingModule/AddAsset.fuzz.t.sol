@@ -60,9 +60,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
     function testFuzz_Revert_addAsset_BadOracleSequence() public {
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("OH_COS: Min 1 Oracle");
-        erc20PricingModule.addAsset(
-            address(mockERC20.token4), new address[](0), emptyRiskVarInput, type(uint128).max
-        );
+        erc20PricingModule.addAsset(address(mockERC20.token4), new address[](0), emptyRiskVarInput, type(uint128).max);
         vm.stopPrank();
     }
 

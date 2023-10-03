@@ -21,7 +21,9 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processDirectDeposit_NonMainRegistry(address unprivilegedAddress_, uint128 amount) public {
+    function testFuzz_Revert_processDirectDeposit_NonMainRegistry(address unprivilegedAddress_, uint128 amount)
+        public
+    {
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
             address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max

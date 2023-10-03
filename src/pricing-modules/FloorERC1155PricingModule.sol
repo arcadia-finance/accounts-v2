@@ -137,8 +137,9 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
         int256 deltaExposureUpperAssetToAsset
     ) public override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         require(assetId == assetToInformation[asset].id, "PM1155_PDD: ID not allowed");
-        
-        (primaryFlag, usdValueExposureUpperAssetToAsset) = super.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+
+        (primaryFlag, usdValueExposureUpperAssetToAsset) =
+            super.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
     }
 
     /*///////////////////////////////////////////////////////////////
