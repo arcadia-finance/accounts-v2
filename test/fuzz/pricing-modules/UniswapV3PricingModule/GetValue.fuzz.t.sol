@@ -96,16 +96,9 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         addUnderlyingTokenToArcadia(address(token0), int256(uint256(vars.priceToken0)));
         addUnderlyingTokenToArcadia(address(token1), int256(uint256(vars.priceToken1)));
 
-        // Add ERC20 tokens to erc20PricingModule
-        address[] memory oracleToken0 = new address[](1);
-        oracleToken0[0] = address(mockOracles.token1ToUsd);
-        address[] memory oracleToken1 = new address[](1);
-        oracleToken1[0] = address(mockOracles.token2ToUsd);
-
-        erc20PricingModule.addAsset(address(token0), oracleToken0, emptyRiskVarInput, type(uint128).max);
-        erc20PricingModule.addAsset(address(token1), oracleToken1, emptyRiskVarInput, type(uint128).max);
-
+        vm.startPrank(users.creatorAddress);
         // add asset to UniV3 pricing module
+        uniV3PricingModule.addAsset(address(pool));
 
         // Calculate the expected value
         uint256 valueToken0 = 1e18 * uint256(vars.priceToken0) * amount0 / 10 ** vars.decimals0;
@@ -121,6 +114,7 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         );
 
         assertEq(actualValueInUsd, valueToken0 + valueToken1);
+        vm.stopPrank();
     }
 
     function testFuzz_Success_getValue_RiskFactors(

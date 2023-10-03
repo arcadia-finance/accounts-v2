@@ -14,6 +14,15 @@ interface IPricingModule {
     }
 
     /**
+     * @notice Checks for a token address and the corresponding Id if it is white-listed.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is whitelisted.
+     * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
+     */
+    function isAllowListed(address asset, uint256) external view returns (bool);
+
+    /**
      * @notice Returns the value of a certain asset, denominated in USD or in another BaseCurrency.
      * @param input A Struct with the input variables (avoid stack to deep).
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.

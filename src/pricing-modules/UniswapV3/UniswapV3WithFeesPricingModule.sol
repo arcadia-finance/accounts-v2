@@ -97,12 +97,36 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
     /**
      * @notice Checks for a token address and the corresponding Id if it is allow-listed.
      * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
+     * @param assetId The Id of the asset.
      * @return A boolean, indicating if the asset is whitelisted.
      */
-    function isAllowListed(address asset, uint256) public view override returns (bool) {
-        // NOTE: To change based on discussion to enable or disable deposits for certain assets
-        return inPricingModule[asset];
+    function isAllowListed(address asset, uint256 assetId) public view override returns (bool) {
+        if (!inPricingModule[asset]) return false;
+
+        try INonfungiblePositionManager(asset).positions(assetId) returns (
+            uint96,
+            address,
+            address token0,
+            address token1,
+            uint24,
+            int24,
+            int24,
+            uint128,
+            uint256,
+            uint256,
+            uint128,
+            uint128
+        ) {
+            address token0PricingModule = IMainRegistry(mainRegistry).getPricingModuleOfAsset(token0);
+            address token1PricingModule = IMainRegistry(mainRegistry).getPricingModuleOfAsset(token1);
+            if (token0PricingModule == address(0) || token1PricingModule == address(0)) {
+                return false;
+            } else {
+                return IPricingModule(token0PricingModule).isAllowListed(token0, 0) && IPricingModule(token0PricingModule).isAllowListed(token1, 0);
+            }
+        } catch {
+            return false;
+        }
     }
 
     /*///////////////////////////////////////////////////////////////

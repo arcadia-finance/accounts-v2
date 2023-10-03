@@ -5,8 +5,9 @@
 pragma solidity 0.8.19;
 
 import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
-
+import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { OracleHub } from "../../../../src/OracleHub.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "UniswapV2PricingModule".
@@ -36,10 +37,27 @@ contract AddAsset_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
     }
 
     function testFuzz_Revert_addAsset_NonWhiteListedUnderlyingAsset() public {
-        //Given: One of the underlying assets is not whitelisted (SafeMoon)
-        //When: creator adds a new asset
-        //Then: addAsset reverts with "UNAUTHORIZED"
+        //Given: One of the underlying assets is not whitelisted
+        //Given: We first need to add the asset to the pricing module in order to reach the require statement in "addAsset"
+        ArcadiaOracle oracleToken3ToUsd = initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN3 / USD", uint256(1e18));
+        address[] memory oracles = new address[](1);
+        oracles[0] = address(oracleToken3ToUsd);
+
         vm.startPrank(users.creatorAddress);
+        oracleHub.addOracle(
+            OracleHub.OracleInformation({
+                oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
+                baseAsset: "TOKEN3",
+                quoteAsset: "USD",
+                oracle: address(oracleToken3ToUsd),
+                baseAssetAddress: address(mockERC20.token3),
+                isActive: true
+            })
+        );
+
+        //Given: Asset is added with an exposure of 0
+        erc20PricingModule.addAsset(address(mockERC20.token3), oracles, emptyRiskVarInput, 0);
+
         vm.expectRevert("PMUV2_AA: TOKENO_NOT_WHITELISTED");
         uniswapV2PricingModule.addAsset(address(pairToken1Token3), emptyRiskVarInput);
         vm.stopPrank();

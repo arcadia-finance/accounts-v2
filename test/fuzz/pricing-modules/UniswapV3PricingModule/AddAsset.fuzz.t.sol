@@ -42,7 +42,7 @@ contract AddAsset_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
     function testFuzz_Revert_addAsset_MainRegistryReverts() public {
         vm.prank(users.creatorAddress);
         uniV3PricingModule =
-        new UniswapV3PricingModuleExtension(address(mainRegistryExtension), address(oracleHub), users.creatorAddress, address(erc20PricingModule));
+        new UniswapV3PricingModuleExtension(address(mainRegistryExtension), address(oracleHub), users.creatorAddress);
 
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("MR: Only PriceMod.");
