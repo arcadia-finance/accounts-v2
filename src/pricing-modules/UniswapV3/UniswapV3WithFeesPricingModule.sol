@@ -122,7 +122,8 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
             if (token0PricingModule == address(0) || token1PricingModule == address(0)) {
                 return false;
             } else {
-                return IPricingModule(token0PricingModule).isAllowListed(token0, 0) && IPricingModule(token0PricingModule).isAllowListed(token1, 0);
+                return IPricingModule(token0PricingModule).isAllowListed(token0, 0)
+                    && IPricingModule(token0PricingModule).isAllowListed(token1, 0);
             }
         } catch {
             return false;

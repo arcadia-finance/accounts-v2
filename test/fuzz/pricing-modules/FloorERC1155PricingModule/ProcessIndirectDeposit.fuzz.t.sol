@@ -21,31 +21,29 @@ contract ProcessIndirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC1
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processIndirectDeposit_NonMainRegistry(        
+    function testFuzz_Revert_processIndirectDeposit_NonMainRegistry(
         address asset,
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset,
         address unprivilegedAddress_
-    )
-        public
-    {
+    ) public {
         vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        floorERC1155PricingModule.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        floorERC1155PricingModule.processIndirectDeposit(
+            asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_processIndirectDeposit_WrongId(        
+    function testFuzz_Revert_processIndirectDeposit_WrongId(
         address asset,
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    )
-        public
-    {
+    ) public {
         vm.assume(assetId > 0); //Wrong Id
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
@@ -54,7 +52,9 @@ contract ProcessIndirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC1
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("PM1155_PID: ID not allowed");
-        floorERC1155PricingModule.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        floorERC1155PricingModule.processIndirectDeposit(
+            asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
         vm.stopPrank();
     }
 }

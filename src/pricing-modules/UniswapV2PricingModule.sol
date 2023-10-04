@@ -139,12 +139,9 @@ contract UniswapV2PricingModule is DerivedPricingModule {
             GetValueInput({ asset: underlyingAssets[1], assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 
-        (uint256 token0Amount, uint256 token1Amount) =
-            _getTrustedTokenAmounts(asset, trustedUsdPriceToken0, trustedUsdPriceToken1, 1e18);
-
         conversionRates = new uint256[](2);
-        conversionRates[0] = token0Amount;
-        conversionRates[1] = token1Amount;
+        (conversionRates[0], conversionRates[1]) =
+            _getTrustedTokenAmounts(asset, trustedUsdPriceToken0, trustedUsdPriceToken1, 1e18);
     }
 
     /**
@@ -212,7 +209,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
      * @dev The trusted amount of liquidity is calculated by first bringing the liquidity pool in equilibrium,
      *      by calculating what the reserves of the pool would be if a profit-maximizing trade is done.
      *      As such flash-loan attacks are mitigated, where an attacker swaps a large amount of the higher priced token,
-     *      to bring the pool out of equilibrium, resulting in liquidity postitions with a higher share of the most valuable token.
+     *      to bring the pool out of equilibrium, resulting in liquidity positions with a higher share of the most valuable token.
      * @dev Modification of https://github.com/Uniswap/v2-periphery/blob/master/contracts/libraries/UniswapV2LiquidityMathLibrary.sol#L23
      */
     function _getTrustedTokenAmounts(
@@ -225,7 +222,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         uint256 totalSupply = IUniswapV2Pair(pair).totalSupply();
 
         // this also checks that totalSupply > 0
-        require(totalSupply >= liquidityAmount && liquidityAmount > 0, "UV2_GTTA: LIQUIDITY_AMOUNT");
+        require(totalSupply > 0, "UV2_GTTA: ZERO_SUPPLY");
 
         (uint256 reserve0, uint256 reserve1) = _getTrustedReserves(pair, trustedPriceToken0, trustedPriceToken1);
 
@@ -279,7 +276,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
     /**
      * @notice Computes the direction and magnitude of the profit-maximizing trade
      * @param trustedPriceToken0 Trusted price of an amount of Token0 in a given BaseCurrency
-     * @param trustedPriceToken1 Trusted price of an equalamount of Token1 in a given BaseCurrency
+     * @param trustedPriceToken1 Trusted price of an equal amount of Token1 in a given BaseCurrency
      * @param reserve0 The current untrusted reserves of token0 in the liquidity pool
      * @param reserve1 The current untrusted reserves of token1 in the liquidity pool
      * @return token0ToToken1 The direction of the profit-maximizing trade

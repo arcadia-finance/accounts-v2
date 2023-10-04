@@ -24,10 +24,8 @@ contract GetTrustedTokenAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV2Pri
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_getTrustedTokenAmounts_UnsufficientLiquidity(uint256 priceToken0, uint256 priceToken1)
-        public
-    {
-        vm.expectRevert("UV2_GTTA: LIQUIDITY_AMOUNT");
+    function testFuzz_Revert_getTrustedTokenAmounts_ZeroTotalSupply(uint256 priceToken0, uint256 priceToken1) public {
+        vm.expectRevert("UV2_GTTA: ZERO_SUPPLY");
         uniswapV2PricingModule.getTrustedTokenAmounts(address(pairToken1Token2), priceToken0, priceToken1, 0);
     }
 

@@ -39,7 +39,8 @@ contract AddAsset_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
     function testFuzz_Revert_addAsset_NonWhiteListedUnderlyingAsset() public {
         //Given: One of the underlying assets is not whitelisted
         //Given: We first need to add the asset to the pricing module in order to reach the require statement in "addAsset"
-        ArcadiaOracle oracleToken3ToUsd = initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN3 / USD", uint256(1e18));
+        ArcadiaOracle oracleToken3ToUsd =
+            initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN3 / USD", uint256(1e18));
         address[] memory oracles = new address[](1);
         oracles[0] = address(oracleToken3ToUsd);
 

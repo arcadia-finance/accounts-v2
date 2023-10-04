@@ -21,56 +21,56 @@ contract GetConversionRate_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingM
 
     function setUp() public override {
         UniswapV2PricingModule_Fuzz_Test.setUp();
+
+        vm.prank(users.creatorAddress);
+        uniswapV2PricingModule.addAsset(address(pairToken1Token2), emptyRiskVarInput);
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getConversionRateToken0(
-        uint112 reserve0,
-        uint112 reserve1,
-        uint256 totalSupply,
-        uint256 liquidityAmount
-    ) public {
-        // Only test for balanced pool, other tests guarantee that _getTrustedReserves brings unbalanced pool into balance
-        vm.assume(liquidityAmount > 0); // division by 0
-        vm.assume(reserve0 > 0); // division by 0
-        vm.assume(reserve1 > 0); // division by 0
-        vm.assume(liquidityAmount <= totalSupply); // single user can never hold more than totalSupply
-        vm.assume(liquidityAmount <= type(uint256).max / reserve0); // overflow, unrealistic big liquidityAmount
-        vm.assume(liquidityAmount <= type(uint256).max / reserve1); // overflow, unrealistic big liquidityAmount
+    // Note: Only tests for balanced pools, other tests in "GetTrustedReserves.fuzz.t.sol" show that "_getTrustedReserves" brings unbalanced pool into balance.
+
+    function testFuzz_Success_getConversionRates(uint256 reserve1, uint256 reserve2, uint256 totalSupply)
+        
+        public
+    {
+        // Given: reserves are not 0 (division by 0) and smaller or equal as uint122.max (type in Uniswap V2).
+        reserve1 = bound(reserve1, 1, type(uint112).max);
+        reserve2 = bound(reserve2, 1, type(uint112).max);
+
+        // And: "token0ToToken1" does not overflow (unreasonable value + reserve for same token).
+        reserve2 = bound(reserve2, 1, type(uint256).max / (reserve1 * 10 ** (18 - Constants.tokenOracleDecimals)));
+
+        // And: "totalSupply" is bigger as 0 (division by 0).
+        totalSupply = bound(totalSupply, 1, type(uint256).max);
 
         (,, address[] memory underlyingTokens,) = uniswapV2PricingModule.getAssetInformation(address(pairToken1Token2));
         assertEq(underlyingTokens[0], address(mockERC20.token2));
         assertEq(underlyingTokens[1], address(mockERC20.token1));
 
-        // Given: The reserves in the pool are reserve0 and reserve1
-        pairToken1Token2.setReserves(reserve0, reserve1);
+        // Given: The reserves in the pool are reserve1 and reserve2
+        pairToken1Token2.setReserves(reserve2, reserve1);
 
+        // And: The total supply of liquidity tokens is "totalSupply".
         stdstore.target(address(pairToken1Token2)).sig(pairToken1Token2.totalSupply.selector).checked_write(totalSupply);
 
-        /*         uint256 trustedPriceToken0 = PricingModule(token1PricingModule).getValue(
-            IPricingModule.GetValueInput({ asset: underlyingTokens[1], assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-        );
-        uint256 trustedPriceToken1 = PricingModule(token1PricingModule).getValue(
-            IPricingModule.GetValueInput({ asset: underlyingTokens[1], assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-        ); */
+        // And the pool is balanced.
+        uint256 priceToken1 = reserve2;
+        uint256 priceToken2 = reserve1;
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.token1ToUsd.transmit(int256(priceToken1));
+        mockOracles.token2ToUsd.transmit(int256(priceToken2));
+        vm.stopPrank();
 
-        /*         (uint256 token0AmountActual, uint256 token1AmountActual) = uniswapV2PricingModule.getTrustedTokenAmounts(
-            address(pairToken1Token2), trustedPriceToken0, trustedPriceToken1, 1e18
-        );
+        // When: "getConversionRate" is called.
+        (uint256[] memory conversionRates) =
+            uniswapV2PricingModule.getConversionRate(address(pairToken1Token2), 0, underlyingTokens);
 
-        assertEq(token0AmountActual, token0AmountExpected);
-        assertEq(token1AmountActual, token1AmountExpected); */
-
-        // We have to add the asset in order to have info available in pricing module
-        /*         vm.prank(users.creatorAddress);
-        uniswapV2PricingModule.addAsset(address(pairToken1Token2), emptyRiskVarInput);
-
-        uint256 token0ConversionRate = uniswapV2PricingModule.getConversionRate(address(pairToken1Token2), address(mockERC20.token2));
-
-        assertEq(token0ConversionRate, token0AmountActual); */
+        // Then: The correct conversion rates are returned.
+        uint256 conversionRateToken1Expected = 1e18 * reserve1 / totalSupply;
+        uint256 conversionRateToken2Expected = 1e18 * reserve2 / totalSupply;
+        assertEq(conversionRateToken2Expected, conversionRates[0]);
+        assertEq(conversionRateToken1Expected, conversionRates[1]);
     }
-
-    function testFuzz_Success_getConversionRateToken1(address unprivilegedAddress_) public { }
 }
