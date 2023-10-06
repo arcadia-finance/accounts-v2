@@ -44,9 +44,11 @@ contract GetAndUpdateExposureUnderlyingAsset_AbstractDerivedPricingModule_Fuzz_T
         setDerivedPricingModuleAssetState(assetState);
 
         // When: "_getAndUpdateExposureUnderlyingAsset" is called.
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        bytes32 underlyingAssetKey = derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, 0);
         (uint256 exposureAssetToUnderlyingAssetActual, int256 deltaExposureAssetToUnderlyingAssetActual) =
         derivedPricingModule.getAndUpdateExposureUnderlyingAsset(
-            assetState.asset, exposureAsset, assetState.conversionRate, 0
+            assetKey, underlyingAssetKey, exposureAsset, assetState.conversionRate
         );
 
         // Then: Correct variables are returned.
@@ -85,9 +87,11 @@ contract GetAndUpdateExposureUnderlyingAsset_AbstractDerivedPricingModule_Fuzz_T
         setDerivedPricingModuleAssetState(assetState);
 
         // When: "_getAndUpdateExposureUnderlyingAsset" is called.
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        bytes32 underlyingAssetKey = derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, 0);
         (uint256 exposureAssetToUnderlyingAssetActual, int256 deltaExposureAssetToUnderlyingAssetActual) =
         derivedPricingModule.getAndUpdateExposureUnderlyingAsset(
-            assetState.asset, exposureAsset, assetState.conversionRate, 0
+            assetKey, underlyingAssetKey, exposureAsset, assetState.conversionRate
         );
 
         // Then: Correct variables are returned.

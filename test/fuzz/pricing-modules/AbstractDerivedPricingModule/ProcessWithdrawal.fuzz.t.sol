@@ -61,8 +61,9 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
 
         // When: "_processWithdrawal" is called.
         // Then: The transaction reverts with arithmetic overflow.
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
         vm.expectRevert(stdError.arithmeticError);
-        derivedPricingModule.processWithdrawal(assetState.asset, exposureAsset);
+        derivedPricingModule.processWithdrawal(assetKey, exposureAsset);
     }
 
     function testFuzz_Success_processWithdrawal_PositiveDelta(
@@ -105,7 +106,8 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "_processWithdrawal" is called.
-        uint256 usdValueExposureAsset = derivedPricingModule.processWithdrawal(assetState.asset, exposureAsset);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        uint256 usdValueExposureAsset = derivedPricingModule.processWithdrawal(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValueExposureToUnderlyingAsset);
@@ -149,7 +151,8 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "_processWithdrawal" is called.
-        uint256 usdValueExposureAsset = derivedPricingModule.processWithdrawal(assetState.asset, exposureAsset);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        uint256 usdValueExposureAsset = derivedPricingModule.processWithdrawal(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValueExposureToUnderlyingAsset);
@@ -191,7 +194,8 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "_processWithdrawal" is called.
-        uint256 usdValueExposureAsset = derivedPricingModule.processWithdrawal(assetState.asset, exposureAsset);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        uint256 usdValueExposureAsset = derivedPricingModule.processWithdrawal(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValueExposureToUnderlyingAsset);

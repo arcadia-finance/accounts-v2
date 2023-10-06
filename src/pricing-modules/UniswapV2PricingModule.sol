@@ -29,6 +29,8 @@ contract UniswapV2PricingModule is DerivedPricingModule {
 
     bool public feeOn;
 
+    mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
+
     /**
      * @notice A Pricing-Module must always be initialised with the address of the Main-Registry and of the Oracle-Hub
      * @param mainRegistry_ The address of the Main-registry
@@ -63,6 +65,29 @@ contract UniswapV2PricingModule is DerivedPricingModule {
     /*///////////////////////////////////////////////////////////////
                         UNISWAP V2 FEE
     ///////////////////////////////////////////////////////////////*/
+
+    function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
+        assembly {
+            key := asset
+        }
+    }
+
+    function _getAssetFromKey(bytes32 key) internal pure override returns (address asset, uint256) {
+        assembly {
+            asset := key
+        }
+
+        return (asset, 0);
+    }
+
+    function _getUnderlyingAssets(bytes32 assetKey)
+        internal
+        view
+        override
+        returns (bytes32[] memory underlyingAssets)
+    {
+        underlyingAssets = assetToUnderlyingAssets[assetKey];
+    }
 
     /**
      * @notice Fetches boolean on the uniswap factory if fees are enabled or not
@@ -99,10 +124,12 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         address[] memory underlyingAssets = new address[](2);
         underlyingAssets[0] = token0;
         underlyingAssets[1] = token1;
-        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](2);
-
         assetToInformation[asset].underlyingAssets = underlyingAssets;
-        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast = exposureAssetToUnderlyingAssetsLast;
+
+        bytes32[] memory underlyingAssets_ = new bytes32[](2);
+        underlyingAssets_[0] = _getKeyFromAsset(token0, 0);
+        underlyingAssets_[1] = _getKeyFromAsset(token0, 0);
+        assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
         require(!inPricingModule[asset], "PMUV2_AA: already added");
         inPricingModule[asset] = true;
@@ -120,25 +147,27 @@ contract UniswapV2PricingModule is DerivedPricingModule {
 
     /**
      * @notice Calculates the conversion rate of an asset to its underlying asset.
-     * @param asset The asset to calculate the conversion rate for.
-     * param assetId The id of the asset to calculate the conversion rate for.
-     * @param underlyingAssets The assets to which we have to get the conversion rate.
+     * @param assetKey The unique identifier of the asset.
+     * @param underlyingAssetKeys The assets to which we have to get the conversion rate.
      * @return conversionRates The conversion rate of the asset to its underlying assets.
      */
-    function _getConversionRates(address asset, uint256, address[] memory underlyingAssets)
+    function _getConversionRates(bytes32 assetKey, bytes32[] memory underlyingAssetKeys)
         internal
         view
         override
         returns (uint256[] memory conversionRates)
     {
+        (address asset,) = _getAssetFromKey(underlyingAssetKeys[0]);
         uint256 trustedUsdPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
-            GetValueInput({ asset: underlyingAssets[0], assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
+            GetValueInput({ asset: asset, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 
+        (asset,) = _getAssetFromKey(underlyingAssetKeys[1]);
         uint256 trustedUsdPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
-            GetValueInput({ asset: underlyingAssets[1], assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
+            GetValueInput({ asset: asset, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 
+        (asset,) = _getAssetFromKey(assetKey);
         conversionRates = new uint256[](2);
         (conversionRates[0], conversionRates[1]) =
             _getTrustedTokenAmounts(asset, trustedUsdPriceToken0, trustedUsdPriceToken1, 1e18);

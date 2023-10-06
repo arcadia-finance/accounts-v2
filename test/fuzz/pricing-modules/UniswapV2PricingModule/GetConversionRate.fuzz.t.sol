@@ -61,8 +61,11 @@ contract GetConversionRate_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingM
         vm.stopPrank();
 
         // When: "getConversionRate" is called.
-        (uint256[] memory conversionRates) =
-            uniswapV2PricingModule.getConversionRate(address(pairToken1Token2), 0, underlyingTokens);
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pairToken1Token2)));
+        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
+        underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), underlyingTokens[0]));
+        underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), underlyingTokens[1]));
+        (uint256[] memory conversionRates) = uniswapV2PricingModule.getConversionRates(assetKey, underlyingAssetKeys);
 
         // Then: The correct conversion rates are returned.
         uint256 conversionRateToken1Expected = 1e18 * reserve1 / totalSupply;

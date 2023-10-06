@@ -138,17 +138,17 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
 
     /**
      * @notice Calculates the conversion rate of an asset to its underlying asset.
-     * @param asset The asset to calculate the conversion rate for.
-     * @param assetId The id of the asset to calculate the conversion rate for.
-     * param underlyingAssets The assets to which we have to get the conversion rate.
+     * @param assetKey The unique identifier of the asset.
+     * param underlyingAssetKeys The assets to which we have to get the conversion rate.
      * @return conversionRates The conversion rate of the asset to its underlying assets.
      */
-    function _getConversionRates(address asset, uint256 assetId, address[] memory)
+    function _getConversionRates(bytes32 assetKey, bytes32[] memory)
         internal
         view
         override
         returns (uint256[] memory conversionRates)
     {
+        (address asset, uint256 assetId) = _getAssetFromKey(assetKey);
         address factory = assetToV3Factory[asset];
 
         (
@@ -186,16 +186,20 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
             }
         }
 
-        uint256 trustedPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
-            GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-        );
+        uint256 principalAmountToken0;
+        uint256 principalAmountToken1;
+        {
+            uint256 trustedPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
+                GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
+            );
 
-        uint256 trustedPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
-            GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-        );
+            uint256 trustedPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
+                GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
+            );
 
-        (uint256 principalAmountToken0, uint256 principalAmountToken1) =
-            _getPrincipalAmounts(tickLower, tickUpper, 1e18, trustedPriceToken0, trustedPriceToken1);
+            (principalAmountToken0, principalAmountToken1) =
+                _getPrincipalAmounts(tickLower, tickUpper, 1e18, trustedPriceToken0, trustedPriceToken1);
+        }
 
         // Add principal amount to fees
         tokensOwed0 += principalAmountToken0;
@@ -205,13 +209,6 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         conversionRates[0] = tokensOwed0;
         conversionRates[1] = tokensOwed1;
     }
-
-    function __getConversionRates(bytes32 assetKey, bytes32[] memory)
-        internal
-        view
-        override
-        returns (uint256[] memory conversionRates)
-    { }
 
     /**
      * @notice Returns the value of a Uniswap V3 Liquidity Range.

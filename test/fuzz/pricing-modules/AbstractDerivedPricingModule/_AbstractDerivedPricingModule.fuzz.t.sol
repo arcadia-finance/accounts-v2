@@ -89,13 +89,12 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
         derivedPricingModule.setConversionRate(assetState.conversionRate);
 
-        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](1);
-        exposureAssetToUnderlyingAssetsLast[0] = assetState.exposureAssetToUnderlyingAssetsLast;
         derivedPricingModule.setAssetInformation(
             assetState.asset,
+            assetState.underlyingAsset,
             assetState.exposureAssetLast,
             assetState.usdValueExposureAssetLast,
-            exposureAssetToUnderlyingAssetsLast
+            assetState.exposureAssetToUnderlyingAssetsLast
         );
     }
 

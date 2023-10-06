@@ -63,8 +63,9 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
 
         // When: "_processDeposit" is called.
         // Then: The transaction reverts with "ADPM_PD: Exposure not in limits".
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
         vm.expectRevert("ADPM_PD: Exposure not in limits");
-        derivedPricingModule.processDeposit(assetState.asset, exposureAsset);
+        derivedPricingModule.processDeposit(assetKey, exposureAsset);
     }
 
     function testFuzz_Success_processDeposit_PositiveDelta_UnderExposure(
@@ -107,7 +108,8 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "_processDeposit" is called.
-        uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetState.asset, exposureAsset);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValueExposureToUnderlyingAsset);
@@ -151,7 +153,8 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "_processDeposit" is called.
-        uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetState.asset, exposureAsset);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValueExposureToUnderlyingAsset);
@@ -193,7 +196,8 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "_processDeposit" is called.
-        uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetState.asset, exposureAsset);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValueExposureToUnderlyingAsset);

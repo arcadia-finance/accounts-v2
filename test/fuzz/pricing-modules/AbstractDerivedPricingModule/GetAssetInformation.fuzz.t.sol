@@ -26,16 +26,14 @@ contract GetAssetInformation_AbstractDerivedPricingModule_Fuzz_Test is AbstractD
         address underlyingAsset,
         uint128 exposureAssetLast,
         uint128 usdValueExposureAssetLast,
-        uint128 exposureAssetToUnderlyingAssetsLast_
+        uint128 exposureAssetToUnderlyingAssetsLast
     ) public {
         address[] memory underlyingAssets = new address[](1);
         underlyingAssets[0] = underlyingAsset;
-        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](1);
-        exposureAssetToUnderlyingAssetsLast[0] = exposureAssetToUnderlyingAssetsLast_;
 
         derivedPricingModule.addAsset(asset, underlyingAssets);
         derivedPricingModule.setAssetInformation(
-            asset, exposureAssetLast, usdValueExposureAssetLast, exposureAssetToUnderlyingAssetsLast
+            asset, underlyingAsset, exposureAssetLast, usdValueExposureAssetLast, exposureAssetToUnderlyingAssetsLast
         );
 
         (uint128 a, uint128 b, address[] memory c, uint128[] memory d) = derivedPricingModule.getAssetInformation(asset);
@@ -43,6 +41,6 @@ contract GetAssetInformation_AbstractDerivedPricingModule_Fuzz_Test is AbstractD
         assert(a == exposureAssetLast);
         assert(b == usdValueExposureAssetLast);
         assert(c[0] == underlyingAsset);
-        assert(d[0] == exposureAssetToUnderlyingAssetsLast_);
+        assert(d[0] == exposureAssetToUnderlyingAssetsLast);
     }
 }

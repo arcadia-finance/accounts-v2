@@ -166,13 +166,16 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
 
     function setAssetInformation(
         address asset,
+        address underLyingAsset,
         uint128 exposureAssetLast_,
         uint128 usdValueExposureAssetLast_,
-        uint128[] memory exposureAssetToUnderlyingAssetLast
+        uint128 exposureAssetToUnderlyingAssetLast
     ) public {
-        assetToInformation[asset].exposureAssetLast = exposureAssetLast_;
-        assetToInformation[asset].usdValueExposureAssetLast = usdValueExposureAssetLast_;
-        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast = exposureAssetToUnderlyingAssetLast;
+        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+        bytes32 underLyingAssetKey = _getKeyFromAsset(underLyingAsset, 0);
+        assetToExposureLast[assetKey].exposureLast = exposureAssetLast_;
+        assetToExposureLast[assetKey].usdValueExposureLast = usdValueExposureAssetLast_;
+        exposureAssetToUnderlyingAssetsLast[assetKey][underLyingAssetKey] = exposureAssetToUnderlyingAssetLast;
     }
 
     function addAsset(address asset, address[] memory underlyingAssets_) public {
@@ -181,31 +184,49 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         assetsInPricingModule.push(asset);
 
         assetToInformation[asset].underlyingAssets = underlyingAssets_;
+
+        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+        bytes32[] memory underlyingAssetKeys = new bytes32[](underlyingAssets_.length);
+        for (uint256 i; i < underlyingAssets_.length;) {
+            underlyingAssetKeys[i] = _getKeyFromAsset(underlyingAssets_[i], 0);
+        }
+        assetToUnderlyingAssets[assetKey] = underlyingAssetKeys;
     }
 
-    function processDeposit(address asset, uint256 exposureAsset) public returns (uint256 usdValueExposureAsset) {
-        usdValueExposureAsset = _processDeposit(asset, 0, exposureAsset);
+    function processDeposit(bytes32 assetKey, uint256 exposureAsset) public returns (uint256 usdValueExposureAsset) {
+        usdValueExposureAsset = _processDeposit(assetKey, exposureAsset);
     }
 
-    function getAndUpdateExposureAsset(address asset, int256 deltaAsset) public returns (uint256 exposureAsset) {
-        exposureAsset = _getAndUpdateExposureAsset(asset, deltaAsset);
+    function getAndUpdateExposureAsset(bytes32 assetKey, int256 deltaAsset) public returns (uint256 exposureAsset) {
+        exposureAsset = _getAndUpdateExposureAsset(assetKey, deltaAsset);
     }
 
-    function processWithdrawal(address asset, uint256 exposureAsset) public returns (uint256 usdValueExposureAsset) {
-        usdValueExposureAsset = _processWithdrawal(asset, 0, exposureAsset);
+    function processWithdrawal(bytes32 assetKey, uint256 exposureAsset)
+        public
+        returns (uint256 usdValueExposureAsset)
+    {
+        usdValueExposureAsset = _processWithdrawal(assetKey, exposureAsset);
     }
 
     function getAndUpdateExposureUnderlyingAsset(
-        address asset,
+        bytes32 assetKey,
+        bytes32 UnderlyingAssetKey,
         uint256 exposureAsset,
-        uint256 conversionRate_,
-        uint256 index
+        uint256 conversionRate_
     ) public returns (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) {
         (exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset) =
-            _getAndUpdateExposureUnderlyingAsset(asset, exposureAsset, conversionRate_, index);
+            _getAndUpdateExposureUnderlyingAsset(assetKey, UnderlyingAssetKey, exposureAsset, conversionRate_);
     }
 
-    function _getConversionRates(address, uint256, address[] memory)
+    function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
+        (asset, assetId) = _getAssetFromKey(key);
+    }
+
+    function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
+        (key) = _getKeyFromAsset(asset, assetId);
+    }
+
+    function _getConversionRates(bytes32, bytes32[] memory)
         internal
         view
         override
@@ -215,16 +236,7 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         conversionRate_[0] = conversionRate;
     }
 
-    function _getUnderlyingAssets(address asset, uint256)
-        internal
-        view
-        override
-        returns (address[] memory underlyingAssets)
-    {
-        underlyingAssets = assetToInformation[asset].underlyingAssets;
-    }
-
-    function __getUnderlyingAssets(bytes32 assetKey)
+    function _getUnderlyingAssets(bytes32 assetKey)
         internal
         view
         override
@@ -296,12 +308,12 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
         amountOut = _getAmountOut(amountIn, reserveIn, reserveOut);
     }
 
-    function getConversionRate(address asset, uint256 assetId, address[] memory underlyingAssets)
+    function getConversionRates(bytes32 assetKey, bytes32[] memory underlyingAssetKeys)
         public
         view
         returns (uint256[] memory conversionRates)
     {
-        conversionRates = _getConversionRates(asset, assetId, underlyingAssets);
+        conversionRates = _getConversionRates(assetKey, underlyingAssetKeys);
     }
 }
 
@@ -338,11 +350,11 @@ contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
         StandardERC4626PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
-    function getConversionRates(address asset, uint256 assetId, address[] memory underlyingAssets)
+    function getConversionRates(bytes32 assetKey, bytes32[] memory underlyingAssetKeys)
         public
         view
         returns (uint256[] memory conversionRates)
     {
-        conversionRates = _getConversionRates(asset, assetId, underlyingAssets);
+        conversionRates = _getConversionRates(assetKey, underlyingAssetKeys);
     }
 }

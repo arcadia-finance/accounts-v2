@@ -29,6 +29,8 @@ contract ATokenPricingModule is DerivedPricingModule {
         address[] underlyingAssetOracles;
     }
 
+    mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
+
     /**
      * @notice A Pricing Module must always be initialised with the address of the Main-Registry and of the Oracle-Hub
      * @param mainRegistry_ The address of the Main-registry.
@@ -64,6 +66,29 @@ contract ATokenPricingModule is DerivedPricingModule {
                         ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
+    function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
+        assembly {
+            key := asset
+        }
+    }
+
+    function _getAssetFromKey(bytes32 key) internal pure override returns (address asset, uint256) {
+        assembly {
+            asset := key
+        }
+
+        return (asset, 0);
+    }
+
+    function _getUnderlyingAssets(bytes32 assetKey)
+        internal
+        view
+        override
+        returns (bytes32[] memory underlyingAssets)
+    {
+        underlyingAssets = assetToUnderlyingAssets[assetKey];
+    }
+
     /**
      * @notice Adds a new asset to the ATokenPricingModule.
      * @param asset The contract address of the asset
@@ -93,10 +118,11 @@ contract ATokenPricingModule is DerivedPricingModule {
 
         address[] memory underlyingAssets = new address[](1);
         underlyingAssets[0] = underlyingAsset;
-        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](1);
-
         assetToInformation[asset].underlyingAssets = underlyingAssets;
-        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast = exposureAssetToUnderlyingAssetsLast;
+
+        bytes32[] memory underlyingAssets_ = new bytes32[](1);
+        underlyingAssets_[0] = _getKeyFromAsset(underlyingAsset, 0);
+        assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
         _setRiskVariablesForAsset(asset, riskVars);
 
@@ -110,12 +136,11 @@ contract ATokenPricingModule is DerivedPricingModule {
 
     /**
      * @notice Calculates the conversion rate of an asset to its underlying asset.
-     * param asset The asset to calculate the conversion rate for.
-     * param assetId The id of the asset to calculate the conversion rate for.
-     * param underlyingAssets The assets to which we have to get the conversion rate.
+     * param assetKey The unique identifier of the asset.
+     * param underlyingAssetKeys The assets to which we have to get the conversion rate.
      * @return conversionRates The conversion rate of the asset to its underlying assets.
      */
-    function _getConversionRates(address, uint256, address[] memory)
+    function _getConversionRates(bytes32, bytes32[] memory)
         internal
         pure
         override
