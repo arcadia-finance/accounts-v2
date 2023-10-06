@@ -31,10 +31,7 @@ contract GetConversionRate_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingM
     //////////////////////////////////////////////////////////////*/
     // Note: Only tests for balanced pools, other tests in "GetTrustedReserves.fuzz.t.sol" show that "_getTrustedReserves" brings unbalanced pool into balance.
 
-    function testFuzz_Success_getConversionRates(uint256 reserve1, uint256 reserve2, uint256 totalSupply)
-        
-        public
-    {
+    function testFuzz_Success_getConversionRates(uint256 reserve1, uint256 reserve2, uint256 totalSupply) public {
         // Given: reserves are not 0 (division by 0) and smaller or equal as uint122.max (type in Uniswap V2).
         reserve1 = bound(reserve1, 1, type(uint112).max);
         reserve2 = bound(reserve2, 1, type(uint112).max);

@@ -15,9 +15,10 @@ import { IMainRegistry } from "../../src/interfaces/IMainRegistry.sol";
 import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
 import { PrimaryPricingModule } from "../../src/pricing-modules/AbstractPrimaryPricingModule.sol";
 import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
+import { StandardERC20PricingModule } from "../../src/pricing-modules/StandardERC20PricingModule.sol";
+import { StandardERC4626PricingModule } from "../../src/pricing-modules/StandardERC4626PricingModule.sol";
 import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
 import { UniswapV3WithFeesPricingModule } from "../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
-import { StandardERC4626PricingModule } from "../../src/pricing-modules/StandardERC4626PricingModule.sol";
 
 contract AccountExtension is AccountV1 {
     constructor() AccountV1() { }
@@ -150,6 +151,8 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
+    mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
+
     uint256 public conversionRate;
 
     function setUsdExposureProtocol(uint256 maxUsdExposureProtocol_, uint256 usdExposureProtocol_) public {
@@ -210,6 +213,35 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
     {
         conversionRate_ = new uint256[](1);
         conversionRate_[0] = conversionRate;
+    }
+
+    function _getUnderlyingAssets(address asset, uint256)
+        internal
+        view
+        override
+        returns (address[] memory underlyingAssets)
+    {
+        underlyingAssets = assetToInformation[asset].underlyingAssets;
+    }
+
+    function __getUnderlyingAssets(bytes32 assetKey)
+        internal
+        view
+        override
+        returns (bytes32[] memory underlyingAssets)
+    {
+        underlyingAssets = assetToUnderlyingAssets[assetKey];
+    }
+}
+
+contract StandardERC20PricingModuleExtension is StandardERC20PricingModule {
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
+        StandardERC20PricingModule(mainRegistry_, oracleHub_, assetType_)
+    { }
+
+    function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
+        exposure[asset].exposure = exposure_;
+        exposure[asset].maxExposure = maxExposure;
     }
 }
 

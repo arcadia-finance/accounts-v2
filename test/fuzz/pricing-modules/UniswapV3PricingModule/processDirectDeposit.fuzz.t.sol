@@ -84,87 +84,6 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_processDirectDeposit_BelowAcceptedRange(
-        uint128 liquidity,
-        int24 tickLower,
-        int24 tickUpper,
-        uint256 priceToken0,
-        uint256 priceToken1
-    ) public {
-        // Check that ticks are within allowed ranges.
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
-
-        vm.assume(liquidity > 0);
-
-        // Calculate and check that tick current is within allowed ranges.
-        int24 tickCurrent = calculateAndValidateRangeTickCurrent(priceToken0, priceToken1);
-        vm.assume(isWithinAllowedRange(tickCurrent));
-
-        // Condition on which the call should revert: tick_lower is more than 16_095 ticks below tickCurrent.
-        vm.assume(tickCurrent > int256(tickLower) + 16_095);
-
-        // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(tickCurrent), 300);
-
-        // Check that Liquidity is within allowed ranges.
-        vm.assume(liquidity <= pool.maxLiquidityPerTick());
-
-        // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
-
-        // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(priceToken0));
-        addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
-
-        vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_IE: Tlow not in limits");
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 0);
-        vm.stopPrank();
-    }
-
-    function testFuzz_Revert_processDirectDeposit_AboveAcceptedRange(
-        uint128 liquidity,
-        int24 tickLower,
-        int24 tickUpper,
-        uint256 priceToken0,
-        uint256 priceToken1
-    ) public {
-        // Check that ticks are within allowed ranges.
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
-
-        vm.assume(liquidity > 0);
-
-        // Calculate and check that tick current is within allowed ranges.
-        int24 tickCurrent = calculateAndValidateRangeTickCurrent(priceToken0, priceToken1);
-        vm.assume(tickCurrent <= int256(tickLower) + 16_095);
-        vm.assume(isWithinAllowedRange(tickCurrent));
-
-        // Condition on which the call should revert: tickUpper is more than 16_095 ticks above tickCurrent.
-        vm.assume(tickCurrent < int256(tickUpper) - 16_095);
-
-        // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(tickCurrent), 300);
-
-        // Check that Liquidity is within allowed ranges.
-        vm.assume(liquidity <= pool.maxLiquidityPerTick());
-
-        // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
-
-        // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(priceToken0));
-        addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
-
-        vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_IE: Tup not in limits");
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 0);
-        vm.stopPrank();
-    }
-
     function testFuzz_Revert_processDirectDeposit_ExposureToken0ExceedingMax(
         uint128 liquidity,
         int24 tickLower,
@@ -183,8 +102,6 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         // Calculate and check that tick current is within allowed ranges.
         int24 tickCurrent = calculateAndValidateRangeTickCurrent(priceToken0, priceToken1);
-        vm.assume(tickCurrent <= int256(tickLower) + 16_095);
-        vm.assume(tickCurrent >= int256(tickUpper) - 16_095);
         vm.assume(isWithinAllowedRange(tickCurrent));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
@@ -200,15 +117,18 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
         // This is because there might be some small differences due to rounding errors.
         (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
-        uint256 amount0 = LiquidityAmounts.getAmount0ForLiquidity(
-            TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity_
+        (uint256 amount0,) = LiquidityAmounts.getAmountsForLiquidity(
+            TickMath.getSqrtRatioAtTick(tickCurrent),
+            TickMath.getSqrtRatioAtTick(tickLower),
+            TickMath.getSqrtRatioAtTick(tickUpper),
+            liquidity_
         );
 
         // Condition on which the call should revert: exposure to token0 becomes bigger as maxExposure0.
         vm.assume(amount0 + initialExposure0 > maxExposure0);
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(priceToken0));
+        addUnderlyingTokenToArcadia(address(token0), int256(priceToken0), initialExposure0, maxExposure0);
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
 
         vm.startPrank(address(mainRegistryExtension));

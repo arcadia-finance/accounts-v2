@@ -42,6 +42,15 @@ abstract contract DerivedPricingModule is PricingModule {
         uint128[] exposureAssetToUnderlyingAssetsLast;
     }
 
+    struct ExposurePerAsset {
+        uint128 exposureLast;
+        uint128 usdValueExposureLast;
+    }
+
+    mapping(bytes32 assetKey => ExposurePerAsset exposure) internal assetToExposureLast;
+    mapping(bytes32 assetKey => mapping(bytes32 underlyingAssetKey => uint256 exposure)) internal
+        exposureAssetToUnderlyingAssetsLast;
+
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
@@ -69,6 +78,40 @@ abstract contract DerivedPricingModule is PricingModule {
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
+
+    // Unsafe cast from uint256 to uint96, use only when the id's of the assets cannot exceed type(uint92).max.
+    function _getKeyFromAsset(address asset, uint256 assetId) internal view virtual returns (bytes32 key) {
+        assembly {
+            // Shift the address to the left by 12 bytes (96 bits).
+            // This will remove the padding on the right.
+            // Then OR the result with the uint96 value.
+            key := or(shl(96, asset), assetId)
+        }
+    }
+
+    function _getAssetFromKey(bytes32 key) internal view virtual returns (address asset, uint256 assetId) {
+        assembly {
+            // Shift to the right by 12 bytes (96 bits) to extract the address.
+            asset := shr(96, key)
+
+            // Use bitmask to extract the uint96 value from the rightmost 96 bits.
+            assetId := and(key, 0xFFFFFFFFFFFFFFFFFFFFFFFF)
+        }
+    }
+
+    function _getUnderlyingAssets(address asset, uint256)
+        internal
+        view
+        virtual
+        returns (address[] memory underlyingAssets)
+    { }
+
+    function __getUnderlyingAssets(bytes32 assetKey)
+        internal
+        view
+        virtual
+        returns (bytes32[] memory underlyingAssets)
+    { }
 
     /**
      * @notice Returns the information that is stored in the Pricing Module for a given asset
@@ -106,6 +149,13 @@ abstract contract DerivedPricingModule is PricingModule {
         returns (uint256[] memory conversionRates)
     { }
 
+    function __getConversionRates(bytes32 assetKey, bytes32[] memory underlyingAssetKeys)
+        internal
+        view
+        virtual
+        returns (uint256[] memory conversionRates)
+    { }
+
     /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
@@ -128,6 +178,10 @@ abstract contract DerivedPricingModule is PricingModule {
      * @param amount The amount of tokens.
      */
     function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public virtual override onlyMainReg {
+        require(assetId <= type(uint96).max);
+
+        bytes32 key = _getKeyFromAsset(asset, assetId);
+
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getAndUpdateExposureAsset(asset, int256(amount));
 
@@ -147,6 +201,8 @@ abstract contract DerivedPricingModule is PricingModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+        require(assetId <= type(uint96).max);
+
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getAndUpdateExposureAsset(asset, deltaExposureUpperAssetToAsset);
 
@@ -223,7 +279,7 @@ abstract contract DerivedPricingModule is PricingModule {
         returns (uint256 usdValueExposureAsset)
     {
         // Cache values
-        address[] memory underlyingAssets = assetToInformation[asset].underlyingAssets;
+        address[] memory underlyingAssets = _getUnderlyingAssets(asset, assetId);
 
         // Get the current flashloan resistant Conversion rate from the asset to its underlying asset(s) (with 18 decimals precision).
         uint256[] memory conversionRates = _getConversionRates(asset, assetId, underlyingAssets);
@@ -272,6 +328,62 @@ abstract contract DerivedPricingModule is PricingModule {
         emit UsdExposureChanged(usdExposureProtocolLast, usdExposureProtocol);
     }
 
+    function __processDeposit(bytes32 assetKey, uint256 exposureAsset)
+        internal
+        virtual
+        returns (uint256 usdValueExposureAsset)
+    {
+        // Cache values
+        bytes32[] memory underlyingAssetKeys = __getUnderlyingAssets(assetKey);
+
+        // Get the current flashloan resistant Conversion rate from the asset to its underlying asset(s) (with 18 decimals precision).
+        uint256[] memory conversionRates = __getConversionRates(assetKey, underlyingAssetKeys);
+
+        uint256 exposureAssetToUnderlyingAsset;
+        int256 deltaExposureAssetToUnderlyingAsset;
+        for (uint256 i; i < underlyingAssetKeys.length;) {
+            // Calculate and update the total exposure, and the delta since last interaction, of "Asset" to "Underlying Asset".
+            (exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset) =
+            __getAndUpdateExposureUnderlyingAsset(assetKey, underlyingAssetKeys[i], exposureAsset, conversionRates[i]);
+
+            // Get the USD Value of the total exposure of "Asset" for "Underlying Asset.
+            // If "underlyingAsset" has one or more underlying assets itself, the lower level
+            // Pricing Modules will recursively update their respective exposures and return
+            // the requested USD value to this Pricing Module.
+            (address underlyingAsset, uint256 underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
+            usdValueExposureAsset += IMainRegistry(mainRegistry).getUsdValueExposureToUnderlyingAssetAfterDeposit(
+                underlyingAsset, underlyingId, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
+            );
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        // Cache usdValueExposureAssetLast and update usdValueExposureAssetLast.
+        uint256 usdValueExposureAssetLast = assetToExposureLast[assetKey].usdValueExposureLast;
+        assetToExposureLast[assetKey].usdValueExposureLast = uint128(usdValueExposureAsset);
+
+        // Cache usdExposureProtocol.
+        uint256 usdExposureProtocolLast = usdExposureProtocol;
+
+        // Update usdExposureProtocolLast.
+        // ToDo: also in else case a deposit should be blocked if final exposure is bigger as maxExposure?.
+        if (usdValueExposureAsset >= usdValueExposureAssetLast) {
+            require(
+                usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast) <= maxUsdExposureProtocol,
+                "ADPM_PD: Exposure not in limits"
+            );
+            usdExposureProtocol = usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast);
+        } else {
+            usdExposureProtocol = usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
+                ? usdExposureProtocolLast - (usdValueExposureAssetLast - usdValueExposureAsset)
+                : 0;
+        }
+
+        emit UsdExposureChanged(usdExposureProtocolLast, usdExposureProtocol);
+    }
+
     /**
      * @notice Increases the exposure to an asset on deposit.
      * @param asset The contract address of the asset.
@@ -284,7 +396,7 @@ abstract contract DerivedPricingModule is PricingModule {
         returns (uint256 usdValueExposureAsset)
     {
         // Cache values
-        address[] memory underlyingAssets = assetToInformation[asset].underlyingAssets;
+        address[] memory underlyingAssets = _getUnderlyingAssets(asset, assetId);
 
         // Get the current flashloan resistant Conversion rate from the asset to its underlying asset(s) (with 18 decimals precision).
         uint256[] memory conversionRates = _getConversionRates(asset, assetId, underlyingAssets);
@@ -346,6 +458,21 @@ abstract contract DerivedPricingModule is PricingModule {
         assetToInformation[asset].exposureAssetLast = uint128(exposureAsset); // ToDo: safecast?
     }
 
+    function __getAndUpdateExposureAsset(bytes32 assetKey, int256 deltaAsset)
+        internal
+        returns (uint256 exposureAsset)
+    {
+        // Cache the old exposure to the asset.
+        uint256 exposureAssetLast = assetToExposureLast[assetKey].exposureLast;
+        // Calculate and store the new exposure.
+        if (deltaAsset > 0) {
+            exposureAsset = exposureAssetLast + uint256(deltaAsset);
+        } else {
+            exposureAsset = exposureAssetLast > uint256(-deltaAsset) ? exposureAssetLast - uint256(-deltaAsset) : 0;
+        }
+        assetToExposureLast[assetKey].exposureLast = uint128(exposureAsset); // ToDo: safecast?
+    }
+
     /**
      * @notice Calculates the exposure to one of underlying assets and updates it.
      * @param asset The contract address of the asset.
@@ -370,5 +497,22 @@ abstract contract DerivedPricingModule is PricingModule {
 
         // Update "exposureAssetToUnderlyingAssetLast".
         assetToInformation[asset].exposureAssetToUnderlyingAssetsLast[index] = uint128(exposureAssetToUnderlyingAsset); // ToDo: safecast?
+    }
+
+    function __getAndUpdateExposureUnderlyingAsset(
+        bytes32 assetKey,
+        bytes32 UnderlyingAssetKey,
+        uint256 exposureAsset,
+        uint256 conversionRate
+    ) internal returns (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) {
+        // Calculate the total exposure of the asset to a underlying asset.
+        exposureAssetToUnderlyingAsset = exposureAsset.mulDivDown(conversionRate, 1e18);
+
+        // Calculate the change in exposure to the underlying assets since last interaction.
+        deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAsset)
+            - int256(uint256(exposureAssetToUnderlyingAssetsLast[assetKey][UnderlyingAssetKey]));
+
+        // Update "exposureAssetToUnderlyingAssetLast".
+        exposureAssetToUnderlyingAssetsLast[assetKey][UnderlyingAssetKey] = uint128(exposureAssetToUnderlyingAsset); // ToDo: safecast?
     }
 }

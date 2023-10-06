@@ -148,6 +148,13 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
         return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
     }
 
+    function addUnderlyingTokenToArcadia(address token, int256 price, uint128 initialExposure, uint128 maxExposure)
+        internal
+    {
+        addUnderlyingTokenToArcadia(token, price);
+        erc20PricingModule.setExposure(token, initialExposure, maxExposure);
+    }
+
     function addUnderlyingTokenToArcadia(address token, int256 price) internal {
         ArcadiaOracle oracle = initMockedOracle(0, "Token / USD");
         address[] memory oracleArr = new address[](1);

@@ -42,6 +42,8 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
     // Map asset => uniswapV3Factory.
     mapping(address => address) public assetToV3Factory;
 
+    mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
+
     // Map asset => id => positionInformation.
     mapping(address => mapping(uint256 => Position)) internal positions;
 
@@ -204,6 +206,13 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         conversionRates[1] = tokensOwed1;
     }
 
+    function __getConversionRates(bytes32 assetKey, bytes32[] memory)
+        internal
+        view
+        override
+        returns (uint256[] memory conversionRates)
+    { }
+
     /**
      * @notice Returns the value of a Uniswap V3 Liquidity Range.
      * @param getValueInput A Struct with the input variables (avoid stack too deep).
@@ -261,6 +270,8 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         {
             // Calculate amount0 and amount1 of the accumulated fees.
             (uint256 fee0, uint256 fee1) = _getFeeAmounts(asset, id);
+
+            // ToDo: fee should be capped to a max compared to principal to avoid circumventing caps via fees on new pools.
 
             // Calculate the total value in USD, since the USD price is per 10^18 tokens we have to divide by 10^18.
             unchecked {
