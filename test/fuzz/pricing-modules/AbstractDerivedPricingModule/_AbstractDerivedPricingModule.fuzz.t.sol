@@ -29,9 +29,11 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
     struct DerivedPricingModuleAssetState {
         address asset;
+        uint256 assetId;
         uint128 exposureAssetLast;
         uint128 usdValueExposureAssetLast;
         address underlyingAsset;
+        uint256 underlyingAssetId;
         uint256 conversionRate;
         uint128 exposureAssetToUnderlyingAssetsLast;
     }
@@ -85,13 +87,17 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
     function setDerivedPricingModuleAssetState(DerivedPricingModuleAssetState memory assetState) internal {
         address[] memory underlyingAssets = new address[](1);
         underlyingAssets[0] = assetState.underlyingAsset;
-        derivedPricingModule.addAsset(assetState.asset, underlyingAssets);
+        uint256[] memory underlyingAssetIds = new uint256[](1);
+        underlyingAssetIds[0] = assetState.underlyingAssetId;
+        derivedPricingModule.addAsset(assetState.asset, assetState.assetId, underlyingAssets, underlyingAssetIds);
 
         derivedPricingModule.setConversionRate(assetState.conversionRate);
 
         derivedPricingModule.setAssetInformation(
             assetState.asset,
+            assetState.assetId,
             assetState.underlyingAsset,
+            assetState.underlyingAssetId,
             assetState.exposureAssetLast,
             assetState.usdValueExposureAssetLast,
             assetState.exposureAssetToUnderlyingAssetsLast
@@ -126,7 +132,11 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
             UnderlyingPricingModuleState memory
         )
     {
-        // Invariant: usd Value of protocol is bigger or equal to each individual usd value of an asset.
+        // Given: id's are smaller or equal to type(uint96).max.
+        assetState.assetId = bound(assetState.assetId, 0, type(uint96).max);
+        assetState.underlyingAssetId = bound(assetState.underlyingAssetId, 0, type(uint96).max);
+
+        // And: usd Value of protocol is bigger or equal to each individual usd value of an asset (Invariant).
         assetState.usdValueExposureAssetLast =
             uint128(bound(assetState.usdValueExposureAssetLast, 0, protocolState.usdExposureProtocolLast));
 
@@ -160,6 +170,10 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
                 exposureUpperAssetToAsset, 0, type(uint256).max / underlyingPMState.usdValueExposureToUnderlyingAsset
             );
         }
+
+        // And: id's are smaller or equal to type(uint96).max.
+        assetState.assetId = bound(assetState.assetId, 0, type(uint96).max);
+        assetState.underlyingAssetId = bound(assetState.underlyingAssetId, 0, type(uint96).max);
 
         // Calculate exposureAsset.
         uint256 exposureAsset;
@@ -229,6 +243,10 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
             protocolState.maxUsdExposureProtocol =
                 bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected, type(uint256).max);
         }
+
+        // And: id's are smaller or equal to type(uint96).max.
+        assetState.assetId = bound(assetState.assetId, 0, type(uint96).max);
+        assetState.underlyingAssetId = bound(assetState.underlyingAssetId, 0, type(uint96).max);
 
         return (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
     }

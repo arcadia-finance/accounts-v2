@@ -41,7 +41,6 @@ contract ProcessDirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstract
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
-        uint256 id,
         int256 amount
     ) public {
         // And: No overflow on negation most negative int256 (this overflows).
@@ -60,7 +59,7 @@ contract ProcessDirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstract
 
         // When: "MainRegistry" calls "processDirectDeposit".
         vm.prank(address(mainRegistryExtension));
-        derivedPricingModule.processDirectDeposit(assetState.asset, id, uint256(amount));
+        derivedPricingModule.processDirectDeposit(assetState.asset, assetState.assetId, uint256(amount));
 
         // Then: Transaction does not revert.
     }

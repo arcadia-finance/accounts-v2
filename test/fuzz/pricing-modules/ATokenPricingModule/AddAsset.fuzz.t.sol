@@ -65,18 +65,6 @@ contract AddAsset_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
         (uint64 assetUnit) = aTokenPricingModule.aTokenAssetToInformation(address(aToken1));
         assertEq(assetUnit, 10 ** mockERC20.token1.decimals());
 
-        (
-            uint128 exposureAssetLast,
-            uint128 usdValueExposureAssetLast,
-            address[] memory underlyingAssets,
-            uint128[] memory exposureAssetToUnderlyingAssetsLast
-        ) = aTokenPricingModule.getAssetInformation(address(aToken1));
-
-        assertEq(exposureAssetLast, 0);
-        assertEq(usdValueExposureAssetLast, 0);
-        assertEq(underlyingAssets[0], address(mockERC20.token1));
-        assertEq(exposureAssetToUnderlyingAssetsLast[0], 0);
-
         assertTrue(aTokenPricingModule.isAllowListed(address(aToken1), 0));
 
         // We ensure that the correct oracle from the underlying asset was added in

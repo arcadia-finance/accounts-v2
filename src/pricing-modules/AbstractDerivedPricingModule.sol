@@ -99,7 +99,7 @@ abstract contract DerivedPricingModule is PricingModule {
         }
     }
 
-    function _getUnderlyingAssets(bytes32 assetKey) internal view virtual returns (bytes32[] memory underlyingAssets) { }
+    function _getUnderlyingAssets(bytes32 assetKey) internal view virtual returns (bytes32[] memory underlyingAssets);
 
     /**
      * @notice Returns the information that is stored in the Pricing Module for a given asset

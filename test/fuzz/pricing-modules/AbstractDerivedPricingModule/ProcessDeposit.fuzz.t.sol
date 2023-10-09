@@ -63,7 +63,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
 
         // When: "_processDeposit" is called.
         // Then: The transaction reverts with "ADPM_PD: Exposure not in limits".
-        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         vm.expectRevert("ADPM_PD: Exposure not in limits");
         derivedPricingModule.processDeposit(assetKey, exposureAsset);
     }
@@ -108,7 +108,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "_processDeposit" is called.
-        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
@@ -153,7 +153,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "_processDeposit" is called.
-        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
@@ -196,7 +196,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "_processDeposit" is called.
-        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".

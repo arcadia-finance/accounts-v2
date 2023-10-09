@@ -61,7 +61,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
 
         // When: "_processWithdrawal" is called.
         // Then: The transaction reverts with arithmetic overflow.
-        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         vm.expectRevert(stdError.arithmeticError);
         derivedPricingModule.processWithdrawal(assetKey, exposureAsset);
     }
@@ -106,7 +106,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "_processWithdrawal" is called.
-        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdValueExposureAsset = derivedPricingModule.processWithdrawal(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
@@ -151,7 +151,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "_processWithdrawal" is called.
-        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdValueExposureAsset = derivedPricingModule.processWithdrawal(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
@@ -194,7 +194,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "_processWithdrawal" is called.
-        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdValueExposureAsset = derivedPricingModule.processWithdrawal(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".

@@ -92,6 +92,15 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         IMainRegistry(mainRegistry).addAsset(asset, assetType);
     }
 
+    function _getUnderlyingAssets(bytes32 assetKey)
+        internal
+        view
+        override
+        returns (bytes32[] memory underlyingAssets)
+    {
+        underlyingAssets = assetToUnderlyingAssets[assetKey];
+    }
+
     /*///////////////////////////////////////////////////////////////
                             ALLOW LIST
     ///////////////////////////////////////////////////////////////*/
@@ -516,6 +525,10 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
             tickUpper: tickUpper,
             liquidity: liquidity
         });
+        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
+        underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
+        underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
+        assetToUnderlyingAssets[_getKeyFromAsset(asset, assetId)] = underlyingAssetKeys;
 
         super.processDirectDeposit(asset, assetId, amount);
     }
@@ -548,6 +561,10 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
             tickUpper: tickUpper,
             liquidity: liquidity
         });
+        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
+        underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
+        underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
+        assetToUnderlyingAssets[_getKeyFromAsset(asset, assetId)] = underlyingAssetKeys;
 
         (primaryFlag, usdValueExposureUpperAssetToAsset) =
             super.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);

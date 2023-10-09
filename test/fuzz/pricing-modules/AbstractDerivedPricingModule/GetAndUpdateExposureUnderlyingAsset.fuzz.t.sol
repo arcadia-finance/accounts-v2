@@ -44,8 +44,9 @@ contract GetAndUpdateExposureUnderlyingAsset_AbstractDerivedPricingModule_Fuzz_T
         setDerivedPricingModuleAssetState(assetState);
 
         // When: "_getAndUpdateExposureUnderlyingAsset" is called.
-        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
-        bytes32 underlyingAssetKey = derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, 0);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
+        bytes32 underlyingAssetKey =
+            derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         (uint256 exposureAssetToUnderlyingAssetActual, int256 deltaExposureAssetToUnderlyingAssetActual) =
         derivedPricingModule.getAndUpdateExposureUnderlyingAsset(
             assetKey, underlyingAssetKey, exposureAsset, assetState.conversionRate
@@ -56,9 +57,9 @@ contract GetAndUpdateExposureUnderlyingAsset_AbstractDerivedPricingModule_Fuzz_T
         assertEq(deltaExposureAssetToUnderlyingAssetActual, deltaExposureAssetToUnderlyingAssetExpected);
 
         // And: "exposureAssetToUnderlyingAssetsLast" is updated.
-        (,,, uint128[] memory exposureAssetToUnderlyingAssetsLast) =
-            derivedPricingModule.getAssetInformation(assetState.asset);
-        assertEq(exposureAssetToUnderlyingAssetsLast[0], exposureAssetToUnderlyingAssetExpected);
+        uint256 exposureAssetToUnderlyingAssetsActual =
+            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(assetKey, underlyingAssetKey);
+        assertEq(exposureAssetToUnderlyingAssetsActual, exposureAssetToUnderlyingAssetExpected);
     }
 
     function testFuzz_Success_getAndUpdateExposureUnderlyingAsset_NegativeDelta(
@@ -87,8 +88,9 @@ contract GetAndUpdateExposureUnderlyingAsset_AbstractDerivedPricingModule_Fuzz_T
         setDerivedPricingModuleAssetState(assetState);
 
         // When: "_getAndUpdateExposureUnderlyingAsset" is called.
-        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, 0);
-        bytes32 underlyingAssetKey = derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, 0);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
+        bytes32 underlyingAssetKey =
+            derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         (uint256 exposureAssetToUnderlyingAssetActual, int256 deltaExposureAssetToUnderlyingAssetActual) =
         derivedPricingModule.getAndUpdateExposureUnderlyingAsset(
             assetKey, underlyingAssetKey, exposureAsset, assetState.conversionRate
@@ -99,8 +101,8 @@ contract GetAndUpdateExposureUnderlyingAsset_AbstractDerivedPricingModule_Fuzz_T
         assertEq(deltaExposureAssetToUnderlyingAssetActual, deltaExposureAssetToUnderlyingAssetExpected);
 
         // And: "exposureAssetToUnderlyingAssetsLast" is updated.
-        (,,, uint128[] memory exposureAssetToUnderlyingAssetsLast) =
-            derivedPricingModule.getAssetInformation(assetState.asset);
-        assertEq(exposureAssetToUnderlyingAssetsLast[0], exposureAssetToUnderlyingAssetExpected);
+        uint256 exposureAssetToUnderlyingAssetsActual =
+            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(assetKey, underlyingAssetKey);
+        assertEq(exposureAssetToUnderlyingAssetsActual, exposureAssetToUnderlyingAssetExpected);
     }
 }

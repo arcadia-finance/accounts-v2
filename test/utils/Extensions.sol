@@ -155,6 +155,23 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
 
     uint256 public conversionRate;
 
+    function getAssetToExposureLast(bytes32 assetKey)
+        external
+        view
+        returns (uint128 exposureLast, uint128 usdValueExposureLast)
+    {
+        exposureLast = assetToExposureLast[assetKey].exposureLast;
+        usdValueExposureLast = assetToExposureLast[assetKey].usdValueExposureLast;
+    }
+
+    function getExposureAssetToUnderlyingAssetsLast(bytes32 assetKey, bytes32 underlyingAssetKey)
+        external
+        view
+        returns (uint256 exposureAssetToUnderlyingAssetsLast_)
+    {
+        exposureAssetToUnderlyingAssetsLast_ = exposureAssetToUnderlyingAssetsLast[assetKey][underlyingAssetKey];
+    }
+
     function setUsdExposureProtocol(uint256 maxUsdExposureProtocol_, uint256 usdExposureProtocol_) public {
         maxUsdExposureProtocol = maxUsdExposureProtocol_;
         usdExposureProtocol = usdExposureProtocol_;
@@ -166,29 +183,37 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
 
     function setAssetInformation(
         address asset,
+        uint256 assetId,
         address underLyingAsset,
+        uint256 underlyingAssetId,
         uint128 exposureAssetLast_,
         uint128 usdValueExposureAssetLast_,
         uint128 exposureAssetToUnderlyingAssetLast
     ) public {
-        bytes32 assetKey = _getKeyFromAsset(asset, 0);
-        bytes32 underLyingAssetKey = _getKeyFromAsset(underLyingAsset, 0);
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+        bytes32 underLyingAssetKey = _getKeyFromAsset(underLyingAsset, underlyingAssetId);
         assetToExposureLast[assetKey].exposureLast = exposureAssetLast_;
         assetToExposureLast[assetKey].usdValueExposureLast = usdValueExposureAssetLast_;
         exposureAssetToUnderlyingAssetsLast[assetKey][underLyingAssetKey] = exposureAssetToUnderlyingAssetLast;
     }
 
-    function addAsset(address asset, address[] memory underlyingAssets_) public {
+    function addAsset(
+        address asset,
+        uint256 assetId,
+        address[] memory underlyingAssets_,
+        uint256[] memory underlyingAssetIds
+    ) public {
         require(!inPricingModule[asset], "ADPME_AA: already added");
         inPricingModule[asset] = true;
         assetsInPricingModule.push(asset);
 
         assetToInformation[asset].underlyingAssets = underlyingAssets_;
 
-        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
         bytes32[] memory underlyingAssetKeys = new bytes32[](underlyingAssets_.length);
         for (uint256 i; i < underlyingAssets_.length;) {
-            underlyingAssetKeys[i] = _getKeyFromAsset(underlyingAssets_[i], 0);
+            underlyingAssetKeys[i] = _getKeyFromAsset(underlyingAssets_[i], underlyingAssetIds[i]);
+            ++i;
         }
         assetToUnderlyingAssets[assetKey] = underlyingAssetKeys;
     }

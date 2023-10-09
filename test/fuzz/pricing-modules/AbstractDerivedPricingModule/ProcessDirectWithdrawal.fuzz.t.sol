@@ -41,7 +41,6 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
-        uint256 id,
         int256 amount
     ) public {
         // And: No overflow on negation most negative int256 (this overflows).
@@ -60,7 +59,7 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
 
         // When: "MainRegistry" calls "processDirectWithdrawal".
         vm.prank(address(mainRegistryExtension));
-        derivedPricingModule.processDirectWithdrawal(assetState.asset, id, uint256(-amount));
+        derivedPricingModule.processDirectWithdrawal(assetState.asset, assetState.assetId, uint256(-amount));
 
         // Then: Transaction does not revert.
     }

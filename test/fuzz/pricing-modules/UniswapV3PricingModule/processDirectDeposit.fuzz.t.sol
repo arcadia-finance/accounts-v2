@@ -52,7 +52,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        uniV3PricingModule.processDirectDeposit(asset, id, 0);
+        uniV3PricingModule.processDirectDeposit(asset, id, 1);
         vm.stopPrank();
     }
 
@@ -80,7 +80,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("PMUV3_IE: 0 liquidity");
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 0);
+        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -133,7 +133,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("PMUV3_IE: Exposure0 not in limits");
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 0);
+        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -185,11 +185,11 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("PMUV3_IE: Exposure1 not in limits");
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 0);
+        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_processDirectDeposit(
+    function testFuzz_Success_processDirectDeposita(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
@@ -242,7 +242,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
 
         vm.prank(address(mainRegistryExtension));
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 0);
+        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
 
         // NOTE: to adapt here
 
