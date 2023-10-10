@@ -153,7 +153,7 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
 
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
-    uint256 public conversionRate;
+    uint256 public underlyingAssetsAmount;
 
     function getAssetToExposureLast(bytes32 assetKey)
         external
@@ -177,8 +177,8 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         usdExposureProtocol = usdExposureProtocol_;
     }
 
-    function setConversionRate(uint256 newConversionRate) public {
-        conversionRate = newConversionRate;
+    function setUnderlyingAssetsAmount(uint256 underlyingAssetsAmount_) public {
+        underlyingAssetsAmount = underlyingAssetsAmount_;
     }
 
     function setAssetInformation(
@@ -251,14 +251,14 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         (key) = _getKeyFromAsset(asset, assetId);
     }
 
-    function _getConversionRates(bytes32, bytes32[] memory)
+    function _getUnderlyingAssetsAmounts(bytes32, uint256, bytes32[] memory)
         internal
         view
         override
-        returns (uint256[] memory conversionRate_)
+        returns (uint256[] memory underlyingAssetsAmount_)
     {
-        conversionRate_ = new uint256[](1);
-        conversionRate_[0] = conversionRate;
+        underlyingAssetsAmount_ = new uint256[](1);
+        underlyingAssetsAmount_[0] = underlyingAssetsAmount;
     }
 
     function _getUnderlyingAssets(bytes32 assetKey)
@@ -333,12 +333,12 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
         amountOut = _getAmountOut(amountIn, reserveIn, reserveOut);
     }
 
-    function getConversionRates(bytes32 assetKey, bytes32[] memory underlyingAssetKeys)
+    function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
         public
         view
-        returns (uint256[] memory conversionRates)
+        returns (uint256[] memory exposureAssetToUnderlyingAssets)
     {
-        conversionRates = _getConversionRates(assetKey, underlyingAssetKeys);
+        exposureAssetToUnderlyingAssets = _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
     }
 }
 
@@ -375,11 +375,11 @@ contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
         StandardERC4626PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
-    function getConversionRates(bytes32 assetKey, bytes32[] memory underlyingAssetKeys)
+    function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
         public
         view
-        returns (uint256[] memory conversionRates)
+        returns (uint256[] memory exposureAssetToUnderlyingAssets)
     {
-        conversionRates = _getConversionRates(assetKey, underlyingAssetKeys);
+        exposureAssetToUnderlyingAssets = _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
     }
 }

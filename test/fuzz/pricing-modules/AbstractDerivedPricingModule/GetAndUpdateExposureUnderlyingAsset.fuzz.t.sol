@@ -29,12 +29,13 @@ contract GetAndUpdateExposureUnderlyingAsset_AbstractDerivedPricingModule_Fuzz_T
     ) public {
         // Given: No overflow on exposureAssetToUnderlyingAsset.
         if (exposureAsset != 0) {
-            assetState.conversionRate =
-                bound(assetState.conversionRate, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
+            assetState.exposureAssetToUnderlyingAsset =
+                bound(assetState.exposureAssetToUnderlyingAsset, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
         }
 
         // And: delta is positive (test-case).
-        uint256 exposureAssetToUnderlyingAssetExpected = assetState.conversionRate * exposureAsset / 1e18;
+        uint256 exposureAssetToUnderlyingAssetExpected =
+            assetState.exposureAssetToUnderlyingAsset * exposureAsset / 1e18;
         assetState.exposureAssetToUnderlyingAssetsLast =
             uint128(bound(assetState.exposureAssetToUnderlyingAssetsLast, 0, exposureAssetToUnderlyingAssetExpected));
         int256 deltaExposureAssetToUnderlyingAssetExpected =
@@ -49,7 +50,7 @@ contract GetAndUpdateExposureUnderlyingAsset_AbstractDerivedPricingModule_Fuzz_T
             derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         (uint256 exposureAssetToUnderlyingAssetActual, int256 deltaExposureAssetToUnderlyingAssetActual) =
         derivedPricingModule.getAndUpdateExposureUnderlyingAsset(
-            assetKey, underlyingAssetKey, exposureAsset, assetState.conversionRate
+            assetKey, underlyingAssetKey, exposureAsset, assetState.exposureAssetToUnderlyingAsset
         );
 
         // Then: Correct variables are returned.
@@ -68,12 +69,13 @@ contract GetAndUpdateExposureUnderlyingAsset_AbstractDerivedPricingModule_Fuzz_T
     ) public {
         // Given: No overflow on exposureAssetToUnderlyingAsset.
         if (exposureAsset != 0) {
-            assetState.conversionRate =
-                bound(assetState.conversionRate, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
+            assetState.exposureAssetToUnderlyingAsset =
+                bound(assetState.exposureAssetToUnderlyingAsset, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
         }
 
         // And: delta is positive (test-case).
-        uint256 exposureAssetToUnderlyingAssetExpected = assetState.conversionRate * exposureAsset / 1e18;
+        uint256 exposureAssetToUnderlyingAssetExpected =
+            assetState.exposureAssetToUnderlyingAsset * exposureAsset / 1e18;
         assetState.exposureAssetToUnderlyingAssetsLast = uint128(
             bound(
                 assetState.exposureAssetToUnderlyingAssetsLast,
@@ -93,7 +95,7 @@ contract GetAndUpdateExposureUnderlyingAsset_AbstractDerivedPricingModule_Fuzz_T
             derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         (uint256 exposureAssetToUnderlyingAssetActual, int256 deltaExposureAssetToUnderlyingAssetActual) =
         derivedPricingModule.getAndUpdateExposureUnderlyingAsset(
-            assetKey, underlyingAssetKey, exposureAsset, assetState.conversionRate
+            assetKey, underlyingAssetKey, exposureAsset, assetState.exposureAssetToUnderlyingAsset
         );
 
         // Then: Correct variables are returned.

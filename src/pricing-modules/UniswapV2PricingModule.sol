@@ -146,16 +146,17 @@ contract UniswapV2PricingModule is DerivedPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Calculates the conversion rate of an asset to its underlying asset.
+     * @notice Calculates for a given amount of Asset the corresponding amounts of underlying assets.
      * @param assetKey The unique identifier of the asset.
+     * @param assetAmount The amount of the asset,in the decimal precision of the Asset.
      * @param underlyingAssetKeys The assets to which we have to get the conversion rate.
-     * @return conversionRates The conversion rate of the asset to its underlying assets.
+     * @return underlyingAssetsAmounts The corresponding amounts of Underlying Assets, in the decimal precision of the Underlying Asset.
      */
-    function _getConversionRates(bytes32 assetKey, bytes32[] memory underlyingAssetKeys)
+    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory underlyingAssetKeys)
         internal
         view
         override
-        returns (uint256[] memory conversionRates)
+        returns (uint256[] memory underlyingAssetsAmounts)
     {
         (address asset,) = _getAssetFromKey(underlyingAssetKeys[0]);
         uint256 trustedUsdPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
@@ -168,9 +169,9 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         );
 
         (asset,) = _getAssetFromKey(assetKey);
-        conversionRates = new uint256[](2);
-        (conversionRates[0], conversionRates[1]) =
-            _getTrustedTokenAmounts(asset, trustedUsdPriceToken0, trustedUsdPriceToken1, 1e18);
+        underlyingAssetsAmounts = new uint256[](2);
+        (underlyingAssetsAmounts[0], underlyingAssetsAmounts[1]) =
+            _getTrustedTokenAmounts(asset, trustedUsdPriceToken0, trustedUsdPriceToken1, assetAmount);
     }
 
     /**

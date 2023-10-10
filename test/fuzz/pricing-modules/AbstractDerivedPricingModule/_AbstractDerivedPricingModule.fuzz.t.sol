@@ -34,7 +34,7 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
         uint128 usdValueExposureAssetLast;
         address underlyingAsset;
         uint256 underlyingAssetId;
-        uint256 conversionRate;
+        uint256 exposureAssetToUnderlyingAsset;
         uint128 exposureAssetToUnderlyingAssetsLast;
     }
 
@@ -70,7 +70,7 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
         // We assume conversion rate and price of underlying asset both equal to 1.
         // Conversion rate and prices of underlying assets will be tested in specific pricing modules.
-        derivedPricingModule.setConversionRate(1e18);
+        derivedPricingModule.setUnderlyingAssetsAmount(1e18);
 
         vm.stopPrank();
     }
@@ -91,7 +91,7 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
         underlyingAssetIds[0] = assetState.underlyingAssetId;
         derivedPricingModule.addAsset(assetState.asset, assetState.assetId, underlyingAssets, underlyingAssetIds);
 
-        derivedPricingModule.setConversionRate(assetState.conversionRate);
+        derivedPricingModule.setUnderlyingAssetsAmount(assetState.exposureAssetToUnderlyingAsset);
 
         derivedPricingModule.setAssetInformation(
             assetState.asset,
@@ -194,10 +194,8 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
         }
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
-        if (exposureAsset != 0) {
-            assetState.conversionRate =
-                bound(assetState.conversionRate, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
-        }
+        assetState.exposureAssetToUnderlyingAsset =
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
         if (underlyingPMState.usdValueExposureToUnderlyingAsset >= assetState.usdValueExposureAssetLast) {
             // And: "usdExposureProtocol" does not overflow (unrealistically big).

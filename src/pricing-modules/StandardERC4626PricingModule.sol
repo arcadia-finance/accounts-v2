@@ -134,20 +134,21 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Calculates the conversion rate of an asset to its underlying asset.
+     * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
      * @param assetKey The unique identifier of the asset.
+     * @param assetAmount The amount of the asset,in the decimal precision of the Asset.
      * param underlyingAssetKeys The assets to which we have to get the conversion rate.
-     * @return conversionRates The conversion rate of the asset to its underlying assets.
+     * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      */
-    function _getConversionRates(bytes32 assetKey, bytes32[] memory)
+    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory)
         internal
         view
         override
-        returns (uint256[] memory conversionRates)
+        returns (uint256[] memory underlyingAssetsAmounts)
     {
         (address asset,) = _getAssetFromKey(assetKey);
-        conversionRates = new uint256[](1);
-        conversionRates[0] = IERC4626(asset).convertToAssets(1e18);
+        underlyingAssetsAmounts = new uint256[](1);
+        underlyingAssetsAmounts[0] = IERC4626(asset).convertToAssets(assetAmount);
     }
 
     /**

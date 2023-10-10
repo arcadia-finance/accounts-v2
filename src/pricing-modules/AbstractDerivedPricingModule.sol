@@ -124,17 +124,17 @@ abstract contract DerivedPricingModule is PricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Calculates the conversion rate of an asset to its underlying asset.
+     * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
      * @param assetKey The unique identifier of the asset.
+     * @param assetAmount The amount of the asset,in the decimal precision of the Asset.
      * @param underlyingAssetKeys The assets to which we have to get the conversion rate.
-     * @return conversionRates The conversion rate of the asset to its underlying assets.
+     * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      */
-    function _getConversionRates(bytes32 assetKey, bytes32[] memory underlyingAssetKeys)
+    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory underlyingAssetKeys)
         internal
         view
         virtual
-        returns (uint256[] memory conversionRates)
-    { }
+        returns (uint256[] memory underlyingAssetsAmounts);
 
     /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT
@@ -254,7 +254,7 @@ abstract contract DerivedPricingModule is PricingModule {
     }
 
     /**
-     * @notice Increases the exposure to an asset on deposit.
+     * @notice Update the exposure to an asset and it's underlying asset(s) on deposit.
      * @param assetKey The unique identifier of the asset.
      * @param exposureAsset The updated exposure to the asset.
      */
@@ -263,27 +263,30 @@ abstract contract DerivedPricingModule is PricingModule {
         virtual
         returns (uint256 usdValueExposureAsset)
     {
-        // Cache values
+        // Get the unique identifiers of the underlying asset(s).
         bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
 
-        // Get the current flashloan resistant Conversion rate from the asset to its underlying asset(s) (with 18 decimals precision).
-        uint256[] memory conversionRates = _getConversionRates(assetKey, underlyingAssetKeys);
+        // Get the exposure to the asset's underlying asset(s) (in the decimal precision of the underlying assets).
+        uint256[] memory exposureAssetToUnderlyingAssets =
+            _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
 
-        uint256 exposureAssetToUnderlyingAsset;
         int256 deltaExposureAssetToUnderlyingAsset;
         for (uint256 i; i < underlyingAssetKeys.length;) {
-            // Calculate and update the total exposure, and the delta since last interaction, of "Asset" to "Underlying Asset".
-            (exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset) = _getAndUpdateExposureUnderlyingAsset(
-                assetKey, underlyingAssetKeys[i], exposureAsset, conversionRates[i]
-            );
+            // Calculate the change in exposure to the underlying assets since last interaction.
+            deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
+                - int256(uint256(exposureAssetToUnderlyingAssetsLast[assetKey][underlyingAssetKeys[i]]));
 
-            // Get the USD Value of the total exposure of "Asset" for "Underlying Asset.
-            // If "underlyingAsset" has one or more underlying assets itself, the lower level
+            // Update "exposureAssetToUnderlyingAssetLast".
+            exposureAssetToUnderlyingAssetsLast[assetKey][underlyingAssetKeys[i]] =
+                uint128(exposureAssetToUnderlyingAssets[i]); // ToDo: safecast?
+
+            // Get the USD Value of the total exposure of "Asset" for for all of its "Underlying Assets".
+            // If an "underlyingAsset" has one or more underlying assets itself, the lower level
             // Pricing Modules will recursively update their respective exposures and return
             // the requested USD value to this Pricing Module.
             (address underlyingAsset, uint256 underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
             usdValueExposureAsset += IMainRegistry(mainRegistry).getUsdValueExposureToUnderlyingAssetAfterDeposit(
-                underlyingAsset, underlyingId, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
+                underlyingAsset, underlyingId, exposureAssetToUnderlyingAssets[i], deltaExposureAssetToUnderlyingAsset
             );
 
             unchecked {
@@ -316,7 +319,7 @@ abstract contract DerivedPricingModule is PricingModule {
     }
 
     /**
-     * @notice Increases the exposure to an asset on deposit.
+     * @notice Update the exposure to an asset and it's underlying asset(s) on withdrawal.
      * @param assetKey The unique identifier of the asset.
      * @param exposureAsset The updated exposure to the asset.
      */
@@ -325,27 +328,30 @@ abstract contract DerivedPricingModule is PricingModule {
         virtual
         returns (uint256 usdValueExposureAsset)
     {
-        // Cache values
+        // Get the unique identifiers of the underlying asset(s).
         bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
 
-        // Get the current flashloan resistant Conversion rate from the asset to its underlying asset(s) (with 18 decimals precision).
-        uint256[] memory conversionRates = _getConversionRates(assetKey, underlyingAssetKeys);
+        // Get the exposure to the asset's underlying asset(s) (in the decimal precision of the underlying assets).
+        uint256[] memory exposureAssetToUnderlyingAssets =
+            _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
 
-        uint256 exposureAssetToUnderlyingAsset;
         int256 deltaExposureAssetToUnderlyingAsset;
         for (uint256 i; i < underlyingAssetKeys.length;) {
-            // Calculate and update the total exposure, and the delta since last interaction, of "Asset" to "Underlying Asset".
-            (exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset) = _getAndUpdateExposureUnderlyingAsset(
-                assetKey, underlyingAssetKeys[i], exposureAsset, conversionRates[i]
-            );
+            // Calculate the change in exposure to the underlying assets since last interaction.
+            deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
+                - int256(uint256(exposureAssetToUnderlyingAssetsLast[assetKey][underlyingAssetKeys[i]]));
 
-            // Get the USD Value of the total exposure of "Asset" for "Underlying Asset.
-            // If "underlyingAsset" has one or more underlying assets itself, the lower level
+            // Update "exposureAssetToUnderlyingAssetLast".
+            exposureAssetToUnderlyingAssetsLast[assetKey][underlyingAssetKeys[i]] =
+                uint128(exposureAssetToUnderlyingAssets[i]); // ToDo: safecast?
+
+            // Get the USD Value of the total exposure of "Asset" for for all of its "Underlying Assets".
+            // If an "underlyingAsset" has one or more underlying assets itself, the lower level
             // Pricing Modules will recursively update their respective exposures and return
             // the requested USD value to this Pricing Module.
             (address underlyingAsset, uint256 underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
             usdValueExposureAsset += IMainRegistry(mainRegistry).getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
-                underlyingAsset, underlyingId, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
+                underlyingAsset, underlyingId, exposureAssetToUnderlyingAssets[i], deltaExposureAssetToUnderlyingAsset
             );
 
             unchecked {

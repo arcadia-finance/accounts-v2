@@ -31,10 +31,8 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
-        if (exposureAsset != 0) {
-            assetState.conversionRate =
-                bound(assetState.conversionRate, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
-        }
+        assetState.exposureAssetToUnderlyingAsset =
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
         // And: delta "usdValueExposureAsset" is positive (test-case).
         underlyingPMState.usdValueExposureToUnderlyingAsset = bound(
@@ -78,10 +76,8 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
-        if (exposureAsset != 0) {
-            assetState.conversionRate =
-                bound(assetState.conversionRate, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
-        }
+        assetState.exposureAssetToUnderlyingAsset =
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
         // And: delta "usdValueExposureAsset" is positive (test-case).
         underlyingPMState.usdValueExposureToUnderlyingAsset = bound(
@@ -128,10 +124,8 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
-        if (exposureAsset != 0) {
-            assetState.conversionRate =
-                bound(assetState.conversionRate, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
-        }
+        assetState.exposureAssetToUnderlyingAsset =
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
         // And: delta "usdValueExposureAsset" is negative (test-case).
         vm.assume(assetState.usdValueExposureAssetLast > 0);
@@ -173,10 +167,8 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
-        if (exposureAsset != 0) {
-            assetState.conversionRate =
-                bound(assetState.conversionRate, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
-        }
+        assetState.exposureAssetToUnderlyingAsset =
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
         // And: delta "usdValueExposureAsset" is negative (test-case).
         vm.assume(assetState.usdValueExposureAssetLast > 0);

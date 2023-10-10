@@ -11,9 +11,9 @@ import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 /**
- * @notice Fuzz tests for the "_getConversionRate()" of contract "UniswapV2PricingModule".
+ * @notice Fuzz tests for the "_getUnderlyingAssetsAmounts()" of contract "UniswapV2PricingModule".
  */
-contract GetConversionRate_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuzz_Test {
+contract GetUnderlyingAssetsAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -31,7 +31,9 @@ contract GetConversionRate_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingM
     //////////////////////////////////////////////////////////////*/
     // Note: Only tests for balanced pools, other tests in "GetTrustedReserves.fuzz.t.sol" show that "_getTrustedReserves" brings unbalanced pool into balance.
 
-    function testFuzz_Success_getConversionRates(uint256 reserve1, uint256 reserve2, uint256 totalSupply) public {
+    function testFuzz_Success_getUnderlyingAssetsAmounts(uint256 reserve1, uint256 reserve2, uint256 totalSupply)
+        public
+    {
         // Given: reserves are not 0 (division by 0) and smaller or equal as uint122.max (type in Uniswap V2).
         reserve1 = bound(reserve1, 1, type(uint112).max);
         reserve2 = bound(reserve2, 1, type(uint112).max);
@@ -65,12 +67,13 @@ contract GetConversionRate_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingM
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), underlyingTokens[0]));
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), underlyingTokens[1]));
-        (uint256[] memory conversionRates) = uniswapV2PricingModule.getConversionRates(assetKey, underlyingAssetKeys);
+        (uint256[] memory exposureAssetToUnderlyingAssets) =
+            uniswapV2PricingModule.getUnderlyingAssetsAmounts(assetKey, 1e18, underlyingAssetKeys);
 
         // Then: The correct conversion rates are returned.
         uint256 conversionRateToken1Expected = 1e18 * reserve1 / totalSupply;
         uint256 conversionRateToken2Expected = 1e18 * reserve2 / totalSupply;
-        assertEq(conversionRateToken2Expected, conversionRates[0]);
-        assertEq(conversionRateToken1Expected, conversionRates[1]);
+        assertEq(conversionRateToken2Expected, exposureAssetToUnderlyingAssets[0]);
+        assertEq(conversionRateToken1Expected, exposureAssetToUnderlyingAssets[1]);
     }
 }

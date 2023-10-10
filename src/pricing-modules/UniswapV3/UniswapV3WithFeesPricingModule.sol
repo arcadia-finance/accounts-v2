@@ -146,77 +146,54 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Calculates the conversion rate of an asset to its underlying asset.
+     * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
      * @param assetKey The unique identifier of the asset.
+     * param assetAmount The amount of the asset,in the decimal precision of the Asset.
      * param underlyingAssetKeys The assets to which we have to get the conversion rate.
-     * @return conversionRates The conversion rate of the asset to its underlying assets.
+     * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      */
-    function _getConversionRates(bytes32 assetKey, bytes32[] memory)
+    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256, bytes32[] memory)
         internal
         view
         override
-        returns (uint256[] memory conversionRates)
+        returns (uint256[] memory underlyingAssetsAmounts)
     {
         (address asset, uint256 assetId) = _getAssetFromKey(assetKey);
-        address factory = assetToV3Factory[asset];
-
-        (
-            ,
-            ,
-            address token0,
-            address token1,
-            uint24 fee,
-            int24 tickLower,
-            int24 tickUpper,
-            , // gas: cheaper to use uint256 instead of uint128.
-            uint256 feeGrowthInside0LastX128,
-            uint256 feeGrowthInside1LastX128,
-            uint256 tokensOwed0, // gas: cheaper to use uint256 instead of uint128.
-            uint256 tokensOwed1 // gas: cheaper to use uint256 instead of uint128.
-        ) = INonfungiblePositionManager(asset).positions(assetId);
+        address token0;
+        address token1;
+        uint256 usdPriceToken0;
+        uint256 usdPriceToken1;
+        uint256 principal0;
+        uint256 principal1;
 
         {
-            (uint256 feeGrowthInside0CurrentX128, uint256 feeGrowthInside1CurrentX128) =
-                _getFeeGrowthInside(factory, token0, token1, fee, tickLower, tickUpper);
+            int24 tickLower;
+            int24 tickUpper;
+            uint128 liquidity;
+            (token0, token1, tickLower, tickUpper, liquidity) = _getPosition(asset, assetId);
 
-            // Calculate the total amount of fees by adding the already realized fees (tokensOwed),
-            // to the accumulated fees since the last time the position was updated:
-            // (feeGrowthInsideCurrentX128 - feeGrowthInsideLastX128).
-            // Fee calculations in NonfungiblePositionManager.sol overflow (without reverting) when
-            // one or both terms, or their sum, is bigger than a uint128.
-            // This is however much bigger than any realistic situation.
-
-            // Add fees accumulated for each token per LP token.
-            unchecked {
-                tokensOwed0 +=
-                    FullMath.mulDiv(feeGrowthInside0CurrentX128 - feeGrowthInside0LastX128, 1e18, FixedPoint128.Q128);
-                tokensOwed1 +=
-                    FullMath.mulDiv(feeGrowthInside1CurrentX128 - feeGrowthInside1LastX128, 1e18, FixedPoint128.Q128);
-            }
-        }
-
-        uint256 principalAmountToken0;
-        uint256 principalAmountToken1;
-        {
-            uint256 trustedPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
+            // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
+            // sufficient precision.
+            usdPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
                 GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
             );
-
-            uint256 trustedPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
+            usdPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
                 GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
             );
 
-            (principalAmountToken0, principalAmountToken1) =
-                _getPrincipalAmounts(tickLower, tickUpper, 1e18, trustedPriceToken0, trustedPriceToken1);
+            // Calculate amount0 and amount1 of the principal (the actual liquidity position).
+            (principal0, principal1) =
+                _getPrincipalAmounts(tickLower, tickUpper, liquidity, usdPriceToken0, usdPriceToken1);
         }
 
-        // Add principal amount to fees
-        tokensOwed0 += principalAmountToken0;
-        tokensOwed1 += principalAmountToken1;
+        {
+            // Calculate amount0 and amount1 of the accumulated fees.
+            (uint256 fee0, uint256 fee1) = _getFeeAmounts(asset, assetId);
 
-        conversionRates = new uint256[](2);
-        conversionRates[0] = tokensOwed0;
-        conversionRates[1] = tokensOwed1;
+            underlyingAssetsAmounts = new uint256[](2);
+            underlyingAssetsAmounts[0] = principal0 + fee0;
+            underlyingAssetsAmounts[1] = principal1 + fee1;
+        }
     }
 
     /**
