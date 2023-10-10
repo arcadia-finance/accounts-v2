@@ -9,7 +9,7 @@ Parameters
 
 Licensor: Pragma Labs
 
-Licensed Work: Pragma Labs - Arcadia Vaults. The Licensed Work is (c) 2023 Pragma Labs
+Licensed Work: Pragma Labs - Arcadia Accounts. The Licensed Work is (c) 2023 Pragma Labs
 
 Additional Use Grant: Any uses listed and defined at this [LICENSE](./LICENSE.md) or at [core-license-grants.pragmalabs.dev](https://core-license-grants.pragmalabs.dev)
 
