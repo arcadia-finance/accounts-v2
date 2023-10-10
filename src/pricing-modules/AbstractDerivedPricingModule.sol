@@ -209,7 +209,7 @@ abstract contract DerivedPricingModule is PricingModule {
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
     function processDirectWithdrawal(address asset, uint256 assetId, uint256 amount)
-        external
+        public
         virtual
         override
         onlyMainReg
@@ -234,7 +234,7 @@ abstract contract DerivedPricingModule is PricingModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to "Asset".
@@ -394,31 +394,5 @@ abstract contract DerivedPricingModule is PricingModule {
             exposureAsset = exposureAssetLast > uint256(-deltaAsset) ? exposureAssetLast - uint256(-deltaAsset) : 0;
         }
         assetToExposureLast[assetKey].exposureLast = uint128(exposureAsset); // ToDo: safecast?
-    }
-
-    /**
-     * @notice Calculates the exposure to one of underlying assets and updates it.
-     * @param assetKey The unique identifier of the asset.
-     * @param UnderlyingAssetKey The unique identifier of the underlying asset.
-     * @param exposureAsset The total exposure to an asset.
-     * @param conversionRate The conversion rate of the asset to the underlying asset.
-     * @return exposureAssetToUnderlyingAsset The updated amount of exposure to the asset's underlying asset.
-     * @return deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure to the asset's underlying asset since last update.
-     */
-    function _getAndUpdateExposureUnderlyingAsset(
-        bytes32 assetKey,
-        bytes32 UnderlyingAssetKey,
-        uint256 exposureAsset,
-        uint256 conversionRate
-    ) internal returns (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) {
-        // Calculate the total exposure of the asset to a underlying asset.
-        exposureAssetToUnderlyingAsset = exposureAsset.mulDivDown(conversionRate, 1e18);
-
-        // Calculate the change in exposure to the underlying assets since last interaction.
-        deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAsset)
-            - int256(uint256(exposureAssetToUnderlyingAssetsLast[assetKey][UnderlyingAssetKey]));
-
-        // Update "exposureAssetToUnderlyingAssetLast".
-        exposureAssetToUnderlyingAssetsLast[assetKey][UnderlyingAssetKey] = uint128(exposureAssetToUnderlyingAsset); // ToDo: safecast?
     }
 }

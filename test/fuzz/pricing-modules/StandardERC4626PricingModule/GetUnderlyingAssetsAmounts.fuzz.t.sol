@@ -54,7 +54,7 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626PricingModule_Fuzz_Test is St
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_getUnderlyingAssetsAmounts(uint128 depositAmount, uint96 assetId, uint96 yield) public {
         vm.assume(depositAmount > 0);
-        // Mint tokens, do a deposit, an send tokens to vault (=yield)
+        // Mint tokens, do a deposit, and send tokens to vault (=yield)
         vm.startPrank(users.accountOwner);
         mockERC20.stable1.mint(users.accountOwner, uint256(depositAmount) + uint256(yield));
         mockERC20.stable1.transfer(address(ybToken2), yield);

@@ -21,7 +21,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processDeposit_PositiveDelta_OverExposure(
+    function testFuzz_Revert_processDeposit_PositiveDeltaUsdExposure_OverExposure(
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
@@ -66,7 +66,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         derivedPricingModule.processDeposit(assetKey, exposureAsset);
     }
 
-    function testFuzz_Success_processDeposit_PositiveDelta_UnderExposure(
+    function testFuzz_Success_processDeposit_PositiveDeltaUsdExposure_UnderExposure(
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
@@ -103,18 +103,33 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
+        // And: Underlying Asset is properly added to an underlying Pricing Module.
+        int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
+            - int256(uint256(assetState.exposureAssetToUnderlyingAssetsLast));
+        bytes memory data = abi.encodeCall(
+            mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterDeposit,
+            (
+                assetState.underlyingAsset,
+                assetState.underlyingAssetId,
+                assetState.exposureAssetToUnderlyingAsset,
+                deltaExposureAssetToUnderlyingAsset
+            )
+        );
+
         // When: "_processDeposit" is called.
+        // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
+        vm.expectCall(address(mainRegistryExtension), data);
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 
-        // Then: Transaction returns correct "usdValueExposureAsset".
+        // And: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValueExposureToUnderlyingAsset);
 
         // And: "usdExposureProtocol" is updated.
         assertEq(usdExposureProtocolExpected, derivedPricingModule.usdExposureProtocol());
     }
 
-    function testFuzz_Success_processDeposit_NegativeDelta_NoUnderflow(
+    function testFuzz_Success_processDeposit_NegativeDeltaUsdExposure_NoUnderflow(
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
@@ -146,7 +161,22 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
+        // And: Underlying Asset is properly added to an underlying Pricing Module.
+        int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
+            - int256(uint256(assetState.exposureAssetToUnderlyingAssetsLast));
+        bytes memory data = abi.encodeCall(
+            mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterDeposit,
+            (
+                assetState.underlyingAsset,
+                assetState.underlyingAssetId,
+                assetState.exposureAssetToUnderlyingAsset,
+                deltaExposureAssetToUnderlyingAsset
+            )
+        );
+
         // When: "_processDeposit" is called.
+        // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
+        vm.expectCall(address(mainRegistryExtension), data);
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 
@@ -157,7 +187,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         assertEq(usdExposureProtocolExpected, derivedPricingModule.usdExposureProtocol());
     }
 
-    function testFuzz_Success_processDeposit_NegativeDelta_Underflow(
+    function testFuzz_Success_processDeposit_NegativeDeltaUsdExposure_Underflow(
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
@@ -187,7 +217,22 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
+        // And: Underlying Asset is properly added to an underlying Pricing Module.
+        int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
+            - int256(uint256(assetState.exposureAssetToUnderlyingAssetsLast));
+        bytes memory data = abi.encodeCall(
+            mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterDeposit,
+            (
+                assetState.underlyingAsset,
+                assetState.underlyingAssetId,
+                assetState.exposureAssetToUnderlyingAsset,
+                deltaExposureAssetToUnderlyingAsset
+            )
+        );
+
         // When: "_processDeposit" is called.
+        // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
+        vm.expectCall(address(mainRegistryExtension), data);
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 

@@ -246,7 +246,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         emit PricingModuleAdded(pricingModule);
     }
 
-    // Todo :natspec + test if we keep it. Used in UNIV2 pricing midules
+    // Todo Remove, temporary Used in UNIV2 pricing modules.
     function getPricingModuleOfAsset(address asset) public view returns (address pricingModule) {
         pricingModule = assetToAssetInformation[asset].pricingModule;
     }

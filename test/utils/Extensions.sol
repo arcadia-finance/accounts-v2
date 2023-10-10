@@ -233,16 +233,6 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         usdValueExposureAsset = _processWithdrawal(assetKey, exposureAsset);
     }
 
-    function getAndUpdateExposureUnderlyingAsset(
-        bytes32 assetKey,
-        bytes32 UnderlyingAssetKey,
-        uint256 exposureAsset,
-        uint256 conversionRate_
-    ) public returns (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) {
-        (exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset) =
-            _getAndUpdateExposureUnderlyingAsset(assetKey, UnderlyingAssetKey, exposureAsset, conversionRate_);
-    }
-
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
     }

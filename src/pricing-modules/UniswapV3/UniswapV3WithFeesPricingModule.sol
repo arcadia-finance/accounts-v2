@@ -190,6 +190,8 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
             // Calculate amount0 and amount1 of the accumulated fees.
             (uint256 fee0, uint256 fee1) = _getFeeAmounts(asset, assetId);
 
+            // ToDo: fee should be capped to a max compared to principal to avoid circumventing caps via fees on new pools.
+
             underlyingAssetsAmounts = new uint256[](2);
             underlyingAssetsAmounts[0] = principal0 + fee0;
             underlyingAssetsAmounts[1] = principal1 + fee1;
