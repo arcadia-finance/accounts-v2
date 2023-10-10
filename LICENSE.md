@@ -13,7 +13,7 @@ Licensed Work: Pragma Labs - Arcadia Vaults. The Licensed Work is (c) 2023 Pragm
 
 Additional Use Grant: Any uses listed and defined at this [LICENSE](./LICENSE.md) or at [core-license-grants.pragmalabs.dev](https://core-license-grants.pragmalabs.dev)
 
-Change Date: The earlier of 2025-07-08 or a date specified at [core-license-date.pragmalabs.dev](https://core-license-date.pragmalabs.dev)
+Change Date: The earlier of 2026-07-08 or a date specified at [core-license-date.pragmalabs.dev](https://core-license-date.pragmalabs.dev)
 
 Change License: GNU Affero General Public License v3.0 or later
 
