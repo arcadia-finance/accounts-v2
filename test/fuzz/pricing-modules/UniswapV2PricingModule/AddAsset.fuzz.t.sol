@@ -87,7 +87,7 @@ contract AddAsset_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
         assertTrue(uniswapV2PricingModule.inPricingModule(address(pairToken1Token2)));
         assertEq(uniswapV2PricingModule.assetsInPricingModule(0), address(pairToken1Token2));
 
-        (,, address[] memory underlyingTokens,) = uniswapV2PricingModule.getAssetInformation(address(pairToken1Token2));
+        address[] memory underlyingTokens = uniswapV2PricingModule.getUnderlyingAssets(address(pairToken1Token2));
 
         assertEq(underlyingTokens[0], address(mockERC20.token2));
         assertEq(underlyingTokens[1], address(mockERC20.token1));

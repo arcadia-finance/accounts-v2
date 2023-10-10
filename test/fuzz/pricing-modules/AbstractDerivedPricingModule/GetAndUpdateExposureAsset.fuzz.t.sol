@@ -43,8 +43,8 @@ contract GetAndUpdateExposureAsset_AbstractDerivedPricingModule_Fuzz_Test is Abs
         assertEq(exposureAssetActual, exposureAssetExpected);
 
         // And: "exposureAsset" is updated.
-        (exposureAssetActual,,,) = derivedPricingModule.getAssetInformation(assetState.asset);
-        assertEq(exposureAssetExpected, exposureAssetExpected);
+        (exposureAssetActual,) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        assertEq(exposureAssetActual, exposureAssetExpected);
     }
 
     function testFuzz_Success_getAndUpdateExposureAsset_NegativeDelta_NoUnderflow(
@@ -69,8 +69,8 @@ contract GetAndUpdateExposureAsset_AbstractDerivedPricingModule_Fuzz_Test is Abs
         assertEq(exposureAssetActual, exposureAssetExpected);
 
         // And: "exposureAsset" is updated.
-        (exposureAssetActual,,,) = derivedPricingModule.getAssetInformation(assetState.asset);
-        assertEq(exposureAssetExpected, exposureAssetExpected);
+        (exposureAssetActual,) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        assertEq(exposureAssetActual, exposureAssetExpected);
     }
 
     function testFuzz_Success_getAndUpdateExposureAsset_NegativeDelta_Underflow(
@@ -95,7 +95,7 @@ contract GetAndUpdateExposureAsset_AbstractDerivedPricingModule_Fuzz_Test is Abs
         assertEq(exposureAssetActual, exposureAssetExpected);
 
         // And: "exposureAsset" is updated.
-        (exposureAssetActual,,,) = derivedPricingModule.getAssetInformation(assetState.asset);
-        assertEq(exposureAssetExpected, exposureAssetExpected);
+        (exposureAssetActual,) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        assertEq(exposureAssetActual, exposureAssetExpected);
     }
 }

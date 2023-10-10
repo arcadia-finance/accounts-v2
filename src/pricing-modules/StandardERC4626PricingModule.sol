@@ -115,10 +115,6 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
         erc4626AssetToInformation[asset].assetUnit = uint64(assetUnit);
         erc4626AssetToInformation[asset].underlyingAssetOracles = underlyingAssetOracles;
 
-        address[] memory underlyingAssets = new address[](1);
-        underlyingAssets[0] = underlyingAsset;
-        assetToInformation[asset].underlyingAssets = underlyingAssets;
-
         bytes32[] memory underlyingAssets_ = new bytes32[](1);
         underlyingAssets_[0] = _getKeyFromAsset(underlyingAsset, 0);
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;

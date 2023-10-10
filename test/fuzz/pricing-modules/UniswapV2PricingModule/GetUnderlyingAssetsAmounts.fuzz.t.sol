@@ -44,7 +44,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV
         // And: "totalSupply" is bigger as 0 (division by 0).
         totalSupply = bound(totalSupply, 1, type(uint256).max);
 
-        (,, address[] memory underlyingTokens,) = uniswapV2PricingModule.getAssetInformation(address(pairToken1Token2));
+        address[] memory underlyingTokens = uniswapV2PricingModule.getUnderlyingAssets(address(pairToken1Token2));
         assertEq(underlyingTokens[0], address(mockERC20.token2));
         assertEq(underlyingTokens[1], address(mockERC20.token1));
 

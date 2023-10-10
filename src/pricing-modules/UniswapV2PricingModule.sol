@@ -121,14 +121,9 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         require(PricingModule(token0PricingModule).isAllowListed(token0, 0), "PMUV2_AA: TOKENO_NOT_WHITELISTED");
         require(PricingModule(token1PricingModule).isAllowListed(token1, 0), "PMUV2_AA: TOKEN1_NOT_WHITELISTED");
 
-        address[] memory underlyingAssets = new address[](2);
-        underlyingAssets[0] = token0;
-        underlyingAssets[1] = token1;
-        assetToInformation[asset].underlyingAssets = underlyingAssets;
-
         bytes32[] memory underlyingAssets_ = new bytes32[](2);
         underlyingAssets_[0] = _getKeyFromAsset(token0, 0);
-        underlyingAssets_[1] = _getKeyFromAsset(token0, 0);
+        underlyingAssets_[1] = _getKeyFromAsset(token1, 0);
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
         require(!inPricingModule[asset], "PMUV2_AA: already added");
@@ -196,17 +191,18 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        address token0 = assetToInformation[getValueInput.asset].underlyingAssets[0];
-        address token1 = assetToInformation[getValueInput.asset].underlyingAssets[1];
+        bytes32[] memory underlyingAssetKeys = assetToUnderlyingAssets[_getKeyFromAsset(getValueInput.asset, 0)];
 
         // To calculate the liquidity value after arbitrage, what matters is the ratio of the price of token0 compared to the price of token1
         // Hence we need to use a trusted external price for an equal amount of tokens,
         // we use for both tokens the USD price of 1 WAD (10**18) to guarantee precision.
+        (address asset,) = _getAssetFromKey(underlyingAssetKeys[0]);
         uint256 trustedUsdPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
-            GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
+            GetValueInput({ asset: asset, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
+        (asset,) = _getAssetFromKey(underlyingAssetKeys[1]);
         uint256 trustedUsdPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
-            GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
+            GetValueInput({ asset: asset, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 
         //

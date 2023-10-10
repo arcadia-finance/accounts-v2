@@ -32,16 +32,6 @@ abstract contract DerivedPricingModule is PricingModule {
     // The actual exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
     uint256 public usdExposureProtocol;
 
-    // Map asset => assetExposure.
-    mapping(address => AssetInformation) public assetToInformation;
-
-    struct AssetInformation {
-        uint128 exposureAssetLast;
-        uint128 usdValueExposureAssetLast;
-        address[] underlyingAssets;
-        uint128[] exposureAssetToUnderlyingAssetsLast;
-    }
-
     struct ExposurePerAsset {
         uint128 exposureLast;
         uint128 usdValueExposureLast;
@@ -100,24 +90,6 @@ abstract contract DerivedPricingModule is PricingModule {
     }
 
     function _getUnderlyingAssets(bytes32 assetKey) internal view virtual returns (bytes32[] memory underlyingAssets);
-
-    /**
-     * @notice Returns the information that is stored in the Pricing Module for a given asset
-     * @dev struct is not taken into memory; saves 6613 gas
-     * @param asset The Token address of the asset
-     */
-    function getAssetInformation(address asset)
-        external
-        view
-        returns (uint128, uint128, address[] memory, uint128[] memory)
-    {
-        return (
-            assetToInformation[asset].exposureAssetLast,
-            assetToInformation[asset].usdValueExposureAssetLast,
-            assetToInformation[asset].underlyingAssets,
-            assetToInformation[asset].exposureAssetToUnderlyingAssetsLast
-        );
-    }
 
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC

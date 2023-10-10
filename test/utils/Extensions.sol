@@ -207,8 +207,6 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         inPricingModule[asset] = true;
         assetsInPricingModule.push(asset);
 
-        assetToInformation[asset].underlyingAssets = underlyingAssets_;
-
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
         bytes32[] memory underlyingAssetKeys = new bytes32[](underlyingAssets_.length);
         for (uint256 i; i < underlyingAssets_.length;) {
@@ -276,6 +274,15 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address uniswapV2Factory_)
         UniswapV2PricingModule(mainRegistry_, oracleHub_, assetType_, uniswapV2Factory_)
     { }
+
+    function getUnderlyingAssets(address asset) public view returns (address[] memory underlyingAssets) {
+        underlyingAssets = new address[](2);
+
+        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+        bytes32[] memory underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
+        (underlyingAssets[0],) = _getAssetFromKey(underlyingAssetKeys[0]);
+        (underlyingAssets[1],) = _getAssetFromKey(underlyingAssetKeys[1]);
+    }
 
     function getTrustedTokenAmounts(
         address pair,
