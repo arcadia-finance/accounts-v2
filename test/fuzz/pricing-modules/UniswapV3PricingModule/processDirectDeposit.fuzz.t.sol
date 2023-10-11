@@ -102,11 +102,11 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         vm.assume(liquidity > 0);
 
         // Calculate and check that tick current is within allowed ranges.
-        int24 tickCurrent = calculateAndValidateRangeTickCurrent(priceToken0, priceToken1);
-        vm.assume(isWithinAllowedRange(tickCurrent));
+        uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
+        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(tickCurrent), 300);
+        pool = createPool(token0, token1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
@@ -119,10 +119,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         // This is because there might be some small differences due to rounding errors.
         (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
         (uint256 amount0,) = LiquidityAmounts.getAmountsForLiquidity(
-            TickMath.getSqrtRatioAtTick(tickCurrent),
-            TickMath.getSqrtRatioAtTick(tickLower),
-            TickMath.getSqrtRatioAtTick(tickUpper),
-            liquidity_
+            sqrtPriceX96, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity_
         );
 
         // Condition on which the call should revert: exposure to token0 becomes bigger as maxExposure0.
@@ -156,11 +153,11 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         vm.assume(liquidity > 0);
 
         // Calculate and check that tick current is within allowed ranges.
-        int24 tickCurrent = calculateAndValidateRangeTickCurrent(priceToken0, priceToken1);
-        vm.assume(isWithinAllowedRange(tickCurrent));
+        uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
+        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(tickCurrent), 300);
+        pool = createPool(token0, token1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
@@ -173,10 +170,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         // This is because there might be some small differences due to rounding errors.
         (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            TickMath.getSqrtRatioAtTick(tickCurrent),
-            TickMath.getSqrtRatioAtTick(tickLower),
-            TickMath.getSqrtRatioAtTick(tickUpper),
-            liquidity_
+            sqrtPriceX96, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity_
         );
 
         // And: exposure0 does not exceed maximum.
@@ -216,11 +210,11 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         vm.assume(liquidity > 0);
 
         // Calculate and check that tick current is within allowed ranges.
-        int24 tickCurrent = calculateAndValidateRangeTickCurrent(priceToken0, priceToken1);
-        vm.assume(isWithinAllowedRange(tickCurrent));
+        uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
+        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(tickCurrent), 300);
+        pool = createPool(token0, token1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
@@ -230,7 +224,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         // Hacky way to avoid stack to deep.
         int24[] memory ticks = new int24[](3);
-        ticks[0] = tickCurrent;
+        ticks[0] = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
         ticks[1] = tickLower;
         ticks[2] = tickUpper;
 
@@ -239,10 +233,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         // This is because there might be some small differences due to rounding errors.
         (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            TickMath.getSqrtRatioAtTick(ticks[0]),
-            TickMath.getSqrtRatioAtTick(ticks[1]),
-            TickMath.getSqrtRatioAtTick(ticks[2]),
-            liquidity_
+            sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
         );
 
         // Check that exposure to underlying tokens stays below maxExposures.
@@ -285,7 +276,6 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         uint128 maxExposure0,
         uint128 maxExposure1
     ) public {
-        // Check that ticks are within allowed ranges.
         vm.assume(tickLower < tickUpper);
         vm.assume(isWithinAllowedRange(tickLower));
         vm.assume(isWithinAllowedRange(tickUpper));
@@ -293,11 +283,11 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         vm.assume(liquidity > 0);
 
         // Calculate and check that tick current is within allowed ranges.
-        int24 tickCurrent = calculateAndValidateRangeTickCurrent(priceToken0, priceToken1);
-        vm.assume(isWithinAllowedRange(tickCurrent));
+        uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
+        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(tickCurrent), 300);
+        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
@@ -307,7 +297,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         // Hacky way to avoid stack to deep.
         int24[] memory ticks = new int24[](3);
-        ticks[0] = tickCurrent;
+        ticks[0] = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
         ticks[1] = tickLower;
         ticks[2] = tickUpper;
 
@@ -316,10 +306,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         // This is because there might be some small differences due to rounding errors.
         (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            TickMath.getSqrtRatioAtTick(ticks[0]),
-            TickMath.getSqrtRatioAtTick(ticks[1]),
-            TickMath.getSqrtRatioAtTick(ticks[2]),
-            liquidity_
+            sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
         );
 
         // Check that exposure to underlying tokens stays below maxExposures.

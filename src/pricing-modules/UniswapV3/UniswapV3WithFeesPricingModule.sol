@@ -338,6 +338,16 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         );
     }
 
+    function getAmountsForLiquidity_(uint160 sqrtPriceX96, int24 tickLower, int24 tickUpper, uint128 liquidity)
+        public
+        pure
+        returns (uint256 amount0, uint256 amount1)
+    {
+        (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtPriceX96, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity
+        );
+    }
+
     /**
      * @notice Calculates the sqrtPriceX96 (token1/token0) from trusted USD prices of both tokens.
      * @param priceToken0 The price of 10^18 tokens of token0 in USD, with 18 decimals precision.
@@ -351,6 +361,8 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
      * price = (amountUsd/usdPriceToken1)/(amountUsd/usdPriceToken0) = usdPriceToken0/usdPriceToken1.
      */
     function _getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) internal pure returns (uint160 sqrtPriceX96) {
+        if (priceToken1 == 0) return TickMath.MAX_SQRT_RATIO;
+
         // Both priceTokens have 18 decimals precision and result of division should also have 18 decimals precision.
         // -> multiply by 10**18
         uint256 priceXd18 = priceToken0.mulDivDown(1e18, priceToken1);
