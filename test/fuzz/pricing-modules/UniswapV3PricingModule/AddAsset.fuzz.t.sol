@@ -34,7 +34,7 @@ contract AddAsset_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
 
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("PMUV3_AA: already added");
+        vm.expectRevert("MR_AA: Asset already in mainreg");
         uniV3PricingModule.addAsset(address(nonfungiblePositionManager));
         vm.stopPrank();
     }
@@ -42,7 +42,7 @@ contract AddAsset_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
     function testFuzz_Revert_addAsset_MainRegistryReverts() public {
         vm.prank(users.creatorAddress);
         uniV3PricingModule =
-        new UniswapV3PricingModuleExtension(address(mainRegistryExtension), address(oracleHub), users.creatorAddress);
+        new UniswapV3PricingModuleExtension(address(mainRegistryExtension), address(oracleHub), users.creatorAddress, address(nonfungiblePositionManager));
 
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("MR: Only PriceMod.");
@@ -59,7 +59,7 @@ contract AddAsset_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
 
         address factory_ = nonfungiblePositionManager.factory();
         assertTrue(uniV3PricingModule.inPricingModule(address(nonfungiblePositionManager)));
-        assertEq(uniV3PricingModule.assetsInPricingModule(1), address(nonfungiblePositionManager));
+        assertEq(uniV3PricingModule.assetsInPricingModule(0), address(nonfungiblePositionManager));
         assertEq(uniV3PricingModule.assetToV3Factory(address(nonfungiblePositionManager)), factory_);
     }
 }

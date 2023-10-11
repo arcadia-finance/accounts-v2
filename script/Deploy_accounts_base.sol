@@ -288,7 +288,7 @@ contract ArcadiaAccountDeployment is Test {
             0
         );
         uniswapV3PricingModule =
-            new UniswapV3WithFeesPricingModule(address(mainRegistry), address(oracleHub), deployerAddress);
+        new UniswapV3WithFeesPricingModule(address(mainRegistry), address(oracleHub), deployerAddress, DeployAddresses.uniswapV3PositionMgr_base);
 
         account = new AccountV1();
         actionMultiCall = new ActionMultiCallV2();

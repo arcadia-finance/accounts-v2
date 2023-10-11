@@ -35,8 +35,13 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
+    address internal immutable NON_FUNGIBLE_POSITION_MANAGER;
+    address internal immutable UNISWAP_V3_FACTORY;
+
     // Map asset => uniswapV3Factory.
     mapping(address => address) public assetToV3Factory;
+
+    mapping(uint256 assetId => uint256 liquidity) internal assetToLiquidity;
 
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
@@ -60,15 +65,41 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
      * @param mainRegistry_ The contract address of the MainRegistry.
      * @param oracleHub_ The contract address of the OracleHub.
      * @param riskManager_ The address of the Risk Manager.
+     * @param nonFungiblePositionManager The contract address of the protocols NonFungiblePositionManager.
      * @dev AssetType for Uniswap V3 Liquidity Positions (ERC721) is 1.
      */
-    constructor(address mainRegistry_, address oracleHub_, address riskManager_)
+    constructor(address mainRegistry_, address oracleHub_, address riskManager_, address nonFungiblePositionManager)
         DerivedPricingModule(mainRegistry_, oracleHub_, 1, riskManager_)
-    { }
+    {
+        NON_FUNGIBLE_POSITION_MANAGER = nonFungiblePositionManager;
+        UNISWAP_V3_FACTORY = INonfungiblePositionManager(nonFungiblePositionManager).factory();
+    }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
+
+    function setProtocol() external onlyOwner {
+        // Will revert in MainRegistry if asset was already added.
+        IMainRegistry(mainRegistry).addAsset(NON_FUNGIBLE_POSITION_MANAGER, assetType);
+    }
+
+    function _addAsset(uint256 assetId) internal {
+        require(assetId <= type(uint96).max);
+
+        (,, address token0, address token1,,,, uint128 liquidity,,,,) =
+            INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
+
+        require(liquidity > 0, "PMUV3_IE: 0 liquidity");
+
+        assetToLiquidity[assetId] = liquidity;
+
+        bytes32 assetKey = _getKeyFromAsset(NON_FUNGIBLE_POSITION_MANAGER, assetId);
+        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
+        underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
+        underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
+        assetToUnderlyingAssets[assetKey] = underlyingAssetKeys;
+    }
 
     /**
      * @notice Adds a new asset to the UniswapV3PricingModule.
@@ -108,7 +139,7 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
      * @return A boolean, indicating if the asset is whitelisted.
      */
     function isAllowListed(address asset, uint256 assetId) public view override returns (bool) {
-        if (!inPricingModule[asset]) return false;
+        if (asset != NON_FUNGIBLE_POSITION_MANAGER) return false;
 
         try INonfungiblePositionManager(asset).positions(assetId) returns (
             uint96,
@@ -166,7 +197,7 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
             int24 tickLower;
             int24 tickUpper;
             uint128 liquidity;
-            (token0, token1, tickLower, tickUpper, liquidity) = _getPosition(asset, assetId);
+            (token0, token1, tickLower, tickUpper, liquidity) = _getPosition(assetId);
 
             // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
             // sufficient precision.
@@ -229,7 +260,7 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
             int24 tickLower;
             int24 tickUpper;
             uint128 liquidity;
-            (token0, token1, tickLower, tickUpper, liquidity) = _getPosition(asset, id);
+            (token0, token1, tickLower, tickUpper, liquidity) = _getPosition(id);
 
             // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
             // sufficient precision.
@@ -283,7 +314,6 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
 
     /**
      * @notice Returns the position information.
-     * @param asset The contract address of the asset.
      * @param id The Id of the asset.
      * @return token0 Token0 of the Liquidity Pool.
      * @return token1 Token1 of the Liquidity Pool.
@@ -291,24 +321,23 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
      * @return tickUpper The upper tick of the liquidity position.
      * @return liquidity The liquidity per tick of the liquidity position.
      */
-    function _getPosition(address asset, uint256 id)
+    function _getPosition(uint256 id)
         internal
         view
         returns (address token0, address token1, int24 tickLower, int24 tickUpper, uint128 liquidity)
     {
-        liquidity = positions[asset][id].liquidity;
+        // For deposited assets, the liquidity of the Liquidity Position is stored in the Pricing Module,
+        // not fetched from the NonfungiblePositionManager.
+        // Since liquidity of a position can be increased by a non-owner, the max exposure checks could otherwise be circumvented.
+        liquidity = uint128(assetToLiquidity[id]);
 
         if (liquidity > 0) {
-            // For deposited assets, the information of the Liquidity Position is stored in the Pricing Module,
-            // not fetched from the NonfungiblePositionManager.
-            // Since liquidity of a position can be increased by a non-owner, the max exposure checks could otherwise be circumvented.
-            token0 = positions[asset][id].token0;
-            token1 = positions[asset][id].token1;
-            tickLower = positions[asset][id].tickLower;
-            tickUpper = positions[asset][id].tickUpper;
+            (,, token0, token1,, tickLower, tickUpper,,,,,) =
+                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(id);
         } else {
             // Only used as an off-chain view function to return the value of a non deposited Liquidity Position.
-            (,, token0, token1,, tickLower, tickUpper, liquidity,,,,) = INonfungiblePositionManager(asset).positions(id);
+            (,, token0, token1,, tickLower, tickUpper, liquidity,,,,) =
+                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(id);
         }
     }
 
@@ -382,7 +411,6 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
      * @return amount1 The amount of fees underlying token1 tokens.
      */
     function _getFeeAmounts(address asset, uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
-        address factory = assetToV3Factory[asset];
         (
             ,
             ,
@@ -399,7 +427,7 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         ) = INonfungiblePositionManager(asset).positions(id);
 
         (uint256 feeGrowthInside0CurrentX128, uint256 feeGrowthInside1CurrentX128) =
-            _getFeeGrowthInside(factory, token0, token1, fee, tickLower, tickUpper);
+            _getFeeGrowthInside(token0, token1, fee, tickLower, tickUpper);
 
         // Calculate the total amount of fees by adding the already realized fees (tokensOwed),
         // to the accumulated fees since the last time the position was updated:
@@ -419,7 +447,6 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
 
     /**
      * @notice Calculates the current fee growth inside the Liquidity Range.
-     * @param factory The contract address of the pool factory.
      * @param token0 Token0 of the Liquidity Pool.
      * @param token1 Token1 of the Liquidity Pool.
      * @param fee The fee of the Liquidity Pool.
@@ -428,15 +455,12 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
      * @return feeGrowthInside0X128 The amount fees of underlying token0 tokens.
      * @return feeGrowthInside1X128 The amount of fees underlying token1 tokens.
      */
-    function _getFeeGrowthInside(
-        address factory,
-        address token0,
-        address token1,
-        uint24 fee,
-        int24 tickLower,
-        int24 tickUpper
-    ) internal view returns (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128) {
-        IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, token0, token1, fee));
+    function _getFeeGrowthInside(address token0, address token1, uint24 fee, int24 tickLower, int24 tickUpper)
+        internal
+        view
+        returns (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128)
+    {
+        IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(UNISWAP_V3_FACTORY, token0, token1, fee));
 
         // To calculate the pending fees, the current tick has to be used, even if the pool would be unbalanced.
         (, int24 tickCurrent,,,,,) = pool.slot0();
@@ -497,25 +521,8 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
      * @param amount The amount of tokens.
      */
     function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public override onlyMainReg {
-        (,, address token0, address token1,, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) =
-            INonfungiblePositionManager(asset).positions(assetId);
-
-        require(liquidity > 0, "PMUV3_IE: 0 liquidity");
-
-        // Since liquidity of a position can be increased by a non-owner, we have to store the liquidity during deposit.
-        // Otherwise the max exposure checks can be circumvented.
-        // TODO: gas optimization => more efficient to only store liquidity and get other info from nftPositionManager on _getPosition() ?
-        positions[asset][assetId] = Position({
-            token0: token0,
-            token1: token1,
-            tickLower: tickLower,
-            tickUpper: tickUpper,
-            liquidity: liquidity
-        });
-        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
-        underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
-        underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
-        assetToUnderlyingAssets[_getKeyFromAsset(asset, assetId)] = underlyingAssetKeys;
+        // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Pricing Module.
+        _addAsset(assetId);
 
         super.processDirectDeposit(asset, assetId, amount);
     }
@@ -533,25 +540,8 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
-        (,, address token0, address token1,, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) =
-            INonfungiblePositionManager(asset).positions(assetId);
-
-        require(liquidity > 0, "PMUV3_IE: 0 liquidity");
-
-        // Since liquidity of a position can be increased by a non-owner, we have to store the liquidity during deposit.
-        // Otherwise the max exposure checks can be circumvented.
-        // TODO: gas optimization => more efficient to only store liquidity and get other info from nftPositionManager on _getPosition() ?
-        positions[asset][assetId] = Position({
-            token0: token0,
-            token1: token1,
-            tickLower: tickLower,
-            tickUpper: tickUpper,
-            liquidity: liquidity
-        });
-        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
-        underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
-        underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
-        assetToUnderlyingAssets[_getKeyFromAsset(asset, assetId)] = underlyingAssetKeys;
+        // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Pricing Module.
+        _addAsset(assetId);
 
         (primaryFlag, usdValueExposureUpperAssetToAsset) =
             super.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);

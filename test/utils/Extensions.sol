@@ -340,8 +340,8 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
 }
 
 contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule {
-    constructor(address mainRegistry_, address oracleHub_, address riskManager_)
-        UniswapV3WithFeesPricingModule(mainRegistry_, oracleHub_, riskManager_)
+    constructor(address mainRegistry_, address oracleHub_, address riskManager_, address nonfungiblePositionManager)
+        UniswapV3WithFeesPricingModule(mainRegistry_, oracleHub_, riskManager_, nonfungiblePositionManager)
     { }
 
     function getPrincipalAmounts(

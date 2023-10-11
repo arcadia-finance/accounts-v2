@@ -141,14 +141,16 @@ abstract contract Base_Test is Test, Events, Errors {
         return user;
     }
 
-    function deployUniswapV3PricingModule() internal {
+    function deployUniswapV3PricingModule(address nonfungiblePositionManager_) internal {
         // Get the bytecode of the UniswapV3PoolExtension.
         bytes memory args = abi.encode();
         bytes memory bytecode = abi.encodePacked(vm.getCode("UniswapV3PoolExtension.sol"), args);
         bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
 
         // Get the bytecode of UniswapV3PricingModuleExtension.
-        args = abi.encode(address(mainRegistryExtension), address(oracleHub), users.creatorAddress);
+        args = abi.encode(
+            address(mainRegistryExtension), address(oracleHub), users.creatorAddress, nonfungiblePositionManager_
+        );
         bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3PricingModuleExtension"), args);
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.

@@ -53,10 +53,11 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
         Fuzz_Test.setUp();
         UniswapV3Fixture.setUp();
 
-        deployUniswapV3PricingModule();
+        deployUniswapV3PricingModule(address(nonfungiblePositionManager));
 
         vm.prank(users.creatorAddress);
-        uniV3PricingModule.addAsset(address(nonfungiblePositionManager));
+        uniV3PricingModule.setProtocol();
+        //uniV3PricingModule.addAsset(address(nonfungiblePositionManager));
     }
 
     /*////////////////////////////////////////////////////////////////

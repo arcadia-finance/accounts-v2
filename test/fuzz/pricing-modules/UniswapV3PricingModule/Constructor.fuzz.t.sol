@@ -31,7 +31,8 @@ contract Constructor_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_
         UniswapV3WithFeesPricingModule uniV3PricingModule_ = new UniswapV3WithFeesPricingModule(
             mainRegistry_,
             oracleHub_,
-            riskManager_
+            riskManager_,
+            address(nonfungiblePositionManager)
         );
         vm.stopPrank();
 
