@@ -5,8 +5,10 @@
 pragma solidity 0.8.19;
 
 import { Constants, ATokenPricingModule_Fuzz_Test } from "./_ATokenPricingModule.fuzz.t.sol";
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
+
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
+
+import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "getValue" of contract "ATokenPricingModule".

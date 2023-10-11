@@ -6,9 +6,10 @@ pragma solidity 0.8.19;
 
 import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
 
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
+
+import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "_getUnderlyingAssetsAmounts()" of contract "UniswapV2PricingModule".

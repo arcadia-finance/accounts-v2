@@ -5,9 +5,10 @@
 pragma solidity 0.8.19;
 
 import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
+
 import { ERC4626Mock } from "../../.././utils/mocks/ERC4626Mock.sol";
 import { ERC4626PricingModuleExtension } from "../../../utils/Extensions.sol";
+import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "_getUnderlyingAssetsAmounts()" of contract "StandardERC4626PricingModule".

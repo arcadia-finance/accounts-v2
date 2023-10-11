@@ -5,9 +5,10 @@
 pragma solidity 0.8.19;
 
 import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
+
 import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "UniswapV2PricingModule".

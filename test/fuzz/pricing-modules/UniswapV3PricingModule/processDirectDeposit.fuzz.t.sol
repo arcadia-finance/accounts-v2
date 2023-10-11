@@ -9,12 +9,12 @@ import { Constants, UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3Pricing
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
+import { IPricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { INonfungiblePositionManagerExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/pricing-modules/UniswapV3/libraries/LiquidityAmounts.sol";
-import { IPricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
 
 /**

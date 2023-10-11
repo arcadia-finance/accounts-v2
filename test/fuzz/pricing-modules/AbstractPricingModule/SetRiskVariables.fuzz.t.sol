@@ -5,6 +5,7 @@
 pragma solidity 0.8.19;
 
 import { Constants, AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingModule.fuzz.t.sol";
+
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { RiskConstants } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 

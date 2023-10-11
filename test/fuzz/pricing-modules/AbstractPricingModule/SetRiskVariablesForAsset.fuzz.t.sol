@@ -5,10 +5,11 @@
 pragma solidity 0.8.19;
 
 import { Constants, AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingModule.fuzz.t.sol";
-import { RiskConstants } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
+
+import { RiskConstants } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "_setRiskVariablesForAsset" of contract "AbstractPricingModule".
