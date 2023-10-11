@@ -40,7 +40,7 @@ contract GetValue_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
 
         vm.prank(users.creatorAddress);
-        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput, type(uint128).max);
+        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput);
 
         IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(aToken1),
@@ -69,7 +69,7 @@ contract GetValue_ATokenPricingModule_Fuzz_Test is ATokenPricingModule_Fuzz_Test
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
 
         vm.prank(users.creatorAddress);
-        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput, type(uint128).max);
+        aTokenPricingModule.addAsset(address(aToken1), emptyRiskVarInput);
 
         uint256 expectedValueInUsd = (
             (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals) * amountToken1

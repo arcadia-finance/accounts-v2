@@ -4,7 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule, IMainRegistry } from "./AbstractPricingModule.sol";
+import { DerivedPricingModule } from "./AbstractDerivedPricingModule.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 import { IERC4626 } from "../interfaces/IERC4626.sol";
 import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
@@ -16,17 +17,18 @@ import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
  * @notice The StandardERC4626Registry stores pricing logic and basic information for ERC4626 tokens for which the underlying assets have direct price feed.
  * @dev No end-user should directly interact with the StandardERC4626Registry, only the Main-registry, Oracle-Hub or the contract owner
  */
-contract StandardERC4626PricingModule is PricingModule {
+contract StandardERC4626PricingModule is DerivedPricingModule {
     using FixedPointMathLib for uint256;
 
-    mapping(address => AssetInformation) public assetToInformation;
+    mapping(address => ERC4626AssetInformation) public erc4626AssetToInformation;
     address public immutable erc20PricingModule;
 
-    struct AssetInformation {
+    struct ERC4626AssetInformation {
         uint64 assetUnit;
-        address underlyingAsset;
         address[] underlyingAssetOracles;
     }
+
+    mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     /**
      * @notice A Sub-Registry must always be initialised with the address of the Main-Registry and of the Oracle-Hub
@@ -39,20 +41,57 @@ contract StandardERC4626PricingModule is PricingModule {
      * @param erc20PricingModule_ The address of the Pricing Module for standard ERC20 tokens.
      */
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address erc20PricingModule_)
-        PricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
+        DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
     {
         erc20PricingModule = erc20PricingModule_;
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        WHITE LIST MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Checks for a token address and the corresponding Id if it is white-listed.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is whitelisted.
+     */
+    function isAllowListed(address asset, uint256) public view override returns (bool) {
+        // NOTE: To change based on discussion to enable or disable deposits for certain assets
+        return inPricingModule[asset];
     }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
+    function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
+        assembly {
+            key := asset
+        }
+    }
+
+    function _getAssetFromKey(bytes32 key) internal pure override returns (address asset, uint256) {
+        assembly {
+            asset := key
+        }
+
+        return (asset, 0);
+    }
+
+    function _getUnderlyingAssets(bytes32 assetKey)
+        internal
+        view
+        override
+        returns (bytes32[] memory underlyingAssets)
+    {
+        underlyingAssets = assetToUnderlyingAssets[assetKey];
+    }
+
     /**
      * @notice Adds a new asset to the ATokenPricingModule.
      * @param asset The contract address of the asset
      * @param riskVars An array of Risk Variables for the asset
-     * @param maxExposure The maximum exposure of the asset in its own decimals
      * @dev Only the Collateral Factor, Liquidation Threshold and basecurrency are taken into account.
      * If no risk variables are provided, the asset is added with the risk variables set to zero, meaning it can't be used as collateral.
      * @dev RiskVarInput.asset can be zero as it is not taken into account.
@@ -60,7 +99,7 @@ contract StandardERC4626PricingModule is PricingModule {
      * @dev The assets are added in the Main-Registry as well.
      * @dev Assets can't have more than 18 decimals.
      */
-    function addAsset(address asset, RiskVarInput[] calldata riskVars, uint256 maxExposure) external onlyOwner {
+    function addAsset(address asset, RiskVarInput[] calldata riskVars) external onlyOwner {
         uint256 assetUnit = 10 ** IERC4626(asset).decimals();
         address underlyingAsset = address(IERC4626(asset).asset());
 
@@ -73,37 +112,40 @@ contract StandardERC4626PricingModule is PricingModule {
         inPricingModule[asset] = true;
         assetsInPricingModule.push(asset);
 
-        assetToInformation[asset].assetUnit = uint64(assetUnit);
-        assetToInformation[asset].underlyingAsset = underlyingAsset;
-        assetToInformation[asset].underlyingAssetOracles = underlyingAssetOracles;
-        _setRiskVariablesForAsset(asset, riskVars);
+        erc4626AssetToInformation[asset].assetUnit = uint64(assetUnit);
+        erc4626AssetToInformation[asset].underlyingAssetOracles = underlyingAssetOracles;
 
-        require(maxExposure <= type(uint128).max, "PM4626_AA: Max Exposure not in limits");
-        exposure[asset].maxExposure = uint128(maxExposure);
+        bytes32[] memory underlyingAssets_ = new bytes32[](1);
+        underlyingAssets_[0] = _getKeyFromAsset(underlyingAsset, 0);
+        assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
+
+        _setRiskVariablesForAsset(asset, riskVars);
 
         //Will revert in MainRegistry if asset can't be added
         IMainRegistry(mainRegistry).addAsset(asset, assetType);
     }
 
-    /**
-     * @notice Returns the information that is stored in the Sub-registry for a given asset
-     * @dev struct is not taken into memory; saves 6613 gas
-     * @param asset The Token address of the asset
-     * @return assetDecimals The number of decimals of the asset
-     * @return underlyingAssetAddress The Token address of the underlying asset
-     * @return underlyingAssetOracles The list of addresses of the oracles to get the exchange rate of the underlying asset in USD
-     */
-    function getAssetInformation(address asset) external view returns (uint64, address, address[] memory) {
-        return (
-            assetToInformation[asset].assetUnit,
-            assetToInformation[asset].underlyingAsset,
-            assetToInformation[asset].underlyingAssetOracles
-        );
-    }
-
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
+     * @param assetKey The unique identifier of the asset.
+     * @param assetAmount The amount of the asset,in the decimal precision of the Asset.
+     * param underlyingAssetKeys The assets to which we have to get the conversion rate.
+     * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
+     */
+    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory)
+        internal
+        view
+        override
+        returns (uint256[] memory underlyingAssetsAmounts)
+    {
+        (address asset,) = _getAssetFromKey(assetKey);
+        underlyingAssetsAmounts = new uint256[](1);
+        underlyingAssetsAmounts[0] = IERC4626(asset).convertToAssets(assetAmount);
+    }
 
     /**
      * @notice Returns the value of a certain asset, denominated in USD or in another BaseCurrency
@@ -127,11 +169,11 @@ contract StandardERC4626PricingModule is PricingModule {
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
         uint256 rateInUsd =
-            IOraclesHub(oracleHub).getRateInUsd(assetToInformation[getValueInput.asset].underlyingAssetOracles);
+            IOraclesHub(oracleHub).getRateInUsd(erc4626AssetToInformation[getValueInput.asset].underlyingAssetOracles);
 
         uint256 assetAmount = IERC4626(getValueInput.asset).convertToAssets(getValueInput.assetAmount);
 
-        valueInUsd = assetAmount.mulDivDown(rateInUsd, assetToInformation[getValueInput.asset].assetUnit);
+        valueInUsd = assetAmount.mulDivDown(rateInUsd, erc4626AssetToInformation[getValueInput.asset].assetUnit);
 
         collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
         liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;

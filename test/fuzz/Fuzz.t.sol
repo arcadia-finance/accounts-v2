@@ -229,7 +229,6 @@ abstract contract Fuzz_Test is Base_Test {
             })
         );
 
-        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
         PricingModule.RiskVarInput[] memory riskVarsStable = new PricingModule.RiskVarInput[](3);
         PricingModule.RiskVarInput[] memory riskVarsToken = new PricingModule.RiskVarInput[](3);
 
@@ -271,6 +270,7 @@ abstract contract Fuzz_Test is Base_Test {
             liquidationFactor: Constants.tokenToTokenLiqFactor
         });
 
+        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
         oracleStable1ToUsdArr[0] = address(mockOracles.stable1ToUsd);
         oracleStable2ToUsdArr[0] = address(mockOracles.stable2ToUsd);
         oracleToken1ToUsdArr[0] = address(mockOracles.token1ToUsd);

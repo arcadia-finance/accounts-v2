@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule, IPricingModule } from "./AbstractPricingModule.sol";
+import { PrimaryPricingModule, IPricingModule } from "./AbstractPrimaryPricingModule.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
@@ -18,7 +18,7 @@ import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingM
  * @dev No end-user should directly interact with the StandardERC20PricingModule, only the Main-registry,
  * Oracle-Hub or the contract owner.
  */
-contract StandardERC20PricingModule is PricingModule, IStandardERC20PricingModule {
+contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20PricingModule {
     using FixedPointMathLib for uint256;
 
     /* //////////////////////////////////////////////////////////////
@@ -47,7 +47,7 @@ contract StandardERC20PricingModule is PricingModule, IStandardERC20PricingModul
      * 2 = ERC1155.
      */
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        PricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
+        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
     { }
 
     /*///////////////////////////////////////////////////////////////

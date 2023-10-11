@@ -71,8 +71,7 @@ abstract contract UniswapV2PricingModule_Fuzz_Test is Fuzz_Test {
             address(mainRegistryExtension),
             address(oracleHub),
             0,
-            address(uniswapV2Factory),
-            address(erc20PricingModule)
+            address(uniswapV2Factory)
         );
         mainRegistryExtension.addPricingModule(address(uniswapV2PricingModule));
         vm.stopPrank();

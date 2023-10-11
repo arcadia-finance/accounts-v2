@@ -6,8 +6,6 @@ pragma solidity 0.8.19;
 
 import { Constants, AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
 
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
-
 /**
  * @notice Fuzz tests for the "processDirectWithdrawal" of contract "AbstractDerivedPricingModule".
  * @notice Tests performed here will validate the recursion flow of derived pricing modules.
@@ -31,7 +29,7 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
         uint256 id,
         uint128 amount
     ) public {
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension_New));
+        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
@@ -43,7 +41,6 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
-        uint256 id,
         int256 amount
     ) public {
         // And: No overflow on negation most negative int256 (this overflows).
@@ -61,8 +58,8 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "MainRegistry" calls "processDirectWithdrawal".
-        vm.prank(address(mainRegistryExtension_New));
-        derivedPricingModule.processDirectWithdrawal(assetState.asset, id, uint256(-amount));
+        vm.prank(address(mainRegistryExtension));
+        derivedPricingModule.processDirectWithdrawal(assetState.asset, assetState.assetId, uint256(-amount));
 
         // Then: Transaction does not revert.
     }

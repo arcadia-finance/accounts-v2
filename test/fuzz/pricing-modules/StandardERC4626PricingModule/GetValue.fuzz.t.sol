@@ -5,9 +5,7 @@
 pragma solidity 0.8.19;
 
 import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
-
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
-
 import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**
@@ -51,7 +49,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
 
         vm.prank(users.creatorAddress);
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput, type(uint128).max);
+        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput);
 
         //Cheat totalSupply
         stdstore.target(address(ybToken1)).sig(ybToken1.totalSupply.selector).checked_write(totalSupply);
@@ -102,7 +100,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
 
         vm.prank(users.creatorAddress);
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput, type(uint128).max);
+        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput);
 
         //Cheat totalSupply
         stdstore.target(address(ybToken1)).sig(ybToken1.totalSupply.selector).checked_write(totalSupply);

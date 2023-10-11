@@ -5,9 +5,8 @@
 pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
-
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
 import { AbstractPricingModuleExtension } from "../../../utils/Extensions.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Common logic needed by all "AbstractPricingModule" fuzz tests.

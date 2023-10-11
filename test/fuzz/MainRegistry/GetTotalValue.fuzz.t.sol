@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
+import { PricingModule } from "../../../src/pricing-modules/AbstractPricingModule.sol";
 import { ArcadiaOracle } from "../.././utils/mocks/ArcadiaOracle.sol";
 import { ERC20Mock } from "../.././utils/mocks/ERC20Mock.sol";
 import { OracleHub } from "../../../src/OracleHub.sol";

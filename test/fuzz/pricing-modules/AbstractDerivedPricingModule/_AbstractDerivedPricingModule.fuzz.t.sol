@@ -6,11 +6,11 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import {
     AbstractDerivedPricingModuleExtension,
     AbstractPrimaryPricingModuleExtension,
-    MainRegistryExtension_New
+    MainRegistryExtension
 } from "../../../utils/Extensions.sol";
 import { AbstractPrimaryPricingModuleExtension } from "../../../utils/Extensions.sol";
 
@@ -29,10 +29,12 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
     struct DerivedPricingModuleAssetState {
         address asset;
+        uint256 assetId;
         uint128 exposureAssetLast;
         uint128 usdValueExposureAssetLast;
         address underlyingAsset;
-        uint256 conversionRate;
+        uint256 underlyingAssetId;
+        uint256 exposureAssetToUnderlyingAsset;
         uint128 exposureAssetToUnderlyingAssetsLast;
     }
 
@@ -47,7 +49,6 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
     AbstractDerivedPricingModuleExtension internal derivedPricingModule;
     AbstractPrimaryPricingModuleExtension internal primaryPricingModule;
-    MainRegistryExtension_New internal mainRegistryExtension_New;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -58,20 +59,18 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        mainRegistryExtension_New = new MainRegistryExtension_New(address(factory));
-
         derivedPricingModule =
-        new AbstractDerivedPricingModuleExtension(address(mainRegistryExtension_New), address(oracleHub), 0, users.creatorAddress);
+        new AbstractDerivedPricingModuleExtension(address(mainRegistryExtension), address(oracleHub), 0, users.creatorAddress);
 
         primaryPricingModule =
-        new AbstractPrimaryPricingModuleExtension(address(mainRegistryExtension_New), address(oracleHub), 0, users.creatorAddress);
+        new AbstractPrimaryPricingModuleExtension(address(mainRegistryExtension), address(oracleHub), 0, users.creatorAddress);
 
-        mainRegistryExtension_New.addPricingModule(address(derivedPricingModule));
-        mainRegistryExtension_New.addPricingModule(address(primaryPricingModule));
+        mainRegistryExtension.addPricingModule(address(derivedPricingModule));
+        mainRegistryExtension.addPricingModule(address(primaryPricingModule));
 
         // We assume conversion rate and price of underlying asset both equal to 1.
         // Conversion rate and prices of underlying assets will be tested in specific pricing modules.
-        derivedPricingModule.setConversionRate(1e18);
+        derivedPricingModule.setUnderlyingAssetsAmount(1e18);
 
         vm.stopPrank();
     }
@@ -88,17 +87,20 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
     function setDerivedPricingModuleAssetState(DerivedPricingModuleAssetState memory assetState) internal {
         address[] memory underlyingAssets = new address[](1);
         underlyingAssets[0] = assetState.underlyingAsset;
-        derivedPricingModule.addAsset(assetState.asset, underlyingAssets);
+        uint256[] memory underlyingAssetIds = new uint256[](1);
+        underlyingAssetIds[0] = assetState.underlyingAssetId;
+        derivedPricingModule.addAsset(assetState.asset, assetState.assetId, underlyingAssets, underlyingAssetIds);
 
-        derivedPricingModule.setConversionRate(assetState.conversionRate);
+        derivedPricingModule.setUnderlyingAssetsAmount(assetState.exposureAssetToUnderlyingAsset);
 
-        uint128[] memory exposureAssetToUnderlyingAssetsLast = new uint128[](1);
-        exposureAssetToUnderlyingAssetsLast[0] = assetState.exposureAssetToUnderlyingAssetsLast;
         derivedPricingModule.setAssetInformation(
             assetState.asset,
+            assetState.assetId,
+            assetState.underlyingAsset,
+            assetState.underlyingAssetId,
             assetState.exposureAssetLast,
             assetState.usdValueExposureAssetLast,
-            exposureAssetToUnderlyingAssetsLast
+            assetState.exposureAssetToUnderlyingAssetsLast
         );
     }
 
@@ -107,7 +109,7 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
         UnderlyingPricingModuleState memory underlyingPMState
     ) internal {
         // Set mapping between underlying Asset and its pricing module in the Main Registry.
-        mainRegistryExtension_New.setPricingModuleForAsset(underlyingAsset, address(primaryPricingModule));
+        mainRegistryExtension.setPricingModuleForAsset(underlyingAsset, address(primaryPricingModule));
 
         // Set max exposure of mocked Pricing Module for Underlying assets.
         vm.prank(users.creatorAddress);
@@ -130,7 +132,11 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
             UnderlyingPricingModuleState memory
         )
     {
-        // Invariant: usd Value of protocol is bigger or equal to each individual usd value of an asset.
+        // Given: id's are smaller or equal to type(uint96).max.
+        assetState.assetId = bound(assetState.assetId, 0, type(uint96).max);
+        assetState.underlyingAssetId = bound(assetState.underlyingAssetId, 0, type(uint96).max);
+
+        // And: usd Value of protocol is bigger or equal to each individual usd value of an asset (Invariant).
         assetState.usdValueExposureAssetLast =
             uint128(bound(assetState.usdValueExposureAssetLast, 0, protocolState.usdExposureProtocolLast));
 
@@ -165,6 +171,10 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
             );
         }
 
+        // And: id's are smaller or equal to type(uint96).max.
+        assetState.assetId = bound(assetState.assetId, 0, type(uint96).max);
+        assetState.underlyingAssetId = bound(assetState.underlyingAssetId, 0, type(uint96).max);
+
         // Calculate exposureAsset.
         uint256 exposureAsset;
         if (deltaExposureUpperAssetToAsset > 0) {
@@ -184,10 +194,8 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
         }
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
-        if (exposureAsset != 0) {
-            assetState.conversionRate =
-                bound(assetState.conversionRate, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
-        }
+        assetState.exposureAssetToUnderlyingAsset =
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
         if (underlyingPMState.usdValueExposureToUnderlyingAsset >= assetState.usdValueExposureAssetLast) {
             // And: "usdExposureProtocol" does not overflow (unrealistically big).
@@ -233,6 +241,10 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
             protocolState.maxUsdExposureProtocol =
                 bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected, type(uint256).max);
         }
+
+        // And: id's are smaller or equal to type(uint96).max.
+        assetState.assetId = bound(assetState.assetId, 0, type(uint96).max);
+        assetState.underlyingAssetId = bound(assetState.underlyingAssetId, 0, type(uint96).max);
 
         return (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
     }

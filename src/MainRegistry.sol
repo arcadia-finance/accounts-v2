@@ -246,6 +246,11 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         emit PricingModuleAdded(pricingModule);
     }
 
+    // Todo Remove, temporary Used in UNIV2 pricing modules.
+    function getPricingModuleOfAsset(address asset) public view returns (address pricingModule) {
+        pricingModule = assetToAssetInformation[asset].pricingModule;
+    }
+
     /* ///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
     /////////////////////////////////////////////////////////////// */
@@ -297,7 +302,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             assetAddress = assetAddresses[i];
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 
-            IPricingModule(assetToAssetInformation[assetAddress].pricingModule).increaseExposure(
+            IPricingModule(assetToAssetInformation[assetAddress].pricingModule).processDirectDeposit(
                 assetAddress, assetIds[i], amounts[i]
             );
 
@@ -332,7 +337,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             assetAddress = assetAddresses[i];
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 
-            IPricingModule(assetToAssetInformation[assetAddress].pricingModule).decreaseExposure(
+            IPricingModule(assetToAssetInformation[assetAddress].pricingModule).processDirectWithdrawal(
                 assetAddress, assetIds[i], amounts[i]
             );
 
@@ -346,15 +351,19 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @notice This function is called by pricing modules of non-primary assets in order to increase the exposure of the underlying asset.
      * @param underlyingAsset The underlying asset of a non-primary asset.
      * @param underlyingAssetId The underlying asset ID.
-     * @param underlyingAssetAmount The underlying asset amount.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
-    function increaseExposureUnderlyingAsset(
+    function getUsdValueExposureToUnderlyingAssetAfterDeposit(
         address underlyingAsset,
         uint256 underlyingAssetId,
-        uint256 underlyingAssetAmount
-    ) external onlyPricingModule {
-        IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule).increaseExposure(
-            underlyingAsset, underlyingAssetId, underlyingAssetAmount
+        uint256 exposureAssetToUnderlyingAsset,
+        int256 deltaExposureAssetToUnderlyingAsset
+    ) external onlyPricingModule returns (uint256 usdValueExposureAssetToUnderlyingAsset) {
+        (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule(
+            assetToAssetInformation[underlyingAsset].pricingModule
+        ).processIndirectDeposit(
+            underlyingAsset, underlyingAssetId, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
         );
     }
 
@@ -362,21 +371,31 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @notice This function is called by pricing modules of non-primary assets in order to decrease the exposure of the underlying asset.
      * @param underlyingAsset The underlying asset of a non-primary asset.
      * @param underlyingAssetId The underlying asset ID.
-     * @param underlyingAssetAmount The underlying asset amount.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
-    function decreaseExposureUnderlyingAsset(
+    function getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
         address underlyingAsset,
         uint256 underlyingAssetId,
-        uint256 underlyingAssetAmount
-    ) external onlyPricingModule {
-        IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule).increaseExposure(
-            underlyingAsset, underlyingAssetId, underlyingAssetAmount
+        uint256 exposureAssetToUnderlyingAsset,
+        int256 deltaExposureAssetToUnderlyingAsset
+    ) external onlyPricingModule returns (uint256 usdValueExposureAssetToUnderlyingAsset) {
+        (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule(
+            assetToAssetInformation[underlyingAsset].pricingModule
+        ).processIndirectWithdrawal(
+            underlyingAsset, underlyingAssetId, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
         );
     }
 
     /* ///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     /////////////////////////////////////////////////////////////// */
+
+    function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256 usdValue) {
+        // Fetch the Value and the risk variables in the PricingModule.
+        (usdValue,,) =
+            IPricingModule(assetToAssetInformation[getValueInput.asset].pricingModule).getValue(getValueInput);
+    }
 
     /**
      * @notice Calculates the value per asset, denominated in a given BaseCurrency.

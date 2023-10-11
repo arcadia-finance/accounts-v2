@@ -6,8 +6,6 @@ pragma solidity 0.8.19;
 
 import { Constants, AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
 
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
-
 /**
  * @notice Fuzz tests for the "processIndirectDeposit" of contract "AbstractDerivedPricingModule".
  * @notice Tests performed here will validate the recursion flow of derived pricing modules.
@@ -32,7 +30,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension_New));
+        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
@@ -46,7 +44,6 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
-        uint256 id,
         uint256 exposureUpperAssetToAsset,
         uint256 deltaExposureUpperAssetToAsset
     ) public {
@@ -67,9 +64,9 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "MainRegistry" calls "processDirectDeposit".
-        vm.prank(address(mainRegistryExtension_New));
+        vm.prank(address(mainRegistryExtension));
         (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
-            assetState.asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
+            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
         );
 
         // Then: PRIMARY_FLAG is false.
@@ -83,7 +80,6 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
-        uint256 id,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
@@ -102,9 +98,9 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "MainRegistry" calls "processIndirectDeposit".
-        vm.prank(address(mainRegistryExtension_New));
+        vm.prank(address(mainRegistryExtension));
         (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
-            assetState.asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 
         // Then: PRIMARY_FLAG is false.
@@ -118,7 +114,6 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
-        uint256 id,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
@@ -148,9 +143,9 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "MainRegistry" calls "processIndirectDeposit".
-        vm.prank(address(mainRegistryExtension_New));
+        vm.prank(address(mainRegistryExtension));
         (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
-            assetState.asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 
         // Then: PRIMARY_FLAG is false.

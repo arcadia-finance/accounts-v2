@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModule.fuzz.t.sol";
 
-import { PricingModule } from "../../../../src/pricing-modules/FloorERC1155PricingModule.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "FloorERC1155PricingModule".

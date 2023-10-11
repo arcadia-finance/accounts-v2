@@ -6,9 +6,9 @@ pragma solidity 0.8.19;
 
 import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./_StandardERC20PricingModule.fuzz.t.sol";
 
+import { ArcadiaOracle } from "../../.././utils/mocks/ArcadiaOracle.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import { StandardERC20PricingModule } from "../../../../src/pricing-modules/StandardERC20PricingModule.sol";
-import { ArcadiaOracle } from "../../.././utils/mocks/ArcadiaOracle.sol";
 
 /**
  * @notice Fuzz tests for the "setOracles" of contract "StandardERC20PricingModule".

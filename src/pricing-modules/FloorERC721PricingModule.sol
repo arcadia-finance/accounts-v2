@@ -4,7 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule, IMainRegistry } from "./AbstractPricingModule.sol";
+import { PrimaryPricingModule, IPricingModule } from "./AbstractPrimaryPricingModule.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
 
 /**
@@ -14,7 +15,7 @@ import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
  * for the floor price of the collection
  * @dev No end-user should directly interact with the FloorERC721PricingModule, only the Main-registry, Oracle-Hub or the contract owner
  */
-contract FloorERC721PricingModule is PricingModule {
+contract FloorERC721PricingModule is PrimaryPricingModule {
     mapping(address => AssetInformation) public assetToInformation;
 
     struct AssetInformation {
@@ -33,7 +34,7 @@ contract FloorERC721PricingModule is PricingModule {
      * 2 = ERC1155
      */
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        PricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
+        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
     { }
 
     /*///////////////////////////////////////////////////////////////
@@ -142,12 +143,49 @@ contract FloorERC721PricingModule is PricingModule {
      * @param amount the amount of ERC721 tokens
      * @dev amount of a deposit in ERC721 pricing module must be 1
      */
-    function increaseExposure(address asset, uint256 assetId, uint256 amount) external override onlyMainReg {
-        require(isIdInRange(asset, assetId), "PM721_IE: ID not allowed");
-        require(amount == 1, "PM721_IE: Amount not 1");
+    function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public override onlyMainReg {
+        require(isIdInRange(asset, assetId), "PM721_PDD: ID not allowed");
+        require(amount == 1, "PM721_PDD: Amount not 1");
+        require(exposure[asset].exposure + 1 <= exposure[asset].maxExposure, "PM721_PDD: Exposure not in limits");
 
         exposure[asset].exposure += 1;
-        require(exposure[asset].exposure <= exposure[asset].maxExposure, "PM721_IE: Exposure not in limits");
+    }
+
+    /**
+     * @notice Increases the exposure to an underlying asset on deposit.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     */
+    function processIndirectDeposit(
+        address asset,
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+        require(isIdInRange(asset, assetId), "PM721_PID: ID not allowed");
+        // Cache exposureLast.
+        uint256 exposureLast = exposure[asset].exposure;
+
+        uint256 exposureAsset;
+        if (deltaExposureUpperAssetToAsset > 0) {
+            exposureAsset = exposureLast + uint256(deltaExposureUpperAssetToAsset);
+            require(exposureAsset <= exposure[asset].maxExposure, "PM721_PID: Exposure not in limits");
+        } else {
+            exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
+                ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
+                : 0;
+        }
+        exposure[asset].exposure = uint128(exposureAsset);
+
+        // Get Value in Usd
+        (uint256 floorUsdValue,,) =
+            getValue(IPricingModule.GetValueInput({ asset: asset, assetId: 0, assetAmount: 1, baseCurrency: 0 }));
+
+        usdValueExposureUpperAssetToAsset = floorUsdValue * exposureUpperAssetToAsset;
+
+        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
     }
 
     /**
@@ -156,9 +194,45 @@ contract FloorERC721PricingModule is PricingModule {
      * @param amount the amount of ERC721 tokens
      * @dev amount of a deposit in ERC721 pricing module must be 1
      */
-    function decreaseExposure(address asset, uint256, uint256 amount) external override onlyMainReg {
-        require(amount == 1, "PM721_DE: Amount not 1");
+    function processDirectWithdrawal(address asset, uint256, uint256 amount) external override onlyMainReg {
+        require(amount == 1, "PM721_PDW: Amount not 1");
         exposure[asset].exposure -= 1;
+    }
+
+    /**
+     * @notice Decreases the exposure to an underlying asset on withdrawal.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     */
+    function processIndirectWithdrawal(
+        address asset,
+        uint256,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) external virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+        // Cache exposureLast.
+        uint256 exposureLast = exposure[asset].exposure;
+
+        uint256 exposureAsset;
+        if (deltaExposureUpperAssetToAsset > 0) {
+            exposureAsset = exposureLast + uint256(deltaExposureUpperAssetToAsset);
+            require(exposureAsset <= type(uint128).max, "APPM_PIW: Overflow");
+        } else {
+            exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
+                ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
+                : 0;
+        }
+        exposure[asset].exposure = uint128(exposureAsset);
+
+        // Get Value in Usd
+        (uint256 floorUsdValue,,) =
+            getValue(IPricingModule.GetValueInput({ asset: asset, assetId: 0, assetAmount: 1, baseCurrency: 0 }));
+
+        usdValueExposureUpperAssetToAsset = floorUsdValue * exposureUpperAssetToAsset;
+
+        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -177,7 +251,7 @@ contract FloorERC721PricingModule is PricingModule {
      * @return liquidationFactor The Liquidation Factor of the asset
      * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
      * However no check in FloorERC721PricingModule is necessary, since the check if the asset is whitelisted (and hence added to PricingModule)
-     * is already done in the Main-Registry.
+     * is already done in the MainRegistry.
      */
     function getValue(GetValueInput memory getValueInput)
         public

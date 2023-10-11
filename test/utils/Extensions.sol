@@ -11,11 +11,12 @@ import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
 import { MainRegistryGuardian } from "../../src/guardians/MainRegistryGuardian.sol";
 import { MainRegistry } from "../../src/MainRegistry.sol";
-import { MainRegistry_New } from "../../src/MainRegistry_New.sol";
-import { IMainRegistry } from "../../src/interfaces/IMainRegistry_New.sol";
-import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule_New.sol";
+import { IMainRegistry } from "../../src/interfaces/IMainRegistry.sol";
+import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
 import { PrimaryPricingModule } from "../../src/pricing-modules/AbstractPrimaryPricingModule.sol";
 import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
+import { StandardERC20PricingModule } from "../../src/pricing-modules/StandardERC20PricingModule.sol";
+import { StandardERC4626PricingModule } from "../../src/pricing-modules/StandardERC4626PricingModule.sol";
 import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
 import { UniswapV3WithFeesPricingModule } from "../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
 
@@ -99,20 +100,6 @@ contract MainRegistryExtension is MainRegistry {
     }
 }
 
-contract MainRegistryExtension_New is MainRegistry_New {
-    using FixedPointMathLib for uint256;
-
-    constructor(address factory_) MainRegistry_New(factory_) { }
-
-    function setAssetType(address asset, uint96 assetType) public {
-        assetToAssetInformation[asset].assetType = assetType;
-    }
-
-    function setPricingModuleForAsset(address asset, address pricingModule) public {
-        assetToAssetInformation[asset].pricingModule = pricingModule;
-    }
-}
-
 contract AbstractPricingModuleExtension is PricingModule {
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
         PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
@@ -164,77 +151,138 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
-    uint256 public conversionRate;
+    mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
+
+    uint256 public underlyingAssetsAmount;
+
+    function getAssetToExposureLast(bytes32 assetKey)
+        external
+        view
+        returns (uint128 exposureLast, uint128 usdValueExposureLast)
+    {
+        exposureLast = assetToExposureLast[assetKey].exposureLast;
+        usdValueExposureLast = assetToExposureLast[assetKey].usdValueExposureLast;
+    }
+
+    function getExposureAssetToUnderlyingAssetsLast(bytes32 assetKey, bytes32 underlyingAssetKey)
+        external
+        view
+        returns (uint256 exposureAssetToUnderlyingAssetsLast_)
+    {
+        exposureAssetToUnderlyingAssetsLast_ = exposureAssetToUnderlyingAssetsLast[assetKey][underlyingAssetKey];
+    }
 
     function setUsdExposureProtocol(uint256 maxUsdExposureProtocol_, uint256 usdExposureProtocol_) public {
         maxUsdExposureProtocol = maxUsdExposureProtocol_;
         usdExposureProtocol = usdExposureProtocol_;
     }
 
-    function setConversionRate(uint256 newConversionRate) public {
-        conversionRate = newConversionRate;
+    function setUnderlyingAssetsAmount(uint256 underlyingAssetsAmount_) public {
+        underlyingAssetsAmount = underlyingAssetsAmount_;
     }
 
     function setAssetInformation(
         address asset,
+        uint256 assetId,
+        address underLyingAsset,
+        uint256 underlyingAssetId,
         uint128 exposureAssetLast_,
         uint128 usdValueExposureAssetLast_,
-        uint128[] memory exposureAssetToUnderlyingAssetLast
+        uint128 exposureAssetToUnderlyingAssetLast
     ) public {
-        assetToInformation[asset].exposureAssetLast = exposureAssetLast_;
-        assetToInformation[asset].usdValueExposureAssetLast = usdValueExposureAssetLast_;
-        assetToInformation[asset].exposureAssetToUnderlyingAssetsLast = exposureAssetToUnderlyingAssetLast;
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+        bytes32 underLyingAssetKey = _getKeyFromAsset(underLyingAsset, underlyingAssetId);
+        assetToExposureLast[assetKey].exposureLast = exposureAssetLast_;
+        assetToExposureLast[assetKey].usdValueExposureLast = usdValueExposureAssetLast_;
+        exposureAssetToUnderlyingAssetsLast[assetKey][underLyingAssetKey] = exposureAssetToUnderlyingAssetLast;
     }
 
-    function addAsset(address asset, address[] memory underlyingAssets_) public {
+    function addAsset(
+        address asset,
+        uint256 assetId,
+        address[] memory underlyingAssets_,
+        uint256[] memory underlyingAssetIds
+    ) public {
         require(!inPricingModule[asset], "ADPME_AA: already added");
         inPricingModule[asset] = true;
         assetsInPricingModule.push(asset);
 
-        assetToInformation[asset].underlyingAssets = underlyingAssets_;
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+        bytes32[] memory underlyingAssetKeys = new bytes32[](underlyingAssets_.length);
+        for (uint256 i; i < underlyingAssets_.length;) {
+            underlyingAssetKeys[i] = _getKeyFromAsset(underlyingAssets_[i], underlyingAssetIds[i]);
+            ++i;
+        }
+        assetToUnderlyingAssets[assetKey] = underlyingAssetKeys;
     }
 
-    function processDeposit(address asset, uint256 exposureAsset) public returns (uint256 usdValueExposureAsset) {
-        usdValueExposureAsset = _processDeposit(asset, 0, exposureAsset);
+    function processDeposit(bytes32 assetKey, uint256 exposureAsset) public returns (uint256 usdValueExposureAsset) {
+        usdValueExposureAsset = _processDeposit(assetKey, exposureAsset);
     }
 
-    function getAndUpdateExposureAsset(address asset, int256 deltaAsset) public returns (uint256 exposureAsset) {
-        exposureAsset = _getAndUpdateExposureAsset(asset, deltaAsset);
+    function getAndUpdateExposureAsset(bytes32 assetKey, int256 deltaAsset) public returns (uint256 exposureAsset) {
+        exposureAsset = _getAndUpdateExposureAsset(assetKey, deltaAsset);
     }
 
-    function processWithdrawal(address asset, uint256 exposureAsset) public returns (uint256 usdValueExposureAsset) {
-        usdValueExposureAsset = _processWithdrawal(asset, 0, exposureAsset);
+    function processWithdrawal(bytes32 assetKey, uint256 exposureAsset)
+        public
+        returns (uint256 usdValueExposureAsset)
+    {
+        usdValueExposureAsset = _processWithdrawal(assetKey, exposureAsset);
     }
 
-    function getAndUpdateExposureUnderlyingAsset(
-        address asset,
-        uint256 exposureAsset,
-        uint256 conversionRate_,
-        uint256 index
-    ) public returns (uint256 exposureAssetToUnderlyingAsset, int256 deltaExposureAssetToUnderlyingAsset) {
-        (exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset) =
-            _getAndUpdateExposureUnderlyingAsset(asset, exposureAsset, conversionRate_, index);
+    function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
+        (asset, assetId) = _getAssetFromKey(key);
     }
 
-    function _getConversionRates(address, address[] memory)
+    function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
+        (key) = _getKeyFromAsset(asset, assetId);
+    }
+
+    function _getUnderlyingAssetsAmounts(bytes32, uint256, bytes32[] memory)
         internal
         view
         override
-        returns (uint256[] memory conversionRate_)
+        returns (uint256[] memory underlyingAssetsAmount_)
     {
-        conversionRate_ = new uint256[](1);
-        conversionRate_[0] = conversionRate;
+        underlyingAssetsAmount_ = new uint256[](1);
+        underlyingAssetsAmount_[0] = underlyingAssetsAmount;
+    }
+
+    function _getUnderlyingAssets(bytes32 assetKey)
+        internal
+        view
+        override
+        returns (bytes32[] memory underlyingAssets)
+    {
+        underlyingAssets = assetToUnderlyingAssets[assetKey];
+    }
+}
+
+contract StandardERC20PricingModuleExtension is StandardERC20PricingModule {
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
+        StandardERC20PricingModule(mainRegistry_, oracleHub_, assetType_)
+    { }
+
+    function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
+        exposure[asset].exposure = exposure_;
+        exposure[asset].maxExposure = maxExposure;
     }
 }
 
 contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
-    constructor(
-        address mainRegistry_,
-        address oracleHub_,
-        uint256 assetType_,
-        address uniswapV2Factory_,
-        address erc20PricingModule_
-    ) UniswapV2PricingModule(mainRegistry_, oracleHub_, assetType_, uniswapV2Factory_, erc20PricingModule_) { }
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address uniswapV2Factory_)
+        UniswapV2PricingModule(mainRegistry_, oracleHub_, assetType_, uniswapV2Factory_)
+    { }
+
+    function getUnderlyingAssets(address asset) public view returns (address[] memory underlyingAssets) {
+        underlyingAssets = new address[](2);
+
+        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+        bytes32[] memory underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
+        (underlyingAssets[0],) = _getAssetFromKey(underlyingAssetKeys[0]);
+        (underlyingAssets[1],) = _getAssetFromKey(underlyingAssetKeys[1]);
+    }
 
     function getTrustedTokenAmounts(
         address pair,
@@ -281,11 +329,19 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
     {
         amountOut = _getAmountOut(amountIn, reserveIn, reserveOut);
     }
+
+    function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
+        public
+        view
+        returns (uint256[] memory exposureAssetToUnderlyingAssets)
+    {
+        exposureAssetToUnderlyingAssets = _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
+    }
 }
 
 contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule {
-    constructor(address mainRegistry_, address oracleHub_, address riskManager_, address erc20PricingModule_)
-        UniswapV3WithFeesPricingModule(mainRegistry_, oracleHub_, riskManager_, erc20PricingModule_)
+    constructor(address mainRegistry_, address oracleHub_, address riskManager_)
+        UniswapV3WithFeesPricingModule(mainRegistry_, oracleHub_, riskManager_)
     { }
 
     function getPrincipalAmounts(
@@ -306,12 +362,21 @@ contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule {
         return _getTrustedTickCurrent(token0, token1);
     }
 
-    function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
-        exposure[asset].exposure = exposure_;
-        exposure[asset].maxExposure = maxExposure;
-    }
-
     function getFeeAmounts(address asset, uint256 id) public view returns (uint256 amount0, uint256 amount1) {
         (amount0, amount1) = _getFeeAmounts(asset, id);
+    }
+}
+
+contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
+        StandardERC4626PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    { }
+
+    function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
+        public
+        view
+        returns (uint256[] memory exposureAssetToUnderlyingAssets)
+    {
+        exposureAssetToUnderlyingAssets = _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
     }
 }

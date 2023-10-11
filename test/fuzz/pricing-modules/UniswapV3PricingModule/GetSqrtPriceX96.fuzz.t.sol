@@ -7,6 +7,7 @@ pragma solidity 0.8.19;
 import { Constants, UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
 
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
  * @notice Fuzz tests for the "getSqrtPriceX96" of contract "UniswapV3PricingModule".
@@ -23,6 +24,16 @@ contract GetSqrtPriceX96_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingMod
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Success_getSqrtPriceX96_ZeroPriceToken1(uint256 priceToken0) public {
+        // Test-case.
+        uint256 priceToken1 = 0;
+
+        uint256 expectedSqrtPriceX96 = TickMath.MAX_SQRT_RATIO;
+        uint256 actualSqrtPriceX96 = uniV3PricingModule.getSqrtPriceX96(priceToken0, priceToken1);
+
+        assertEq(actualSqrtPriceX96, expectedSqrtPriceX96);
+    }
+
     function testFuzz_Success_getSqrtPriceX96_Overflow(uint256 priceToken0, uint256 priceToken1) public {
         // Avoid divide by 0, which is already checked in earlier in function.
         vm.assume(priceToken1 > 0);

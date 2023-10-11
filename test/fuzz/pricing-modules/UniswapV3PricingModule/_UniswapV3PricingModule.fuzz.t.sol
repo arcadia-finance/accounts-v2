@@ -22,7 +22,7 @@ import { LiquidityAmountsExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
-import { PricingModule, IPricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV3PricingModule" fuzz tests.
@@ -148,6 +148,13 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
         return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
     }
 
+    function addUnderlyingTokenToArcadia(address token, int256 price, uint128 initialExposure, uint128 maxExposure)
+        internal
+    {
+        addUnderlyingTokenToArcadia(token, price);
+        erc20PricingModule.setExposure(token, initialExposure, maxExposure);
+    }
+
     function addUnderlyingTokenToArcadia(address token, int256 price) internal {
         ArcadiaOracle oracle = initMockedOracle(0, "Token / USD");
         address[] memory oracleArr = new address[](1);
@@ -180,7 +187,7 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)
         internal
         pure
-        returns (int24 tickCurrent)
+        returns (uint256 sqrtPriceX96)
     {
         // Avoid divide by 0, which is already checked in earlier in function.
         vm.assume(priceToken1 > 0);
@@ -193,10 +200,8 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
         // sqrtPriceX96 must be within ranges, or TickMath reverts.
         uint256 priceXd18 = priceToken0 * 1e18 / priceToken1;
         uint256 sqrtPriceXd9 = FixedPointMathLib.sqrt(priceXd18);
-        uint256 sqrtPriceX96 = sqrtPriceXd9 * 2 ** 96 / 1e9;
+        sqrtPriceX96 = sqrtPriceXd9 * 2 ** 96 / 1e9;
         vm.assume(sqrtPriceX96 >= 4_295_128_739);
         vm.assume(sqrtPriceX96 <= 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342);
-
-        tickCurrent = TickMath.getTickAtSqrtRatio(uint160(sqrtPriceX96));
     }
 }

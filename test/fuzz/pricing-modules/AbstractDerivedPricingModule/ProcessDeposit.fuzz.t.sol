@@ -21,7 +21,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processDeposit_PositiveDelta_OverExposure(
+    function testFuzz_Revert_processDeposit_PositiveDeltaUsdExposure_OverExposure(
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
@@ -31,10 +31,8 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
-        if (exposureAsset != 0) {
-            assetState.conversionRate =
-                bound(assetState.conversionRate, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
-        }
+        assetState.exposureAssetToUnderlyingAsset =
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
         // And: delta "usdValueExposureAsset" is positive (test-case).
         underlyingPMState.usdValueExposureToUnderlyingAsset = bound(
@@ -63,11 +61,12 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
 
         // When: "_processDeposit" is called.
         // Then: The transaction reverts with "ADPM_PD: Exposure not in limits".
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         vm.expectRevert("ADPM_PD: Exposure not in limits");
-        derivedPricingModule.processDeposit(assetState.asset, exposureAsset);
+        derivedPricingModule.processDeposit(assetKey, exposureAsset);
     }
 
-    function testFuzz_Success_processDeposit_PositiveDelta_UnderExposure(
+    function testFuzz_Success_processDeposit_PositiveDeltaUsdExposure_UnderExposure(
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
@@ -77,10 +76,8 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
-        if (exposureAsset != 0) {
-            assetState.conversionRate =
-                bound(assetState.conversionRate, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
-        }
+        assetState.exposureAssetToUnderlyingAsset =
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
         // And: delta "usdValueExposureAsset" is positive (test-case).
         underlyingPMState.usdValueExposureToUnderlyingAsset = bound(
@@ -106,17 +103,33 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
-        // When: "_processDeposit" is called.
-        uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetState.asset, exposureAsset);
+        // And: Underlying Asset is properly added to an underlying Pricing Module.
+        int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
+            - int256(uint256(assetState.exposureAssetToUnderlyingAssetsLast));
+        bytes memory data = abi.encodeCall(
+            mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterDeposit,
+            (
+                assetState.underlyingAsset,
+                assetState.underlyingAssetId,
+                assetState.exposureAssetToUnderlyingAsset,
+                deltaExposureAssetToUnderlyingAsset
+            )
+        );
 
-        // Then: Transaction returns correct "usdValueExposureAsset".
+        // When: "_processDeposit" is called.
+        // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
+        vm.expectCall(address(mainRegistryExtension), data);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
+        uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
+
+        // And: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValueExposureToUnderlyingAsset);
 
         // And: "usdExposureProtocol" is updated.
         assertEq(usdExposureProtocolExpected, derivedPricingModule.usdExposureProtocol());
     }
 
-    function testFuzz_Success_processDeposit_NegativeDelta_NoUnderflow(
+    function testFuzz_Success_processDeposit_NegativeDeltaUsdExposure_NoUnderflow(
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
@@ -126,10 +139,8 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
-        if (exposureAsset != 0) {
-            assetState.conversionRate =
-                bound(assetState.conversionRate, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
-        }
+        assetState.exposureAssetToUnderlyingAsset =
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
         // And: delta "usdValueExposureAsset" is negative (test-case).
         vm.assume(assetState.usdValueExposureAssetLast > 0);
@@ -150,8 +161,24 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
+        // And: Underlying Asset is properly added to an underlying Pricing Module.
+        int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
+            - int256(uint256(assetState.exposureAssetToUnderlyingAssetsLast));
+        bytes memory data = abi.encodeCall(
+            mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterDeposit,
+            (
+                assetState.underlyingAsset,
+                assetState.underlyingAssetId,
+                assetState.exposureAssetToUnderlyingAsset,
+                deltaExposureAssetToUnderlyingAsset
+            )
+        );
+
         // When: "_processDeposit" is called.
-        uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetState.asset, exposureAsset);
+        // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
+        vm.expectCall(address(mainRegistryExtension), data);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
+        uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValueExposureToUnderlyingAsset);
@@ -160,7 +187,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         assertEq(usdExposureProtocolExpected, derivedPricingModule.usdExposureProtocol());
     }
 
-    function testFuzz_Success_processDeposit_NegativeDelta_Underflow(
+    function testFuzz_Success_processDeposit_NegativeDeltaUsdExposure_Underflow(
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
@@ -170,10 +197,8 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
-        if (exposureAsset != 0) {
-            assetState.conversionRate =
-                bound(assetState.conversionRate, 0, uint256(type(uint128).max) * 1e18 / exposureAsset);
-        }
+        assetState.exposureAssetToUnderlyingAsset =
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
         // And: delta "usdValueExposureAsset" is negative (test-case).
         vm.assume(assetState.usdValueExposureAssetLast > 0);
@@ -192,8 +217,24 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
+        // And: Underlying Asset is properly added to an underlying Pricing Module.
+        int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
+            - int256(uint256(assetState.exposureAssetToUnderlyingAssetsLast));
+        bytes memory data = abi.encodeCall(
+            mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterDeposit,
+            (
+                assetState.underlyingAsset,
+                assetState.underlyingAssetId,
+                assetState.exposureAssetToUnderlyingAsset,
+                deltaExposureAssetToUnderlyingAsset
+            )
+        );
+
         // When: "_processDeposit" is called.
-        uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetState.asset, exposureAsset);
+        // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
+        vm.expectCall(address(mainRegistryExtension), data);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
+        uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValueExposureToUnderlyingAsset);

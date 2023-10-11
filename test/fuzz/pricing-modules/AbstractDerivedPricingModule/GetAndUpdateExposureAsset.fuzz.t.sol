@@ -35,15 +35,16 @@ contract GetAndUpdateExposureAsset_AbstractDerivedPricingModule_Fuzz_Test is Abs
         setDerivedPricingModuleAssetState(assetState);
 
         // When: "getAndUpdateExposureAsset" is called.
-        uint256 exposureAssetActual = derivedPricingModule.getAndUpdateExposureAsset(assetState.asset, deltaAsset_);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
+        uint256 exposureAssetActual = derivedPricingModule.getAndUpdateExposureAsset(assetKey, deltaAsset_);
 
         // Then: Correct "exposureAsset" is returned.
         uint256 exposureAssetExpected = assetState.exposureAssetLast + deltaAsset;
         assertEq(exposureAssetActual, exposureAssetExpected);
 
         // And: "exposureAsset" is updated.
-        (exposureAssetActual,,,) = derivedPricingModule.getAssetInformation(assetState.asset);
-        assertEq(exposureAssetExpected, exposureAssetExpected);
+        (exposureAssetActual,) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        assertEq(exposureAssetActual, exposureAssetExpected);
     }
 
     function testFuzz_Success_getAndUpdateExposureAsset_NegativeDelta_NoUnderflow(
@@ -60,15 +61,16 @@ contract GetAndUpdateExposureAsset_AbstractDerivedPricingModule_Fuzz_Test is Abs
         setDerivedPricingModuleAssetState(assetState);
 
         // When: "getAndUpdateExposureAsset" is called.
-        uint256 exposureAssetActual = derivedPricingModule.getAndUpdateExposureAsset(assetState.asset, deltaAsset_);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
+        uint256 exposureAssetActual = derivedPricingModule.getAndUpdateExposureAsset(assetKey, deltaAsset_);
 
         // Then: Correct "exposureAsset" is returned.
         uint256 exposureAssetExpected = assetState.exposureAssetLast - deltaAsset;
         assertEq(exposureAssetActual, exposureAssetExpected);
 
         // And: "exposureAsset" is updated.
-        (exposureAssetActual,,,) = derivedPricingModule.getAssetInformation(assetState.asset);
-        assertEq(exposureAssetExpected, exposureAssetExpected);
+        (exposureAssetActual,) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        assertEq(exposureAssetActual, exposureAssetExpected);
     }
 
     function testFuzz_Success_getAndUpdateExposureAsset_NegativeDelta_Underflow(
@@ -85,14 +87,15 @@ contract GetAndUpdateExposureAsset_AbstractDerivedPricingModule_Fuzz_Test is Abs
         setDerivedPricingModuleAssetState(assetState);
 
         // When: "getAndUpdateExposureAsset" is called.
-        uint256 exposureAssetActual = derivedPricingModule.getAndUpdateExposureAsset(assetState.asset, deltaAsset_);
+        bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
+        uint256 exposureAssetActual = derivedPricingModule.getAndUpdateExposureAsset(assetKey, deltaAsset_);
 
         // Then: Correct "exposureAsset" is returned.
         uint256 exposureAssetExpected = 0;
         assertEq(exposureAssetActual, exposureAssetExpected);
 
         // And: "exposureAsset" is updated.
-        (exposureAssetActual,,,) = derivedPricingModule.getAssetInformation(assetState.asset);
-        assertEq(exposureAssetExpected, exposureAssetExpected);
+        (exposureAssetActual,) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        assertEq(exposureAssetActual, exposureAssetExpected);
     }
 }

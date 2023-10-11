@@ -6,8 +6,6 @@ pragma solidity 0.8.19;
 
 import { Constants, AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
 
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule_New.sol";
-
 /**
  * @notice Fuzz tests for the "processDirectDeposit" of contract "AbstractDerivedPricingModule".
  * @notice Tests performed here will validate the recursion flow of derived pricing modules.
@@ -31,7 +29,7 @@ contract ProcessDirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstract
         uint256 id,
         uint128 amount
     ) public {
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension_New));
+        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
@@ -43,7 +41,6 @@ contract ProcessDirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstract
         DerivedPricingModuleProtocolState memory protocolState,
         DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState,
-        uint256 id,
         int256 amount
     ) public {
         // And: No overflow on negation most negative int256 (this overflows).
@@ -61,8 +58,8 @@ contract ProcessDirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstract
         setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
 
         // When: "MainRegistry" calls "processDirectDeposit".
-        vm.prank(address(mainRegistryExtension_New));
-        derivedPricingModule.processDirectDeposit(assetState.asset, id, uint256(amount));
+        vm.prank(address(mainRegistryExtension));
+        derivedPricingModule.processDirectDeposit(assetState.asset, assetState.assetId, uint256(amount));
 
         // Then: Transaction does not revert.
     }

@@ -4,8 +4,11 @@
  */
 pragma solidity 0.8.19;
 
-import { IPricingModule } from "../interfaces/IPricingModule_New.sol";
-import { PricingModule } from "./AbstractPricingModule_New.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IPricingModule } from "../interfaces/IPricingModule.sol";
+import { RiskConstants } from "../libraries/RiskConstants.sol";
+import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
+import { PricingModule } from "./AbstractPricingModule.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 
 /**
@@ -90,7 +93,7 @@ abstract contract PrimaryPricingModule is PricingModule {
      * param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256, uint256 amount) external virtual override onlyMainReg {
+    function processDirectDeposit(address asset, uint256, uint256 amount) public virtual override onlyMainReg {
         // Cache exposureLast.
         uint256 exposureLast = exposure[asset].exposure;
 
@@ -115,7 +118,7 @@ abstract contract PrimaryPricingModule is PricingModule {
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         // Cache exposureLast.
         uint256 exposureLast = exposure[asset].exposure;
 

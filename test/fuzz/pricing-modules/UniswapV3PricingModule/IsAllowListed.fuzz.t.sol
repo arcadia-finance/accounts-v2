@@ -39,9 +39,10 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
     function testFuzz_Success_isAllowListed_Negative_NoExposure(address lp) public {
         vm.assume(lp != address(0));
 
-        // Create a LP-position of two underlying assets: token1 and token2.
+        // Create a LP-position of two underlying assets: token1 and token4.
+        // Token 4 has no exposure set
         ERC20 tokenA = ERC20(address(mockERC20.token1));
-        ERC20 tokenB = ERC20(address(mockERC20.token2));
+        ERC20 tokenB = ERC20(address(mockERC20.token4));
         (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         address pool = nonfungiblePositionManager.createAndInitializePoolIfNecessary(
             address(tokenA), address(tokenB), 100, 1 << 96
@@ -72,7 +73,6 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
         vm.stopPrank();
 
         // No maxExposures for tokenA and tokenB are set.
-
         assertFalse(uniV3PricingModule.isAllowListed(address(nonfungiblePositionManager), tokenId));
     }
 
@@ -113,11 +113,7 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
         );
         vm.stopPrank();
 
-        // Set a maxExposure for tokenA and tokenB greater than 0.
-        vm.startPrank(users.creatorAddress);
-        uniV3PricingModule.setExposure(address(tokenA), 1, maxExposureA);
-        uniV3PricingModule.setExposure(address(tokenB), 1, maxExposureB);
-        vm.stopPrank();
+        // Exposures are greater than 0 for both token 1 and token 2, see Fuzz.t.sol
 
         // Test that Uni V3 LP token with allowed exposure to the underlying assets is allowlisted.
         assertTrue(uniV3PricingModule.isAllowListed(address(nonfungiblePositionManager), tokenId));

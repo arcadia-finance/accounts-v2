@@ -6,12 +6,14 @@ pragma solidity 0.8.19;
 
 import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./_StandardERC20PricingModule.fuzz.t.sol";
 
-import { OracleHub } from "../../../../src/OracleHub.sol";
-import {
-    PricingModule, StandardERC20PricingModule
-} from "../../../../src/pricing-modules/StandardERC20PricingModule.sol";
-import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
 import { ArcadiaOracle } from "../../.././utils/mocks/ArcadiaOracle.sol";
+import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
+import { OracleHub } from "../../../../src/OracleHub.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import {
+    PrimaryPricingModule,
+    StandardERC20PricingModule
+} from "../../../../src/pricing-modules/StandardERC20PricingModule.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "StandardERC20PricingModule".
