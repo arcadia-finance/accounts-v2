@@ -229,7 +229,6 @@ abstract contract Fuzz_Test is Base_Test {
             })
         );
 
-        // TODO: delete the below when migration done
         PricingModule.RiskVarInput[] memory riskVarsStable = new PricingModule.RiskVarInput[](3);
         PricingModule.RiskVarInput[] memory riskVarsToken = new PricingModule.RiskVarInput[](3);
 
