@@ -52,25 +52,36 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626PricingModule_Fuzz_Test is St
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getUnderlyingAssetsAmounts(uint128 depositAmount, uint96 assetId, uint96 yield) public {
-        vm.assume(depositAmount > 0);
+    function testFuzz_Success_getUnderlyingAssetsAmounts(
+        uint128 initialAssets,
+        uint128 depositAmount,
+        uint96 assetId,
+        uint128 yield
+    ) public {
+        // Given: "initialAssets" is non-zero.
+        initialAssets = uint128(bound(initialAssets, 1, type(uint128).max));
+
+        // And: asset <-> share conversions do not overflow.
+        yield = uint128(bound(yield, 0, type(uint128).max - initialAssets));
+
+        // And: "depositAmount" is less than the accountOwner's balance.
+        depositAmount = uint128(bound(depositAmount, 0, initialAssets));
+
         // Mint tokens, do a deposit, and send tokens to vault (=yield)
         vm.startPrank(users.accountOwner);
-        mockERC20.stable1.mint(users.accountOwner, uint256(depositAmount) + uint256(yield));
+        mockERC20.stable1.mint(users.accountOwner, uint256(initialAssets) + uint256(yield));
+        mockERC20.stable1.approve(address(ybToken2), initialAssets);
+        ybToken2.deposit(initialAssets, users.accountOwner);
         mockERC20.stable1.transfer(address(ybToken2), yield);
-        mockERC20.stable1.approve(address(ybToken2), depositAmount);
-        ybToken2.deposit(depositAmount, users.accountOwner);
         vm.stopPrank();
 
-        uint256 expectedConversionRate =
-            ((uint256(depositAmount) + uint256(yield)) * 10 ** 6 / ybToken2.totalSupply()) * 10 ** 12;
+        uint256 expectedConversionRate = depositAmount * (uint256(initialAssets) + yield) / initialAssets;
 
         bytes32 assetKey = bytes32(abi.encodePacked(assetId, address(ybToken2)));
         bytes32[] memory emptyArray = new bytes32[](1);
         uint256[] memory exposureAssetToUnderlyingAssets =
-            erc4626PricingModuleExtension.getUnderlyingAssetsAmounts(assetKey, 1e18, emptyArray);
+            erc4626PricingModuleExtension.getUnderlyingAssetsAmounts(assetKey, depositAmount, emptyArray);
 
-        // "conversionRate" will always return in 18 decimals, as underlying token has 6 decimals we could lose some precision in our calculation of "expectedConversionRate", thus we divide by 10 ** 12.
-        assertEq(expectedConversionRate / 10e12, exposureAssetToUnderlyingAssets[0] / 10e12);
+        assertEq(expectedConversionRate, exposureAssetToUnderlyingAssets[0]);
     }
 }

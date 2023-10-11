@@ -35,10 +35,6 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // The maximum difference between the upper or lower tick and the current tick (from 0.2x to 5x the current price).
-    // Calculated as: (sqrt(1.0001))log(sqrt(5)) = 16095.2
-    int24 public constant MAX_TICK_DIFFERENCE = 16_095;
-
     // Map asset => uniswapV3Factory.
     mapping(address => address) public assetToV3Factory;
 

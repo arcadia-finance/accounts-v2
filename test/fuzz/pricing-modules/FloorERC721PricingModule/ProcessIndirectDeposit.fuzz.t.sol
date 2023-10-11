@@ -106,23 +106,29 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         assertEq(actualExposure, uint256(deltaExposureUpperAssetToAsset));
     }
 
-    /*     function testFuzz_Success_processIndirectDeposit_negativeDelta(uint256 assetId, uint256 exposureUpperAssetToAsset, int256 deltaExposureUpperAssetToAsset, uint128 maxExposure) public {
+    function testFuzz_Success_processIndirectDeposit_negativeDelta_NoUnderflow(
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        uint256 deltaExposureUpperAssetToAsset
+    ) public {
         vm.assume(assetId != 1);
         vm.assume(assetId != 2);
         vm.assume(assetId != 3);
-        vm.assume(deltaExposureUpperAssetToAsset < 0);
-        vm.assume(deltaExposureUpperAssetToAsset >= -3);
+        deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, 1, 3);
+
         // To avoid overflow when calculating "usdValueExposureUpperAssetToAsset"
-        vm.assume(exposureUpperAssetToAsset < type(uint128).max);
+        exposureUpperAssetToAsset = bound(exposureUpperAssetToAsset, 0, type(uint128).max);
 
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, maxExposure
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 3
         );
 
+        vm.startPrank(address(mainRegistryExtension));
         floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), 1, 1);
         floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), 2, 1);
         floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), 3, 1);
+        vm.stopPrank();
 
         IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(mockERC721.nft2),
@@ -134,13 +140,61 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         (uint256 actualValueInUsd,,) = floorERC721PricingModule.getValue(getValueInput);
 
         vm.prank(address(mainRegistryExtension));
-        (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = floorERC721PricingModule.processIndirectDeposit(address(mockERC721.nft2), assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = floorERC721PricingModule.processIndirectDeposit(
+            address(mockERC721.nft2), assetId, exposureUpperAssetToAsset, -int256(deltaExposureUpperAssetToAsset)
+        );
 
         uint256 expectedUsdValueExposureUpperAssetToAsset = actualValueInUsd * exposureUpperAssetToAsset;
         assertEq(primaryFlag, true);
         assertEq(usdValueExposureUpperAssetToAsset, expectedUsdValueExposureUpperAssetToAsset);
 
         (, uint128 actualExposure) = floorERC721PricingModule.exposure(address(mockERC721.nft2));
-        assertEq(actualExposure, uint256(deltaExposureUpperAssetToAsset));
-    } */
+        assertEq(actualExposure, 3 - deltaExposureUpperAssetToAsset);
+    }
+
+    function testFuzz_Success_processIndirectDeposit_negativeDelta_Underflow(
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        uint256 deltaExposureUpperAssetToAsset
+    ) public {
+        vm.assume(assetId != 1);
+        vm.assume(assetId != 2);
+        vm.assume(assetId != 3);
+        deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, 4, type(uint96).max);
+
+        // To avoid overflow when calculating "usdValueExposureUpperAssetToAsset"
+        exposureUpperAssetToAsset = bound(exposureUpperAssetToAsset, 0, type(uint128).max);
+
+        vm.prank(users.creatorAddress);
+        floorERC721PricingModule.addAsset(
+            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 3
+        );
+
+        vm.startPrank(address(mainRegistryExtension));
+        floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), 1, 1);
+        floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), 2, 1);
+        floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), 3, 1);
+        vm.stopPrank();
+
+        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
+            asset: address(mockERC721.nft2),
+            assetId: 0,
+            assetAmount: 1,
+            baseCurrency: UsdBaseCurrencyID
+        });
+
+        (uint256 actualValueInUsd,,) = floorERC721PricingModule.getValue(getValueInput);
+
+        vm.prank(address(mainRegistryExtension));
+        (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = floorERC721PricingModule.processIndirectDeposit(
+            address(mockERC721.nft2), assetId, exposureUpperAssetToAsset, -int256(deltaExposureUpperAssetToAsset)
+        );
+
+        uint256 expectedUsdValueExposureUpperAssetToAsset = actualValueInUsd * exposureUpperAssetToAsset;
+        assertEq(primaryFlag, true);
+        assertEq(usdValueExposureUpperAssetToAsset, expectedUsdValueExposureUpperAssetToAsset);
+
+        (, uint128 actualExposure) = floorERC721PricingModule.exposure(address(mockERC721.nft2));
+        assertEq(actualExposure, 0);
+    }
 }
