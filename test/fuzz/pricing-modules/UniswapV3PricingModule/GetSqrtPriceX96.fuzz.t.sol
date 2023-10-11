@@ -31,7 +31,7 @@ contract GetSqrtPriceX96_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingMod
         uint256 expectedSqrtPriceX96 = TickMath.MAX_SQRT_RATIO;
         uint256 actualSqrtPriceX96 = uniV3PricingModule.getSqrtPriceX96(priceToken0, priceToken1);
 
-        assertLt(actualSqrtPriceX96, expectedSqrtPriceX96);
+        assertEq(actualSqrtPriceX96, expectedSqrtPriceX96);
     }
 
     function testFuzz_Success_getSqrtPriceX96_Overflow(uint256 priceToken0, uint256 priceToken1) public {
