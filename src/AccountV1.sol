@@ -11,6 +11,7 @@ import { ITrustedCreditor } from "./interfaces/ITrustedCreditor.sol";
 import { IActionBase, ActionData } from "./interfaces/IActionBase.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IAccount } from "./interfaces/IAccount.sol";
+import { IPermit2 } from "./interfaces/IPermit2.sol";
 import { ActionData } from "./actions/utils/ActionData.sol";
 import { ERC20, SafeTransferLib } from "../lib/solmate/src/utils/SafeTransferLib.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
@@ -523,7 +524,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The only requirements are that the recipient tokens of the interactions are allowlisted, deposited back into the Account and
      * that the Account is in a healthy state at the end of the transaction.
      */
-    function accountManagementAction(address actionHandler, bytes calldata actionData)
+    function accountManagementAction(address actionHandler, bytes calldata actionData, bytes calldata signature)
         external
         nonReentrant
         onlyAssetManager
@@ -531,8 +532,15 @@ contract AccountV1 is AccountStorageV1, IAccount {
     {
         require(IMainRegistry(registry).isActionAllowed(actionHandler), "A_AMA: Action not allowed");
 
-        (ActionData memory withdrawData, ActionData memory transferFromOwnerData,,,) =
-            abi.decode(actionData, (ActionData, ActionData, ActionData, address[], bytes[]));
+        (
+            ActionData memory withdrawData,
+            ActionData memory transferFromOwnerData,
+            IPermit2.TokenPermissions[] memory tokenPermissions,
+            ,
+            ,
+        ) = abi.decode(
+            actionData, (ActionData, ActionData, IPermit2.TokenPermissions[], ActionData, address[], bytes[])
+        );
 
         // Withdraw assets to actionHandler.
         _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionHandler);
@@ -540,6 +548,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
         // Transfer assets from owner (that are not assets in this account) to actionHandler.
         if (transferFromOwnerData.assets.length > 0) {
             _transferFromOwner(transferFromOwnerData, actionHandler);
+        }
+
+        if (signature.length > 0 && tokenPermissions.length > 0) {
+            _transferFrowOwnerWithPermit(tokenPermissions, signature, actionHandler);
         }
 
         // Execute Action(s).
@@ -738,6 +750,38 @@ contract AccountV1 is AccountStorageV1, IAccount {
                 ++i;
             }
         }
+    }
+
+    /**
+     * @notice Transfers assets directly from the owner to the actionHandler contract via Permit2.
+     * @param tokenPermissions An array of structs with the tokens and corresponding amounts permitted for a transfer.
+     * @param signature The signature to verify.
+     * @param to_ The address to withdraw to.
+     */
+    function _transferFrowOwnerWithPermit(
+        IPermit2.TokenPermissions[] memory tokenPermissions,
+        bytes calldata signature,
+        address to_
+    ) internal {
+        IPermit2.SignatureTransferDetails[] memory transferDetails =
+            new IPermit2.SignatureTransferDetails[](tokenPermissions.length);
+
+        // TODO validate the nonce here
+        IPermit2.PermitBatchTransferFrom memory permit = IPermit2.PermitBatchTransferFrom({
+            permitted: tokenPermissions,
+            nonce: uint256(keccak256(abi.encodePacked(signature, block.timestamp))),
+            deadline: block.timestamp
+        });
+
+        for (uint256 i; i < tokenPermissions.length;) {
+            transferDetails[i] =
+                IPermit2.SignatureTransferDetails({ to: to_, requestedAmount: tokenPermissions[i].amount });
+            unchecked {
+                ++i;
+            }
+        }
+
+        permit2.permitTransferFrom(permit, transferDetails, owner, signature);
     }
 
     /**

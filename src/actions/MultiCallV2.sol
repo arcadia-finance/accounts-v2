@@ -8,6 +8,7 @@ import { ActionBase, ActionData } from "./ActionBase.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
 import { ERC721TokenReceiver } from "../../lib/solmate/src/tokens/ERC721.sol";
+import { IPermit2 } from "../interfaces/IPermit2.sol";
 
 /**
  * @title Generic multicall action
@@ -29,13 +30,14 @@ contract ActionMultiCallV2 is ActionBase, ERC721TokenReceiver {
 
     /**
      * @notice Calls a series of addresses with arbitrary calldata.
-     * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
+     * @param actionData A bytes object containing three actionAssetData structs, a TokenPermissions struct, an address array and a bytes array.
      * @return resultData An actionAssetData struct with the balances of this ActionMultiCall address.
      * @dev input address is not used in this generic action.
      */
     function executeAction(bytes calldata actionData) external override returns (ActionData memory) {
-        (,, ActionData memory depositData, address[] memory to, bytes[] memory data) =
-            abi.decode(actionData, (ActionData, ActionData, ActionData, address[], bytes[]));
+        (,,, ActionData memory depositData, address[] memory to, bytes[] memory data) = abi.decode(
+            actionData, (ActionData, ActionData, IPermit2.TokenPermissions[], ActionData, address[], bytes[])
+        );
 
         uint256 callLength = to.length;
 

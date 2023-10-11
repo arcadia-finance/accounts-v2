@@ -4,6 +4,8 @@
  */
 pragma solidity 0.8.19;
 
+import { IPermit2 } from "./interfaces/IPermit2.sol";
+
 /**
  * @title Acadia Vaults.
  * @author Pragma Labs
@@ -58,4 +60,7 @@ contract AccountStorageV1 {
     mapping(address => mapping(uint256 => uint256)) public erc1155Balances;
     // Map owner => assetManager => flag.
     mapping(address => mapping(address => bool)) public isAssetManager;
+
+    // Uniswap Permit2 contract
+    IPermit2 internal immutable permit2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 }
