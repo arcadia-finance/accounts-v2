@@ -173,12 +173,18 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
             sqrtPriceX96, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity_
         );
 
+        emit log_named_uint("amount0", amount0);
+        emit log_named_uint("priceToken0", priceToken0);
+
         // And: exposure0 does not exceed maximum.
         vm.assume(amount0 <= type(uint128).max);
 
         // Condition on which the call should revert: exposure to token1 becomes bigger as maxExposure1.
         vm.assume(amount1 > 0);
         vm.assume(amount1 + initialExposure1 > maxExposure1);
+
+        // And: Usd value of underlying asset does not overflow.
+        vm.assume(amount0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
 
         // Add underlying tokens and its oracles to Arcadia.
         addUnderlyingTokenToArcadia(address(token0), int256(priceToken0), 0, type(uint128).max);
@@ -191,12 +197,12 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
     }
 
     function testFuzz_Revert_processDirectDeposit_UsdExposureProtocolExceedsMax(
-        uint80 liquidity,
+        uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
         uint256 maxUsdExposureProtocol,
-        uint64 priceToken0,
-        uint64 priceToken1,
+        uint256 priceToken0,
+        uint256 priceToken1,
         uint128 initialExposure0,
         uint128 initialExposure1,
         uint128 maxExposure0,
@@ -240,6 +246,10 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         vm.assume(amount0 + initialExposure0 <= maxExposure0);
         vm.assume(amount1 + initialExposure1 <= maxExposure1);
 
+        // And: Usd value of underlying assets does not overflow.
+        vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+        vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+
         // Add underlying tokens and its oracles to Arcadia.
         addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
         addUnderlyingTokenToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
@@ -264,13 +274,13 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         vm.stopPrank();
     }
 
-    function testFuzz_Success_processDirectDeposit(
-        uint80 liquidity,
+    function testFuzz_Success_processDirectDeposita(
+        uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
         uint256 maxUsdExposureProtocol,
-        uint64 priceToken0,
-        uint64 priceToken1,
+        uint256 priceToken0,
+        uint256 priceToken1,
         uint128 initialExposure0,
         uint128 initialExposure1,
         uint128 maxExposure0,
@@ -312,6 +322,10 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         // Check that exposure to underlying tokens stays below maxExposures.
         vm.assume(amount0 + initialExposure0 <= maxExposure0);
         vm.assume(amount1 + initialExposure1 <= maxExposure1);
+
+        // And: Usd value of underlying assets does not overflow.
+        vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+        vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
 
         // Add underlying tokens and its oracles to Arcadia.
         addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
