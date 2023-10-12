@@ -34,7 +34,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         });
 
         ActionData memory fromOwner;
-        IPermit2.TokenPermissions[] memory tokenPermissions;
+        IPermit2.PermitBatchTransferFrom memory permit;
 
         assetData.assets[0] = address(mockERC20.token1);
         assetData.assetTypes[0] = 0;
@@ -45,7 +45,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         to[1] = address(this);
         data[0] = abi.encodeWithSignature("returnFive()");
 
-        bytes memory callData = abi.encode(assetData, assetData, tokenPermissions, fromOwner, to, data);
+        bytes memory callData = abi.encode(assetData, assetData, permit, fromOwner, to, data);
 
         vm.expectRevert("EA: Length mismatch");
         action.executeAction(callData);
@@ -61,7 +61,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         });
 
         ActionData memory fromOwner;
-        IPermit2.TokenPermissions[] memory tokenPermissions;
+        IPermit2.PermitBatchTransferFrom memory permit;
 
         assetData.assets[0] = address(mockERC20.token1);
         assetData.assetTypes[0] = 0;
@@ -71,7 +71,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         to[0] = address(this);
         data[0] = abi.encodeWithSignature("setNumberStored(uint256)", number);
 
-        bytes memory callData = abi.encode(assetData, assetData, tokenPermissions, fromOwner, to, data);
+        bytes memory callData = abi.encode(assetData, assetData, permit, fromOwner, to, data);
 
         action.executeAction(callData);
 
