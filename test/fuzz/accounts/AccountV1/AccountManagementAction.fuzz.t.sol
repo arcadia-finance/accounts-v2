@@ -547,7 +547,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256 token1Amount,
         uint256 stable1Amount
     ) public {
-        // Private key must be less than the secp256k1 curve order
+        // Private key must be less than the secp256k1 curve order and != 0
         fromPrivateKey = bound(
             fromPrivateKey,
             1,
@@ -555,7 +555,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         );
         address from = vm.addr(fromPrivateKey);
 
-        //accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
+        // Initialize Account params
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(from);
         accountNotInitialised.setRegistry(address(mainRegistryExtension));
@@ -616,7 +616,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         bytes memory callData = abi.encode(assetDataOut, transferFromOwner, permit.permitted, assetDataIn, to, data);
 
-        // Pre check
+        // Check state pre function call
         assertEq(mockERC20.token1.balanceOf(fromStack), token1AmountStack);
         assertEq(mockERC20.stable1.balanceOf(fromStack), stable1AmountStack);
         assertEq(mockERC20.token1.balanceOf(address(action)), 0);
@@ -626,6 +626,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.prank(fromStack);
         accountNotInitialised.accountManagementAction(address(action), callData, signature);
 
+        // Check state after function call
         assertEq(mockERC20.token1.balanceOf(fromStack), 0);
         assertEq(mockERC20.stable1.balanceOf(fromStack), 0);
         assertEq(mockERC20.token1.balanceOf(address(action)), token1AmountStack);
