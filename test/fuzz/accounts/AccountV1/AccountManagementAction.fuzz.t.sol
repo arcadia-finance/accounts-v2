@@ -349,14 +349,10 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         bytes memory callData = abi.encode(assetDataOut, transferFromOwner, permit, assetDataIn, to, data);
 
         IPermit2.SignatureTransferDetails[] memory transferDetails = new IPermit2.SignatureTransferDetails[](2);
-        transferDetails[0] = IPermit2.SignatureTransferDetails({
-            to : address(action),
-            requestedAmount : token1AmountStack
-        });
-        transferDetails[1] = IPermit2.SignatureTransferDetails({
-            to : address(action),
-            requestedAmount : stable1AmountStack
-        });
+        transferDetails[0] =
+            IPermit2.SignatureTransferDetails({ to: address(action), requestedAmount: token1AmountStack });
+        transferDetails[1] =
+            IPermit2.SignatureTransferDetails({ to: address(action), requestedAmount: stable1AmountStack });
 
         vm.startPrank(maliciousStack);
         // The following call should revert as the caller is not the signer.

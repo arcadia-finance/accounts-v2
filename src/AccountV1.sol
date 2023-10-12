@@ -753,7 +753,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Transfers assets directly from the owner to the actionHandler contract via Permit2.
+     * @notice Transfers assets from the owner to the actionHandler contract via Permit2.
      * @param permit Data signed over by the owner specifying the terms of approval.
      * @param signature The signature to verify.
      * @param to_ The address to withdraw to.

@@ -30,7 +30,7 @@ contract ActionMultiCallV2 is ActionBase, ERC721TokenReceiver {
 
     /**
      * @notice Calls a series of addresses with arbitrary calldata.
-     * @param actionData A bytes object containing three actionAssetData structs, a TokenPermissions struct, an address array and a bytes array.
+     * @param actionData A bytes object containing three actionAssetData structs, a PermitBatchTransferFrom struct, an address array and a bytes array.
      * @return resultData An actionAssetData struct with the balances of this ActionMultiCall address.
      * @dev input address is not used in this generic action.
      */
