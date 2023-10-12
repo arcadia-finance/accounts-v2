@@ -766,13 +766,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
         IPermit2.SignatureTransferDetails[] memory transferDetails =
             new IPermit2.SignatureTransferDetails[](tokenPermissions.length);
 
-        // TODO validate the nonce here
-        IPermit2.PermitBatchTransferFrom memory permit = IPermit2.PermitBatchTransferFrom({
-            permitted: tokenPermissions,
-            nonce: uint256(keccak256(abi.encodePacked(signature, block.timestamp))),
-            deadline: block.timestamp
-        });
-
         for (uint256 i; i < tokenPermissions.length;) {
             transferDetails[i] =
                 IPermit2.SignatureTransferDetails({ to: to_, requestedAmount: tokenPermissions[i].amount });
@@ -780,6 +773,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
                 ++i;
             }
         }
+
+        // TODO validate the nonce here
+        IPermit2.PermitBatchTransferFrom memory permit = IPermit2.PermitBatchTransferFrom({
+            permitted: tokenPermissions,
+            nonce: block.timestamp,
+            deadline: block.timestamp
+        });
 
         permit2.permitTransferFrom(permit, transferDetails, owner, signature);
     }

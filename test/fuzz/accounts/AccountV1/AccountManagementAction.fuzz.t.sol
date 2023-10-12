@@ -12,6 +12,8 @@ import { ActionMultiCallV2 } from "../../../../src/actions/MultiCallV2.sol";
 import { MultiActionMock } from "../../.././utils/mocks/MultiActionMock.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { IPermit2 } from "../../../../src/interfaces/IPermit2.sol";
+import { DeployPermit2 } from "../../../utils/permit2/DeployPermit2.sol";
+import { PermitSignature } from "../../../utils/permit2/PermitSignature.sol";
 
 /**
  * @notice Fuzz tests for the "accountManagementAction" of contract "AccountV1".
@@ -24,6 +26,10 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     AccountExtension internal accountNotInitialised;
     ActionMultiCallV2 internal action;
+    DeployPermit2 internal deployPermit2;
+    PermitSignature internal permitSignature;
+
+    address permit2;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -41,6 +47,13 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         mainRegistryExtension.setAllowedAction(address(action), true);
 
         accountNotInitialised = new AccountExtension();
+
+        // Deploy Permit2 contract from precompiled bytecode
+        deployPermit2 = new DeployPermit2();
+        permit2 = deployPermit2.deployPermit2();
+
+        // Deploy helper contract for permit signature
+        permitSignature = new PermitSignature();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -527,5 +540,95 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) > 0);
 
         vm.stopPrank();
+    }
+
+    function testFuzz_Success_accountManagementAction_permit2(
+        uint256 fromPrivateKey,
+        uint256 token1Amount,
+        uint256 stable1Amount
+    ) public {
+        // Private key must be less than the secp256k1 curve order
+        fromPrivateKey = bound(
+            fromPrivateKey,
+            1,
+            115_792_089_237_316_195_423_570_985_008_687_907_852_837_564_279_074_904_382_605_163_141_518_161_494_337 - 1
+        );
+        address from = vm.addr(fromPrivateKey);
+
+        //accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
+        accountNotInitialised.setLocked(1);
+        accountNotInitialised.setOwner(from);
+        accountNotInitialised.setRegistry(address(mainRegistryExtension));
+        vm.prank(from);
+        accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
+        accountNotInitialised.setTrustedCreditor(address(trustedCreditor));
+        accountNotInitialised.setIsTrustedCreditorSet(true);
+
+        // Set the account as initialised in the factory
+        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+            .checked_write(true);
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = token1Amount;
+        amounts[1] = stable1Amount;
+
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(mockERC20.token1);
+        tokens[1] = address(mockERC20.stable1);
+
+        // Mint tokens and give unlimited approval on the Permit2 contract
+        vm.startPrank(users.tokenCreatorAddress);
+        mockERC20.token1.mint(from, token1Amount);
+        mockERC20.stable1.mint(from, stable1Amount);
+        vm.stopPrank();
+
+        vm.startPrank(from);
+        mockERC20.token1.approve(permit2, type(uint256).max);
+        mockERC20.stable1.approve(permit2, type(uint256).max);
+        vm.stopPrank();
+
+        uint256 nonce = block.timestamp;
+        uint256 deadline = block.timestamp;
+
+        // Generate struct PermitBatchTransferFrom
+        IPermit2.PermitBatchTransferFrom memory permit =
+            permitSignature.defaultERC20PermitMultiple(tokens, amounts, nonce, deadline);
+
+        bytes32 DOMAIN_SEPARATOR = IPermit2(permit2).DOMAIN_SEPARATOR();
+
+        // Bring back variables to the stack to avoid stack too deep
+        uint256 fromPrivateKeyStack = fromPrivateKey;
+        address fromStack = from;
+        uint256 token1AmountStack = token1Amount;
+        uint256 stable1AmountStack = stable1Amount;
+
+        // Get signature
+        vm.prank(fromStack);
+        bytes memory signature = permitSignature.getPermitBatchTransferSignature(
+            permit, fromPrivateKeyStack, DOMAIN_SEPARATOR, address(accountNotInitialised)
+        );
+
+        ActionData memory assetDataOut;
+        ActionData memory transferFromOwner;
+        ActionData memory assetDataIn;
+        address[] memory to;
+        bytes[] memory data;
+
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, permit.permitted, assetDataIn, to, data);
+
+        // Pre check
+        assertEq(mockERC20.token1.balanceOf(fromStack), token1AmountStack);
+        assertEq(mockERC20.stable1.balanceOf(fromStack), stable1AmountStack);
+        assertEq(mockERC20.token1.balanceOf(address(action)), 0);
+        assertEq(mockERC20.stable1.balanceOf(address(action)), 0);
+
+        // Call accountManagementAction() on Account
+        vm.prank(fromStack);
+        accountNotInitialised.accountManagementAction(address(action), callData, signature);
+
+        assertEq(mockERC20.token1.balanceOf(fromStack), 0);
+        assertEq(mockERC20.stable1.balanceOf(fromStack), 0);
+        assertEq(mockERC20.token1.balanceOf(address(action)), token1AmountStack);
+        assertEq(mockERC20.stable1.balanceOf(address(action)), stable1AmountStack);
     }
 }
