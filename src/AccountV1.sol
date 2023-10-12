@@ -535,11 +535,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
         (
             ActionData memory withdrawData,
             ActionData memory transferFromOwnerData,
-            IPermit2.TokenPermissions[] memory tokenPermissions,
+            IPermit2.PermitBatchTransferFrom memory permit,
             ,
             ,
         ) = abi.decode(
-            actionData, (ActionData, ActionData, IPermit2.TokenPermissions[], ActionData, address[], bytes[])
+            actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, ActionData, address[], bytes[])
         );
 
         // Withdraw assets to actionHandler.
@@ -550,8 +550,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
             _transferFromOwner(transferFromOwnerData, actionHandler);
         }
 
-        if (signature.length > 0 && tokenPermissions.length > 0) {
-            _transferFrowOwnerWithPermit(tokenPermissions, signature, actionHandler);
+        if (signature.length > 0 && permit.permitted.length > 0) {
+            _transferFrowOwnerWithPermit(permit, signature, actionHandler);
         }
 
         // Execute Action(s).
@@ -754,32 +754,25 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Transfers assets directly from the owner to the actionHandler contract via Permit2.
-     * @param tokenPermissions An array of structs with the tokens and corresponding amounts permitted for a transfer.
+     * @param permit Data signed over by the owner specifying the terms of approval.
      * @param signature The signature to verify.
      * @param to_ The address to withdraw to.
      */
     function _transferFrowOwnerWithPermit(
-        IPermit2.TokenPermissions[] memory tokenPermissions,
+        IPermit2.PermitBatchTransferFrom memory permit,
         bytes calldata signature,
         address to_
     ) internal {
         IPermit2.SignatureTransferDetails[] memory transferDetails =
-            new IPermit2.SignatureTransferDetails[](tokenPermissions.length);
+            new IPermit2.SignatureTransferDetails[](permit.permitted.length);
 
-        for (uint256 i; i < tokenPermissions.length;) {
+        for (uint256 i; i < permit.permitted.length;) {
             transferDetails[i] =
-                IPermit2.SignatureTransferDetails({ to: to_, requestedAmount: tokenPermissions[i].amount });
+                IPermit2.SignatureTransferDetails({ to: to_, requestedAmount: permit.permitted[i].amount });
             unchecked {
                 ++i;
             }
         }
-
-        // TODO validate the nonce here
-        IPermit2.PermitBatchTransferFrom memory permit = IPermit2.PermitBatchTransferFrom({
-            permitted: tokenPermissions,
-            nonce: block.timestamp,
-            deadline: block.timestamp
-        });
 
         permit2.permitTransferFrom(permit, transferDetails, owner, signature);
     }

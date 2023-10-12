@@ -270,6 +270,100 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_accountManagementAction_permit2_spenderIsNotSigner(
+        uint256 fromPrivateKey,
+        uint256 token1Amount,
+        uint256 stable1Amount,
+        uint256 nonce,
+        address maliciousActor
+    ) public {
+        // Private key must be less than the secp256k1 curve order and != 0
+        fromPrivateKey = bound(
+            fromPrivateKey,
+            1,
+            115_792_089_237_316_195_423_570_985_008_687_907_852_837_564_279_074_904_382_605_163_141_518_161_494_337 - 1
+        );
+        address from = vm.addr(fromPrivateKey);
+        vm.assume(maliciousActor != from);
+
+        // Initialize Account params
+        accountNotInitialised.setLocked(1);
+        accountNotInitialised.setOwner(from);
+        accountNotInitialised.setRegistry(address(mainRegistryExtension));
+        vm.prank(from);
+        accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
+        accountNotInitialised.setTrustedCreditor(address(trustedCreditor));
+        accountNotInitialised.setIsTrustedCreditorSet(true);
+
+        // Set the account as initialized in the factory
+        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+            .checked_write(true);
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = token1Amount;
+        amounts[1] = stable1Amount;
+
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(mockERC20.token1);
+        tokens[1] = address(mockERC20.stable1);
+
+        // Mint tokens and give unlimited approval on the Permit2 contract
+        vm.startPrank(users.tokenCreatorAddress);
+        mockERC20.token1.mint(from, token1Amount);
+        mockERC20.stable1.mint(from, stable1Amount);
+        vm.stopPrank();
+
+        vm.startPrank(from);
+        mockERC20.token1.approve(permit2, type(uint256).max);
+        mockERC20.stable1.approve(permit2, type(uint256).max);
+        vm.stopPrank();
+
+        uint256 deadline = block.timestamp;
+
+        bytes32 DOMAIN_SEPARATOR = IPermit2(permit2).DOMAIN_SEPARATOR();
+
+        // Bring back variables to the stack to avoid stack too deep
+        uint256 nonceStack = nonce;
+        uint256 fromPrivateKeyStack = fromPrivateKey;
+        uint256 token1AmountStack = token1Amount;
+        uint256 stable1AmountStack = stable1Amount;
+        address maliciousStack = maliciousActor;
+        address fromStack = from;
+
+        // Generate struct PermitBatchTransferFrom
+        IPermit2.PermitBatchTransferFrom memory permit =
+            permitSignature.defaultERC20PermitMultiple(tokens, amounts, nonceStack, deadline);
+
+        // Get signature
+        vm.prank(fromStack);
+        bytes memory signature = permitSignature.getPermitBatchTransferSignature(
+            permit, fromPrivateKeyStack, DOMAIN_SEPARATOR, address(accountNotInitialised)
+        );
+
+        ActionData memory assetDataOut;
+        ActionData memory transferFromOwner;
+        ActionData memory assetDataIn;
+        address[] memory to;
+        bytes[] memory data;
+
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, permit, assetDataIn, to, data);
+
+        IPermit2.SignatureTransferDetails[] memory transferDetails = new IPermit2.SignatureTransferDetails[](2);
+        transferDetails[0] = IPermit2.SignatureTransferDetails({
+            to : address(action),
+            requestedAmount : token1AmountStack
+        });
+        transferDetails[1] = IPermit2.SignatureTransferDetails({
+            to : address(action),
+            requestedAmount : stable1AmountStack
+        });
+
+        vm.startPrank(maliciousStack);
+        // The following call should revert as the caller is not the signer.
+        vm.expectRevert();
+        IPermit2(permit2).permitTransferFrom(permit, transferDetails, fromStack, signature);
+    }
+
     function testFuzz_Success_accountManagementAction_Owner(
         uint128 debtAmount,
         uint32 fixedLiquidationCost,
@@ -545,7 +639,8 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_accountManagementAction_permit2(
         uint256 fromPrivateKey,
         uint256 token1Amount,
-        uint256 stable1Amount
+        uint256 stable1Amount,
+        uint256 nonce
     ) public {
         // Private key must be less than the secp256k1 curve order and != 0
         fromPrivateKey = bound(
@@ -587,7 +682,6 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         mockERC20.stable1.approve(permit2, type(uint256).max);
         vm.stopPrank();
 
-        uint256 nonce = block.timestamp;
         uint256 deadline = block.timestamp;
 
         // Generate struct PermitBatchTransferFrom
@@ -614,7 +708,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         address[] memory to;
         bytes[] memory data;
 
-        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, permit.permitted, assetDataIn, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, permit, assetDataIn, to, data);
 
         // Check state pre function call
         assertEq(mockERC20.token1.balanceOf(fromStack), token1AmountStack);

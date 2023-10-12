@@ -36,7 +36,7 @@ contract ActionMultiCallV2 is ActionBase, ERC721TokenReceiver {
      */
     function executeAction(bytes calldata actionData) external override returns (ActionData memory) {
         (,,, ActionData memory depositData, address[] memory to, bytes[] memory data) = abi.decode(
-            actionData, (ActionData, ActionData, IPermit2.TokenPermissions[], ActionData, address[], bytes[])
+            actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, ActionData, address[], bytes[])
         );
 
         uint256 callLength = to.length;
