@@ -35,27 +35,17 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
+    // The contract address of the NonfungiblePositionManager.
     address internal immutable NON_FUNGIBLE_POSITION_MANAGER;
+
+    // The contract address of the Uniswap V3 (or exact clone) Factory.
     address internal immutable UNISWAP_V3_FACTORY;
 
-    // Map asset => uniswapV3Factory.
-    mapping(address => address) public assetToV3Factory;
-
+    // The liquidity of the Liquidity Position when it was deposited.
     mapping(uint256 assetId => uint256 liquidity) internal assetToLiquidity;
 
+    // The Unique identifiers of the underlying assets of a Liquidity Position.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
-
-    // Map asset => id => positionInformation.
-    mapping(address => mapping(uint256 => Position)) internal positions;
-
-    // Struct with information of a specific Liquidity Position.
-    struct Position {
-        address token0; // Token0 of the Liquidity Pool.
-        address token1; // Token1 of the Liquidity Pool.
-        int24 tickLower; // The lower tick of the liquidity position.
-        int24 tickUpper; // The upper tick of the liquidity position.
-        uint128 liquidity; // The liquidity per tick of the liquidity position.
-    }
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -79,18 +69,28 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
                         ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
+    /**
+     * @notice Adds the mapping from the NonfungiblePositionManager to this Pricing Module in this MainRegistry.
+     * @dev Since all assets will have the same contract address, the NonfungiblePositionManager has to be added to the MainRegistry.
+     */
     function setProtocol() external onlyOwner {
         // Will revert in MainRegistry if asset was already added.
         IMainRegistry(mainRegistry).addAsset(NON_FUNGIBLE_POSITION_MANAGER, assetType);
     }
 
+    /**
+     * @notice Adds a new asset (Liquidity Position) to the UniswapV3PricingModule.
+     * @param assetId The Id of the asset.
+     * @dev All assets (Liquidity Positions) will have the same contract address (the NonfungiblePositionManager),
+     * but a different id.
+     */
     function _addAsset(uint256 assetId) internal {
-        require(assetId <= type(uint96).max);
+        require(assetId <= type(uint96).max, "PMUV3_AA: Id to large");
 
         (,, address token0, address token1,,,, uint128 liquidity,,,,) =
             INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
 
-        require(liquidity > 0, "PMUV3_IE: 0 liquidity");
+        require(liquidity > 0, "PMUV3_AA: 0 liquidity");
 
         assetToLiquidity[assetId] = liquidity;
 
@@ -99,24 +99,6 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
         underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
         assetToUnderlyingAssets[assetKey] = underlyingAssetKeys;
-    }
-
-    /**
-     * @notice Adds a new asset to the UniswapV3PricingModule.
-     * @param asset The contract address of the asset (also known as the NonfungiblePositionManager).
-     * @dev Per protocol (eg. Uniswap V3 and its forks) there is a single asset,
-     * and each liquidity position will have a different id.
-     */
-    function addAsset(address asset) external onlyOwner {
-        require(!inPricingModule[asset], "PMUV3_AA: already added");
-
-        inPricingModule[asset] = true;
-        assetsInPricingModule.push(asset);
-
-        assetToV3Factory[asset] = INonfungiblePositionManager(asset).factory();
-
-        // Will revert in MainRegistry if asset can't be added.
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
     }
 
     function _getUnderlyingAssets(bytes32 assetKey)
@@ -141,7 +123,7 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
     function isAllowListed(address asset, uint256 assetId) public view override returns (bool) {
         if (asset != NON_FUNGIBLE_POSITION_MANAGER) return false;
 
-        try INonfungiblePositionManager(asset).positions(assetId) returns (
+        try INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId) returns (
             uint96,
             address,
             address token0,
@@ -185,7 +167,7 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         override
         returns (uint256[] memory underlyingAssetsAmounts)
     {
-        (address asset, uint256 assetId) = _getAssetFromKey(assetKey);
+        (, uint256 assetId) = _getAssetFromKey(assetKey);
         address token0;
         address token1;
         uint256 usdPriceToken0;
@@ -215,7 +197,7 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
 
         {
             // Calculate amount0 and amount1 of the accumulated fees.
-            (uint256 fee0, uint256 fee1) = _getFeeAmounts(asset, assetId);
+            (uint256 fee0, uint256 fee1) = _getFeeAmounts(assetId);
 
             // ToDo: fee should be capped to a max compared to principal to avoid circumventing caps via fees on new pools.
 
@@ -246,7 +228,6 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
         // Use variables as much as possible in local context, to avoid stack too deep errors.
-        address asset = getValueInput.asset;
         uint256 id = getValueInput.assetId;
         uint256 baseCurrency = getValueInput.baseCurrency;
         address token0;
@@ -281,7 +262,7 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
 
         {
             // Calculate amount0 and amount1 of the accumulated fees.
-            (uint256 fee0, uint256 fee1) = _getFeeAmounts(asset, id);
+            (uint256 fee0, uint256 fee1) = _getFeeAmounts(id);
 
             // ToDo: fee should be capped to a max compared to principal to avoid circumventing caps via fees on new pools.
 
@@ -405,12 +386,11 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
 
     /**
      * @notice Calculates the underlying token amounts of accrued fees, both collected as uncollected.
-     * @param asset The contract address of the asset.
      * @param id The Id of the Liquidity Position.
      * @return amount0 The amount fees of underlying token0 tokens.
      * @return amount1 The amount of fees underlying token1 tokens.
      */
-    function _getFeeAmounts(address asset, uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
+    function _getFeeAmounts(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
         (
             ,
             ,
@@ -424,7 +404,7 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
             uint256 feeGrowthInside1LastX128,
             uint256 tokensOwed0, // gas: cheaper to use uint256 instead of uint128.
             uint256 tokensOwed1 // gas: cheaper to use uint256 instead of uint128.
-        ) = INonfungiblePositionManager(asset).positions(id);
+        ) = INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(id);
 
         (uint256 feeGrowthInside0CurrentX128, uint256 feeGrowthInside1CurrentX128) =
             _getFeeGrowthInside(token0, token1, fee, tickLower, tickUpper);
@@ -496,16 +476,14 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
      * @return tickCurrent The current tick.
      */
     function _getTrustedTickCurrent(address token0, address token1) internal view returns (int256 tickCurrent) {
-        // Get the pricing modules of the underlying assets
-        address token0PricingModule = IMainRegistry(mainRegistry).getPricingModuleOfAsset(token0);
-        address token1PricingModule = IMainRegistry(mainRegistry).getPricingModuleOfAsset(token1);
-
         // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
         // sufficient precision.
-        (uint256 priceToken0,,) = IPricingModule(token0PricingModule).getValue(
+        // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
+        // sufficient precision.
+        uint256 priceToken0 = IMainRegistry(mainRegistry).getUsdValue(
             GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
-        (uint256 priceToken1,,) = IPricingModule(token1PricingModule).getValue(
+        uint256 priceToken1 = IMainRegistry(mainRegistry).getUsdValue(
             GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 

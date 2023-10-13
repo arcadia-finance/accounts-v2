@@ -19,6 +19,8 @@ contract GetSqrtPriceX96_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingMod
 
     function setUp() public override {
         UniswapV3PricingModule_Fuzz_Test.setUp();
+
+        deployUniswapV3PricingModule(address(nonfungiblePositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////

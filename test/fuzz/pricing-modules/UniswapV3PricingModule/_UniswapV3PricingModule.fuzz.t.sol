@@ -11,8 +11,8 @@ import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
-import { ArcadiaOracle } from "../../.././utils/mocks/ArcadiaOracle.sol";
-import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
+import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
+import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { INonfungiblePositionManagerExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { IUniswapV3PoolExtension } from
@@ -20,9 +20,11 @@ import { IUniswapV3PoolExtension } from
 import { LiquidityAmounts } from "../../../../src/pricing-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { LiquidityAmountsExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
+import { NonfungiblePositionManagerMock } from "../../../utils/mocks/NonfungiblePositionManager.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
-import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
+import { Utils } from "../../../utils/Utils.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV3PricingModule" fuzz tests.
@@ -32,6 +34,9 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
+
+    IUniswapV3PoolExtension internal poolStable1Stable2;
+    NonfungiblePositionManagerMock internal nonfungiblePositionManagerMock;
 
     struct TestVariables {
         uint256 decimals0;
@@ -51,18 +56,32 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
 
     function setUp() public virtual override(Fuzz_Test, UniswapV3Fixture) {
         Fuzz_Test.setUp();
+        // Deploy fixture for Uniswap.
         UniswapV3Fixture.setUp();
 
-        deployUniswapV3PricingModule(address(nonfungiblePositionManager));
+        // Deploy mock for the Nonfungibleposition manager for tests where state of position must be fuzzed.
+        // (we can't use the Fixture since most variables of the NonfungiblepositionExtension are private).
+        deployNonfungiblePositionManagerMock();
 
-        vm.prank(users.creatorAddress);
-        uniV3PricingModule.setProtocol();
-        //uniV3PricingModule.addAsset(address(nonfungiblePositionManager));
+        poolStable1Stable2 = createPool(mockERC20.stable1, mockERC20.stable2, TickMath.getSqrtRatioAtTick(0), 300);
     }
 
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
+
+    function deployNonfungiblePositionManagerMock() public {
+        // Since Uniswap uses different a pragma version as us, we can't directly deploy the code
+        // -> use getCode to get bytecode from artefacts and deploy directly.
+        bytes memory args = abi.encode(address(uniswapV3Factory));
+        bytes memory bytecode =
+            abi.encodePacked(vm.getCode("NonfungiblePositionManager.sol:NonfungiblePositionManagerMock"), args);
+        vm.prank(users.creatorAddress);
+        address nonfungiblePositionManagerMock_ = Utils.deployBytecode(bytecode);
+        nonfungiblePositionManagerMock = NonfungiblePositionManagerMock(nonfungiblePositionManagerMock_);
+
+        vm.label({ account: address(nonfungiblePositionManagerMock), newLabel: "NonfungiblePositionManagerMock" });
+    }
 
     function createPool(ERC20 token0, ERC20 token1, uint160 sqrtPriceX96, uint16 observationCardinality)
         public
@@ -204,5 +223,16 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
         sqrtPriceX96 = sqrtPriceXd9 * 2 ** 96 / 1e9;
         vm.assume(sqrtPriceX96 >= 4_295_128_739);
         vm.assume(sqrtPriceX96 <= 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342);
+    }
+
+    function givenValidPosition(NonfungiblePositionManagerMock.Position memory position)
+        internal
+        view
+        returns (NonfungiblePositionManagerMock.Position memory)
+    {
+        // Given: poolId is non zero (=position is initialised).
+        position.poolId = uint80(bound(position.poolId, 1, type(uint80).max));
+
+        return position;
     }
 }

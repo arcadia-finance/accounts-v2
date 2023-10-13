@@ -344,6 +344,18 @@ contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule {
         UniswapV3WithFeesPricingModule(mainRegistry_, oracleHub_, riskManager_, nonfungiblePositionManager)
     { }
 
+    function getAssetToLiquidity(uint256 assetId) external view returns (uint256 liquidity) {
+        liquidity = assetToLiquidity[assetId];
+    }
+
+    function addAsset(uint256 assetId) public {
+        _addAsset(assetId);
+    }
+
+    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {
+        return _getUnderlyingAssets(assetKey);
+    }
+
     function getPrincipalAmounts(
         int24 tickLower,
         int24 tickUpper,
@@ -362,8 +374,8 @@ contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule {
         return _getTrustedTickCurrent(token0, token1);
     }
 
-    function getFeeAmounts(address asset, uint256 id) public view returns (uint256 amount0, uint256 amount1) {
-        (amount0, amount1) = _getFeeAmounts(asset, id);
+    function getFeeAmounts(uint256 id) public view returns (uint256 amount0, uint256 amount1) {
+        (amount0, amount1) = _getFeeAmounts(id);
     }
 }
 

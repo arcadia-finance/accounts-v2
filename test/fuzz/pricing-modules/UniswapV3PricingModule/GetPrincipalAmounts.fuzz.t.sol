@@ -19,6 +19,8 @@ contract GetPrincipalAmounts_UniswapV3PricingModule_Fuzz_Test is UniswapV3Pricin
 
     function setUp() public override {
         UniswapV3PricingModule_Fuzz_Test.setUp();
+
+        deployUniswapV3PricingModule(address(nonfungiblePositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////

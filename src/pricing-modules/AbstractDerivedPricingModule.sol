@@ -69,7 +69,7 @@ abstract contract DerivedPricingModule is PricingModule {
                         ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
-    // Unsafe cast from uint256 to uint96, use only when the id's of the assets cannot exceed type(uint92).max.
+    // @dev Unsafe cast from uint256 to uint96, use only when the id's of the assets cannot exceed type(uint92).max.
     function _getKeyFromAsset(address asset, uint256 assetId) internal view virtual returns (bytes32 key) {
         assembly {
             // Shift the assetId to the left by 20 bytes (160 bits).
@@ -130,8 +130,6 @@ abstract contract DerivedPricingModule is PricingModule {
      * @param amount The amount of tokens.
      */
     function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public virtual override onlyMainReg {
-        require(assetId <= type(uint96).max);
-
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to "Asset".
@@ -153,8 +151,6 @@ abstract contract DerivedPricingModule is PricingModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
-        require(assetId <= type(uint96).max);
-
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to "Asset".

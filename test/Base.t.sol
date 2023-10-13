@@ -166,8 +166,10 @@ abstract contract Base_Test is Test, Events, Errors {
         vm.label({ account: address(uniV3PricingModule), newLabel: "Uniswap V3 Pricing Module" });
 
         // Add the Pricing Module to the MainRegistry.
-        vm.prank(users.creatorAddress);
+        vm.startPrank(users.creatorAddress);
         mainRegistryExtension.addPricingModule(address(uniV3PricingModule));
+        uniV3PricingModule.setProtocol();
+        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////////////////

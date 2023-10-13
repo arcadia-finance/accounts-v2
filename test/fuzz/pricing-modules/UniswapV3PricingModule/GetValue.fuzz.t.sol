@@ -29,6 +29,8 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
 
     function setUp() public override {
         UniswapV3PricingModule_Fuzz_Test.setUp();
+
+        deployUniswapV3PricingModule(address(nonfungiblePositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -96,10 +98,6 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         addUnderlyingTokenToArcadia(address(token0), int256(uint256(vars.priceToken0)));
         addUnderlyingTokenToArcadia(address(token1), int256(uint256(vars.priceToken1)));
 
-        vm.startPrank(users.creatorAddress);
-        // add asset to UniV3 pricing module
-        uniV3PricingModule.addAsset(address(pool));
-
         // Calculate the expected value
         uint256 valueToken0 = 1e18 * uint256(vars.priceToken0) * amount0 / 10 ** vars.decimals0;
         uint256 valueToken1 = 1e18 * uint256(vars.priceToken1) * amount1 / 10 ** vars.decimals1;
@@ -114,7 +112,6 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         );
 
         assertEq(actualValueInUsd, valueToken0 + valueToken1);
-        vm.stopPrank();
     }
 
     function testFuzz_Success_getValue_RiskFactors(

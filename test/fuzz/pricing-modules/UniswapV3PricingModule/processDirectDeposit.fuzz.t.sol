@@ -36,6 +36,8 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
     function setUp() public override {
         UniswapV3PricingModule_Fuzz_Test.setUp();
 
+        deployUniswapV3PricingModule(address(nonfungiblePositionManager));
+
         token0 = new ERC20Mock('Token 0', 'TOK0', 18);
         token1 = new ERC20Mock('Token 1', 'TOK1', 18);
         (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
@@ -80,7 +82,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_IE: 0 liquidity");
+        vm.expectRevert("PMUV3_AA: 0 liquidity");
         uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }

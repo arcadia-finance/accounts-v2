@@ -21,6 +21,8 @@ contract GetTrustedTickCurrent_UniswapV3PricingModule_Fuzz_Test is UniswapV3Pric
 
     function setUp() public override {
         UniswapV3PricingModule_Fuzz_Test.setUp();
+
+        deployUniswapV3PricingModule(address(nonfungiblePositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////

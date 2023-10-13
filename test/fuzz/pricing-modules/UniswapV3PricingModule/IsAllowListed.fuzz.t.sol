@@ -21,6 +21,8 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
 
     function setUp() public override {
         UniswapV3PricingModule_Fuzz_Test.setUp();
+
+        deployUniswapV3PricingModule(address(nonfungiblePositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////
