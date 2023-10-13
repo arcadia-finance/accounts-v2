@@ -44,8 +44,8 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626PricingModule_Fuzz_Test is St
         );
         mainRegistryExtension.addPricingModule(address(erc4626PricingModuleExtension));
 
-        erc4626PricingModuleExtension.addAsset(address(ybToken1), emptyRiskVarInput);
-        erc4626PricingModuleExtension.addAsset(address(ybToken2), emptyRiskVarInput);
+        erc4626PricingModuleExtension.addAsset(address(ybToken1));
+        erc4626PricingModuleExtension.addAsset(address(ybToken2));
 
         vm.stopPrank();
     }

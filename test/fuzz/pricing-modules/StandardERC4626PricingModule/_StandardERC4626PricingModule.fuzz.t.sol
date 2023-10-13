@@ -10,6 +10,7 @@ import { ERC4626Mock } from "../../.././utils/mocks/ERC4626Mock.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 import { StandardERC4626PricingModule } from "../../../../src/pricing-modules/StandardERC4626PricingModule.sol";
+import { ERC4626PricingModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
  * @notice Common logic needed by all "StandardERC4626PricingModule" fuzz tests.
@@ -28,7 +29,7 @@ abstract contract StandardERC4626PricingModule_Fuzz_Test is Fuzz_Test {
                           TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    StandardERC4626PricingModule internal erc4626PricingModule;
+    ERC4626PricingModuleExtension internal erc4626PricingModule;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -41,7 +42,7 @@ abstract contract StandardERC4626PricingModule_Fuzz_Test is Fuzz_Test {
         ybToken1 = new ERC4626Mock(mockERC20.token1, "Mocked Yield Bearing Token 1", "mybTOKEN1");
 
         vm.startPrank(users.creatorAddress);
-        erc4626PricingModule = new StandardERC4626PricingModule(
+        erc4626PricingModule = new ERC4626PricingModuleExtension(
             address(mainRegistryExtension),
             address(oracleHub),
             0, address(erc20PricingModule)

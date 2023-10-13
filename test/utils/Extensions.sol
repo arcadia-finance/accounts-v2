@@ -399,4 +399,8 @@ contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
     {
         exposureAssetToUnderlyingAssets = _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
     }
+
+    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {
+        return _getUnderlyingAssets(assetKey);
+    }
 }

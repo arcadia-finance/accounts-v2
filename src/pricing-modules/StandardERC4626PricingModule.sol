@@ -57,8 +57,9 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
      * @return A boolean, indicating if the asset is whitelisted.
      */
     function isAllowed(address asset, uint256) public view override returns (bool) {
-        // NOTE: To change based on discussion to enable or disable deposits for certain assets
-        return inPricingModule[asset];
+        address underlyingAsset = IERC4626(asset).asset();
+
+        return IMainRegistry(mainRegistry).isAllowed(underlyingAsset, 0);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -89,39 +90,21 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
     }
 
     /**
-     * @notice Adds a new asset to the ATokenPricingModule.
+     * @notice Adds a new asset to the ERC4626 TokenPricingModule.
      * @param asset The contract address of the asset
-     * @param riskVars An array of Risk Variables for the asset
-     * @dev Only the Collateral Factor, Liquidation Threshold and basecurrency are taken into account.
-     * If no risk variables are provided, the asset is added with the risk variables set to zero, meaning it can't be used as collateral.
-     * @dev RiskVarInput.asset can be zero as it is not taken into account.
-     * @dev Risk variable are variables with 2 decimals precision
-     * @dev The assets are added in the Main-Registry as well.
-     * @dev Assets can't have more than 18 decimals.
      */
-    function addAsset(address asset, RiskVarInput[] calldata riskVars) external onlyOwner {
-        uint256 assetUnit = 10 ** IERC4626(asset).decimals();
+    function addAsset(address asset) external onlyOwner {
         address underlyingAsset = address(IERC4626(asset).asset());
 
-        (uint64 underlyingAssetUnit, address[] memory underlyingAssetOracles) =
-            IStandardERC20PricingModule(erc20PricingModule).getAssetInformation(underlyingAsset);
-        require(10 ** IERC4626(asset).decimals() == underlyingAssetUnit, "PM4626_AA: Decimals don't match");
-        //we can skip the oracle addresses check, already checked on underlying asset
-
-        require(!inPricingModule[asset], "PM4626_AA: already added");
+        require(IMainRegistry(mainRegistry).isAllowed(underlyingAsset, 0), "PM4626_AA: Underlying Asset not allowed");
         inPricingModule[asset] = true;
         assetsInPricingModule.push(asset);
-
-        erc4626AssetToInformation[asset].assetUnit = uint64(assetUnit);
-        erc4626AssetToInformation[asset].underlyingAssetOracles = underlyingAssetOracles;
 
         bytes32[] memory underlyingAssets_ = new bytes32[](1);
         underlyingAssets_[0] = _getKeyFromAsset(underlyingAsset, 0);
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
-        _setRiskVariablesForAsset(asset, riskVars);
-
-        //Will revert in MainRegistry if asset can't be added
+        // Will revert in MainRegistry if pool was already added.
         IMainRegistry(mainRegistry).addAsset(asset, assetType);
     }
 
@@ -168,12 +151,17 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        uint256 rateInUsd =
-            IOraclesHub(oracleHub).getRateInUsd(erc4626AssetToInformation[getValueInput.asset].underlyingAssetOracles);
+        bytes32 assetKey = _getKeyFromAsset(getValueInput.asset, 0);
 
-        uint256 assetAmount = IERC4626(getValueInput.asset).convertToAssets(getValueInput.assetAmount);
+        bytes32[] memory underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
 
-        valueInUsd = assetAmount.mulDivDown(rateInUsd, erc4626AssetToInformation[getValueInput.asset].assetUnit);
+        uint256[] memory underlyingAssetsAmounts =
+            _getUnderlyingAssetsAmounts(assetKey, getValueInput.assetAmount, underlyingAssetKeys);
+
+        (address asset,) = _getAssetFromKey(underlyingAssetKeys[0]);
+        valueInUsd = IMainRegistry(mainRegistry).getUsdValue(
+            GetValueInput({ asset: asset, assetId: 0, assetAmount: underlyingAssetsAmounts[0], baseCurrency: 0 })
+        );
 
         collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
         liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;

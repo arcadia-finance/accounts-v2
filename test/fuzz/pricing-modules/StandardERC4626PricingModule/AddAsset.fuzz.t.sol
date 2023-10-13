@@ -6,9 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
 
-import { ERC4626DifferentDecimals } from "../../.././utils/mocks/ERC4626DifferentDecimals.sol";
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
-import { StandardERC4626PricingModule } from "../../../../src/pricing-modules/StandardERC4626PricingModule.sol";
+import { ERC4626Mock } from "../../.././utils/mocks/ERC4626Mock.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" of contract "StandardERC4626PricingModule".
@@ -29,61 +27,38 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
-        erc4626PricingModule.addAsset(asset, emptyRiskVarInput);
+        erc4626PricingModule.addAsset(asset);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_addAsset_DecimalsDontMatch(uint8 decimals) public {
-        vm.assume(decimals != mockERC20.token1.decimals());
-        vm.assume(decimals <= 20);
+    function testFuzz_Revert_addAsset_Token0NotAllowed() public {
         vm.prank(users.tokenCreatorAddress);
-        ERC4626DifferentDecimals ybToken = new ERC4626DifferentDecimals(decimals, mockERC20.token1);
+        ERC4626Mock ybToken3 = new ERC4626Mock(mockERC20.token3, "Mocked Yield Bearing Token 3", "mybTOKEN1");
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("PM4626_AA: Decimals don't match");
-        erc4626PricingModule.addAsset(address(ybToken), emptyRiskVarInput);
+        vm.expectRevert("PM4626_AA: Underlying Asset not allowed");
+        erc4626PricingModule.addAsset(address(ybToken3));
         vm.stopPrank();
     }
 
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput);
-        vm.expectRevert("PM4626_AA: already added");
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput);
+        erc4626PricingModule.addAsset(address(ybToken1));
+        vm.expectRevert("MR_AA: Asset already in mainreg");
+        erc4626PricingModule.addAsset(address(ybToken1));
         vm.stopPrank();
-
-        assertTrue(erc4626PricingModule.inPricingModule(address(ybToken1)));
     }
 
-    function testFuzz_Success_addAsset_EmptyListRiskVariables() public {
+    function testFuzz_Success_addAsset() public {
         vm.startPrank(users.creatorAddress);
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput);
+        erc4626PricingModule.addAsset(address(ybToken1));
         vm.stopPrank();
 
-        assertTrue(erc4626PricingModule.inPricingModule(address(ybToken1)));
-        assertEq(erc4626PricingModule.assetsInPricingModule(0), address(ybToken1));
+        assertTrue(mainRegistryExtension.inMainRegistry(address(ybToken1)));
 
-        (uint64 assetUnit) = erc4626PricingModule.erc4626AssetToInformation(address(ybToken1));
-        assertEq(assetUnit, 10 ** mockERC20.token1.decimals());
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(ybToken1)));
+        bytes32[] memory underlyingAssetKeys = erc4626PricingModule.getUnderlyingAssets(assetKey);
 
-        assertTrue(erc4626PricingModule.isAllowed(address(ybToken1), 0));
-        // We ensure that the correct oracle from the underlying asset was added in
-        // ERC4626AssetInformation through our testing of GetValue().
-    }
-
-    function testFuzz_Success_addAsset_NonFullListRiskVariables() public {
-        vm.startPrank(users.creatorAddress);
-        PricingModule.RiskVarInput[] memory riskVars_ = new PricingModule.RiskVarInput[](1);
-        riskVars_[0] = PricingModule.RiskVarInput({
-            baseCurrency: 0,
-            asset: address(0),
-            collateralFactor: collateralFactor,
-            liquidationFactor: liquidationFactor
-        });
-
-        erc4626PricingModule.addAsset(address(ybToken1), riskVars_);
-        vm.stopPrank();
-
-        assertTrue(erc4626PricingModule.inPricingModule(address(ybToken1)));
+        assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1))));
     }
 }

@@ -49,7 +49,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
 
         vm.prank(users.creatorAddress);
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput);
+        erc4626PricingModule.addAsset(address(ybToken1));
 
         //Cheat totalSupply
         stdstore.target(address(ybToken1)).sig(ybToken1.totalSupply.selector).checked_write(totalSupply);
@@ -70,7 +70,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         erc4626PricingModule.getValue(getValueInput);
     }
 
-    function testFuzz_Success_getValue(
+    function testFuzz_Success_getValuea(
         uint256 rateToken1ToUsd_,
         uint256 shares,
         uint256 totalSupply,
@@ -100,7 +100,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
 
         vm.prank(users.creatorAddress);
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput);
+        erc4626PricingModule.addAsset(address(ybToken1));
 
         //Cheat totalSupply
         stdstore.target(address(ybToken1)).sig(ybToken1.totalSupply.selector).checked_write(totalSupply);
