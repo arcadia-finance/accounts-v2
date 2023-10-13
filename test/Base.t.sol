@@ -44,6 +44,7 @@ abstract contract Base_Test is Test, Events, Errors {
     //////////////////////////////////////////////////////////////////////////*/
 
     Factory internal factory;
+    Factory internal factory_new;
     MainRegistryExtension internal mainRegistryExtension;
     OracleHub internal oracleHub;
     StandardERC20PricingModule internal erc20PricingModule;
@@ -51,6 +52,7 @@ abstract contract Base_Test is Test, Events, Errors {
     FloorERC1155PricingModule internal floorERC1155PricingModule;
     UniswapV3PricingModuleExtension internal uniV3PricingModule;
     AccountV1 internal accountV1Logic;
+    AccountV1_New internal accountV1Logic_NEW;
     AccountV2 internal accountV2Logic;
     AccountV1 internal proxyAccount;
     AccountV1_New internal proxyAccount_New;
@@ -78,6 +80,7 @@ abstract contract Base_Test is Test, Events, Errors {
         // Deploy the base test contracts.
         vm.startPrank(users.creatorAddress);
         factory = new Factory();
+        factory_new = new Factory();
         mainRegistryExtension = new MainRegistryExtension(address(factory));
         oracleHub = new OracleHub();
         erc20PricingModule = new StandardERC20PricingModule(address(mainRegistryExtension), address(oracleHub), 0);
@@ -90,8 +93,12 @@ abstract contract Base_Test is Test, Events, Errors {
 
         accountV1Logic = new AccountV1();
         accountV2Logic = new AccountV2();
+        accountV1Logic_NEW = new AccountV1_New();
         factory.setNewAccountInfo(
             address(mainRegistryExtension), address(accountV1Logic), Constants.upgradeProof1To2, ""
+        );
+        factory_new.setNewAccountInfo(
+            address(mainRegistryExtension), address(accountV1Logic_NEW), Constants.upgradeProof1To2, ""
         );
         trustedCreditor = new TrustedCreditorMock();
         vm.stopPrank();
@@ -130,7 +137,7 @@ abstract contract Base_Test is Test, Events, Errors {
         address proxyAddress = factory.createAccount(0, 0, address(0), address(0));
         proxyAccount = AccountV1(proxyAddress);
 
-        address proxyAddress_New = factory.createAccount(1, 0, address(0), address(0));
+        address proxyAddress_New = factory_new.createAccount(1, 0, address(0), address(0));
         proxyAccount_New = AccountV1_New(proxyAddress_New);
         vm.stopPrank();
     }
