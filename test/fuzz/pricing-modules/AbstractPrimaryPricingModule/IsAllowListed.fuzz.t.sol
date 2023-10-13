@@ -23,8 +23,8 @@ contract ProcessDirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstract
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_Success_isAllowlisted_False(address asset, uint256 id) public view {
-        bool isAllowListed = pricingModule.isAllowListed(asset, id);
-        assert(isAllowListed == false);
+        bool isAllowed = pricingModule.isAllowed(asset, id);
+        assert(isAllowed == false);
     }
 
     function testFuzz_Success_isAllowlisted_True(address asset, uint256 id, uint128 exposure, uint128 maxExposure)
@@ -34,7 +34,7 @@ contract ProcessDirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstract
         vm.assume(exposure < maxExposure);
         pricingModule.setExposure(asset, exposure, maxExposure);
 
-        bool isAllowListed = pricingModule.isAllowListed(asset, id);
-        assert(isAllowListed == true);
+        bool isAllowed = pricingModule.isAllowed(asset, id);
+        assert(isAllowed == true);
     }
 }

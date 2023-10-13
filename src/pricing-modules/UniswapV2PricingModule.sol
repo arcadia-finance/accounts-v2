@@ -52,14 +52,17 @@ contract UniswapV2PricingModule is DerivedPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Checks for a token address and the corresponding Id if it is white-listed.
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
      * @param asset The contract address of the asset.
      * param assetId The Id of the asset.
-     * @return A boolean, indicating if the asset is whitelisted.
+     * @return A boolean, indicating if the asset is allowed.
      */
-    function isAllowListed(address asset, uint256) public view override returns (bool) {
-        // NOTE: To change based on discussion to enable or disable deposits for certain assets
-        return inPricingModule[asset];
+    function isAllowed(address asset, uint256) public view override returns (bool) {
+        address token0 = IUniswapV2Pair(asset).token0();
+        address token1 = IUniswapV2Pair(asset).token1();
+
+        return (IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == asset)
+            && IMainRegistry(mainRegistry).isAllowed(token0, 0) && IMainRegistry(mainRegistry).isAllowed(token1, 0);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -100,6 +103,10 @@ contract UniswapV2PricingModule is DerivedPricingModule {
                         ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
+    /**
+     * @notice Adds a new pool to the UniswapV2PricingModule.
+     * @param pool The contract address of the pool.
+     */
     function addPool(address pool) external {
         address token0 = IUniswapV2Pair(pool).token0();
         address token1 = IUniswapV2Pair(pool).token1();
@@ -115,42 +122,6 @@ contract UniswapV2PricingModule is DerivedPricingModule {
 
         // Will revert in MainRegistry if pool was already added.
         IMainRegistry(mainRegistry).addAsset(pool, assetType);
-    }
-
-    /**
-     * @notice Adds a new asset to the UniswapV2PricingModule.
-     * @param asset The contract address of the asset
-     * @param riskVars An array of Risk Variables for the asset
-     * @dev Only the Collateral Factor, Liquidation Threshold and basecurrency are taken into account.
-     * If no risk variables are provided, the asset is added with the risk variables set to zero, meaning it can't be used as collateral.
-     * @dev RiskVarInput.asset can be zero as it is not taken into account.
-     * @dev Risk variable are variables with 2 decimals precision
-     * @dev The assets are added in the Main-Registry as well.
-     * @dev Assets can't have more than 18 decimals.
-     */
-    function addAsset(address asset, RiskVarInput[] calldata riskVars) external onlyOwner {
-        address token0 = IUniswapV2Pair(asset).token0();
-        address token1 = IUniswapV2Pair(asset).token1();
-
-        address token0PricingModule = IMainRegistry(mainRegistry).getPricingModuleOfAsset(token0);
-        address token1PricingModule = IMainRegistry(mainRegistry).getPricingModuleOfAsset(token1);
-
-        require(PricingModule(token0PricingModule).isAllowListed(token0, 0), "PMUV2_AA: TOKENO_NOT_WHITELISTED");
-        require(PricingModule(token1PricingModule).isAllowListed(token1, 0), "PMUV2_AA: TOKEN1_NOT_WHITELISTED");
-
-        bytes32[] memory underlyingAssets_ = new bytes32[](2);
-        underlyingAssets_[0] = _getKeyFromAsset(token0, 0);
-        underlyingAssets_[1] = _getKeyFromAsset(token1, 0);
-        assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
-
-        require(!inPricingModule[asset], "PMUV2_AA: already added");
-        inPricingModule[asset] = true;
-        assetsInPricingModule.push(asset);
-
-        _setRiskVariablesForAsset(asset, riskVars);
-
-        //Will revert in MainRegistry if asset can't be added
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
     }
 
     /*///////////////////////////////////////////////////////////////

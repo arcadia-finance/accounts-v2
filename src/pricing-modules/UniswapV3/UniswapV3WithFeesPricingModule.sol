@@ -120,7 +120,7 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
      * @param assetId The Id of the asset.
      * @return A boolean, indicating if the asset is whitelisted.
      */
-    function isAllowListed(address asset, uint256 assetId) public view override returns (bool) {
+    function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
         if (asset != NON_FUNGIBLE_POSITION_MANAGER) return false;
 
         try INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId) returns (
@@ -142,8 +142,8 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
             if (token0PricingModule == address(0) || token1PricingModule == address(0)) {
                 return false;
             } else {
-                return IPricingModule(token0PricingModule).isAllowListed(token0, 0)
-                    && IPricingModule(token0PricingModule).isAllowListed(token1, 0);
+                return IPricingModule(token0PricingModule).isAllowed(token0, 0)
+                    && IPricingModule(token0PricingModule).isAllowed(token1, 0);
             }
         } catch {
             return false;

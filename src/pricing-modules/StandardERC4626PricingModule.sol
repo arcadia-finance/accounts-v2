@@ -56,7 +56,7 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
      * param assetId The Id of the asset.
      * @return A boolean, indicating if the asset is whitelisted.
      */
-    function isAllowListed(address asset, uint256) public view override returns (bool) {
+    function isAllowed(address asset, uint256) public view override returns (bool) {
         // NOTE: To change based on discussion to enable or disable deposits for certain assets
         return inPricingModule[asset];
     }

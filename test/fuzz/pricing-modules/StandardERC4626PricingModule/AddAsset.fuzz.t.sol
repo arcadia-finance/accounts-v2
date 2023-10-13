@@ -66,7 +66,7 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         (uint64 assetUnit) = erc4626PricingModule.erc4626AssetToInformation(address(ybToken1));
         assertEq(assetUnit, 10 ** mockERC20.token1.decimals());
 
-        assertTrue(erc4626PricingModule.isAllowListed(address(ybToken1), 0));
+        assertTrue(erc4626PricingModule.isAllowed(address(ybToken1), 0));
         // We ensure that the correct oracle from the underlying asset was added in
         // ERC4626AssetInformation through our testing of GetValue().
     }

@@ -70,7 +70,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         for (uint256 i; i < oracleSft2ToUsdArr.length; ++i) {
             assertEq(oracles[i], oracleSft2ToUsdArr[i]);
         }
-        assertTrue(floorERC1155PricingModule.isAllowListed(address(mockERC1155.sft2), 1));
+        assertTrue(floorERC1155PricingModule.isAllowed(address(mockERC1155.sft2), 1));
     }
 
     function testFuzz_Success_addAsset_NonFullListRiskVariables() public {

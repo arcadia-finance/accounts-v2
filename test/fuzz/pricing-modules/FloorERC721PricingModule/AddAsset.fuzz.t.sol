@@ -70,7 +70,7 @@ contract AddAsset_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
         for (uint256 i; i < oracleNft2ToUsdArr.length; ++i) {
             assertEq(oracles[i], oracleNft2ToUsdArr[i]);
         }
-        assertTrue(floorERC721PricingModule.isAllowListed(address(mockERC721.nft2), 0));
+        assertTrue(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), 0));
     }
 
     function testFuzz_Success_addAsset_NonFullListRiskVariables() public {

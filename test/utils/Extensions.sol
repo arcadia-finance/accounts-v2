@@ -279,6 +279,10 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
         uniswapV2Factory = UNISWAP_V2_FACTORY;
     }
 
+    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {
+        return _getUnderlyingAssets(assetKey);
+    }
+
     function getUnderlyingAssets(address asset) public view returns (address[] memory underlyingAssets) {
         underlyingAssets = new address[](2);
 

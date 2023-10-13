@@ -20,7 +20,7 @@ interface IPricingModule {
      * @return A boolean, indicating if the asset is whitelisted.
      * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
      */
-    function isAllowListed(address asset, uint256) external view returns (bool);
+    function isAllowed(address asset, uint256) external view returns (bool);
 
     /**
      * @notice Returns the value of a certain asset, denominated in USD or in another BaseCurrency.

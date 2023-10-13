@@ -24,7 +24,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV
         UniswapV2PricingModule_Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        uniswapV2PricingModule.addAsset(address(pairToken1Token2), emptyRiskVarInput);
+        uniswapV2PricingModule.addPool(address(pairToken1Token2));
     }
 
     /*//////////////////////////////////////////////////////////////

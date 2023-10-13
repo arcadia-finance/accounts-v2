@@ -97,7 +97,7 @@ abstract contract Fuzz_Test is Base_Test {
         vm.label({ account: address(mockERC20.token1), newLabel: "TOKEN1" });
         vm.label({ account: address(mockERC20.token2), newLabel: "TOKEN2" });
         vm.label({ account: address(mockERC20.token3), newLabel: "TOKEN3" });
-        vm.label({ account: address(mockERC20.token3), newLabel: "TOKEN4" });
+        vm.label({ account: address(mockERC20.token4), newLabel: "TOKEN4" });
         vm.label({ account: address(mockERC721.nft1), newLabel: "NFT1" });
         vm.label({ account: address(mockERC721.nft2), newLabel: "NFT2" });
         vm.label({ account: address(mockERC721.nft3), newLabel: "NFT3" });

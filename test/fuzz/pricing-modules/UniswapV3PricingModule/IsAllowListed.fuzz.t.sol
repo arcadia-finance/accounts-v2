@@ -12,7 +12,7 @@ import { INonfungiblePositionManagerExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 
 /**
- * @notice Fuzz tests for the "isAllowListed" of contract "UniswapV3PricingModule".
+ * @notice Fuzz tests for the "isAllowed" of contract "UniswapV3PricingModule".
  */
 contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -31,11 +31,11 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
     function testFuzz_Success_isAllowListed_Negative_UnknownAsset(address asset, uint256 assetId) public {
         vm.assume(asset != address(nonfungiblePositionManager));
 
-        assertFalse(uniV3PricingModule.isAllowListed(asset, assetId));
+        assertFalse(uniV3PricingModule.isAllowed(asset, assetId));
     }
 
     function testFuzz_Success_isAllowListed_Negative_UnknownId(uint256 assetId) public {
-        assertFalse(uniV3PricingModule.isAllowListed(address(nonfungiblePositionManager), assetId));
+        assertFalse(uniV3PricingModule.isAllowed(address(nonfungiblePositionManager), assetId));
     }
 
     function testFuzz_Success_isAllowListed_Negative_NoExposure(address lp) public {
@@ -75,7 +75,7 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
         vm.stopPrank();
 
         // No maxExposures for tokenA and tokenB are set.
-        assertFalse(uniV3PricingModule.isAllowListed(address(nonfungiblePositionManager), tokenId));
+        assertFalse(uniV3PricingModule.isAllowed(address(nonfungiblePositionManager), tokenId));
     }
 
     function testFuzz_Success_isAllowListed_Positive(address lp, uint128 maxExposureA, uint128 maxExposureB) public {
@@ -118,6 +118,6 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
         // Exposures are greater than 0 for both token 1 and token 2, see Fuzz.t.sol
 
         // Test that Uni V3 LP token with allowed exposure to the underlying assets is allowlisted.
-        assertTrue(uniV3PricingModule.isAllowListed(address(nonfungiblePositionManager), tokenId));
+        assertTrue(uniV3PricingModule.isAllowed(address(nonfungiblePositionManager), tokenId));
     }
 }

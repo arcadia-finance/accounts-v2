@@ -108,7 +108,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @param assetId The Id of the asset
      * @return A boolean, indicating if the asset passed as input is whitelisted
      */
-    function isAllowListed(address asset, uint256 assetId) public view override returns (bool) {
+    function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
         if (exposure[asset].maxExposure != 0) {
             if (isIdInRange(asset, assetId)) {
                 return true;

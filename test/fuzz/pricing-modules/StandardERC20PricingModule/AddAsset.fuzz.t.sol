@@ -110,7 +110,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         for (uint256 i; i < oracleToken4ToUsdArr.length; ++i) {
             assertEq(oracles[i], oracleToken4ToUsdArr[i]);
         }
-        assertTrue(erc20PricingModule.isAllowListed(address(mockERC20.token4), 0));
+        assertTrue(erc20PricingModule.isAllowed(address(mockERC20.token4), 0));
     }
 
     function testFuzz_Success_addAsset_NonFullListRiskVariables() public {
