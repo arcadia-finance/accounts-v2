@@ -54,4 +54,6 @@ interface IMainRegistry {
     ) external returns (uint256 usdValueExposureAssetToUnderlyingAsset);
 
     function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256 usdValue);
+
+    function isAllowed(address asset, uint256 assetId) external view returns (bool);
 }

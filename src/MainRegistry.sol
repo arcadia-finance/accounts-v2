@@ -312,6 +312,10 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         }
     }
 
+    function isAllowed(address asset, uint256 assetId) external view returns (bool) {
+        return IPricingModule(assetToAssetInformation[asset].pricingModule).isAllowListed(asset, assetId);
+    }
+
     /**
      * @notice Batch withdraw multiple assets.
      * @param assetAddresses Array of the contract addresses of the assets.

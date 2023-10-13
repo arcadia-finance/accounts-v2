@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 
 import { DerivedPricingModule, IMainRegistry } from "./AbstractDerivedPricingModule.sol";
 import { PricingModule } from "./AbstractPricingModule.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -24,8 +25,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
     using FixedPointMathLib for uint256;
     using PRBMath for uint256;
 
-    uint256 public constant poolUnit = 1_000_000_000_000_000_000;
-    address public immutable uniswapV2Factory;
+    address internal immutable UNISWAP_V2_FACTORY;
 
     bool public feeOn;
 
@@ -44,7 +44,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address uniswapV2Factory_)
         DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
     {
-        uniswapV2Factory = uniswapV2Factory_;
+        UNISWAP_V2_FACTORY = uniswapV2Factory_;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -93,12 +93,29 @@ contract UniswapV2PricingModule is DerivedPricingModule {
      * @notice Fetches boolean on the uniswap factory if fees are enabled or not
      */
     function syncFee() external {
-        feeOn = IUniswapV2Factory(uniswapV2Factory).feeTo() != address(0);
+        feeOn = IUniswapV2Factory(UNISWAP_V2_FACTORY).feeTo() != address(0);
     }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
+
+    function addPool(address pool) external {
+        address token0 = IUniswapV2Pair(pool).token0();
+        address token1 = IUniswapV2Pair(pool).token1();
+        require(IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == pool, "PMUV2_AA: Not a Pool");
+
+        require(IMainRegistry(mainRegistry).isAllowed(token0, 0), "PMUV2_AA: Token0 not Allowed");
+        require(IMainRegistry(mainRegistry).isAllowed(token1, 0), "PMUV2_AA: Token1 not Allowed");
+
+        bytes32[] memory underlyingAssets_ = new bytes32[](2);
+        underlyingAssets_[0] = _getKeyFromAsset(token0, 0);
+        underlyingAssets_[1] = _getKeyFromAsset(token1, 0);
+        assetToUnderlyingAssets[_getKeyFromAsset(pool, 0)] = underlyingAssets_;
+
+        // Will revert in MainRegistry if pool was already added.
+        IMainRegistry(mainRegistry).addAsset(pool, assetType);
+    }
 
     /**
      * @notice Adds a new asset to the UniswapV2PricingModule.

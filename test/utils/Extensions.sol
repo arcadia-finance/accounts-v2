@@ -275,6 +275,10 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
         UniswapV2PricingModule(mainRegistry_, oracleHub_, assetType_, uniswapV2Factory_)
     { }
 
+    function getUniswapV2Factory() external view returns (address uniswapV2Factory) {
+        uniswapV2Factory = UNISWAP_V2_FACTORY;
+    }
+
     function getUnderlyingAssets(address asset) public view returns (address[] memory underlyingAssets) {
         underlyingAssets = new address[](2);
 

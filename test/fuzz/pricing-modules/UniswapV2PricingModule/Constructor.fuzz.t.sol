@@ -27,6 +27,6 @@ contract Constructor_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_
         assertEq(uniswapV2PricingModule.mainRegistry(), address(mainRegistryExtension));
         assertEq(uniswapV2PricingModule.oracleHub(), address(oracleHub));
         assertEq(uniswapV2PricingModule.assetType(), 0);
-        assertEq(uniswapV2PricingModule.uniswapV2Factory(), address(uniswapV2Factory));
+        assertEq(uniswapV2PricingModule.getUniswapV2Factory(), address(uniswapV2Factory));
     }
 }
