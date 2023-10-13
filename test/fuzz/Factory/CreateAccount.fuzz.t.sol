@@ -92,7 +92,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Success_createAccount_DeployAccountWithNoCreditor(uint256 salt) public {
         // We assume that salt > 0 as we already deployed a Account with all inputs to 0
-        vm.assume(salt > 0);
+        vm.assume(salt > 1);
         uint256 amountBefore = factory.allAccountsLength();
 
         vm.expectEmit();
@@ -113,7 +113,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Success_createAccount_DeployAccountWithCreditor(uint256 salt) public {
         // We assume that salt > 0 as we already deployed a Account with all inputs to 0
-        vm.assume(salt > 0);
+        vm.assume(salt > 1);
         uint256 amountBefore = factory.allAccountsLength();
 
         vm.expectEmit();
@@ -135,7 +135,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Success_createAccount_DeployNewProxyWithLogicOwner(uint256 salt, address sender) public {
         // We assume that salt > 0 as we already deployed a Account with all inputs to 0
-        vm.assume(salt > 0);
+        vm.assume(salt > 1);
         vm.assume(sender != address(0));
         uint256 amountBefore = factory.allAccountsLength();
         vm.prank(sender);
@@ -150,7 +150,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         address sender1
     ) public {
         // We assume that salt > 0 as we already deployed a Account with all inputs to 0
-        vm.assume(salt > 0);
+        vm.assume(salt > 1);
         vm.assume(sender0 != sender1);
         vm.assume(sender0 != address(0));
         vm.assume(sender1 != address(0));

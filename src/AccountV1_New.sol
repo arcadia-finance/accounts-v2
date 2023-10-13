@@ -31,7 +31,7 @@ import { RiskModule } from "./RiskModule.sol";
  * Arcadia's Account functions will guarantee you a certain value of the Account.
  * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
  */
-contract AccountV1 is AccountStorageV1, IAccount {
+contract AccountV1_New is AccountStorageV1, IAccount {
     using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////
@@ -88,7 +88,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Throws if called by any account other than the Liquidator address.
      */
     modifier onlyLiquidator() {
-        require(msg.sender == IMainRegistry(registry).liquidator(), "A: Only Liquidator");
+        require(msg.sender == liquidator, "A: Only Liquidator");
         _;
     }
 
@@ -467,7 +467,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
         (assetAddresses, assetIds, assetAmounts) = generateAssetData();
         creditor_ = trustedCreditor;
         debt = ITrustedCreditor(trustedCreditor).getOpenPosition(address(this));
-        riskValues = IMainRegistry(registry).getListOfValuesPerAsset();
+        riskValues =
+            IMainRegistry(registry).getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, baseCurrency);
     }
 
     /*///////////////////////////////////////////////////////////////

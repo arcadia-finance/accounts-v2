@@ -22,7 +22,7 @@ contract IsAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_isAccount_positive() public {
-        address newAccount = factory.createAccount(1, 0, address(0), address(0));
+        address newAccount = factory.createAccount(2, 0, address(0), address(0));
 
         bool expectedReturn = factory.isAccount(address(newAccount));
         bool actualReturn = true;

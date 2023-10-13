@@ -4,6 +4,8 @@
  */
 pragma solidity 0.8.19;
 
+import { RiskModule } from "../RiskModule.sol";
+
 interface IMainRegistry {
     /**
      * @notice Returns the number of baseCurrencies.
@@ -138,4 +140,11 @@ interface IMainRegistry {
         uint256[] calldata assetAmounts,
         address baseCurrency
     ) external view returns (uint256);
+
+    function getListOfValuesPerAsset(
+        address[] calldata assetAddresses,
+        uint256[] calldata assetIds,
+        uint256[] calldata assetAmounts,
+        address baseCurrency
+    ) external view returns (RiskModule.AssetValueAndRiskVariables[] memory);
 }

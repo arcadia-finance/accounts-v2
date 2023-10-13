@@ -8,6 +8,7 @@ import { Test } from "../lib/forge-std/src/Test.sol";
 import { Users, MockOracles, MockERC20, MockERC721, Rates } from "./utils/Types.sol";
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/AccountV1.sol";
+import { AccountV1_New } from "../src/AccountV1_New.sol";
 import { AccountV2 } from "./utils/mocks/AccountV2.sol";
 import { MainRegistryExtension } from "./utils/Extensions.sol";
 import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
@@ -52,6 +53,7 @@ abstract contract Base_Test is Test, Events, Errors {
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
     AccountV1 internal proxyAccount;
+    AccountV1_New internal proxyAccount_New;
     TrustedCreditorMock internal trustedCreditor;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -124,9 +126,13 @@ abstract contract Base_Test is Test, Events, Errors {
         trustedCreditor.setLiquidator(Constants.initLiquidator);
 
         // Deploy an initial Account with all inputs to zero
-        vm.prank(users.accountOwner);
+        vm.startPrank(users.accountOwner);
         address proxyAddress = factory.createAccount(0, 0, address(0), address(0));
         proxyAccount = AccountV1(proxyAddress);
+
+        address proxyAddress_New = factory.createAccount(1, 0, address(0), address(0));
+        proxyAccount_New = AccountV1_New(proxyAddress_New);
+        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////////////////
