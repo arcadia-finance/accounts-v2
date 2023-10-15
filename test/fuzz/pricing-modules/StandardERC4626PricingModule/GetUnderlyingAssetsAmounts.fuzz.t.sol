@@ -80,9 +80,10 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626PricingModule_Fuzz_Test is St
 
         bytes32 assetKey = bytes32(abi.encodePacked(assetId, address(ybToken2)));
         bytes32[] memory emptyArray = new bytes32[](1);
-        uint256[] memory exposureAssetToUnderlyingAssets =
+        (uint256[] memory exposureAssetToUnderlyingAssets, uint256[] memory rateUnderlyingAssetsToUsd) =
             erc4626PricingModuleExtension.getUnderlyingAssetsAmounts(assetKey, depositAmount, emptyArray);
 
         assertEq(expectedConversionRate, exposureAssetToUnderlyingAssets[0]);
+        assertEq(rateUnderlyingAssetsToUsd.length, 0);
     }
 }

@@ -112,7 +112,7 @@ abstract contract PricingModule is Owned, IPricingModule {
      * @return A boolean, indicating if the asset is whitelisted.
      * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
      */
-    function isAllowed(address asset, uint256) public view virtual returns (bool) { }
+    function isAllowed(address asset, uint256) public view virtual returns (bool);
 
     /*///////////////////////////////////////////////////////////////
                     RISK MANAGER MANAGEMENT
@@ -132,11 +132,17 @@ abstract contract PricingModule is Owned, IPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the value of a certain asset, denominated in USD, 18 decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, 2 decimals precision.
+     * @notice Returns the usd value of an asset.
+     * param getValueInput A Struct with the input variables.
+     * - asset: The contract address of the asset.
+     * - assetId: The Id of the asset.
+     * - assetAmount: The amount of assets.
+     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
      */
-    function getValue(GetValueInput memory) public view virtual returns (uint256, uint256, uint256) { }
+    function getValue(GetValueInput memory) public view virtual returns (uint256, uint256, uint256);
 
     /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT
@@ -232,7 +238,7 @@ abstract contract PricingModule is Owned, IPricingModule {
      * param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256, uint256 amount) public virtual { }
+    function processDirectDeposit(address asset, uint256, uint256 amount) public virtual;
 
     /**
      * @notice Increases the exposure to an underlying asset on deposit.
@@ -246,7 +252,7 @@ abstract contract PricingModule is Owned, IPricingModule {
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
+    ) public virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset);
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
@@ -255,7 +261,7 @@ abstract contract PricingModule is Owned, IPricingModule {
      * @param amount The amount of tokens.
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
-    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual { }
+    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual;
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
@@ -269,5 +275,5 @@ abstract contract PricingModule is Owned, IPricingModule {
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) { }
+    ) external virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset);
 }

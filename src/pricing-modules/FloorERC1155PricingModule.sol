@@ -147,19 +147,19 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the value of a certain asset, denominated in USD
-     * @param getValueInput A Struct with all the information neccessary to get the value of an asset
-     * - asset: The contract address of the asset
-     * - assetId: The Id of the asset
-     * - assetAmount: The Amount of tokens
-     * - baseCurrency: The BaseCurrency in which the value is ideally expressed
-     * @return valueInUsd The value of the asset denominated in USD with 18 Decimals precision
-     * @return collateralFactor The Collateral Factor of the asset
-     * @return liquidationFactor The Liquidation Factor of the asset
-     * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256
+     * @notice Returns the usd value of an asset.
+     * param getValueInput A Struct with the input variables.
+     * - asset: The contract address of the asset.
+     * - assetId: The Id of the asset.
+     * - assetAmount: The amount of assets.
+     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256.
      * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
-     * However no check in FloorERC1155PricingModule is necessary, since the check if the asset is whitelisted (and hence added to PricingModule)
-     * is already done in the Main-Registry.
+     * However no check in FloorERC1155PricingModule is necessary, since the check if the asset is added to the PricingModule
+     * is already done in the MainRegistry.
      */
     function getValue(GetValueInput memory getValueInput)
         public

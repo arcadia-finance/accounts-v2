@@ -101,12 +101,73 @@ abstract contract DerivedPricingModule is PricingModule {
      * @param assetAmount The amount of the asset,in the decimal precision of the Asset.
      * @param underlyingAssetKeys The assets to which we have to get the conversion rate.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
+     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset.
      */
     function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory underlyingAssetKeys)
         internal
         view
         virtual
-        returns (uint256[] memory underlyingAssetsAmounts);
+        returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd);
+
+    /**
+     * @notice Returns the usd value of an asset.
+     * @param getValueInput A Struct with the input variables.
+     * - asset: The contract address of the asset.
+     * - assetId: The Id of the asset.
+     * - assetAmount: The amount of assets.
+     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
+     */
+    function getValue(GetValueInput memory getValueInput)
+        public
+        view
+        virtual
+        override
+        returns (uint256 valueInUsd, uint256, uint256)
+    {
+        bytes32 assetKey = _getKeyFromAsset(getValueInput.asset, getValueInput.assetId);
+
+        bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+
+        (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(assetKey, getValueInput.assetAmount, underlyingAssetKeys);
+
+        // Check if rateToUsd for the underlying assets was already calculated in _getUnderlyingAssetsAmounts().
+        // This avoids
+        if (rateUnderlyingAssetsToUsd.length == 0) {
+            address underlyingAsset;
+            uint256 underlyingAssetId;
+            for (uint256 i; i < underlyingAssetKeys.length;) {
+                (underlyingAsset, underlyingAssetId) = _getAssetFromKey(underlyingAssetKeys[i]);
+
+                valueInUsd += IMainRegistry(mainRegistry).getUsdValue(
+                    GetValueInput({
+                        asset: underlyingAsset,
+                        assetId: underlyingAssetId,
+                        assetAmount: underlyingAssetsAmounts[i],
+                        baseCurrency: 0
+                    })
+                );
+
+                unchecked {
+                    ++i;
+                }
+            }
+        } else {
+            for (uint256 i; i < underlyingAssetKeys.length;) {
+                valueInUsd +=
+                    FixedPointMathLib.mulDivDown(underlyingAssetsAmounts[i], rateUnderlyingAssetsToUsd[i], 1e18);
+
+                unchecked {
+                    ++i;
+                }
+            }
+        }
+
+        return (valueInUsd, 0, 0);
+    }
 
     /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT
@@ -235,7 +296,7 @@ abstract contract DerivedPricingModule is PricingModule {
         bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
 
         // Get the exposure to the asset's underlying asset(s) (in the decimal precision of the underlying assets).
-        uint256[] memory exposureAssetToUnderlyingAssets =
+        (uint256[] memory exposureAssetToUnderlyingAssets,) =
             _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
 
         int256 deltaExposureAssetToUnderlyingAsset;
@@ -300,7 +361,7 @@ abstract contract DerivedPricingModule is PricingModule {
         bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
 
         // Get the exposure to the asset's underlying asset(s) (in the decimal precision of the underlying assets).
-        uint256[] memory exposureAssetToUnderlyingAssets =
+        (uint256[] memory exposureAssetToUnderlyingAssets,) =
             _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
 
         int256 deltaExposureAssetToUnderlyingAsset;

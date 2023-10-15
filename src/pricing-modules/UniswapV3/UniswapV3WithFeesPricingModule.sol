@@ -108,6 +108,17 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         returns (bytes32[] memory underlyingAssets)
     {
         underlyingAssets = assetToUnderlyingAssets[assetKey];
+
+        if (underlyingAssets.length == 0) {
+            // Only used as an off-chain view function to return the value of a non deposited Liquidity Position.
+            (, uint256 assetId) = _getAssetFromKey(assetKey);
+            (,, address token0, address token1,,,,,,,,) =
+                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
+
+            underlyingAssets = new bytes32[](2);
+            underlyingAssets[0] = _getKeyFromAsset(token0, 0);
+            underlyingAssets[1] = _getKeyFromAsset(token1, 0);
+        }
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -160,20 +171,21 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
      * param assetAmount The amount of the asset,in the decimal precision of the Asset.
      * param underlyingAssetKeys The assets to which we have to get the conversion rate.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
+     * @dev Uniswap Pools can be manipulated, we can't rely on the current price (or tick) stored in slot0.
+     * We use Chainlink oracles of the underlying assets to calculate the flashloan resistant amounts.
      */
     function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256, bytes32[] memory)
         internal
         view
         override
-        returns (uint256[] memory underlyingAssetsAmounts)
+        returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd)
     {
         (, uint256 assetId) = _getAssetFromKey(assetKey);
         address token0;
         address token1;
-        uint256 usdPriceToken0;
-        uint256 usdPriceToken1;
         uint256 principal0;
         uint256 principal1;
+        rateUnderlyingAssetsToUsd = new uint256[](2);
 
         {
             int24 tickLower;
@@ -183,16 +195,17 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
 
             // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
             // sufficient precision.
-            usdPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
+            rateUnderlyingAssetsToUsd[0] = IMainRegistry(mainRegistry).getUsdValue(
                 GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
             );
-            usdPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
+            rateUnderlyingAssetsToUsd[1] = IMainRegistry(mainRegistry).getUsdValue(
                 GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
             );
 
             // Calculate amount0 and amount1 of the principal (the actual liquidity position).
-            (principal0, principal1) =
-                _getPrincipalAmounts(tickLower, tickUpper, liquidity, usdPriceToken0, usdPriceToken1);
+            (principal0, principal1) = _getPrincipalAmounts(
+                tickLower, tickUpper, liquidity, rateUnderlyingAssetsToUsd[0], rateUnderlyingAssetsToUsd[1]
+            );
         }
 
         {
@@ -208,18 +221,15 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
     }
 
     /**
-     * @notice Returns the value of a Uniswap V3 Liquidity Range.
-     * @param getValueInput A Struct with the input variables (avoid stack too deep).
+     * @notice Returns the usd value of a Uniswap V3 Liquidity Range.
+     * @param getValueInput A Struct with the input variables.
      * - asset: The contract address of the asset.
      * - assetId: The Id of the range.
-     * - assetAmount: The amount of assets.
+     * - assetAmount: Since ERC721 tokens have no amount, the amount should be set to 1.
      * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
      * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
-     * @dev The UniswapV3PricingModule will always return the value denominated in USD.
-     * @dev Uniswap Pools can be manipulated, we can't rely on the current price (or tick).
-     * We use Chainlink oracles of the underlying assets to calculate the flashloan resistant price.
      */
     function getValue(IPricingModule.GetValueInput memory getValueInput)
         public
@@ -227,68 +237,24 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        // Use variables as much as possible in local context, to avoid stack too deep errors.
-        uint256 id = getValueInput.assetId;
-        uint256 baseCurrency = getValueInput.baseCurrency;
-        address token0;
-        address token1;
-        uint256 usdPriceToken0;
-        uint256 usdPriceToken1;
-        uint256 principal0;
-        uint256 principal1;
+        (valueInUsd,,) = super.getValue(getValueInput);
 
-        {
-            int24 tickLower;
-            int24 tickUpper;
-            uint128 liquidity;
-            (token0, token1, tickLower, tickUpper, liquidity) = _getPosition(id);
+        (address token0, address token1,,,) = _getPosition(getValueInput.assetId);
 
-            // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
-            // sufficient precision.
-            usdPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
-                GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-            );
-            usdPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
-                GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-            );
+        // Fetch the risk variables of the underlying tokens for the given baseCurrency.
+        (uint256 collateralFactor0, uint256 liquidationFactor0) = IPricingModule(
+            IMainRegistry(mainRegistry).getPricingModuleOfAsset(token0)
+        ).getRiskVariables(token0, getValueInput.baseCurrency);
+        (uint256 collateralFactor1, uint256 liquidationFactor1) = IPricingModule(
+            IMainRegistry(mainRegistry).getPricingModuleOfAsset(token1)
+        ).getRiskVariables(token1, getValueInput.baseCurrency);
 
-            // If the Usd price of one of the tokens is 0, the LP-token will also have a value of 0.
-            if (usdPriceToken0 == 0 || usdPriceToken1 == 0) return (0, 0, 0);
-
-            // Calculate amount0 and amount1 of the principal (the actual liquidity position).
-            (principal0, principal1) =
-                _getPrincipalAmounts(tickLower, tickUpper, liquidity, usdPriceToken0, usdPriceToken1);
-        }
-
-        {
-            // Calculate amount0 and amount1 of the accumulated fees.
-            (uint256 fee0, uint256 fee1) = _getFeeAmounts(id);
-
-            // ToDo: fee should be capped to a max compared to principal to avoid circumventing caps via fees on new pools.
-
-            // Calculate the total value in USD, since the USD price is per 10^18 tokens we have to divide by 10^18.
-            unchecked {
-                valueInUsd = usdPriceToken0.mulDivDown(principal0 + fee0, 1e18)
-                    + usdPriceToken1.mulDivDown(principal1 + fee1, 1e18);
-            }
-        }
-
-        {
-            // Fetch the risk variables of the underlying tokens for the given baseCurrency.
-            (uint256 collateralFactor0, uint256 liquidationFactor0) = IPricingModule(
-                IMainRegistry(mainRegistry).getPricingModuleOfAsset(token0)
-            ).getRiskVariables(token0, baseCurrency);
-            (uint256 collateralFactor1, uint256 liquidationFactor1) = IPricingModule(
-                IMainRegistry(mainRegistry).getPricingModuleOfAsset(token1)
-            ).getRiskVariables(token1, baseCurrency);
-
-            // We take the most conservative (lowest) factor of both underlying assets.
-            // If one token loses in value compared to the other token, Liquidity Providers will be relatively more exposed
-            // to the asset that loses value. This is especially true for Uniswap V3: when the current tick is outside of the
-            // liquidity range the LP is fully exposed to a single asset.
-            collateralFactor = collateralFactor0 < collateralFactor1 ? collateralFactor0 : collateralFactor1;
-            liquidationFactor = liquidationFactor0 < liquidationFactor1 ? liquidationFactor0 : liquidationFactor1;
-        }
+        // We take the most conservative (lowest) factor of both underlying assets.
+        // If one token loses in value compared to the other token, Liquidity Providers will be relatively more exposed
+        // to the asset that loses value. This is especially true for Uniswap V3: when the current tick is outside of the
+        // liquidity range the LP is fully exposed to a single asset.
+        collateralFactor = collateralFactor0 < collateralFactor1 ? collateralFactor0 : collateralFactor1;
+        liquidationFactor = liquidationFactor0 < liquidationFactor1 ? liquidationFactor0 : liquidationFactor1;
 
         return (valueInUsd, collateralFactor, liquidationFactor);
     }

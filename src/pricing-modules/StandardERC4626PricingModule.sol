@@ -87,6 +87,15 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
         returns (bytes32[] memory underlyingAssets)
     {
         underlyingAssets = assetToUnderlyingAssets[assetKey];
+
+        if (underlyingAssets.length == 0) {
+            // Only used as an off-chain view function to return the value of a non deposited Liquidity Position.
+            (address asset,) = _getAssetFromKey(assetKey);
+            address underlyingAsset = address(IERC4626(asset).asset());
+
+            underlyingAssets = new bytes32[](1);
+            underlyingAssets[0] = _getKeyFromAsset(underlyingAsset, 0);
+        }
     }
 
     /**
@@ -123,47 +132,12 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
         internal
         view
         override
-        returns (uint256[] memory underlyingAssetsAmounts)
+        returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd)
     {
         (address asset,) = _getAssetFromKey(assetKey);
         underlyingAssetsAmounts = new uint256[](1);
         underlyingAssetsAmounts[0] = IERC4626(asset).convertToAssets(assetAmount);
-    }
 
-    /**
-     * @notice Returns the value of a certain asset, denominated in USD or in another BaseCurrency
-     * @param getValueInput A Struct with all the information neccessary to get the value of an asset
-     * - assetAddress: The contract address of the asset
-     * - assetId: Since ERC4626 tokens have no Id, the Id should be set to 0
-     * - assetAmount: The Amount of Shares, ERC4626 tokens can have any Decimals precision smaller than 18.
-     * - baseCurrency: The BaseCurrency in which the value is ideally expressed
-     * @return valueInUsd The value of the asset denominated in USD with 18 Decimals precision
-     * @return collateralFactor The Collateral Factor of the asset
-     * @return liquidationFactor The Liquidation Factor of the asset
-     * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256
-     * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
-     * However no check in StandardERC4626Registry is necessary, since the check if the asset is whitelisted (and hence added to PricingModule)
-     * is already done in the Main-Registry.
-     */
-    function getValue(GetValueInput memory getValueInput)
-        public
-        view
-        override
-        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
-    {
-        bytes32 assetKey = _getKeyFromAsset(getValueInput.asset, 0);
-
-        bytes32[] memory underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
-
-        uint256[] memory underlyingAssetsAmounts =
-            _getUnderlyingAssetsAmounts(assetKey, getValueInput.assetAmount, underlyingAssetKeys);
-
-        (address asset,) = _getAssetFromKey(underlyingAssetKeys[0]);
-        valueInUsd = IMainRegistry(mainRegistry).getUsdValue(
-            GetValueInput({ asset: asset, assetId: 0, assetAmount: underlyingAssetsAmounts[0], baseCurrency: 0 })
-        );
-
-        collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
-        liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;
+        return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }
 }

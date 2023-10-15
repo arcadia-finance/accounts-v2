@@ -175,9 +175,6 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
             sqrtPriceX96, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity_
         );
 
-        emit log_named_uint("amount0", amount0);
-        emit log_named_uint("priceToken0", priceToken0);
-
         // And: exposure0 does not exceed maximum.
         vm.assume(amount0 <= type(uint128).max);
 
@@ -276,7 +273,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         vm.stopPrank();
     }
 
-    function testFuzz_Success_processDirectDeposita(
+    function testFuzz_Success_processDirectDeposit(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,

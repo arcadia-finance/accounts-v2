@@ -112,6 +112,28 @@ contract AbstractPricingModuleExtension is PricingModule {
     function setRiskVariables(address asset, uint256 basecurrency, RiskVars memory riskVars_) public {
         _setRiskVariables(asset, basecurrency, riskVars_);
     }
+
+    function isAllowed(address asset, uint256) public view override returns (bool) { }
+
+    function getValue(GetValueInput memory input) public view override returns (uint256, uint256, uint256) { }
+
+    function processDirectDeposit(address asset, uint256 id, uint256 amount) public override { }
+
+    function processIndirectDeposit(
+        address asset,
+        uint256 id,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public override returns (bool, uint256) { }
+
+    function processDirectWithdrawal(address asset, uint256 id, uint256 amount) external override { }
+
+    function processIndirectWithdrawal(
+        address asset,
+        uint256 id,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) external override returns (bool, uint256) { }
 }
 
 contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule {
@@ -154,6 +176,8 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     uint256 public underlyingAssetsAmount;
+
+    function isAllowed(address asset, uint256) public view override returns (bool) { }
 
     function getAssetToExposureLast(bytes32 assetKey)
         external
@@ -243,10 +267,12 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         internal
         view
         override
-        returns (uint256[] memory underlyingAssetsAmount_)
+        returns (uint256[] memory underlyingAssetsAmount_, uint256[] memory rateUnderlyingAssetsToUsd)
     {
         underlyingAssetsAmount_ = new uint256[](1);
         underlyingAssetsAmount_[0] = underlyingAssetsAmount;
+
+        return (underlyingAssetsAmount_, rateUnderlyingAssetsToUsd);
     }
 
     function _getUnderlyingAssets(bytes32 assetKey)
@@ -341,9 +367,10 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
     function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
         public
         view
-        returns (uint256[] memory exposureAssetToUnderlyingAssets)
+        returns (uint256[] memory exposureAssetToUnderlyingAssets, uint256[] memory rateUnderlyingAssetsToUsd)
     {
-        exposureAssetToUnderlyingAssets = _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
+        (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
     }
 }
 
@@ -395,9 +422,10 @@ contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
     function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
         public
         view
-        returns (uint256[] memory exposureAssetToUnderlyingAssets)
+        returns (uint256[] memory exposureAssetToUnderlyingAssets, uint256[] memory rateUnderlyingAssetsToUsd)
     {
-        exposureAssetToUnderlyingAssets = _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
+        (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
     }
 
     function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {

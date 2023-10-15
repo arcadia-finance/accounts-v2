@@ -139,8 +139,8 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the value of a certain asset, denominated in USD or in another BaseCurrency.
-     * @param getValueInput A Struct with the input variables (avoid stack to deep).
+     * @notice Returns the usd value of an asset.
+     * @param getValueInput A Struct with the input variables.
      * - asset: The contract address of the asset.
      * - assetId: Since ERC20 tokens have no Id, the Id should be set to 0.
      * - assetAmount: The amount of assets.
@@ -148,9 +148,9 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
      * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
-     * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256
+     * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256.
      * @dev If the asset is not added to PricingModule, this function will return value 0 without throwing an error.
-     * However no check in StandardERC20PricingModule is necessary, since the check if the asset is allow listed (and hence added to PricingModule)
+     * However no check in StandardERC20PricingModule is necessary, since the check if the asset is added to the PricingModule
      * is already done in the MainRegistry.
      */
     function getValue(IPricingModule.GetValueInput memory getValueInput)

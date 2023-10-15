@@ -240,17 +240,17 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the value of a certain asset, denominated in USD.
-     * @param getValueInput A Struct with all the information neccessary to get the value of an asset
-     * - assetAddress: The contract address of the asset
+     * @notice Returns the usd value of an asset.
+     * @param getValueInput A Struct with the input variables.
+     * - asset: The contract address of the asset.
      * - assetId: The Id of the asset
-     * - assetAmount: Since ERC721 tokens have no amount, the amount should be set to 0
-     * - baseCurrency: The BaseCurrency in which the value is ideally expressed
-     * @return valueInUsd The value of the asset denominated in USD with 18 Decimals precision
-     * @return collateralFactor The Collateral Factor of the asset
-     * @return liquidationFactor The Liquidation Factor of the asset
+     * - assetAmount: Since ERC721 tokens have no amount, the amount should be set to 1.
+     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
      * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
-     * However no check in FloorERC721PricingModule is necessary, since the check if the asset is whitelisted (and hence added to PricingModule)
+     * However no check in FloorERC721PricingModule is necessary, since the check if the asset is added to the PricingModule
      * is already done in the MainRegistry.
      */
     function getValue(GetValueInput memory getValueInput)

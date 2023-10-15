@@ -90,6 +90,17 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         returns (bytes32[] memory underlyingAssets)
     {
         underlyingAssets = assetToUnderlyingAssets[assetKey];
+
+        if (underlyingAssets.length == 0) {
+            // Only used as an off-chain view function to return the value of a non deposited Liquidity Position.
+            (address asset,) = _getAssetFromKey(assetKey);
+            address token0 = IUniswapV2Pair(asset).token0();
+            address token1 = IUniswapV2Pair(asset).token1();
+
+            underlyingAssets = new bytes32[](2);
+            underlyingAssets[0] = _getKeyFromAsset(token0, 0);
+            underlyingAssets[1] = _getKeyFromAsset(token1, 0);
+        }
     }
 
     /**
@@ -139,73 +150,26 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         internal
         view
         override
-        returns (uint256[] memory underlyingAssetsAmounts)
+        returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd)
     {
+        rateUnderlyingAssetsToUsd = new uint256[](2);
+
         (address asset,) = _getAssetFromKey(underlyingAssetKeys[0]);
-        uint256 trustedUsdPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
+        rateUnderlyingAssetsToUsd[0] = IMainRegistry(mainRegistry).getUsdValue(
             GetValueInput({ asset: asset, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 
         (asset,) = _getAssetFromKey(underlyingAssetKeys[1]);
-        uint256 trustedUsdPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
+        rateUnderlyingAssetsToUsd[1] = IMainRegistry(mainRegistry).getUsdValue(
             GetValueInput({ asset: asset, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
         );
 
         (asset,) = _getAssetFromKey(assetKey);
         underlyingAssetsAmounts = new uint256[](2);
         (underlyingAssetsAmounts[0], underlyingAssetsAmounts[1]) =
-            _getTrustedTokenAmounts(asset, trustedUsdPriceToken0, trustedUsdPriceToken1, assetAmount);
-    }
+            _getTrustedTokenAmounts(asset, rateUnderlyingAssetsToUsd[0], rateUnderlyingAssetsToUsd[1], assetAmount);
 
-    /**
-     * @notice Returns the value of a Uniswap V2 LP-token
-     * @param getValueInput A Struct with all the information neccessary to get the value of an asset
-     * - asset: The contract address of the LP-token
-     * - assetId: Since ERC20 tokens have no Id, the Id should be set to 0
-     * - assetAmount: The Amount of tokens, ERC20 tokens can have any Decimals precision smaller than 18.
-     * - baseCurrency: The BaseCurrency in which the value is ideally expressed
-     * @return valueInUsd The value of the asset denominated in USD with 18 Decimals precision
-     * @return collateralFactor The Collateral Factor of the asset
-     * @return liquidationFactor The Liquidation Factor of the asset
-     * @dev trustedUsdPriceToken cannot realisticly overflow, requires unit price of a token with 0 decimals (worst case),
-     * to be bigger than $1,16 * 10^41
-     * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
-     * However no explicit check is necessary, since the check if the asset is whitelisted (and hence added to PricingModule)
-     * is already done in the Main-Registry.
-     */
-    function getValue(GetValueInput memory getValueInput)
-        public
-        view
-        override
-        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
-    {
-        bytes32[] memory underlyingAssetKeys = assetToUnderlyingAssets[_getKeyFromAsset(getValueInput.asset, 0)];
-
-        // To calculate the liquidity value after arbitrage, what matters is the ratio of the price of token0 compared to the price of token1
-        // Hence we need to use a trusted external price for an equal amount of tokens,
-        // we use for both tokens the USD price of 1 WAD (10**18) to guarantee precision.
-        (address asset,) = _getAssetFromKey(underlyingAssetKeys[0]);
-        uint256 trustedUsdPriceToken0 = IMainRegistry(mainRegistry).getUsdValue(
-            GetValueInput({ asset: asset, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-        );
-        (asset,) = _getAssetFromKey(underlyingAssetKeys[1]);
-        uint256 trustedUsdPriceToken1 = IMainRegistry(mainRegistry).getUsdValue(
-            GetValueInput({ asset: asset, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-        );
-
-        //
-        (uint256 token0Amount, uint256 token1Amount) = _getTrustedTokenAmounts(
-            getValueInput.asset, trustedUsdPriceToken0, trustedUsdPriceToken1, getValueInput.assetAmount
-        );
-        // trustedUsdPriceToken0 is the value of token0 in USD with 18 decimals precision for 1 WAD of tokens,
-        // we need to recalculate to find the value of the actual amount of underlying token0 in the liquidity position.
-        valueInUsd = FixedPointMathLib.mulDivDown(token0Amount, trustedUsdPriceToken0, 1e18)
-            + FixedPointMathLib.mulDivDown(token1Amount, trustedUsdPriceToken1, 1e18);
-
-        collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
-        liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;
-
-        return (valueInUsd, collateralFactor, liquidationFactor);
+        return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }
 
     /**

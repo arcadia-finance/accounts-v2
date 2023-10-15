@@ -68,7 +68,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), underlyingTokens[0]));
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), underlyingTokens[1]));
-        (uint256[] memory exposureAssetToUnderlyingAssets) =
+        (uint256[] memory exposureAssetToUnderlyingAssets,) =
             uniswapV2PricingModule.getUnderlyingAssetsAmounts(assetKey, 1e18, underlyingAssetKeys);
 
         // Then: The correct conversion rates are returned.
