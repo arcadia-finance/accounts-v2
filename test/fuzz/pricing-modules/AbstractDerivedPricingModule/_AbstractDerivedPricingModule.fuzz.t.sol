@@ -7,12 +7,8 @@ pragma solidity 0.8.19;
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
-import {
-    AbstractDerivedPricingModuleExtension,
-    AbstractPrimaryPricingModuleExtension,
-    MainRegistryExtension
-} from "../../../utils/Extensions.sol";
-import { AbstractPrimaryPricingModuleExtension } from "../../../utils/Extensions.sol";
+import { DerivedPricingModuleMock } from "../../../utils/mocks/DerivedPricingModuleMock.sol";
+import { PrimaryPricingModuleMock } from "../../../utils/mocks/PrimaryPricingModuleMock.sol";
 
 /**
  * @notice Common logic needed by all "DerivedPricingModule" fuzz tests.
@@ -47,8 +43,8 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AbstractDerivedPricingModuleExtension internal derivedPricingModule;
-    AbstractPrimaryPricingModuleExtension internal primaryPricingModule;
+    DerivedPricingModuleMock internal derivedPricingModule;
+    PrimaryPricingModuleMock internal primaryPricingModule;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -60,10 +56,10 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
         vm.startPrank(users.creatorAddress);
 
         derivedPricingModule =
-        new AbstractDerivedPricingModuleExtension(address(mainRegistryExtension), address(oracleHub), 0, users.creatorAddress);
+            new DerivedPricingModuleMock(address(mainRegistryExtension), address(oracleHub), 0, users.creatorAddress);
 
         primaryPricingModule =
-        new AbstractPrimaryPricingModuleExtension(address(mainRegistryExtension), address(oracleHub), 0, users.creatorAddress);
+            new PrimaryPricingModuleMock(address(mainRegistryExtension), address(oracleHub), 0, users.creatorAddress);
 
         mainRegistryExtension.addPricingModule(address(derivedPricingModule));
         mainRegistryExtension.addPricingModule(address(primaryPricingModule));

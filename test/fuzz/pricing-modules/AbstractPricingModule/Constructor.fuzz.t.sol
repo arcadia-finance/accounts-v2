@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingModule.fuzz.t.sol";
 
-import { AbstractPricingModuleExtension } from "../../../utils/Extensions.sol";
+import { PricingModuleMock } from "../../../utils/mocks/PricingModuleMock.sol";
 
 /**
  * @notice Fuzz tests for the "constructor" of contract "AbstractPricingModule".
@@ -32,7 +32,7 @@ contract Constructor_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fu
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskManagerUpdated(riskManager_);
-        AbstractPricingModuleExtension pricingModule_ = new AbstractPricingModuleExtension(
+        PricingModuleMock pricingModule_ = new PricingModuleMock(
             mainRegistry_,
             oracleHub_,
             assetType_,

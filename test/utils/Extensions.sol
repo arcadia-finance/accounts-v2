@@ -100,7 +100,7 @@ contract MainRegistryExtension is MainRegistry {
     }
 }
 
-contract AbstractPricingModuleExtension is PricingModule {
+abstract contract AbstractPricingModuleExtension is PricingModule {
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
         PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
@@ -112,72 +112,23 @@ contract AbstractPricingModuleExtension is PricingModule {
     function setRiskVariables(address asset, uint256 basecurrency, RiskVars memory riskVars_) public {
         _setRiskVariables(asset, basecurrency, riskVars_);
     }
-
-    function isAllowed(address asset, uint256) public view override returns (bool) { }
-
-    function getValue(GetValueInput memory input) public view override returns (uint256, uint256, uint256) { }
-
-    function processDirectDeposit(address asset, uint256 id, uint256 amount) public override { }
-
-    function processIndirectDeposit(
-        address asset,
-        uint256 id,
-        uint256 exposureUpperAssetToAsset,
-        int256 deltaExposureUpperAssetToAsset
-    ) public override returns (bool, uint256) { }
-
-    function processDirectWithdrawal(address asset, uint256 id, uint256 amount) external override { }
-
-    function processIndirectWithdrawal(
-        address asset,
-        uint256 id,
-        uint256 exposureUpperAssetToAsset,
-        int256 deltaExposureUpperAssetToAsset
-    ) external override returns (bool, uint256) { }
 }
 
-contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule {
-    // Price is 1 by default
-    uint256 usdValueExposureToUnderlyingAsset = 1;
-
+abstract contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule {
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
         PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
-
-    function setPrice(uint256 usdValueExposureToUnderlyingAsset_) public {
-        usdValueExposureToUnderlyingAsset = usdValueExposureToUnderlyingAsset_;
-    }
 
     function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
         exposure[asset].exposure = exposure_;
         exposure[asset].maxExposure = maxExposure;
     }
-
-    // The function below is only needed in the case of testing for the "AbstractDerivedPricingModule", in order for the Primary Asset to return a value
-    // getValue() will be tested separately per PM.
-    function getValue(GetValueInput memory)
-        public
-        view
-        override
-        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
-    {
-        // we assume a price of 1 for this testing purpose
-        valueInUsd = usdValueExposureToUnderlyingAsset;
-        collateralFactor = 0;
-        liquidationFactor = 0;
-    }
 }
 
-contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
+abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
         DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
-
-    mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
-
-    uint256 public underlyingAssetsAmount;
-
-    function isAllowed(address asset, uint256) public view override returns (bool) { }
 
     function getAssetToExposureLast(bytes32 assetKey)
         external
@@ -201,10 +152,6 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         usdExposureProtocol = usdExposureProtocol_;
     }
 
-    function setUnderlyingAssetsAmount(uint256 underlyingAssetsAmount_) public {
-        underlyingAssetsAmount = underlyingAssetsAmount_;
-    }
-
     function setAssetInformation(
         address asset,
         uint256 assetId,
@@ -219,25 +166,6 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
         assetToExposureLast[assetKey].exposureLast = exposureAssetLast_;
         assetToExposureLast[assetKey].usdValueExposureLast = usdValueExposureAssetLast_;
         exposureAssetToUnderlyingAssetsLast[assetKey][underLyingAssetKey] = exposureAssetToUnderlyingAssetLast;
-    }
-
-    function addAsset(
-        address asset,
-        uint256 assetId,
-        address[] memory underlyingAssets_,
-        uint256[] memory underlyingAssetIds
-    ) public {
-        require(!inPricingModule[asset], "ADPME_AA: already added");
-        inPricingModule[asset] = true;
-        assetsInPricingModule.push(asset);
-
-        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
-        bytes32[] memory underlyingAssetKeys = new bytes32[](underlyingAssets_.length);
-        for (uint256 i; i < underlyingAssets_.length;) {
-            underlyingAssetKeys[i] = _getKeyFromAsset(underlyingAssets_[i], underlyingAssetIds[i]);
-            ++i;
-        }
-        assetToUnderlyingAssets[assetKey] = underlyingAssetKeys;
     }
 
     function processDeposit(bytes32 assetKey, uint256 exposureAsset) public returns (uint256 usdValueExposureAsset) {
@@ -261,27 +189,6 @@ contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
 
     function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
         (key) = _getKeyFromAsset(asset, assetId);
-    }
-
-    function _getUnderlyingAssetsAmounts(bytes32, uint256, bytes32[] memory)
-        internal
-        view
-        override
-        returns (uint256[] memory underlyingAssetsAmount_, uint256[] memory rateUnderlyingAssetsToUsd)
-    {
-        underlyingAssetsAmount_ = new uint256[](1);
-        underlyingAssetsAmount_[0] = underlyingAssetsAmount;
-
-        return (underlyingAssetsAmount_, rateUnderlyingAssetsToUsd);
-    }
-
-    function _getUnderlyingAssets(bytes32 assetKey)
-        internal
-        view
-        override
-        returns (bytes32[] memory underlyingAssets)
-    {
-        underlyingAssets = assetToUnderlyingAssets[assetKey];
     }
 }
 
