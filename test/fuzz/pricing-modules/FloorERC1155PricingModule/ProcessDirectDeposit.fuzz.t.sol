@@ -38,7 +38,7 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
     }
 
     function testFuzz_Revert_processDirectDeposit_OverExposure(uint128 amount, uint128 maxExposure) public {
-        vm.assume(maxExposure > 0); //Asset is whitelisted
+        vm.assume(maxExposure > 0); //Asset is allowed
         vm.assume(amount > maxExposure);
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(

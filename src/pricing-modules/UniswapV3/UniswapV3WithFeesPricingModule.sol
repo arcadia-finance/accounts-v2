@@ -101,35 +101,15 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         assetToUnderlyingAssets[assetKey] = underlyingAssetKeys;
     }
 
-    function _getUnderlyingAssets(bytes32 assetKey)
-        internal
-        view
-        override
-        returns (bytes32[] memory underlyingAssets)
-    {
-        underlyingAssets = assetToUnderlyingAssets[assetKey];
-
-        if (underlyingAssets.length == 0) {
-            // Only used as an off-chain view function to return the value of a non deposited Liquidity Position.
-            (, uint256 assetId) = _getAssetFromKey(assetKey);
-            (,, address token0, address token1,,,,,,,,) =
-                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
-
-            underlyingAssets = new bytes32[](2);
-            underlyingAssets[0] = _getKeyFromAsset(token0, 0);
-            underlyingAssets[1] = _getKeyFromAsset(token1, 0);
-        }
-    }
-
     /*///////////////////////////////////////////////////////////////
-                            ALLOW LIST
+                        ASSET INFORMATION
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Checks for a token address and the corresponding Id if it is allow-listed.
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @return A boolean, indicating if the asset is whitelisted.
+     * @return A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
         if (asset != NON_FUNGIBLE_POSITION_MANAGER) return false;
@@ -161,9 +141,25 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         }
     }
 
-    /*///////////////////////////////////////////////////////////////
-                          PRICING LOGIC
-    ///////////////////////////////////////////////////////////////*/
+    function _getUnderlyingAssets(bytes32 assetKey)
+        internal
+        view
+        override
+        returns (bytes32[] memory underlyingAssets)
+    {
+        underlyingAssets = assetToUnderlyingAssets[assetKey];
+
+        if (underlyingAssets.length == 0) {
+            // Only used as an off-chain view function to return the value of a non deposited Liquidity Position.
+            (, uint256 assetId) = _getAssetFromKey(assetKey);
+            (,, address token0, address token1,,,,,,,,) =
+                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
+
+            underlyingAssets = new bytes32[](2);
+            underlyingAssets[0] = _getKeyFromAsset(token0, 0);
+            underlyingAssets[1] = _getKeyFromAsset(token1, 0);
+        }
+    }
 
     /**
      * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
@@ -181,26 +177,17 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd)
     {
         (, uint256 assetId) = _getAssetFromKey(assetKey);
-        address token0;
-        address token1;
         uint256 principal0;
         uint256 principal1;
-        rateUnderlyingAssetsToUsd = new uint256[](2);
 
         {
-            int24 tickLower;
-            int24 tickUpper;
-            uint128 liquidity;
-            (token0, token1, tickLower, tickUpper, liquidity) = _getPosition(assetId);
+            (address token0, address token1, int24 tickLower, int24 tickUpper, uint128 liquidity) =
+                _getPosition(assetId);
 
-            // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
-            // sufficient precision.
-            rateUnderlyingAssetsToUsd[0] = IMainRegistry(mainRegistry).getUsdValue(
-                GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-            );
-            rateUnderlyingAssetsToUsd[1] = IMainRegistry(mainRegistry).getUsdValue(
-                GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-            );
+            bytes32[] memory underlyingAssetKeys = new bytes32[](2);
+            underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
+            underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
+            rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(underlyingAssetKeys);
 
             // Calculate amount0 and amount1 of the principal (the actual liquidity position).
             (principal0, principal1) = _getPrincipalAmounts(
@@ -219,6 +206,10 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
             underlyingAssetsAmounts[1] = principal1 + fee1;
         }
     }
+
+    /*///////////////////////////////////////////////////////////////
+                          PRICING LOGIC
+    ///////////////////////////////////////////////////////////////*/
 
     /**
      * @notice Returns the usd value of a Uniswap V3 Liquidity Range.
@@ -261,14 +252,14 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
 
     /**
      * @notice Returns the position information.
-     * @param id The Id of the asset.
+     * @param assetId The Id of the asset.
      * @return token0 Token0 of the Liquidity Pool.
      * @return token1 Token1 of the Liquidity Pool.
      * @return tickLower The lower tick of the liquidity position.
      * @return tickUpper The upper tick of the liquidity position.
      * @return liquidity The liquidity per tick of the liquidity position.
      */
-    function _getPosition(uint256 id)
+    function _getPosition(uint256 assetId)
         internal
         view
         returns (address token0, address token1, int24 tickLower, int24 tickUpper, uint128 liquidity)
@@ -276,15 +267,15 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
         // For deposited assets, the liquidity of the Liquidity Position is stored in the Pricing Module,
         // not fetched from the NonfungiblePositionManager.
         // Since liquidity of a position can be increased by a non-owner, the max exposure checks could otherwise be circumvented.
-        liquidity = uint128(assetToLiquidity[id]);
+        liquidity = uint128(assetToLiquidity[assetId]);
 
         if (liquidity > 0) {
             (,, token0, token1,, tickLower, tickUpper,,,,,) =
-                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(id);
+                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
         } else {
             // Only used as an off-chain view function to return the value of a non deposited Liquidity Position.
             (,, token0, token1,, tickLower, tickUpper, liquidity,,,,) =
-                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(id);
+                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
         }
     }
 
@@ -457,6 +448,10 @@ contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
 
         tickCurrent = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                    WITHDRAWALS AND DEPOSITS
+    ///////////////////////////////////////////////////////////////*/
 
     /**
      * @notice Increases the exposure to an asset on deposit.

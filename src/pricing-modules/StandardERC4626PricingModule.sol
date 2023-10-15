@@ -47,24 +47,43 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
     }
 
     /*///////////////////////////////////////////////////////////////
-                        WHITE LIST MANAGEMENT
+                        ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Checks for a token address and the corresponding Id if it is white-listed.
+     * @notice Adds a new asset to the ERC4626 TokenPricingModule.
+     * @param asset The contract address of the asset
+     */
+    function addAsset(address asset) external onlyOwner {
+        address underlyingAsset = address(IERC4626(asset).asset());
+
+        require(IMainRegistry(mainRegistry).isAllowed(underlyingAsset, 0), "PM4626_AA: Underlying Asset not allowed");
+        inPricingModule[asset] = true;
+        assetsInPricingModule.push(asset);
+
+        bytes32[] memory underlyingAssets_ = new bytes32[](1);
+        underlyingAssets_[0] = _getKeyFromAsset(underlyingAsset, 0);
+        assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
+
+        // Will revert in MainRegistry if pool was already added.
+        IMainRegistry(mainRegistry).addAsset(asset, assetType);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        ASSET INFORMATION
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
      * @param asset The contract address of the asset.
      * param assetId The Id of the asset.
-     * @return A boolean, indicating if the asset is whitelisted.
+     * @return A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address asset, uint256) public view override returns (bool) {
         address underlyingAsset = IERC4626(asset).asset();
 
         return IMainRegistry(mainRegistry).isAllowed(underlyingAsset, 0);
     }
-
-    /*///////////////////////////////////////////////////////////////
-                        ASSET MANAGEMENT
-    ///////////////////////////////////////////////////////////////*/
 
     function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
         assembly {
@@ -97,29 +116,6 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
             underlyingAssets[0] = _getKeyFromAsset(underlyingAsset, 0);
         }
     }
-
-    /**
-     * @notice Adds a new asset to the ERC4626 TokenPricingModule.
-     * @param asset The contract address of the asset
-     */
-    function addAsset(address asset) external onlyOwner {
-        address underlyingAsset = address(IERC4626(asset).asset());
-
-        require(IMainRegistry(mainRegistry).isAllowed(underlyingAsset, 0), "PM4626_AA: Underlying Asset not allowed");
-        inPricingModule[asset] = true;
-        assetsInPricingModule.push(asset);
-
-        bytes32[] memory underlyingAssets_ = new bytes32[](1);
-        underlyingAssets_[0] = _getKeyFromAsset(underlyingAsset, 0);
-        assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
-
-        // Will revert in MainRegistry if pool was already added.
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                          PRICING LOGIC
-    ///////////////////////////////////////////////////////////////*/
 
     /**
      * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).

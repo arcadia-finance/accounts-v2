@@ -102,14 +102,14 @@ abstract contract PricingModule is Owned, IPricingModule {
     }
 
     /*///////////////////////////////////////////////////////////////
-                        WHITE LIST MANAGEMENT
+                        ASSET INFORMATION
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Checks for a token address and the corresponding Id if it is white-listed.
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
      * @param asset The contract address of the asset.
      * param assetId The Id of the asset.
-     * @return A boolean, indicating if the asset is whitelisted.
+     * @return A boolean, indicating if the asset is allowed.
      * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
      */
     function isAllowed(address asset, uint256) public view virtual returns (bool);
@@ -231,6 +231,10 @@ abstract contract PricingModule is Owned, IPricingModule {
 
         emit RiskVariablesSet(asset, uint8(baseCurrency), riskVars.collateralFactor, riskVars.liquidationFactor);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                    WITHDRAWALS AND DEPOSITS
+    ///////////////////////////////////////////////////////////////*/
 
     /**
      * @notice Increases the exposure to an asset on deposit.

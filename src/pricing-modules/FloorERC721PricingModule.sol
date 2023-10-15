@@ -82,6 +82,10 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         IMainRegistry(mainRegistry).addAsset(asset, assetType);
     }
 
+    /*///////////////////////////////////////////////////////////////
+                        ASSET INFORMATION
+    ///////////////////////////////////////////////////////////////*/
+
     /**
      * @notice Returns the information that is stored in the Pricing Module for a given asset
      * @dev struct is not taken into memory; saves 6613 gas
@@ -98,15 +102,11 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         );
     }
 
-    /*///////////////////////////////////////////////////////////////
-                        WHITE LIST MANAGEMENT
-    ///////////////////////////////////////////////////////////////*/
-
     /**
-     * @notice Checks for a token address and the corresponding Id if it is white-listed
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
      * @param asset The address of the asset
      * @param assetId The Id of the asset
-     * @return A boolean, indicating if the asset passed as input is whitelisted
+     * @return A boolean, indicating if the asset passed as input is allowed.
      */
     function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
         if (exposure[asset].maxExposure != 0) {
@@ -122,7 +122,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @notice Checks if the Id for a given token is in the range for which there exists a price feed
      * @param asset The address of the asset
      * @param assetId The Id of the asset
-     * @return A boolean, indicating if the Id of the given asset is whitelisted
+     * @return A boolean, indicating if the Id of the given asset is in range.
      */
     function isIdInRange(address asset, uint256 assetId) private view returns (bool) {
         if (assetId >= assetToInformation[asset].idRangeStart && assetId <= assetToInformation[asset].idRangeEnd) {
@@ -133,11 +133,11 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
     }
 
     /*///////////////////////////////////////////////////////////////
-                    RISK VARIABLES MANAGEMENT
+                    WITHDRAWALS AND DEPOSITS
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Processes the deposit of a token address and the corresponding Id if it is white-listed
+     * @notice Processes the deposit of a token address and the corresponding Id if it is allowed
      * @param asset The address of the asset
      * @param assetId The Id of the asset
      * @param amount the amount of ERC721 tokens

@@ -124,6 +124,10 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         revert("PM20_SO: Unknown Oracle");
     }
 
+    /*///////////////////////////////////////////////////////////////
+                        ASSET INFORMATION
+    ///////////////////////////////////////////////////////////////*/
+
     /**
      * @notice Returns the asset information of an asset.
      * @param asset The contract address of the asset.

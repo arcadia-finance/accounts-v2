@@ -66,10 +66,16 @@ abstract contract DerivedPricingModule is PricingModule {
     { }
 
     /*///////////////////////////////////////////////////////////////
-                        ASSET MANAGEMENT
+                        ASSET INFORMATION
     ///////////////////////////////////////////////////////////////*/
 
-    // @dev Unsafe cast from uint256 to uint96, use only when the id's of the assets cannot exceed type(uint92).max.
+    /**
+     * @notice Returns the unique identifier of an asset based on the contract address and id.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @return key The unique identifier.
+     * @dev Unsafe cast from uint256 to uint96, use only when the id's of the assets cannot exceed type(uint92).max.
+     */
     function _getKeyFromAsset(address asset, uint256 assetId) internal view virtual returns (bytes32 key) {
         assembly {
             // Shift the assetId to the left by 20 bytes (160 bits).
@@ -79,6 +85,12 @@ abstract contract DerivedPricingModule is PricingModule {
         }
     }
 
+    /**
+     * @notice Returns the contract address and id of an asset based on the unique identifier.
+     * @param key The unique identifier.
+     * @return asset The contract address of the asset.
+     * @return assetId The Id of the asset.
+     */
     function _getAssetFromKey(bytes32 key) internal view virtual returns (address asset, uint256 assetId) {
         assembly {
             // Shift to the right by 20 bytes (160 bits) to extract the uint92 assetId.
@@ -89,25 +101,64 @@ abstract contract DerivedPricingModule is PricingModule {
         }
     }
 
-    function _getUnderlyingAssets(bytes32 assetKey) internal view virtual returns (bytes32[] memory underlyingAssets);
+    /**
+     * @notice Returns the unique identifiers of the underlying assets.
+     * @param assetKey The unique identifier of the asset.
+     * @return underlyingAssetKeys The assets to which we have to get the conversion rate.
+     */
+    function _getUnderlyingAssets(bytes32 assetKey)
+        internal
+        view
+        virtual
+        returns (bytes32[] memory underlyingAssetKeys);
 
-    /*///////////////////////////////////////////////////////////////
-                          PRICING LOGIC
-    ///////////////////////////////////////////////////////////////*/
+    /**
+     * @notice Calculates the usd-rate of 10**18 underlying assets.
+     * @param underlyingAssetKeys The unique identifiers of the underlying assets.
+     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     */
+    function _getRateUnderlyingAssetsToUsd(bytes32[] memory underlyingAssetKeys)
+        internal
+        view
+        virtual
+        returns (uint256[] memory rateUnderlyingAssetsToUsd)
+    {
+        rateUnderlyingAssetsToUsd = new uint256[](underlyingAssetKeys.length);
+
+        address underlyingAsset;
+        uint256 underlyingAssetId;
+        for (uint256 i; i < underlyingAssetKeys.length;) {
+            (underlyingAsset, underlyingAssetId) = _getAssetFromKey(underlyingAssetKeys[i]);
+
+            // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
+            // sufficient precision.
+            rateUnderlyingAssetsToUsd[i] = IMainRegistry(mainRegistry).getUsdValue(
+                GetValueInput({ asset: underlyingAsset, assetId: underlyingAssetId, assetAmount: 1e18, baseCurrency: 0 })
+            );
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
 
     /**
      * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
      * @param assetKey The unique identifier of the asset.
-     * @param assetAmount The amount of the asset,in the decimal precision of the Asset.
-     * @param underlyingAssetKeys The assets to which we have to get the conversion rate.
+     * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
+     * @param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
-     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset.
+     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      */
     function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory underlyingAssetKeys)
         internal
         view
         virtual
         returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd);
+
+    /*///////////////////////////////////////////////////////////////
+                          PRICING LOGIC
+    ///////////////////////////////////////////////////////////////*/
 
     /**
      * @notice Returns the usd value of an asset.
@@ -135,7 +186,6 @@ abstract contract DerivedPricingModule is PricingModule {
             _getUnderlyingAssetsAmounts(assetKey, getValueInput.assetAmount, underlyingAssetKeys);
 
         // Check if rateToUsd for the underlying assets was already calculated in _getUnderlyingAssetsAmounts().
-        // This avoids
         if (rateUnderlyingAssetsToUsd.length == 0) {
             address underlyingAsset;
             uint256 underlyingAssetId;
@@ -183,6 +233,10 @@ abstract contract DerivedPricingModule is PricingModule {
 
         emit MaxUsdExposureProtocolSet(maxUsdExposureProtocol_);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                    WITHDRAWALS AND DEPOSITS
+    ///////////////////////////////////////////////////////////////*/
 
     /**
      * @notice Increases the exposure to an asset on deposit.

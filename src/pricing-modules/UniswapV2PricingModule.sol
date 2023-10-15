@@ -48,7 +48,43 @@ contract UniswapV2PricingModule is DerivedPricingModule {
     }
 
     /*///////////////////////////////////////////////////////////////
-                        WHITE LIST MANAGEMENT
+                        UNISWAP V2 FEE
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Fetches boolean on the uniswap factory if fees are enabled or not
+     */
+    function syncFee() external {
+        feeOn = IUniswapV2Factory(UNISWAP_V2_FACTORY).feeTo() != address(0);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        ASSET MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Adds a new pool to the UniswapV2PricingModule.
+     * @param pool The contract address of the pool.
+     */
+    function addPool(address pool) external {
+        address token0 = IUniswapV2Pair(pool).token0();
+        address token1 = IUniswapV2Pair(pool).token1();
+        require(IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == pool, "PMUV2_AA: Not a Pool");
+
+        require(IMainRegistry(mainRegistry).isAllowed(token0, 0), "PMUV2_AA: Token0 not Allowed");
+        require(IMainRegistry(mainRegistry).isAllowed(token1, 0), "PMUV2_AA: Token1 not Allowed");
+
+        bytes32[] memory underlyingAssets_ = new bytes32[](2);
+        underlyingAssets_[0] = _getKeyFromAsset(token0, 0);
+        underlyingAssets_[1] = _getKeyFromAsset(token1, 0);
+        assetToUnderlyingAssets[_getKeyFromAsset(pool, 0)] = underlyingAssets_;
+
+        // Will revert in MainRegistry if pool was already added.
+        IMainRegistry(mainRegistry).addAsset(pool, assetType);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        ASSET INFORMATION
     ///////////////////////////////////////////////////////////////*/
 
     /**
@@ -64,10 +100,6 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         return (IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == asset)
             && IMainRegistry(mainRegistry).isAllowed(token0, 0) && IMainRegistry(mainRegistry).isAllowed(token1, 0);
     }
-
-    /*///////////////////////////////////////////////////////////////
-                        UNISWAP V2 FEE
-    ///////////////////////////////////////////////////////////////*/
 
     function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
         assembly {
@@ -103,38 +135,6 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         }
     }
 
-    /**
-     * @notice Fetches boolean on the uniswap factory if fees are enabled or not
-     */
-    function syncFee() external {
-        feeOn = IUniswapV2Factory(UNISWAP_V2_FACTORY).feeTo() != address(0);
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                        ASSET MANAGEMENT
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Adds a new pool to the UniswapV2PricingModule.
-     * @param pool The contract address of the pool.
-     */
-    function addPool(address pool) external {
-        address token0 = IUniswapV2Pair(pool).token0();
-        address token1 = IUniswapV2Pair(pool).token1();
-        require(IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == pool, "PMUV2_AA: Not a Pool");
-
-        require(IMainRegistry(mainRegistry).isAllowed(token0, 0), "PMUV2_AA: Token0 not Allowed");
-        require(IMainRegistry(mainRegistry).isAllowed(token1, 0), "PMUV2_AA: Token1 not Allowed");
-
-        bytes32[] memory underlyingAssets_ = new bytes32[](2);
-        underlyingAssets_[0] = _getKeyFromAsset(token0, 0);
-        underlyingAssets_[1] = _getKeyFromAsset(token1, 0);
-        assetToUnderlyingAssets[_getKeyFromAsset(pool, 0)] = underlyingAssets_;
-
-        // Will revert in MainRegistry if pool was already added.
-        IMainRegistry(mainRegistry).addAsset(pool, assetType);
-    }
-
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
@@ -152,19 +152,9 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         override
         returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd)
     {
-        rateUnderlyingAssetsToUsd = new uint256[](2);
+        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(underlyingAssetKeys);
 
-        (address asset,) = _getAssetFromKey(underlyingAssetKeys[0]);
-        rateUnderlyingAssetsToUsd[0] = IMainRegistry(mainRegistry).getUsdValue(
-            GetValueInput({ asset: asset, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-        );
-
-        (asset,) = _getAssetFromKey(underlyingAssetKeys[1]);
-        rateUnderlyingAssetsToUsd[1] = IMainRegistry(mainRegistry).getUsdValue(
-            GetValueInput({ asset: asset, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-        );
-
-        (asset,) = _getAssetFromKey(assetKey);
+        (address asset,) = _getAssetFromKey(assetKey);
         underlyingAssetsAmounts = new uint256[](2);
         (underlyingAssetsAmounts[0], underlyingAssetsAmounts[1]) =
             _getTrustedTokenAmounts(asset, rateUnderlyingAssetsToUsd[0], rateUnderlyingAssetsToUsd[1], assetAmount);

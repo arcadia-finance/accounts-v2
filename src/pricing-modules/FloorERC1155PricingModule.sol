@@ -77,6 +77,10 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
         IMainRegistry(mainRegistry).addAsset(asset, assetType);
     }
 
+    /*///////////////////////////////////////////////////////////////
+                        ASSET INFORMATION
+    ///////////////////////////////////////////////////////////////*/
+
     /**
      * @notice Returns the information that is stored in the Pricing Module for a given asset
      * @param asset The Token address of the asset
@@ -87,15 +91,11 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
         return (assetToInformation[asset].id, assetToInformation[asset].oracles);
     }
 
-    /*///////////////////////////////////////////////////////////////
-                        WHITE LIST MANAGEMENT
-    ///////////////////////////////////////////////////////////////*/
-
     /**
-     * @notice Checks for a token address and the corresponding Id if it is white-listed
+     * @notice Checks for a token address and the corresponding Id if it is allowed
      * @param asset The address of the asset
      * @param assetId The Id of the asset
-     * @return A boolean, indicating if the asset passed as input is whitelisted
+     * @return A boolean, indicating if the asset passed as input is allowed
      */
     function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
         if (exposure[asset].maxExposure != 0) {
@@ -108,7 +108,7 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
     }
 
     /*///////////////////////////////////////////////////////////////
-                    RISK VARIABLES MANAGEMENT
+                    WITHDRAWALS AND DEPOSITS
     ///////////////////////////////////////////////////////////////*/
 
     /**
