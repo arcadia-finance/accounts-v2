@@ -74,11 +74,9 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
      * @return A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address asset, uint256) public view override returns (bool) {
-        if (inPricingModule[asset]) return true;
-
-        try IERC4626(asset).asset() returns (address underlyingAsset) {
-            return IMainRegistry(MAIN_REGISTRY).isAllowed(underlyingAsset, 0);
-        } catch {
+        if (inPricingModule[asset]) {
+            return true;
+        } else {
             return false;
         }
     }

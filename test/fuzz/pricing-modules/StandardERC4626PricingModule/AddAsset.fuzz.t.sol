@@ -50,9 +50,8 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
     }
 
     function testFuzz_Success_addAsset() public {
-        vm.startPrank(users.creatorAddress);
+        vm.prank(users.creatorAddress);
         erc4626PricingModule.addAsset(address(ybToken1));
-        vm.stopPrank();
 
         assertTrue(mainRegistryExtension.inMainRegistry(address(ybToken1)));
 

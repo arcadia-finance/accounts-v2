@@ -14,7 +14,7 @@ import { INonfungiblePositionManagerExtension } from
 /**
  * @notice Fuzz tests for the "isAllowed" of contract "UniswapV3PricingModule".
  */
-contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuzz_Test {
+contract IsAllowed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -28,17 +28,17 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_isAllowListed_Negative_UnknownAsset(address asset, uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Negative_UnknownAsset(address asset, uint256 assetId) public {
         vm.assume(asset != address(nonfungiblePositionManager));
 
         assertFalse(uniV3PricingModule.isAllowed(asset, assetId));
     }
 
-    function testFuzz_Success_isAllowListed_Negative_UnknownId(uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Negative_UnknownId(uint256 assetId) public {
         assertFalse(uniV3PricingModule.isAllowed(address(nonfungiblePositionManager), assetId));
     }
 
-    function testFuzz_Success_isAllowListed_Negative_NoExposure(address lp) public {
+    function testFuzz_Success_isAllowListed_Negative_NonAllowedUnderlyingAsset(address lp) public {
         vm.assume(lp != address(0));
 
         // Create a LP-position of two underlying assets: token1 and token4.
@@ -78,7 +78,7 @@ contract IsAllowListed_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModul
         assertFalse(uniV3PricingModule.isAllowed(address(nonfungiblePositionManager), tokenId));
     }
 
-    function testFuzz_Success_isAllowListed_Positive(address lp, uint128 maxExposureA, uint128 maxExposureB) public {
+    function testFuzz_Success_isAllowed_Positive(address lp, uint128 maxExposureA, uint128 maxExposureB) public {
         vm.assume(lp != address(0));
         vm.assume(maxExposureA > 0);
         vm.assume(maxExposureB > 0);

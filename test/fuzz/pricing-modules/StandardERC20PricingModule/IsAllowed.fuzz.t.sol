@@ -25,7 +25,7 @@ contract IsAllowed_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingM
         assertTrue(erc20PricingModule.isAllowed(address(mockERC20.stable1), assetId));
     }
 
-    function testFuzz_Success_isAllowed_NegativeWrongAddress(address randomAsset, uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Negative(address randomAsset, uint256 assetId) public {
         vm.assume(randomAsset != address(mockERC20.stable1));
         vm.assume(randomAsset != address(mockERC20.stable2));
         vm.assume(randomAsset != address(mockERC20.token1));
