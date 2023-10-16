@@ -454,6 +454,7 @@ contract AccountV1_New is AccountStorageV1, IAccount {
     // note: see if onlyLiquidator modifier needed
     function checkAndStartLiquidation()
         external
+        view
         onlyLiquidator
         returns (
             address[] memory assetAddresses,
