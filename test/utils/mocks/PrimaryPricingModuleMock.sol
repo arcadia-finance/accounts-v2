@@ -11,6 +11,10 @@ contract PrimaryPricingModuleMock is AbstractPrimaryPricingModuleExtension {
         AbstractPrimaryPricingModuleExtension(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
+    function isAllowed(address asset, uint256) public view override returns (bool) {
+        return inPricingModule[asset];
+    }
+
     function setPrice(uint256 usdValueExposureToUnderlyingAsset_) public {
         usdValueExposureToUnderlyingAsset = usdValueExposureToUnderlyingAsset_;
     }

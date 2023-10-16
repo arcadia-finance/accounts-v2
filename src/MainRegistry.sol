@@ -246,7 +246,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         emit PricingModuleAdded(pricingModule);
     }
 
-    // Todo Remove, temporary Used in UNIV2 pricing modules.
+    // Todo Remove, temporary Used in UNIV3 pricing modules.
     function getPricingModuleOfAsset(address asset) public view returns (address pricingModule) {
         pricingModule = assetToAssetInformation[asset].pricingModule;
     }
@@ -312,6 +312,12 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         }
     }
 
+    /**
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is allowed.
+     */
     function isAllowed(address asset, uint256 assetId) external view returns (bool) {
         address pricingModule = assetToAssetInformation[asset].pricingModule;
 

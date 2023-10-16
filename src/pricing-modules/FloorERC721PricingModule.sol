@@ -116,7 +116,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @return A boolean, indicating if the asset passed as input is allowed.
      */
     function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
-        if (exposure[asset].maxExposure != 0) {
+        if (inPricingModule[asset]) {
             if (isIdInRange(asset, assetId)) {
                 return true;
             }

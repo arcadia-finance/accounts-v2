@@ -136,6 +136,17 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         return (assetToInformation[asset].assetUnit, assetToInformation[asset].oracles);
     }
 
+    /**
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is allowed.
+     * @dev Since ERC20s don't have an Id, the Id should be set to 0.
+     */
+    function isAllowed(address asset, uint256) public view override returns (bool) {
+        return inPricingModule[asset];
+    }
+
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/

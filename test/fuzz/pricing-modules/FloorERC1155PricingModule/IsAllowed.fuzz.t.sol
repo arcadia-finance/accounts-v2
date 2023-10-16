@@ -9,7 +9,7 @@ import { Constants, FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155P
 /**
  * @notice Fuzz tests for the "isAllowed" of contract "FloorERC1155PricingModule".
  */
-contract IsAllowListed_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModule_Fuzz_Test {
+contract IsAllowed_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -21,7 +21,7 @@ contract IsAllowListed_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Pricin
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_isAllowListed_Positive() public {
+    function testFuzz_Success_isAllowed_Positive() public {
         // Given: All necessary contracts deployed on setup
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset
@@ -34,7 +34,7 @@ contract IsAllowListed_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Pricin
         assertTrue(floorERC1155PricingModule.isAllowed(address(mockERC1155.sft2), 1));
     }
 
-    function testFuzz_Success_isAllowListed_NegativeWrongAddress(address randomAsset) public {
+    function testFuzz_Success_isAllowed_NegativeWrongAddress(address randomAsset) public {
         // Given: All necessary contracts deployed on setup
         // When: input is randomAsset
 
@@ -42,7 +42,7 @@ contract IsAllowListed_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155Pricin
         assertTrue(!floorERC1155PricingModule.isAllowed(randomAsset, 1));
     }
 
-    function testFuzz_Success_isAllowListed_NegativeIdOutsideRange(uint256 id) public {
+    function testFuzz_Success_isAllowed_NegativeIdOutsideRange(uint256 id) public {
         // Given: id is not 1
         vm.assume(id != 1);
         vm.startPrank(users.creatorAddress);

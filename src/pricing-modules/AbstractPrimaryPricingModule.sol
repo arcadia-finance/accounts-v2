@@ -62,21 +62,6 @@ abstract contract PrimaryPricingModule is PricingModule {
     { }
 
     /*///////////////////////////////////////////////////////////////
-                        ASSET INFORMATION
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Checks for a token address and the corresponding Id if it is allowed.
-     * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
-     * @return A boolean, indicating if the asset is allowed.
-     * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
-     */
-    function isAllowed(address asset, uint256) public view virtual override returns (bool) {
-        return exposure[asset].maxExposure != 0;
-    }
-
-    /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 

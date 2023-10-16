@@ -86,6 +86,8 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         require(IMainRegistry(MAIN_REGISTRY).isAllowed(token0, 0), "PMUV2_AA: Token0 not Allowed");
         require(IMainRegistry(MAIN_REGISTRY).isAllowed(token1, 0), "PMUV2_AA: Token1 not Allowed");
 
+        inPricingModule[pool] = true;
+
         bytes32[] memory underlyingAssets_ = new bytes32[](2);
         underlyingAssets_[0] = _getKeyFromAsset(token0, 0);
         underlyingAssets_[1] = _getKeyFromAsset(token1, 0);
@@ -106,11 +108,15 @@ contract UniswapV2PricingModule is DerivedPricingModule {
      * @return A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address asset, uint256) public view override returns (bool) {
-        address token0 = IUniswapV2Pair(asset).token0();
-        address token1 = IUniswapV2Pair(asset).token1();
+        if (inPricingModule[asset]) return true;
 
-        return (IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == asset)
-            && IMainRegistry(MAIN_REGISTRY).isAllowed(token0, 0) && IMainRegistry(MAIN_REGISTRY).isAllowed(token1, 0);
+        try IUniswapV2Pair(asset).token0() returns (address token0) {
+            address token1 = IUniswapV2Pair(asset).token1();
+            return (IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == asset)
+                && IMainRegistry(MAIN_REGISTRY).isAllowed(token0, 0) && IMainRegistry(MAIN_REGISTRY).isAllowed(token1, 0);
+        } catch {
+            return false;
+        }
     }
 
     /**

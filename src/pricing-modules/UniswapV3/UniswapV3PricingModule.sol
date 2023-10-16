@@ -128,14 +128,8 @@ contract UniswapV3PricingModule is DerivedPricingModule {
             uint128,
             uint128
         ) {
-            address token0PricingModule = IMainRegistry(MAIN_REGISTRY).getPricingModuleOfAsset(token0);
-            address token1PricingModule = IMainRegistry(MAIN_REGISTRY).getPricingModuleOfAsset(token1);
-            if (token0PricingModule == address(0) || token1PricingModule == address(0)) {
-                return false;
-            } else {
-                return IPricingModule(token0PricingModule).isAllowed(token0, 0)
-                    && IPricingModule(token0PricingModule).isAllowed(token1, 0);
-            }
+            return
+                IMainRegistry(MAIN_REGISTRY).isAllowed(token0, 0) && IMainRegistry(MAIN_REGISTRY).isAllowed(token1, 0);
         } catch {
             return false;
         }
