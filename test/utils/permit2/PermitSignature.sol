@@ -18,8 +18,8 @@ contract PermitSignature {
         IPermit2.PermitBatchTransferFrom memory permit,
         uint256 privateKey,
         bytes32 domainSeparator,
-        address to
-    ) public view returns (bytes memory sig) {
+        address spender
+    ) public pure returns (bytes memory sig) {
         bytes32[] memory tokenPermissions = new bytes32[](permit.permitted.length);
         for (uint256 i = 0; i < permit.permitted.length; ++i) {
             tokenPermissions[i] = keccak256(abi.encode(_TOKEN_PERMISSIONS_TYPEHASH, permit.permitted[i]));
@@ -32,7 +32,7 @@ contract PermitSignature {
                     abi.encode(
                         _PERMIT_BATCH_TRANSFER_FROM_TYPEHASH,
                         keccak256(abi.encodePacked(tokenPermissions)),
-                        to,
+                        spender,
                         permit.nonce,
                         permit.deadline
                     )
