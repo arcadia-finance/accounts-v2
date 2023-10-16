@@ -36,31 +36,37 @@ contract ProcessDirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstract
 
     function testFuzz_Revert_processDirectDeposit_OverExposure(
         address asset,
+        uint96 assetId,
         uint128 exposure,
         uint128 amount,
         uint128 maxExposure
     ) public {
         vm.assume(exposure <= type(uint128).max - amount);
         vm.assume(exposure + amount > maxExposure);
-        pricingModule.setExposure(asset, exposure, maxExposure);
+        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("APPM_PDD: Exposure not in limits");
-        pricingModule.processDirectDeposit(address(asset), 0, amount);
+        pricingModule.processDirectDeposit(address(asset), assetId, amount);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_processDirectDeposit(address asset, uint128 exposure, uint128 amount, uint128 maxExposure)
-        public
-    {
+    function testFuzz_Success_processDirectDeposit(
+        address asset,
+        uint96 assetId,
+        uint128 exposure,
+        uint128 amount,
+        uint128 maxExposure
+    ) public {
         vm.assume(exposure <= type(uint128).max - amount);
         vm.assume(exposure + amount <= maxExposure);
-        pricingModule.setExposure(asset, exposure, maxExposure);
+        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
 
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processDirectDeposit(address(asset), 0, amount);
+        pricingModule.processDirectDeposit(address(asset), assetId, amount);
 
-        (, uint128 actualExposure) = pricingModule.exposure(address(asset));
+        bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
+        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
         uint128 expectedExposure = exposure + amount;
 
         assertEq(actualExposure, expectedExposure);

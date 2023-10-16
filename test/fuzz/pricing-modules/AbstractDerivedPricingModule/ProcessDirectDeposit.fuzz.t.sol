@@ -55,7 +55,7 @@ contract ProcessDirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstract
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // When: "MainRegistry" calls "processDirectDeposit".
         vm.prank(address(mainRegistryExtension));

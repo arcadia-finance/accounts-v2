@@ -76,38 +76,6 @@ abstract contract DerivedPricingModule is PricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the unique identifier of an asset based on the contract address and id.
-     * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
-     * @return key The unique identifier.
-     * @dev Unsafe cast from uint256 to uint96, use only when the id's of the assets cannot exceed type(uint92).max.
-     */
-    function _getKeyFromAsset(address asset, uint256 assetId) internal view virtual returns (bytes32 key) {
-        assembly {
-            // Shift the assetId to the left by 20 bytes (160 bits).
-            // This will remove the padding on the right.
-            // Then OR the result with the address.
-            key := or(shl(160, assetId), asset)
-        }
-    }
-
-    /**
-     * @notice Returns the contract address and id of an asset based on the unique identifier.
-     * @param key The unique identifier.
-     * @return asset The contract address of the asset.
-     * @return assetId The Id of the asset.
-     */
-    function _getAssetFromKey(bytes32 key) internal view virtual returns (address asset, uint256 assetId) {
-        assembly {
-            // Shift to the right by 20 bytes (160 bits) to extract the uint92 assetId.
-            assetId := shr(160, key)
-
-            // Use bitmask to extract the address from the rightmost 160 bits.
-            asset := and(key, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-        }
-    }
-
-    /**
      * @notice Returns the unique identifiers of the underlying assets.
      * @param assetKey The unique identifier of the asset.
      * @return underlyingAssetKeys The assets to which we have to get the conversion rate.

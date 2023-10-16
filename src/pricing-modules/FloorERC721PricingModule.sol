@@ -70,10 +70,11 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         RiskVarInput[] calldata riskVars,
         uint256 maxExposure
     ) external onlyOwner {
+        require(!inPricingModule[asset], "PM721_AA: already added");
+        require(maxExposure <= type(uint128).max, "PM721_AA: Max Exposure not in limits");
         //View function, reverts in OracleHub if sequence is not correct
         IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
-        require(!inPricingModule[asset], "PM721_AA: already added");
         inPricingModule[asset] = true;
         assetsInPricingModule.push(asset);
 
@@ -82,8 +83,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         assetToInformation[asset].oracles = oracles;
         _setRiskVariablesForAsset(asset, riskVars);
 
-        require(maxExposure <= type(uint128).max, "PM721_AA: Max Exposure not in limits");
-        exposure[asset].maxExposure = uint128(maxExposure);
+        exposure[_getKeyFromAsset(asset, 0)].maxExposure = uint128(maxExposure);
 
         //Will revert in MainRegistry if asset can't be added
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
@@ -139,6 +139,38 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         }
     }
 
+    /**
+     * @notice Returns the unique identifier of an asset based on the contract address and id.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return key The unique identifier.
+     * @dev The assetId is hard-coded to 0.
+     * Since all assets of the same ERC721 collection are floor NFTs, we only care about total exposures per collection,
+     * not of individual ids.
+     */
+    function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
+        assembly {
+            key := asset
+        }
+    }
+
+    /**
+     * @notice Returns the contract address and id of an asset based on the unique identifier.
+     * @param key The unique identifier.
+     * @return asset The contract address of the asset.
+     * @return assetId The Id of the asset.
+     * @dev The assetId is hard-coded to 0.
+     * Since all assets of the same ERC721 collection are floor NFTs, we only care about total exposures per collection,
+     * not of individual ids.
+     */
+    function _getAssetFromKey(bytes32 key) internal pure override returns (address asset, uint256) {
+        assembly {
+            asset := key
+        }
+
+        return (asset, 0);
+    }
+
     /*///////////////////////////////////////////////////////////////
                     WITHDRAWALS AND DEPOSITS
     ///////////////////////////////////////////////////////////////*/
@@ -151,11 +183,15 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @dev amount of a deposit in ERC721 pricing module must be 1.
      */
     function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public override onlyMainReg {
+        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+
         require(isIdInRange(asset, assetId), "PM721_PDD: ID not allowed");
         require(amount == 1, "PM721_PDD: Amount not 1");
-        require(exposure[asset].exposure + 1 <= exposure[asset].maxExposure, "PM721_PDD: Exposure not in limits");
+        require(
+            exposure[assetKey].exposureLast + 1 <= exposure[assetKey].maxExposure, "PM721_PDD: Exposure not in limits"
+        );
 
-        exposure[asset].exposure += 1;
+        exposure[assetKey].exposureLast += 1;
     }
 
     /**
@@ -171,20 +207,22 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+
         require(isIdInRange(asset, assetId), "PM721_PID: ID not allowed");
         // Cache exposureLast.
-        uint256 exposureLast = exposure[asset].exposure;
+        uint256 exposureLast = exposure[assetKey].exposureLast;
 
         uint256 exposureAsset;
         if (deltaExposureUpperAssetToAsset > 0) {
             exposureAsset = exposureLast + uint256(deltaExposureUpperAssetToAsset);
-            require(exposureAsset <= exposure[asset].maxExposure, "PM721_PID: Exposure not in limits");
+            require(exposureAsset <= exposure[assetKey].maxExposure, "PM721_PID: Exposure not in limits");
         } else {
             exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
                 ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
                 : 0;
         }
-        exposure[asset].exposure = uint128(exposureAsset);
+        exposure[assetKey].exposureLast = uint128(exposureAsset);
 
         // Get Value in Usd
         (uint256 floorUsdValue,,) =
@@ -203,7 +241,9 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      */
     function processDirectWithdrawal(address asset, uint256, uint256 amount) public override onlyMainReg {
         require(amount == 1, "PM721_PDW: Amount not 1");
-        exposure[asset].exposure -= 1;
+
+        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+        exposure[assetKey].exposureLast -= 1;
     }
 
     /**
@@ -219,8 +259,10 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+
         // Cache exposureLast.
-        uint256 exposureLast = exposure[asset].exposure;
+        uint256 exposureLast = exposure[assetKey].exposureLast;
 
         uint256 exposureAsset;
         if (deltaExposureUpperAssetToAsset > 0) {
@@ -231,7 +273,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
                 ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
                 : 0;
         }
-        exposure[asset].exposure = uint128(exposureAsset);
+        exposure[assetKey].exposureLast = uint128(exposureAsset);
 
         // Get Value in Usd
         (uint256 floorUsdValue,,) =

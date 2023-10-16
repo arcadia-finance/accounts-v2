@@ -24,6 +24,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
     function testFuzz_Revert_processIndirectDeposit_NonMainRegistry(
         address unprivilegedAddress_,
         address asset,
+        uint96 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
@@ -31,12 +32,13 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        pricingModule.processIndirectDeposit(asset, 0, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        pricingModule.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
         vm.stopPrank();
     }
 
     function testFuzz_Revert_processIndirectDeposit_OverExposure(
         address asset,
+        uint96 assetId,
         uint128 exposure,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset,
@@ -47,16 +49,17 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
         vm.assume(exposure <= type(uint128).max - uint256(deltaExposureUpperAssetToAsset));
         vm.assume(exposure + uint256(deltaExposureUpperAssetToAsset) > maxExposure);
 
-        pricingModule.setExposure(asset, exposure, maxExposure);
+        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("APPM_PID: Exposure not in limits");
-        pricingModule.processIndirectDeposit(asset, 0, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        pricingModule.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
         vm.stopPrank();
     }
 
     function testFuzz_Success_processIndirectDeposit_positiveDelta(
         address asset,
+        uint96 assetId,
         uint128 exposure,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset,
@@ -67,12 +70,13 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
         vm.assume(exposure <= type(uint128).max - uint256(deltaExposureUpperAssetToAsset));
         vm.assume(exposure + uint256(deltaExposureUpperAssetToAsset) <= maxExposure);
 
-        pricingModule.setExposure(asset, exposure, maxExposure);
+        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
 
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processIndirectDeposit(asset, 0, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        pricingModule.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
 
-        (, uint128 actualExposure) = pricingModule.exposure(address(asset));
+        bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
+        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
         uint128 expectedExposure = exposure + uint128(uint256(deltaExposureUpperAssetToAsset));
 
         assertEq(actualExposure, expectedExposure);
@@ -80,6 +84,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
 
     function testFuzz_Success_processIndirectDeposit_negativeDeltaWithAbsoluteValueSmallerThanExposure(
         address asset,
+        uint96 assetId,
         uint128 exposure,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset,
@@ -89,12 +94,13 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
         vm.assume(deltaExposureUpperAssetToAsset < 0);
         vm.assume(uint256(-deltaExposureUpperAssetToAsset) < exposure);
 
-        pricingModule.setExposure(asset, exposure, maxExposure);
+        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
 
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processIndirectDeposit(asset, 0, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        pricingModule.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
 
-        (, uint128 actualExposure) = pricingModule.exposure(address(asset));
+        bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
+        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
         uint128 expectedExposure = exposure - uint128(uint256(-deltaExposureUpperAssetToAsset));
 
         assertEq(actualExposure, expectedExposure);
@@ -102,6 +108,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
 
     function testFuzz_Success_processIndirectDeposit_negativeDeltaGreaterThanExposure(
         address asset,
+        uint96 assetId,
         uint128 exposure,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset,
@@ -111,12 +118,13 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
         vm.assume(deltaExposureUpperAssetToAsset < 0);
         vm.assume(uint256(-deltaExposureUpperAssetToAsset) > exposure);
 
-        pricingModule.setExposure(asset, exposure, maxExposure);
+        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
 
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processIndirectDeposit(asset, 0, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        pricingModule.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
 
-        (, uint128 actualExposure) = pricingModule.exposure(address(asset));
+        bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
+        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
         uint128 expectedExposure = 0;
 
         assertEq(actualExposure, expectedExposure);

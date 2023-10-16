@@ -55,7 +55,7 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // When: "MainRegistry" calls "processDirectWithdrawal".
         vm.prank(address(mainRegistryExtension));

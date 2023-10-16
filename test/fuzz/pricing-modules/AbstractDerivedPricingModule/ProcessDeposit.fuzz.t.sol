@@ -57,7 +57,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // When: "_processDeposit" is called.
         // Then: The transaction reverts with "ADPM_PD: Exposure not in limits".
@@ -101,7 +101,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // And: Underlying Asset is properly added to an underlying Pricing Module.
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
@@ -159,7 +159,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // And: Underlying Asset is properly added to an underlying Pricing Module.
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
@@ -215,7 +215,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // And: Underlying Asset is properly added to an underlying Pricing Module.
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)

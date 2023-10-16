@@ -36,19 +36,20 @@ contract ProcessDirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is Abstr
 
     function testFuzz_Success_processDirectWithdrawal(
         address asset,
+        uint96 assetId,
         uint128 exposure,
         uint128 amount,
-        uint128 maxExposure,
-        uint128 id
+        uint128 maxExposure
     ) public {
         vm.assume(maxExposure >= exposure);
         vm.assume(exposure >= amount);
-        pricingModule.setExposure(asset, exposure, maxExposure);
+        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
 
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processDirectWithdrawal(asset, id, amount);
+        pricingModule.processDirectWithdrawal(asset, assetId, amount);
 
-        (, uint128 actualExposure) = pricingModule.exposure(address(asset));
+        bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
+        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
         uint128 expectedExposure = exposure - amount;
 
         assertEq(actualExposure, expectedExposure);
@@ -56,19 +57,20 @@ contract ProcessDirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is Abstr
 
     function testFuzz_Success_processDirectWithdrawal_withAmountGreaterThanExposure(
         address asset,
+        uint96 assetId,
         uint128 exposure,
         uint128 amount,
-        uint128 maxExposure,
-        uint128 id
+        uint128 maxExposure
     ) public {
         vm.assume(maxExposure >= exposure);
         vm.assume(exposure < amount);
-        pricingModule.setExposure(asset, exposure, maxExposure);
+        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
 
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processDirectWithdrawal(asset, id, amount);
+        pricingModule.processDirectWithdrawal(asset, assetId, amount);
 
-        (, uint128 actualExposure) = pricingModule.exposure(address(asset));
+        bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
+        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
 
         assertEq(actualExposure, 0);
     }

@@ -50,7 +50,7 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
     /**
      * @notice Adds a new asset to the FloorERC1155PricingModule.
      * @param asset The contract address of the asset
-     * @param id: The id of the collection
+     * @param assetId: The id of the collection
      * @param oracles An array of addresses of oracle contracts, to price the asset in USD
      * @param riskVars An array of Risk Variables for the asset
      * @param maxExposure The maximum exposure of the asset in its own decimals
@@ -62,7 +62,7 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
      */
     function addAsset(
         address asset,
-        uint256 id,
+        uint256 assetId,
         address[] calldata oracles,
         RiskVarInput[] calldata riskVars,
         uint256 maxExposure
@@ -74,12 +74,12 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
         inPricingModule[asset] = true;
         assetsInPricingModule.push(asset);
 
-        assetToInformation[asset].id = id;
+        assetToInformation[asset].id = assetId;
         assetToInformation[asset].oracles = oracles;
         _setRiskVariablesForAsset(asset, riskVars);
 
         require(maxExposure <= type(uint128).max, "PM1155_AA: Max Exposure not in limits");
-        exposure[asset].maxExposure = uint128(maxExposure);
+        exposure[_getKeyFromAsset(asset, assetId)].maxExposure = uint128(maxExposure);
 
         //Will revert in MainRegistry if asset can't be added
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);

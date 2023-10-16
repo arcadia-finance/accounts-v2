@@ -61,7 +61,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // When: "MainRegistry" calls "processIndirectWithdrawal".
         vm.prank(address(mainRegistryExtension));
@@ -95,7 +95,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // When: "MainRegistry" calls "processIndirectWithdrawal".
         vm.prank(address(mainRegistryExtension));
@@ -140,7 +140,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // When: "MainRegistry" calls "processIndirectWithdrawal".
         vm.prank(address(mainRegistryExtension));

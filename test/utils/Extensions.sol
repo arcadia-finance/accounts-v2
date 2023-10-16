@@ -119,9 +119,10 @@ abstract contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule 
         PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
     { }
 
-    function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
-        exposure[asset].exposure = exposure_;
-        exposure[asset].maxExposure = maxExposure;
+    function setExposure(address asset, uint256 assetId, uint128 exposureLast, uint128 maxExposure) public {
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+        exposure[assetKey].exposureLast = exposureLast;
+        exposure[assetKey].maxExposure = maxExposure;
     }
 }
 
@@ -195,9 +196,10 @@ abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule 
 contract StandardERC20PricingModuleExtension is StandardERC20PricingModule {
     constructor(address mainRegistry_, address oracleHub_) StandardERC20PricingModule(mainRegistry_, oracleHub_) { }
 
-    function setExposure(address asset, uint128 exposure_, uint128 maxExposure) public {
-        exposure[asset].exposure = exposure_;
-        exposure[asset].maxExposure = maxExposure;
+    function setExposure(address asset, uint128 exposureLast, uint128 maxExposure) public {
+        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+        exposure[assetKey].exposureLast = exposureLast;
+        exposure[assetKey].maxExposure = maxExposure;
     }
 }
 

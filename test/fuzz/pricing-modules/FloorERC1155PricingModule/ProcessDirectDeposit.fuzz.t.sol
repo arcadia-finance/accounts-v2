@@ -63,7 +63,8 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
         floorERC1155PricingModule.processDirectDeposit(address(mockERC1155.sft2), assetId, amount);
         vm.stopPrank();
 
-        (, uint128 actualExposure) = floorERC1155PricingModule.exposure(address(mockERC1155.sft2));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft2)));
+        (, uint128 actualExposure) = floorERC1155PricingModule.exposure(assetKey);
         assertEq(actualExposure, 0);
     }
 
@@ -76,7 +77,8 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
         vm.prank(address(mainRegistryExtension));
         floorERC1155PricingModule.processDirectDeposit(address(mockERC1155.sft2), 1, amount);
 
-        (, uint128 actualExposure) = floorERC1155PricingModule.exposure(address(mockERC1155.sft2));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft2)));
+        (, uint128 actualExposure) = floorERC1155PricingModule.exposure(assetKey);
         assertEq(actualExposure, amount);
     }
 }

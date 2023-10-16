@@ -83,7 +83,7 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         assetToInformation[asset].oracles = oracles;
         _setRiskVariablesForAsset(asset, riskVars);
 
-        exposure[asset].maxExposure = maxExposure;
+        exposure[_getKeyFromAsset(asset, 0)].maxExposure = maxExposure;
 
         emit MaxExposureSet(asset, maxExposure);
 
