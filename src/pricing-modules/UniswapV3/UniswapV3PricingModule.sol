@@ -28,7 +28,7 @@ import { SafeCastLib } from "lib/solmate/src/utils/SafeCastLib.sol";
  * @dev No end-user should directly interact with the UniswapV3PricingModule, only the Main-registry,
  * or the contract owner.
  */
-contract UniswapV3WithFeesPricingModule is DerivedPricingModule {
+contract UniswapV3PricingModule is DerivedPricingModule {
     using FixedPointMathLib for uint256;
 
     /* //////////////////////////////////////////////////////////////

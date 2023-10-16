@@ -10,9 +10,8 @@ import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
 import {
-    DerivedPricingModule,
-    IPricingModule
-} from "../../../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
+    DerivedPricingModule, IPricingModule
+} from "../../../../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
 import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/pricing-modules/UniswapV3/libraries/LiquidityAmounts.sol";

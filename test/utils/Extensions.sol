@@ -18,7 +18,7 @@ import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedP
 import { StandardERC20PricingModule } from "../../src/pricing-modules/StandardERC20PricingModule.sol";
 import { StandardERC4626PricingModule } from "../../src/pricing-modules/StandardERC4626PricingModule.sol";
 import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
-import { UniswapV3WithFeesPricingModule } from "../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
+import { UniswapV3PricingModule } from "../../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
 
 contract AccountExtension is AccountV1 {
     constructor() AccountV1() { }
@@ -281,9 +281,9 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
     }
 }
 
-contract UniswapV3PricingModuleExtension is UniswapV3WithFeesPricingModule {
+contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
     constructor(address mainRegistry_, address oracleHub_, address riskManager_, address nonfungiblePositionManager)
-        UniswapV3WithFeesPricingModule(mainRegistry_, oracleHub_, riskManager_, nonfungiblePositionManager)
+        UniswapV3PricingModule(mainRegistry_, oracleHub_, riskManager_, nonfungiblePositionManager)
     { }
 
     function getAssetToLiquidity(uint256 assetId) external view returns (uint256 liquidity) {
