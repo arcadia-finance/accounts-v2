@@ -78,13 +78,11 @@ abstract contract Base_Test is Test, Events, Errors {
         factory = new Factory();
         mainRegistryExtension = new MainRegistryExtension(address(factory));
         oracleHub = new OracleHub();
-        erc20PricingModule =
-            new StandardERC20PricingModuleExtension(address(mainRegistryExtension), address(oracleHub), 0);
-        floorERC721PricingModule = new FloorERC721PricingModule(address(mainRegistryExtension), address(oracleHub), 1);
+        erc20PricingModule = new StandardERC20PricingModuleExtension(address(mainRegistryExtension), address(oracleHub));
+        floorERC721PricingModule = new FloorERC721PricingModule(address(mainRegistryExtension), address(oracleHub));
         floorERC1155PricingModule = new FloorERC1155PricingModule(
             address(mainRegistryExtension),
-            address(oracleHub),
-            2
+            address(oracleHub)
         );
 
         accountV1Logic = new AccountV1();

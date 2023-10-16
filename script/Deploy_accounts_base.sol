@@ -284,9 +284,7 @@ contract ArcadiaAccountDeployment is Test {
         oracleHub = new OracleHub();
         standardERC20PricingModule = new StandardERC20PricingModule(
             address(mainRegistry),
-            address(oracleHub),
-            0
-        );
+            address(oracleHub)        );
         uniswapV3PricingModule =
         new UniswapV3PricingModule(address(mainRegistry), address(oracleHub), deployerAddress, DeployAddresses.uniswapV3PositionMgr_base);
 

@@ -6,8 +6,8 @@ pragma solidity 0.8.19;
 
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IPricingModule } from "../interfaces/IPricingModule.sol";
-import { RiskConstants } from "../libraries/RiskConstants.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
+import { RiskConstants } from "../libraries/RiskConstants.sol";
 
 /**
  * @title Abstract Pricing Module
@@ -21,12 +21,12 @@ abstract contract PricingModule is Owned, IPricingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // The contract address of the MainRegistry.
-    address public immutable mainRegistry;
-    // The contract address of the OracleHub.
-    address public immutable oracleHub;
     // Identifier for the token standard of the asset.
-    uint256 public immutable assetType;
+    uint256 public immutable ASSET_TYPE;
+    // The contract address of the MainRegistry.
+    address public immutable MAIN_REGISTRY;
+    // The contract address of the OracleHub.
+    address public immutable ORACLE_HUB;
     // The address of the riskManager.
     address public riskManager;
 
@@ -35,7 +35,6 @@ abstract contract PricingModule is Owned, IPricingModule {
 
     // Map asset => flag.
     mapping(address => bool) public inPricingModule;
-
     // Map asset => baseCurrencyIdentifier => riskVariables.
     mapping(address => mapping(uint256 => RiskVars)) public assetRiskVars;
 
@@ -67,13 +66,19 @@ abstract contract PricingModule is Owned, IPricingModule {
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
 
+    /**
+     * @dev Only the Risk Manager can call functions with this modifier.
+     */
     modifier onlyRiskManager() {
         require(msg.sender == riskManager, "APM: ONLY_RISK_MANAGER");
         _;
     }
 
+    /**
+     * @dev Only the Main Registry can call functions with this modifier.
+     */
     modifier onlyMainReg() {
-        require(msg.sender == mainRegistry, "APM: ONLY_MAIN_REGISTRY");
+        require(msg.sender == MAIN_REGISTRY, "APM: ONLY_MAIN_REGISTRY");
         _;
     }
 
@@ -93,9 +98,9 @@ abstract contract PricingModule is Owned, IPricingModule {
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
         Owned(msg.sender)
     {
-        mainRegistry = mainRegistry_;
-        oracleHub = oracleHub_;
-        assetType = assetType_;
+        MAIN_REGISTRY = mainRegistry_;
+        ORACLE_HUB = oracleHub_;
+        ASSET_TYPE = assetType_;
         riskManager = riskManager_;
 
         emit RiskManagerUpdated(riskManager_);
@@ -108,15 +113,16 @@ abstract contract PricingModule is Owned, IPricingModule {
     /**
      * @notice Checks for a token address and the corresponding Id if it is allowed.
      * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
+     * @param assetId The Id of the asset.
      * @return A boolean, indicating if the asset is allowed.
      * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
      */
-    function isAllowed(address asset, uint256) public view virtual returns (bool);
+    function isAllowed(address asset, uint256 assetId) public view virtual returns (bool);
 
     /*///////////////////////////////////////////////////////////////
                     RISK MANAGER MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
+
     /**
      * @notice Sets a new Risk Manager.
      * @param riskManager_ The address of the new Risk Manager.
@@ -167,7 +173,7 @@ abstract contract PricingModule is Owned, IPricingModule {
      * @dev Can only be called by the Risk Manager, which can be different from the owner.
      */
     function setBatchRiskVariables(RiskVarInput[] memory riskVarInputs) public virtual onlyRiskManager {
-        uint256 baseCurrencyCounter = IMainRegistry(mainRegistry).baseCurrencyCounter();
+        uint256 baseCurrencyCounter = IMainRegistry(MAIN_REGISTRY).baseCurrencyCounter();
         uint256 riskVarInputsLength = riskVarInputs.length;
 
         for (uint256 i; i < riskVarInputsLength;) {
@@ -196,7 +202,7 @@ abstract contract PricingModule is Owned, IPricingModule {
      * @dev The asset slot in the RiskVarInput struct is ignored for this function.
      */
     function _setRiskVariablesForAsset(address asset, RiskVarInput[] memory riskVarInputs) internal virtual {
-        uint256 baseCurrencyCounter = IMainRegistry(mainRegistry).baseCurrencyCounter();
+        uint256 baseCurrencyCounter = IMainRegistry(MAIN_REGISTRY).baseCurrencyCounter();
         uint256 riskVarInputsLength = riskVarInputs.length;
 
         for (uint256 i; i < riskVarInputsLength;) {
@@ -239,21 +245,21 @@ abstract contract PricingModule is Owned, IPricingModule {
     /**
      * @notice Increases the exposure to an asset on deposit.
      * @param asset The contract address of the asset.
-     * param id The Id of the asset.
+     * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256, uint256 amount) public virtual;
+    function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public virtual;
 
     /**
      * @notice Increases the exposure to an underlying asset on deposit.
      * @param asset The contract address of the asset.
-     * param id The Id of the asset.
+     * @param assetId The Id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function processIndirectDeposit(
         address asset,
-        uint256,
+        uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset);
@@ -261,23 +267,22 @@ abstract contract PricingModule is Owned, IPricingModule {
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
      * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
+     * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
-     * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
-    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual;
+    function processDirectWithdrawal(address asset, uint256 assetId, uint256 amount) public virtual;
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
      * @param asset The contract address of the asset.
-     * param id The Id of the asset.
+     * @param assetId The Id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function processIndirectWithdrawal(
         address asset,
-        uint256,
+        uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset);
+    ) public virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset);
 }

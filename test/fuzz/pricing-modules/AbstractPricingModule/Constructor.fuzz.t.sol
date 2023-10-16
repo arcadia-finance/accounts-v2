@@ -40,9 +40,9 @@ contract Constructor_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fu
         );
         vm.stopPrank();
 
-        assertEq(pricingModule_.mainRegistry(), mainRegistry_);
-        assertEq(pricingModule_.oracleHub(), oracleHub_);
-        assertEq(pricingModule_.assetType(), assetType_);
+        assertEq(pricingModule_.MAIN_REGISTRY(), mainRegistry_);
+        assertEq(pricingModule_.ORACLE_HUB(), oracleHub_);
+        assertEq(pricingModule_.ASSET_TYPE(), assetType_);
         assertEq(pricingModule_.riskManager(), riskManager_);
     }
 }

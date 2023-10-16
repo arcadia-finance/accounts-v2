@@ -4,8 +4,9 @@
  */
 pragma solidity 0.8.19;
 
-import { PrimaryPricingModule, IMainRegistry } from "./AbstractPrimaryPricingModule.sol";
+import { IMainRegistry } from "./AbstractPrimaryPricingModule.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
+import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 
 /**
  * @title Pricing Module for ERC1155 tokens
@@ -15,24 +16,31 @@ import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
  * @dev No end-user should directly interact with the FloorERC1155PricingModule, only the Main-registry, Oracle-Hub or the contract owner
  */
 contract FloorERC1155PricingModule is PrimaryPricingModule {
+    /* //////////////////////////////////////////////////////////////
+                                STORAGE
+    ////////////////////////////////////////////////////////////// */
+
+    // Map asset => assetInformation.
     mapping(address => AssetInformation) public assetToInformation;
 
+    // Struct with additional information for a specific asset.
     struct AssetInformation {
         uint256 id;
         address[] oracles;
     }
 
+    /* //////////////////////////////////////////////////////////////
+                                CONSTRUCTOR
+    ////////////////////////////////////////////////////////////// */
+
     /**
-     * @notice A Pricing Module must always be initialised with the address of the Main-Registry and of the Oracle-Hub
-     * @param mainRegistry_ The address of the Main-registry
-     * @param oracleHub_ The address of the Oracle-Hub
-     * @param assetType_ Identifier for the type of asset, necessary for the deposit and withdraw logic in the Accounts.
-     * 0 = ERC20
-     * 1 = ERC721
-     * 2 = ERC1155
+     * @notice A Pricing Module must always be initialised with the address of the Main-Registry and of the Oracle-Hub.
+     * @param mainRegistry_ The address of the Main-registry.
+     * @param oracleHub_ The address of the Oracle-Hub.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC1155 tokens is 2.
      */
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
+    constructor(address mainRegistry_, address oracleHub_)
+        PrimaryPricingModule(mainRegistry_, oracleHub_, 2, msg.sender)
     { }
 
     /*///////////////////////////////////////////////////////////////
@@ -60,7 +68,7 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
         uint256 maxExposure
     ) external onlyOwner {
         //View function, reverts in OracleHub if sequence is not correct
-        IOraclesHub(oracleHub).checkOracleSequence(oracles, asset);
+        IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
         require(!inPricingModule[asset], "PM1155_AA: already added");
         inPricingModule[asset] = true;
@@ -74,7 +82,7 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
         exposure[asset].maxExposure = uint128(maxExposure);
 
         //Will revert in MainRegistry if asset can't be added
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
+        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -167,7 +175,7 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        uint256 rateInUsd = IOraclesHub(oracleHub).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
+        uint256 rateInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
 
         valueInUsd = getValueInput.assetAmount * rateInUsd;
 

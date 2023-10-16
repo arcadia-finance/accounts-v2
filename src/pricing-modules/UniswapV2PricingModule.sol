@@ -4,13 +4,13 @@
  */
 pragma solidity 0.8.19;
 
-import { DerivedPricingModule, IMainRegistry } from "./AbstractDerivedPricingModule.sol";
-import { PricingModule } from "./AbstractPricingModule.sol";
+import { DerivedPricingModule } from "./AbstractDerivedPricingModule.sol";
+import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { PRBMath } from "../libraries/PRBMath.sol";
+import { PricingModule } from "./AbstractPricingModule.sol";
 import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 
 /**
@@ -25,24 +25,36 @@ contract UniswapV2PricingModule is DerivedPricingModule {
     using FixedPointMathLib for uint256;
     using PRBMath for uint256;
 
+    /* //////////////////////////////////////////////////////////////
+                                CONSTANTS
+    ////////////////////////////////////////////////////////////// */
+
+    // The contract address of the Uniswap V2 factory (or an exact clone);
     address internal immutable UNISWAP_V2_FACTORY;
 
+    /* //////////////////////////////////////////////////////////////
+                                STORAGE
+    ////////////////////////////////////////////////////////////// */
+
+    // Flag indicating if the protocol swap fees are enabled.
     bool public feeOn;
 
+    // The Unique identifiers of the underlying assets of a Liquidity Position.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
+    /* //////////////////////////////////////////////////////////////
+                                CONSTRUCTOR
+    ////////////////////////////////////////////////////////////// */
+
     /**
-     * @notice A Pricing-Module must always be initialised with the address of the Main-Registry and of the Oracle-Hub
-     * @param mainRegistry_ The address of the Main-registry
-     * @param oracleHub_ The address of the Oracle-Hub
-     * @param assetType_ Identifier for the type of asset, necessary for the deposit and withdraw logic in the Accounts.
-     * 0 = ERC20
-     * 1 = ERC721
-     * 2 = ERC1155
-     * @param uniswapV2Factory_ The factory for Uniswap V2 pairs
+     * @notice A Pricing-Module must always be initialised with the address of the Main-Registry and of the Oracle-Hub.
+     * @param mainRegistry_ The address of the Main-registry.
+     * @param oracleHub_ The address of the Oracle-Hub.
+     * @param uniswapV2Factory_ The factory for Uniswap V2 pairs.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address uniswapV2Factory_)
-        DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
+    constructor(address mainRegistry_, address oracleHub_, address uniswapV2Factory_)
+        DerivedPricingModule(mainRegistry_, oracleHub_, 0, msg.sender)
     {
         UNISWAP_V2_FACTORY = uniswapV2Factory_;
     }
@@ -52,7 +64,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Fetches boolean on the uniswap factory if fees are enabled or not
+     * @notice Fetches and sets flag if protocol swap fees are enabled.
      */
     function syncFee() external {
         feeOn = IUniswapV2Factory(UNISWAP_V2_FACTORY).feeTo() != address(0);
@@ -71,8 +83,8 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         address token1 = IUniswapV2Pair(pool).token1();
         require(IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == pool, "PMUV2_AA: Not a Pool");
 
-        require(IMainRegistry(mainRegistry).isAllowed(token0, 0), "PMUV2_AA: Token0 not Allowed");
-        require(IMainRegistry(mainRegistry).isAllowed(token1, 0), "PMUV2_AA: Token1 not Allowed");
+        require(IMainRegistry(MAIN_REGISTRY).isAllowed(token0, 0), "PMUV2_AA: Token0 not Allowed");
+        require(IMainRegistry(MAIN_REGISTRY).isAllowed(token1, 0), "PMUV2_AA: Token1 not Allowed");
 
         bytes32[] memory underlyingAssets_ = new bytes32[](2);
         underlyingAssets_[0] = _getKeyFromAsset(token0, 0);
@@ -80,7 +92,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         assetToUnderlyingAssets[_getKeyFromAsset(pool, 0)] = underlyingAssets_;
 
         // Will revert in MainRegistry if pool was already added.
-        IMainRegistry(mainRegistry).addAsset(pool, assetType);
+        IMainRegistry(MAIN_REGISTRY).addAsset(pool, ASSET_TYPE);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -98,15 +110,29 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         address token1 = IUniswapV2Pair(asset).token1();
 
         return (IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == asset)
-            && IMainRegistry(mainRegistry).isAllowed(token0, 0) && IMainRegistry(mainRegistry).isAllowed(token1, 0);
+            && IMainRegistry(MAIN_REGISTRY).isAllowed(token0, 0) && IMainRegistry(MAIN_REGISTRY).isAllowed(token1, 0);
     }
 
+    /**
+     * @notice Returns the unique identifier of an asset based on the contract address and id.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return key The unique identifier.
+     * @dev The assetId is hard-coded to 0, since both the assets as underlying assets for this Pricing Modules are ERC20's.
+     */
     function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
         assembly {
             key := asset
         }
     }
 
+    /**
+     * @notice Returns the contract address and id of an asset based on the unique identifier.
+     * @param key The unique identifier.
+     * @return asset The contract address of the asset.
+     * @return assetId The Id of the asset.
+     * @dev The assetId is hard-coded to 0, since both the assets as underlying assets for this Pricing Modules are ERC20's.
+     */
     function _getAssetFromKey(bytes32 key) internal pure override returns (address asset, uint256) {
         assembly {
             asset := key
@@ -115,36 +141,38 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         return (asset, 0);
     }
 
+    /**
+     * @notice Returns the unique identifiers of the underlying assets.
+     * @param assetKey The unique identifier of the asset.
+     * @return underlyingAssetKeys The assets to which we have to get the conversion rate.
+     */
     function _getUnderlyingAssets(bytes32 assetKey)
         internal
         view
         override
-        returns (bytes32[] memory underlyingAssets)
+        returns (bytes32[] memory underlyingAssetKeys)
     {
-        underlyingAssets = assetToUnderlyingAssets[assetKey];
+        underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
 
-        if (underlyingAssets.length == 0) {
+        if (underlyingAssetKeys.length == 0) {
             // Only used as an off-chain view function to return the value of a non deposited Liquidity Position.
             (address asset,) = _getAssetFromKey(assetKey);
             address token0 = IUniswapV2Pair(asset).token0();
             address token1 = IUniswapV2Pair(asset).token1();
 
-            underlyingAssets = new bytes32[](2);
-            underlyingAssets[0] = _getKeyFromAsset(token0, 0);
-            underlyingAssets[1] = _getKeyFromAsset(token1, 0);
+            underlyingAssetKeys = new bytes32[](2);
+            underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
+            underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
         }
     }
 
-    /*///////////////////////////////////////////////////////////////
-                          PRICING LOGIC
-    ///////////////////////////////////////////////////////////////*/
-
     /**
-     * @notice Calculates for a given amount of Asset the corresponding amounts of underlying assets.
+     * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
      * @param assetKey The unique identifier of the asset.
-     * @param assetAmount The amount of the asset,in the decimal precision of the Asset.
-     * @param underlyingAssetKeys The assets to which we have to get the conversion rate.
-     * @return underlyingAssetsAmounts The corresponding amounts of Underlying Assets, in the decimal precision of the Underlying Asset.
+     * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
+     * param underlyingAssetKeys The unique identifiers of the underlying assets.
+     * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
+     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      */
     function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory underlyingAssetKeys)
         internal

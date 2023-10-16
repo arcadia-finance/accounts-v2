@@ -4,11 +4,11 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule } from "./AbstractPricingModule.sol";
-import { IPricingModule } from "../interfaces/IPricingModule.sol";
-import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IPricingModule } from "../interfaces/IPricingModule.sol";
+import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
+import { PricingModule } from "./AbstractPricingModule.sol";
 
 /**
  * @title Derived Pricing Module.
@@ -16,10 +16,13 @@ import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
  */
 abstract contract DerivedPricingModule is PricingModule {
     using FixedPointMathLib for uint256;
+
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
+    // Identifier indicating that it is not a Primary Pricing Module:
+    // the assets being priced do have underlying assets.
     bool internal constant PRIMARY_FLAG = false;
 
     /* //////////////////////////////////////////////////////////////
@@ -32,14 +35,17 @@ abstract contract DerivedPricingModule is PricingModule {
     // The actual exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
     uint256 public usdExposureProtocol;
 
+    // Map with the last exposures of each asset.
+    mapping(bytes32 assetKey => ExposurePerAsset exposure) internal assetToExposureLast;
+    // Map with the last exposures of each asset to its underlying assets..
+    mapping(bytes32 assetKey => mapping(bytes32 underlyingAssetKey => uint256 exposure)) internal
+        exposureAssetToUnderlyingAssetsLast;
+
+    // Struct with information about the exposure of a specific asset.
     struct ExposurePerAsset {
         uint128 exposureLast;
         uint128 usdValueExposureLast;
     }
-
-    mapping(bytes32 assetKey => ExposurePerAsset exposure) internal assetToExposureLast;
-    mapping(bytes32 assetKey => mapping(bytes32 underlyingAssetKey => uint256 exposure)) internal
-        exposureAssetToUnderlyingAssetsLast;
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
@@ -132,7 +138,7 @@ abstract contract DerivedPricingModule is PricingModule {
 
             // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
             // sufficient precision.
-            rateUnderlyingAssetsToUsd[i] = IMainRegistry(mainRegistry).getUsdValue(
+            rateUnderlyingAssetsToUsd[i] = IMainRegistry(MAIN_REGISTRY).getUsdValue(
                 GetValueInput({ asset: underlyingAsset, assetId: underlyingAssetId, assetAmount: 1e18, baseCurrency: 0 })
             );
 
@@ -192,7 +198,7 @@ abstract contract DerivedPricingModule is PricingModule {
             for (uint256 i; i < underlyingAssetKeys.length;) {
                 (underlyingAsset, underlyingAssetId) = _getAssetFromKey(underlyingAssetKeys[i]);
 
-                valueInUsd += IMainRegistry(mainRegistry).getUsdValue(
+                valueInUsd += IMainRegistry(MAIN_REGISTRY).getUsdValue(
                     GetValueInput({
                         asset: underlyingAsset,
                         assetId: underlyingAssetId,
@@ -368,7 +374,7 @@ abstract contract DerivedPricingModule is PricingModule {
             // Pricing Modules will recursively update their respective exposures and return
             // the requested USD value to this Pricing Module.
             (address underlyingAsset, uint256 underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
-            usdValueExposureAsset += IMainRegistry(mainRegistry).getUsdValueExposureToUnderlyingAssetAfterDeposit(
+            usdValueExposureAsset += IMainRegistry(MAIN_REGISTRY).getUsdValueExposureToUnderlyingAssetAfterDeposit(
                 underlyingAsset, underlyingId, exposureAssetToUnderlyingAssets[i], deltaExposureAssetToUnderlyingAsset
             );
 
@@ -433,7 +439,7 @@ abstract contract DerivedPricingModule is PricingModule {
             // Pricing Modules will recursively update their respective exposures and return
             // the requested USD value to this Pricing Module.
             (address underlyingAsset, uint256 underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
-            usdValueExposureAsset += IMainRegistry(mainRegistry).getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
+            usdValueExposureAsset += IMainRegistry(MAIN_REGISTRY).getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
                 underlyingAsset, underlyingId, exposureAssetToUnderlyingAssets[i], deltaExposureAssetToUnderlyingAsset
             );
 

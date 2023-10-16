@@ -21,12 +21,12 @@ contract PricingModuleMock is AbstractPricingModuleExtension {
         int256 deltaExposureUpperAssetToAsset
     ) public override returns (bool, uint256) { }
 
-    function processDirectWithdrawal(address asset, uint256 id, uint256 amount) external override { }
+    function processDirectWithdrawal(address asset, uint256 id, uint256 amount) public override { }
 
     function processIndirectWithdrawal(
         address asset,
         uint256 id,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external override returns (bool, uint256) { }
+    ) public override returns (bool, uint256) { }
 }

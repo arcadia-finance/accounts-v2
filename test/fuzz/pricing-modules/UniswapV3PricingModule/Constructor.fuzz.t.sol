@@ -35,9 +35,9 @@ contract Constructor_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_
         );
         vm.stopPrank();
 
-        assertEq(uniV3PricingModule_.mainRegistry(), mainRegistry_);
-        assertEq(uniV3PricingModule_.oracleHub(), oracleHub_);
-        assertEq(uniV3PricingModule_.assetType(), 1);
+        assertEq(uniV3PricingModule_.MAIN_REGISTRY(), mainRegistry_);
+        assertEq(uniV3PricingModule_.ORACLE_HUB(), oracleHub_);
+        assertEq(uniV3PricingModule_.ASSET_TYPE(), 1);
         assertEq(uniV3PricingModule_.riskManager(), riskManager_);
     }
 }

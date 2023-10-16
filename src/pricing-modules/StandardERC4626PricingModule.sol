@@ -5,11 +5,10 @@
 pragma solidity 0.8.19;
 
 import { DerivedPricingModule } from "./AbstractDerivedPricingModule.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
-import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
-import { IERC4626 } from "../interfaces/IERC4626.sol";
-import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
+import { IERC4626 } from "../interfaces/IERC4626.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
 
 /**
  * @title Sub-registry for Standard ERC4626 tokens
@@ -20,31 +19,26 @@ import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 contract StandardERC4626PricingModule is DerivedPricingModule {
     using FixedPointMathLib for uint256;
 
-    mapping(address => ERC4626AssetInformation) public erc4626AssetToInformation;
-    address public immutable erc20PricingModule;
+    /* //////////////////////////////////////////////////////////////
+                                STORAGE
+    ////////////////////////////////////////////////////////////// */
 
-    struct ERC4626AssetInformation {
-        uint64 assetUnit;
-        address[] underlyingAssetOracles;
-    }
-
+    // The Unique identifiers of the underlying assets of a Liquidity Position.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
+    /* //////////////////////////////////////////////////////////////
+                                CONSTRUCTOR
+    ////////////////////////////////////////////////////////////// */
+
     /**
-     * @notice A Sub-Registry must always be initialised with the address of the Main-Registry and of the Oracle-Hub
-     * @param mainRegistry_ The address of the Main-registry
+     * @notice A Sub-Registry must always be initialised with the address of the Main-Registry and of the Oracle-Hub.
+     * @param mainRegistry_ The address of the Main-registry.
      * @param oracleHub_ The address of the Oracle-Hub.
-     * @param assetType_ Identifier for the type of asset, necessary for the deposit and withdraw logic in the Accounts.
-     * 0 = ERC20
-     * 1 = ERC721
-     * 2 = ERC1155
-     * @param erc20PricingModule_ The address of the Pricing Module for standard ERC20 tokens.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address erc20PricingModule_)
-        DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
-    {
-        erc20PricingModule = erc20PricingModule_;
-    }
+    constructor(address mainRegistry_, address oracleHub_)
+        DerivedPricingModule(mainRegistry_, oracleHub_, 0, msg.sender)
+    { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -57,7 +51,7 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
     function addAsset(address asset) external onlyOwner {
         address underlyingAsset = address(IERC4626(asset).asset());
 
-        require(IMainRegistry(mainRegistry).isAllowed(underlyingAsset, 0), "PM4626_AA: Underlying Asset not allowed");
+        require(IMainRegistry(MAIN_REGISTRY).isAllowed(underlyingAsset, 0), "PM4626_AA: Underlying Asset not allowed");
         inPricingModule[asset] = true;
         assetsInPricingModule.push(asset);
 
@@ -66,7 +60,7 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
         // Will revert in MainRegistry if pool was already added.
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
+        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -82,15 +76,29 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
     function isAllowed(address asset, uint256) public view override returns (bool) {
         address underlyingAsset = IERC4626(asset).asset();
 
-        return IMainRegistry(mainRegistry).isAllowed(underlyingAsset, 0);
+        return IMainRegistry(MAIN_REGISTRY).isAllowed(underlyingAsset, 0);
     }
 
+    /**
+     * @notice Returns the unique identifier of an asset based on the contract address and id.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return key The unique identifier.
+     * @dev The assetId is hard-coded to 0, since both the assets as underlying assets for this Pricing Modules are ERC20's.
+     */
     function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
         assembly {
             key := asset
         }
     }
 
+    /**
+     * @notice Returns the contract address and id of an asset based on the unique identifier.
+     * @param key The unique identifier.
+     * @return asset The contract address of the asset.
+     * @return assetId The Id of the asset.
+     * @dev The assetId is hard-coded to 0, since both the assets as underlying assets for this Pricing Modules are ERC20's.
+     */
     function _getAssetFromKey(bytes32 key) internal pure override returns (address asset, uint256) {
         assembly {
             asset := key
@@ -99,30 +107,36 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
         return (asset, 0);
     }
 
+    /**
+     * @notice Returns the unique identifiers of the underlying assets.
+     * @param assetKey The unique identifier of the asset.
+     * @return underlyingAssetKeys The assets to which we have to get the conversion rate.
+     */
     function _getUnderlyingAssets(bytes32 assetKey)
         internal
         view
         override
-        returns (bytes32[] memory underlyingAssets)
+        returns (bytes32[] memory underlyingAssetKeys)
     {
-        underlyingAssets = assetToUnderlyingAssets[assetKey];
+        underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
 
-        if (underlyingAssets.length == 0) {
+        if (underlyingAssetKeys.length == 0) {
             // Only used as an off-chain view function to return the value of a non deposited Liquidity Position.
             (address asset,) = _getAssetFromKey(assetKey);
             address underlyingAsset = address(IERC4626(asset).asset());
 
-            underlyingAssets = new bytes32[](1);
-            underlyingAssets[0] = _getKeyFromAsset(underlyingAsset, 0);
+            underlyingAssetKeys = new bytes32[](1);
+            underlyingAssetKeys[0] = _getKeyFromAsset(underlyingAsset, 0);
         }
     }
 
     /**
      * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
      * @param assetKey The unique identifier of the asset.
-     * @param assetAmount The amount of the asset,in the decimal precision of the Asset.
-     * param underlyingAssetKeys The assets to which we have to get the conversion rate.
+     * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
+     * param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
+     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      */
     function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory)
         internal

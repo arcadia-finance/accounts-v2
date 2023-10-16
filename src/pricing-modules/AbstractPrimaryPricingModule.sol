@@ -4,12 +4,12 @@
  */
 pragma solidity 0.8.19;
 
+import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IPricingModule } from "../interfaces/IPricingModule.sol";
-import { RiskConstants } from "../libraries/RiskConstants.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 import { PricingModule } from "./AbstractPricingModule.sol";
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
+import { RiskConstants } from "../libraries/RiskConstants.sol";
 
 /**
  * @title Primary Pricing Module.
@@ -21,6 +21,8 @@ abstract contract PrimaryPricingModule is PricingModule {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
+    // Identifier indicating that it is a Primary Pricing Module:
+    // the assets being priced have no underlying assets.
     bool internal constant PRIMARY_FLAG = true;
 
     /* //////////////////////////////////////////////////////////////
@@ -163,7 +165,7 @@ abstract contract PrimaryPricingModule is PricingModule {
      * @param amount The amount of tokens.
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
-    function processDirectWithdrawal(address asset, uint256, uint256 amount) external virtual override onlyMainReg {
+    function processDirectWithdrawal(address asset, uint256, uint256 amount) public virtual override onlyMainReg {
         // Cache exposureLast.
         uint256 exposureLast = exposure[asset].exposure;
 
@@ -186,7 +188,7 @@ abstract contract PrimaryPricingModule is PricingModule {
         uint256,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         // Cache exposureLast.
         uint256 exposureLast = exposure[asset].exposure;
 

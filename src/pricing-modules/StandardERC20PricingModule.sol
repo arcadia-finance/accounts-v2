@@ -4,12 +4,13 @@
  */
 pragma solidity 0.8.19;
 
-import { PrimaryPricingModule, IPricingModule } from "./AbstractPrimaryPricingModule.sol";
-import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
-import { IERC20 } from "../interfaces/IERC20.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
+import { IERC20 } from "../interfaces/IERC20.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
+import { IPricingModule } from "./AbstractPrimaryPricingModule.sol";
 import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
+import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 
 /**
  * @title Pricing Module for Standard ERC20 tokens.
@@ -41,13 +42,10 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
     /**
      * @param mainRegistry_ The contract address of the MainRegistry.
      * @param oracleHub_ The contract address of the OracleHub.
-     * @param assetType_ Identifier for the token standard of the asset.
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
+    constructor(address mainRegistry_, address oracleHub_)
+        PrimaryPricingModule(mainRegistry_, oracleHub_, 0, msg.sender)
     { }
 
     /*///////////////////////////////////////////////////////////////
@@ -72,7 +70,7 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
     {
         require(!inPricingModule[asset], "PM20_AA: already added");
         // View function, reverts in OracleHub if sequence is not correct.
-        IOraclesHub(oracleHub).checkOracleSequence(oracles, asset);
+        IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
         inPricingModule[asset] = true;
         assetsInPricingModule.push(asset);
@@ -90,7 +88,7 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         emit MaxExposureSet(asset, maxExposure);
 
         // Will revert in MainRegistry if asset can't be added.
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
+        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
     }
 
     /**
@@ -109,9 +107,9 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         uint256 oraclesLength = oldOracles.length;
         for (uint256 i; i < oraclesLength;) {
             if (oldOracles[i] == decommissionedOracle) {
-                require(!IOraclesHub(oracleHub).isActive(oldOracles[i]), "PM20_SO: Oracle still active");
+                require(!IOraclesHub(ORACLE_HUB).isActive(oldOracles[i]), "PM20_SO: Oracle still active");
                 // View function, reverts in OracleHub if sequence is not correct.
-                IOraclesHub(oracleHub).checkOracleSequence(newOracles, asset);
+                IOraclesHub(ORACLE_HUB).checkOracleSequence(newOracles, asset);
                 assetToInformation[asset].oracles = newOracles;
                 return;
             }
@@ -163,7 +161,7 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        uint256 rateInUsd = IOraclesHub(oracleHub).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
+        uint256 rateInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
 
         valueInUsd = getValueInput.assetAmount.mulDivDown(rateInUsd, assetToInformation[getValueInput.asset].assetUnit);
 
