@@ -480,7 +480,8 @@ contract AccountV1_New is AccountStorageV1, IAccount {
 
         uint256 fixedLiquidationCost_ = fixedLiquidationCost;
 
-        uint256 usedMargin = creditor_ == address(0) ? 0 : ITrustedCreditor(trustedCreditor).getOpenPosition(address(this)) + fixedLiquidationCost_;
+        //As the function is only callable by the liquidator, it means that a liquidator and a trustedCreditor are set.
+        uint256 usedMargin = ITrustedCreditor(trustedCreditor).getOpenPosition(address(this)) + fixedLiquidationCost_;
 
         bool accountIsLiquidatable;
         if (usedMargin > fixedLiquidationCost_) {

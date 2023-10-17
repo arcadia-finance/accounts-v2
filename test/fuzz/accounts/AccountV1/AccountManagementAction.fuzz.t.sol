@@ -165,8 +165,6 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountNotInitialised.setIsTrustedCreditorSet(true);
         vm.stopPrank();
 
-        accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
-
         // Set the account as initialised in the factory
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
             .checked_write(true);
