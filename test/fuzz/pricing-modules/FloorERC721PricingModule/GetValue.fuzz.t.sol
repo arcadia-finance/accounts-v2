@@ -29,19 +29,22 @@ contract GetValue_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getValue(uint256 rateNft2ToUsd) public {
+    function testFuzz_Success_getValue(uint256 rateNft2ToUsd, uint256 assetId, uint256 amount) public {
         // No overflow OracleHub.
-        vm.assume(rateNft2ToUsd <= type(uint256).max / Constants.WAD);
+        rateNft2ToUsd = bound(rateNft2ToUsd, 0, type(uint256).max / Constants.WAD);
 
-        uint256 expectedValueInUsd = Constants.WAD * rateNft2ToUsd / 10 ** Constants.nftOracleDecimals;
+        // No overflow valueInUsd.
+        if (rateNft2ToUsd != 0) amount = bound(amount, 0, type(uint256).max / Constants.WAD / rateNft2ToUsd);
+
+        uint256 expectedValueInUsd = Constants.WAD * rateNft2ToUsd / 10 ** Constants.nftOracleDecimals * amount;
 
         vm.prank(users.defaultTransmitter);
         mockOracles.nft2ToUsd.transmit(int256(rateNft2ToUsd));
 
         IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
             asset: address(mockERC721.nft2),
-            assetId: 0,
-            assetAmount: 1,
+            assetId: assetId,
+            assetAmount: amount,
             baseCurrency: UsdBaseCurrencyID
         });
         // When: getValue called

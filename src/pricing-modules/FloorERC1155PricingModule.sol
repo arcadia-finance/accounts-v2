@@ -39,9 +39,7 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
      * @param oracleHub_ The address of the Oracle-Hub.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC1155 tokens is 2.
      */
-    constructor(address mainRegistry_, address oracleHub_)
-        PrimaryPricingModule(mainRegistry_, oracleHub_, 2, msg.sender)
-    { }
+    constructor(address mainRegistry_, address oracleHub_) PrimaryPricingModule(mainRegistry_, oracleHub_, 2) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -72,7 +70,6 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
 
         require(!inPricingModule[asset], "PM1155_AA: already added");
         inPricingModule[asset] = true;
-        assetsInPricingModule.push(asset);
 
         assetToInformation[asset].id = assetId;
         assetToInformation[asset].oracles = oracles;

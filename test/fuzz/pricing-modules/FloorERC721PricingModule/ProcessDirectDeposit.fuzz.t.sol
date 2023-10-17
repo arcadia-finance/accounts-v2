@@ -46,7 +46,7 @@ contract ProcessDirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721P
         vm.startPrank(address(mainRegistryExtension));
         floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), assetId, 1);
 
-        vm.expectRevert("PM721_PDD: Exposure not in limits");
+        vm.expectRevert("APPM_PDD: Exposure not in limits");
         floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), assetId, 1);
         vm.stopPrank();
     }

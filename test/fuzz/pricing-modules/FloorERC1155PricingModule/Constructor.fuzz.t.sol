@@ -29,7 +29,7 @@ contract Constructor_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingM
         emit RiskManagerUpdated(users.creatorAddress);
         FloorERC1155PricingModule pricingModule_ = new FloorERC1155PricingModule(
             mainRegistry_,
-            oracleHub_        );
+            oracleHub_);
         vm.stopPrank();
 
         assertEq(pricingModule_.MAIN_REGISTRY(), mainRegistry_);

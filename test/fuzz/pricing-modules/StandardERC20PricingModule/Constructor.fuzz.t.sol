@@ -29,7 +29,7 @@ contract Constructor_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricin
         emit RiskManagerUpdated(users.creatorAddress);
         StandardERC20PricingModule erc20PricingModule_ = new StandardERC20PricingModule(
             mainRegistry_,
-            oracleHub_        );
+            oracleHub_);
         vm.stopPrank();
 
         assertEq(erc20PricingModule_.MAIN_REGISTRY(), mainRegistry_);

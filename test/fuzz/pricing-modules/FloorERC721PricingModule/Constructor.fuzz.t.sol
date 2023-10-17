@@ -29,7 +29,7 @@ contract Constructor_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingMod
         emit RiskManagerUpdated(users.creatorAddress);
         FloorERC721PricingModule erc721PricingModule_ = new FloorERC721PricingModule(
             mainRegistry_,
-            oracleHub_        );
+            oracleHub_);
         vm.stopPrank();
 
         assertEq(erc721PricingModule_.MAIN_REGISTRY(), mainRegistry_);

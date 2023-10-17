@@ -4,8 +4,8 @@ pragma solidity 0.8.19;
 import { AbstractPricingModuleExtension } from "../Extensions.sol";
 
 contract PricingModuleMock is AbstractPricingModuleExtension {
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        AbstractPricingModuleExtension(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    constructor(address mainRegistry_, uint256 assetType_, address riskManager_)
+        AbstractPricingModuleExtension(mainRegistry_, assetType_, riskManager_)
     { }
 
     function isAllowed(address asset, uint256) public view override returns (bool) { }

@@ -43,8 +43,7 @@ abstract contract StandardERC4626PricingModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         erc4626PricingModule = new ERC4626PricingModuleExtension(
-            address(mainRegistryExtension),
-            address(oracleHub)
+            address(mainRegistryExtension)
         );
         mainRegistryExtension.addPricingModule(address(erc4626PricingModule));
         vm.stopPrank();

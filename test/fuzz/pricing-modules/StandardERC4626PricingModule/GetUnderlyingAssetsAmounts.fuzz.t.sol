@@ -38,8 +38,7 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626PricingModule_Fuzz_Test is St
 
         vm.startPrank(users.creatorAddress);
         erc4626PricingModuleExtension = new ERC4626PricingModuleExtension(
-            address(mainRegistryExtension),
-            address(oracleHub)
+            address(mainRegistryExtension)
         );
         mainRegistryExtension.addPricingModule(address(erc4626PricingModuleExtension));
 

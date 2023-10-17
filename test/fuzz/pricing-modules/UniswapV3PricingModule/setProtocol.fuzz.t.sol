@@ -37,7 +37,7 @@ contract SetProtocol_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_
     function testFuzz_Revert_setProtocol_ProtocolNotAddedToMainreg() public {
         vm.prank(users.creatorAddress);
         uniV3PricingModule =
-        new UniswapV3PricingModuleExtension(address(mainRegistryExtension), address(oracleHub), users.creatorAddress, address(nonfungiblePositionManager));
+        new UniswapV3PricingModuleExtension(address(mainRegistryExtension), users.creatorAddress, address(nonfungiblePositionManager));
 
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("MR: Only PriceMod.");
@@ -55,7 +55,7 @@ contract SetProtocol_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_
     function testFuzz_Success_setProtocol() public {
         vm.startPrank(users.creatorAddress);
         uniV3PricingModule =
-        new UniswapV3PricingModuleExtension(address(mainRegistryExtension), address(oracleHub), users.creatorAddress, address(nonfungiblePositionManagerMock));
+        new UniswapV3PricingModuleExtension(address(mainRegistryExtension), users.creatorAddress, address(nonfungiblePositionManagerMock));
         mainRegistryExtension.addPricingModule(address(uniV3PricingModule));
         vm.stopPrank();
 

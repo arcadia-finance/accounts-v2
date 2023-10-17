@@ -104,7 +104,6 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
 
         // Then: address(mockERC20.token4) should be inPricingModule
         assertTrue(erc20PricingModule.inPricingModule(address(mockERC20.token4)));
-        assertEq(erc20PricingModule.assetsInPricingModule(4), address(mockERC20.token4)); // Previously 4 assets were added in setup.
         (uint64 assetUnit, address[] memory oracles) = erc20PricingModule.getAssetInformation(address(mockERC20.token4));
         assertEq(assetUnit, 10 ** uint8(Constants.tokenDecimals));
         for (uint256 i; i < oracleToken4ToUsdArr.length; ++i) {

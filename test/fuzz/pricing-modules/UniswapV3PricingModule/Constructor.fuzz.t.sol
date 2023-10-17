@@ -23,20 +23,18 @@ contract Constructor_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address mainRegistry_, address oracleHub_, address riskManager_) public {
+    function testFuzz_Success_deployment(address mainRegistry_, address riskManager_) public {
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskManagerUpdated(riskManager_);
         UniswapV3PricingModule uniV3PricingModule_ = new UniswapV3PricingModule(
             mainRegistry_,
-            oracleHub_,
             riskManager_,
             address(nonfungiblePositionManager)
         );
         vm.stopPrank();
 
         assertEq(uniV3PricingModule_.MAIN_REGISTRY(), mainRegistry_);
-        assertEq(uniV3PricingModule_.ORACLE_HUB(), oracleHub_);
         assertEq(uniV3PricingModule_.ASSET_TYPE(), 1);
         assertEq(uniV3PricingModule_.riskManager(), riskManager_);
     }

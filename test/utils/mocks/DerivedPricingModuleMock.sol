@@ -8,8 +8,8 @@ contract DerivedPricingModuleMock is AbstractDerivedPricingModuleExtension {
 
     uint256 public underlyingAssetsAmount;
 
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        AbstractDerivedPricingModuleExtension(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    constructor(address mainRegistry_, uint256 assetType_, address riskManager_)
+        AbstractDerivedPricingModuleExtension(mainRegistry_, assetType_, riskManager_)
     { }
 
     function isAllowed(address asset, uint256) public view override returns (bool) { }
@@ -26,7 +26,6 @@ contract DerivedPricingModuleMock is AbstractDerivedPricingModuleExtension {
     ) public {
         require(!inPricingModule[asset], "ADPME_AA: already added");
         inPricingModule[asset] = true;
-        assetsInPricingModule.push(asset);
 
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
         bytes32[] memory underlyingAssetKeys = new bytes32[](underlyingAssets_.length);

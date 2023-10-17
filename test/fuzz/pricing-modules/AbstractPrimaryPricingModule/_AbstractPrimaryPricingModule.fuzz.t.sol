@@ -30,7 +30,6 @@ abstract contract AbstractPrimaryPricingModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        pricingModule =
-            new PrimaryPricingModuleMock(address(mainRegistryExtension), address(oracleHub), 0, users.creatorAddress);
+        pricingModule = new PrimaryPricingModuleMock(address(mainRegistryExtension), address(oracleHub), 0);
     }
 }

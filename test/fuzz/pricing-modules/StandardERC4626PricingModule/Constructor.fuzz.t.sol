@@ -23,18 +23,16 @@ contract Constructor_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Pr
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address mainRegistry_, address oracleHub_) public {
+    function testFuzz_Success_deployment(address mainRegistry_) public {
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskManagerUpdated(users.creatorAddress);
         StandardERC4626PricingModule erc4626PricingModule_ = new StandardERC4626PricingModule(
-            mainRegistry_,
-            oracleHub_
+            mainRegistry_
         );
         vm.stopPrank();
 
         assertEq(erc4626PricingModule_.MAIN_REGISTRY(), mainRegistry_);
-        assertEq(erc4626PricingModule_.ORACLE_HUB(), oracleHub_);
         assertEq(erc4626PricingModule_.ASSET_TYPE(), 0);
         assertEq(erc4626PricingModule_.riskManager(), users.creatorAddress);
     }

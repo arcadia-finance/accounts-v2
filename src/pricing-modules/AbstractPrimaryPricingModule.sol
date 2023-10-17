@@ -17,6 +17,7 @@ import { RiskConstants } from "../libraries/RiskConstants.sol";
  */
 abstract contract PrimaryPricingModule is PricingModule {
     using FixedPointMathLib for uint256;
+
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
@@ -24,6 +25,8 @@ abstract contract PrimaryPricingModule is PricingModule {
     // Identifier indicating that it is a Primary Pricing Module:
     // the assets being priced have no underlying assets.
     bool internal constant PRIMARY_FLAG = true;
+    // The contract address of the OracleHub.
+    address public immutable ORACLE_HUB;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -57,9 +60,11 @@ abstract contract PrimaryPricingModule is PricingModule {
      * 1 = ERC721
      * 2 = ERC1155
      */
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address erc20PricingModule_)
-        PricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
-    { }
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
+        PricingModule(mainRegistry_, assetType_, msg.sender)
+    {
+        ORACLE_HUB = oracleHub_;
+    }
 
     /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT

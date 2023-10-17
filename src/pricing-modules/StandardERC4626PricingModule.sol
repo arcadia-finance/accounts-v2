@@ -33,12 +33,9 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
     /**
      * @notice A Sub-Registry must always be initialised with the address of the Main-Registry and of the Oracle-Hub.
      * @param mainRegistry_ The address of the Main-registry.
-     * @param oracleHub_ The address of the Oracle-Hub.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_, address oracleHub_)
-        DerivedPricingModule(mainRegistry_, oracleHub_, 0, msg.sender)
-    { }
+    constructor(address mainRegistry_) DerivedPricingModule(mainRegistry_, 0, msg.sender) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -53,7 +50,6 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
 
         require(IMainRegistry(MAIN_REGISTRY).isAllowed(underlyingAsset, 0), "PM4626_AA: Underlying Asset not allowed");
         inPricingModule[asset] = true;
-        assetsInPricingModule.push(asset);
 
         bytes32[] memory underlyingAssets_ = new bytes32[](1);
         underlyingAssets_[0] = _getKeyFromAsset(underlyingAsset, 0);
@@ -112,7 +108,7 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
     /**
      * @notice Returns the unique identifiers of the underlying assets.
      * @param assetKey The unique identifier of the asset.
-     * @return underlyingAssetKeys The assets to which we have to get the conversion rate.
+     * @return underlyingAssetKeys The unique identifiers of the underlying assets.
      */
     function _getUnderlyingAssets(bytes32 assetKey)
         internal

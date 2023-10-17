@@ -29,7 +29,6 @@ abstract contract DerivedPricingModule is PricingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // TODO: uint128 should be enough for USD Exposure ?
     // The maximum total exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
     uint256 public maxUsdExposureProtocol;
     // The actual exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
@@ -60,15 +59,14 @@ abstract contract DerivedPricingModule is PricingModule {
 
     /**
      * @param mainRegistry_ The contract address of the MainRegistry.
-     * @param oracleHub_ The contract address of the OracleHub.
      * @param assetType_ Identifier for the token standard of the asset.
      * 0 = ERC20.
      * 1 = ERC721.
      * 2 = ERC1155.
      * @param riskManager_ The address of the Risk Manager.
      */
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    constructor(address mainRegistry_, uint256 assetType_, address riskManager_)
+        PricingModule(mainRegistry_, assetType_, riskManager_)
     { }
 
     /*///////////////////////////////////////////////////////////////
@@ -78,7 +76,7 @@ abstract contract DerivedPricingModule is PricingModule {
     /**
      * @notice Returns the unique identifiers of the underlying assets.
      * @param assetKey The unique identifier of the asset.
-     * @return underlyingAssetKeys The assets to which we have to get the conversion rate.
+     * @return underlyingAssetKeys The unique identifiers of the underlying assets.
      */
     function _getUnderlyingAssets(bytes32 assetKey)
         internal

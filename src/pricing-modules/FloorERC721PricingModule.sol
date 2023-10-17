@@ -40,9 +40,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @param oracleHub_ The address of the Oracle-Hub.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC721 tokens is 1.
      */
-    constructor(address mainRegistry_, address oracleHub_)
-        PrimaryPricingModule(mainRegistry_, oracleHub_, 1, msg.sender)
-    { }
+    constructor(address mainRegistry_, address oracleHub_) PrimaryPricingModule(mainRegistry_, oracleHub_, 1) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -76,7 +74,6 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
         inPricingModule[asset] = true;
-        assetsInPricingModule.push(asset);
 
         assetToInformation[asset].idRangeStart = idRangeStart;
         assetToInformation[asset].idRangeEnd = idRangeEnd;
@@ -183,15 +180,10 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @dev amount of a deposit in ERC721 pricing module must be 1.
      */
     function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public override onlyMainReg {
-        bytes32 assetKey = _getKeyFromAsset(asset, 0);
-
         require(isIdInRange(asset, assetId), "PM721_PDD: ID not allowed");
         require(amount == 1, "PM721_PDD: Amount not 1");
-        require(
-            exposure[assetKey].exposureLast + 1 <= exposure[assetKey].maxExposure, "PM721_PDD: Exposure not in limits"
-        );
 
-        exposure[assetKey].exposureLast += 1;
+        super.processDirectDeposit(asset, assetId, 1);
     }
 
     /**
@@ -207,81 +199,21 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
-        bytes32 assetKey = _getKeyFromAsset(asset, 0);
-
         require(isIdInRange(asset, assetId), "PM721_PID: ID not allowed");
-        // Cache exposureLast.
-        uint256 exposureLast = exposure[assetKey].exposureLast;
 
-        uint256 exposureAsset;
-        if (deltaExposureUpperAssetToAsset > 0) {
-            exposureAsset = exposureLast + uint256(deltaExposureUpperAssetToAsset);
-            require(exposureAsset <= exposure[assetKey].maxExposure, "PM721_PID: Exposure not in limits");
-        } else {
-            exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
-                ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
-                : 0;
-        }
-        exposure[assetKey].exposureLast = uint128(exposureAsset);
-
-        // Get Value in Usd
-        (uint256 floorUsdValue,,) =
-            getValue(IPricingModule.GetValueInput({ asset: asset, assetId: 0, assetAmount: 1, baseCurrency: 0 }));
-
-        usdValueExposureUpperAssetToAsset = floorUsdValue * exposureUpperAssetToAsset;
-
-        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
+        return super.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
     }
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
      * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
+     * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectWithdrawal(address asset, uint256, uint256 amount) public override onlyMainReg {
+    function processDirectWithdrawal(address asset, uint256 assetId, uint256 amount) public override onlyMainReg {
         require(amount == 1, "PM721_PDW: Amount not 1");
 
-        bytes32 assetKey = _getKeyFromAsset(asset, 0);
-        exposure[assetKey].exposureLast -= 1;
-    }
-
-    /**
-     * @notice Decreases the exposure to an asset on withdrawal.
-     * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
-     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
-     */
-    function processIndirectWithdrawal(
-        address asset,
-        uint256,
-        uint256 exposureUpperAssetToAsset,
-        int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
-        bytes32 assetKey = _getKeyFromAsset(asset, 0);
-
-        // Cache exposureLast.
-        uint256 exposureLast = exposure[assetKey].exposureLast;
-
-        uint256 exposureAsset;
-        if (deltaExposureUpperAssetToAsset > 0) {
-            exposureAsset = exposureLast + uint256(deltaExposureUpperAssetToAsset);
-            require(exposureAsset <= type(uint128).max, "APPM_PIW: Overflow");
-        } else {
-            exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
-                ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
-                : 0;
-        }
-        exposure[assetKey].exposureLast = uint128(exposureAsset);
-
-        // Get Value in Usd
-        (uint256 floorUsdValue,,) =
-            getValue(IPricingModule.GetValueInput({ asset: asset, assetId: 0, assetAmount: 1, baseCurrency: 0 }));
-
-        usdValueExposureUpperAssetToAsset = floorUsdValue * exposureUpperAssetToAsset;
-
-        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
+        super.processDirectWithdrawal(asset, assetId, 1);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -293,7 +225,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @param getValueInput A Struct with the input variables.
      * - asset: The contract address of the asset.
      * - assetId: The Id of the asset
-     * - assetAmount: Since ERC721 tokens have no amount, the amount should be set to 1.
+     * - assetAmount: The amount of floor NFTs, a natural number without decimals (1 by default for ERC721).
      * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
@@ -308,7 +240,8 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        valueInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
+        valueInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[getValueInput.asset].oracles)
+            * getValueInput.assetAmount;
 
         collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
         liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;

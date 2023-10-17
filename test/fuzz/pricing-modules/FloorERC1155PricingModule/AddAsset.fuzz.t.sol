@@ -63,7 +63,6 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
 
         // Then: inPricingModule for address(mockERC1155.sft2) should return true
         assertTrue(floorERC1155PricingModule.inPricingModule(address(mockERC1155.sft2)));
-        assertEq(floorERC1155PricingModule.assetsInPricingModule(1), address(mockERC1155.sft2)); // Previously 1 asset was added in setup.
         (uint256 id, address[] memory oracles) =
             floorERC1155PricingModule.getAssetInformation(address(mockERC1155.sft2));
         assertEq(id, 1);

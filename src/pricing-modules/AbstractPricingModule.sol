@@ -18,20 +18,20 @@ import { RiskConstants } from "../libraries/RiskConstants.sol";
  */
 abstract contract PricingModule is Owned, IPricingModule {
     /* //////////////////////////////////////////////////////////////
-                                STORAGE
+                                CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
     // Identifier for the token standard of the asset.
     uint256 public immutable ASSET_TYPE;
     // The contract address of the MainRegistry.
     address public immutable MAIN_REGISTRY;
-    // The contract address of the OracleHub.
-    address public immutable ORACLE_HUB;
+
+    /* //////////////////////////////////////////////////////////////
+                                STORAGE
+    ////////////////////////////////////////////////////////////// */
+
     // The address of the riskManager.
     address public riskManager;
-
-    // Array with all the contract addresses of assets added to the Pricing Module.
-    address[] public assetsInPricingModule;
 
     // Map asset => flag.
     mapping(address => bool) public inPricingModule;
@@ -88,18 +88,14 @@ abstract contract PricingModule is Owned, IPricingModule {
 
     /**
      * @param mainRegistry_ The contract address of the MainRegistry.
-     * @param oracleHub_ The contract address of the OracleHub.
      * @param assetType_ Identifier for the token standard of the asset.
      * 0 = ERC20.
      * 1 = ERC721.
      * 2 = ERC1155.
      * @param riskManager_ The address of the Risk Manager.
      */
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        Owned(msg.sender)
-    {
+    constructor(address mainRegistry_, uint256 assetType_, address riskManager_) Owned(msg.sender) {
         MAIN_REGISTRY = mainRegistry_;
-        ORACLE_HUB = oracleHub_;
         ASSET_TYPE = assetType_;
         riskManager = riskManager_;
 

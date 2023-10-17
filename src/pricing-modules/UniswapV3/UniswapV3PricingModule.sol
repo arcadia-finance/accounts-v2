@@ -32,7 +32,7 @@ contract UniswapV3PricingModule is DerivedPricingModule {
     using FixedPointMathLib for uint256;
 
     /* //////////////////////////////////////////////////////////////
-                                STORAGE
+                                CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
     // The contract address of the NonfungiblePositionManager.
@@ -40,6 +40,10 @@ contract UniswapV3PricingModule is DerivedPricingModule {
 
     // The contract address of the Uniswap V3 (or exact clone) Factory.
     address internal immutable UNISWAP_V3_FACTORY;
+
+    /* //////////////////////////////////////////////////////////////
+                                STORAGE
+    ////////////////////////////////////////////////////////////// */
 
     // The liquidity of the Liquidity Position when it was deposited.
     mapping(uint256 assetId => uint256 liquidity) internal assetToLiquidity;
@@ -53,13 +57,12 @@ contract UniswapV3PricingModule is DerivedPricingModule {
 
     /**
      * @param mainRegistry_ The contract address of the MainRegistry.
-     * @param oracleHub_ The contract address of the OracleHub.
      * @param riskManager_ The address of the Risk Manager.
      * @param nonFungiblePositionManager The contract address of the protocols NonFungiblePositionManager.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for Uniswap V3 Liquidity Positions (ERC721) is 1.
      */
-    constructor(address mainRegistry_, address oracleHub_, address riskManager_, address nonFungiblePositionManager)
-        DerivedPricingModule(mainRegistry_, oracleHub_, 1, riskManager_)
+    constructor(address mainRegistry_, address riskManager_, address nonFungiblePositionManager)
+        DerivedPricingModule(mainRegistry_, 1, riskManager_)
     {
         NON_FUNGIBLE_POSITION_MANAGER = nonFungiblePositionManager;
         UNISWAP_V3_FACTORY = INonfungiblePositionManager(nonFungiblePositionManager).factory();
@@ -138,7 +141,7 @@ contract UniswapV3PricingModule is DerivedPricingModule {
     /**
      * @notice Returns the unique identifiers of the underlying assets.
      * @param assetKey The unique identifier of the asset.
-     * @return underlyingAssetKeys The assets to which we have to get the conversion rate.
+     * @return underlyingAssetKeys The unique identifiers of the underlying assets.
      */
     function _getUnderlyingAssets(bytes32 assetKey)
         internal

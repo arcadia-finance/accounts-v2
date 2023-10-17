@@ -101,8 +101,8 @@ contract MainRegistryExtension is MainRegistry {
 }
 
 abstract contract AbstractPricingModuleExtension is PricingModule {
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    constructor(address mainRegistry_, uint256 assetType_, address riskManager_)
+        PricingModule(mainRegistry_, assetType_, riskManager_)
     { }
 
     function setRiskVariablesForAsset(address asset, RiskVarInput[] memory riskVarInputs) public {
@@ -115,8 +115,8 @@ abstract contract AbstractPricingModuleExtension is PricingModule {
 }
 
 abstract contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule {
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
+        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_)
     { }
 
     function setExposure(address asset, uint256 assetId, uint128 exposureLast, uint128 maxExposure) public {
@@ -127,8 +127,8 @@ abstract contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule 
 }
 
 abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        DerivedPricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    constructor(address mainRegistry_, uint256 assetType_, address riskManager_)
+        DerivedPricingModule(mainRegistry_, assetType_, riskManager_)
     { }
 
     function getAssetToExposureLast(bytes32 assetKey)
@@ -204,8 +204,8 @@ contract StandardERC20PricingModuleExtension is StandardERC20PricingModule {
 }
 
 contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
-    constructor(address mainRegistry_, address oracleHub_, address uniswapV2Factory_)
-        UniswapV2PricingModule(mainRegistry_, oracleHub_, uniswapV2Factory_)
+    constructor(address mainRegistry_, address uniswapV2Factory_)
+        UniswapV2PricingModule(mainRegistry_, uniswapV2Factory_)
     { }
 
     function getUniswapV2Factory() external view returns (address uniswapV2Factory) {
@@ -282,8 +282,8 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
 }
 
 contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
-    constructor(address mainRegistry_, address oracleHub_, address riskManager_, address nonfungiblePositionManager)
-        UniswapV3PricingModule(mainRegistry_, oracleHub_, riskManager_, nonfungiblePositionManager)
+    constructor(address mainRegistry_, address riskManager_, address nonfungiblePositionManager)
+        UniswapV3PricingModule(mainRegistry_, riskManager_, nonfungiblePositionManager)
     { }
 
     function getAssetToLiquidity(uint256 assetId) external view returns (uint256 liquidity) {
@@ -322,7 +322,7 @@ contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
 }
 
 contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
-    constructor(address mainRegistry_, address oracleHub_) StandardERC4626PricingModule(mainRegistry_, oracleHub_) { }
+    constructor(address mainRegistry_) StandardERC4626PricingModule(mainRegistry_) { }
 
     function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
         public

@@ -49,13 +49,10 @@ contract UniswapV2PricingModule is DerivedPricingModule {
     /**
      * @notice A Pricing-Module must always be initialised with the address of the Main-Registry and of the Oracle-Hub.
      * @param mainRegistry_ The address of the Main-registry.
-     * @param oracleHub_ The address of the Oracle-Hub.
      * @param uniswapV2Factory_ The factory for Uniswap V2 pairs.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_, address oracleHub_, address uniswapV2Factory_)
-        DerivedPricingModule(mainRegistry_, oracleHub_, 0, msg.sender)
-    {
+    constructor(address mainRegistry_, address uniswapV2Factory_) DerivedPricingModule(mainRegistry_, 0, msg.sender) {
         UNISWAP_V2_FACTORY = uniswapV2Factory_;
     }
 
@@ -150,7 +147,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
     /**
      * @notice Returns the unique identifiers of the underlying assets.
      * @param assetKey The unique identifier of the asset.
-     * @return underlyingAssetKeys The assets to which we have to get the conversion rate.
+     * @return underlyingAssetKeys The unique identifiers of the underlying assets.
      */
     function _getUnderlyingAssets(bytes32 assetKey)
         internal

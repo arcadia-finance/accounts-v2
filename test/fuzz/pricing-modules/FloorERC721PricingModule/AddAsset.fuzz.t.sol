@@ -62,7 +62,6 @@ contract AddAsset_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
 
         // Then: inPricingModule for address(mockERC721.nft2) should return true
         assertTrue(floorERC721PricingModule.inPricingModule(address(mockERC721.nft2)));
-        assertEq(floorERC721PricingModule.assetsInPricingModule(1), address(mockERC721.nft2)); // Previously 1 asset was added in setup.
         (uint256 idRangeStart, uint256 idRangeEnd, address[] memory oracles) =
             floorERC721PricingModule.getAssetInformation(address(mockERC721.nft2));
         assertEq(idRangeStart, 0);

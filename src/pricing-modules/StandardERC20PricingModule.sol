@@ -44,9 +44,7 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
      * @param oracleHub_ The contract address of the OracleHub.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_, address oracleHub_)
-        PrimaryPricingModule(mainRegistry_, oracleHub_, 0, msg.sender)
-    { }
+    constructor(address mainRegistry_, address oracleHub_) PrimaryPricingModule(mainRegistry_, oracleHub_, 0) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -73,7 +71,6 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
         inPricingModule[asset] = true;
-        assetsInPricingModule.push(asset);
 
         uint256 assetUnit = 10 ** IERC20(asset).decimals();
         require(assetUnit <= 1e18, "PM20_AA: Maximal 18 decimals");
