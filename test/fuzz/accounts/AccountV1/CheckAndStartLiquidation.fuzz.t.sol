@@ -32,18 +32,16 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_checkAndStartLiquidation_nonLiquidator(
-        address nonLiquidator
-    ) public {
+    function testFuzz_Revert_checkAndStartLiquidation_nonLiquidator(address nonLiquidator) public {
         // openMarginAccount() will set a liquidator on the account
         vm.startPrank(users.accountOwner);
-        proxyAccount_New.openTrustedMarginAccount(address(trustedCreditor));
+        proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
 
-        vm.assume(nonLiquidator != proxyAccount_New.liquidator());
-        
+        vm.assume(nonLiquidator != proxyAccount.liquidator());
+
         vm.startPrank(nonLiquidator);
         vm.expectRevert("A: Only Liquidator");
-        proxyAccount_New.checkAndStartLiquidation();
+        proxyAccount.checkAndStartLiquidation();
         vm.stopPrank();
     }
 
@@ -62,20 +60,12 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountNotInitialised.setTrustedCreditor(address(trustedCreditor));
         accountNotInitialised.setIsTrustedCreditorSet(true);
 
-        trustedCreditor.setOpenPosition(address(accountNotInitialised), debtAmount); 
-
-        
-
-
+        trustedCreditor.setOpenPosition(address(accountNotInitialised), debtAmount);
     }
 
-    function testFuzz_Revert_checkAndStartLiquidation_notLiquidatable_liquidationValueGreaterThanUsedMargin(
+    function testFuzz_Revert_checkAndStartLiquidation_notLiquidatable_liquidationValueGreaterThanUsedMargin() public { }
 
-    ) public {
-
-    }
-
-/*         accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
+    /*         accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
         accountNotInitialised.setRegistry(address(mainRegistryExtension));
@@ -85,5 +75,4 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountNotInitialised.setIsTrustedCreditorSet(true);
 
         trustedCreditor.setOpenPosition(address(accountNotInitialised), debtAmount); */
-
 }
