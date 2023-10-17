@@ -39,7 +39,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_checkAndStartLiquidation_nonLiquidator(address nonLiquidator) public {
-        // openMarginAccount() will set a liquidator on the account
+        // openTrustedMarginAccount() will set a liquidator on the account
         vm.startPrank(users.accountOwner);
         proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
 
@@ -116,6 +116,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 
+        // Assert openDebt of Account == 0
         assert(trustedCreditor.getOpenPosition(address(accountExtension2)) == 0);
 
         // Then : Account should not be liquidatable as openDebt == 0
@@ -188,7 +189,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             totalOpenDebt,
             ITrustedCreditor(accountExtension2.trustedCreditor()).getOpenPosition(address(accountExtension2))
         );
-        assertEq(assetAndRiskValues_[0].valueInBaseCurrency, assetAndRiskValues_[0].valueInBaseCurrency);
+        assertEq(assetAndRiskValues_[0].valueInBaseCurrency, assetAndRiskValues[0].valueInBaseCurrency);
         assertEq(assetAndRiskValues_[0].collateralFactor, assetAndRiskValues[0].collateralFactor);
         assertEq(assetAndRiskValues_[0].liquidationFactor, assetAndRiskValues[0].liquidationFactor);
     }
