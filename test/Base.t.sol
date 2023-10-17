@@ -43,7 +43,6 @@ abstract contract Base_Test is Test, Events, Errors {
     //////////////////////////////////////////////////////////////////////////*/
 
     Factory internal factory;
-    Factory internal factory_new;
     MainRegistryExtension internal mainRegistryExtension;
     OracleHub internal oracleHub;
     StandardERC20PricingModule internal erc20PricingModule;
@@ -77,7 +76,6 @@ abstract contract Base_Test is Test, Events, Errors {
         // Deploy the base test contracts.
         vm.startPrank(users.creatorAddress);
         factory = new Factory();
-        factory_new = new Factory();
         mainRegistryExtension = new MainRegistryExtension(address(factory));
         oracleHub = new OracleHub();
         erc20PricingModule = new StandardERC20PricingModule(address(mainRegistryExtension), address(oracleHub), 0);
