@@ -108,7 +108,7 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
         // Set max exposure of mocked Pricing Module for Underlying assets.
         vm.prank(users.creatorAddress);
-        primaryPricingModule.setExposureOfAsset(underlyingAsset, underlyingAssetId, type(uint128).max);
+        primaryPricingModule.setMaxExposureOfAsset(underlyingAsset, underlyingAssetId, type(uint128).max);
 
         // Mock the "usdValueExposureToUnderlyingAsset".
         primaryPricingModule.setPrice(underlyingPMState.usdValueExposureToUnderlyingAsset);
