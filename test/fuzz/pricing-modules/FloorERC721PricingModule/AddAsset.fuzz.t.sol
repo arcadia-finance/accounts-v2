@@ -44,7 +44,7 @@ contract AddAsset_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
-        vm.expectRevert("PM721_AA: already added");
+        vm.expectRevert("MR_AA: Asset already in mainreg");
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );

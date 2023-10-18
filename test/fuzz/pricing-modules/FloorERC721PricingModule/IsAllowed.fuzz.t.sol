@@ -40,7 +40,7 @@ contract IsAllowed_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModul
         // When: input is randomAsset
 
         // Then: isAllowed for randomAsset should return false
-        assertTrue(!floorERC721PricingModule.isAllowed(randomAsset, 0));
+        assertFalse(floorERC721PricingModule.isAllowed(randomAsset, 0));
     }
 
     function testFuzz_Success_isAllowed_NegativeIdOutsideRange(uint256 id) public {
@@ -53,6 +53,6 @@ contract IsAllowed_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModul
         );
 
         // Then: isAllowed for address(mockERC721.nft2) should return false
-        assertTrue(!floorERC721PricingModule.isAllowed(address(mockERC721.nft2), id));
+        assertFalse(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), id));
     }
 }

@@ -13,7 +13,7 @@ import { MainRegistryExtension } from "./utils/Extensions.sol";
 import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
 import { StandardERC20PricingModuleExtension } from "./utils/Extensions.sol";
-import { FloorERC721PricingModule } from "../src/pricing-modules/FloorERC721PricingModule.sol";
+import { FloorERC721PricingModuleExtension } from "./utils/Extensions.sol";
 import { FloorERC1155PricingModule } from "../src/pricing-modules/FloorERC1155PricingModule.sol";
 import { UniswapV3PricingModuleExtension } from "./utils/Extensions.sol";
 import { TrustedCreditorMock } from "./utils/mocks/TrustedCreditorMock.sol";
@@ -46,7 +46,7 @@ abstract contract Base_Test is Test, Events, Errors {
     MainRegistryExtension internal mainRegistryExtension;
     OracleHub internal oracleHub;
     StandardERC20PricingModuleExtension internal erc20PricingModule;
-    FloorERC721PricingModule internal floorERC721PricingModule;
+    FloorERC721PricingModuleExtension internal floorERC721PricingModule;
     FloorERC1155PricingModule internal floorERC1155PricingModule;
     UniswapV3PricingModuleExtension internal uniV3PricingModule;
     AccountV1 internal accountV1Logic;
@@ -79,7 +79,8 @@ abstract contract Base_Test is Test, Events, Errors {
         mainRegistryExtension = new MainRegistryExtension(address(factory));
         oracleHub = new OracleHub();
         erc20PricingModule = new StandardERC20PricingModuleExtension(address(mainRegistryExtension), address(oracleHub));
-        floorERC721PricingModule = new FloorERC721PricingModule(address(mainRegistryExtension), address(oracleHub));
+        floorERC721PricingModule =
+            new FloorERC721PricingModuleExtension(address(mainRegistryExtension), address(oracleHub));
         floorERC1155PricingModule = new FloorERC1155PricingModule(
             address(mainRegistryExtension),
             address(oracleHub)

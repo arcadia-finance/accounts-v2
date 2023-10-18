@@ -9,6 +9,7 @@ import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib
 import { AccountV1 } from "../../src/AccountV1.sol";
 import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
+import { FloorERC721PricingModule } from "../../src/pricing-modules/FloorERC721PricingModule.sol";
 import { MainRegistryGuardian } from "../../src/guardians/MainRegistryGuardian.sol";
 import { MainRegistry } from "../../src/MainRegistry.sol";
 import { IMainRegistry } from "../../src/interfaces/IMainRegistry.sol";
@@ -236,6 +237,22 @@ contract StandardERC20PricingModuleExtension is StandardERC20PricingModule {
         bytes32 assetKey = _getKeyFromAsset(asset, 0);
         exposure[assetKey].exposureLast = exposureLast;
         exposure[assetKey].maxExposure = maxExposure;
+    }
+}
+
+contract FloorERC721PricingModuleExtension is FloorERC721PricingModule {
+    constructor(address mainRegistry_, address oracleHub_) FloorERC721PricingModule(mainRegistry_, oracleHub_) { }
+
+    function getPrimaryFlag() public pure returns (bool primaryFlag) {
+        primaryFlag = PRIMARY_FLAG;
+    }
+
+    function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
+        (asset, assetId) = _getAssetFromKey(key);
+    }
+
+    function getKeyFromAsset(address asset, uint256 assetId) public pure returns (bytes32 key) {
+        (key) = _getKeyFromAsset(asset, assetId);
     }
 }
 

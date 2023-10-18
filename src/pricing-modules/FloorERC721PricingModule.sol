@@ -6,7 +6,8 @@ pragma solidity 0.8.19;
 
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
-import { PrimaryPricingModule, IPricingModule } from "./AbstractPrimaryPricingModule.sol";
+import { IPricingModule } from "./AbstractPrimaryPricingModule.sol";
+import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 
 /**
  * @title Pricing Module for ERC721 tokens for which a oracle exists for the floor price of the collection
@@ -66,11 +67,9 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         uint256 idRangeEnd,
         address[] calldata oracles,
         RiskVarInput[] calldata riskVars,
-        uint256 maxExposure
+        uint128 maxExposure
     ) external onlyOwner {
-        require(!inPricingModule[asset], "PM721_AA: already added");
-        require(maxExposure <= type(uint128).max, "PM721_AA: Max Exposure not in limits");
-        //View function, reverts in OracleHub if sequence is not correct
+        // View function, reverts in OracleHub if sequence is not correct.
         IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
         inPricingModule[asset] = true;
@@ -82,7 +81,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
 
         exposure[_getKeyFromAsset(asset, 0)].maxExposure = uint128(maxExposure);
 
-        //Will revert in MainRegistry if asset can't be added
+        // Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
     }
 
