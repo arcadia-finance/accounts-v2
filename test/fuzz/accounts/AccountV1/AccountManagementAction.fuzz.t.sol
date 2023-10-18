@@ -11,14 +11,14 @@ import { ActionData } from "../../../../src/actions/utils/ActionData.sol";
 import { ActionMultiCallV2 } from "../../../../src/actions/MultiCallV2.sol";
 import { MultiActionMock } from "../../.././utils/mocks/MultiActionMock.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
-import { IPermit2 } from "../../../../src/interfaces/IPermit2.sol";
-import { DeployPermit2 } from "../../../utils/permit2/DeployPermit2.sol";
-import { PermitSignature } from "../../../utils/permit2/PermitSignature.sol";
+import { IPermit2 } from "../../../utils/Interfaces.sol";
+import { Utils } from "../../../utils/Utils.sol";
+import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
 
 /**
  * @notice Fuzz tests for the "accountManagementAction" of contract "AccountV1".
  */
-contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
+contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
@@ -26,17 +26,14 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     AccountExtension internal accountNotInitialised;
     ActionMultiCallV2 internal action;
-    DeployPermit2 internal deployPermit2;
-    PermitSignature internal permitSignature;
-
-    address permit2;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public override {
+    function setUp() public override(AccountV1_Fuzz_Test, Permit2Fixture) {
         AccountV1_Fuzz_Test.setUp();
+        Permit2Fixture.setUp();
 
         // Deploy multicall contract and actions
         action = new ActionMultiCallV2();
@@ -47,13 +44,6 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         mainRegistryExtension.setAllowedAction(address(action), true);
 
         accountNotInitialised = new AccountExtension();
-
-        // Deploy Permit2 contract from precompiled bytecode
-        deployPermit2 = new DeployPermit2();
-        permit2 = deployPermit2.deployPermit2();
-
-        // Deploy helper contract for permit signature
-        permitSignature = new PermitSignature();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -270,13 +260,16 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_accountManagementAction_permit2_spenderIsNotSigner(
+    function testFuzz_Revert_accountManagementAction_permit2_maliciousSpender(
         uint256 fromPrivateKey,
         uint256 token1Amount,
         uint256 stable1Amount,
         uint256 nonce,
         address maliciousActor
     ) public {
+        // Given : Malicious actor is not the spender
+        vm.assume(maliciousActor != address(accountNotInitialised));
+
         // Private key must be less than the secp256k1 curve order and != 0
         fromPrivateKey = bound(
             fromPrivateKey,
@@ -284,7 +277,6 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             115_792_089_237_316_195_423_570_985_008_687_907_852_837_564_279_074_904_382_605_163_141_518_161_494_337 - 1
         );
         address from = vm.addr(fromPrivateKey);
-        vm.assume(maliciousActor != from);
 
         // Initialize Account params
         accountNotInitialised.setLocked(1);
@@ -314,13 +306,13 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
 
         vm.startPrank(from);
-        mockERC20.token1.approve(permit2, type(uint256).max);
-        mockERC20.stable1.approve(permit2, type(uint256).max);
+        mockERC20.token1.approve(address(permit2), type(uint256).max);
+        mockERC20.stable1.approve(address(permit2), type(uint256).max);
         vm.stopPrank();
 
         uint256 deadline = block.timestamp;
 
-        bytes32 DOMAIN_SEPARATOR = IPermit2(permit2).DOMAIN_SEPARATOR();
+        bytes32 DOMAIN_SEPARATOR = permit2.DOMAIN_SEPARATOR();
 
         // Bring back variables to the stack to avoid stack too deep
         uint256 nonceStack = nonce;
@@ -332,21 +324,13 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Generate struct PermitBatchTransferFrom
         IPermit2.PermitBatchTransferFrom memory permit =
-            permitSignature.defaultERC20PermitMultiple(tokens, amounts, nonceStack, deadline);
+            Utils.defaultERC20PermitMultiple(tokens, amounts, nonceStack, deadline);
 
         // Get signature
         vm.prank(fromStack);
-        bytes memory signature = permitSignature.getPermitBatchTransferSignature(
+        bytes memory signature = Utils.getPermitBatchTransferSignature(
             permit, fromPrivateKeyStack, DOMAIN_SEPARATOR, address(accountNotInitialised)
         );
-
-        ActionData memory assetDataOut;
-        ActionData memory transferFromOwner;
-        ActionData memory assetDataIn;
-        address[] memory to;
-        bytes[] memory data;
-
-        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, permit, assetDataIn, to, data);
 
         IPermit2.SignatureTransferDetails[] memory transferDetails = new IPermit2.SignatureTransferDetails[](2);
         transferDetails[0] =
@@ -355,9 +339,9 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             IPermit2.SignatureTransferDetails({ to: address(action), requestedAmount: stable1AmountStack });
 
         vm.startPrank(maliciousStack);
-        // The following call should revert as the caller is not the signer.
+        // The following call should revert as the caller is not the spender.
         vm.expectRevert();
-        IPermit2(permit2).permitTransferFrom(permit, transferDetails, fromStack, signature);
+        permit2.permitTransferFrom(permit, transferDetails, fromStack, signature);
     }
 
     function testFuzz_Success_accountManagementAction_Owner(
@@ -674,17 +658,17 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
 
         vm.startPrank(from);
-        mockERC20.token1.approve(permit2, type(uint256).max);
-        mockERC20.stable1.approve(permit2, type(uint256).max);
+        mockERC20.token1.approve(address(permit2), type(uint256).max);
+        mockERC20.stable1.approve(address(permit2), type(uint256).max);
         vm.stopPrank();
 
         uint256 deadline = block.timestamp;
 
         // Generate struct PermitBatchTransferFrom
         IPermit2.PermitBatchTransferFrom memory permit =
-            permitSignature.defaultERC20PermitMultiple(tokens, amounts, nonce, deadline);
+            Utils.defaultERC20PermitMultiple(tokens, amounts, nonce, deadline);
 
-        bytes32 DOMAIN_SEPARATOR = IPermit2(permit2).DOMAIN_SEPARATOR();
+        bytes32 DOMAIN_SEPARATOR = permit2.DOMAIN_SEPARATOR();
 
         // Bring back variables to the stack to avoid stack too deep
         uint256 fromPrivateKeyStack = fromPrivateKey;
@@ -694,7 +678,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Get signature
         vm.prank(fromStack);
-        bytes memory signature = permitSignature.getPermitBatchTransferSignature(
+        bytes memory signature = Utils.getPermitBatchTransferSignature(
             permit, fromPrivateKeyStack, DOMAIN_SEPARATOR, address(accountNotInitialised)
         );
 
