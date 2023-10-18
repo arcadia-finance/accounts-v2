@@ -38,6 +38,17 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_addAsset_InvalidId(uint256 id) public {
+        id = bound(id, uint256(type(uint96).max) + 1, type(uint256).max);
+
+        vm.startPrank(users.creatorAddress);
+        vm.expectRevert("PM1155_AA: Invalid Id");
+        floorERC1155PricingModule.addAsset(
+            address(mockERC1155.sft2), id, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
+        );
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         // Given: All necessary contracts deployed on setup
         vm.startPrank(users.creatorAddress);
@@ -45,7 +56,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         floorERC1155PricingModule.addAsset(
             address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
-        vm.expectRevert("PM1155_AA: already added");
+        vm.expectRevert("MR_AA: Asset already in mainreg");
         floorERC1155PricingModule.addAsset(
             address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );

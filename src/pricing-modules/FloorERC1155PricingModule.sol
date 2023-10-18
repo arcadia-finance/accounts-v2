@@ -63,22 +63,21 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
         uint256 assetId,
         address[] calldata oracles,
         RiskVarInput[] calldata riskVars,
-        uint256 maxExposure
+        uint128 maxExposure
     ) external onlyOwner {
-        //View function, reverts in OracleHub if sequence is not correct
+        // View function, reverts in OracleHub if sequence is not correct
         IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
-        require(!inPricingModule[asset], "PM1155_AA: already added");
         inPricingModule[asset] = true;
 
+        require(assetId <= type(uint96).max, "PM1155_AA: Invalid Id");
         assetToInformation[asset].id = assetId;
         assetToInformation[asset].oracles = oracles;
         _setRiskVariablesForAsset(asset, riskVars);
 
-        require(maxExposure <= type(uint128).max, "PM1155_AA: Max Exposure not in limits");
         exposure[_getKeyFromAsset(asset, assetId)].maxExposure = uint128(maxExposure);
 
-        //Will revert in MainRegistry if asset can't be added
+        /// Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
     }
 

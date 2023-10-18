@@ -22,37 +22,25 @@ contract IsAllowed_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingMod
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_isAllowed_Positive() public {
-        // Given: All necessary contracts deployed on setup
-        vm.startPrank(users.creatorAddress);
-        // When: users.creatorAddress calls addAsset
+        vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
             address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
-        vm.stopPrank();
 
-        // Then: isAllowed for address(mockERC1155.sft2) should return true
         assertTrue(floorERC1155PricingModule.isAllowed(address(mockERC1155.sft2), 1));
     }
 
     function testFuzz_Success_isAllowed_NegativeWrongAddress(address randomAsset) public {
-        // Given: All necessary contracts deployed on setup
-        // When: input is randomAsset
-
-        // Then: isAllowed for randomAsset should return false
-        assertTrue(!floorERC1155PricingModule.isAllowed(randomAsset, 1));
+        assertFalse(floorERC1155PricingModule.isAllowed(randomAsset, 1));
     }
 
     function testFuzz_Success_isAllowed_NegativeIdOutsideRange(uint256 id) public {
-        // Given: id is not 1
         vm.assume(id != 1);
-        vm.startPrank(users.creatorAddress);
-        // When: users.creatorAddress calls addAsset
+        vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
             address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
-        vm.stopPrank();
 
-        // Then: isAllowed for address(interlave) should return false
-        assertTrue(!floorERC1155PricingModule.isAllowed(address(mockERC1155.sft2), id));
+        assertFalse(floorERC1155PricingModule.isAllowed(address(mockERC1155.sft2), id));
     }
 }

@@ -10,6 +10,7 @@ import { AccountV1 } from "../../src/AccountV1.sol";
 import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
 import { FloorERC721PricingModule } from "../../src/pricing-modules/FloorERC721PricingModule.sol";
+import { FloorERC1155PricingModule } from "../../src/pricing-modules/FloorERC1155PricingModule.sol";
 import { MainRegistryGuardian } from "../../src/guardians/MainRegistryGuardian.sol";
 import { MainRegistry } from "../../src/MainRegistry.sol";
 import { IMainRegistry } from "../../src/interfaces/IMainRegistry.sol";
@@ -253,6 +254,14 @@ contract FloorERC721PricingModuleExtension is FloorERC721PricingModule {
 
     function getKeyFromAsset(address asset, uint256 assetId) public pure returns (bytes32 key) {
         (key) = _getKeyFromAsset(asset, assetId);
+    }
+}
+
+contract FloorERC1155PricingModuleExtension is FloorERC1155PricingModule {
+    constructor(address mainRegistry_, address oracleHub_) FloorERC1155PricingModule(mainRegistry_, oracleHub_) { }
+
+    function getPrimaryFlag() public pure returns (bool primaryFlag) {
+        primaryFlag = PRIMARY_FLAG;
     }
 }
 

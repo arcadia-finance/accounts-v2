@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModule.fuzz.t.sol";
 
-import { FloorERC1155PricingModule } from "../../../../src/pricing-modules/FloorERC1155PricingModule.sol";
+import { FloorERC1155PricingModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
  * @notice Fuzz tests for the "constructor" of contract "FloorERC1155PricingModule".
@@ -27,7 +27,7 @@ contract Constructor_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingM
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskManagerUpdated(users.creatorAddress);
-        FloorERC1155PricingModule pricingModule_ = new FloorERC1155PricingModule(
+        FloorERC1155PricingModuleExtension pricingModule_ = new FloorERC1155PricingModuleExtension(
             mainRegistry_,
             oracleHub_);
         vm.stopPrank();
@@ -36,5 +36,6 @@ contract Constructor_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingM
         assertEq(pricingModule_.ORACLE_HUB(), oracleHub_);
         assertEq(pricingModule_.ASSET_TYPE(), 2);
         assertEq(pricingModule_.riskManager(), users.creatorAddress);
+        assertTrue(pricingModule_.getPrimaryFlag());
     }
 }
