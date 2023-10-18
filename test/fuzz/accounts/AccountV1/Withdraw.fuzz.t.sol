@@ -18,10 +18,6 @@ import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
-                            TEST CONTRACTS
-    /////////////////////////////////////////////////////////////// */
-
-    /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
@@ -95,7 +91,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_withdraw_MoreThanMaxExposure(uint256 amountWithdraw, uint128 maxExposure) public {
         vm.assume(amountWithdraw > maxExposure);
         vm.prank(users.creatorAddress);
-        erc20PricingModule.setExposureOfAsset(address(mockERC20.token1), 0, maxExposure);
+        erc20PricingModule.setMaxExposureOfAsset(address(mockERC20.token1), 0, maxExposure);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -203,7 +199,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_withdraw_WithDebt_UnsufficientCollateral(
         uint256 debt,
-        uint256 collateralValueInitial,
+        uint128 collateralValueInitial,
         uint256 collateralValueDecrease,
         uint256 fixedLiquidationCost
     ) public {
@@ -215,8 +211,6 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
         uint256 usedMargin = debt + fixedLiquidationCost;
 
-        // No overflow riskmodule
-        collateralValueInitial = bound(collateralValueInitial, 0, type(uint256).max / RiskConstants.RISK_VARIABLES_UNIT);
         // No underflow Withdrawal.
         collateralValueDecrease = bound(collateralValueDecrease, 0, collateralValueInitial);
 
@@ -378,7 +372,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_withdraw_WithDebt(
         uint256 debt,
-        uint256 collateralValueInitial,
+        uint128 collateralValueInitial,
         uint256 collateralValueDecrease,
         uint256 fixedLiquidationCost
     ) public {
@@ -390,8 +384,6 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
         uint256 usedMargin = debt + fixedLiquidationCost;
 
-        // No overflow riskmodule
-        collateralValueInitial = bound(collateralValueInitial, 0, type(uint256).max / RiskConstants.RISK_VARIABLES_UNIT);
         // No underflow Withdrawal.
         collateralValueDecrease = bound(collateralValueDecrease, 0, collateralValueInitial);
 

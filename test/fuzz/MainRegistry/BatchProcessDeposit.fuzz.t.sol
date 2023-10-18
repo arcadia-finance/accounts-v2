@@ -81,7 +81,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.assume(newMaxExposure < amount);
 
         vm.prank(users.creatorAddress);
-        erc20PricingModule.setExposureOfAsset(address(mockERC20.token1), 0, newMaxExposure);
+        erc20PricingModule.setMaxExposureOfAsset(address(mockERC20.token1), 0, newMaxExposure);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);

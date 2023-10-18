@@ -77,7 +77,11 @@ abstract contract PrimaryPricingModule is PricingModule {
      * @param maxExposure The maximum protocol wide exposure to the asset.
      * @dev Can only be called by the Risk Manager, which can be different from the owner.
      */
-    function setExposureOfAsset(address asset, uint256 assetId, uint256 maxExposure) public virtual onlyRiskManager {
+    function setMaxExposureOfAsset(address asset, uint256 assetId, uint256 maxExposure)
+        public
+        virtual
+        onlyRiskManager
+    {
         require(maxExposure <= type(uint128).max, "APPM_SEA: Max Exp. not in limits");
         exposure[_getKeyFromAsset(asset, assetId)].maxExposure = uint128(maxExposure);
 
@@ -100,7 +104,7 @@ abstract contract PrimaryPricingModule is PricingModule {
         // Cache exposureLast.
         uint256 exposureLast = exposure[assetKey].exposureLast;
 
-        require(exposureLast + uint128(amount) <= exposure[assetKey].maxExposure, "APPM_PDD: Exposure not in limits");
+        require(exposureLast + amount <= exposure[assetKey].maxExposure, "APPM_PDD: Exposure not in limits");
 
         unchecked {
             exposure[assetKey].exposureLast = uint128(exposureLast) + uint128(amount);

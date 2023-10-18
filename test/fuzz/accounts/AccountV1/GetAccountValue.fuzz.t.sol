@@ -25,7 +25,7 @@ contract GetAccountValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getAccountValue(uint256 spotValue) public {
+    function testFuzz_Success_getAccountValue(uint128 spotValue) public {
         // Set Spot Value of assets (value of stable1 is 1:1 the amount of stable1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, spotValue);
 

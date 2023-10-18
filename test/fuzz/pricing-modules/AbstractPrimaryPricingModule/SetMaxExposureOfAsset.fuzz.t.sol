@@ -7,9 +7,9 @@ pragma solidity 0.8.19;
 import { Constants, AbstractPrimaryPricingModule_Fuzz_Test } from "./_AbstractPrimaryPricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "setExposureOfAsset" of contract "AbstractPrimaryPricingModule".
+ * @notice Fuzz tests for the "setMaxExposureOfAsset" of contract "AbstractPrimaryPricingModule".
  */
-contract SetExposureOfAsset_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPrimaryPricingModule_Fuzz_Test {
+contract setMaxExposureOfAsset_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPrimaryPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -21,7 +21,7 @@ contract SetExposureOfAsset_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPr
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_setExposureOfAsset_NonRiskManager(
+    function testFuzz_Revert_setMaxExposureOfAsset_NonRiskManager(
         address unprivilegedAddress_,
         address asset,
         uint96 assetId,
@@ -31,11 +31,11 @@ contract SetExposureOfAsset_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPr
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_RISK_MANAGER");
-        pricingModule.setExposureOfAsset(asset, assetId, maxExposure);
+        pricingModule.setMaxExposureOfAsset(asset, assetId, maxExposure);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_setExposureOfAsset_maxExposureNotInLimits(
+    function testFuzz_Revert_setMaxExposureOfAsset_maxExposureNotInLimits(
         uint256 maxExposure,
         address asset,
         uint96 assetId
@@ -44,15 +44,15 @@ contract SetExposureOfAsset_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPr
 
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("APPM_SEA: Max Exp. not in limits");
-        pricingModule.setExposureOfAsset(asset, assetId, maxExposure);
+        pricingModule.setMaxExposureOfAsset(asset, assetId, maxExposure);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_setExposureOfAsset(address asset, uint128 maxExposure, uint96 assetId) public {
+    function testFuzz_Success_setMaxExposureOfAsset(address asset, uint128 maxExposure, uint96 assetId) public {
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit MaxExposureSet(asset, maxExposure);
-        pricingModule.setExposureOfAsset(asset, assetId, maxExposure);
+        pricingModule.setMaxExposureOfAsset(asset, assetId, maxExposure);
         vm.stopPrank();
 
         bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));

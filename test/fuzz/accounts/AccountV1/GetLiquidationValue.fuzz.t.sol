@@ -28,10 +28,7 @@ contract GetLiquidationValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getLiquidationValue(uint256 spotValue, uint8 liquidationFactor) public {
-        // No overflow of riskModule:
-        spotValue = bound(spotValue, 0, type(uint256).max / RiskConstants.RISK_VARIABLES_UNIT);
-
+    function testFuzz_Success_getLiquidationValue(uint128 spotValue, uint8 liquidationFactor) public {
         // Set Spot Value of assets (value of "stable1" is 1:1 the amount of "stable1" tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, spotValue);
 
@@ -46,7 +43,7 @@ contract GetLiquidationValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.prank(users.creatorAddress);
         erc20PricingModule.setBatchRiskVariables(riskVarInput);
 
-        uint256 expectedValue = spotValue * liquidationFactor / RiskConstants.RISK_VARIABLES_UNIT;
+        uint256 expectedValue = uint256(spotValue) * liquidationFactor / RiskConstants.RISK_VARIABLES_UNIT;
 
         uint256 actualValue = accountExtension.getLiquidationValue();
 
