@@ -8,8 +8,6 @@ import { Constants, AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDe
 
 /**
  * @notice Fuzz tests for the "processIndirectDeposit" of contract "AbstractDerivedPricingModule".
- * @notice Tests performed here will validate the recursion flow of derived pricing modules.
- * Testing for conversion rates and getValue() will be done in pricing modules testing separately.
  */
 contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -72,7 +70,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         // Then: PRIMARY_FLAG is false.
         assertFalse(PRIMARY_FLAG);
 
-        // And:
+        // And: Correct "usdValueExposureUpperAssetToAsset" is returned.
         assertEq(usdValueExposureUpperAssetToAsset, 0);
     }
 

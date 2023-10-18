@@ -35,6 +35,8 @@ contract SetMaxExposure_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
 
     function testFuzz_Success_setMaxUsdExposureProtocol(uint256 maxExposureInUsd) public {
         vm.prank(derivedPricingModule.riskManager());
+        vm.expectEmit(true, true, true, true);
+        emit MaxUsdExposureProtocolSet(maxExposureInUsd);
         derivedPricingModule.setMaxUsdExposureProtocol(maxExposureInUsd);
 
         assertEq(derivedPricingModule.maxUsdExposureProtocol(), maxExposureInUsd);

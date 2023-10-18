@@ -121,8 +121,20 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         // And: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValue);
 
+        // And: "exposureAssetToUnderlyingAssetsLast" is updated.
+        bytes32 UnderlyingAssetKey =
+            derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
+        assertEq(
+            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(assetKey, UnderlyingAssetKey),
+            assetState.exposureAssetToUnderlyingAsset
+        );
+
+        // And: "usdValueExposureAssetLast" is updated.
+        (, uint256 usdValueExposureLast) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        assertEq(usdValueExposureLast, underlyingPMState.usdValue);
+
         // And: "usdExposureProtocol" is updated.
-        assertEq(usdExposureProtocolExpected, derivedPricingModule.usdExposureProtocol());
+        assertEq(derivedPricingModule.usdExposureProtocol(), usdExposureProtocolExpected);
     }
 
     function testFuzz_Success_processDeposit_NegativeDeltaUsdExposure_NoUnderflow(
@@ -178,8 +190,20 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         // Then: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValue);
 
+        // And: "exposureAssetToUnderlyingAssetsLast" is updated.
+        bytes32 UnderlyingAssetKey =
+            derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
+        assertEq(
+            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(assetKey, UnderlyingAssetKey),
+            assetState.exposureAssetToUnderlyingAsset
+        );
+
+        // And: "usdValueExposureAssetLast" is updated.
+        (, uint256 usdValueExposureLast) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        assertEq(usdValueExposureLast, underlyingPMState.usdValue);
+
         // And: "usdExposureProtocol" is updated.
-        assertEq(usdExposureProtocolExpected, derivedPricingModule.usdExposureProtocol());
+        assertEq(derivedPricingModule.usdExposureProtocol(), usdExposureProtocolExpected);
     }
 
     function testFuzz_Success_processDeposit_NegativeDeltaUsdExposure_Underflow(
@@ -231,7 +255,19 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         // Then: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValue);
 
+        // And: "exposureAssetToUnderlyingAssetsLast" is updated.
+        bytes32 UnderlyingAssetKey =
+            derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
+        assertEq(
+            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(assetKey, UnderlyingAssetKey),
+            assetState.exposureAssetToUnderlyingAsset
+        );
+
+        // And: "usdValueExposureAssetLast" is updated.
+        (, uint256 usdValueExposureLast) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        assertEq(usdValueExposureLast, underlyingPMState.usdValue);
+
         // And: "usdExposureProtocol" is updated.
-        assertEq(0, derivedPricingModule.usdExposureProtocol());
+        assertEq(derivedPricingModule.usdExposureProtocol(), 0);
     }
 }

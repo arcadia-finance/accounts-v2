@@ -8,8 +8,6 @@ import { Constants, AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDe
 
 /**
  * @notice Fuzz tests for the "processDirectWithdrawal" of contract "AbstractDerivedPricingModule".
- * @notice Tests performed here will validate the recursion flow of derived pricing modules.
- * Testing for conversion rates and getValue() will be done in pricing modules testing separately.
  */
 contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
