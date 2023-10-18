@@ -105,6 +105,14 @@ abstract contract AbstractPricingModuleExtension is PricingModule {
         PricingModule(mainRegistry_, assetType_, riskManager_)
     { }
 
+    function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
+        (asset, assetId) = _getAssetFromKey(key);
+    }
+
+    function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
+        (key) = _getKeyFromAsset(asset, assetId);
+    }
+
     function setRiskVariablesForAsset(address asset, RiskVarInput[] memory riskVarInputs) public {
         _setRiskVariablesForAsset(asset, riskVarInputs);
     }
@@ -118,6 +126,10 @@ abstract contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule 
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
         PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_)
     { }
+
+    function getPrimaryFlag() public pure returns (bool primaryFlag) {
+        primaryFlag = PRIMARY_FLAG;
+    }
 
     function setExposure(address asset, uint256 assetId, uint128 exposureLast, uint128 maxExposure) public {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);

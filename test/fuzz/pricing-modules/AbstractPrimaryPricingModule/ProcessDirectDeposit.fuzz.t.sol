@@ -22,52 +22,65 @@ contract ProcessDirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstract
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_processDirectDeposit_NonMainRegistry(
+        PrimaryPricingModuleAssetState memory assetState,
         address unprivilegedAddress_,
-        address asset,
-        uint128 amount
+        uint256 amount
     ) public {
+        // Given "caller" is not the Main Registry.
         vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
 
+        // And: State is persisted.
+        setPrimaryPricingModuleAssetState(assetState);
+
+        // When: "amount" is deposited.
+        // Then: The transaction reverts with "APM: ONLY_MAIN_REGISTRY".
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        pricingModule.processDirectDeposit(asset, 0, amount);
+        pricingModule.processDirectDeposit(assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }
 
     function testFuzz_Revert_processDirectDeposit_OverExposure(
-        address asset,
-        uint96 assetId,
-        uint128 exposure,
-        uint128 amount,
-        uint128 maxExposure
+        PrimaryPricingModuleAssetState memory assetState,
+        uint256 amount
     ) public {
-        vm.assume(exposure <= type(uint128).max - amount);
-        vm.assume(exposure + amount > maxExposure);
-        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
+        // Given: "exposureAssetLast" does not overflow.
+        amount = bound(amount, 0, type(uint256).max - assetState.exposureAssetLast);
+        uint256 expectedExposure = assetState.exposureAssetLast + amount;
 
+        // And: "exposureAsset" is bigger as "exposureAssetMax" (test-case).
+        vm.assume(expectedExposure > 0);
+        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, 0, expectedExposure - 1));
+
+        // And: State is persisted.
+        setPrimaryPricingModuleAssetState(assetState);
+
+        // When: "amount" is deposited.
+        // Then: The transaction reverts with "APPM_PDD: Exposure not in limits".
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("APPM_PDD: Exposure not in limits");
-        pricingModule.processDirectDeposit(address(asset), assetId, amount);
+        pricingModule.processDirectDeposit(assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_processDirectDeposit(
-        address asset,
-        uint96 assetId,
-        uint128 exposure,
-        uint128 amount,
-        uint128 maxExposure
-    ) public {
-        vm.assume(exposure <= type(uint128).max - amount);
-        vm.assume(exposure + amount <= maxExposure);
-        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
+    function testFuzz_Success_processDirectDeposit(PrimaryPricingModuleAssetState memory assetState, uint256 amount)
+        public
+    {
+        // Given: "exposureAsset" is smaller or equal as "exposureAssetMax" (test-case).
+        amount = bound(amount, 0, type(uint128).max - assetState.exposureAssetLast);
+        uint256 expectedExposure = assetState.exposureAssetLast + amount;
+        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, expectedExposure, type(uint128).max));
 
+        // And: State is persisted.
+        setPrimaryPricingModuleAssetState(assetState);
+
+        // When: "amount" is deposited.
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processDirectDeposit(address(asset), assetId, amount);
+        pricingModule.processDirectDeposit(assetState.asset, assetState.assetId, amount);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
+        // Then: assetExposure is updated.
+        bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
         (, uint128 actualExposure) = pricingModule.exposure(assetKey);
-        uint128 expectedExposure = exposure + amount;
 
         assertEq(actualExposure, expectedExposure);
     }

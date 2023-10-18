@@ -13,8 +13,25 @@ import { PrimaryPricingModuleMock } from "../../../utils/mocks/PrimaryPricingMod
  */
 abstract contract AbstractPrimaryPricingModule_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
+                              CONSTANTS
+    /////////////////////////////////////////////////////////////// */
+
+    uint256 internal constant INT256_MAX = 2 ** 255 - 1;
+    // While the true minimum value of an int256 is 2 ** 255, Solidity overflows on a negation (since INT256_MAX is one less).
+    // -> This true minimum value will overflow and revert.
+    uint256 internal constant INT256_MIN = 2 ** 255 - 1;
+
+    /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
+
+    struct PrimaryPricingModuleAssetState {
+        address asset;
+        uint96 assetId;
+        uint128 exposureAssetLast;
+        uint128 exposureAssetMax;
+        uint256 usdValueExposureUpperAssetToAsset;
+    }
 
     /*////////////////////////////////////////////////////////////////
                             TEST CONTRACTS
@@ -31,5 +48,16 @@ abstract contract AbstractPrimaryPricingModule_Fuzz_Test is Fuzz_Test {
 
         vm.prank(users.creatorAddress);
         pricingModule = new PrimaryPricingModuleMock(address(mainRegistryExtension), address(oracleHub), 0);
+    }
+
+    /* ///////////////////////////////////////////////////////////////
+                          HELPER FUNCTIONS
+    /////////////////////////////////////////////////////////////// */
+    function setPrimaryPricingModuleAssetState(PrimaryPricingModuleAssetState memory assetState) internal {
+        pricingModule.setExposure(
+            assetState.asset, assetState.assetId, assetState.exposureAssetLast, assetState.exposureAssetMax
+        );
+
+        pricingModule.setPrice(assetState.usdValueExposureUpperAssetToAsset);
     }
 }

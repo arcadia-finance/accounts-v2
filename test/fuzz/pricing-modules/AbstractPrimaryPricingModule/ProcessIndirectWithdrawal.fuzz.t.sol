@@ -22,120 +22,139 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is Abs
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_processIndirectWithdrawal_NonMainRegistry(
+        PrimaryPricingModuleAssetState memory assetState,
         address unprivilegedAddress_,
-        address asset,
-        uint96 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
+        // Given "caller" is not the Main Registry.
         vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
 
+        // And: State is persisted.
+        setPrimaryPricingModuleAssetState(assetState);
+
+        // When: Asset is indirectly withdrawn.
+        // Then: The transaction reverts with "APM: ONLY_MAIN_REGISTRY".
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
         pricingModule.processIndirectWithdrawal(
-            asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
         vm.stopPrank();
     }
 
     function testFuzz_Revert_processIndirectWithdrawal_OverExposure(
-        address asset,
-        uint96 assetId,
-        uint128 exposure,
+        PrimaryPricingModuleAssetState memory assetState,
         uint256 exposureUpperAssetToAsset,
-        int256 deltaExposureUpperAssetToAsset,
-        uint128 maxExposure
+        uint256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(deltaExposureUpperAssetToAsset > 0);
-        vm.assume(uint256(deltaExposureUpperAssetToAsset) < type(uint128).max);
-        vm.assume(exposure < type(uint128).max);
-        vm.assume(exposure + uint256(deltaExposureUpperAssetToAsset) > type(uint128).max);
+        // Given: "exposureAsset" is bigger as type(uint128).max (test-case).
+        // And: "exposureAssetLast" does not overflow.
+        deltaExposureUpperAssetToAsset = bound(
+            deltaExposureUpperAssetToAsset, uint256(type(uint128).max) + 1 - assetState.exposureAssetLast, INT256_MAX
+        );
+        deltaExposureUpperAssetToAsset = bound(
+            deltaExposureUpperAssetToAsset,
+            uint256(type(uint128).max) + 1 - assetState.exposureAssetLast,
+            type(uint256).max - assetState.exposureAssetLast
+        );
 
-        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
+        // And: State is persisted.
+        setPrimaryPricingModuleAssetState(assetState);
 
+        // When: Asset is indirectly withdrawn.
+        // Then: The transaction reverts with "APPM_PIW: Overflow".
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("APPM_PIW: Overflow");
         pricingModule.processIndirectWithdrawal(
-            asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, int256(deltaExposureUpperAssetToAsset)
         );
         vm.stopPrank();
     }
 
     function testFuzz_Success_processIndirectWithdrawal_positiveDelta(
-        address asset,
-        uint96 assetId,
-        uint128 exposure,
+        PrimaryPricingModuleAssetState memory assetState,
         uint256 exposureUpperAssetToAsset,
-        int256 deltaExposureUpperAssetToAsset,
-        uint128 maxExposure
+        uint256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(uint256(deltaExposureUpperAssetToAsset) < type(uint128).max);
-        vm.assume(exposure <= type(uint128).max - uint256(deltaExposureUpperAssetToAsset));
-        vm.assume(exposure + uint256(deltaExposureUpperAssetToAsset) <= maxExposure);
+        // Given: "exposureAsset" is smaller or equal as "exposureAssetMax" (test-case).
+        assetState.exposureAssetLast = uint128(bound(assetState.exposureAssetLast, 0, type(uint128).max - 1));
+        deltaExposureUpperAssetToAsset =
+            bound(deltaExposureUpperAssetToAsset, 1, type(uint128).max - assetState.exposureAssetLast);
+        uint256 expectedExposure = assetState.exposureAssetLast + deltaExposureUpperAssetToAsset;
+        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, expectedExposure, type(uint128).max));
 
-        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
+        // And: State is persisted.
+        setPrimaryPricingModuleAssetState(assetState);
 
+        // When: Asset is indirectly withdrawn.
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processIndirectWithdrawal(
-            asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = pricingModule.processIndirectWithdrawal(
+            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, int256(deltaExposureUpperAssetToAsset)
         );
 
-        bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
-        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
-        uint128 expectedExposure = exposure + uint128(uint256(deltaExposureUpperAssetToAsset));
+        // Then: Correct output variables are returned.
+        assertTrue(primaryFlag);
+        assertEq(usdValueExposureUpperAssetToAsset, assetState.usdValueExposureUpperAssetToAsset);
 
+        // And: assetExposure is updated.
+        bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
+        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
         assertEq(actualExposure, expectedExposure);
     }
 
     function testFuzz_Success_processIndirectWithdrawal_negativeDeltaWithAbsoluteValueSmallerThanExposure(
-        address asset,
-        uint96 assetId,
-        uint128 exposure,
+        PrimaryPricingModuleAssetState memory assetState,
         uint256 exposureUpperAssetToAsset,
-        int256 deltaExposureUpperAssetToAsset,
-        uint128 maxExposure
+        uint256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(deltaExposureUpperAssetToAsset > type(int128).min);
-        vm.assume(deltaExposureUpperAssetToAsset < 0);
-        vm.assume(uint256(-deltaExposureUpperAssetToAsset) < exposure);
+        // Given: deltaExposure is smaller or equal as assetState.exposureAssetLast.
+        deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, 0, assetState.exposureAssetLast);
+        uint256 expectedExposure = assetState.exposureAssetLast - deltaExposureUpperAssetToAsset;
 
-        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
+        // And: State is persisted.
+        setPrimaryPricingModuleAssetState(assetState);
 
+        // When: Asset is indirectly withdrawn.
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processIndirectWithdrawal(
-            asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = pricingModule.processIndirectWithdrawal(
+            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, -int256(deltaExposureUpperAssetToAsset)
         );
 
-        bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
-        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
-        uint128 expectedExposure = exposure - uint128(uint256(-deltaExposureUpperAssetToAsset));
+        // Then: Correct output variables are returned.
+        assertTrue(primaryFlag);
+        assertEq(usdValueExposureUpperAssetToAsset, assetState.usdValueExposureUpperAssetToAsset);
 
+        // And: assetExposure is updated.
+        bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
+        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
         assertEq(actualExposure, expectedExposure);
     }
 
     function testFuzz_Success_processIndirectWithdrawal_negativeDeltaGreaterThanExposure(
-        address asset,
-        uint96 assetId,
-        uint128 exposure,
+        PrimaryPricingModuleAssetState memory assetState,
         uint256 exposureUpperAssetToAsset,
-        int256 deltaExposureUpperAssetToAsset,
-        uint128 maxExposure
+        uint256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(deltaExposureUpperAssetToAsset > type(int128).min);
-        vm.assume(deltaExposureUpperAssetToAsset < 0);
-        vm.assume(uint256(-deltaExposureUpperAssetToAsset) > exposure);
+        // Given: deltaExposure is bigger or equal as assetState.exposureAssetLast.
+        deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, assetState.exposureAssetLast, INT256_MIN);
 
-        pricingModule.setExposure(asset, assetId, exposure, maxExposure);
+        // And: State is persisted.
+        setPrimaryPricingModuleAssetState(assetState);
 
+        // When: Asset is indirectly withdrawn.
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processIndirectWithdrawal(
-            asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = pricingModule.processIndirectWithdrawal(
+            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, -int256(deltaExposureUpperAssetToAsset)
         );
 
-        bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
-        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
-        uint128 expectedExposure = 0;
+        // Then: Correct output variables are returned.
+        assertTrue(primaryFlag);
+        assertEq(usdValueExposureUpperAssetToAsset, assetState.usdValueExposureUpperAssetToAsset);
 
-        assertEq(actualExposure, expectedExposure);
+        // And: assetExposure is updated.
+        bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
+        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
+        assertEq(actualExposure, 0);
     }
 }
