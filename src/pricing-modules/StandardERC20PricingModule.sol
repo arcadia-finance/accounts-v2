@@ -66,7 +66,6 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         external
         onlyOwner
     {
-        require(!inPricingModule[asset], "PM20_AA: already added");
         // View function, reverts in OracleHub if sequence is not correct.
         IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
@@ -82,10 +81,10 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
 
         exposure[_getKeyFromAsset(asset, 0)].maxExposure = maxExposure;
 
-        emit MaxExposureSet(asset, maxExposure);
-
-        // Will revert in MainRegistry if asset can't be added.
+        // Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
+
+        emit MaxExposureSet(asset, maxExposure);
     }
 
     /**
@@ -142,6 +141,34 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
      */
     function isAllowed(address asset, uint256) public view override returns (bool) {
         return inPricingModule[asset];
+    }
+
+    /**
+     * @notice Returns the unique identifier of an asset based on the contract address and id.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return key The unique identifier.
+     * @dev The assetId is hard-coded to 0, since the assets for this Pricing Modules are ERC20's.
+     */
+    function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
+        assembly {
+            key := asset
+        }
+    }
+
+    /**
+     * @notice Returns the contract address and id of an asset based on the unique identifier.
+     * @param key The unique identifier.
+     * @return asset The contract address of the asset.
+     * @return assetId The Id of the asset.
+     * @dev The assetId is hard-coded to 0, since the assets for this Pricing Modules are ERC20's.
+     */
+    function _getAssetFromKey(bytes32 key) internal pure override returns (address asset, uint256) {
+        assembly {
+            asset := key
+        }
+
+        return (asset, 0);
     }
 
     /*///////////////////////////////////////////////////////////////

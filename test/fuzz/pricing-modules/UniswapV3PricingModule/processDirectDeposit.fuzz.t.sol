@@ -8,7 +8,7 @@ import { Constants, UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3Pricing
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
-import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
+import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { IPricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { INonfungiblePositionManagerExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";

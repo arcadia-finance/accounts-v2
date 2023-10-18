@@ -6,8 +6,8 @@ pragma solidity 0.8.19;
 
 import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./_StandardERC20PricingModule.fuzz.t.sol";
 
-import { ArcadiaOracle } from "../../.././utils/mocks/ArcadiaOracle.sol";
-import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
+import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
+import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import {
@@ -44,20 +44,6 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
-        // Given: All necessary contracts deployed on setup
-        vm.startPrank(users.creatorAddress);
-        // When: users.creatorAddress calls addAsset twice
-        erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
-        vm.expectRevert("PM20_AA: already added");
-        erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
-        vm.stopPrank();
-    }
-
     function testFuzz_Revert_addAsset_BadOracleSequence() public {
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("OH_COS: Min 1 Oracle");
@@ -88,6 +74,20 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("PM20_AA: Maximal 18 decimals");
         erc20PricingModule.addAsset(address(asset), oracleAssetToUsdArr, emptyRiskVarInput, type(uint128).max);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
+        // Given: All necessary contracts deployed on setup
+        vm.startPrank(users.creatorAddress);
+        // When: users.creatorAddress calls addAsset twice
+        erc20PricingModule.addAsset(
+            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
+        );
+        vm.expectRevert("MR_AA: Asset already in mainreg");
+        erc20PricingModule.addAsset(
+            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
+        );
         vm.stopPrank();
     }
 

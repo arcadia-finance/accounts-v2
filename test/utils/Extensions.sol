@@ -220,6 +220,18 @@ abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule 
 contract StandardERC20PricingModuleExtension is StandardERC20PricingModule {
     constructor(address mainRegistry_, address oracleHub_) StandardERC20PricingModule(mainRegistry_, oracleHub_) { }
 
+    function getPrimaryFlag() public pure returns (bool primaryFlag) {
+        primaryFlag = PRIMARY_FLAG;
+    }
+
+    function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
+        (asset, assetId) = _getAssetFromKey(key);
+    }
+
+    function getKeyFromAsset(address asset, uint256 assetId) public pure returns (bytes32 key) {
+        (key) = _getKeyFromAsset(asset, assetId);
+    }
+
     function setExposure(address asset, uint128 exposureLast, uint128 maxExposure) public {
         bytes32 assetKey = _getKeyFromAsset(asset, 0);
         exposure[assetKey].exposureLast = exposureLast;
@@ -231,6 +243,10 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
     constructor(address mainRegistry_, address uniswapV2Factory_)
         UniswapV2PricingModule(mainRegistry_, uniswapV2Factory_)
     { }
+
+    function getPrimaryFlag() public pure returns (bool primaryFlag) {
+        primaryFlag = PRIMARY_FLAG;
+    }
 
     function getUniswapV2Factory() external view returns (address uniswapV2Factory) {
         uniswapV2Factory = UNISWAP_V2_FACTORY;
@@ -310,6 +326,10 @@ contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
         UniswapV3PricingModule(mainRegistry_, riskManager_, nonfungiblePositionManager)
     { }
 
+    function getPrimaryFlag() public pure returns (bool primaryFlag) {
+        primaryFlag = PRIMARY_FLAG;
+    }
+
     function getAssetToLiquidity(uint256 assetId) external view returns (uint256 liquidity) {
         liquidity = assetToLiquidity[assetId];
     }
@@ -347,6 +367,10 @@ contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
 
 contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
     constructor(address mainRegistry_) StandardERC4626PricingModule(mainRegistry_) { }
+
+    function getPrimaryFlag() public pure returns (bool primaryFlag) {
+        primaryFlag = PRIMARY_FLAG;
+    }
 
     function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
         public

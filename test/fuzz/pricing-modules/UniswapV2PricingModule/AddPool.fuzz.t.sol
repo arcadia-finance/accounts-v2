@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
 
 import { UniswapV2PairMalicious } from "../../../utils/mocks/UniswapV2PairMalicious.sol";
-import { UniswapV2PairMock } from "../../.././utils/mocks/UniswapV2PairMock.sol";
+import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2PairMock.sol";
 
 /**
  * @notice Fuzz tests for the "addPool" of contract "UniswapV2PricingModule".
