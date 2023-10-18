@@ -77,6 +77,8 @@ contract UniswapV3PricingModule is DerivedPricingModule {
      * @dev Since all assets will have the same contract address, the NonfungiblePositionManager has to be added to the MainRegistry.
      */
     function setProtocol() external onlyOwner {
+        inPricingModule[NON_FUNGIBLE_POSITION_MANAGER] = true;
+
         // Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(NON_FUNGIBLE_POSITION_MANAGER, ASSET_TYPE);
     }

@@ -84,7 +84,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         int256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: "usdValueExposureAsset" is 0 (test-case).
-        underlyingPMState.usdValueExposureToUnderlyingAsset = 0;
+        underlyingPMState.usdValue = 0;
 
         // And: Withdrawal does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
@@ -118,8 +118,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         int256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: "usdValueExposureToUnderlyingAsset" is not zero (test-case).
-        underlyingPMState.usdValueExposureToUnderlyingAsset =
-            bound(underlyingPMState.usdValueExposureToUnderlyingAsset, 1, type(uint128).max);
+        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint128).max);
 
         // And: Withdrawal does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
@@ -153,7 +152,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
 
         // And: Correct "usdValueExposureUpperAssetToAsset" is returned.
         uint256 usdValueExposureUpperAssetToAssetExpected =
-            underlyingPMState.usdValueExposureToUnderlyingAsset * exposureUpperAssetToAsset / exposureAsset;
+            underlyingPMState.usdValue * exposureUpperAssetToAsset / exposureAsset;
         assertEq(usdValueExposureUpperAssetToAsset, usdValueExposureUpperAssetToAssetExpected);
     }
 }

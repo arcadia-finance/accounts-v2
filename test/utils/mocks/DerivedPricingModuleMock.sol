@@ -6,7 +6,9 @@ import { AbstractDerivedPricingModuleExtension } from "../Extensions.sol";
 contract DerivedPricingModuleMock is AbstractDerivedPricingModuleExtension {
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
-    uint256 public underlyingAssetsAmount;
+    uint256 internal underlyingAssetAmount;
+    bool internal returnRateUnderlyingAssetToUsd;
+    uint256 internal rateUnderlyingAssetToUsd;
 
     constructor(address mainRegistry_, uint256 assetType_, address riskManager_)
         AbstractDerivedPricingModuleExtension(mainRegistry_, assetType_, riskManager_)
@@ -14,8 +16,13 @@ contract DerivedPricingModuleMock is AbstractDerivedPricingModuleExtension {
 
     function isAllowed(address asset, uint256) public view override returns (bool) { }
 
-    function setUnderlyingAssetsAmount(uint256 underlyingAssetsAmount_) public {
-        underlyingAssetsAmount = underlyingAssetsAmount_;
+    function setUnderlyingAssetsAmount(uint256 underlyingAssetAmount_) public {
+        underlyingAssetAmount = underlyingAssetAmount_;
+    }
+
+    function setRateUnderlyingAssetToUsd(uint256 rateUnderlyingAssetToUsd_) public {
+        rateUnderlyingAssetToUsd = rateUnderlyingAssetToUsd_;
+        returnRateUnderlyingAssetToUsd = true;
     }
 
     function addAsset(
@@ -40,12 +47,18 @@ contract DerivedPricingModuleMock is AbstractDerivedPricingModuleExtension {
         internal
         view
         override
-        returns (uint256[] memory underlyingAssetsAmount_, uint256[] memory rateUnderlyingAssetsToUsd)
+        returns (uint256[] memory underlyingAssetsAmount, uint256[] memory rateUnderlyingAssetsToUsd)
     {
-        underlyingAssetsAmount_ = new uint256[](1);
-        underlyingAssetsAmount_[0] = underlyingAssetsAmount;
+        underlyingAssetsAmount = new uint256[](1);
+        underlyingAssetsAmount[0] = underlyingAssetAmount;
 
-        return (underlyingAssetsAmount_, rateUnderlyingAssetsToUsd);
+        // If rateUnderlyingAssetToUsd is set, also return rateUnderlyingAssetsToUsd.
+        if (returnRateUnderlyingAssetToUsd) {
+            rateUnderlyingAssetsToUsd = new uint256[](1);
+            rateUnderlyingAssetsToUsd[0] = rateUnderlyingAssetToUsd;
+        }
+
+        return (underlyingAssetsAmount, rateUnderlyingAssetsToUsd);
     }
 
     function _getUnderlyingAssets(bytes32 assetKey)

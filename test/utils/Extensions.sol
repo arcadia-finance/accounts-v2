@@ -143,6 +143,10 @@ abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule 
         DerivedPricingModule(mainRegistry_, assetType_, riskManager_)
     { }
 
+    function getPrimaryFlag() public pure returns (bool primaryFlag) {
+        primaryFlag = PRIMARY_FLAG;
+    }
+
     function getAssetToExposureLast(bytes32 assetKey)
         external
         view
@@ -179,6 +183,14 @@ abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule 
         assetToExposureLast[assetKey].exposureLast = exposureAssetLast_;
         assetToExposureLast[assetKey].usdValueExposureLast = usdValueExposureAssetLast_;
         exposureAssetToUnderlyingAssetsLast[assetKey][underLyingAssetKey] = exposureAssetToUnderlyingAssetLast;
+    }
+
+    function getRateUnderlyingAssetsToUsd(bytes32[] memory underlyingAssetKeys)
+        public
+        view
+        returns (uint256[] memory rateUnderlyingAssetsToUsd)
+    {
+        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(underlyingAssetKeys);
     }
 
     function processDeposit(bytes32 assetKey, uint256 exposureAsset) public returns (uint256 usdValueExposureAsset) {

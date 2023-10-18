@@ -15,7 +15,7 @@ contract PrimaryPricingModuleMock is AbstractPrimaryPricingModuleExtension {
         return inPricingModule[asset];
     }
 
-    function setPrice(uint256 usdValueExposureToUnderlyingAsset_) public {
+    function setUsdValue(uint256 usdValueExposureToUnderlyingAsset_) public {
         usdValueExposureToUnderlyingAsset = usdValueExposureToUnderlyingAsset_;
     }
 

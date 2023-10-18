@@ -62,6 +62,7 @@ contract SetProtocol_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_
         vm.prank(users.creatorAddress);
         uniV3PricingModule.setProtocol();
 
+        assertTrue(uniV3PricingModule.inPricingModule(address(nonfungiblePositionManagerMock)));
         assertTrue(mainRegistryExtension.inMainRegistry(address(nonfungiblePositionManagerMock)));
     }
 }
