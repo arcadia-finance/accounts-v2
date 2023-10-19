@@ -62,7 +62,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
         );
         pairToken1Token2 =
             UniswapV2PairMock(uniswapV2Factory.createPair(address(mockERC20.token2), address(mockERC20.token1)));
-        uniswapV2PricingModule.addPool(address(pairToken1Token2));
+        uniswapV2PricingModule.addAsset(address(pairToken1Token2));
 
         // Mint LP
         vm.assume(uint256(amountToken2) * amountToken1 > pairToken1Token2.MINIMUM_LIQUIDITY()); //min liquidity in uniswap pool
@@ -121,7 +121,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
         );
         pairToken1Token2 =
             UniswapV2PairMock(uniswapV2Factory.createPair(address(mockERC20.token2), address(mockERC20.token1)));
-        uniswapV2PricingModule.addPool(address(pairToken1Token2));
+        uniswapV2PricingModule.addAsset(address(pairToken1Token2));
 
         // Mint a variable amount of balanced LP, for a given amountToken2
         vm.assume(

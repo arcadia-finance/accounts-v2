@@ -10,9 +10,9 @@ import { UniswapV2PairMalicious } from "../../../utils/mocks/UniswapV2PairMalici
 import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2PairMock.sol";
 
 /**
- * @notice Fuzz tests for the "addPool" of contract "UniswapV2PricingModule".
+ * @notice Fuzz tests for the "addAsset" of contract "UniswapV2PricingModule".
  */
-contract AddPool_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuzz_Test {
+contract AddAsset_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -24,36 +24,36 @@ contract AddPool_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuzz
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_addPool_NonPool(address token0, address token1) public {
+    function testFuzz_Revert_addAsset_NonPool(address token0, address token1) public {
         UniswapV2PairMalicious pool = new UniswapV2PairMalicious(token0, token1);
 
         vm.expectRevert("PMUV2_AA: Not a Pool");
-        uniswapV2PricingModule.addPool(address(pool));
+        uniswapV2PricingModule.addAsset(address(pool));
     }
 
-    function testFuzz_Revert_addPool_Token0NotAllowed() public {
+    function testFuzz_Revert_addAsset_Token0NotAllowed() public {
         vm.expectRevert("PMUV2_AA: Token0 not Allowed");
-        uniswapV2PricingModule.addPool(address(pairToken1Token3));
+        uniswapV2PricingModule.addAsset(address(pairToken1Token3));
     }
 
-    function testFuzz_Revert_addPool_Token1NotAllowed() public {
+    function testFuzz_Revert_addAsset_Token1NotAllowed() public {
         UniswapV2PairMock pairToken1Token4 =
             UniswapV2PairMock(uniswapV2Factory.createPair(address(mockERC20.token1), address(mockERC20.token4)));
 
         vm.expectRevert("PMUV2_AA: Token1 not Allowed");
-        uniswapV2PricingModule.addPool(address(pairToken1Token4));
+        uniswapV2PricingModule.addAsset(address(pairToken1Token4));
     }
 
-    function testFuzz_Revert_addPool_OverwriteExistingAsset() public {
-        uniswapV2PricingModule.addPool(address(pairToken1Token2));
+    function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
+        uniswapV2PricingModule.addAsset(address(pairToken1Token2));
 
         vm.expectRevert("MR_AA: Asset already in mainreg");
-        uniswapV2PricingModule.addPool(address(pairToken1Token2));
+        uniswapV2PricingModule.addAsset(address(pairToken1Token2));
     }
 
-    function testFuzz_Success_addPool(address caller) public {
+    function testFuzz_Success_addAsset(address caller) public {
         vm.prank(caller);
-        uniswapV2PricingModule.addPool(address(pairToken1Token2));
+        uniswapV2PricingModule.addAsset(address(pairToken1Token2));
 
         assertTrue(mainRegistryExtension.inMainRegistry(address(pairToken1Token2)));
 

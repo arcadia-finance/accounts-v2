@@ -56,7 +56,7 @@ contract IsAllowed_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fu
     }
 
     function testFuzz_Success_isAllowListed_Positive_AssetInPricingModule(uint256 assetId) public {
-        uniswapV2PricingModule.addPool(address(pairToken1Token2));
+        uniswapV2PricingModule.addAsset(address(pairToken1Token2));
 
         assertTrue(uniswapV2PricingModule.isAllowed(address(pairToken1Token2), assetId));
     }

@@ -23,10 +23,18 @@ contract Constructor_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment() public {
-        assertEq(uniswapV2PricingModule.MAIN_REGISTRY(), address(mainRegistryExtension));
-        assertEq(uniswapV2PricingModule.ASSET_TYPE(), 0);
-        assertEq(uniswapV2PricingModule.riskManager(), users.creatorAddress);
-        assertEq(uniswapV2PricingModule.getUniswapV2Factory(), address(uniswapV2Factory));
+    function testFuzz_Success_deployment(address mainRegistry_) public {
+        vm.startPrank(users.creatorAddress);
+        vm.expectEmit(true, true, true, true);
+        emit RiskManagerUpdated(users.creatorAddress);
+        UniswapV2PricingModuleExtension uniswapV2PricingModule_ = new UniswapV2PricingModuleExtension(
+            mainRegistry_,
+            address(uniswapV2Factory)
+        );
+        vm.stopPrank();
+        assertEq(uniswapV2PricingModule_.MAIN_REGISTRY(), mainRegistry_);
+        assertEq(uniswapV2PricingModule_.ASSET_TYPE(), 0);
+        assertEq(uniswapV2PricingModule_.riskManager(), users.creatorAddress);
+        assertEq(uniswapV2PricingModule_.getUniswapV2Factory(), address(uniswapV2Factory));
     }
 }

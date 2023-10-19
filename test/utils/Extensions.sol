@@ -274,6 +274,14 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
         primaryFlag = PRIMARY_FLAG;
     }
 
+    function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
+        (asset, assetId) = _getAssetFromKey(key);
+    }
+
+    function getKeyFromAsset(address asset, uint256 assetId) public pure returns (bytes32 key) {
+        (key) = _getKeyFromAsset(asset, assetId);
+    }
+
     function getUniswapV2Factory() external view returns (address uniswapV2Factory) {
         uniswapV2Factory = UNISWAP_V2_FACTORY;
     }
