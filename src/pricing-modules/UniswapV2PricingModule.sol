@@ -11,7 +11,6 @@ import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
 import { PRBMath } from "../libraries/PRBMath.sol";
 import { PricingModule } from "./AbstractPricingModule.sol";
-import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 
 /**
  * @title Pricing-Module for Uniswap V2 LP tokens

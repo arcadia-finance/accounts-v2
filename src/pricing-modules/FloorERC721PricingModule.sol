@@ -6,7 +6,6 @@ pragma solidity 0.8.19;
 
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
-import { IPricingModule } from "./AbstractPrimaryPricingModule.sol";
 import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 
 /**

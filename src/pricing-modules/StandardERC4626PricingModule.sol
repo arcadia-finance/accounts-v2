@@ -5,10 +5,8 @@
 pragma solidity 0.8.19;
 
 import { DerivedPricingModule } from "./AbstractDerivedPricingModule.sol";
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IERC4626 } from "../interfaces/IERC4626.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
-import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
 
 /**
  * @title Sub-registry for Standard ERC4626 tokens
@@ -17,8 +15,6 @@ import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingM
  * @dev No end-user should directly interact with the StandardERC4626Registry, only the Main-registry, Oracle-Hub or the contract owner
  */
 contract StandardERC4626PricingModule is DerivedPricingModule {
-    using FixedPointMathLib for uint256;
-
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */

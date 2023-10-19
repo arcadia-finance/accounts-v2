@@ -4,14 +4,14 @@
  */
 pragma solidity 0.8.19;
 
-import { DerivedPricingModule, IPricingModule } from "../AbstractDerivedPricingModule.sol";
+import { DerivedPricingModule } from "../AbstractDerivedPricingModule.sol";
 import { FixedPoint96 } from "./libraries/FixedPoint96.sol";
 import { FixedPoint128 } from "./libraries/FixedPoint128.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { FullMath } from "./libraries/FullMath.sol";
-import { IERC20 } from "./interfaces/IERC20.sol";
 import { IMainRegistry } from "../interfaces/IMainRegistry.sol";
 import { INonfungiblePositionManager } from "./interfaces/INonfungiblePositionManager.sol";
+import { IPricingModule } from "../../interfaces/IPricingModule.sol";
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { LiquidityAmounts } from "./libraries/LiquidityAmounts.sol";
 import { PoolAddress } from "./libraries/PoolAddress.sol";
