@@ -35,6 +35,7 @@ contract Constructor_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_
         assertEq(uniswapV2PricingModule_.MAIN_REGISTRY(), mainRegistry_);
         assertEq(uniswapV2PricingModule_.ASSET_TYPE(), 0);
         assertEq(uniswapV2PricingModule_.riskManager(), users.creatorAddress);
+        assertFalse(uniswapV2PricingModule_.getPrimaryFlag());
         assertEq(uniswapV2PricingModule_.getUniswapV2Factory(), address(uniswapV2Factory));
     }
 }

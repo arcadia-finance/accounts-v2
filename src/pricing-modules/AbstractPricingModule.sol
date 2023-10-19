@@ -120,7 +120,7 @@ abstract contract PricingModule is Owned, IPricingModule {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @return key The unique identifier.
-     * @dev Unsafe cast from uint256 to uint96, use only when the id's of the assets cannot exceed type(uint92).max.
+     * @dev Unsafe cast from uint256 to uint96, use only when the id's of the assets cannot exceed type(uint96).max.
      */
     function _getKeyFromAsset(address asset, uint256 assetId) internal view virtual returns (bytes32 key) {
         assembly {
@@ -139,7 +139,7 @@ abstract contract PricingModule is Owned, IPricingModule {
      */
     function _getAssetFromKey(bytes32 key) internal view virtual returns (address asset, uint256 assetId) {
         assembly {
-            // Shift to the right by 20 bytes (160 bits) to extract the uint92 assetId.
+            // Shift to the right by 20 bytes (160 bits) to extract the uint96 assetId.
             assetId := shr(160, key)
 
             // Use bitmask to extract the address from the rightmost 160 bits.

@@ -299,6 +299,15 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
         (underlyingAssets[1],) = _getAssetFromKey(underlyingAssetKeys[1]);
     }
 
+    function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
+        public
+        view
+        returns (uint256[] memory exposureAssetToUnderlyingAssets, uint256[] memory rateUnderlyingAssetsToUsd)
+    {
+        (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
+    }
+
     function getTrustedTokenAmounts(
         address pair,
         uint256 trustedPriceToken0,
@@ -344,15 +353,6 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
     {
         amountOut = _getAmountOut(amountIn, reserveIn, reserveOut);
     }
-
-    function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
-        public
-        view
-        returns (uint256[] memory exposureAssetToUnderlyingAssets, uint256[] memory rateUnderlyingAssetsToUsd)
-    {
-        (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
-            _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
-    }
 }
 
 contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
@@ -362,6 +362,14 @@ contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
+    }
+
+    function getNonFungiblePositionManager() public view returns (address nonFungiblePositionManager) {
+        nonFungiblePositionManager = NON_FUNGIBLE_POSITION_MANAGER;
+    }
+
+    function getUniswapV3Factory() public view returns (address uniswapV3Factory) {
+        uniswapV3Factory = UNISWAP_V3_FACTORY;
     }
 
     function getAssetToLiquidity(uint256 assetId) external view returns (uint256 liquidity) {
@@ -376,6 +384,23 @@ contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
         return _getUnderlyingAssets(assetKey);
     }
 
+    function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
+        public
+        view
+        returns (uint256[] memory exposureAssetToUnderlyingAssets, uint256[] memory rateUnderlyingAssetsToUsd)
+    {
+        (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
+    }
+
+    function getPosition(uint256 assetId)
+        public
+        view
+        returns (address token0, address token1, int24 tickLower, int24 tickUpper, uint128 liquidity)
+    {
+        return _getPosition(assetId);
+    }
+
     function getPrincipalAmounts(
         int24 tickLower,
         int24 tickUpper,
@@ -388,10 +413,6 @@ contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
 
     function getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) public pure returns (uint160 sqrtPriceX96) {
         return _getSqrtPriceX96(priceToken0, priceToken1);
-    }
-
-    function getTrustedTickCurrent(address token0, address token1) public view returns (int256 tickCurrent) {
-        return _getTrustedTickCurrent(token0, token1);
     }
 
     function getFeeAmounts(uint256 id) public view returns (uint256 amount0, uint256 amount1) {

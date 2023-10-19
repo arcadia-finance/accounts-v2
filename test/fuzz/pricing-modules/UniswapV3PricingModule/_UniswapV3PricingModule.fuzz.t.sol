@@ -32,6 +32,15 @@ import { Utils } from "../../../utils/Utils.sol";
 abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
+                              CONSTANTS
+    /////////////////////////////////////////////////////////////// */
+
+    uint256 internal constant INT256_MAX = 2 ** 255 - 1;
+    // While the true minimum value of an int256 is 2 ** 255, Solidity overflows on a negation (since INT256_MAX is one less).
+    // -> This true minimum value will overflow and revert.
+    uint256 internal constant INT256_MIN = 2 ** 255 - 1;
+
+    /* ///////////////////////////////////////////////////////////////
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
 
@@ -48,6 +57,11 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
         uint64 priceToken0;
         uint64 priceToken1;
         uint80 liquidity;
+    }
+
+    struct UnderlyingAssetState {
+        uint256 decimals;
+        uint256 usdValue;
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -232,6 +246,10 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
     {
         // Given: poolId is non zero (=position is initialised).
         position.poolId = uint80(bound(position.poolId, 1, type(uint80).max));
+
+        // And: Ticks are within allowed ranges.
+        vm.assume(isWithinAllowedRange(position.tickLower));
+        vm.assume(isWithinAllowedRange(position.tickUpper));
 
         return position;
     }

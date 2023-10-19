@@ -67,7 +67,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV
         mockOracles.token2ToUsd.transmit(int256(priceToken0));
         vm.stopPrank();
 
-        // When: "getConversionRate" is called.
+        // When: "getUnderlyingAssetsAmounts" is called.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pairToken1Token2)));
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));

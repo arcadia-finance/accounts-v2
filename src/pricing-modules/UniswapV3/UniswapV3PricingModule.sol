@@ -95,6 +95,8 @@ contract UniswapV3PricingModule is DerivedPricingModule {
         (,, address token0, address token1,,,, uint128 liquidity,,,,) =
             INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
 
+        // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
+        // deposit functions and their any deposit of non-allowed underlying assets will revert.
         require(liquidity > 0, "PMUV3_AA: 0 liquidity");
 
         assetToLiquidity[assetId] = liquidity;
@@ -182,34 +184,28 @@ contract UniswapV3PricingModule is DerivedPricingModule {
         returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd)
     {
         (, uint256 assetId) = _getAssetFromKey(assetKey);
-        uint256 principal0;
-        uint256 principal1;
 
-        {
-            (address token0, address token1, int24 tickLower, int24 tickUpper, uint128 liquidity) =
-                _getPosition(assetId);
+        (address token0, address token1, int24 tickLower, int24 tickUpper, uint128 liquidity) = _getPosition(assetId);
 
-            bytes32[] memory underlyingAssetKeys = new bytes32[](2);
-            underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
-            underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
-            rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(underlyingAssetKeys);
+        // Get the trusted rates to USD of the underlying assets.
+        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
+        underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
+        underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
+        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(underlyingAssetKeys);
 
-            // Calculate amount0 and amount1 of the principal (the actual liquidity position).
-            (principal0, principal1) = _getPrincipalAmounts(
-                tickLower, tickUpper, liquidity, rateUnderlyingAssetsToUsd[0], rateUnderlyingAssetsToUsd[1]
-            );
-        }
+        // Calculate amount0 and amount1 of the principal (the actual liquidity position).
+        (uint256 principal0, uint256 principal1) = _getPrincipalAmounts(
+            tickLower, tickUpper, liquidity, rateUnderlyingAssetsToUsd[0], rateUnderlyingAssetsToUsd[1]
+        );
 
-        {
-            // Calculate amount0 and amount1 of the accumulated fees.
-            (uint256 fee0, uint256 fee1) = _getFeeAmounts(assetId);
+        // Calculate amount0 and amount1 of the accumulated fees.
+        (uint256 fee0, uint256 fee1) = _getFeeAmounts(assetId);
 
-            // ToDo: fee should be capped to a max compared to principal to avoid circumventing caps via fees on new pools.
+        // ToDo: fee should be capped to a max compared to principal to avoid circumventing caps via fees on new pools.
 
-            underlyingAssetsAmounts = new uint256[](2);
-            underlyingAssetsAmounts[0] = principal0 + fee0;
-            underlyingAssetsAmounts[1] = principal1 + fee1;
-        }
+        underlyingAssetsAmounts = new uint256[](2);
+        underlyingAssetsAmounts[0] = principal0 + fee0;
+        underlyingAssetsAmounts[1] = principal1 + fee1;
     }
 
     /**
@@ -415,33 +411,6 @@ contract UniswapV3PricingModule is DerivedPricingModule {
         liquidationFactor = liquidationFactor0 < liquidationFactor1 ? liquidationFactor0 : liquidationFactor1;
 
         return (valueInUsd, collateralFactor, liquidationFactor);
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                    RISK VARIABLES MANAGEMENT
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Calculates the current tick from trusted USD prices of both tokens.
-     * @param token0 The contract address of token0.
-     * @param token1 The contract address of token1.
-     * @return tickCurrent The current tick.
-     */
-    function _getTrustedTickCurrent(address token0, address token1) internal view returns (int256 tickCurrent) {
-        // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
-        // sufficient precision.
-        // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
-        // sufficient precision.
-        uint256 priceToken0 = IMainRegistry(MAIN_REGISTRY).getUsdValue(
-            GetValueInput({ asset: token0, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-        );
-        uint256 priceToken1 = IMainRegistry(MAIN_REGISTRY).getUsdValue(
-            GetValueInput({ asset: token1, assetId: 0, assetAmount: 1e18, baseCurrency: 0 })
-        );
-
-        uint160 sqrtPriceX96 = _getSqrtPriceX96(priceToken0, priceToken1);
-
-        tickCurrent = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
     }
 
     /*///////////////////////////////////////////////////////////////
