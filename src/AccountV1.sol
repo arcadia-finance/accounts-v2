@@ -758,7 +758,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Transfers assets from the owner to the actionHandler contract via Permit2.
-     * @param permit Data specifying the terms of the
+     * @param permit Data specifying the terms of the transfer.
      * @param signature The signature to verify.
      * @param to_ The address to withdraw to.
      */
@@ -772,8 +772,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
             new IPermit2.SignatureTransferDetails[](tokenPermissionsLength);
 
         for (uint256 i; i < tokenPermissionsLength;) {
-            transferDetails[i] =
-                IPermit2.SignatureTransferDetails({ to: to_, requestedAmount: permit.permitted[i].amount });
+            transferDetails[i].to = to_;
+            transferDetails[i].requestedAmount = permit.permitted[i].amount;
+
             unchecked {
                 ++i;
             }
