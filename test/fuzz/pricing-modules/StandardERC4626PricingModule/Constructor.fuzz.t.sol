@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
 
-import { StandardERC4626PricingModule } from "../../../../src/pricing-modules/StandardERC4626PricingModule.sol";
+import { ERC4626PricingModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
  * @notice Fuzz tests for the "constructor" of contract "StandardERC4626PricingModule".
@@ -27,7 +27,7 @@ contract Constructor_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Pr
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskManagerUpdated(users.creatorAddress);
-        StandardERC4626PricingModule erc4626PricingModule_ = new StandardERC4626PricingModule(
+        ERC4626PricingModuleExtension erc4626PricingModule_ = new ERC4626PricingModuleExtension(
             mainRegistry_
         );
         vm.stopPrank();
@@ -35,5 +35,6 @@ contract Constructor_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Pr
         assertEq(erc4626PricingModule_.MAIN_REGISTRY(), mainRegistry_);
         assertEq(erc4626PricingModule_.ASSET_TYPE(), 0);
         assertEq(erc4626PricingModule_.riskManager(), users.creatorAddress);
+        assertFalse(erc4626PricingModule_.getPrimaryFlag());
     }
 }

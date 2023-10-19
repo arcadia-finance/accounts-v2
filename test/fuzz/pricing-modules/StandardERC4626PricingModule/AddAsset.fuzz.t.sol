@@ -31,7 +31,7 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_addAsset_Token0NotAllowed() public {
+    function testFuzz_Revert_addAsset_UnderlyingAssetNotAllowed() public {
         vm.prank(users.tokenCreatorAddress);
         ERC4626Mock ybToken3 = new ERC4626Mock(mockERC20.token3, "Mocked Yield Bearing Token 3", "mybTOKEN1");
 
@@ -59,5 +59,6 @@ contract AddAsset_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         bytes32[] memory underlyingAssetKeys = erc4626PricingModule.getUnderlyingAssets(assetKey);
 
         assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1))));
+        assertTrue(erc4626PricingModule.inPricingModule(address(ybToken1)));
     }
 }

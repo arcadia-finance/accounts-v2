@@ -9,7 +9,6 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { ERC4626Mock } from "../../../utils/mocks/ERC4626Mock.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
-import { StandardERC4626PricingModule } from "../../../../src/pricing-modules/StandardERC4626PricingModule.sol";
 import { ERC4626PricingModuleExtension } from "../../../utils/Extensions.sol";
 
 /**

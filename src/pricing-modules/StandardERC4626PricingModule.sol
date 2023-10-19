@@ -55,7 +55,7 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
         underlyingAssets_[0] = _getKeyFromAsset(underlyingAsset, 0);
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
-        // Will revert in MainRegistry if pool was already added.
+        // Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
     }
 

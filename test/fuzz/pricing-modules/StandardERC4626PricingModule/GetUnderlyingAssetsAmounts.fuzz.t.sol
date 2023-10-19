@@ -6,26 +6,13 @@ pragma solidity 0.8.19;
 
 import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
 
-import { ERC4626Mock } from "../../../utils/mocks/ERC4626Mock.sol";
-import { ERC4626PricingModuleExtension } from "../../../utils/Extensions.sol";
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
+import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 /**
  * @notice Fuzz tests for the "_getUnderlyingAssetsAmounts()" of contract "StandardERC4626PricingModule".
  */
 contract GetUnderlyingAssetsAmounts_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626PricingModule_Fuzz_Test {
-    /* ///////////////////////////////////////////////////////////////
-                            VARIABLES
-    /////////////////////////////////////////////////////////////// */
-
-    ERC4626Mock public ybToken2;
-
-    /* ///////////////////////////////////////////////////////////////
-                          TEST CONTRACTS
-    /////////////////////////////////////////////////////////////// */
-
-    ERC4626PricingModuleExtension public erc4626PricingModuleExtension;
-
+    using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -33,55 +20,40 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626PricingModule_Fuzz_Test is St
     function setUp() public override {
         StandardERC4626PricingModule_Fuzz_Test.setUp();
 
-        vm.prank(users.tokenCreatorAddress);
-        ybToken2 = new ERC4626Mock(mockERC20.stable1, "Mocked Yield Bearing Token 2", "ybTOKEN2");
-
-        vm.startPrank(users.creatorAddress);
-        erc4626PricingModuleExtension = new ERC4626PricingModuleExtension(
-            address(mainRegistryExtension)
-        );
-        mainRegistryExtension.addPricingModule(address(erc4626PricingModuleExtension));
-
-        erc4626PricingModuleExtension.addAsset(address(ybToken1));
-        erc4626PricingModuleExtension.addAsset(address(ybToken2));
-
-        vm.stopPrank();
+        vm.prank(users.creatorAddress);
+        erc4626PricingModule.addAsset(address(ybToken1));
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getUnderlyingAssetsAmounts(
-        uint128 initialAssets,
-        uint128 depositAmount,
-        uint96 assetId,
-        uint128 yield
-    ) public {
-        // Given: "initialAssets" is non-zero.
-        initialAssets = uint128(bound(initialAssets, 1, type(uint128).max));
+    function testFuzz_Success_getUnderlyingAssetsAmounts(uint256 shares, uint256 totalSupply, uint256 totalAssets)
+        public
+    {
+        // Given: userBalance is smaller as total amount of shares (invariant ERC20).
+        shares = bound(shares, 0, totalSupply);
 
-        // And: asset <-> share conversions do not overflow.
-        yield = uint128(bound(yield, 0, type(uint128).max - initialAssets));
+        // And: "convertToAssets()" does not overflow.
+        if (shares > 0) totalAssets = bound(totalAssets, 0, type(uint256).max / shares);
 
-        // And: "depositAmount" is less than the accountOwner's balance.
-        depositAmount = uint128(bound(depositAmount, 0, initialAssets));
+        // And: state is persisted.
+        //Cheat totalSupply
+        stdstore.target(address(ybToken1)).sig(ybToken1.totalSupply.selector).checked_write(totalSupply);
+        //Cheat balance of
+        stdstore.target(address(mockERC20.token1)).sig(ybToken1.balanceOf.selector).with_key(address(ybToken1))
+            .checked_write(totalAssets);
 
-        // Mint tokens, do a deposit, and send tokens to vault (=yield)
-        vm.startPrank(users.accountOwner);
-        mockERC20.stable1.mint(users.accountOwner, uint256(initialAssets) + uint256(yield));
-        mockERC20.stable1.approve(address(ybToken2), initialAssets);
-        ybToken2.deposit(initialAssets, users.accountOwner);
-        mockERC20.stable1.transfer(address(ybToken2), yield);
-        vm.stopPrank();
-
-        uint256 expectedConversionRate = depositAmount * (uint256(initialAssets) + yield) / initialAssets;
-
-        bytes32 assetKey = bytes32(abi.encodePacked(assetId, address(ybToken2)));
+        // When: "_getUnderlyingAssetsAmounts" is called with 'shares'.
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(ybToken1)));
         bytes32[] memory emptyArray = new bytes32[](1);
-        (uint256[] memory exposureAssetToUnderlyingAssets, uint256[] memory rateUnderlyingAssetsToUsd) =
-            erc4626PricingModuleExtension.getUnderlyingAssetsAmounts(assetKey, depositAmount, emptyArray);
+        (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd) =
+            erc4626PricingModule.getUnderlyingAssetsAmounts(assetKey, shares, emptyArray);
 
-        assertEq(expectedConversionRate, exposureAssetToUnderlyingAssets[0]);
+        // Then: The correct underlyingAssetsAmount is returned.
+        uint256 expectedUnderlyingAssetsAmount = totalSupply > 0 ? shares * totalAssets / totalSupply : 0;
+        assertEq(underlyingAssetsAmounts[0], expectedUnderlyingAssetsAmount);
+
+        // And: No rateUnderlyingAssetsToUsd are returned.
         assertEq(rateUnderlyingAssetsToUsd.length, 0);
     }
 }
