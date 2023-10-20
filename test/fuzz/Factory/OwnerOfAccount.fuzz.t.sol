@@ -22,6 +22,8 @@ contract OwnerOfAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_ownerOfAccount_NonAccount(address nonAccount) public {
+        vm.assume(nonAccount != address(proxyAccount));
+
         assertEq(factory.ownerOfAccount(nonAccount), address(0));
     }
 }
