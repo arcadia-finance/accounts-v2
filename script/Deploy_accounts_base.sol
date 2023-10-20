@@ -14,7 +14,7 @@ import { PricingModule, StandardERC20PricingModule } from "../src/pricing-module
 import { UniswapV3PricingModule } from "../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
 
-import { ActionMultiCallV2 } from "../src/actions/MultiCallV2.sol";
+import { ActionMultiCallV3 } from "../src/actions/MultiCallV3.sol";
 
 import { ILendingPool } from "./interfaces/ILendingPool.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
@@ -34,7 +34,7 @@ contract ArcadiaAccountDeployment is Test {
     MainRegistry public mainRegistry;
     StandardERC20PricingModule public standardERC20PricingModule;
     UniswapV3PricingModule public uniswapV3PricingModule;
-    ActionMultiCallV2 public actionMultiCall;
+    ActionMultiCallV3 public actionMultiCall;
 
     ILendingPool public wethLendingPool;
     ILendingPool public usdcLendingPool;
@@ -170,7 +170,7 @@ contract ArcadiaAccountDeployment is Test {
         riskVarsComp.push(
             PricingModule.RiskVarInput({
                 baseCurrency: 1,
-                asset: address(0),
+                asset: DeployAddresses.comp_base,
                 collateralFactor: DeployRiskConstantsBase.comp_collFact_1,
                 liquidationFactor: DeployRiskConstantsBase.comp_liqFact_1
             })
@@ -178,7 +178,7 @@ contract ArcadiaAccountDeployment is Test {
         riskVarsComp.push(
             PricingModule.RiskVarInput({
                 baseCurrency: 2,
-                asset: address(0),
+                asset: DeployAddresses.comp_base,
                 collateralFactor: DeployRiskConstantsBase.comp_collFact_2,
                 liquidationFactor: DeployRiskConstantsBase.comp_liqFact_2
             })
@@ -187,7 +187,7 @@ contract ArcadiaAccountDeployment is Test {
         riskVarsDai.push(
             PricingModule.RiskVarInput({
                 baseCurrency: 1,
-                asset: address(0),
+                asset: DeployAddresses.dai_base,
                 collateralFactor: DeployRiskConstantsBase.dai_collFact_1,
                 liquidationFactor: DeployRiskConstantsBase.dai_liqFact_1
             })
@@ -195,7 +195,7 @@ contract ArcadiaAccountDeployment is Test {
         riskVarsDai.push(
             PricingModule.RiskVarInput({
                 baseCurrency: 2,
-                asset: address(0),
+                asset: DeployAddresses.dai_base,
                 collateralFactor: DeployRiskConstantsBase.dai_collFact_2,
                 liquidationFactor: DeployRiskConstantsBase.dai_liqFact_2
             })
@@ -204,7 +204,7 @@ contract ArcadiaAccountDeployment is Test {
         riskVarsEth.push(
             PricingModule.RiskVarInput({
                 baseCurrency: 1,
-                asset: address(0),
+                asset: DeployAddresses.weth_base,
                 collateralFactor: DeployRiskConstantsBase.eth_collFact_1,
                 liquidationFactor: DeployRiskConstantsBase.eth_liqFact_1
             })
@@ -212,7 +212,7 @@ contract ArcadiaAccountDeployment is Test {
         riskVarsEth.push(
             PricingModule.RiskVarInput({
                 baseCurrency: 2,
-                asset: address(0),
+                asset: DeployAddresses.weth_base,
                 collateralFactor: DeployRiskConstantsBase.eth_collFact_2,
                 liquidationFactor: DeployRiskConstantsBase.eth_liqFact_2
             })
@@ -221,7 +221,7 @@ contract ArcadiaAccountDeployment is Test {
         riskVarsUsdc.push(
             PricingModule.RiskVarInput({
                 baseCurrency: 1,
-                asset: address(0),
+                asset: DeployAddresses.usdc_base,
                 collateralFactor: DeployRiskConstantsBase.usdc_collFact_1,
                 liquidationFactor: DeployRiskConstantsBase.usdc_liqFact_1
             })
@@ -229,7 +229,7 @@ contract ArcadiaAccountDeployment is Test {
         riskVarsUsdc.push(
             PricingModule.RiskVarInput({
                 baseCurrency: 2,
-                asset: address(0),
+                asset: DeployAddresses.usdc_base,
                 collateralFactor: DeployRiskConstantsBase.usdc_collFact_2,
                 liquidationFactor: DeployRiskConstantsBase.usdc_liqFact_2
             })
@@ -238,7 +238,7 @@ contract ArcadiaAccountDeployment is Test {
         riskVarsCbeth.push(
             PricingModule.RiskVarInput({
                 baseCurrency: 1,
-                asset: address(0),
+                asset: DeployAddresses.cbeth_base,
                 collateralFactor: DeployRiskConstantsBase.cbeth_collFact_1,
                 liquidationFactor: DeployRiskConstantsBase.cbeth_liqFact_1
             })
@@ -246,7 +246,7 @@ contract ArcadiaAccountDeployment is Test {
         riskVarsCbeth.push(
             PricingModule.RiskVarInput({
                 baseCurrency: 2,
-                asset: address(0),
+                asset: DeployAddresses.cbeth_base,
                 collateralFactor: DeployRiskConstantsBase.cbeth_collFact_2,
                 liquidationFactor: DeployRiskConstantsBase.cbeth_liqFact_2
             })
@@ -255,7 +255,7 @@ contract ArcadiaAccountDeployment is Test {
         riskVarsReth.push(
             PricingModule.RiskVarInput({
                 baseCurrency: 1,
-                asset: address(0),
+                asset: DeployAddresses.reth_base,
                 collateralFactor: DeployRiskConstantsBase.reth_collFact_1,
                 liquidationFactor: DeployRiskConstantsBase.reth_liqFact_1
             })
@@ -263,7 +263,7 @@ contract ArcadiaAccountDeployment is Test {
         riskVarsReth.push(
             PricingModule.RiskVarInput({
                 baseCurrency: 2,
-                asset: address(0),
+                asset: DeployAddresses.reth_base,
                 collateralFactor: DeployRiskConstantsBase.reth_collFact_2,
                 liquidationFactor: DeployRiskConstantsBase.reth_liqFact_2
             })
@@ -290,7 +290,7 @@ contract ArcadiaAccountDeployment is Test {
         new UniswapV3PricingModule(address(mainRegistry), address(oracleHub), deployerAddress, address(standardERC20PricingModule));
 
         account = new AccountV1();
-        actionMultiCall = new ActionMultiCallV2();
+        actionMultiCall = new ActionMultiCallV3();
 
         oracleHub.addOracle(compToUsdOracleInfo);
         oracleHub.addOracle(daiToUsdOracleInfo);
@@ -348,6 +348,35 @@ contract ArcadiaAccountDeployment is Test {
             riskVarsReth_,
             type(uint128).max //todo: change after risk analysis
         );
+
+        uniswapV3PricingModule.addAsset(DeployAddresses.comp_base);
+        uniswapV3PricingModule.addAsset(DeployAddresses.dai_base);
+        uniswapV3PricingModule.addAsset(DeployAddresses.weth_base);
+        uniswapV3PricingModule.addAsset(DeployAddresses.usdc_base);
+        uniswapV3PricingModule.addAsset(DeployAddresses.cbeth_base);
+        uniswapV3PricingModule.addAsset(DeployAddresses.reth_base);
+
+        PricingModule.RiskVarInput[] memory riskVarInputs = new PricingModule.RiskVarInput[](12);
+        riskVarInputs[0] = riskVarsComp[0];
+        riskVarInputs[1] = riskVarsComp[1];
+        riskVarInputs[2] = riskVarsDai[0];
+        riskVarInputs[3] = riskVarsDai[1];
+        riskVarInputs[4] = riskVarsEth[0];
+        riskVarInputs[5] = riskVarsEth[1];
+        riskVarInputs[6] = riskVarsUsdc[0];
+        riskVarInputs[7] = riskVarsUsdc[1];
+        riskVarInputs[8] = riskVarsCbeth[0];
+        riskVarInputs[9] = riskVarsCbeth[1];
+        riskVarInputs[10] = riskVarsReth[0];
+        riskVarInputs[11] = riskVarsReth[1];
+
+        uniswapV3PricingModule.setBatchRiskVariables(riskVarInputs);
+        uniswapV3PricingModule.setExposureOfAsset(DeployAddresses.comp_base, type(uint128).max);
+        uniswapV3PricingModule.setExposureOfAsset(DeployAddresses.dai_base, type(uint128).max);
+        uniswapV3PricingModule.setExposureOfAsset(DeployAddresses.weth_base, type(uint128).max);
+        uniswapV3PricingModule.setExposureOfAsset(DeployAddresses.usdc_base, type(uint128).max);
+        uniswapV3PricingModule.setExposureOfAsset(DeployAddresses.cbeth_base, type(uint128).max);
+        uniswapV3PricingModule.setExposureOfAsset(DeployAddresses.reth_base, type(uint128).max);
 
         factory.setNewAccountInfo(address(mainRegistry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);
