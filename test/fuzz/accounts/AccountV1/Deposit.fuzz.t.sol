@@ -107,6 +107,43 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_deposit_ERC20WithId(uint256 id, uint128 amount) public {
+        amount = uint128(bound(amount, 1, type(uint128).max));
+        id = bound(id, 1, type(uint256).max);
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(mockERC20.token1);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = id;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amount;
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert("A_D: ERC20 Id");
+        accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_deposit_ERC721WithAmount(uint8 id, uint128 amount) public {
+        amount = uint128(bound(amount, 2, type(uint128).max));
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(mockERC721.nft1);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = id;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amount;
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert("A_D: ERC721 amount");
+        accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_deposit_UnknownAsset(address asset, uint256 id, uint256 amount) public {
         vm.assume(asset != address(mockERC20.stable1));
         vm.assume(asset != address(mockERC20.stable2));

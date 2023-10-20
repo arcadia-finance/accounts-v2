@@ -66,23 +66,6 @@ contract ProcessDirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721P
         assertEq(actualExposure, 0);
     }
 
-    function testFuzz_Revert_processDirectDeposit_NotOne(uint256 assetId, uint256 amount) public {
-        vm.assume(amount != 1); //Not in range
-        vm.prank(users.creatorAddress);
-        floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, 1
-        );
-
-        vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PM721_PDD: Amount not 1");
-        floorERC721PricingModule.processDirectDeposit(address(mockERC721.nft2), assetId, amount);
-        vm.stopPrank();
-
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft2)));
-        (, uint128 actualExposure) = floorERC721PricingModule.exposure(assetKey);
-        assertEq(actualExposure, 0);
-    }
-
     function testFuzz_Success_processDirectDeposit(uint256 assetId) public {
         vm.prank(users.creatorAddress);
         floorERC721PricingModule.addAsset(

@@ -606,6 +606,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         for (uint256 i; i < assetAddressesLength;) {
             if (assetAmounts[i] == 0) {
                 //Skip if amount is 0 to prevent storing addresses that have 0 balance.
+                //ToDo silent fail or should we revert here?
                 unchecked {
                     ++i;
                 }
@@ -613,8 +614,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
             }
 
             if (assetTypes[i] == 0) {
+                require(assetIds[i] == 0, "A_D: ERC20 Id");
                 _depositERC20(from, assetAddresses[i], assetAmounts[i]);
             } else if (assetTypes[i] == 1) {
+                require(assetAmounts[i] == 1, "A_D: ERC721 amount");
                 _depositERC721(from, assetAddresses[i], assetIds[i]);
             } else if (assetTypes[i] == 2) {
                 _depositERC1155(from, assetAddresses[i], assetIds[i], assetAmounts[i]);
@@ -690,8 +693,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
             }
 
             if (assetTypes[i] == 0) {
+                require(assetIds[i] == 0, "A_W: ERC20 Id");
                 _withdrawERC20(to, assetAddresses[i], assetAmounts[i]);
             } else if (assetTypes[i] == 1) {
+                require(assetAmounts[i] == 1, "A_W: ERC721 amount");
                 _withdrawERC721(to, assetAddresses[i], assetIds[i]);
             } else if (assetTypes[i] == 2) {
                 _withdrawERC1155(to, assetAddresses[i], assetIds[i], assetAmounts[i]);
