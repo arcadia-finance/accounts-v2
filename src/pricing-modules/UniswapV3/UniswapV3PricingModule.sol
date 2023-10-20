@@ -4,12 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { DerivedPricingModule } from "../AbstractDerivedPricingModule.sol";
+import { DerivedPricingModule, FixedPointMathLib, IMainRegistry } from "../AbstractDerivedPricingModule.sol";
 import { FixedPoint96 } from "./libraries/FixedPoint96.sol";
 import { FixedPoint128 } from "./libraries/FixedPoint128.sol";
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { FullMath } from "./libraries/FullMath.sol";
-import { IMainRegistry } from "../interfaces/IMainRegistry.sol";
 import { INonfungiblePositionManager } from "./interfaces/INonfungiblePositionManager.sol";
 import { IPricingModule } from "../../interfaces/IPricingModule.sol";
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
@@ -90,13 +88,13 @@ contract UniswapV3PricingModule is DerivedPricingModule {
      * but a different id.
      */
     function _addAsset(uint256 assetId) internal {
-        require(assetId <= type(uint96).max, "PMUV3_AA: Id to large");
+        require(assetId <= type(uint96).max, "PMUV3_AA: Id too large");
 
         (,, address token0, address token1,,,, uint128 liquidity,,,,) =
             INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
 
         // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
-        // deposit functions and their any deposit of non-allowed underlying assets will revert.
+        // deposit functions and there any deposit of non-allowed underlying assets will revert.
         require(liquidity > 0, "PMUV3_AA: 0 liquidity");
 
         assetToLiquidity[assetId] = liquidity;
@@ -156,7 +154,7 @@ contract UniswapV3PricingModule is DerivedPricingModule {
         underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
 
         if (underlyingAssetKeys.length == 0) {
-            // Only used as an off-chain view function to return the value of a non deposited Liquidity Position.
+            // Only used as an off-chain view function by getValue() to return the value of a non deposited Liquidity Position.
             (, uint256 assetId) = _getAssetFromKey(assetKey);
             (,, address token0, address token1,,,,,,,,) =
                 INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
@@ -168,7 +166,7 @@ contract UniswapV3PricingModule is DerivedPricingModule {
     }
 
     /**
-     * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
+     * @notice Calculates for a given asset id the corresponding amount(s) of underlying asset(s).
      * @param assetKey The unique identifier of the asset.
      * param assetAmount The amount of the asset, in the decimal precision of the Asset.
      * param underlyingAssetKeys The unique identifiers of the underlying assets.

@@ -4,15 +4,14 @@
  */
 pragma solidity 0.8.19;
 
-import { DerivedPricingModule } from "./AbstractDerivedPricingModule.sol";
+import { DerivedPricingModule, IMainRegistry } from "./AbstractDerivedPricingModule.sol";
 import { IERC4626 } from "../interfaces/IERC4626.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 
 /**
  * @title Sub-registry for Standard ERC4626 tokens
  * @author Pragma Labs
  * @notice The StandardERC4626Registry stores pricing logic and basic information for ERC4626 tokens for which the underlying assets have direct price feed.
- * @dev No end-user should directly interact with the StandardERC4626Registry, only the Main-registry, Oracle-Hub or the contract owner
+ * @dev No end-user should directly interact with the StandardERC4626Registry, only the Main-registry or the contract owner
  */
 contract StandardERC4626PricingModule is DerivedPricingModule {
     /* //////////////////////////////////////////////////////////////
@@ -115,7 +114,7 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
         underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
 
         if (underlyingAssetKeys.length == 0) {
-            // Only used as an off-chain view function to return the value of a non deposited Liquidity Position.
+            // Only used as an off-chain view function by getValue() to return the value of a non deposited ERC4626.
             (address asset,) = _getAssetFromKey(assetKey);
             address underlyingAsset = address(IERC4626(asset).asset());
 

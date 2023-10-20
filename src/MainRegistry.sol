@@ -407,6 +407,15 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
                           PRICING LOGIC
     /////////////////////////////////////////////////////////////// */
 
+    /**
+     * @notice Calculates the usd value of an asset.
+     * @param getValueInput A Struct with the input variables.
+     * - asset: The contract address of the asset.
+     * - assetId: The Id of the asset.
+     * - assetAmount: The amount of assets.
+     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * @return usdValue The value of the asset denominated in USD, with 18 Decimals precision.
+     */
     function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256 usdValue) {
         // Fetch the Value and the risk variables in the PricingModule.
         (usdValue,,) =

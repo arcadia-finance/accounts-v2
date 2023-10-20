@@ -4,9 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { DerivedPricingModule } from "./AbstractDerivedPricingModule.sol";
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { DerivedPricingModule, FixedPointMathLib, IMainRegistry } from "./AbstractDerivedPricingModule.sol";
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
 import { PRBMath } from "../libraries/PRBMath.sol";
@@ -16,7 +14,7 @@ import { PricingModule } from "./AbstractPricingModule.sol";
  * @title Pricing-Module for Uniswap V2 LP tokens
  * @author Pragma Labs
  * @notice The UniswapV2PricingModule stores pricing logic and basic information for Uniswap V2 LP tokens
- * @dev No end-user should directly interact with the UniswapV2PricingModule, only the Main-registry, Oracle-Hub or the contract owner
+ * @dev No end-user should directly interact with the UniswapV2PricingModule, only the Main-registry or the contract owner
  * @dev Most logic in this contract is a modifications of
  *      https://github.com/Uniswap/v2-periphery/blob/master/contracts/libraries/UniswapV2LiquidityMathLibrary.sol#L23
  */
@@ -157,7 +155,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
 
         if (underlyingAssetKeys.length == 0) {
-            // Only used as an off-chain view function to return the value of a non deposited Liquidity Position.
+            // Only used as an off-chain view function by getValue() to return the value of a non deposited Liquidity Position.
             (address asset,) = _getAssetFromKey(assetKey);
             address token0 = IUniswapV2Pair(asset).token0();
             address token1 = IUniswapV2Pair(asset).token1();

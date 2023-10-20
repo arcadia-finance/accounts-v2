@@ -5,8 +5,7 @@
 pragma solidity 0.8.19;
 
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IPricingModule } from "../interfaces/IPricingModule.sol";
-import { PricingModule } from "./AbstractPricingModule.sol";
+import { PricingModule, IPricingModule } from "./AbstractPricingModule.sol";
 
 /**
  * @title Primary Pricing Module.

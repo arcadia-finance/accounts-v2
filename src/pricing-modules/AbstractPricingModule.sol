@@ -13,8 +13,6 @@ import { RiskConstants } from "../libraries/RiskConstants.sol";
  * @title Abstract Pricing Module
  * @author Pragma Labs
  * @notice Abstract contract with the minimal implementation of a Pricing Module.
- * @dev No end-user should directly interact with Pricing Module, only the Main Registry, Oracle-Hub
- * or the contract owner.
  */
 abstract contract PricingModule is Owned, IPricingModule {
     /* //////////////////////////////////////////////////////////////

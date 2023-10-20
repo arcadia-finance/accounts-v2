@@ -36,7 +36,7 @@ contract AddAsset_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), tokenId, position);
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("PMUV3_AA: Id to large");
+        vm.expectRevert("PMUV3_AA: Id too large");
         uniV3PricingModule.addAsset(tokenId);
         vm.stopPrank();
     }
