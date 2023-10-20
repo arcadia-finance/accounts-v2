@@ -4,15 +4,16 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
 
-import { AccountV2 } from "../.././utils/mocks/AccountV2.sol";
-import { AccountVariableVersion } from "../.././utils/mocks/AccountVariableVersion.sol";
+import { AccountV2 } from "../../utils/mocks/AccountV2.sol";
+import { AccountVariableVersion } from "../../utils/mocks/AccountVariableVersion.sol";
+import { Constants } from "../../utils/Constants.sol";
 import { Factory } from "../../../src/Factory.sol";
 import { MainRegistry, MainRegistryExtension } from "../../utils/Extensions.sol";
 
 /**
- * @notice Fuzz tests for the "setNewAccountInfo" of contract "Factory".
+ * @notice Fuzz tests for the function "setNewAccountInfo" of contract "Factory".
  */
 contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

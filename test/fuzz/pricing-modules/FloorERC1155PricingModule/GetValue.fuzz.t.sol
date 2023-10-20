@@ -4,14 +4,15 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModule.fuzz.t.sol";
+import { FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModule.fuzz.t.sol";
 
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
+import { Constants } from "../../../utils/Constants.sol";
 import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**
- * @notice Fuzz tests for the "getValue" of contract "FloorERC1155PricingModule".
+ * @notice Fuzz tests for the function "getValue" of contract "FloorERC1155PricingModule".
  */
 contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

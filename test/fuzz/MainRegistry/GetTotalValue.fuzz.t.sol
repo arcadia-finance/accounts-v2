@@ -4,15 +4,16 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
+import { MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
-import { PricingModule } from "../../../src/pricing-modules/AbstractPricingModule.sol";
-import { ArcadiaOracle } from "../.././utils/mocks/ArcadiaOracle.sol";
-import { ERC20Mock } from "../.././utils/mocks/ERC20Mock.sol";
+import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
+import { Constants } from "../../utils/Constants.sol";
+import { ERC20Mock } from "../../utils/mocks/ERC20Mock.sol";
 import { OracleHub } from "../../../src/OracleHub.sol";
+import { PricingModule } from "../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
- * @notice Fuzz tests for the "getTotalValue" of contract "MainRegistry".
+ * @notice Fuzz tests for the function "getTotalValue" of contract "MainRegistry".
  */
 contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
+import { UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
@@ -18,7 +18,7 @@ import { LiquidityAmounts } from "../../../../src/pricing-modules/UniswapV3/libr
 import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
- * @notice Fuzz tests for the "processIndirectDeposit" of contract "UniswapV3PricingModule".
+ * @notice Fuzz tests for the function "processIndirectDeposit" of contract "UniswapV3PricingModule".
  */
 contract ProcessIndirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

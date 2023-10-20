@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingModule.fuzz.t.sol";
+import { AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "_getKeyFromAsset" of contract "AbstractPricingModule".
+ * @notice Fuzz tests for the function "_getKeyFromAsset" of contract "AbstractPricingModule".
  */
 contract GetKeyFromAsset_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

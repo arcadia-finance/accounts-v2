@@ -4,12 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, UniswapV3Fixture, UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
+import { UniswapV3Fixture, UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
 
 import { UniswapV3PricingModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
- * @notice Fuzz tests for the "setProtocol" of contract "UniswapV3PricingModule".
+ * @notice Fuzz tests for the function "setProtocol" of contract "UniswapV3PricingModule".
  */
 contract SetProtocol_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

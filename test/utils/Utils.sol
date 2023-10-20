@@ -54,7 +54,7 @@ library Utils {
     }
 
     /**
-     * @dev Reverts if startPosition + replacement.length is bigger as bytecode.length.
+     * @dev Reverts if startPosition + replacement.length is bigger thanbytecode.length.
      */
     function replaceBytes(bytes memory bytecode, bytes memory replacement, uint256 startPosition)
         internal

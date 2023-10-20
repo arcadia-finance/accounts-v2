@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModule.fuzz.t.sol";
+import { FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "processDirectDeposit" of contract "FloorERC1155PricingModule".
+ * @notice Fuzz tests for the function "processDirectDeposit" of contract "FloorERC1155PricingModule".
  */
 contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

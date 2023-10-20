@@ -4,15 +4,16 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
+import { UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
+import { Constants } from "../../../utils/Constants.sol";
 import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
- * @notice Fuzz tests for the "_getUnderlyingAssetsAmounts()" of contract "UniswapV2PricingModule".
+ * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts()" of contract "UniswapV2PricingModule".
  */
 contract GetUnderlyingAssetsAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuzz_Test {
     using stdStorage for StdStorage;
@@ -45,7 +46,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV
         // And: "token0ToToken1" in "_computeProfitMaximizingTrade" does not overflow (unreasonable value + reserve for same token).
         reserve0 = bound(reserve0, 1, type(uint256).max / (reserve1 * 10 ** (18 - Constants.tokenOracleDecimals)));
 
-        // And: "totalSupply" is bigger as 0 (division by 0).
+        // And: "totalSupply" is bigger than0 (division by 0).
         totalSupply = bound(totalSupply, 1, type(uint256).max);
 
         // And: "assetAmount" is smaller or equal as "totalSupply" (invariant ERC20).

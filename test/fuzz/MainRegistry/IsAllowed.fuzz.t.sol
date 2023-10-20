@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
+import { MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "isAllowed" of contract "MainRegistry".
+ * @notice Fuzz tests for the function "isAllowed" of contract "MainRegistry".
  */
 contract IsAllowed_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AbstractPrimaryPricingModule_Fuzz_Test } from "./_AbstractPrimaryPricingModule.fuzz.t.sol";
+import { AbstractPrimaryPricingModule_Fuzz_Test } from "./_AbstractPrimaryPricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "setMaxExposureOfAsset" of contract "AbstractPrimaryPricingModule".
+ * @notice Fuzz tests for the function "setMaxExposureOfAsset" of contract "AbstractPrimaryPricingModule".
  */
 contract setMaxExposureOfAsset_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPrimaryPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Fuzz_Test, Constants } from "../Fuzz.t.sol";
 
 import { AccountV1 } from "../../../src/AccountV1.sol";
-import { ArcadiaOracle } from "../.././utils/mocks/ArcadiaOracle.sol";
+import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
 
 /**
  * @notice Common logic needed by all "MainRegistry" fuzz tests.

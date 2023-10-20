@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
@@ -13,7 +13,7 @@ import { AccountExtension } from "../../../utils/Extensions.sol";
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 
 /**
- * @notice Fuzz tests for the "withdraw" of contract "AccountV1".
+ * @notice Fuzz tests for the function "withdraw" of contract "AccountV1".
  */
 contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     using stdStorage for StdStorage;

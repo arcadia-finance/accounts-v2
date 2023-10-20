@@ -4,12 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AbstractPrimaryPricingModule_Fuzz_Test } from "./_AbstractPrimaryPricingModule.fuzz.t.sol";
+import { AbstractPrimaryPricingModule_Fuzz_Test } from "./_AbstractPrimaryPricingModule.fuzz.t.sol";
 
 import { PrimaryPricingModuleMock } from "../../../utils/mocks/PrimaryPricingModuleMock.sol";
 
 /**
- * @notice Fuzz tests for the "constructor" of contract "AbstractPrimaryPricingModule".
+ * @notice Fuzz tests for the function "constructor" of contract "AbstractPrimaryPricingModule".
  */
 contract Constructor_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPrimaryPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

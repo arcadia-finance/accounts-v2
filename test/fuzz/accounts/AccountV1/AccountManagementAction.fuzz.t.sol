@@ -4,16 +4,17 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 import { ActionData } from "../../../../src/actions/utils/ActionData.sol";
 import { ActionMultiCallV2 } from "../../../../src/actions/MultiCallV2.sol";
+import { Constants } from "../../../utils/Constants.sol";
 import { MultiActionMock } from "../../../utils/mocks/MultiActionMock.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 /**
- * @notice Fuzz tests for the "accountManagementAction" of contract "AccountV1".
+ * @notice Fuzz tests for the function "accountManagementAction" of contract "AccountV1".
  */
 contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     using stdStorage for StdStorage;

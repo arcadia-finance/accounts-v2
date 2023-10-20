@@ -4,13 +4,13 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 
 /**
- * @notice Fuzz tests for the "getCollateralValue" of contract "AccountV1".
+ * @notice Fuzz tests for the function "getCollateralValue" of contract "AccountV1".
  */
 contract GetCollateralValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

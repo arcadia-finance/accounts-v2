@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
+import { StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "_getUnderlyingAssets" of contract "StandardERC4626PricingModule".
+ * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "StandardERC4626PricingModule".
  */
 contract GetUnderlyingAssets_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

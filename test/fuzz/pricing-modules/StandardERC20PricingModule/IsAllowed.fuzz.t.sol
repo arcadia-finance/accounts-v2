@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./_StandardERC20PricingModule.fuzz.t.sol";
+import { StandardERC20PricingModule_Fuzz_Test } from "./_StandardERC20PricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "isAllowed" of contract "StandardERC20PricingModule".
+ * @notice Fuzz tests for the function "isAllowed" of contract "StandardERC20PricingModule".
  */
 contract IsAllowed_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

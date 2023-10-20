@@ -4,12 +4,15 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
+import { StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
+
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
+
+import { Constants } from "../../../utils/Constants.sol";
 import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**
- * @notice Fuzz tests for the "getValue" of contract "StandardERC4626PricingModule".
+ * @notice Fuzz tests for the function "getValue" of contract "StandardERC4626PricingModule".
  */
 contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626PricingModule_Fuzz_Test {
     using stdStorage for StdStorage;

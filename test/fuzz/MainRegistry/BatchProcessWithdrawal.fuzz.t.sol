@@ -4,12 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
+import { MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../lib/forge-std/src/Test.sol";
 
 /**
- * @notice Fuzz tests for the "batchProcessWithdrawal" of contract "MainRegistry".
+ * @notice Fuzz tests for the function "batchProcessWithdrawal" of contract "MainRegistry".
  */
 contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     using stdStorage for StdStorage;

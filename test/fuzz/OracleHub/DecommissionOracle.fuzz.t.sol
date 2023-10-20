@@ -4,8 +4,9 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, OracleHub_Fuzz_Test } from "./_OracleHub.fuzz.t.sol";
+import { OracleHub_Fuzz_Test } from "./_OracleHub.fuzz.t.sol";
 
+import { Constants } from "../../utils/Constants.sol";
 import { OracleHub } from "../../../src/OracleHub.sol";
 import { RevertingOracle } from "../../utils/mocks/RevertingOracle.sol";
 

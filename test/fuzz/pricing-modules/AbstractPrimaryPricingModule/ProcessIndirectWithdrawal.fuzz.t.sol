@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AbstractPrimaryPricingModule_Fuzz_Test } from "./_AbstractPrimaryPricingModule.fuzz.t.sol";
+import { AbstractPrimaryPricingModule_Fuzz_Test } from "./_AbstractPrimaryPricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "processIndirectWithdrawal" of contract "AbstractPrimaryPricingModule".
+ * @notice Fuzz tests for the function "processIndirectWithdrawal" of contract "AbstractPrimaryPricingModule".
  */
 contract ProcessIndirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPrimaryPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -48,7 +48,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is Abs
         uint256 exposureUpperAssetToAsset,
         uint256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given: "exposureAsset" is bigger as type(uint128).max (test-case).
+        // Given: "exposureAsset" is bigger thantype(uint128).max (test-case).
         // And: "exposureAssetLast" does not overflow.
         deltaExposureUpperAssetToAsset = bound(
             deltaExposureUpperAssetToAsset, uint256(type(uint128).max) + 1 - assetState.exposureAssetLast, INT256_MAX

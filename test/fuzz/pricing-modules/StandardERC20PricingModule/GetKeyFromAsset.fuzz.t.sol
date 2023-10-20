@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./_StandardERC20PricingModule.fuzz.t.sol";
+import { StandardERC20PricingModule_Fuzz_Test } from "./_StandardERC20PricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "_getKeyFromAsset" of contract "StandardERC20PricingModule".
+ * @notice Fuzz tests for the function "_getKeyFromAsset" of contract "StandardERC20PricingModule".
  */
 contract GetKeyFromAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

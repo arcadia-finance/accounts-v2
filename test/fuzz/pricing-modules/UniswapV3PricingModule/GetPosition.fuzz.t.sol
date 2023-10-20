@@ -4,12 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
+import { UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
 
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/NonfungiblePositionManager.sol";
 
 /**
- * @notice Fuzz tests for the "_getPosition" of contract "UniswapV3PricingModule".
+ * @notice Fuzz tests for the function "_getPosition" of contract "UniswapV3PricingModule".
  */
 contract GetPosition_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

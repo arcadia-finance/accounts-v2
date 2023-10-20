@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AbstractPrimaryPricingModule_Fuzz_Test } from "./_AbstractPrimaryPricingModule.fuzz.t.sol";
+import { AbstractPrimaryPricingModule_Fuzz_Test } from "./_AbstractPrimaryPricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "processIndirectDeposit" of contract "AbstractPrimaryPricingModule".
+ * @notice Fuzz tests for the function "processIndirectDeposit" of contract "AbstractPrimaryPricingModule".
  */
 contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPrimaryPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -54,7 +54,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
             bound(deltaExposureUpperAssetToAsset, 1, INT256_MAX - assetState.exposureAssetLast);
         uint256 expectedExposure = assetState.exposureAssetLast + deltaExposureUpperAssetToAsset;
 
-        // And: "exposureAsset" is bigger as "exposureAssetMax" (test-case).
+        // And: "exposureAsset" is bigger than"exposureAssetMax" (test-case).
         assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, 0, expectedExposure - 1));
 
         // And: State is persisted.
