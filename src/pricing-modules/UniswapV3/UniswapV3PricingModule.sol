@@ -229,7 +229,7 @@ contract UniswapV3PricingModule is DerivedPricingModule {
             (,, token0, token1,, tickLower, tickUpper,,,,,) =
                 INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
         } else {
-            // Only used as an off-chain view function to return the value of a non deposited Liquidity Position.
+            // Only used as an off-chain view function by getValue() to return the value of a non deposited Liquidity Position.
             (,, token0, token1,, tickLower, tickUpper, liquidity,,,,) =
                 INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
         }
