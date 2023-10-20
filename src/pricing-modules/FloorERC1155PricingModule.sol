@@ -34,7 +34,6 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice A Pricing Module must always be initialised with the address of the Main-Registry and of the Oracle-Hub.
      * @param mainRegistry_ The address of the Main-registry.
      * @param oracleHub_ The address of the Oracle-Hub.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC1155 tokens is 2.

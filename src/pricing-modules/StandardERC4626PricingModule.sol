@@ -26,7 +26,6 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice A Sub-Registry must always be initialised with the address of the Main-Registry and of the Oracle-Hub.
      * @param mainRegistry_ The address of the Main-registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */

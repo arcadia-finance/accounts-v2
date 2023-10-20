@@ -8,7 +8,6 @@ import { DerivedPricingModule, FixedPointMathLib, IMainRegistry } from "./Abstra
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
 import { PRBMath } from "../libraries/PRBMath.sol";
-import { PricingModule } from "./AbstractPricingModule.sol";
 
 /**
  * @title Pricing-Module for Uniswap V2 LP tokens
@@ -44,7 +43,6 @@ contract UniswapV2PricingModule is DerivedPricingModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice A Pricing-Module must always be initialised with the address of the Main-Registry and of the Oracle-Hub.
      * @param mainRegistry_ The address of the Main-registry.
      * @param uniswapV2Factory_ The factory for Uniswap V2 pairs.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
