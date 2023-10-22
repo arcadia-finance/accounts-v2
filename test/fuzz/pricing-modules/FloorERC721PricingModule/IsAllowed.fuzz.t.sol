@@ -21,38 +21,49 @@ contract IsAllowed_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModul
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_isAllowed_Positive() public {
-        // Given: All necessary contracts deployed on setup
+    function testFuzz_Success_isAllowed_Positive(uint96 assetId, uint96 idRangeStart, uint96 idRangeEnd) public {
+        idRangeEnd = uint96(bound(idRangeEnd, idRangeStart, type(uint96).max));
+        assetId = uint96(bound(assetId, idRangeStart, idRangeEnd));
+
         vm.prank(users.creatorAddress);
-        // When: users.creatorAddress calls addAsset
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, 9999, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
+            address(mockERC721.nft2), idRangeStart, idRangeEnd, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
 
-        // Then: address(mockERC721.nft2) should return true on isAllowed for id's 0 to 9999
-        assertTrue(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), 0));
-        assertTrue(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), 9999));
-        assertTrue(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), 5000));
+        assertTrue(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), assetId));
     }
 
-    function testFuzz_Success_isAllowed_NegativeWrongAddress(address randomAsset) public {
-        // Given: All necessary contracts deployed on setup
-        // When: input is randomAsset
-
-        // Then: isAllowed for randomAsset should return false
+    function testFuzz_Success_isAllowed_Negative_WrongAddress(address randomAsset) public {
         assertFalse(floorERC721PricingModule.isAllowed(randomAsset, 0));
     }
 
-    function testFuzz_Success_isAllowed_NegativeIdOutsideRange(uint256 id) public {
-        // Given: id is lower than 10 or bigger than 1000
-        vm.assume(id < 10 || id > 1000);
+    function testFuzz_Success_isAllowed_Negative_IdBelowRange(uint96 assetId, uint96 idRangeStart, uint96 idRangeEnd)
+        public
+    {
+        idRangeStart = uint96(bound(idRangeStart, 1, type(uint96).max));
+        idRangeEnd = uint96(bound(idRangeEnd, idRangeStart, type(uint96).max));
+        assetId = uint96(bound(assetId, 0, idRangeStart - 1));
+
         vm.prank(users.creatorAddress);
-        // When: users.creatorAddress calls addAsset
         floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 10, 999, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
+            address(mockERC721.nft2), idRangeStart, idRangeEnd, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
 
-        // Then: isAllowed for address(mockERC721.nft2) should return false
-        assertFalse(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), id));
+        assertFalse(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), assetId));
+    }
+
+    function testFuzz_Success_isAllowed_Negative_IdAboveRange(uint96 assetId, uint96 idRangeStart, uint96 idRangeEnd)
+        public
+    {
+        idRangeStart = uint96(bound(idRangeStart, 0, type(uint96).max - 1));
+        idRangeEnd = uint96(bound(idRangeEnd, idRangeStart, type(uint96).max - 1));
+        assetId = uint96(bound(assetId, idRangeEnd + 1, type(uint96).max));
+
+        vm.prank(users.creatorAddress);
+        floorERC721PricingModule.addAsset(
+            address(mockERC721.nft2), idRangeStart, idRangeEnd, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
+        );
+
+        assertFalse(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), assetId));
     }
 }
