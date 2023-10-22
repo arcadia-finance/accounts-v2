@@ -362,7 +362,7 @@ abstract contract DerivedPricingModule is PricingModule {
         uint256 usdExposureProtocolLast = usdExposureProtocol;
 
         // Update usdExposureProtocolLast.
-        // ToDo: also in else case a deposit should be blocked if final exposure is bigger thanmaxExposure?.
+        // ToDo: also in else case a deposit should be blocked if final exposure is bigger than maxExposure?.
         if (usdValueExposureAsset >= usdValueExposureAssetLast) {
             require(
                 usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast) <= maxUsdExposureProtocol,
