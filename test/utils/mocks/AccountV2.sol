@@ -24,7 +24,7 @@ import { AccountStorageV2 } from "./AccountStorageV2.sol";
  * Users can take out a credit line against the single denominated value.
  * Ensure your total value denomination remains above the liquidation threshold, or risk being liquidated!
  * @dev A Account is a smart contract that will contain multiple assets.
- * Using getValue(<baseCurrency>), the Account returns the combined total value of all (whitelisted) assets the Account contains.
+ * Using getValue(<baseCurrency>), the Account returns the combined total value of all (allowed) assets the Account contains.
  * Integrating this Account as means of collateral management for your own protocol that requires collateral is encouraged.
  * Arcadia's Account functions will guarantee you a certain value of the Account.
  * For whitelists or liquidation strategies specific to your protocol, contact: dev at arcadia.finance

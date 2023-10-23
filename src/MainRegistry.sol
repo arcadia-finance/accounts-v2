@@ -246,7 +246,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         emit PricingModuleAdded(pricingModule);
     }
 
-    // Todo Remove, temporary Used in UNIV2 pricing modules.
+    // Todo Remove, temporary Used in UNIV3 pricing modules.
     function getPricingModuleOfAsset(address asset) public view returns (address pricingModule) {
         pricingModule = assetToAssetInformation[asset].pricingModule;
     }
@@ -309,6 +309,22 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             unchecked {
                 ++i;
             }
+        }
+    }
+
+    /**
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is allowed.
+     */
+    function isAllowed(address asset, uint256 assetId) external view returns (bool) {
+        address pricingModule = assetToAssetInformation[asset].pricingModule;
+
+        if (pricingModule == address(0)) {
+            return false;
+        } else {
+            return IPricingModule(assetToAssetInformation[asset].pricingModule).isAllowed(asset, assetId);
         }
     }
 
@@ -391,6 +407,15 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
                           PRICING LOGIC
     /////////////////////////////////////////////////////////////// */
 
+    /**
+     * @notice Calculates the usd value of an asset.
+     * @param getValueInput A Struct with the input variables.
+     * - asset: The contract address of the asset.
+     * - assetId: The Id of the asset.
+     * - assetAmount: The amount of assets.
+     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * @return usdValue The value of the asset denominated in USD, with 18 Decimals precision.
+     */
     function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256 usdValue) {
         // Fetch the Value and the risk variables in the PricingModule.
         (usdValue,,) =

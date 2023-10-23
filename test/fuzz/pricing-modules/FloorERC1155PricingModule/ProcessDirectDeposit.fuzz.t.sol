@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModule.fuzz.t.sol";
+import { FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "processDirectDeposit" of contract "FloorERC1155PricingModule".
+ * @notice Fuzz tests for the function "processDirectDeposit" of contract "FloorERC1155PricingModule".
  */
 contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
     }
 
     function testFuzz_Revert_processDirectDeposit_OverExposure(uint128 amount, uint128 maxExposure) public {
-        vm.assume(maxExposure > 0); //Asset is whitelisted
+        vm.assume(maxExposure > 0); //Asset is allowed
         vm.assume(amount > maxExposure);
         vm.prank(users.creatorAddress);
         floorERC1155PricingModule.addAsset(
@@ -63,7 +63,8 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
         floorERC1155PricingModule.processDirectDeposit(address(mockERC1155.sft2), assetId, amount);
         vm.stopPrank();
 
-        (, uint128 actualExposure) = floorERC1155PricingModule.exposure(address(mockERC1155.sft2));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft2)));
+        (, uint128 actualExposure) = floorERC1155PricingModule.exposure(assetKey);
         assertEq(actualExposure, 0);
     }
 
@@ -76,7 +77,8 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
         vm.prank(address(mainRegistryExtension));
         floorERC1155PricingModule.processDirectDeposit(address(mockERC1155.sft2), 1, amount);
 
-        (, uint128 actualExposure) = floorERC1155PricingModule.exposure(address(mockERC1155.sft2));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft2)));
+        (, uint128 actualExposure) = floorERC1155PricingModule.exposure(assetKey);
         assertEq(actualExposure, amount);
     }
 }

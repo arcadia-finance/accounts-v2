@@ -4,12 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, FloorERC721PricingModule_Fuzz_Test } from "./_FloorERC721PricingModule.fuzz.t.sol";
+import { FloorERC721PricingModule_Fuzz_Test } from "./_FloorERC721PricingModule.fuzz.t.sol";
 
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
- * @notice Fuzz tests for the "addAsset" of contract "FloorERC721PricingModule".
+ * @notice Fuzz tests for the function "addAsset" of contract "FloorERC721PricingModule".
  */
 contract AddAsset_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ contract AddAsset_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
-        vm.expectRevert("PM721_AA: already added");
+        vm.expectRevert("MR_AA: Asset already in mainreg");
         floorERC721PricingModule.addAsset(
             address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
@@ -62,7 +62,6 @@ contract AddAsset_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
 
         // Then: inPricingModule for address(mockERC721.nft2) should return true
         assertTrue(floorERC721PricingModule.inPricingModule(address(mockERC721.nft2)));
-        assertEq(floorERC721PricingModule.assetsInPricingModule(1), address(mockERC721.nft2)); // Previously 1 asset was added in setup.
         (uint256 idRangeStart, uint256 idRangeEnd, address[] memory oracles) =
             floorERC721PricingModule.getAssetInformation(address(mockERC721.nft2));
         assertEq(idRangeStart, 0);
@@ -70,7 +69,7 @@ contract AddAsset_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
         for (uint256 i; i < oracleNft2ToUsdArr.length; ++i) {
             assertEq(oracles[i], oracleNft2ToUsdArr[i]);
         }
-        assertTrue(floorERC721PricingModule.isAllowListed(address(mockERC721.nft2), 0));
+        assertTrue(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), 0));
     }
 
     function testFuzz_Success_addAsset_NonFullListRiskVariables() public {

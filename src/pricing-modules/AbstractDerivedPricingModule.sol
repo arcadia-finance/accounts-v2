@@ -4,11 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule } from "./AbstractPricingModule.sol";
-import { IPricingModule } from "../interfaces/IPricingModule.sol";
-import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IMainRegistry, PricingModule } from "./AbstractPricingModule.sol";
 
 /**
  * @title Derived Pricing Module.
@@ -16,30 +13,35 @@ import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
  */
 abstract contract DerivedPricingModule is PricingModule {
     using FixedPointMathLib for uint256;
+
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
+    // Identifier indicating that it is not a Primary Pricing Module:
+    // the assets being priced do have underlying assets.
     bool internal constant PRIMARY_FLAG = false;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // TODO: uint128 should be enough for USD Exposure ?
     // The maximum total exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
     uint256 public maxUsdExposureProtocol;
     // The actual exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
     uint256 public usdExposureProtocol;
 
+    // Map with the last exposures of each asset.
+    mapping(bytes32 assetKey => ExposurePerAsset exposure) internal assetToExposureLast;
+    // Map with the last exposures of each asset to its underlying assets..
+    mapping(bytes32 assetKey => mapping(bytes32 underlyingAssetKey => uint256 exposure)) internal
+        exposureAssetToUnderlyingAssetsLast;
+
+    // Struct with information about the exposure of a specific asset.
     struct ExposurePerAsset {
         uint128 exposureLast;
         uint128 usdValueExposureLast;
     }
-
-    mapping(bytes32 assetKey => ExposurePerAsset exposure) internal assetToExposureLast;
-    mapping(bytes32 assetKey => mapping(bytes32 underlyingAssetKey => uint256 exposure)) internal
-        exposureAssetToUnderlyingAssetsLast;
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
@@ -54,59 +56,144 @@ abstract contract DerivedPricingModule is PricingModule {
 
     /**
      * @param mainRegistry_ The contract address of the MainRegistry.
-     * @param oracleHub_ The contract address of the OracleHub.
      * @param assetType_ Identifier for the token standard of the asset.
      * 0 = ERC20.
      * 1 = ERC721.
      * 2 = ERC1155.
      * @param riskManager_ The address of the Risk Manager.
      */
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        PricingModule(mainRegistry_, oracleHub_, assetType_, riskManager_)
+    constructor(address mainRegistry_, uint256 assetType_, address riskManager_)
+        PricingModule(mainRegistry_, assetType_, riskManager_)
     { }
 
     /*///////////////////////////////////////////////////////////////
-                        ASSET MANAGEMENT
+                        ASSET INFORMATION
     ///////////////////////////////////////////////////////////////*/
 
-    // Unsafe cast from uint256 to uint96, use only when the id's of the assets cannot exceed type(uint92).max.
-    function _getKeyFromAsset(address asset, uint256 assetId) internal view virtual returns (bytes32 key) {
-        assembly {
-            // Shift the assetId to the left by 20 bytes (160 bits).
-            // This will remove the padding on the right.
-            // Then OR the result with the address.
-            key := or(shl(160, assetId), asset)
+    /**
+     * @notice Returns the unique identifiers of the underlying assets.
+     * @param assetKey The unique identifier of the asset.
+     * @return underlyingAssetKeys The unique identifiers of the underlying assets.
+     */
+    function _getUnderlyingAssets(bytes32 assetKey)
+        internal
+        view
+        virtual
+        returns (bytes32[] memory underlyingAssetKeys);
+
+    /**
+     * @notice Calculates the usd-rate of 10**18 underlying assets.
+     * @param underlyingAssetKeys The unique identifiers of the underlying assets.
+     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     */
+    function _getRateUnderlyingAssetsToUsd(bytes32[] memory underlyingAssetKeys)
+        internal
+        view
+        virtual
+        returns (uint256[] memory rateUnderlyingAssetsToUsd)
+    {
+        uint256 length = underlyingAssetKeys.length;
+        rateUnderlyingAssetsToUsd = new uint256[](length);
+
+        address underlyingAsset;
+        uint256 underlyingAssetId;
+        for (uint256 i; i < length;) {
+            (underlyingAsset, underlyingAssetId) = _getAssetFromKey(underlyingAssetKeys[i]);
+
+            // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
+            // sufficient precision.
+            rateUnderlyingAssetsToUsd[i] = IMainRegistry(MAIN_REGISTRY).getUsdValue(
+                GetValueInput({ asset: underlyingAsset, assetId: underlyingAssetId, assetAmount: 1e18, baseCurrency: 0 })
+            );
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
-    function _getAssetFromKey(bytes32 key) internal view virtual returns (address asset, uint256 assetId) {
-        assembly {
-            // Shift to the right by 20 bytes (160 bits) to extract the uint92 assetId.
-            assetId := shr(160, key)
-
-            // Use bitmask to extract the address from the rightmost 160 bits.
-            asset := and(key, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-        }
-    }
-
-    function _getUnderlyingAssets(bytes32 assetKey) internal view virtual returns (bytes32[] memory underlyingAssets);
+    /**
+     * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
+     * @param assetKey The unique identifier of the asset.
+     * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
+     * @param underlyingAssetKeys The unique identifiers of the underlying assets.
+     * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
+     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     */
+    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory underlyingAssetKeys)
+        internal
+        view
+        virtual
+        returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd);
 
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
-     * @param assetKey The unique identifier of the asset.
-     * @param assetAmount The amount of the asset,in the decimal precision of the Asset.
-     * @param underlyingAssetKeys The assets to which we have to get the conversion rate.
-     * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
+     * @notice Returns the usd value of an asset.
+     * @param getValueInput A Struct with the input variables.
+     * - asset: The contract address of the asset.
+     * - assetId: The Id of the asset.
+     * - assetAmount: The amount of assets.
+     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
      */
-    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory underlyingAssetKeys)
-        internal
+    function getValue(GetValueInput memory getValueInput)
+        public
         view
         virtual
-        returns (uint256[] memory underlyingAssetsAmounts);
+        override
+        returns (uint256 valueInUsd, uint256, uint256)
+    {
+        bytes32 assetKey = _getKeyFromAsset(getValueInput.asset, getValueInput.assetId);
+
+        bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+
+        (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(assetKey, getValueInput.assetAmount, underlyingAssetKeys);
+
+        uint256 length = underlyingAssetKeys.length;
+        // Check if rateToUsd for the underlying assets was already calculated in _getUnderlyingAssetsAmounts().
+        if (rateUnderlyingAssetsToUsd.length == 0) {
+            // If not, get the usd value of the underlying assets recursively.
+            address underlyingAsset;
+            uint256 underlyingAssetId;
+            for (uint256 i; i < length;) {
+                (underlyingAsset, underlyingAssetId) = _getAssetFromKey(underlyingAssetKeys[i]);
+
+                valueInUsd += IMainRegistry(MAIN_REGISTRY).getUsdValue(
+                    GetValueInput({
+                        asset: underlyingAsset,
+                        assetId: underlyingAssetId,
+                        assetAmount: underlyingAssetsAmounts[i],
+                        baseCurrency: 0
+                    })
+                );
+
+                unchecked {
+                    ++i;
+                }
+            }
+        } else {
+            // If yes, directly calculate the usdValue from the underlying amounts and values.
+            for (uint256 i; i < length;) {
+                // "rateUnderlyingAssetsToUsd" is the usd value with 18 decimals precision for 10 ** 18 tokens of Underlying Asset.
+                // To get the usd value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
+                // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
+                valueInUsd +=
+                    FixedPointMathLib.mulDivDown(underlyingAssetsAmounts[i], rateUnderlyingAssetsToUsd[i], 1e18);
+
+                unchecked {
+                    ++i;
+                }
+            }
+        }
+
+        return (valueInUsd, 0, 0);
+    }
 
     /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT
@@ -123,6 +210,10 @@ abstract contract DerivedPricingModule is PricingModule {
         emit MaxUsdExposureProtocolSet(maxUsdExposureProtocol_);
     }
 
+    /*///////////////////////////////////////////////////////////////
+                    WITHDRAWALS AND DEPOSITS
+    ///////////////////////////////////////////////////////////////*/
+
     /**
      * @notice Increases the exposure to an asset on deposit.
      * @param asset The contract address of the asset.
@@ -130,8 +221,6 @@ abstract contract DerivedPricingModule is PricingModule {
      * @param amount The amount of tokens.
      */
     function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public virtual override onlyMainReg {
-        require(assetId <= type(uint96).max);
-
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to "Asset".
@@ -153,8 +242,6 @@ abstract contract DerivedPricingModule is PricingModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
-        require(assetId <= type(uint96).max);
-
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to "Asset".
@@ -239,11 +326,12 @@ abstract contract DerivedPricingModule is PricingModule {
         bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
 
         // Get the exposure to the asset's underlying asset(s) (in the decimal precision of the underlying assets).
-        uint256[] memory exposureAssetToUnderlyingAssets =
+        (uint256[] memory exposureAssetToUnderlyingAssets,) =
             _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
 
         int256 deltaExposureAssetToUnderlyingAsset;
-        for (uint256 i; i < underlyingAssetKeys.length;) {
+        uint256 length = underlyingAssetKeys.length;
+        for (uint256 i; i < length;) {
             // Calculate the change in exposure to the underlying assets since last interaction.
             deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
                 - int256(uint256(exposureAssetToUnderlyingAssetsLast[assetKey][underlyingAssetKeys[i]]));
@@ -257,7 +345,7 @@ abstract contract DerivedPricingModule is PricingModule {
             // Pricing Modules will recursively update their respective exposures and return
             // the requested USD value to this Pricing Module.
             (address underlyingAsset, uint256 underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
-            usdValueExposureAsset += IMainRegistry(mainRegistry).getUsdValueExposureToUnderlyingAssetAfterDeposit(
+            usdValueExposureAsset += IMainRegistry(MAIN_REGISTRY).getUsdValueExposureToUnderlyingAssetAfterDeposit(
                 underlyingAsset, underlyingId, exposureAssetToUnderlyingAssets[i], deltaExposureAssetToUnderlyingAsset
             );
 
@@ -274,7 +362,7 @@ abstract contract DerivedPricingModule is PricingModule {
         uint256 usdExposureProtocolLast = usdExposureProtocol;
 
         // Update usdExposureProtocolLast.
-        // ToDo: also in else case a deposit should be blocked if final exposure is bigger as maxExposure?.
+        // ToDo: also in else case a deposit should be blocked if final exposure is bigger than maxExposure?.
         if (usdValueExposureAsset >= usdValueExposureAssetLast) {
             require(
                 usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast) <= maxUsdExposureProtocol,
@@ -304,11 +392,12 @@ abstract contract DerivedPricingModule is PricingModule {
         bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
 
         // Get the exposure to the asset's underlying asset(s) (in the decimal precision of the underlying assets).
-        uint256[] memory exposureAssetToUnderlyingAssets =
+        (uint256[] memory exposureAssetToUnderlyingAssets,) =
             _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
 
         int256 deltaExposureAssetToUnderlyingAsset;
-        for (uint256 i; i < underlyingAssetKeys.length;) {
+        uint256 length = underlyingAssetKeys.length;
+        for (uint256 i; i < length;) {
             // Calculate the change in exposure to the underlying assets since last interaction.
             deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
                 - int256(uint256(exposureAssetToUnderlyingAssetsLast[assetKey][underlyingAssetKeys[i]]));
@@ -322,7 +411,7 @@ abstract contract DerivedPricingModule is PricingModule {
             // Pricing Modules will recursively update their respective exposures and return
             // the requested USD value to this Pricing Module.
             (address underlyingAsset, uint256 underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
-            usdValueExposureAsset += IMainRegistry(mainRegistry).getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
+            usdValueExposureAsset += IMainRegistry(MAIN_REGISTRY).getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
                 underlyingAsset, underlyingId, exposureAssetToUnderlyingAssets[i], deltaExposureAssetToUnderlyingAsset
             );
 

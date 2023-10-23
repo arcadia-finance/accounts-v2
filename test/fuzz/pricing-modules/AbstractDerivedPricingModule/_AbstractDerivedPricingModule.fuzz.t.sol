@@ -7,12 +7,8 @@ pragma solidity 0.8.19;
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
-import {
-    AbstractDerivedPricingModuleExtension,
-    AbstractPrimaryPricingModuleExtension,
-    MainRegistryExtension
-} from "../../../utils/Extensions.sol";
-import { AbstractPrimaryPricingModuleExtension } from "../../../utils/Extensions.sol";
+import { DerivedPricingModuleMock } from "../../../utils/mocks/DerivedPricingModuleMock.sol";
+import { PrimaryPricingModuleMock } from "../../../utils/mocks/PrimaryPricingModuleMock.sol";
 
 /**
  * @notice Common logic needed by all "DerivedPricingModule" fuzz tests.
@@ -40,15 +36,15 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
     struct UnderlyingPricingModuleState {
         uint128 exposureAssetLast;
-        uint256 usdValueExposureToUnderlyingAsset;
+        uint256 usdValue;
     }
 
     /*////////////////////////////////////////////////////////////////
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AbstractDerivedPricingModuleExtension internal derivedPricingModule;
-    AbstractPrimaryPricingModuleExtension internal primaryPricingModule;
+    DerivedPricingModuleMock internal derivedPricingModule;
+    PrimaryPricingModuleMock internal primaryPricingModule;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -59,11 +55,9 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        derivedPricingModule =
-        new AbstractDerivedPricingModuleExtension(address(mainRegistryExtension), address(oracleHub), 0, users.creatorAddress);
+        derivedPricingModule = new DerivedPricingModuleMock(address(mainRegistryExtension), 0, users.creatorAddress);
 
-        primaryPricingModule =
-        new AbstractPrimaryPricingModuleExtension(address(mainRegistryExtension), address(oracleHub), 0, users.creatorAddress);
+        primaryPricingModule = new PrimaryPricingModuleMock(address(mainRegistryExtension), address(oracleHub), 0);
 
         mainRegistryExtension.addPricingModule(address(derivedPricingModule));
         mainRegistryExtension.addPricingModule(address(primaryPricingModule));
@@ -106,6 +100,7 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
     function setUnderlyingPricingModuleState(
         address underlyingAsset,
+        uint256 underlyingAssetId,
         UnderlyingPricingModuleState memory underlyingPMState
     ) internal {
         // Set mapping between underlying Asset and its pricing module in the Main Registry.
@@ -113,10 +108,10 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
         // Set max exposure of mocked Pricing Module for Underlying assets.
         vm.prank(users.creatorAddress);
-        primaryPricingModule.setExposureOfAsset(underlyingAsset, type(uint128).max);
+        primaryPricingModule.setMaxExposureOfAsset(underlyingAsset, underlyingAssetId, type(uint128).max);
 
-        // Mock the "usdValueExposureToUnderlyingAsset".
-        primaryPricingModule.setPrice(underlyingPMState.usdValueExposureToUnderlyingAsset);
+        // Mock the "usdValue".
+        primaryPricingModule.setUsdValue(underlyingPMState.usdValue);
     }
 
     function givenValidState(
@@ -161,14 +156,12 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
         )
     {
         // Given: "usdValueExposureToUnderlyingAsset" does not overflow.
-        underlyingPMState.usdValueExposureToUnderlyingAsset =
-            bound(underlyingPMState.usdValueExposureToUnderlyingAsset, 0, type(uint128).max);
+        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, type(uint128).max);
 
         // And: "usdValueExposureUpperAssetToAsset" does not overflow (unrealistic big values).
-        if (underlyingPMState.usdValueExposureToUnderlyingAsset != 0) {
-            exposureUpperAssetToAsset = bound(
-                exposureUpperAssetToAsset, 0, type(uint256).max / underlyingPMState.usdValueExposureToUnderlyingAsset
-            );
+        if (underlyingPMState.usdValue != 0) {
+            exposureUpperAssetToAsset =
+                bound(exposureUpperAssetToAsset, 0, type(uint256).max / underlyingPMState.usdValue);
         }
 
         // And: id's are smaller or equal to type(uint96).max.
@@ -197,13 +190,12 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
         assetState.exposureAssetToUnderlyingAsset =
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
-        if (underlyingPMState.usdValueExposureToUnderlyingAsset >= assetState.usdValueExposureAssetLast) {
+        if (underlyingPMState.usdValue >= assetState.usdValueExposureAssetLast) {
             // And: "usdExposureProtocol" does not overflow (unrealistically big).
             protocolState.usdExposureProtocolLast = bound(
                 protocolState.usdExposureProtocolLast,
                 assetState.usdValueExposureAssetLast,
-                type(uint256).max
-                    - (underlyingPMState.usdValueExposureToUnderlyingAsset - assetState.usdValueExposureAssetLast)
+                type(uint256).max - (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast)
             );
         }
 
@@ -234,9 +226,9 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
         );
 
         // And: exposure does not exceeds max exposure.
-        if (underlyingPMState.usdValueExposureToUnderlyingAsset >= assetState.usdValueExposureAssetLast) {
+        if (underlyingPMState.usdValue >= assetState.usdValueExposureAssetLast) {
             uint256 usdExposureProtocolExpected = protocolState.usdExposureProtocolLast
-                + (underlyingPMState.usdValueExposureToUnderlyingAsset - assetState.usdValueExposureAssetLast);
+                + (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast);
 
             protocolState.maxUsdExposureProtocol =
                 bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected, type(uint256).max);

@@ -4,8 +4,9 @@
  */
 pragma solidity 0.8.19;
 
-import { PrimaryPricingModule, IMainRegistry } from "./AbstractPrimaryPricingModule.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
+import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 
 /**
  * @title Pricing Module for ERC1155 tokens
@@ -15,25 +16,29 @@ import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
  * @dev No end-user should directly interact with the FloorERC1155PricingModule, only the Main-registry, Oracle-Hub or the contract owner
  */
 contract FloorERC1155PricingModule is PrimaryPricingModule {
+    /* //////////////////////////////////////////////////////////////
+                                STORAGE
+    ////////////////////////////////////////////////////////////// */
+
+    // Map asset => assetInformation.
     mapping(address => AssetInformation) public assetToInformation;
 
+    // Struct with additional information for a specific asset.
     struct AssetInformation {
         uint256 id;
         address[] oracles;
     }
 
+    /* //////////////////////////////////////////////////////////////
+                                CONSTRUCTOR
+    ////////////////////////////////////////////////////////////// */
+
     /**
-     * @notice A Pricing Module must always be initialised with the address of the Main-Registry and of the Oracle-Hub
-     * @param mainRegistry_ The address of the Main-registry
-     * @param oracleHub_ The address of the Oracle-Hub
-     * @param assetType_ Identifier for the type of asset, necessary for the deposit and withdraw logic in the Accounts.
-     * 0 = ERC20
-     * 1 = ERC721
-     * 2 = ERC1155
+     * @param mainRegistry_ The address of the Main-registry.
+     * @param oracleHub_ The address of the Oracle-Hub.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC1155 tokens is 2.
      */
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
-    { }
+    constructor(address mainRegistry_, address oracleHub_) PrimaryPricingModule(mainRegistry_, oracleHub_, 2) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -42,7 +47,7 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
     /**
      * @notice Adds a new asset to the FloorERC1155PricingModule.
      * @param asset The contract address of the asset
-     * @param id: The id of the collection
+     * @param assetId: The id of the collection
      * @param oracles An array of addresses of oracle contracts, to price the asset in USD
      * @param riskVars An array of Risk Variables for the asset
      * @param maxExposure The maximum exposure of the asset in its own decimals
@@ -54,28 +59,30 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
      */
     function addAsset(
         address asset,
-        uint256 id,
+        uint256 assetId,
         address[] calldata oracles,
         RiskVarInput[] calldata riskVars,
-        uint256 maxExposure
+        uint128 maxExposure
     ) external onlyOwner {
-        //View function, reverts in OracleHub if sequence is not correct
-        IOraclesHub(oracleHub).checkOracleSequence(oracles, asset);
+        // View function, reverts in OracleHub if sequence is not correct
+        IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
-        require(!inPricingModule[asset], "PM1155_AA: already added");
         inPricingModule[asset] = true;
-        assetsInPricingModule.push(asset);
 
-        assetToInformation[asset].id = id;
+        require(assetId <= type(uint96).max, "PM1155_AA: Invalid Id");
+        assetToInformation[asset].id = assetId;
         assetToInformation[asset].oracles = oracles;
         _setRiskVariablesForAsset(asset, riskVars);
 
-        require(maxExposure <= type(uint128).max, "PM1155_AA: Max Exposure not in limits");
-        exposure[asset].maxExposure = uint128(maxExposure);
+        exposure[_getKeyFromAsset(asset, assetId)].maxExposure = uint128(maxExposure);
 
-        //Will revert in MainRegistry if asset can't be added
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
+        /// Will revert in MainRegistry if asset was already added.
+        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                        ASSET INFORMATION
+    ///////////////////////////////////////////////////////////////*/
 
     /**
      * @notice Returns the information that is stored in the Pricing Module for a given asset
@@ -87,18 +94,14 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
         return (assetToInformation[asset].id, assetToInformation[asset].oracles);
     }
 
-    /*///////////////////////////////////////////////////////////////
-                        WHITE LIST MANAGEMENT
-    ///////////////////////////////////////////////////////////////*/
-
     /**
-     * @notice Checks for a token address and the corresponding Id if it is white-listed
+     * @notice Checks for a token address and the corresponding Id if it is allowed
      * @param asset The address of the asset
      * @param assetId The Id of the asset
-     * @return A boolean, indicating if the asset passed as input is whitelisted
+     * @return A boolean, indicating if the asset passed as input is allowed
      */
-    function isAllowListed(address asset, uint256 assetId) public view override returns (bool) {
-        if (exposure[asset].maxExposure != 0) {
+    function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
+        if (inPricingModule[asset]) {
             if (assetId == assetToInformation[asset].id) {
                 return true;
             }
@@ -108,7 +111,7 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
     }
 
     /*///////////////////////////////////////////////////////////////
-                    RISK VARIABLES MANAGEMENT
+                    WITHDRAWALS AND DEPOSITS
     ///////////////////////////////////////////////////////////////*/
 
     /**
@@ -147,19 +150,19 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the value of a certain asset, denominated in USD
-     * @param getValueInput A Struct with all the information neccessary to get the value of an asset
-     * - asset: The contract address of the asset
-     * - assetId: The Id of the asset
-     * - assetAmount: The Amount of tokens
-     * - baseCurrency: The BaseCurrency in which the value is ideally expressed
-     * @return valueInUsd The value of the asset denominated in USD with 18 Decimals precision
-     * @return collateralFactor The Collateral Factor of the asset
-     * @return liquidationFactor The Liquidation Factor of the asset
-     * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256
+     * @notice Returns the usd value of an asset.
+     * param getValueInput A Struct with the input variables.
+     * - asset: The contract address of the asset.
+     * - assetId: The Id of the asset.
+     * - assetAmount: The amount of assets.
+     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256.
      * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
-     * However no check in FloorERC1155PricingModule is necessary, since the check if the asset is whitelisted (and hence added to PricingModule)
-     * is already done in the Main-Registry.
+     * However no check in FloorERC1155PricingModule is necessary, since the check if the asset is added to the PricingModule
+     * is already done in the MainRegistry.
      */
     function getValue(GetValueInput memory getValueInput)
         public
@@ -167,7 +170,7 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        uint256 rateInUsd = IOraclesHub(oracleHub).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
+        uint256 rateInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
 
         valueInUsd = getValueInput.assetAmount * rateInUsd;
 

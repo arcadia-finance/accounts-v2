@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
+import { AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "setMaxUsdExposureProtocol" of contract "AbstractDerivedPricingModule".
+ * @notice Fuzz tests for the function "setMaxUsdExposureProtocol" of contract "AbstractDerivedPricingModule".
  */
 contract SetMaxExposure_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -35,8 +35,10 @@ contract SetMaxExposure_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
 
     function testFuzz_Success_setMaxUsdExposureProtocol(uint256 maxExposureInUsd) public {
         vm.prank(derivedPricingModule.riskManager());
+        vm.expectEmit(true, true, true, true);
+        emit MaxUsdExposureProtocolSet(maxExposureInUsd);
         derivedPricingModule.setMaxUsdExposureProtocol(maxExposureInUsd);
 
-        assert(derivedPricingModule.maxUsdExposureProtocol() == maxExposureInUsd);
+        assertEq(derivedPricingModule.maxUsdExposureProtocol(), maxExposureInUsd);
     }
 }

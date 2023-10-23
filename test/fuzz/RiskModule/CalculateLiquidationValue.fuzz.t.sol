@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, RiskModule_Fuzz_Test } from "./_RiskModule.fuzz.t.sol";
+import { RiskModule_Fuzz_Test } from "./_RiskModule.fuzz.t.sol";
 
 import { RiskModule } from "../../../src/RiskModule.sol";
 import { RiskConstants } from "../../../src/libraries/RiskConstants.sol";

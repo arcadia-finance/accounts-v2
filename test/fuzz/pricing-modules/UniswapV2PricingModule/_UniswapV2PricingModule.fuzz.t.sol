@@ -9,14 +9,14 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
-import { ArcadiaOracle } from "../../.././utils/mocks/ArcadiaOracle.sol";
-import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
+import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
+import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
-import { UniswapV2PairMock } from "../../.././utils/mocks/UniswapV2PairMock.sol";
+import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2PairMock.sol";
 import { UniswapV2PricingModuleExtension } from "../../../utils/Extensions.sol";
-import { UniswapV2FactoryMock } from "../../.././utils/mocks/UniswapV2FactoryMock.sol";
+import { UniswapV2FactoryMock } from "../../../utils/mocks/UniswapV2FactoryMock.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV2PricingModule" fuzz tests.
@@ -69,8 +69,6 @@ abstract contract UniswapV2PricingModule_Fuzz_Test is Fuzz_Test {
         vm.startPrank(users.creatorAddress);
         uniswapV2PricingModule = new UniswapV2PricingModuleExtension(
             address(mainRegistryExtension),
-            address(oracleHub),
-            0,
             address(uniswapV2Factory)
         );
         mainRegistryExtension.addPricingModule(address(uniswapV2PricingModule));

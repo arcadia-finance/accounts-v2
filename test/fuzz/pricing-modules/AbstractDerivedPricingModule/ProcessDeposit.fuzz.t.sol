@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
+import { AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "_processDeposit" of contract "AbstractDerivedPricingModule".
+ * @notice Fuzz tests for the function "_processDeposit" of contract "AbstractDerivedPricingModule".
  */
 contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -35,19 +35,17 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
         // And: delta "usdValueExposureAsset" is positive (test-case).
-        underlyingPMState.usdValueExposureToUnderlyingAsset = bound(
-            underlyingPMState.usdValueExposureToUnderlyingAsset, assetState.usdValueExposureAssetLast, type(uint128).max
-        );
+        underlyingPMState.usdValue =
+            bound(underlyingPMState.usdValue, assetState.usdValueExposureAssetLast, type(uint128).max);
 
         // And: "usdExposureProtocol" does not overflow (unrealistically big).
         protocolState.usdExposureProtocolLast = bound(
             protocolState.usdExposureProtocolLast,
             assetState.usdValueExposureAssetLast,
-            type(uint256).max
-                - (underlyingPMState.usdValueExposureToUnderlyingAsset - assetState.usdValueExposureAssetLast)
+            type(uint256).max - (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast)
         );
-        uint256 usdExposureProtocolExpected = protocolState.usdExposureProtocolLast
-            + (underlyingPMState.usdValueExposureToUnderlyingAsset - assetState.usdValueExposureAssetLast);
+        uint256 usdExposureProtocolExpected =
+            protocolState.usdExposureProtocolLast + (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast);
 
         // And: exposure exceeds max exposure.
         vm.assume(usdExposureProtocolExpected > 0);
@@ -57,7 +55,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // When: "_processDeposit" is called.
         // Then: The transaction reverts with "ADPM_PD: Exposure not in limits".
@@ -80,19 +78,17 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
         // And: delta "usdValueExposureAsset" is positive (test-case).
-        underlyingPMState.usdValueExposureToUnderlyingAsset = bound(
-            underlyingPMState.usdValueExposureToUnderlyingAsset, assetState.usdValueExposureAssetLast, type(uint128).max
-        );
+        underlyingPMState.usdValue =
+            bound(underlyingPMState.usdValue, assetState.usdValueExposureAssetLast, type(uint128).max);
 
         // And: "usdExposureProtocol" does not overflow (unrealistically big).
         protocolState.usdExposureProtocolLast = bound(
             protocolState.usdExposureProtocolLast,
             assetState.usdValueExposureAssetLast,
-            type(uint256).max
-                - (underlyingPMState.usdValueExposureToUnderlyingAsset - assetState.usdValueExposureAssetLast)
+            type(uint256).max - (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast)
         );
-        uint256 usdExposureProtocolExpected = protocolState.usdExposureProtocolLast
-            + (underlyingPMState.usdValueExposureToUnderlyingAsset - assetState.usdValueExposureAssetLast);
+        uint256 usdExposureProtocolExpected =
+            protocolState.usdExposureProtocolLast + (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast);
 
         // And: exposure does not exceeds max exposure.
         protocolState.maxUsdExposureProtocol =
@@ -101,7 +97,7 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // And: Underlying Asset is properly added to an underlying Pricing Module.
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
@@ -123,10 +119,22 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 
         // And: Transaction returns correct "usdValueExposureAsset".
-        assertEq(usdValueExposureAsset, underlyingPMState.usdValueExposureToUnderlyingAsset);
+        assertEq(usdValueExposureAsset, underlyingPMState.usdValue);
+
+        // And: "exposureAssetToUnderlyingAssetsLast" is updated.
+        bytes32 UnderlyingAssetKey =
+            derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
+        assertEq(
+            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(assetKey, UnderlyingAssetKey),
+            assetState.exposureAssetToUnderlyingAsset
+        );
+
+        // And: "usdValueExposureAssetLast" is updated.
+        (, uint256 usdValueExposureLast) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        assertEq(usdValueExposureLast, underlyingPMState.usdValue);
 
         // And: "usdExposureProtocol" is updated.
-        assertEq(usdExposureProtocolExpected, derivedPricingModule.usdExposureProtocol());
+        assertEq(derivedPricingModule.usdExposureProtocol(), usdExposureProtocolExpected);
     }
 
     function testFuzz_Success_processDeposit_NegativeDeltaUsdExposure_NoUnderflow(
@@ -144,22 +152,21 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
 
         // And: delta "usdValueExposureAsset" is negative (test-case).
         vm.assume(assetState.usdValueExposureAssetLast > 0);
-        underlyingPMState.usdValueExposureToUnderlyingAsset =
-            bound(underlyingPMState.usdValueExposureToUnderlyingAsset, 0, assetState.usdValueExposureAssetLast - 1);
+        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.usdValueExposureAssetLast - 1);
 
         // And: "usdExposureProtocol" does not underflow (test-case).
         protocolState.usdExposureProtocolLast = bound(
             protocolState.usdExposureProtocolLast,
-            assetState.usdValueExposureAssetLast - underlyingPMState.usdValueExposureToUnderlyingAsset,
+            assetState.usdValueExposureAssetLast - underlyingPMState.usdValue,
             type(uint256).max
         );
-        uint256 usdExposureProtocolExpected = protocolState.usdExposureProtocolLast
-            - (assetState.usdValueExposureAssetLast - underlyingPMState.usdValueExposureToUnderlyingAsset);
+        uint256 usdExposureProtocolExpected =
+            protocolState.usdExposureProtocolLast - (assetState.usdValueExposureAssetLast - underlyingPMState.usdValue);
 
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // And: Underlying Asset is properly added to an underlying Pricing Module.
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
@@ -181,10 +188,22 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
-        assertEq(usdValueExposureAsset, underlyingPMState.usdValueExposureToUnderlyingAsset);
+        assertEq(usdValueExposureAsset, underlyingPMState.usdValue);
+
+        // And: "exposureAssetToUnderlyingAssetsLast" is updated.
+        bytes32 UnderlyingAssetKey =
+            derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
+        assertEq(
+            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(assetKey, UnderlyingAssetKey),
+            assetState.exposureAssetToUnderlyingAsset
+        );
+
+        // And: "usdValueExposureAssetLast" is updated.
+        (, uint256 usdValueExposureLast) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        assertEq(usdValueExposureLast, underlyingPMState.usdValue);
 
         // And: "usdExposureProtocol" is updated.
-        assertEq(usdExposureProtocolExpected, derivedPricingModule.usdExposureProtocol());
+        assertEq(derivedPricingModule.usdExposureProtocol(), usdExposureProtocolExpected);
     }
 
     function testFuzz_Success_processDeposit_NegativeDeltaUsdExposure_Underflow(
@@ -202,20 +221,17 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
 
         // And: delta "usdValueExposureAsset" is negative (test-case).
         vm.assume(assetState.usdValueExposureAssetLast > 0);
-        underlyingPMState.usdValueExposureToUnderlyingAsset =
-            bound(underlyingPMState.usdValueExposureToUnderlyingAsset, 0, assetState.usdValueExposureAssetLast - 1);
+        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.usdValueExposureAssetLast - 1);
 
         // And: "usdExposureProtocol" does underflow (test-case).
         protocolState.usdExposureProtocolLast = bound(
-            protocolState.usdExposureProtocolLast,
-            0,
-            assetState.usdValueExposureAssetLast - underlyingPMState.usdValueExposureToUnderlyingAsset
+            protocolState.usdExposureProtocolLast, 0, assetState.usdValueExposureAssetLast - underlyingPMState.usdValue
         );
 
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // And: Underlying Asset is properly added to an underlying Pricing Module.
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
@@ -237,9 +253,21 @@ contract ProcessDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerive
         uint256 usdValueExposureAsset = derivedPricingModule.processDeposit(assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
-        assertEq(usdValueExposureAsset, underlyingPMState.usdValueExposureToUnderlyingAsset);
+        assertEq(usdValueExposureAsset, underlyingPMState.usdValue);
+
+        // And: "exposureAssetToUnderlyingAssetsLast" is updated.
+        bytes32 UnderlyingAssetKey =
+            derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
+        assertEq(
+            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(assetKey, UnderlyingAssetKey),
+            assetState.exposureAssetToUnderlyingAsset
+        );
+
+        // And: "usdValueExposureAssetLast" is updated.
+        (, uint256 usdValueExposureLast) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        assertEq(usdValueExposureLast, underlyingPMState.usdValue);
 
         // And: "usdExposureProtocol" is updated.
-        assertEq(0, derivedPricingModule.usdExposureProtocol());
+        assertEq(derivedPricingModule.usdExposureProtocol(), 0);
     }
 }

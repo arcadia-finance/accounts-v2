@@ -4,10 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+
+import { Constants } from "../../../utils/Constants.sol";
 
 /**
- * @notice Fuzz tests for the "liquidateAccount" of contract "AccountV1".
+ * @notice Fuzz tests for the function "liquidateAccount" of contract "AccountV1".
  */
 contract LiquidateAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

@@ -4,13 +4,13 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 
 /**
- * @notice Fuzz tests for the "getCollateralValue" of contract "AccountV1".
+ * @notice Fuzz tests for the function "getCollateralValue" of contract "AccountV1".
  */
 contract GetCollateralValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -28,10 +28,7 @@ contract GetCollateralValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getCollateralValue(uint256 spotValue, uint8 collateralFactor) public {
-        // No overflow of riskModule:
-        spotValue = bound(spotValue, 0, type(uint256).max / RiskConstants.RISK_VARIABLES_UNIT);
-
+    function testFuzz_Success_getCollateralValue(uint128 spotValue, uint8 collateralFactor) public {
         // Set Spot Value of assets (value of "stable1" is 1:1 the amount of "stable1" tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, spotValue);
 
@@ -46,7 +43,7 @@ contract GetCollateralValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.prank(users.creatorAddress);
         erc20PricingModule.setBatchRiskVariables(riskVarInput);
 
-        uint256 expectedValue = spotValue * collateralFactor / RiskConstants.RISK_VARIABLES_UNIT;
+        uint256 expectedValue = uint256(spotValue) * collateralFactor / RiskConstants.RISK_VARIABLES_UNIT;
 
         uint256 actualValue = accountExtension.getCollateralValue();
 

@@ -4,11 +4,11 @@
  */
 pragma solidity 0.8.19;
 
-import { PrimaryPricingModule, IPricingModule } from "./AbstractPrimaryPricingModule.sol";
-import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
-import { IERC20 } from "../interfaces/IERC20.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
+import { IERC20 } from "../interfaces/IERC20.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
+import { IPricingModule, PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
 
 /**
@@ -41,14 +41,9 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
     /**
      * @param mainRegistry_ The contract address of the MainRegistry.
      * @param oracleHub_ The contract address of the OracleHub.
-     * @param assetType_ Identifier for the token standard of the asset.
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender)
-    { }
+    constructor(address mainRegistry_, address oracleHub_) PrimaryPricingModule(mainRegistry_, oracleHub_, 0) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -70,12 +65,10 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         external
         onlyOwner
     {
-        require(!inPricingModule[asset], "PM20_AA: already added");
         // View function, reverts in OracleHub if sequence is not correct.
-        IOraclesHub(oracleHub).checkOracleSequence(oracles, asset);
+        IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
         inPricingModule[asset] = true;
-        assetsInPricingModule.push(asset);
 
         uint256 assetUnit = 10 ** IERC20(asset).decimals();
         require(assetUnit <= 1e18, "PM20_AA: Maximal 18 decimals");
@@ -85,12 +78,12 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         assetToInformation[asset].oracles = oracles;
         _setRiskVariablesForAsset(asset, riskVars);
 
-        exposure[asset].maxExposure = maxExposure;
+        exposure[_getKeyFromAsset(asset, 0)].maxExposure = maxExposure;
+
+        // Will revert in MainRegistry if asset was already added.
+        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
 
         emit MaxExposureSet(asset, maxExposure);
-
-        // Will revert in MainRegistry if asset can't be added.
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
     }
 
     /**
@@ -109,9 +102,9 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         uint256 oraclesLength = oldOracles.length;
         for (uint256 i; i < oraclesLength;) {
             if (oldOracles[i] == decommissionedOracle) {
-                require(!IOraclesHub(oracleHub).isActive(oldOracles[i]), "PM20_SO: Oracle still active");
+                require(!IOraclesHub(ORACLE_HUB).isActive(oldOracles[i]), "PM20_SO: Oracle still active");
                 // View function, reverts in OracleHub if sequence is not correct.
-                IOraclesHub(oracleHub).checkOracleSequence(newOracles, asset);
+                IOraclesHub(ORACLE_HUB).checkOracleSequence(newOracles, asset);
                 assetToInformation[asset].oracles = newOracles;
                 return;
             }
@@ -124,6 +117,10 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         revert("PM20_SO: Unknown Oracle");
     }
 
+    /*///////////////////////////////////////////////////////////////
+                        ASSET INFORMATION
+    ///////////////////////////////////////////////////////////////*/
+
     /**
      * @notice Returns the asset information of an asset.
      * @param asset The contract address of the asset.
@@ -134,13 +131,52 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         return (assetToInformation[asset].assetUnit, assetToInformation[asset].oracles);
     }
 
+    /**
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is allowed.
+     * @dev Since ERC20s don't have an Id, the Id should be set to 0.
+     */
+    function isAllowed(address asset, uint256) public view override returns (bool) {
+        return inPricingModule[asset];
+    }
+
+    /**
+     * @notice Returns the unique identifier of an asset based on the contract address and id.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return key The unique identifier.
+     * @dev The assetId is hard-coded to 0, since the assets for this Pricing Modules are ERC20's.
+     */
+    function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
+        assembly {
+            key := asset
+        }
+    }
+
+    /**
+     * @notice Returns the contract address and id of an asset based on the unique identifier.
+     * @param key The unique identifier.
+     * @return asset The contract address of the asset.
+     * @return assetId The Id of the asset.
+     * @dev The assetId is hard-coded to 0, since the assets for this Pricing Modules are ERC20's.
+     */
+    function _getAssetFromKey(bytes32 key) internal pure override returns (address asset, uint256) {
+        assembly {
+            asset := key
+        }
+
+        return (asset, 0);
+    }
+
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the value of a certain asset, denominated in USD or in another BaseCurrency.
-     * @param getValueInput A Struct with the input variables (avoid stack to deep).
+     * @notice Returns the usd value of an asset.
+     * @param getValueInput A Struct with the input variables.
      * - asset: The contract address of the asset.
      * - assetId: Since ERC20 tokens have no Id, the Id should be set to 0.
      * - assetAmount: The amount of assets.
@@ -148,9 +184,9 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
      * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
-     * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256
+     * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256.
      * @dev If the asset is not added to PricingModule, this function will return value 0 without throwing an error.
-     * However no check in StandardERC20PricingModule is necessary, since the check if the asset is allow listed (and hence added to PricingModule)
+     * However no check in StandardERC20PricingModule is necessary, since the check if the asset is added to the PricingModule
      * is already done in the MainRegistry.
      */
     function getValue(IPricingModule.GetValueInput memory getValueInput)
@@ -159,7 +195,7 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        uint256 rateInUsd = IOraclesHub(oracleHub).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
+        uint256 rateInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
 
         valueInUsd = getValueInput.assetAmount.mulDivDown(rateInUsd, assetToInformation[getValueInput.asset].assetUnit);
 

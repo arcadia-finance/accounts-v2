@@ -3,9 +3,10 @@ pragma solidity =0.7.6;
 pragma abicoder v2;
 
 import {
-    NonfungiblePositionManager,
     IUniswapV3Factory,
-    IUniswapV3Pool
+    IUniswapV3Pool,
+    NonfungiblePositionManager,
+    PoolAddress
 } from "../../../../../lib/v3-periphery/contracts/NonfungiblePositionManager.sol";
 import { UniswapV3FactoryExtension } from "./UniswapV3FactoryExtension.sol";
 

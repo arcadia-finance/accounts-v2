@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
+import { MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "batchProcessDeposit" of contract "MainRegistry".
+ * @notice Fuzz tests for the function "batchProcessDeposit" of contract "MainRegistry".
  */
 contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -81,7 +81,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.assume(newMaxExposure < amount);
 
         vm.prank(users.creatorAddress);
-        erc20PricingModule.setExposureOfAsset(address(mockERC20.token1), newMaxExposure);
+        erc20PricingModule.setMaxExposureOfAsset(address(mockERC20.token1), 0, newMaxExposure);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -185,7 +185,8 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         assertEq(assetTypes[0], 0);
 
-        (, uint128 exposure) = erc20PricingModule.exposure(address(mockERC20.token1));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
+        (, uint128 exposure) = erc20PricingModule.exposure(assetKey);
         assertEq(exposure, amount);
     }
 
@@ -208,8 +209,10 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assertEq(assetTypes[0], 0);
         assertEq(assetTypes[1], 0);
 
-        (, uint256 exposureToken1) = erc20PricingModule.exposure(address(mockERC20.token1));
-        (, uint256 exposureToken2) = erc20PricingModule.exposure(address(mockERC20.token2));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
+        (, uint256 exposureToken1) = erc20PricingModule.exposure(assetKey);
+        assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));
+        (, uint256 exposureToken2) = erc20PricingModule.exposure(assetKey);
 
         assertEq(exposureToken1, amountToken1);
         assertEq(exposureToken2, amountToken2);
@@ -229,7 +232,8 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 
-        (, uint128 newExposure) = erc20PricingModule.exposure(address(mockERC20.token2));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));
+        (, uint128 newExposure) = erc20PricingModule.exposure(assetKey);
 
         assertEq(newExposure, amountToken2);
     }

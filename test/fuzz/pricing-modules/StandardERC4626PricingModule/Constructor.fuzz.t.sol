@@ -4,12 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
+import { StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
 
-import { StandardERC4626PricingModule } from "../../../../src/pricing-modules/StandardERC4626PricingModule.sol";
+import { ERC4626PricingModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
- * @notice Fuzz tests for the "constructor" of contract "StandardERC4626PricingModule".
+ * @notice Fuzz tests for the function "constructor" of contract "StandardERC4626PricingModule".
  */
 contract Constructor_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -23,27 +23,18 @@ contract Constructor_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Pr
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(
-        address mainRegistry_,
-        address oracleHub_,
-        uint256 assetType_,
-        address erc20PricingModule_
-    ) public {
+    function testFuzz_Success_deployment(address mainRegistry_) public {
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskManagerUpdated(users.creatorAddress);
-        StandardERC4626PricingModule erc4626PricingModule_ = new StandardERC4626PricingModule(
-            mainRegistry_,
-            oracleHub_,
-            assetType_,
-            erc20PricingModule_
+        ERC4626PricingModuleExtension erc4626PricingModule_ = new ERC4626PricingModuleExtension(
+            mainRegistry_
         );
         vm.stopPrank();
 
-        assertEq(erc4626PricingModule_.mainRegistry(), mainRegistry_);
-        assertEq(erc4626PricingModule_.oracleHub(), oracleHub_);
-        assertEq(erc4626PricingModule_.assetType(), assetType_);
-        assertEq(erc4626PricingModule_.erc20PricingModule(), erc20PricingModule_);
+        assertEq(erc4626PricingModule_.MAIN_REGISTRY(), mainRegistry_);
+        assertEq(erc4626PricingModule_.ASSET_TYPE(), 0);
         assertEq(erc4626PricingModule_.riskManager(), users.creatorAddress);
+        assertFalse(erc4626PricingModule_.getPrimaryFlag());
     }
 }

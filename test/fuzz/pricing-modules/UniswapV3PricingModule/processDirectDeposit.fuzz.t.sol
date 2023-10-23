@@ -4,11 +4,11 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
+import { UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
-import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
+import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { IPricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { INonfungiblePositionManagerExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
@@ -18,7 +18,7 @@ import { LiquidityAmounts } from "../../../../src/pricing-modules/UniswapV3/libr
 import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
- * @notice Fuzz tests for the "processDirectDeposit" of contract "UniswapV3PricingModule".
+ * @notice Fuzz tests for the function "processDirectDeposit" of contract "UniswapV3PricingModule".
  */
 contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -35,6 +35,8 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
     function setUp() public override {
         UniswapV3PricingModule_Fuzz_Test.setUp();
+
+        deployUniswapV3PricingModule(address(nonfungiblePositionManager));
 
         token0 = new ERC20Mock('Token 0', 'TOK0', 18);
         token1 = new ERC20Mock('Token 1', 'TOK1', 18);
@@ -80,7 +82,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PMUV3_IE: 0 liquidity");
+        vm.expectRevert("PMUV3_AA: 0 liquidity");
         uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
@@ -172,9 +174,6 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity_
         );
-
-        emit log_named_uint("amount0", amount0);
-        emit log_named_uint("priceToken0", priceToken0);
 
         // And: exposure0 does not exceed maximum.
         vm.assume(amount0 <= type(uint128).max);
@@ -274,7 +273,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         vm.stopPrank();
     }
 
-    function testFuzz_Success_processDirectDeposita(
+    function testFuzz_Success_processDirectDeposit(
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,

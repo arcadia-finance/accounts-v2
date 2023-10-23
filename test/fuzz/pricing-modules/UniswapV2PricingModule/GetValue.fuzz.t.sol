@@ -4,13 +4,14 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
+import { UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
 
+import { Constants } from "../../../utils/Constants.sol";
 import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
-import { UniswapV2PairMock } from "../../.././utils/mocks/UniswapV2PairMock.sol";
+import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2PairMock.sol";
 
 /**
- * @notice Fuzz tests for the "getValue" of contract "UniswapV2PricingModule".
+ * @notice Fuzz tests for the function "getValue" of contract "UniswapV2PricingModule".
  */
 contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -62,8 +63,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
         );
         pairToken1Token2 =
             UniswapV2PairMock(uniswapV2Factory.createPair(address(mockERC20.token2), address(mockERC20.token1)));
-        vm.prank(users.creatorAddress);
-        uniswapV2PricingModule.addAsset(address(pairToken1Token2), emptyRiskVarInput);
+        uniswapV2PricingModule.addAsset(address(pairToken1Token2));
 
         // Mint LP
         vm.assume(uint256(amountToken2) * amountToken1 > pairToken1Token2.MINIMUM_LIQUIDITY()); //min liquidity in uniswap pool
@@ -122,8 +122,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
         );
         pairToken1Token2 =
             UniswapV2PairMock(uniswapV2Factory.createPair(address(mockERC20.token2), address(mockERC20.token1)));
-        vm.prank(users.creatorAddress);
-        uniswapV2PricingModule.addAsset(address(pairToken1Token2), emptyRiskVarInput);
+        uniswapV2PricingModule.addAsset(address(pairToken1Token2));
 
         // Mint a variable amount of balanced LP, for a given amountToken2
         vm.assume(

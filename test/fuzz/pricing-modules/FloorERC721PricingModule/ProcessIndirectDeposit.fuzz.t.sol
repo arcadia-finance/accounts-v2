@@ -4,11 +4,11 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, FloorERC721PricingModule_Fuzz_Test } from "./_FloorERC721PricingModule.fuzz.t.sol";
+import { FloorERC721PricingModule_Fuzz_Test } from "./_FloorERC721PricingModule.fuzz.t.sol";
 import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**
- * @notice Fuzz tests for the "processIndirectDeposit" of contract "FloorERC721PricingModule".
+ * @notice Fuzz tests for the function "processIndirectDeposit" of contract "FloorERC721PricingModule".
  */
 contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -48,7 +48,8 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         floorERC721PricingModule.processIndirectDeposit(address(mockERC721.nft2), assetId, 0, 0);
         vm.stopPrank();
 
-        (, uint128 actualExposure) = floorERC721PricingModule.exposure(address(mockERC721.nft2));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft2)));
+        (, uint128 actualExposure) = floorERC721PricingModule.exposure(assetKey);
         assertEq(actualExposure, 0);
     }
 
@@ -61,7 +62,7 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         vm.startPrank(address(mainRegistryExtension));
         floorERC721PricingModule.processIndirectDeposit(address(mockERC721.nft2), assetId, 1, 1);
 
-        vm.expectRevert("PM721_PID: Exposure not in limits");
+        vm.expectRevert("APPM_PID: Exposure not in limits");
         floorERC721PricingModule.processIndirectDeposit(address(mockERC721.nft2), assetId, 1, 1);
         vm.stopPrank();
     }
@@ -102,7 +103,8 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         assertEq(primaryFlag, true);
         assertEq(usdValueExposureUpperAssetToAsset, expectedUsdValueExposureUpperAssetToAsset);
 
-        (, uint128 actualExposure) = floorERC721PricingModule.exposure(address(mockERC721.nft2));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft2)));
+        (, uint128 actualExposure) = floorERC721PricingModule.exposure(assetKey);
         assertEq(actualExposure, uint256(deltaExposureUpperAssetToAsset));
     }
 
@@ -148,7 +150,8 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         assertEq(primaryFlag, true);
         assertEq(usdValueExposureUpperAssetToAsset, expectedUsdValueExposureUpperAssetToAsset);
 
-        (, uint128 actualExposure) = floorERC721PricingModule.exposure(address(mockERC721.nft2));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft2)));
+        (, uint128 actualExposure) = floorERC721PricingModule.exposure(assetKey);
         assertEq(actualExposure, 3 - deltaExposureUpperAssetToAsset);
     }
 
@@ -194,7 +197,8 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         assertEq(primaryFlag, true);
         assertEq(usdValueExposureUpperAssetToAsset, expectedUsdValueExposureUpperAssetToAsset);
 
-        (, uint128 actualExposure) = floorERC721PricingModule.exposure(address(mockERC721.nft2));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft2)));
+        (, uint128 actualExposure) = floorERC721PricingModule.exposure(assetKey);
         assertEq(actualExposure, 0);
     }
 }

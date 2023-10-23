@@ -81,4 +81,10 @@ abstract contract Events {
         address indexed asset, uint8 indexed baseCurrencyId, uint16 collateralFactor, uint16 liquidationFactor
     );
     event MaxExposureSet(address indexed asset, uint128 maxExposure);
+
+    /*//////////////////////////////////////////////////////////////////////////
+                            DERIVED PRICING MODULE
+    //////////////////////////////////////////////////////////////////////////*/
+
+    event MaxUsdExposureProtocolSet(uint256 maxExposure);
 }

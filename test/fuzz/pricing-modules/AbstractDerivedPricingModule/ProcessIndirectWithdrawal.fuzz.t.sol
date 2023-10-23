@@ -4,12 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
+import { AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "processIndirectWithdrawal" of contract "AbstractDerivedPricingModule".
- * @notice Tests performed here will validate the recursion flow of derived pricing modules.
- * Testing for conversion rates and getValue() will be done in pricing modules testing separately.
+ * @notice Fuzz tests for the function "processIndirectWithdrawal" of contract "AbstractDerivedPricingModule".
  */
 contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -61,7 +59,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // When: "MainRegistry" calls "processIndirectWithdrawal".
         vm.prank(address(mainRegistryExtension));
@@ -84,7 +82,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         int256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: "usdValueExposureAsset" is 0 (test-case).
-        underlyingPMState.usdValueExposureToUnderlyingAsset = 0;
+        underlyingPMState.usdValue = 0;
 
         // And: Withdrawal does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
@@ -95,7 +93,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // When: "MainRegistry" calls "processIndirectWithdrawal".
         vm.prank(address(mainRegistryExtension));
@@ -118,8 +116,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         int256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: "usdValueExposureToUnderlyingAsset" is not zero (test-case).
-        underlyingPMState.usdValueExposureToUnderlyingAsset =
-            bound(underlyingPMState.usdValueExposureToUnderlyingAsset, 1, type(uint128).max);
+        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint128).max);
 
         // And: Withdrawal does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
@@ -140,7 +137,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // When: "MainRegistry" calls "processIndirectWithdrawal".
         vm.prank(address(mainRegistryExtension));
@@ -153,7 +150,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
 
         // And: Correct "usdValueExposureUpperAssetToAsset" is returned.
         uint256 usdValueExposureUpperAssetToAssetExpected =
-            underlyingPMState.usdValueExposureToUnderlyingAsset * exposureUpperAssetToAsset / exposureAsset;
+            underlyingPMState.usdValue * exposureUpperAssetToAsset / exposureAsset;
         assertEq(usdValueExposureUpperAssetToAsset, usdValueExposureUpperAssetToAssetExpected);
     }
 }

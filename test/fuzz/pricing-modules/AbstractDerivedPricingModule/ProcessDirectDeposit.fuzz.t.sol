@@ -4,12 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
+import { AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "processDirectDeposit" of contract "AbstractDerivedPricingModule".
- * @notice Tests performed here will validate the recursion flow of derived pricing modules.
- * Testing for conversion rates and getValue() will be done in pricing modules testing separately.
+ * @notice Fuzz tests for the function "processDirectDeposit" of contract "AbstractDerivedPricingModule".
  */
 contract ProcessDirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -55,7 +53,7 @@ contract ProcessDirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstract
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
 
         // When: "MainRegistry" calls "processDirectDeposit".
         vm.prank(address(mainRegistryExtension));

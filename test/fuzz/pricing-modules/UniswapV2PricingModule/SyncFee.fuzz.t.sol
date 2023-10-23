@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
+import { UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "syncFee" of contract "UniswapV2PricingModule".
+ * @notice Fuzz tests for the function "syncFee" of contract "UniswapV2PricingModule".
  */
 contract SyncFee_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
