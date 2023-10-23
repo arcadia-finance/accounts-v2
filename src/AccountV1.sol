@@ -451,6 +451,54 @@ contract AccountV1 is AccountStorageV1, IAccount {
                           LIQUIDATION LOGIC
     /////////////////////////////////////////////////////////////// */
 
+    // Note: To delete as will be triggered in Liquidator contract
+    /**
+     * @notice Function called by Liquidator to start liquidation of the Account.
+     * @param openDebt The open debt taken by `originalOwner` at moment of liquidation at trustedCreditor
+     * @return originalOwner The original owner of this Account.
+     * @return baseCurrency_ The baseCurrency in which the Account is denominated.
+     * @return trustedCreditor_ The account or contract that is owed the debt.
+     * @dev Requires a liquidation value below Used margin.
+     * @dev Transfers ownership of the Account to the liquidator!
+     */
+    function liquidateAccount(uint256 openDebt)
+        external
+        nonReentrant
+        returns (address originalOwner, address baseCurrency_, address trustedCreditor_)
+    {
+        require(msg.sender == liquidator, "A_LA: Only Liquidator");
+
+        //Cache trustedCreditor.
+        trustedCreditor_ = trustedCreditor;
+
+        //Close margin account.
+        isTrustedCreditorSet = false;
+        trustedCreditor = address(0);
+        liquidator = address(0);
+
+        //If getLiquidationValue (total value discounted with liquidation factor to account for slippage)
+        //is smaller than the Used Margin: sum of the liabilities of the Account (openDebt)
+        //and the max gas cost to liquidate the Account (fixedLiquidationCost),
+        //then the Account can be successfully liquidated.
+        //Liquidations are triggered by the trustedCreditor (via Liquidator), the openDebt is
+        //passed as input to avoid the need of another contract call back to trustedCreditor.
+        require(getLiquidationValue() < openDebt + fixedLiquidationCost, "A_LA: liqValue above usedMargin");
+
+        //Set fixedLiquidationCost to 0 since margin account is closed.
+        fixedLiquidationCost = 0;
+
+        //Transfer ownership of the ERC721 in Factory of the Account to the Liquidator.
+        IFactory(IMainRegistry(registry).factory()).liquidate(msg.sender);
+
+        //Transfer ownership of the Account itself to the Liquidator.
+        originalOwner = owner;
+        _transferOwnership(msg.sender);
+
+        emit TrustedMarginAccountChanged(address(0), address(0));
+
+        return (originalOwner, baseCurrency, trustedCreditor_);
+    }
+
     /**
      * @notice Checks if an Account is liquidatable and in that case will initiate the liquidation flow.
      * @return assetAddresses Array of the contract addresses of the assets in Account.
