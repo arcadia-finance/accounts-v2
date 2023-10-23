@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, BaseGuardian_Fuzz_Test } from "./_BaseGuardian.fuzz.t.sol";
+import { BaseGuardian_Fuzz_Test } from "./_BaseGuardian.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "changeGuardian" of contract "BaseGuardian".
+ * @notice Fuzz tests for the function "changeGuardian" of contract "BaseGuardian".
  */
 contract ChangeGuardian_BaseGuardian_Fuzz_Test is BaseGuardian_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

@@ -4,12 +4,13 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
+import { MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
+import { Constants } from "../../utils/Constants.sol";
 import { MainRegistry } from "../../../src/MainRegistry.sol";
 
 /**
- * @notice Fuzz tests for the "addBaseCurrency" of contract "MainRegistry".
+ * @notice Fuzz tests for the function "addBaseCurrency" of contract "MainRegistry".
  */
 contract AddBaseCurrency_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

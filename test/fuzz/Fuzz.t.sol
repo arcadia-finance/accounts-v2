@@ -9,12 +9,12 @@ import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils
 import { MainRegistry } from "../../src/MainRegistry.sol";
 import { OracleHub } from "../../src/OracleHub.sol";
 import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
-import { TrustedCreditorMock } from ".././utils/mocks/TrustedCreditorMock.sol";
+import { TrustedCreditorMock } from "../utils/mocks/TrustedCreditorMock.sol";
 import { Proxy } from "../../src/Proxy.sol";
-import { ERC20Mock } from ".././utils/mocks/ERC20Mock.sol";
-import { ERC721Mock } from ".././utils/mocks/ERC721Mock.sol";
-import { ERC1155Mock } from ".././utils/mocks/ERC1155Mock.sol";
-import { ArcadiaOracle } from ".././utils/mocks/ArcadiaOracle.sol";
+import { ERC20Mock } from "../utils/mocks/ERC20Mock.sol";
+import { ERC721Mock } from "../utils/mocks/ERC721Mock.sol";
+import { ERC1155Mock } from "../utils/mocks/ERC1155Mock.sol";
+import { ArcadiaOracle } from "../utils/mocks/ArcadiaOracle.sol";
 import { AccountV1 } from "../../src/AccountV1.sol";
 
 /**
@@ -97,7 +97,7 @@ abstract contract Fuzz_Test is Base_Test {
         vm.label({ account: address(mockERC20.token1), newLabel: "TOKEN1" });
         vm.label({ account: address(mockERC20.token2), newLabel: "TOKEN2" });
         vm.label({ account: address(mockERC20.token3), newLabel: "TOKEN3" });
-        vm.label({ account: address(mockERC20.token3), newLabel: "TOKEN4" });
+        vm.label({ account: address(mockERC20.token4), newLabel: "TOKEN4" });
         vm.label({ account: address(mockERC721.nft1), newLabel: "NFT1" });
         vm.label({ account: address(mockERC721.nft2), newLabel: "NFT2" });
         vm.label({ account: address(mockERC721.nft3), newLabel: "NFT3" });
@@ -119,7 +119,7 @@ abstract contract Fuzz_Test is Base_Test {
             sft2ToUsd: 1 * 10 ** Constants.erc1155OracleDecimals
         });
 
-        // Set a trusted creditor with initialized params to use accross tests
+        // Set a trusted creditor with initialized params to use across tests
         initBaseCurrency = address(mockERC20.stable1);
         trustedCreditor.setBaseCurrency(initBaseCurrency);
         vm.stopPrank();
@@ -229,7 +229,6 @@ abstract contract Fuzz_Test is Base_Test {
             })
         );
 
-        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
         PricingModule.RiskVarInput[] memory riskVarsStable = new PricingModule.RiskVarInput[](3);
         PricingModule.RiskVarInput[] memory riskVarsToken = new PricingModule.RiskVarInput[](3);
 
@@ -271,6 +270,7 @@ abstract contract Fuzz_Test is Base_Test {
             liquidationFactor: Constants.tokenToTokenLiqFactor
         });
 
+        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
         oracleStable1ToUsdArr[0] = address(mockOracles.stable1ToUsd);
         oracleStable2ToUsdArr[0] = address(mockOracles.stable2ToUsd);
         oracleToken1ToUsdArr[0] = address(mockOracles.token1ToUsd);

@@ -4,12 +4,13 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
-import { AccountV2 } from "../../.././utils/mocks/AccountV2.sol";
+import { AccountV2 } from "../../../utils/mocks/AccountV2.sol";
+import { Constants } from "../../../utils/Constants.sol";
 
 /**
- * @notice Fuzz tests for the "upgradeAccount" of contract "AccountV1".
+ * @notice Fuzz tests for the function "upgradeAccount" of contract "AccountV1".
  */
 contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

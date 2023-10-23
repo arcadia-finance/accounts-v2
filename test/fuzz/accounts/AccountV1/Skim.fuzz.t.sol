@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "skim" of contract "AccountV1".
+ * @notice Fuzz tests for the function "skim" of contract "AccountV1".
  */
 contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -36,7 +36,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_skim_Type0_NonZeroSkim(uint256 depositAmount, uint256 transferAmount) public {
         // Deposit ERC20.
-        depositAmount = bound(depositAmount, 1, type(uint256).max - 1);
+        depositAmount = bound(depositAmount, 1, type(uint128).max);
         transferAmount = bound(transferAmount, 1, type(uint256).max - depositAmount);
 
         depositERC20InAccount(mockERC20.token1, depositAmount, users.accountOwner, address(accountExtension));
@@ -61,7 +61,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_skim_Type0_NothingToSkim(uint256 depositAmount) public {
         // Deposit ERC20.
-        depositAmount = bound(depositAmount, 1, type(uint256).max);
+        depositAmount = bound(depositAmount, 1, type(uint128).max);
 
         depositERC20InAccount(mockERC20.token1, depositAmount, users.accountOwner, address(accountExtension));
 
@@ -127,7 +127,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_skim_Type2_NonZeroSkim(uint256 depositAmount, uint256 transferAmount) public {
         // Deposit ERC1155.
-        depositAmount = bound(depositAmount, 1, type(uint256).max - 1);
+        depositAmount = bound(depositAmount, 1, type(uint128).max);
         transferAmount = bound(transferAmount, 1, type(uint256).max - depositAmount);
 
         address[] memory assetAddresses = new address[](1);
@@ -166,7 +166,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_skim_Type2_NothingToSkim(uint256 depositAmount) public {
         // Deposit ERC1155.
-        depositAmount = bound(depositAmount, 1, type(uint256).max);
+        depositAmount = bound(depositAmount, 1, type(uint128).max);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC1155.sft1);

@@ -4,14 +4,15 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
+import { StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626PricingModule.fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
+import { Constants } from "../../../utils/Constants.sol";
 import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**
- * @notice Fuzz tests for the "getValue" of contract "StandardERC4626PricingModule".
+ * @notice Fuzz tests for the function "getValue" of contract "StandardERC4626PricingModule".
  */
 contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626PricingModule_Fuzz_Test {
     using stdStorage for StdStorage;
@@ -51,7 +52,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
 
         vm.prank(users.creatorAddress);
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput, type(uint128).max);
+        erc4626PricingModule.addAsset(address(ybToken1));
 
         //Cheat totalSupply
         stdstore.target(address(ybToken1)).sig(ybToken1.totalSupply.selector).checked_write(totalSupply);
@@ -72,7 +73,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         erc4626PricingModule.getValue(getValueInput);
     }
 
-    function testFuzz_Success_getValue(
+    function testFuzz_Success_getValuea(
         uint256 rateToken1ToUsd_,
         uint256 shares,
         uint256 totalSupply,
@@ -102,7 +103,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
 
         vm.prank(users.creatorAddress);
-        erc4626PricingModule.addAsset(address(ybToken1), emptyRiskVarInput, type(uint128).max);
+        erc4626PricingModule.addAsset(address(ybToken1));
 
         //Cheat totalSupply
         stdstore.target(address(ybToken1)).sig(ybToken1.totalSupply.selector).checked_write(totalSupply);

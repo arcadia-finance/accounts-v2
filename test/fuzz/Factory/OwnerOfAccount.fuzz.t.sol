@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "ownerOfAccount" of contract "Factory".
+ * @notice Fuzz tests for the function "ownerOfAccount" of contract "Factory".
  */
 contract OwnerOfAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -22,6 +22,8 @@ contract OwnerOfAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_ownerOfAccount_NonAccount(address nonAccount) public {
+        vm.assume(nonAccount != address(proxyAccount));
+
         assertEq(factory.ownerOfAccount(nonAccount), address(0));
     }
 }

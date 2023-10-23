@@ -4,57 +4,51 @@
  */
 pragma solidity 0.8.19;
 
-import { PricingModule, IMainRegistry } from "./AbstractPricingModule.sol";
+import { DerivedPricingModule, FixedPointMathLib, IMainRegistry } from "./AbstractDerivedPricingModule.sol";
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { PRBMath } from "../libraries/PRBMath.sol";
 
 /**
  * @title Pricing-Module for Uniswap V2 LP tokens
  * @author Pragma Labs
  * @notice The UniswapV2PricingModule stores pricing logic and basic information for Uniswap V2 LP tokens
- * @dev No end-user should directly interact with the UniswapV2PricingModule, only the Main-registry, Oracle-Hub or the contract owner
+ * @dev No end-user should directly interact with the UniswapV2PricingModule, only the Main-registry or the contract owner
  * @dev Most logic in this contract is a modifications of
  *      https://github.com/Uniswap/v2-periphery/blob/master/contracts/libraries/UniswapV2LiquidityMathLibrary.sol#L23
  */
-contract UniswapV2PricingModule is PricingModule {
+contract UniswapV2PricingModule is DerivedPricingModule {
     using FixedPointMathLib for uint256;
     using PRBMath for uint256;
 
-    uint256 public constant poolUnit = 1_000_000_000_000_000_000;
-    address public immutable uniswapV2Factory;
-    address public immutable erc20PricingModule;
+    /* //////////////////////////////////////////////////////////////
+                                CONSTANTS
+    ////////////////////////////////////////////////////////////// */
 
+    // The contract address of the Uniswap V2 factory (or an exact clone);
+    address internal immutable UNISWAP_V2_FACTORY;
+
+    /* //////////////////////////////////////////////////////////////
+                                STORAGE
+    ////////////////////////////////////////////////////////////// */
+
+    // Flag indicating if the protocol swap fees are enabled.
     bool public feeOn;
 
-    mapping(address => AssetInformation) public assetToInformation;
+    // The Unique identifiers of the underlying assets of a Liquidity Position.
+    mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
-    struct AssetInformation {
-        address token0;
-        address token1;
-    }
+    /* //////////////////////////////////////////////////////////////
+                                CONSTRUCTOR
+    ////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice A Pricing-Module must always be initialised with the address of the Main-Registry and of the Oracle-Hub
-     * @param mainRegistry_ The address of the Main-registry
-     * @param oracleHub_ The address of the Oracle-Hub
-     * @param assetType_ Identifier for the type of asset, necessary for the deposit and withdraw logic in the Accounts.
-     * 0 = ERC20
-     * 1 = ERC721
-     * 2 = ERC1155
-     * @param uniswapV2Factory_ The factory for Uniswap V2 pairs
-     * @param erc20PricingModule_ The address of the Pricing Module for standard ERC20 tokens.
+     * @param mainRegistry_ The address of the Main-registry.
+     * @param uniswapV2Factory_ The factory for Uniswap V2 pairs.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(
-        address mainRegistry_,
-        address oracleHub_,
-        uint256 assetType_,
-        address uniswapV2Factory_,
-        address erc20PricingModule_
-    ) PricingModule(mainRegistry_, oracleHub_, assetType_, msg.sender) {
-        uniswapV2Factory = uniswapV2Factory_;
-        erc20PricingModule = erc20PricingModule_;
+    constructor(address mainRegistry_, address uniswapV2Factory_) DerivedPricingModule(mainRegistry_, 0, msg.sender) {
+        UNISWAP_V2_FACTORY = uniswapV2Factory_;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -62,10 +56,10 @@ contract UniswapV2PricingModule is PricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Fetches boolean on the uniswap factory if fees are enabled or not
+     * @notice Fetches and sets flag if protocol swap fees are enabled.
      */
     function syncFee() external {
-        feeOn = IUniswapV2Factory(uniswapV2Factory).feeTo() != address(0);
+        feeOn = IUniswapV2Factory(UNISWAP_V2_FACTORY).feeTo() != address(0);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -73,98 +67,125 @@ contract UniswapV2PricingModule is PricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a new asset to the UniswapV2PricingModule.
-     * @param asset The contract address of the asset
-     * @param riskVars An array of Risk Variables for the asset
-     * @param maxExposure The maximum exposure of the asset in its own decimals
-     * @dev Only the Collateral Factor, Liquidation Threshold and basecurrency are taken into account.
-     * If no risk variables are provided, the asset is added with the risk variables set to zero, meaning it can't be used as collateral.
-     * @dev RiskVarInput.asset can be zero as it is not taken into account.
-     * @dev Risk variable are variables with 2 decimals precision
-     * @dev The assets are added in the Main-Registry as well.
-     * @dev Assets can't have more than 18 decimals.
+     * @notice Adds a new asset (Uniswap V2 pair) to the UniswapV2PricingModule.
+     * @param asset The contract address of the Uniswap V2 pair.
      */
-    function addAsset(address asset, RiskVarInput[] calldata riskVars, uint256 maxExposure) external onlyOwner {
+    function addAsset(address asset) external {
         address token0 = IUniswapV2Pair(asset).token0();
         address token1 = IUniswapV2Pair(asset).token1();
+        require(IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == asset, "PMUV2_AA: Not a Pool");
 
-        require(PricingModule(erc20PricingModule).isAllowListed(token0, 0), "PMUV2_AA: TOKENO_NOT_WHITELISTED");
-        require(PricingModule(erc20PricingModule).isAllowListed(token1, 0), "PMUV2_AA: TOKEN1_NOT_WHITELISTED");
+        require(IMainRegistry(MAIN_REGISTRY).isAllowed(token0, 0), "PMUV2_AA: Token0 not Allowed");
+        require(IMainRegistry(MAIN_REGISTRY).isAllowed(token1, 0), "PMUV2_AA: Token1 not Allowed");
 
-        require(!inPricingModule[asset], "PMUV2_AA: already added");
         inPricingModule[asset] = true;
-        assetsInPricingModule.push(asset);
 
-        assetToInformation[asset].token0 = token0;
-        assetToInformation[asset].token1 = token1;
-        _setRiskVariablesForAsset(asset, riskVars);
+        bytes32[] memory underlyingAssets_ = new bytes32[](2);
+        underlyingAssets_[0] = _getKeyFromAsset(token0, 0);
+        underlyingAssets_[1] = _getKeyFromAsset(token1, 0);
+        assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
-        require(maxExposure <= type(uint128).max, "PMUV2_AA: Max Exposure not in limits");
-        exposure[asset].maxExposure = uint128(maxExposure);
-
-        //Will revert in MainRegistry if asset can't be added
-        IMainRegistry(mainRegistry).addAsset(asset, assetType);
+        // Will revert in MainRegistry if asset was already added.
+        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
     }
 
     /*///////////////////////////////////////////////////////////////
-                          PRICING LOGIC
+                        ASSET INFORMATION
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the value of a Uniswap V2 LP-token
-     * @param getValueInput A Struct with all the information neccessary to get the value of an asset
-     * - asset: The contract address of the LP-token
-     * - assetId: Since ERC20 tokens have no Id, the Id should be set to 0
-     * - assetAmount: The Amount of tokens, ERC20 tokens can have any Decimals precision smaller than 18.
-     * - baseCurrency: The BaseCurrency in which the value is ideally expressed
-     * @return valueInUsd The value of the asset denominated in USD with 18 Decimals precision
-     * @return collateralFactor The Collateral Factor of the asset
-     * @return liquidationFactor The Liquidation Factor of the asset
-     * @dev trustedUsdPriceToken cannot realisticly overflow, requires unit price of a token with 0 decimals (worst case),
-     * to be bigger than $1,16 * 10^41
-     * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
-     * However no explicit check is necessary, since the check if the asset is whitelisted (and hence added to PricingModule)
-     * is already done in the Main-Registry.
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is allowed.
      */
-    function getValue(GetValueInput memory getValueInput)
-        public
+    function isAllowed(address asset, uint256) public view override returns (bool) {
+        if (inPricingModule[asset]) return true;
+
+        try IUniswapV2Pair(asset).token0() returns (address token0) {
+            address token1 = IUniswapV2Pair(asset).token1();
+            return (IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == asset)
+                && IMainRegistry(MAIN_REGISTRY).isAllowed(token0, 0) && IMainRegistry(MAIN_REGISTRY).isAllowed(token1, 0);
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * @notice Returns the unique identifier of an asset based on the contract address and id.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @return key The unique identifier.
+     * @dev The assetId is hard-coded to 0, since both the assets as underlying assets for this Pricing Modules are ERC20's.
+     */
+    function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
+        assembly {
+            key := asset
+        }
+    }
+
+    /**
+     * @notice Returns the contract address and id of an asset based on the unique identifier.
+     * @param key The unique identifier.
+     * @return asset The contract address of the asset.
+     * @return assetId The Id of the asset.
+     * @dev The assetId is hard-coded to 0, since both the assets as underlying assets for this Pricing Modules are ERC20's.
+     */
+    function _getAssetFromKey(bytes32 key) internal pure override returns (address asset, uint256) {
+        assembly {
+            asset := key
+        }
+
+        return (asset, 0);
+    }
+
+    /**
+     * @notice Returns the unique identifiers of the underlying assets.
+     * @param assetKey The unique identifier of the asset.
+     * @return underlyingAssetKeys The unique identifiers of the underlying assets.
+     */
+    function _getUnderlyingAssets(bytes32 assetKey)
+        internal
         view
         override
-        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
+        returns (bytes32[] memory underlyingAssetKeys)
     {
-        // To calculate the liquidity value after arbitrage, what matters is the ratio of the price of token0 compared to the price of token1
-        // Hence we need to use a trusted external price for an equal amount of tokens,
-        // we use for both tokens the USD price of 1 WAD (10**18) to guarantee precision.
-        (uint256 trustedUsdPriceToken0,,) = PricingModule(erc20PricingModule).getValue(
-            GetValueInput({
-                asset: assetToInformation[getValueInput.asset].token0,
-                assetId: 0,
-                assetAmount: FixedPointMathLib.WAD,
-                baseCurrency: 0
-            })
-        );
-        (uint256 trustedUsdPriceToken1,,) = PricingModule(erc20PricingModule).getValue(
-            GetValueInput({
-                asset: assetToInformation[getValueInput.asset].token1,
-                assetId: 0,
-                assetAmount: FixedPointMathLib.WAD,
-                baseCurrency: 0
-            })
-        );
+        underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
 
-        //
-        (uint256 token0Amount, uint256 token1Amount) = _getTrustedTokenAmounts(
-            getValueInput.asset, trustedUsdPriceToken0, trustedUsdPriceToken1, getValueInput.assetAmount
-        );
-        // trustedUsdPriceToken0 is the value of token0 in USD with 18 decimals precision for 1 WAD of tokens,
-        // we need to recalculate to find the value of the actual amount of underlying token0 in the liquidity position.
-        valueInUsd = FixedPointMathLib.mulDivDown(token0Amount, trustedUsdPriceToken0, FixedPointMathLib.WAD)
-            + FixedPointMathLib.mulDivDown(token1Amount, trustedUsdPriceToken1, FixedPointMathLib.WAD);
+        if (underlyingAssetKeys.length == 0) {
+            // Only used as an off-chain view function by getValue() to return the value of a non deposited Liquidity Position.
+            (address asset,) = _getAssetFromKey(assetKey);
+            address token0 = IUniswapV2Pair(asset).token0();
+            address token1 = IUniswapV2Pair(asset).token1();
 
-        collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
-        liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;
+            underlyingAssetKeys = new bytes32[](2);
+            underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
+            underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
+        }
+    }
 
-        return (valueInUsd, collateralFactor, liquidationFactor);
+    /**
+     * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
+     * @param assetKey The unique identifier of the asset.
+     * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
+     * param underlyingAssetKeys The unique identifiers of the underlying assets.
+     * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
+     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     */
+    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory underlyingAssetKeys)
+        internal
+        view
+        override
+        returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd)
+    {
+        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(underlyingAssetKeys);
+
+        (address asset,) = _getAssetFromKey(assetKey);
+        underlyingAssetsAmounts = new uint256[](2);
+        (underlyingAssetsAmounts[0], underlyingAssetsAmounts[1]) =
+            _getTrustedTokenAmounts(asset, rateUnderlyingAssetsToUsd[0], rateUnderlyingAssetsToUsd[1], assetAmount);
+
+        return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }
 
     /**
@@ -182,7 +203,7 @@ contract UniswapV2PricingModule is PricingModule {
      * @dev The trusted amount of liquidity is calculated by first bringing the liquidity pool in equilibrium,
      *      by calculating what the reserves of the pool would be if a profit-maximizing trade is done.
      *      As such flash-loan attacks are mitigated, where an attacker swaps a large amount of the higher priced token,
-     *      to bring the pool out of equilibrium, resulting in liquidity postitions with a higher share of the most valuable token.
+     *      to bring the pool out of equilibrium, resulting in liquidity positions with a higher share of the most valuable token.
      * @dev Modification of https://github.com/Uniswap/v2-periphery/blob/master/contracts/libraries/UniswapV2LiquidityMathLibrary.sol#L23
      */
     function _getTrustedTokenAmounts(
@@ -195,7 +216,7 @@ contract UniswapV2PricingModule is PricingModule {
         uint256 totalSupply = IUniswapV2Pair(pair).totalSupply();
 
         // this also checks that totalSupply > 0
-        require(totalSupply >= liquidityAmount && liquidityAmount > 0, "UV2_GTTA: LIQUIDITY_AMOUNT");
+        require(totalSupply > 0, "UV2_GTTA: ZERO_SUPPLY");
 
         (uint256 reserve0, uint256 reserve1) = _getTrustedReserves(pair, trustedPriceToken0, trustedPriceToken1);
 
@@ -249,7 +270,7 @@ contract UniswapV2PricingModule is PricingModule {
     /**
      * @notice Computes the direction and magnitude of the profit-maximizing trade
      * @param trustedPriceToken0 Trusted price of an amount of Token0 in a given BaseCurrency
-     * @param trustedPriceToken1 Trusted price of an equalamount of Token1 in a given BaseCurrency
+     * @param trustedPriceToken1 Trusted price of an equal amount of Token1 in a given BaseCurrency
      * @param reserve0 The current untrusted reserves of token0 in the liquidity pool
      * @param reserve1 The current untrusted reserves of token1 in the liquidity pool
      * @return token0ToToken1 The direction of the profit-maximizing trade

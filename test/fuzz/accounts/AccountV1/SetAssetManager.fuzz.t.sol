@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "setAssetManager" of contract "AccountV1".
+ * @notice Fuzz tests for the function "setAssetManager" of contract "AccountV1".
  */
 contract SetAssetManager_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

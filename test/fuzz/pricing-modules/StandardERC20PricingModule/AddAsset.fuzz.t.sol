@@ -4,17 +4,20 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, StandardERC20PricingModule_Fuzz_Test } from "./_StandardERC20PricingModule.fuzz.t.sol";
+import { StandardERC20PricingModule_Fuzz_Test } from "./_StandardERC20PricingModule.fuzz.t.sol";
 
+import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
+import { Constants } from "../../../utils/Constants.sol";
+import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import {
-    PricingModule, StandardERC20PricingModule
+    PrimaryPricingModule,
+    StandardERC20PricingModule
 } from "../../../../src/pricing-modules/StandardERC20PricingModule.sol";
-import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
-import { ArcadiaOracle } from "../../.././utils/mocks/ArcadiaOracle.sol";
 
 /**
- * @notice Fuzz tests for the "addAsset" of contract "StandardERC20PricingModule".
+ * @notice Fuzz tests for the function "addAsset" of contract "StandardERC20PricingModule".
  */
 contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -36,20 +39,6 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
 
         // Then: addAsset should revert with "UNAUTHORIZED"
         vm.expectRevert("UNAUTHORIZED");
-        erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
-        vm.stopPrank();
-    }
-
-    function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
-        // Given: All necessary contracts deployed on setup
-        vm.startPrank(users.creatorAddress);
-        // When: users.creatorAddress calls addAsset twice
-        erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
-        vm.expectRevert("PM20_AA: already added");
         erc20PricingModule.addAsset(
             address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
         );
@@ -89,6 +78,20 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
+        // Given: All necessary contracts deployed on setup
+        vm.startPrank(users.creatorAddress);
+        // When: users.creatorAddress calls addAsset twice
+        erc20PricingModule.addAsset(
+            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
+        );
+        vm.expectRevert("MR_AA: Asset already in mainreg");
+        erc20PricingModule.addAsset(
+            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
+        );
+        vm.stopPrank();
+    }
+
     function testFuzz_Success_addAsset_EmptyListRiskVariables() public {
         // Given: All necessary contracts deployed on setup
         vm.startPrank(users.creatorAddress);
@@ -102,13 +105,12 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
 
         // Then: address(mockERC20.token4) should be inPricingModule
         assertTrue(erc20PricingModule.inPricingModule(address(mockERC20.token4)));
-        assertEq(erc20PricingModule.assetsInPricingModule(4), address(mockERC20.token4)); // Previously 4 assets were added in setup.
         (uint64 assetUnit, address[] memory oracles) = erc20PricingModule.getAssetInformation(address(mockERC20.token4));
         assertEq(assetUnit, 10 ** uint8(Constants.tokenDecimals));
         for (uint256 i; i < oracleToken4ToUsdArr.length; ++i) {
             assertEq(oracles[i], oracleToken4ToUsdArr[i]);
         }
-        assertTrue(erc20PricingModule.isAllowListed(address(mockERC20.token4), 0));
+        assertTrue(erc20PricingModule.isAllowed(address(mockERC20.token4), 0));
     }
 
     function testFuzz_Success_addAsset_NonFullListRiskVariables() public {

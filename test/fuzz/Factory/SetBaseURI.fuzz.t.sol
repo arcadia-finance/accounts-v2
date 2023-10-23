@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "setBaseURI" of contract "Factory".
+ * @notice Fuzz tests for the function "setBaseURI" of contract "Factory".
  */
 contract SetBaseURI_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
