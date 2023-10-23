@@ -541,6 +541,22 @@ contract AccountV1 is AccountStorageV1, IAccount {
         require(accountIsLiquidatable, "A_CASL: Account not liquidatable");
     }
 
+    /**
+     * @notice Will transfer the tokens bought by a bidder during a liquidation event.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assetIds Array of the IDs of the assets.
+     * @param assetAmounts Array with the amounts of the assets.
+     * @param bidder The address of the bidder that bought the assets.
+     */
+    function auctionBuy(
+        address[] memory assetAddresses,
+        uint256[] memory assetIds,
+        uint256[] memory assetAmounts,
+        address bidder
+    ) external onlyLiquidator {
+        _withdraw(assetAddresses, assetIds, assetAmounts, bidder);
+    }
+
     /*///////////////////////////////////////////////////////////////
                     ASSET MANAGEMENT LOGIC
     ///////////////////////////////////////////////////////////////*/
