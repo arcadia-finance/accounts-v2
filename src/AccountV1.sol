@@ -14,6 +14,7 @@ import { IAccount } from "./interfaces/IAccount.sol";
 import { ActionData } from "./actions/utils/ActionData.sol";
 import { ERC20, SafeTransferLib } from "../lib/solmate/src/utils/SafeTransferLib.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
+import { RiskModule } from "./RiskModule.sol";
 
 /**
  * @title Acadia Accounts.
@@ -99,6 +100,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
             msg.sender == owner || msg.sender == trustedCreditor || isAssetManager[owner][msg.sender],
             "A: Only Asset Manager"
         );
+        _;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the Liquidator address.
+     */
+    modifier onlyLiquidator() {
+        require(msg.sender == liquidator, "A: Only Liquidator");
         _;
     }
 
@@ -442,6 +451,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
                           LIQUIDATION LOGIC
     /////////////////////////////////////////////////////////////// */
 
+    // Note: To delete as will be triggered in Liquidator contract
     /**
      * @notice Function called by Liquidator to start liquidation of the Account.
      * @param openDebt The open debt taken by `originalOwner` at moment of liquidation at trustedCreditor
@@ -487,6 +497,64 @@ contract AccountV1 is AccountStorageV1, IAccount {
         emit TrustedMarginAccountChanged(address(0), address(0));
 
         return (originalOwner, baseCurrency, trustedCreditor_);
+    }
+
+    /**
+     * @notice Checks if an Account is liquidatable and in that case will initiate the liquidation flow.
+     * @return assetAddresses Array of the contract addresses of the assets in Account.
+     * @return assetIds Array of the IDs of the assets in Account.
+     * @return assetAmounts Array with the amounts of the assets in Account.
+     * @return creditor_ The trusted creditor, address 0 if no active trusted creditor.
+     * @return totalOpenDebt The total open Debt against the Account.
+     * @return assetAndRiskValues Array of asset values and corresponding collateral factors.
+     */
+    function checkAndStartLiquidation()
+        external
+        nonReentrant
+        returns (
+            address[] memory assetAddresses,
+            uint256[] memory assetIds,
+            uint256[] memory assetAmounts,
+            address creditor_,
+            uint256 totalOpenDebt,
+            RiskModule.AssetValueAndRiskVariables[] memory assetAndRiskValues
+        )
+    {
+        (assetAddresses, assetIds, assetAmounts) = generateAssetData();
+        assetAndRiskValues =
+            IMainRegistry(registry).getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, baseCurrency);
+        creditor_ = trustedCreditor;
+
+        uint256 fixedLiquidationCost_ = fixedLiquidationCost;
+
+        //As the function is only callable by the liquidator, it means that a liquidator and a trustedCreditor are set.
+        totalOpenDebt = ITrustedCreditor(trustedCreditor).getOpenPosition(address(this));
+
+        uint256 usedMargin = totalOpenDebt + fixedLiquidationCost_;
+
+        bool accountIsLiquidatable;
+        if (totalOpenDebt > 0) {
+            //A Account can be liquidated if the Liquidation value is smaller than the Used Margin.
+            accountIsLiquidatable = RiskModule.calculateLiquidationValue(assetAndRiskValues) < usedMargin;
+        }
+
+        require(accountIsLiquidatable, "A_CASL: Account not liquidatable");
+    }
+
+    /**
+     * @notice Will transfer the tokens bought by a bidder during a liquidation event.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assetIds Array of the IDs of the assets.
+     * @param assetAmounts Array with the amounts of the assets.
+     * @param bidder The address of the bidder that bought the assets.
+     */
+    function auctionBuy(
+        address[] memory assetAddresses,
+        uint256[] memory assetIds,
+        uint256[] memory assetAmounts,
+        address bidder
+    ) external onlyLiquidator {
+        _withdraw(assetAddresses, assetIds, assetAmounts, bidder);
     }
 
     /*///////////////////////////////////////////////////////////////

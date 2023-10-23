@@ -92,20 +92,17 @@ abstract contract Base_Test is Test, Events, Errors {
             address(mainRegistryExtension), address(accountV1Logic), Constants.upgradeProof1To2, ""
         );
         trustedCreditor = new TrustedCreditorMock();
-        vm.stopPrank();
 
         // Set the Guardians.
         vm.startPrank(users.creatorAddress);
         factory.changeGuardian(users.guardian);
         mainRegistryExtension.changeGuardian(users.guardian);
-        vm.stopPrank();
 
         // Add Pricing Modules to the Main Registry.
         vm.startPrank(users.creatorAddress);
         mainRegistryExtension.addPricingModule(address(erc20PricingModule));
         mainRegistryExtension.addPricingModule(address(floorERC721PricingModule));
         mainRegistryExtension.addPricingModule(address(floorERC1155PricingModule));
-        vm.stopPrank();
 
         // Label the base test contracts.
         vm.label({ account: address(factory), newLabel: "Factory" });
@@ -124,9 +121,10 @@ abstract contract Base_Test is Test, Events, Errors {
         trustedCreditor.setLiquidator(Constants.initLiquidator);
 
         // Deploy an initial Account with all inputs to zero
-        vm.prank(users.accountOwner);
+        vm.startPrank(users.accountOwner);
         address proxyAddress = factory.createAccount(0, 0, address(0), address(0));
         proxyAccount = AccountV1(proxyAddress);
+        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////////////////

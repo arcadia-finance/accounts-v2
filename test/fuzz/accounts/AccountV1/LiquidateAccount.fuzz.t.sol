@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 
 import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
+// Note: to remove as liquidateAccount will be triggered in the Liquidator contract
 /**
  * @notice Fuzz tests for the "liquidateAccount" of contract "AccountV1".
  */
