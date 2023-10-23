@@ -39,6 +39,17 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
+    function testFuzz_Revert_checkAndStartLiquidation_Reentered() public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        // Should revert if the reentrancy guard is locked.
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert("A: REENTRANCY");
+        accountExtension.checkAndStartLiquidation();
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_checkAndStartLiquidation_notLiquidatable_usedMarginSmallerThanLiquidationValue(
         uint96 fixedLiquidationCost,
         uint256 openDebt,

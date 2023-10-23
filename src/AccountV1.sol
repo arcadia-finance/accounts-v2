@@ -510,7 +510,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      */
     function checkAndStartLiquidation()
         external
-        view
+        nonReentrant
         returns (
             address[] memory assetAddresses,
             uint256[] memory assetIds,
