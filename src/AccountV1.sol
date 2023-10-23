@@ -463,7 +463,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function checkAndStartLiquidation()
         external
         view
-        onlyLiquidator
         returns (
             address[] memory assetAddresses,
             uint256[] memory assetIds,
@@ -491,7 +490,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             accountIsLiquidatable = RiskModule.calculateLiquidationValue(assetAndRiskValues) < usedMargin;
         }
 
-        require(accountIsLiquidatable, "A_CASL, Account not liquidatable");
+        require(accountIsLiquidatable, "A_CASL: Account not liquidatable");
     }
 
     /*///////////////////////////////////////////////////////////////

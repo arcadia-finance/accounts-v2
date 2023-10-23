@@ -38,18 +38,6 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_checkAndStartLiquidation_nonLiquidator(address nonLiquidator) public {
-        // openTrustedMarginAccount() will set a liquidator on the account
-        vm.startPrank(users.accountOwner);
-        proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
-
-        vm.assume(nonLiquidator != proxyAccount.liquidator());
-
-        vm.startPrank(nonLiquidator);
-        vm.expectRevert("A: Only Liquidator");
-        proxyAccount.checkAndStartLiquidation();
-        vm.stopPrank();
-    }
 
     function testFuzz_Revert_checkAndStartLiquidation_notLiquidatable_usedMarginSmallerThanLiquidationValue(
         uint96 fixedLiquidationCost,
@@ -96,7 +84,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then : Account should not be liquidatable as openDebt > 0 and liquidationValue > usedMargin
         vm.startPrank(accountExtension2.liquidator());
-        vm.expectRevert("A_CASL, Account not liquidatable");
+        vm.expectRevert("A_CASL: Account not liquidatable");
         accountExtension2.checkAndStartLiquidation();
         vm.stopPrank();
     }
@@ -121,7 +109,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then : Account should not be liquidatable as openDebt == 0
         vm.startPrank(accountExtension2.liquidator());
-        vm.expectRevert("A_CASL, Account not liquidatable");
+        vm.expectRevert("A_CASL: Account not liquidatable");
         accountExtension2.checkAndStartLiquidation();
         vm.stopPrank();
     }
@@ -145,7 +133,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = depositAmountStable1;
 
-        // Initialize Account and set open position on trusted creditor
+        // Given: Account is initialized and an open position is set on trusted creditor
         accountExtension2.initialize(
             users.accountOwner, address(mainRegistryExtension), address(mockERC20.token1), address(trustedCreditor)
         );
@@ -169,7 +157,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Deposit stable1 token in account
         accountExtension2.deposit(assetAddresses, assetIds, assetAmounts);
 
-        // Then : Account should be liquidatable and return specific values
+        // When : The liquidator initiates a liquidation
         vm.startPrank(accountExtension2.liquidator());
         (
             address[] memory assetAddresses_,
@@ -181,6 +169,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         ) = accountExtension2.checkAndStartLiquidation();
         vm.stopPrank();
 
+        // Then : Account should be liquidatable and return specific values
         assertEq(assetAddresses_[0], address(mockERC20.stable1));
         assertEq(assetIds_[0], 0);
         assertEq(assetAmounts_[0], mockERC20.stable1.balanceOf(address(accountExtension2)));
