@@ -10,7 +10,8 @@ import { DeployAddresses, DeployNumbers, DeployBytes, DeployRiskConstantsBase } 
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/AccountV1.sol";
 import { MainRegistry } from "../src/MainRegistry.sol";
-import { PricingModule, StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
+import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
+import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
 import { UniswapV3PricingModule } from "../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
 
@@ -169,7 +170,7 @@ contract ArcadiaAccountDeployment is Test {
 
         riskVarsComp.push(
             PricingModule.RiskVarInput({
-                baseCurrency: 1,
+                baseCurrency: 0,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.comp_collFact_1,
                 liquidationFactor: DeployRiskConstantsBase.comp_liqFact_1
@@ -177,7 +178,7 @@ contract ArcadiaAccountDeployment is Test {
         );
         riskVarsComp.push(
             PricingModule.RiskVarInput({
-                baseCurrency: 2,
+                baseCurrency: 1,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.comp_collFact_2,
                 liquidationFactor: DeployRiskConstantsBase.comp_liqFact_2
@@ -186,7 +187,7 @@ contract ArcadiaAccountDeployment is Test {
 
         riskVarsDai.push(
             PricingModule.RiskVarInput({
-                baseCurrency: 1,
+                baseCurrency: 0,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.dai_collFact_1,
                 liquidationFactor: DeployRiskConstantsBase.dai_liqFact_1
@@ -194,7 +195,7 @@ contract ArcadiaAccountDeployment is Test {
         );
         riskVarsDai.push(
             PricingModule.RiskVarInput({
-                baseCurrency: 2,
+                baseCurrency: 1,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.dai_collFact_2,
                 liquidationFactor: DeployRiskConstantsBase.dai_liqFact_2
@@ -203,7 +204,7 @@ contract ArcadiaAccountDeployment is Test {
 
         riskVarsEth.push(
             PricingModule.RiskVarInput({
-                baseCurrency: 1,
+                baseCurrency: 0,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.eth_collFact_1,
                 liquidationFactor: DeployRiskConstantsBase.eth_liqFact_1
@@ -211,7 +212,7 @@ contract ArcadiaAccountDeployment is Test {
         );
         riskVarsEth.push(
             PricingModule.RiskVarInput({
-                baseCurrency: 2,
+                baseCurrency: 1,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.eth_collFact_2,
                 liquidationFactor: DeployRiskConstantsBase.eth_liqFact_2
@@ -220,7 +221,7 @@ contract ArcadiaAccountDeployment is Test {
 
         riskVarsUsdc.push(
             PricingModule.RiskVarInput({
-                baseCurrency: 1,
+                baseCurrency: 0,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.usdc_collFact_1,
                 liquidationFactor: DeployRiskConstantsBase.usdc_liqFact_1
@@ -228,7 +229,7 @@ contract ArcadiaAccountDeployment is Test {
         );
         riskVarsUsdc.push(
             PricingModule.RiskVarInput({
-                baseCurrency: 2,
+                baseCurrency: 1,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.usdc_collFact_2,
                 liquidationFactor: DeployRiskConstantsBase.usdc_liqFact_2
@@ -237,7 +238,7 @@ contract ArcadiaAccountDeployment is Test {
 
         riskVarsCbeth.push(
             PricingModule.RiskVarInput({
-                baseCurrency: 1,
+                baseCurrency: 0,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.cbeth_collFact_1,
                 liquidationFactor: DeployRiskConstantsBase.cbeth_liqFact_1
@@ -245,7 +246,7 @@ contract ArcadiaAccountDeployment is Test {
         );
         riskVarsCbeth.push(
             PricingModule.RiskVarInput({
-                baseCurrency: 2,
+                baseCurrency: 1,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.cbeth_collFact_2,
                 liquidationFactor: DeployRiskConstantsBase.cbeth_liqFact_2
@@ -254,7 +255,7 @@ contract ArcadiaAccountDeployment is Test {
 
         riskVarsReth.push(
             PricingModule.RiskVarInput({
-                baseCurrency: 1,
+                baseCurrency: 0,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.reth_collFact_1,
                 liquidationFactor: DeployRiskConstantsBase.reth_liqFact_1
@@ -262,7 +263,7 @@ contract ArcadiaAccountDeployment is Test {
         );
         riskVarsReth.push(
             PricingModule.RiskVarInput({
-                baseCurrency: 2,
+                baseCurrency: 1,
                 asset: address(0),
                 collateralFactor: DeployRiskConstantsBase.reth_collFact_2,
                 liquidationFactor: DeployRiskConstantsBase.reth_liqFact_2
@@ -283,11 +284,9 @@ contract ArcadiaAccountDeployment is Test {
         oracleHub = new OracleHub();
         standardERC20PricingModule = new StandardERC20PricingModule(
             address(mainRegistry),
-            address(oracleHub),
-            0
-        );
+            address(oracleHub)        );
         uniswapV3PricingModule =
-        new UniswapV3PricingModule(address(mainRegistry), address(oracleHub), deployerAddress, address(standardERC20PricingModule));
+        new UniswapV3PricingModule(address(mainRegistry), deployerAddress, DeployAddresses.uniswapV3PositionMgr_base);
 
         account = new AccountV1();
         actionMultiCall = new ActionMultiCallV2();

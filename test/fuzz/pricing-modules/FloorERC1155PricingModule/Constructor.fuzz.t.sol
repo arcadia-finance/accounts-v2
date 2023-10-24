@@ -4,12 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModule.fuzz.t.sol";
+import { FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModule.fuzz.t.sol";
 
-import { FloorERC1155PricingModule } from "../../../../src/pricing-modules/FloorERC1155PricingModule.sol";
+import { FloorERC1155PricingModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
- * @notice Fuzz tests for the "constructor" of contract "FloorERC1155PricingModule".
+ * @notice Fuzz tests for the function "constructor" of contract "FloorERC1155PricingModule".
  */
 contract Constructor_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -23,20 +23,19 @@ contract Constructor_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingM
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address mainRegistry_, address oracleHub_, uint256 assetType_) public {
+    function testFuzz_Success_deployment(address mainRegistry_, address oracleHub_) public {
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskManagerUpdated(users.creatorAddress);
-        FloorERC1155PricingModule pricingModule_ = new FloorERC1155PricingModule(
+        FloorERC1155PricingModuleExtension pricingModule_ = new FloorERC1155PricingModuleExtension(
             mainRegistry_,
-            oracleHub_,
-            assetType_
-        );
+            oracleHub_);
         vm.stopPrank();
 
-        assertEq(pricingModule_.mainRegistry(), mainRegistry_);
-        assertEq(pricingModule_.oracleHub(), oracleHub_);
-        assertEq(pricingModule_.assetType(), assetType_);
+        assertEq(pricingModule_.MAIN_REGISTRY(), mainRegistry_);
+        assertEq(pricingModule_.ORACLE_HUB(), oracleHub_);
+        assertEq(pricingModule_.ASSET_TYPE(), 2);
         assertEq(pricingModule_.riskManager(), users.creatorAddress);
+        assertTrue(pricingModule_.getPrimaryFlag());
     }
 }

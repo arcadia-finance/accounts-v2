@@ -11,6 +11,7 @@ import { ITrustedCreditor } from "./interfaces/ITrustedCreditor.sol";
 import { IActionBase, ActionData } from "./interfaces/IActionBase.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IAccount } from "./interfaces/IAccount.sol";
+import { IPermit2 } from "./interfaces/IPermit2.sol";
 import { ActionData } from "./actions/utils/ActionData.sol";
 import { ERC20, SafeTransferLib } from "../lib/solmate/src/utils/SafeTransferLib.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
@@ -45,6 +46,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
     uint256 public constant ASSET_LIMIT = 15;
     // The current Vault Version.
     uint16 public constant ACCOUNT_VERSION = 1;
+    // Uniswap Permit2 contract
+    IPermit2 internal immutable permit2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
     // Storage slot for the Account logic, a struct to avoid storage conflict when dealing with upgradeable contracts.
     struct AddressSlot {
@@ -584,6 +587,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The first struct contains the info about the assets to withdraw from this Account to the actionHandler.
      * The second struct contains the info about the owner's assets that are not in this Account and needs to be transferred to the actionHandler.
      * The third struct contains the info about the assets that needs to be deposited from the actionHandler back into the Account.
+     * @param signature The signature to verify.
      * @return trustedCreditor_ The contract address of the trusted creditor.
      * @return accountVersion_ The Account version.
      * @dev Similar to flash loans, this function optimistically calls external logic and checks for the Account state at the very end.
@@ -591,7 +595,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The only requirements are that the recipient tokens of the interactions are allowlisted, deposited back into the Account and
      * that the Account is in a healthy state at the end of the transaction.
      */
-    function accountManagementAction(address actionHandler, bytes calldata actionData)
+    function accountManagementAction(address actionHandler, bytes calldata actionData, bytes calldata signature)
         external
         nonReentrant
         onlyAssetManager
@@ -599,8 +603,15 @@ contract AccountV1 is AccountStorageV1, IAccount {
     {
         require(IMainRegistry(registry).isActionAllowed(actionHandler), "A_AMA: Action not allowed");
 
-        (ActionData memory withdrawData, ActionData memory transferFromOwnerData,,,) =
-            abi.decode(actionData, (ActionData, ActionData, ActionData, address[], bytes[]));
+        (
+            ActionData memory withdrawData,
+            ActionData memory transferFromOwnerData,
+            IPermit2.PermitBatchTransferFrom memory permit,
+            ,
+            ,
+        ) = abi.decode(
+            actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, ActionData, address[], bytes[])
+        );
 
         // Withdraw assets to actionHandler.
         _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionHandler);
@@ -608,6 +619,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
         // Transfer assets from owner (that are not assets in this account) to actionHandler.
         if (transferFromOwnerData.assets.length > 0) {
             _transferFromOwner(transferFromOwnerData, actionHandler);
+        }
+
+        // If the function input includes a signature and non-empty token permissions, initiate a transfer via Permit2.
+        if (signature.length > 0 && permit.permitted.length > 0) {
+            _transferFromOwnerWithPermit(permit, signature, actionHandler);
         }
 
         // Execute Action(s).
@@ -674,6 +690,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         for (uint256 i; i < assetAddressesLength;) {
             if (assetAmounts[i] == 0) {
                 //Skip if amount is 0 to prevent storing addresses that have 0 balance.
+                //ToDo silent fail or should we revert here?
                 unchecked {
                     ++i;
                 }
@@ -681,8 +698,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
             }
 
             if (assetTypes[i] == 0) {
+                require(assetIds[i] == 0, "A_D: ERC20 Id");
                 _depositERC20(from, assetAddresses[i], assetAmounts[i]);
             } else if (assetTypes[i] == 1) {
+                require(assetAmounts[i] == 1, "A_D: ERC721 amount");
                 _depositERC721(from, assetAddresses[i], assetIds[i]);
             } else if (assetTypes[i] == 2) {
                 _depositERC1155(from, assetAddresses[i], assetIds[i], assetAmounts[i]);
@@ -758,8 +777,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
             }
 
             if (assetTypes[i] == 0) {
+                require(assetIds[i] == 0, "A_W: ERC20 Id");
                 _withdrawERC20(to, assetAddresses[i], assetAmounts[i]);
             } else if (assetTypes[i] == 1) {
+                require(assetAmounts[i] == 1, "A_W: ERC721 amount");
                 _withdrawERC721(to, assetAddresses[i], assetIds[i]);
             } else if (assetTypes[i] == 2) {
                 _withdrawERC1155(to, assetAddresses[i], assetIds[i], assetAmounts[i]);
@@ -806,6 +827,33 @@ contract AccountV1 is AccountStorageV1, IAccount {
                 ++i;
             }
         }
+    }
+
+    /**
+     * @notice Transfers assets from the owner to the actionHandler contract via Permit2.
+     * @param permit Data specifying the terms of the transfer.
+     * @param signature The signature to verify.
+     * @param to_ The address to withdraw to.
+     */
+    function _transferFromOwnerWithPermit(
+        IPermit2.PermitBatchTransferFrom memory permit,
+        bytes calldata signature,
+        address to_
+    ) internal {
+        uint256 tokenPermissionsLength = permit.permitted.length;
+        IPermit2.SignatureTransferDetails[] memory transferDetails =
+            new IPermit2.SignatureTransferDetails[](tokenPermissionsLength);
+
+        for (uint256 i; i < tokenPermissionsLength;) {
+            transferDetails[i].to = to_;
+            transferDetails[i].requestedAmount = permit.permitted[i].amount;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        permit2.permitTransferFrom(permit, transferDetails, owner, signature);
     }
 
     /**

@@ -6,46 +6,35 @@ pragma solidity 0.8.19;
 
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IPricingModule } from "../interfaces/IPricingModule.sol";
-import { RiskConstants } from "../libraries/RiskConstants.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
-import { IPricingModule } from "../interfaces/IPricingModule.sol";
+import { RiskConstants } from "../libraries/RiskConstants.sol";
 
 /**
  * @title Abstract Pricing Module
  * @author Pragma Labs
  * @notice Abstract contract with the minimal implementation of a Pricing Module.
- * @dev No end-user should directly interact with Pricing Module, only the Main Registry, Oracle-Hub
- * or the contract owner.
  */
 abstract contract PricingModule is Owned, IPricingModule {
+    /* //////////////////////////////////////////////////////////////
+                                CONSTANTS
+    ////////////////////////////////////////////////////////////// */
+
+    // Identifier for the token standard of the asset.
+    uint256 public immutable ASSET_TYPE;
+    // The contract address of the MainRegistry.
+    address public immutable MAIN_REGISTRY;
+
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // The contract address of the MainRegistry.
-    address public immutable mainRegistry;
-    // The contract address of the OracleHub.
-    address public immutable oracleHub;
-    // Identifier for the token standard of the asset.
-    uint256 public immutable assetType;
     // The address of the riskManager.
     address public riskManager;
 
-    // Array with all the contract addresses of assets added to the Pricing Module.
-    address[] public assetsInPricingModule;
-
     // Map asset => flag.
     mapping(address => bool) public inPricingModule;
-    // Map asset => exposureInformation.
-    mapping(address => Exposure) public exposure;
     // Map asset => baseCurrencyIdentifier => riskVariables.
     mapping(address => mapping(uint256 => RiskVars)) public assetRiskVars;
-
-    // Struct with information about the exposure of a specific asset.
-    struct Exposure {
-        uint128 maxExposure; // The maximum protocol wide exposure to an asset.
-        uint128 exposure; // The actual protocol wide exposure to an asset.
-    }
 
     // Struct with the risk variables of a specific asset for a specific baseCurrency.
     struct RiskVars {
@@ -69,19 +58,25 @@ abstract contract PricingModule is Owned, IPricingModule {
     event RiskVariablesSet(
         address indexed asset, uint8 indexed baseCurrencyId, uint16 collateralFactor, uint16 liquidationFactor
     );
-    event MaxExposureSet(address indexed asset, uint128 maxExposure);
+    event AssetExposureChanged(address asset, uint128 oldExposure, uint128 newExposure);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
 
+    /**
+     * @dev Only the Risk Manager can call functions with this modifier.
+     */
     modifier onlyRiskManager() {
         require(msg.sender == riskManager, "APM: ONLY_RISK_MANAGER");
         _;
     }
 
+    /**
+     * @dev Only the Main Registry can call functions with this modifier.
+     */
     modifier onlyMainReg() {
-        require(msg.sender == mainRegistry, "APM: ONLY_MAIN_REGISTRY");
+        require(msg.sender == MAIN_REGISTRY, "APM: ONLY_MAIN_REGISTRY");
         _;
     }
 
@@ -91,27 +86,69 @@ abstract contract PricingModule is Owned, IPricingModule {
 
     /**
      * @param mainRegistry_ The contract address of the MainRegistry.
-     * @param oracleHub_ The contract address of the OracleHub.
      * @param assetType_ Identifier for the token standard of the asset.
      * 0 = ERC20.
      * 1 = ERC721.
      * 2 = ERC1155.
      * @param riskManager_ The address of the Risk Manager.
      */
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_, address riskManager_)
-        Owned(msg.sender)
-    {
-        mainRegistry = mainRegistry_;
-        oracleHub = oracleHub_;
-        assetType = assetType_;
+    constructor(address mainRegistry_, uint256 assetType_, address riskManager_) Owned(msg.sender) {
+        MAIN_REGISTRY = mainRegistry_;
+        ASSET_TYPE = assetType_;
         riskManager = riskManager_;
 
         emit RiskManagerUpdated(riskManager_);
     }
 
     /*///////////////////////////////////////////////////////////////
+                        ASSET INFORMATION
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is allowed.
+     * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
+     */
+    function isAllowed(address asset, uint256 assetId) public view virtual returns (bool);
+
+    /**
+     * @notice Returns the unique identifier of an asset based on the contract address and id.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @return key The unique identifier.
+     * @dev Unsafe cast from uint256 to uint96, use only when the id's of the assets cannot exceed type(uint96).max.
+     */
+    function _getKeyFromAsset(address asset, uint256 assetId) internal view virtual returns (bytes32 key) {
+        assembly {
+            // Shift the assetId to the left by 20 bytes (160 bits).
+            // This will remove the padding on the right.
+            // Then OR the result with the address.
+            key := or(shl(160, assetId), asset)
+        }
+    }
+
+    /**
+     * @notice Returns the contract address and id of an asset based on the unique identifier.
+     * @param key The unique identifier.
+     * @return asset The contract address of the asset.
+     * @return assetId The Id of the asset.
+     */
+    function _getAssetFromKey(bytes32 key) internal view virtual returns (address asset, uint256 assetId) {
+        assembly {
+            // Shift to the right by 20 bytes (160 bits) to extract the uint96 assetId.
+            assetId := shr(160, key)
+
+            // Use bitmask to extract the address from the rightmost 160 bits.
+            asset := and(key, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+        }
+    }
+
+    /*///////////////////////////////////////////////////////////////
                     RISK MANAGER MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
+
     /**
      * @notice Sets a new Risk Manager.
      * @param riskManager_ The address of the new Risk Manager.
@@ -123,30 +160,21 @@ abstract contract PricingModule is Owned, IPricingModule {
     }
 
     /*///////////////////////////////////////////////////////////////
-                        WHITE LIST MANAGEMENT
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Checks for a token address and the corresponding Id if it is white-listed.
-     * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
-     * @return A boolean, indicating if the asset is whitelisted.
-     * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
-     */
-    function isAllowListed(address asset, uint256) public view virtual returns (bool) {
-        return exposure[asset].maxExposure != 0;
-    }
-
-    /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the value of a certain asset, denominated in USD, 18 decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, 2 decimals precision.
+     * @notice Returns the usd value of an asset.
+     * param getValueInput A Struct with the input variables.
+     * - asset: The contract address of the asset.
+     * - assetId: The Id of the asset.
+     * - assetAmount: The amount of assets.
+     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
      */
-    function getValue(GetValueInput memory) public view virtual returns (uint256, uint256, uint256) { }
+    function getValue(GetValueInput memory) public view virtual returns (uint256, uint256, uint256);
 
     /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT
@@ -171,7 +199,7 @@ abstract contract PricingModule is Owned, IPricingModule {
      * @dev Can only be called by the Risk Manager, which can be different from the owner.
      */
     function setBatchRiskVariables(RiskVarInput[] memory riskVarInputs) public virtual onlyRiskManager {
-        uint256 baseCurrencyCounter = IMainRegistry(mainRegistry).baseCurrencyCounter();
+        uint256 baseCurrencyCounter = IMainRegistry(MAIN_REGISTRY).baseCurrencyCounter();
         uint256 riskVarInputsLength = riskVarInputs.length;
 
         for (uint256 i; i < riskVarInputsLength;) {
@@ -200,7 +228,7 @@ abstract contract PricingModule is Owned, IPricingModule {
      * @dev The asset slot in the RiskVarInput struct is ignored for this function.
      */
     function _setRiskVariablesForAsset(address asset, RiskVarInput[] memory riskVarInputs) internal virtual {
-        uint256 baseCurrencyCounter = IMainRegistry(mainRegistry).baseCurrencyCounter();
+        uint256 baseCurrencyCounter = IMainRegistry(MAIN_REGISTRY).baseCurrencyCounter();
         uint256 riskVarInputsLength = riskVarInputs.length;
 
         for (uint256 i; i < riskVarInputsLength;) {
@@ -236,41 +264,51 @@ abstract contract PricingModule is Owned, IPricingModule {
         emit RiskVariablesSet(asset, uint8(baseCurrency), riskVars.collateralFactor, riskVars.liquidationFactor);
     }
 
-    /**
-     * @notice Sets the maximum exposure for an asset.
-     * @param asset The contract address of the asset.
-     * @param maxExposure The maximum protocol wide exposure to the asset.
-     * @dev Can only be called by the Risk Manager, which can be different from the owner.
-     */
-    function setExposureOfAsset(address asset, uint256 maxExposure) public virtual onlyRiskManager {
-        require(maxExposure <= type(uint128).max, "APM_SEA: Max Exp. not in limits");
-        exposure[asset].maxExposure = uint128(maxExposure);
-
-        emit MaxExposureSet(asset, uint128(maxExposure));
-    }
+    /*///////////////////////////////////////////////////////////////
+                    WITHDRAWALS AND DEPOSITS
+    ///////////////////////////////////////////////////////////////*/
 
     /**
      * @notice Increases the exposure to an asset on deposit.
      * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
+     * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
-     * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens can be deposited.
      */
-    function increaseExposure(address asset, uint256, uint256 amount) external virtual onlyMainReg {
-        require(
-            exposure[asset].exposure + uint128(amount) <= exposure[asset].maxExposure, "APM_IE: Exposure not in limits"
-        );
-        exposure[asset].exposure += uint128(amount);
-    }
+    function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public virtual;
+
+    /**
+     * @notice Increases the exposure to an underlying asset on deposit.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     */
+    function processIndirectDeposit(
+        address asset,
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset);
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
      * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
+     * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
-     * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
-    function decreaseExposure(address asset, uint256, uint256 amount) external virtual onlyMainReg {
-        exposure[asset].exposure >= amount ? exposure[asset].exposure -= uint128(amount) : exposure[asset].exposure = 0;
-    }
+    function processDirectWithdrawal(address asset, uint256 assetId, uint256 amount) public virtual;
+
+    /**
+     * @notice Decreases the exposure to an asset on withdrawal.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     */
+    function processIndirectWithdrawal(
+        address asset,
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset);
 }

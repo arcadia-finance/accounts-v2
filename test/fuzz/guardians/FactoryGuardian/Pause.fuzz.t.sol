@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, FactoryGuardian_Fuzz_Test } from "./_FactoryGuardian.fuzz.t.sol";
+import { FactoryGuardian_Fuzz_Test } from "./_FactoryGuardian.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "pause" of contract "FactoryGuardian".
+ * @notice Fuzz tests for the function "pause" of contract "FactoryGuardian".
  */
 contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

@@ -4,12 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingModule.fuzz.t.sol";
-
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { AbstractPricingModule_Fuzz_Test } from "./_AbstractPricingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "setRiskManager" of contract "AbstractPricingModule".
+ * @notice Fuzz tests for the function "setRiskManager" of contract "AbstractPricingModule".
  */
 contract SetRiskManager_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

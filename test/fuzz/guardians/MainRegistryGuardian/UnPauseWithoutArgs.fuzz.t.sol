@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, MainRegistryGuardian_Fuzz_Test } from "./_MainRegistryGuardian.fuzz.t.sol";
+import { MainRegistryGuardian_Fuzz_Test } from "./_MainRegistryGuardian.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "unPause" of contract "MainRegistryGuardian".
+ * @notice Fuzz tests for the function "unPause" of contract "MainRegistryGuardian".
  */
 contract UnPause_WithoutArgs_MainRegistryGuardian_Fuzz_Test is MainRegistryGuardian_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
