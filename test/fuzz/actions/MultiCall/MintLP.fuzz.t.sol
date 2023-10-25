@@ -29,9 +29,9 @@ contract MintLP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
 
     function setUp() public override(MultiCall_Fuzz_Test) {
         MultiCall_Fuzz_Test.setUp();
-        univ3PosMgr = new NonfungiblePositionManagerMock();
+        univ3PosMgr = new NonfungiblePositionManagerMock(address(factory));
 
-        deployUniswapV3PricingModule();
+        deployUniswapV3PricingModule(address(univ3PosMgr));
 
         token0 = new ERC20Mock('Token 0', 'TOK0', 18);
         token1 = new ERC20Mock('Token 1', 'TOK1', 18);
@@ -39,8 +39,8 @@ contract MintLP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         token0.mint(users.creatorAddress, 10 ** 38);
         token1.mint(users.creatorAddress, 10 ** 38);
 
-        vm.prank(users.creatorAddress);
-        uniV3PricingModule.addAsset(address(univ3PosMgr));
+        // vm.prank(users.creatorAddress);
+        // uniV3PricingModule.addAsset(address(univ3PosMgr));
     }
 
     /*//////////////////////////////////////////////////////////////
