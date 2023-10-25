@@ -12,9 +12,9 @@ import { AccountV2 } from "./utils/mocks/AccountV2.sol";
 import { MainRegistryExtension } from "./utils/Extensions.sol";
 import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
-import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
-import { FloorERC721PricingModule } from "../src/pricing-modules/FloorERC721PricingModule.sol";
-import { FloorERC1155PricingModule } from "../src/pricing-modules/FloorERC1155PricingModule.sol";
+import { StandardERC20PricingModuleExtension } from "./utils/Extensions.sol";
+import { FloorERC721PricingModuleExtension } from "./utils/Extensions.sol";
+import { FloorERC1155PricingModuleExtension } from "./utils/Extensions.sol";
 import { UniswapV3PricingModuleExtension } from "./utils/Extensions.sol";
 import { TrustedCreditorMock } from "./utils/mocks/TrustedCreditorMock.sol";
 import { Constants } from "./utils/Constants.sol";
@@ -45,9 +45,9 @@ abstract contract Base_Test is Test, Events, Errors {
     Factory internal factory;
     MainRegistryExtension internal mainRegistryExtension;
     OracleHub internal oracleHub;
-    StandardERC20PricingModule internal erc20PricingModule;
-    FloorERC721PricingModule internal floorERC721PricingModule;
-    FloorERC1155PricingModule internal floorERC1155PricingModule;
+    StandardERC20PricingModuleExtension internal erc20PricingModule;
+    FloorERC721PricingModuleExtension internal floorERC721PricingModule;
+    FloorERC1155PricingModuleExtension internal floorERC1155PricingModule;
     UniswapV3PricingModuleExtension internal uniV3PricingModule;
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
@@ -78,12 +78,12 @@ abstract contract Base_Test is Test, Events, Errors {
         factory = new Factory();
         mainRegistryExtension = new MainRegistryExtension(address(factory));
         oracleHub = new OracleHub();
-        erc20PricingModule = new StandardERC20PricingModule(address(mainRegistryExtension), address(oracleHub), 0);
-        floorERC721PricingModule = new FloorERC721PricingModule(address(mainRegistryExtension), address(oracleHub), 1);
-        floorERC1155PricingModule = new FloorERC1155PricingModule(
+        erc20PricingModule = new StandardERC20PricingModuleExtension(address(mainRegistryExtension), address(oracleHub));
+        floorERC721PricingModule =
+            new FloorERC721PricingModuleExtension(address(mainRegistryExtension), address(oracleHub));
+        floorERC1155PricingModule = new FloorERC1155PricingModuleExtension(
             address(mainRegistryExtension),
-            address(oracleHub),
-            2
+            address(oracleHub)
         );
 
         accountV1Logic = new AccountV1();
@@ -140,16 +140,14 @@ abstract contract Base_Test is Test, Events, Errors {
         return user;
     }
 
-    function deployUniswapV3PricingModule() internal {
+    function deployUniswapV3PricingModule(address nonfungiblePositionManager_) internal {
         // Get the bytecode of the UniswapV3PoolExtension.
         bytes memory args = abi.encode();
         bytes memory bytecode = abi.encodePacked(vm.getCode("UniswapV3PoolExtension.sol"), args);
         bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
 
         // Get the bytecode of UniswapV3PricingModuleExtension.
-        args = abi.encode(
-            address(mainRegistryExtension), address(oracleHub), users.creatorAddress, address(erc20PricingModule)
-        );
+        args = abi.encode(address(mainRegistryExtension), users.creatorAddress, nonfungiblePositionManager_);
         bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3PricingModuleExtension"), args);
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.
@@ -165,8 +163,10 @@ abstract contract Base_Test is Test, Events, Errors {
         vm.label({ account: address(uniV3PricingModule), newLabel: "Uniswap V3 Pricing Module" });
 
         // Add the Pricing Module to the MainRegistry.
-        vm.prank(users.creatorAddress);
+        vm.startPrank(users.creatorAddress);
         mainRegistryExtension.addPricingModule(address(uniV3PricingModule));
+        uniV3PricingModule.setProtocol();
+        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////////////////

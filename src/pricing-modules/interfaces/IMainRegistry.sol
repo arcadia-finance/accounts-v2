@@ -4,7 +4,12 @@
  */
 pragma solidity 0.8.19;
 
+import { IPricingModule } from "../../interfaces/IPricingModule.sol";
+
 interface IMainRegistry {
+    //todo
+    function getPricingModuleOfAsset(address asset) external view returns (address pricingModule);
+
     /**
      * @notice Returns the number of baseCurrencies.
      * @return Counter for the number of baseCurrencies in use.
@@ -24,24 +29,31 @@ interface IMainRegistry {
     /**
      * @notice This function is called by pricing modules of non-primary assets in order to increase the exposure of the underlying asset.
      * @param underlyingAsset The underlying asset of a non-primary asset.
-     * @param underlyingAssetId The underlying asset ID.
-     * @param underlyingAssetAmount The underlying asset amount.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
-    function increaseExposureUnderlyingAsset(
+    function getUsdValueExposureToUnderlyingAssetAfterDeposit(
         address underlyingAsset,
         uint256 underlyingAssetId,
-        uint256 underlyingAssetAmount
-    ) external;
+        uint256 exposureAssetToUnderlyingAsset,
+        int256 deltaExposureAssetToUnderlyingAsset
+    ) external returns (uint256 usdValueExposureAssetToUnderlyingAsset);
 
     /**
      * @notice This function is called by pricing modules of non-primary assets in order to decrease the exposure of the underlying asset.
      * @param underlyingAsset The underlying asset of a non-primary asset.
      * @param underlyingAssetId The underlying asset ID.
-     * @param underlyingAssetAmount The underlying asset amount.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
-    function decreaseExposureUnderlyingAsset(
+    function getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
         address underlyingAsset,
         uint256 underlyingAssetId,
-        uint256 underlyingAssetAmount
-    ) external;
+        uint256 exposureAssetToUnderlyingAsset,
+        int256 deltaExposureAssetToUnderlyingAsset
+    ) external returns (uint256 usdValueExposureAssetToUnderlyingAsset);
+
+    function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256 usdValue);
+
+    function isAllowed(address asset, uint256 assetId) external view returns (bool);
 }

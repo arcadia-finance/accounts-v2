@@ -4,12 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 
 /**
- * @notice Fuzz tests for the "getFreeMargin" of contract "AccountV1".
+ * @notice Fuzz tests for the function "getFreeMargin" of contract "AccountV1".
  */
 contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -33,13 +33,10 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_getFreeMargin_TrustedCreditorNotSet(
         uint256 openDebt,
         uint256 fixedLiquidationCost,
-        uint256 collateralValue
+        uint128 collateralValue
     ) public {
         // Test-case: trusted creditor is not set.
         accountExtension.setIsTrustedCreditorSet(false);
-
-        // No overflow riskmodule
-        collateralValue = bound(collateralValue, 1, type(uint256).max / RiskConstants.RISK_VARIABLES_UNIT);
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
@@ -56,15 +53,13 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_getFreeMargin_TrustedCreditorIsSet_NonZeroFreeMargin(
         uint256 openDebt,
         uint256 fixedLiquidationCost,
-        uint256 collateralValue
+        uint128 collateralValue
     ) public {
-        // No overflow riskmodule
-        collateralValue = bound(collateralValue, 1, type(uint256).max / RiskConstants.RISK_VARIABLES_UNIT);
-
         // No overflow of Used Margin.
         vm.assume(openDebt <= type(uint256).max - fixedLiquidationCost);
 
         // Non zero free margin -> "collateralValue" bigger as "usedMargin".
+        collateralValue = uint128(bound(collateralValue, 1, type(uint128).max));
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, collateralValue - 1);
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
         openDebt = bound(openDebt, 0, collateralValue - fixedLiquidationCost - 1);
@@ -84,7 +79,7 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_getFreeMargin_TrustedCreditorIsSet_ZeroFreeMargin(
         uint256 openDebt,
         uint256 fixedLiquidationCost,
-        uint256 collateralValue
+        uint128 collateralValue
     ) public {
         // No overflow of Used Margin.
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint256).max - openDebt);
@@ -92,9 +87,7 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256 usedMargin = openDebt + fixedLiquidationCost;
 
         // Zero free margin -> "collateralValue" smaller or equal as "usedMargin".
-        collateralValue = bound(collateralValue, 0, usedMargin);
-        // No overflow riskmodule
-        collateralValue = bound(collateralValue, 0, type(uint256).max / RiskConstants.RISK_VARIABLES_UNIT);
+        collateralValue = uint128(bound(collateralValue, 0, usedMargin));
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));

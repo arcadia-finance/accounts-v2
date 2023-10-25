@@ -4,12 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
+import { MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../lib/forge-std/src/Test.sol";
 
 /**
- * @notice Fuzz tests for the "batchProcessWithdrawal" of contract "MainRegistry".
+ * @notice Fuzz tests for the function "batchProcessWithdrawal" of contract "MainRegistry".
  */
 contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     using stdStorage for StdStorage;
@@ -178,7 +178,8 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         vm.prank(address(proxyAccount));
         mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
 
-        (, uint256 exposure) = erc20PricingModule.exposure(address(mockERC20.token1));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
+        (, uint256 exposure) = erc20PricingModule.exposure(assetKey);
 
         assertEq(exposure, amountDeposited);
 
@@ -190,7 +191,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
 
         assertEq(assetTypes[0], 0);
 
-        (, exposure) = erc20PricingModule.exposure(address(mockERC20.token1));
+        (, exposure) = erc20PricingModule.exposure(assetKey);
 
         assertEq(exposure, amountDeposited - amountWithdrawn);
     }
@@ -213,7 +214,8 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         mainRegistryExtension.batchProcessWithdrawal(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 
-        (, uint128 endExposure) = erc20PricingModule.exposure(address(mockERC20.token2));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));
+        (, uint128 endExposure) = erc20PricingModule.exposure(assetKey);
 
         assertEq(endExposure, 0);
     }

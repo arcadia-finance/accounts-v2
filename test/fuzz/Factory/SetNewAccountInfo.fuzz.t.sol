@@ -4,15 +4,16 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
 
-import { AccountV2 } from "../.././utils/mocks/AccountV2.sol";
-import { AccountVariableVersion } from "../.././utils/mocks/AccountVariableVersion.sol";
+import { AccountV2 } from "../../utils/mocks/AccountV2.sol";
+import { AccountVariableVersion } from "../../utils/mocks/AccountVariableVersion.sol";
+import { Constants } from "../../utils/Constants.sol";
 import { Factory } from "../../../src/Factory.sol";
 import { MainRegistry, MainRegistryExtension } from "../../utils/Extensions.sol";
 
 /**
- * @notice Fuzz tests for the "setNewAccountInfo" of contract "Factory".
+ * @notice Fuzz tests for the function "setNewAccountInfo" of contract "Factory".
  */
 contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -66,6 +67,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_setNewAccountInfo_NonOwner(address unprivilegedAddress_, address logic) public {
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
+        vm.assume(logic != address(mainRegistryExtension));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
@@ -74,6 +76,8 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     function testFuzz_Revert_setNewAccountInfo_VersionRootIsZero(address mainRegistry_, address logic) public {
+        vm.assume(logic != address(mainRegistryExtension));
+
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("FTRY_SNVI: version root is zero");
         factory.setNewAccountInfo(mainRegistry_, logic, bytes32(0), "");
@@ -94,6 +98,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         address logic
     ) public {
         vm.assume(logic != address(0));
+        vm.assume(logic != address(mainRegistryExtension));
         vm.assume(newAssetAddress != address(0));
 
         vm.startPrank(users.creatorAddress);
@@ -108,6 +113,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         address logic
     ) public {
         vm.assume(logic != address(0));
+        vm.assume(logic != address(mainRegistryExtension));
         vm.assume(randomAssetAddress != address(0));
         vm.assume(randomAssetAddress != address(mockERC20.stable1));
         vm.assume(randomAssetAddress != address(mockERC20.token1));
@@ -162,6 +168,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     ) public {
         vm.assume(logic > address(10));
         vm.assume(logic != address(vm));
+        vm.assume(logic != address(mainRegistryExtension));
 
         // Redeploy Factory to start with a different MainRegistry without BaseCurrencies.
         vm.prank(users.creatorAddress);
@@ -196,6 +203,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic > address(10));
         vm.assume(logic != address(factory));
         vm.assume(logic != address(vm));
+        vm.assume(logic != address(mainRegistryExtension));
         vm.assume(newAssetAddress != address(0));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();
@@ -220,6 +228,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     ) public {
         vm.assume(logic > address(10));
         vm.assume(logic != address(factory));
+        vm.assume(logic != address(mainRegistryExtension));
         vm.assume(logic != address(vm));
         vm.assume(newAssetAddress != address(0));
 

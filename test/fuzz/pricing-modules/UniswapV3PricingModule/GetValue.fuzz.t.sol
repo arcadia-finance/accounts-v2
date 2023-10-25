@@ -4,21 +4,22 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
+import { UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
-import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
+import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
+import {
+    DerivedPricingModule, IPricingModule
+} from "../../../../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
 import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/pricing-modules/UniswapV3/libraries/LiquidityAmounts.sol";
+import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
-import {
-    IPricingModule, PricingModule
-} from "../../../../src/pricing-modules/UniswapV3/UniswapV3WithFeesPricingModule.sol";
 
 /**
- * @notice Fuzz tests for the "getValue" of contract "UniswapV3PricingModule".
+ * @notice Fuzz tests for the function "getValue" of contract "UniswapV3PricingModule".
  */
 contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -27,6 +28,8 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
 
     function setUp() public override {
         UniswapV3PricingModule_Fuzz_Test.setUp();
+
+        deployUniswapV3PricingModule(address(nonfungiblePositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -94,11 +97,6 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         addUnderlyingTokenToArcadia(address(token0), int256(uint256(vars.priceToken0)));
         addUnderlyingTokenToArcadia(address(token1), int256(uint256(vars.priceToken1)));
 
-        vm.startPrank(users.creatorAddress);
-        uniV3PricingModule.setExposureOfAsset(address(token0), type(uint128).max);
-        uniV3PricingModule.setExposureOfAsset(address(token1), type(uint128).max);
-        vm.stopPrank();
-
         // Calculate the expected value
         uint256 valueToken0 = 1e18 * uint256(vars.priceToken0) * amount0 / 10 ** vars.decimals0;
         uint256 valueToken1 = 1e18 * uint256(vars.priceToken1) * amount1 / 10 ** vars.decimals1;
@@ -146,10 +144,6 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         // Add underlying tokens and its oracles to Arcadia.
         addUnderlyingTokenToArcadia(address(token0), 1);
         addUnderlyingTokenToArcadia(address(token1), 1);
-        vm.startPrank(users.creatorAddress);
-        uniV3PricingModule.setExposureOfAsset(address(token0), type(uint128).max);
-        uniV3PricingModule.setExposureOfAsset(address(token1), type(uint128).max);
-        vm.stopPrank();
 
         PricingModule.RiskVarInput[] memory riskVarInputs = new PricingModule.RiskVarInput[](2);
         riskVarInputs[0] = PricingModule.RiskVarInput({

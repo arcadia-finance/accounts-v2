@@ -4,12 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
+import { UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
 
 import { UniswapV2PricingModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
- * @notice Fuzz tests for the "constructor" of contract "UniswapV2PricingModule".
+ * @notice Fuzz tests for the function "constructor" of contract "UniswapV2PricingModule".
  */
 contract Constructor_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -23,11 +23,19 @@ contract Constructor_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment() public {
-        assertEq(uniswapV2PricingModule.mainRegistry(), address(mainRegistryExtension));
-        assertEq(uniswapV2PricingModule.oracleHub(), address(oracleHub));
-        assertEq(uniswapV2PricingModule.assetType(), 0);
-        assertEq(uniswapV2PricingModule.uniswapV2Factory(), address(uniswapV2Factory));
-        assertEq(uniswapV2PricingModule.erc20PricingModule(), address(erc20PricingModule));
+    function testFuzz_Success_deployment(address mainRegistry_) public {
+        vm.startPrank(users.creatorAddress);
+        vm.expectEmit(true, true, true, true);
+        emit RiskManagerUpdated(users.creatorAddress);
+        UniswapV2PricingModuleExtension uniswapV2PricingModule_ = new UniswapV2PricingModuleExtension(
+            mainRegistry_,
+            address(uniswapV2Factory)
+        );
+        vm.stopPrank();
+        assertEq(uniswapV2PricingModule_.MAIN_REGISTRY(), mainRegistry_);
+        assertEq(uniswapV2PricingModule_.ASSET_TYPE(), 0);
+        assertEq(uniswapV2PricingModule_.riskManager(), users.creatorAddress);
+        assertFalse(uniswapV2PricingModule_.getPrimaryFlag());
+        assertEq(uniswapV2PricingModule_.getUniswapV2Factory(), address(uniswapV2Factory));
     }
 }

@@ -4,12 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
 
 import { Factory } from "../../../src/Factory.sol";
 
 /**
- * @notice Fuzz tests for the "allAccountsLength" of contract "Factory".
+ * @notice Fuzz tests for the function "allAccountsLength" of contract "Factory".
  */
 contract AllAccountsLength_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

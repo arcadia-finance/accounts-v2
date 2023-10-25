@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
@@ -13,14 +13,10 @@ import { AccountExtension } from "../../../utils/Extensions.sol";
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 
 /**
- * @notice Fuzz tests for the "withdraw" of contract "AccountV1".
+ * @notice Fuzz tests for the function "withdraw" of contract "AccountV1".
  */
 contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     using stdStorage for StdStorage;
-    /* ///////////////////////////////////////////////////////////////
-                            TEST CONTRACTS
-    /////////////////////////////////////////////////////////////// */
-
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -72,6 +68,43 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_withdraw_ERC20WithId(uint256 id, uint128 amount) public {
+        amount = uint128(bound(amount, 1, type(uint128).max));
+        id = bound(id, 1, type(uint256).max);
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(mockERC20.token1);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = id;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amount;
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert("A_W: ERC20 Id");
+        accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_withdraw_ERC721WithAmount(uint8 id, uint128 amount) public {
+        amount = uint128(bound(amount, 2, type(uint128).max));
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(mockERC721.nft1);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = id;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amount;
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert("A_W: ERC721 amount");
+        accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_withdraw_UnknownAssetType(uint96 assetType) public {
         vm.assume(assetType >= 3);
 
@@ -95,7 +128,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_withdraw_MoreThanMaxExposure(uint256 amountWithdraw, uint128 maxExposure) public {
         vm.assume(amountWithdraw > maxExposure);
         vm.prank(users.creatorAddress);
-        erc20PricingModule.setExposureOfAsset(address(mockERC20.token1), maxExposure);
+        erc20PricingModule.setMaxExposureOfAsset(address(mockERC20.token1), 0, maxExposure);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -203,7 +236,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_withdraw_WithDebt_UnsufficientCollateral(
         uint256 debt,
-        uint256 collateralValueInitial,
+        uint128 collateralValueInitial,
         uint256 collateralValueDecrease,
         uint256 fixedLiquidationCost
     ) public {
@@ -215,8 +248,6 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
         uint256 usedMargin = debt + fixedLiquidationCost;
 
-        // No overflow riskmodule
-        collateralValueInitial = bound(collateralValueInitial, 0, type(uint256).max / RiskConstants.RISK_VARIABLES_UNIT);
         // No underflow Withdrawal.
         collateralValueDecrease = bound(collateralValueDecrease, 0, collateralValueInitial);
 
@@ -378,7 +409,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_withdraw_WithDebt(
         uint256 debt,
-        uint256 collateralValueInitial,
+        uint128 collateralValueInitial,
         uint256 collateralValueDecrease,
         uint256 fixedLiquidationCost
     ) public {
@@ -390,8 +421,6 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
         uint256 usedMargin = debt + fixedLiquidationCost;
 
-        // No overflow riskmodule
-        collateralValueInitial = bound(collateralValueInitial, 0, type(uint256).max / RiskConstants.RISK_VARIABLES_UNIT);
         // No underflow Withdrawal.
         collateralValueDecrease = bound(collateralValueDecrease, 0, collateralValueInitial);
 

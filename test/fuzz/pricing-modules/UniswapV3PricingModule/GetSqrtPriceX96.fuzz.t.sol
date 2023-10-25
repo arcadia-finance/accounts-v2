@@ -4,12 +4,13 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
+import { UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz.t.sol";
 
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
- * @notice Fuzz tests for the "getSqrtPriceX96" of contract "UniswapV3PricingModule".
+ * @notice Fuzz tests for the function "getSqrtPriceX96" of contract "UniswapV3PricingModule".
  */
 contract GetSqrtPriceX96_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -18,17 +19,30 @@ contract GetSqrtPriceX96_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingMod
 
     function setUp() public override {
         UniswapV3PricingModule_Fuzz_Test.setUp();
+
+        deployUniswapV3PricingModule(address(nonfungiblePositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Success_getSqrtPriceX96_ZeroPriceToken1(uint256 priceToken0) public {
+        // Test-case.
+        uint256 priceToken1 = 0;
+
+        uint256 expectedSqrtPriceX96 = TickMath.MAX_SQRT_RATIO;
+        uint256 actualSqrtPriceX96 = uniV3PricingModule.getSqrtPriceX96(priceToken0, priceToken1);
+
+        assertEq(actualSqrtPriceX96, expectedSqrtPriceX96);
+    }
+
     function testFuzz_Success_getSqrtPriceX96_Overflow(uint256 priceToken0, uint256 priceToken1) public {
         // Avoid divide by 0, which is already checked in earlier in function.
-        vm.assume(priceToken1 > 0);
+        priceToken1 = bound(priceToken1, 1, type(uint256).max);
         // Function will overFlow, not realistic.
-        vm.assume(priceToken0 <= type(uint256).max / 1e18);
-        // Cast to uint160 will overflow, not realistic.
+        priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e18);
+
+        // Cast to uint160 overflows (test-case).
         vm.assume(priceToken0 / priceToken1 >= 2 ** 128);
 
         uint256 priceXd18 = priceToken0 * 1e18 / priceToken1;
@@ -42,9 +56,9 @@ contract GetSqrtPriceX96_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingMod
 
     function testFuzz_Success_getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) public {
         // Avoid divide by 0, which is already checked in earlier in function.
-        vm.assume(priceToken1 > 0);
+        priceToken1 = bound(priceToken1, 1, type(uint256).max);
         // Function will overFlow, not realistic.
-        vm.assume(priceToken0 <= type(uint256).max / 1e18);
+        priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e18);
         // Cast to uint160 will overflow, not realistic.
         vm.assume(priceToken0 / priceToken1 < 2 ** 128);
 

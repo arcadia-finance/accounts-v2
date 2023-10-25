@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 import { ActionData } from "../../../../src/actions/utils/ActionData.sol";
@@ -16,7 +16,7 @@ import { Utils } from "../../../utils/Utils.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
 
 /**
- * @notice Fuzz tests for the "accountManagementAction" of contract "AccountV1".
+ * @notice Fuzz tests for the function "accountManagementAction" of contract "AccountV1".
  */
 contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture {
     using stdStorage for StdStorage;
@@ -401,6 +401,8 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             abi.encodeWithSignature("approve(address,uint256)", address(accountNotInitialised), stable1AmountForAction);
         data[4] = abi.encodeWithSignature("approve(address,uint256)", address(accountNotInitialised), 1);
 
+        // exposure token 2 does not exceed maxExposure.
+        vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint128).max);
         vm.prank(users.tokenCreatorAddress);
         mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
 
@@ -557,6 +559,8 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             token2AmountForAction + uint256(debtAmount) * token1ToToken2Ratio
         );
 
+        // exposure token 2 does not exceed maxExposure.
+        vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint128).max);
         vm.prank(users.tokenCreatorAddress);
         mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
 

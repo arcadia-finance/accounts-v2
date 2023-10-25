@@ -41,12 +41,11 @@ contract UniswapV3PricingModule_Fork_Test is Fork_Test {
         Fork_Test.setUp();
 
         // Deploy uniV3PricingModule.
-        deployUniswapV3PricingModule();
+        deployUniswapV3PricingModule(address(NONFUNGIBLE_POSITION_MANAGER));
 
         // Set max exposure to underlying tokens.
         vm.startPrank(users.creatorAddress);
-        uniV3PricingModule.setExposureOfAsset(address(USDC), type(uint128).max);
-        uniV3PricingModule.setExposureOfAsset(address(WETH), type(uint128).max);
+        uniV3PricingModule.setMaxUsdExposureProtocol(type(uint256).max);
         vm.stopPrank();
     }
 

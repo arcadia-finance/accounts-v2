@@ -10,7 +10,7 @@ import "../../../../src/actions/utils/ActionData.sol";
 import "../../../../src/interfaces/IPermit2.sol";
 
 /**
- * @notice Fuzz tests for the "executeAction" of contract "MultiCall".
+ * @notice Fuzz tests for the function "executeAction" of contract "MultiCall".
  */
 contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
