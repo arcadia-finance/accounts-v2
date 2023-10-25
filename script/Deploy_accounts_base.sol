@@ -14,7 +14,7 @@ import { PricingModule, StandardERC20PricingModule } from "../src/pricing-module
 import { UniswapV3PricingModule } from "../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
 
-import { ActionMultiCallV3 } from "../src/actions/MultiCallV3.sol";
+import { ActionMultiCall } from "../src/actions/MultiCall.sol";
 
 import { ILendingPool } from "./interfaces/ILendingPool.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
@@ -34,7 +34,7 @@ contract ArcadiaAccountDeployment is Test {
     MainRegistry public mainRegistry;
     StandardERC20PricingModule public standardERC20PricingModule;
     UniswapV3PricingModule public uniswapV3PricingModule;
-    ActionMultiCallV3 public actionMultiCall;
+    ActionMultiCall public actionMultiCall;
 
     ILendingPool public wethLendingPool;
     ILendingPool public usdcLendingPool;
@@ -290,7 +290,7 @@ contract ArcadiaAccountDeployment is Test {
         new UniswapV3PricingModule(address(mainRegistry), address(oracleHub), deployerAddress, address(standardERC20PricingModule));
 
         account = new AccountV1();
-        actionMultiCall = new ActionMultiCallV3();
+        actionMultiCall = new ActionMultiCall();
 
         oracleHub.addOracle(compToUsdOracleInfo);
         oracleHub.addOracle(daiToUsdOracleInfo);

@@ -8,7 +8,7 @@ import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 import { ActionData } from "../../../../src/actions/utils/ActionData.sol";
-import { ActionMultiCallV2 } from "../../../../src/actions/MultiCallV2.sol";
+import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { MultiActionMock } from "../../.././utils/mocks/MultiActionMock.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { IPermit2 } from "../../../utils/Interfaces.sol";
@@ -25,7 +25,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
     /////////////////////////////////////////////////////////////// */
 
     AccountExtension internal accountNotInitialised;
-    ActionMultiCallV2 internal action;
+    ActionMultiCall internal action;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -36,7 +36,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         Permit2Fixture.setUp();
 
         // Deploy multicall contract and actions
-        action = new ActionMultiCallV2();
+        action = new ActionMultiCall();
         multiActionMock = new MultiActionMock();
 
         // Set allowed action contract

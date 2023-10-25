@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, MultiCall_Fuzz_Test } from "./_MultiCall.fuzz.t.sol";
+import { MultiCall_Fuzz_Test } from "./_MultiCall.fuzz.t.sol";
 
 import "../../../../src/actions/utils/ActionData.sol";
 import "../../../../src/interfaces/IPermit2.sol";
