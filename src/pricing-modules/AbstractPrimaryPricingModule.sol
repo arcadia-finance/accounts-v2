@@ -21,6 +21,12 @@ abstract contract PrimaryPricingModule is PricingModule {
     // Identifier indicating that it is a Primary Pricing Module:
     // the assets being priced have no underlying assets.
     bool internal constant PRIMARY_FLAG = true;
+
+    // The maximum collateral factor of an asset for a creditor, 2 decimals precision.
+    uint16 internal constant MAX_COLLATERAL_FACTOR = 100;
+    // The maximum liquidation factor of an asset for a creditor, 2 decimals precision.
+    uint16 internal constant MAX_LIQUIDATION_FACTOR = 100;
+
     // The contract address of the OracleHub.
     address public immutable ORACLE_HUB;
 
@@ -28,24 +34,15 @@ abstract contract PrimaryPricingModule is PricingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Map with the last exposures of each asset.
-    mapping(bytes32 assetKey => Exposure exposure) public exposure;
-
-    // Map with the risk parameters of each asset.
+    // Map with the risk parameters of each asset for each creditor.
     mapping(address creditor => mapping(bytes32 assetKey => RiskParameters riskParameters)) public riskParams;
-
-    // Struct with information about the exposure of a specific asset.
-    struct Exposure {
-        uint128 maxExposure; // The maximum exposure to an asset.
-        uint128 exposureLast; // The exposure to an asset at its last interaction.
-    }
 
     // Struct with the risk variables of a specific asset for a specific creditor.
     struct RiskParameters {
-        uint128 exposureLast; // The exposure to an asset at its last interaction.
-        uint128 maxExposure; // The maximum exposure to an asset.
-        uint16 collateralFactor; // The collateral factor, 2 decimals precision.
-        uint16 liquidationFactor; // The liquidation factor, 2 decimals precision.
+        uint128 exposureLast; // The exposure of a creditor to an asset at its last interaction.
+        uint128 maxExposure; // The maximum exposure of a creditor to an asset.
+        uint16 collateralFactor; // The collateral factor of the asset for the creditor, 2 decimals precision.
+        uint16 liquidationFactor; // The liquidation factor of the asset for the creditor, 2 decimals precision.
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -73,27 +70,18 @@ abstract contract PrimaryPricingModule is PricingModule {
     }
 
     /*///////////////////////////////////////////////////////////////
-                    RISK VARIABLES MANAGEMENT
+                    RISK PARAMETER MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Sets the maximum exposure for an asset.
+     * @notice Sets the risk parameters for an asset for a given creditor.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @param maxExposure The maximum protocol wide exposure to the asset.
-     * @dev Can only be called by the Risk Manager, which can be different from the owner.
+     * @param maxExposure The maximum exposure of a creditor to the asset.
+     * @param collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
+     * @param liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
      */
-    function setMaxExposureOfAsset(address asset, uint256 assetId, uint256 maxExposure)
-        public
-        virtual
-        onlyRiskManager
-    {
-        require(maxExposure <= type(uint128).max, "APPM_SEA: Max Exp. not in limits");
-        exposure[_getKeyFromAsset(asset, assetId)].maxExposure = uint128(maxExposure);
-
-        emit MaxExposureSet(asset, uint128(maxExposure));
-    }
-
     function setRiskParameters(
         address creditor,
         address asset,
@@ -102,6 +90,9 @@ abstract contract PrimaryPricingModule is PricingModule {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external onlyMainReg {
+        require(collateralFactor <= MAX_COLLATERAL_FACTOR, "APPM_SRP: Coll.Fact not in limits");
+        require(liquidationFactor <= MAX_LIQUIDATION_FACTOR, "APPM_SRP: Liq.Fact not in limits");
+
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         riskParams[creditor][assetKey].maxExposure = maxExposure;

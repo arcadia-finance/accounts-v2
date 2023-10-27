@@ -127,8 +127,11 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_withdraw_MoreThanMaxExposure(uint256 amountWithdraw, uint128 maxExposure) public {
         vm.assume(amountWithdraw > maxExposure);
-        vm.prank(users.creatorAddress);
-        erc20PricingModule.setMaxExposureOfAsset(address(mockERC20.token1), 0, maxExposure);
+
+        vm.startPrank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC20.token1), 0, maxExposure, 0, 0
+        );
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);

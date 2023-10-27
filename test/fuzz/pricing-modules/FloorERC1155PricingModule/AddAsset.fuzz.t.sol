@@ -31,9 +31,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
 
         // Then: addAsset should revert with "UNAUTHORIZED"
         vm.expectRevert("UNAUTHORIZED");
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput);
 
         vm.stopPrank();
     }
@@ -43,9 +41,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
 
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("PM1155_AA: Invalid Id");
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), id, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), id, oracleSft2ToUsdArr, emptyRiskVarInput);
         vm.stopPrank();
     }
 
@@ -53,13 +49,9 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         // Given: All necessary contracts deployed on setup
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset twice
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput);
         vm.expectRevert("MR_AA: Asset already in mainreg");
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput);
         vm.stopPrank();
     }
 
@@ -67,9 +59,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         // Given: All necessary contracts deployed on setup
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset with empty list credit ratings
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput);
         vm.stopPrank();
 
         // Then: inPricingModule for address(mockERC1155.sft2) should return true
@@ -94,9 +84,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
             liquidationFactor: liquidationFactor
         });
 
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, riskVars_, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, riskVars_);
         vm.stopPrank();
 
         assertTrue(floorERC1155PricingModule.inPricingModule(address(mockERC1155.sft2)));
@@ -126,9 +114,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         // Given: collateralFactors index 0 and 1 is DEFAULT_COLLATERAL_FACTOR, liquidationThresholds index 0 and 1 is DEFAULT_LIQUIDATION_FACTOR
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset with full list credit ratings
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, riskVars_, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, riskVars_);
         vm.stopPrank();
 
         // Then: inPricingModule for address(mockERC1155.sft2) should return true

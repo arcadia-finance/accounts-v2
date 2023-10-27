@@ -311,42 +311,12 @@ contract ArcadiaAccountDeployment is Test {
         PricingModule.RiskVarInput[] memory riskVarsCbeth_ = riskVarsCbeth;
         PricingModule.RiskVarInput[] memory riskVarsReth_ = riskVarsReth;
 
-        standardERC20PricingModule.addAsset(
-            DeployAddresses.comp_base,
-            oracleCompToUsdArr,
-            riskVarsComp_,
-            type(uint128).max //todo: change after risk analysis
-        );
-        standardERC20PricingModule.addAsset(
-            DeployAddresses.dai_base,
-            oracleDaiToUsdArr,
-            riskVarsDai_,
-            type(uint128).max //todo: change after risk analysis
-        );
-        standardERC20PricingModule.addAsset(
-            DeployAddresses.weth_base,
-            oracleEthToUsdArr,
-            riskVarsEth_,
-            type(uint128).max //todo: change after risk analysis
-        );
-        standardERC20PricingModule.addAsset(
-            DeployAddresses.usdc_base,
-            oracleUsdcToUsdArr,
-            riskVarsUsdc_,
-            type(uint128).max //todo: change after risk analysis
-        );
-        standardERC20PricingModule.addAsset(
-            DeployAddresses.cbeth_base,
-            oracleCbethToEthToUsdArr,
-            riskVarsCbeth_,
-            type(uint128).max //todo: change after risk analysis
-        );
-        standardERC20PricingModule.addAsset(
-            DeployAddresses.reth_base,
-            oracleRethToEthToUsdArr,
-            riskVarsReth_,
-            type(uint128).max //todo: change after risk analysis
-        );
+        standardERC20PricingModule.addAsset(DeployAddresses.comp_base, oracleCompToUsdArr, riskVarsComp_);
+        standardERC20PricingModule.addAsset(DeployAddresses.dai_base, oracleDaiToUsdArr, riskVarsDai_);
+        standardERC20PricingModule.addAsset(DeployAddresses.weth_base, oracleEthToUsdArr, riskVarsEth_);
+        standardERC20PricingModule.addAsset(DeployAddresses.usdc_base, oracleUsdcToUsdArr, riskVarsUsdc_);
+        standardERC20PricingModule.addAsset(DeployAddresses.cbeth_base, oracleCbethToEthToUsdArr, riskVarsCbeth_);
+        standardERC20PricingModule.addAsset(DeployAddresses.reth_base, oracleRethToEthToUsdArr, riskVarsReth_);
 
         factory.setNewAccountInfo(address(mainRegistry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);

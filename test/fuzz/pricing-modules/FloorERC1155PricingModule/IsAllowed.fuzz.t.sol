@@ -23,9 +23,7 @@ contract IsAllowed_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingMod
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_isAllowed_Positive() public {
         vm.prank(users.creatorAddress);
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput);
 
         assertTrue(floorERC1155PricingModule.isAllowed(address(mockERC1155.sft2), 1));
     }
@@ -37,9 +35,7 @@ contract IsAllowed_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingMod
     function testFuzz_Success_isAllowed_NegativeIdOutsideRange(uint256 id) public {
         vm.assume(id != 1);
         vm.prank(users.creatorAddress);
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput);
 
         assertFalse(floorERC1155PricingModule.isAllowed(address(mockERC1155.sft2), id));
     }

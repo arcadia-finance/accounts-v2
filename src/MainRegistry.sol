@@ -296,11 +296,15 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /**
-     * @notice Sets the maximum exposure for a primary asset.
+     * @notice Sets the risk parameters for a primary asset.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @param maxExposure The maximum protocol wide exposure to the asset.
-     * @dev Can only be called by the Risk Manager, which can be different from the owner.
+     * @param maxExposure The maximum exposure of a creditor to the asset.
+     * @param collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
+     * @param liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     * @dev Any creditor can set risk parameters for any asset, does not have any influence on risk parameters
+     * set by other creditors.
      */
     function setRiskParametersOfPrimaryAsset(
         address creditor,

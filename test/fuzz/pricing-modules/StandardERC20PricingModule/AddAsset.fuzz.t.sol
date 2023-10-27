@@ -39,16 +39,14 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
 
         // Then: addAsset should revert with "UNAUTHORIZED"
         vm.expectRevert("UNAUTHORIZED");
-        erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        erc20PricingModule.addAsset(address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput);
         vm.stopPrank();
     }
 
     function testFuzz_Revert_addAsset_BadOracleSequence() public {
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("OH_COS: Min 1 Oracle");
-        erc20PricingModule.addAsset(address(mockERC20.token4), new address[](0), emptyRiskVarInput, type(uint128).max);
+        erc20PricingModule.addAsset(address(mockERC20.token4), new address[](0), emptyRiskVarInput);
         vm.stopPrank();
     }
 
@@ -74,7 +72,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         // Then: addAsset should revert with "PM20_AA: Maximal 18 decimals"
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("PM20_AA: Maximal 18 decimals");
-        erc20PricingModule.addAsset(address(asset), oracleAssetToUsdArr, emptyRiskVarInput, type(uint128).max);
+        erc20PricingModule.addAsset(address(asset), oracleAssetToUsdArr, emptyRiskVarInput);
         vm.stopPrank();
     }
 
@@ -82,13 +80,9 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         // Given: All necessary contracts deployed on setup
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset twice
-        erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        erc20PricingModule.addAsset(address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput);
         vm.expectRevert("MR_AA: Asset already in mainreg");
-        erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        erc20PricingModule.addAsset(address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput);
         vm.stopPrank();
     }
 
@@ -96,11 +90,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         // Given: All necessary contracts deployed on setup
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset with empty list credit ratings
-        vm.expectEmit(true, true, true, true);
-        emit MaxExposureSet(address(mockERC20.token4), type(uint128).max);
-        erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        erc20PricingModule.addAsset(address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput);
         vm.stopPrank();
 
         // Then: address(mockERC20.token4) should be inPricingModule
@@ -127,9 +117,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
         emit RiskVariablesSet(address(mockERC20.token4), 0, collateralFactor, liquidationFactor);
-        vm.expectEmit(true, true, true, true);
-        emit MaxExposureSet(address(mockERC20.token4), type(uint128).max);
-        erc20PricingModule.addAsset(address(mockERC20.token4), oracleToken4ToUsdArr, riskVars_, type(uint128).max);
+        erc20PricingModule.addAsset(address(mockERC20.token4), oracleToken4ToUsdArr, riskVars_);
         vm.stopPrank();
 
         // Then: addAsset should add asset
@@ -160,7 +148,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
 
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset with full list credit ratings
-        erc20PricingModule.addAsset(address(mockERC20.token4), oracleToken4ToUsdArr, riskVars_, type(uint128).max);
+        erc20PricingModule.addAsset(address(mockERC20.token4), oracleToken4ToUsdArr, riskVars_);
         vm.stopPrank();
 
         // Then: address(mockERC20.token4) should be inPricingModule

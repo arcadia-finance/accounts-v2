@@ -54,17 +54,13 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
      * @param asset The contract address of the asset.
      * @param oracles An array of contract addresses of oracles, to price the asset in USD.
      * @param riskVars An array of RiskVarInput structs.
-     * @param maxExposure The maximum protocol wide exposure to the asset.
      * @dev Assets can't have more than 18 decimals.
      * @dev The asset slot in the RiskVarInput struct can be any value as it is not used in this function.
      * @dev If no risk variables are provided, the asset is added with the risk variables set by default to zero,
      * resulting in the asset being valued at 0.
      * @dev Risk variables are variables with 2 decimals precision.
      */
-    function addAsset(address asset, address[] calldata oracles, RiskVarInput[] calldata riskVars, uint128 maxExposure)
-        external
-        onlyOwner
-    {
+    function addAsset(address asset, address[] calldata oracles, RiskVarInput[] calldata riskVars) external onlyOwner {
         // View function, reverts in OracleHub if sequence is not correct.
         IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
@@ -78,12 +74,8 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         assetToInformation[asset].oracles = oracles;
         _setRiskVariablesForAsset(asset, riskVars);
 
-        exposure[_getKeyFromAsset(asset, 0)].maxExposure = maxExposure;
-
         // Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
-
-        emit MaxExposureSet(asset, maxExposure);
     }
 
     /**

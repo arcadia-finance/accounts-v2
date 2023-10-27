@@ -214,7 +214,7 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
                 isActive: true
             })
         );
-        erc20PricingModule.addAsset(token, oracleArr, riskVars, type(uint128).max);
+        erc20PricingModule.addAsset(token, oracleArr, riskVars);
         vm.stopPrank();
 
         vm.prank(users.riskManager);

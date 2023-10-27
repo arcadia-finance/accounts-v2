@@ -50,20 +50,16 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
      * @param assetId: The id of the collection
      * @param oracles An array of addresses of oracle contracts, to price the asset in USD
      * @param riskVars An array of Risk Variables for the asset
-     * @param maxExposure The maximum exposure of the asset in its own decimals
      * @dev Only the Collateral Factor, Liquidation Threshold and basecurrency are taken into account.
      * If no risk variables are provided, the asset is added with the risk variables set to zero, meaning it can't be used as collateral.
      * @dev RiskVarInput.asset can be zero as it is not taken into account.
      * @dev Risk variable are variables with 2 decimals precision
      * @dev The assets are added in the Main-Registry as well.
      */
-    function addAsset(
-        address asset,
-        uint256 assetId,
-        address[] calldata oracles,
-        RiskVarInput[] calldata riskVars,
-        uint128 maxExposure
-    ) external onlyOwner {
+    function addAsset(address asset, uint256 assetId, address[] calldata oracles, RiskVarInput[] calldata riskVars)
+        external
+        onlyOwner
+    {
         // View function, reverts in OracleHub if sequence is not correct
         IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
@@ -73,8 +69,6 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
         assetToInformation[asset].id = assetId;
         assetToInformation[asset].oracles = oracles;
         _setRiskVariablesForAsset(asset, riskVars);
-
-        exposure[_getKeyFromAsset(asset, assetId)].maxExposure = uint128(maxExposure);
 
         /// Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);

@@ -25,9 +25,7 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
         public
     {
         vm.prank(users.creatorAddress);
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput);
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC1155.sft2), 1, type(uint128).max, 0, 0
@@ -45,9 +43,7 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
         vm.assume(maxExposure > 0); //Asset is allowed
         vm.assume(amount > maxExposure);
         vm.prank(users.creatorAddress);
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, maxExposure
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput);
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC1155.sft2), 1, maxExposure, 0, 0
@@ -62,9 +58,7 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
     function testFuzz_Revert_processDirectDeposit_WrongID(uint256 assetId, uint128 amount) public {
         vm.assume(assetId > 0); //Wrong Id
         vm.prank(users.creatorAddress);
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 0, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 0, oracleSft2ToUsdArr, emptyRiskVarInput);
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("PM1155_PDD: ID not allowed");
@@ -78,9 +72,7 @@ contract ProcessDirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC115
 
     function testFuzz_Success_processDirectDeposit(uint128 amount) public {
         vm.prank(users.creatorAddress);
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput);
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC1155.sft2), 1, type(uint128).max, 0, 0

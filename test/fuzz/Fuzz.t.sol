@@ -293,30 +293,22 @@ abstract contract Fuzz_Test is Base_Test {
         oracleToken1ToUsdArr[0] = address(mockOracles.token1ToUsd);
         oracleToken2ToUsdArr[0] = address(mockOracles.token2ToUsd);
 
-        erc20PricingModule.addAsset(
-            address(mockERC20.stable1), oracleStable1ToUsdArr, riskVarsStable, type(uint128).max
-        );
-        erc20PricingModule.addAsset(
-            address(mockERC20.stable2), oracleStable2ToUsdArr, riskVarsStable, type(uint128).max
-        );
-        erc20PricingModule.addAsset(address(mockERC20.token1), oracleToken1ToUsdArr, riskVarsToken, type(uint128).max);
-        erc20PricingModule.addAsset(address(mockERC20.token2), oracleToken2ToUsdArr, riskVarsToken, type(uint128).max);
+        erc20PricingModule.addAsset(address(mockERC20.stable1), oracleStable1ToUsdArr, riskVarsStable);
+        erc20PricingModule.addAsset(address(mockERC20.stable2), oracleStable2ToUsdArr, riskVarsStable);
+        erc20PricingModule.addAsset(address(mockERC20.token1), oracleToken1ToUsdArr, riskVarsToken);
+        erc20PricingModule.addAsset(address(mockERC20.token2), oracleToken2ToUsdArr, riskVarsToken);
 
         // Add NFT1 to the floorERC721PricingModule.
         oracleNft1ToToken1ToUsd[0] = address(mockOracles.nft1ToToken1);
         oracleNft1ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
 
-        floorERC721PricingModule.addAsset(
-            address(mockERC721.nft1), 0, 999, oracleNft1ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC721PricingModule.addAsset(address(mockERC721.nft1), 0, 999, oracleNft1ToToken1ToUsd, emptyRiskVarInput);
 
         // Add ERC1155 contract to the floorERC1155PricingModule
         oracleSft1ToToken1ToUsd[0] = address(mockOracles.sft1ToToken1);
         oracleSft1ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
 
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft1), 1, oracleSft1ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft1), 1, oracleSft1ToToken1ToUsd, emptyRiskVarInput);
 
         vm.stopPrank();
 
