@@ -70,7 +70,8 @@ abstract contract Base_Test is Test, Events, Errors {
             defaultCreatorAddress: createUser("defaultCreatorAddress"),
             defaultTransmitter: createUser("defaultTransmitter"),
             swapper: createUser("swapper"),
-            guardian: createUser("guardian")
+            guardian: createUser("guardian"),
+            riskManager: createUser("riskManager")
         });
 
         // Deploy the base test contracts.
@@ -120,6 +121,7 @@ abstract contract Base_Test is Test, Events, Errors {
 
         // Initialize the default liquidation cost and liquidator of trusted creditor
         // The base currency on initialization will depend on the type of test and set at a lower level
+        trustedCreditor.setRiskManager(users.riskManager);
         trustedCreditor.setFixedLiquidationCost(Constants.initLiquidationCost);
         trustedCreditor.setLiquidator(Constants.initLiquidator);
 

@@ -24,6 +24,7 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
     }
 
     struct DerivedPricingModuleAssetState {
+        address creditor;
         address asset;
         uint256 assetId;
         uint128 exposureAssetLast;
@@ -99,16 +100,16 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
     }
 
     function setUnderlyingPricingModuleState(
-        address underlyingAsset,
-        uint256 underlyingAssetId,
+        DerivedPricingModuleAssetState memory assetState,
         UnderlyingPricingModuleState memory underlyingPMState
     ) internal {
         // Set mapping between underlying Asset and its pricing module in the Main Registry.
-        mainRegistryExtension.setPricingModuleForAsset(underlyingAsset, address(primaryPricingModule));
+        mainRegistryExtension.setPricingModuleForAsset(assetState.underlyingAsset, address(primaryPricingModule));
 
         // Set max exposure of mocked Pricing Module for Underlying assets.
-        vm.prank(users.creatorAddress);
-        primaryPricingModule.setMaxExposureOfAsset(underlyingAsset, underlyingAssetId, type(uint128).max);
+        primaryPricingModule.setExposure(
+            assetState.creditor, assetState.underlyingAsset, assetState.underlyingAssetId, 0, type(uint128).max
+        );
 
         // Mock the "usdValue".
         primaryPricingModule.setUsdValue(underlyingPMState.usdValue);

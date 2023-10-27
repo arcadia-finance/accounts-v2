@@ -16,6 +16,9 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function setUp() public override {
         AccountV1_Fuzz_Test.setUp();
+
+        vm.prank(users.accountOwner);
+        accountExtension.closeTrustedMarginAccount();
     }
 
     /*//////////////////////////////////////////////////////////////

@@ -23,6 +23,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_processIndirectWithdrawal_NonMainRegistry(
         address unprivilegedAddress_,
+        address creditor,
         address asset,
         uint256 id,
         uint256 exposureUpperAssetToAsset,
@@ -33,7 +34,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
         derivedPricingModule.processIndirectWithdrawal(
-            asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            creditor, asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
         vm.stopPrank();
     }
@@ -59,12 +60,16 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
         // When: "MainRegistry" calls "processIndirectWithdrawal".
         vm.prank(address(mainRegistryExtension));
         (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectWithdrawal(
-            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            deltaExposureUpperAssetToAsset_
         );
 
         // Then: PRIMARY_FLAG is false.
@@ -93,12 +98,16 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
         // When: "MainRegistry" calls "processIndirectWithdrawal".
         vm.prank(address(mainRegistryExtension));
         (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectWithdrawal(
-            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            deltaExposureUpperAssetToAsset
         );
 
         // Then: PRIMARY_FLAG is false.
@@ -137,12 +146,16 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
         // When: "MainRegistry" calls "processIndirectWithdrawal".
         vm.prank(address(mainRegistryExtension));
         (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectWithdrawal(
-            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            deltaExposureUpperAssetToAsset
         );
 
         // Then: PRIMARY_FLAG is false.

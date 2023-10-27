@@ -40,7 +40,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
 
         // Initiate Account (set owner and baseCurrency).
         accountExtension.initialize(
-            users.accountOwner, address(mainRegistryExtension), address(mockERC20.stable1), address(0)
+            users.accountOwner, address(mainRegistryExtension), address(mockERC20.stable1), address(creditorStable1)
         );
 
         // Set account in factory.
@@ -57,6 +57,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
 
     function openMarginAccount() internal {
         vm.startPrank(users.accountOwner);
+        accountExtension.closeTrustedMarginAccount();
         accountExtension.openTrustedMarginAccount(address(trustedCreditor));
         vm.stopPrank();
     }

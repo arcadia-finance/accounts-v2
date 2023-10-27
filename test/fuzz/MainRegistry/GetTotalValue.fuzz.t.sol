@@ -86,6 +86,10 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
             address(mockERC20.token2), oracleAssetToUsdArr, emptyRiskVarInput, type(uint128).max
         );
         vm.stopPrank();
+        vm.prank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1), address(mockERC20.token2), 0, type(uint128).max, 0, 0
+        );
 
         vm.startPrank(users.defaultTransmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd));

@@ -23,6 +23,7 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_processDirectWithdrawal_NonMainRegistry(
         address unprivilegedAddress_,
+        address creditor,
         address asset,
         uint256 id,
         uint128 amount
@@ -31,7 +32,7 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        derivedPricingModule.processDirectWithdrawal(asset, id, amount);
+        derivedPricingModule.processDirectWithdrawal(creditor, asset, id, amount);
         vm.stopPrank();
     }
 
@@ -53,11 +54,13 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
         // When: "MainRegistry" calls "processDirectWithdrawal".
         vm.prank(address(mainRegistryExtension));
-        derivedPricingModule.processDirectWithdrawal(assetState.asset, assetState.assetId, uint256(-amount));
+        derivedPricingModule.processDirectWithdrawal(
+            assetState.creditor, assetState.asset, assetState.assetId, uint256(-amount)
+        );
 
         // Then: Transaction does not revert.
     }

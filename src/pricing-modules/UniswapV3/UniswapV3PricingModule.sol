@@ -421,11 +421,15 @@ contract UniswapV3PricingModule is DerivedPricingModule {
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public override onlyMainReg {
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
+        public
+        override
+        onlyMainReg
+    {
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Pricing Module.
         _addAsset(assetId);
 
-        super.processDirectDeposit(asset, assetId, amount);
+        super.processDirectDeposit(creditor, asset, assetId, amount);
     }
 
     /**
@@ -436,6 +440,7 @@ contract UniswapV3PricingModule is DerivedPricingModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function processIndirectDeposit(
+        address creditor,
         address asset,
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
@@ -444,7 +449,8 @@ contract UniswapV3PricingModule is DerivedPricingModule {
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Pricing Module.
         _addAsset(assetId);
 
-        (primaryFlag, usdValueExposureUpperAssetToAsset) =
-            super.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        (primaryFlag, usdValueExposureUpperAssetToAsset) = super.processIndirectDeposit(
+            creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
     }
 }

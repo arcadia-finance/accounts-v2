@@ -36,7 +36,8 @@ contract GetAndUpdateExposureAsset_AbstractDerivedPricingModule_Fuzz_Test is Abs
 
         // When: "getAndUpdateExposureAsset" is called.
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        uint256 exposureAssetActual = derivedPricingModule.getAndUpdateExposureAsset(assetKey, deltaAsset_);
+        uint256 exposureAssetActual =
+            derivedPricingModule.getAndUpdateExposureAsset(assetState.creditor, assetKey, deltaAsset_);
 
         // Then: Correct "exposureAsset" is returned.
         uint256 exposureAssetExpected = assetState.exposureAssetLast + deltaAsset;
@@ -62,7 +63,8 @@ contract GetAndUpdateExposureAsset_AbstractDerivedPricingModule_Fuzz_Test is Abs
 
         // When: "getAndUpdateExposureAsset" is called.
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        uint256 exposureAssetActual = derivedPricingModule.getAndUpdateExposureAsset(assetKey, deltaAsset_);
+        uint256 exposureAssetActual =
+            derivedPricingModule.getAndUpdateExposureAsset(assetState.creditor, assetKey, deltaAsset_);
 
         // Then: Correct "exposureAsset" is returned.
         uint256 exposureAssetExpected = assetState.exposureAssetLast - deltaAsset;
@@ -88,7 +90,8 @@ contract GetAndUpdateExposureAsset_AbstractDerivedPricingModule_Fuzz_Test is Abs
 
         // When: "getAndUpdateExposureAsset" is called.
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        uint256 exposureAssetActual = derivedPricingModule.getAndUpdateExposureAsset(assetKey, deltaAsset_);
+        uint256 exposureAssetActual =
+            derivedPricingModule.getAndUpdateExposureAsset(assetState.creditor, assetKey, deltaAsset_);
 
         // Then: Correct "exposureAsset" is returned.
         uint256 exposureAssetExpected = 0;

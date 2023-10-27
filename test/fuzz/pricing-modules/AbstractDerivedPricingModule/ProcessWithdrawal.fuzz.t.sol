@@ -51,13 +51,13 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
         // When: "_processWithdrawal" is called.
         // Then: The transaction reverts with arithmetic overflow.
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         vm.expectRevert(stdError.arithmeticError);
-        derivedPricingModule.processWithdrawal(assetKey, exposureAsset);
+        derivedPricingModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
     }
 
     function testFuzz_Success_processWithdrawal_PositiveDeltaUsdExposure(
@@ -93,7 +93,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
         // And: Underlying Asset is properly added to an underlying Pricing Module.
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
@@ -101,6 +101,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         bytes memory data = abi.encodeCall(
             mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
             (
+                assetState.creditor,
                 assetState.underlyingAsset,
                 assetState.underlyingAssetId,
                 assetState.exposureAssetToUnderlyingAsset,
@@ -112,7 +113,8 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
         vm.expectCall(address(mainRegistryExtension), data);
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        uint256 usdValueExposureAsset = derivedPricingModule.processWithdrawal(assetKey, exposureAsset);
+        uint256 usdValueExposureAsset =
+            derivedPricingModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValue);
@@ -162,7 +164,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
         // And: Underlying Asset is properly added to an underlying Pricing Module.
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
@@ -170,6 +172,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         bytes memory data = abi.encodeCall(
             mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
             (
+                assetState.creditor,
                 assetState.underlyingAsset,
                 assetState.underlyingAssetId,
                 assetState.exposureAssetToUnderlyingAsset,
@@ -181,7 +184,8 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
         vm.expectCall(address(mainRegistryExtension), data);
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        uint256 usdValueExposureAsset = derivedPricingModule.processWithdrawal(assetKey, exposureAsset);
+        uint256 usdValueExposureAsset =
+            derivedPricingModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValue);
@@ -227,7 +231,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
         // And: Underlying Asset is properly added to an underlying Pricing Module.
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
@@ -235,6 +239,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         bytes memory data = abi.encodeCall(
             mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
             (
+                assetState.creditor,
                 assetState.underlyingAsset,
                 assetState.underlyingAssetId,
                 assetState.exposureAssetToUnderlyingAsset,
@@ -246,7 +251,8 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
         vm.expectCall(address(mainRegistryExtension), data);
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        uint256 usdValueExposureAsset = derivedPricingModule.processWithdrawal(assetKey, exposureAsset);
+        uint256 usdValueExposureAsset =
+            derivedPricingModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdValueExposureAsset".
         assertEq(usdValueExposureAsset, underlyingPMState.usdValue);

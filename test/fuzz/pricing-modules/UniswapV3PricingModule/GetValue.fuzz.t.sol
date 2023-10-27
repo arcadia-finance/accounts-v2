@@ -106,7 +106,8 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
-                baseCurrency: 0
+                baseCurrency: 0,
+                creditor: address(creditorUsd)
             })
         );
 
@@ -169,7 +170,8 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
-                baseCurrency: 0
+                baseCurrency: 0,
+                creditor: address(creditorUsd)
             })
         );
 

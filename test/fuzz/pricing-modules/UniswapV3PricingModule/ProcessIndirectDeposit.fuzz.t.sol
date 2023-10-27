@@ -56,7 +56,7 @@ contract ProcessIndirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Pri
 
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        uniV3PricingModule.processIndirectDeposit(asset, id, exposureUpperAssetToAsset, 1);
+        uniV3PricingModule.processIndirectDeposit(address(creditorUsd), asset, id, exposureUpperAssetToAsset, 1);
         vm.stopPrank();
     }
 
@@ -123,7 +123,8 @@ contract ProcessIndirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Pri
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
-                baseCurrency: 0
+                baseCurrency: 0,
+                creditor: address(creditorUsd)
             })
         );
         maxUsdExposureProtocol = bound(maxUsdExposureProtocol, usdExposureProtocol, type(uint256).max);
@@ -131,6 +132,8 @@ contract ProcessIndirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Pri
         uniV3PricingModule.setMaxUsdExposureProtocol(maxUsdExposureProtocol);
 
         vm.prank(address(mainRegistryExtension));
-        uniV3PricingModule.processIndirectDeposit(address(nonfungiblePositionManager), tokenId, 0, 1);
+        uniV3PricingModule.processIndirectDeposit(
+            address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0, 1
+        );
     }
 }

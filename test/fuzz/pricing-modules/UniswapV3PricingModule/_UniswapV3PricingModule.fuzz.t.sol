@@ -186,7 +186,7 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
         internal
     {
         addUnderlyingTokenToArcadia(token, price);
-        erc20PricingModule.setExposure(token, initialExposure, maxExposure);
+        erc20PricingModule.setExposure(address(creditorUsd), token, initialExposure, maxExposure);
     }
 
     function addUnderlyingTokenToArcadia(address token, int256 price) internal {
@@ -216,6 +216,9 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
         );
         erc20PricingModule.addAsset(token, oracleArr, riskVars, type(uint128).max);
         vm.stopPrank();
+
+        vm.prank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint128).max, 0, 0);
     }
 
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)

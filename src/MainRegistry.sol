@@ -4,13 +4,15 @@
  */
 pragma solidity 0.8.19;
 
+import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
-import { IPricingModule } from "./interfaces/IPricingModule.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
-import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { RiskModule } from "./RiskModule.sol";
+import { IPricingModule } from "./interfaces/IPricingModule.sol";
+import { IPrimaryPricingModule } from "./interfaces/IPrimaryPricingModule.sol";
 import { MainRegistryGuardian } from "./guardians/MainRegistryGuardian.sol";
+import { RiskModule } from "./RiskModule.sol";
+import { ITrustedCreditor } from "./interfaces/ITrustedCreditor.sol";
 
 /**
  * @title Main Asset registry
@@ -256,6 +258,22 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     /////////////////////////////////////////////////////////////// */
 
     /**
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is allowed.
+     */
+    function isAllowed(address asset, uint256 assetId) external view returns (bool) {
+        address pricingModule = assetToAssetInformation[asset].pricingModule;
+
+        if (pricingModule == address(0)) {
+            return false;
+        } else {
+            return IPricingModule(assetToAssetInformation[asset].pricingModule).isAllowed(asset, assetId);
+        }
+    }
+
+    /**
      * @notice Adds a new asset to the Main Registry.
      * @param assetAddress The contract address of the asset.
      * @param assetType Identifier for the type of the asset:
@@ -278,6 +296,39 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /**
+     * @notice Sets the maximum exposure for a primary asset.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param maxExposure The maximum protocol wide exposure to the asset.
+     * @dev Can only be called by the Risk Manager, which can be different from the owner.
+     */
+    function setRiskParametersOfPrimaryAsset(
+        address creditor,
+        address asset,
+        uint256 assetId,
+        uint128 maxExposure,
+        uint16 collateralFactor,
+        uint16 liquidationFactor
+    ) external {
+        require(msg.sender == ITrustedCreditor(creditor).riskManager(), "MR_SRPPA: Not Authorized");
+
+        IPrimaryPricingModule(assetToAssetInformation[asset].pricingModule).setRiskParameters(
+            creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor
+        );
+    }
+
+    function setRiskVarsOfDerivedPricingModule(
+        address pricingModule,
+        uint128 maxUsdExposure,
+        uint16 collateralFactor,
+        uint16 liquidationFactor
+    ) public onlyOwner { }
+
+    /*///////////////////////////////////////////////////////////////
+                    WITHDRAWALS AND DEPOSITS
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
      * @notice Batch deposit multiple assets.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
@@ -289,6 +340,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @dev increaseExposure in the pricing module checks whether it's allowlisted and updates the exposure.
      */
     function batchProcessDeposit(
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata amounts
@@ -303,28 +355,12 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 
             IPricingModule(assetToAssetInformation[assetAddress].pricingModule).processDirectDeposit(
-                assetAddress, assetIds[i], amounts[i]
+                creditor, assetAddress, assetIds[i], amounts[i]
             );
 
             unchecked {
                 ++i;
             }
-        }
-    }
-
-    /**
-     * @notice Checks for a token address and the corresponding Id if it is allowed.
-     * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
-     * @return A boolean, indicating if the asset is allowed.
-     */
-    function isAllowed(address asset, uint256 assetId) external view returns (bool) {
-        address pricingModule = assetToAssetInformation[asset].pricingModule;
-
-        if (pricingModule == address(0)) {
-            return false;
-        } else {
-            return IPricingModule(assetToAssetInformation[asset].pricingModule).isAllowed(asset, assetId);
         }
     }
 
@@ -340,6 +376,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @dev batchProcessWithdrawal in the pricing module updates the exposure.
      */
     function batchProcessWithdrawal(
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata amounts
@@ -354,7 +391,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 
             IPricingModule(assetToAssetInformation[assetAddress].pricingModule).processDirectWithdrawal(
-                assetAddress, assetIds[i], amounts[i]
+                creditor, assetAddress, assetIds[i], amounts[i]
             );
 
             unchecked {
@@ -371,6 +408,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function getUsdValueExposureToUnderlyingAssetAfterDeposit(
+        address creditor,
         address underlyingAsset,
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
@@ -379,7 +417,11 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule(
             assetToAssetInformation[underlyingAsset].pricingModule
         ).processIndirectDeposit(
-            underlyingAsset, underlyingAssetId, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
+            creditor,
+            underlyingAsset,
+            underlyingAssetId,
+            exposureAssetToUnderlyingAsset,
+            deltaExposureAssetToUnderlyingAsset
         );
     }
 
@@ -391,6 +433,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
+        address creditor,
         address underlyingAsset,
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
@@ -399,7 +442,11 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule(
             assetToAssetInformation[underlyingAsset].pricingModule
         ).processIndirectWithdrawal(
-            underlyingAsset, underlyingAssetId, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
+            creditor,
+            underlyingAsset,
+            underlyingAssetId,
+            exposureAssetToUnderlyingAsset,
+            deltaExposureAssetToUnderlyingAsset
         );
     }
 

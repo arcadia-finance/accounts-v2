@@ -65,7 +65,8 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
             asset: address(ybToken1),
             assetId: 0,
             assetAmount: shares,
-            baseCurrency: UsdBaseCurrencyID
+            baseCurrency: UsdBaseCurrencyID,
+            creditor: address(creditorUsd)
         });
 
         //Arithmetic overflow.
@@ -116,7 +117,8 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
             asset: address(ybToken1),
             assetId: 0,
             assetAmount: shares,
-            baseCurrency: UsdBaseCurrencyID
+            baseCurrency: UsdBaseCurrencyID,
+            creditor: address(creditorUsd)
         });
         (uint256 actualValueInUsd,,) = erc4626PricingModule.getValue(getValueInput);
 

@@ -116,6 +116,18 @@ abstract contract UniswapV2PricingModule_Fuzz_Test is Fuzz_Test {
         );
         erc20PricingModule.addAsset(address(token), oracleTokenToUsdArr, emptyRiskVarInput, type(uint128).max);
         vm.stopPrank();
+
+        vm.startPrank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(token), 0, type(uint128).max, 0, 0
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1), address(token), 0, type(uint128).max, 0, 0
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1), address(token), 0, type(uint128).max, 0, 0
+        );
+        vm.stopPrank();
     }
 
     function profitArbitrage(

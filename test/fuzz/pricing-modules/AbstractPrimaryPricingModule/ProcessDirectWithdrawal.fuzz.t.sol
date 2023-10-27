@@ -36,7 +36,7 @@ contract ProcessDirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is Abstr
         // Then: The transaction reverts with "APM: ONLY_MAIN_REGISTRY".
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        pricingModule.processDirectWithdrawal(assetState.asset, assetState.assetId, amount);
+        pricingModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }
 
@@ -52,11 +52,11 @@ contract ProcessDirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is Abstr
 
         // When: "amount" is withdrawn.
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processDirectWithdrawal(assetState.asset, assetState.assetId, amount);
+        pricingModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
-        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
+        (uint128 actualExposure,,,) = pricingModule.riskParams(assetState.creditor, assetKey);
         uint256 expectedExposure = assetState.exposureAssetLast - amount;
 
         assertEq(actualExposure, expectedExposure);
@@ -74,11 +74,11 @@ contract ProcessDirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is Abstr
 
         // When: "amount" is withdrawn.
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processDirectWithdrawal(assetState.asset, assetState.assetId, amount);
+        pricingModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
-        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
+        (uint128 actualExposure,,,) = pricingModule.riskParams(assetState.creditor, assetKey);
 
         assertEq(actualExposure, 0);
     }

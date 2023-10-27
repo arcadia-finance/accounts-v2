@@ -176,10 +176,14 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * param amount The amount of tokens.
      * @dev amount of a deposit in ERC721 pricing module must be 1.
      */
-    function processDirectDeposit(address asset, uint256 assetId, uint256) public override onlyMainReg {
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256)
+        public
+        override
+        onlyMainReg
+    {
         require(isIdInRange(asset, assetId), "PM721_PDD: ID not allowed");
 
-        super.processDirectDeposit(asset, assetId, 1);
+        super.processDirectDeposit(creditor, asset, assetId, 1);
     }
 
     /**
@@ -190,6 +194,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function processIndirectDeposit(
+        address creditor,
         address asset,
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
@@ -197,7 +202,9 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
     ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         require(isIdInRange(asset, assetId), "PM721_PID: ID not allowed");
 
-        return super.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        return super.processIndirectDeposit(
+            creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
     }
 
     /*///////////////////////////////////////////////////////////////

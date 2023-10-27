@@ -120,10 +120,14 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public override onlyMainReg {
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
+        public
+        override
+        onlyMainReg
+    {
         require(assetId == assetToInformation[asset].id, "PM1155_PDD: ID not allowed");
 
-        super.processDirectDeposit(asset, assetId, amount);
+        super.processDirectDeposit(creditor, asset, assetId, amount);
     }
 
     /**
@@ -134,6 +138,7 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function processIndirectDeposit(
+        address creditor,
         address asset,
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
@@ -141,8 +146,9 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
     ) public override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
         require(assetId == assetToInformation[asset].id, "PM1155_PID: ID not allowed");
 
-        (primaryFlag, usdValueExposureUpperAssetToAsset) =
-            super.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        (primaryFlag, usdValueExposureUpperAssetToAsset) = super.processIndirectDeposit(
+            creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
     }
 
     /*///////////////////////////////////////////////////////////////

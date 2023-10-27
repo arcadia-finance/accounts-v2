@@ -38,7 +38,11 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
         pricingModule.processIndirectDeposit(
-            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            deltaExposureUpperAssetToAsset
         );
         vm.stopPrank();
     }
@@ -65,7 +69,11 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("APPM_PID: Exposure not in limits");
         pricingModule.processIndirectDeposit(
-            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, int256(deltaExposureUpperAssetToAsset)
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            int256(deltaExposureUpperAssetToAsset)
         );
         vm.stopPrank();
     }
@@ -88,7 +96,11 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
         // When: Asset is indirectly deposited.
         vm.prank(address(mainRegistryExtension));
         (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = pricingModule.processIndirectDeposit(
-            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, int256(deltaExposureUpperAssetToAsset)
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            int256(deltaExposureUpperAssetToAsset)
         );
 
         // Then: Correct output variables are returned.
@@ -97,7 +109,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
 
         // And: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
-        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
+        (uint128 actualExposure,,,) = pricingModule.riskParams(assetState.creditor, assetKey);
         assertEq(actualExposure, expectedExposure);
     }
 
@@ -116,7 +128,11 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
         // When: Asset is indirectly deposited.
         vm.prank(address(mainRegistryExtension));
         (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = pricingModule.processIndirectDeposit(
-            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, -int256(deltaExposureUpperAssetToAsset)
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            -int256(deltaExposureUpperAssetToAsset)
         );
 
         // Then: Correct output variables are returned.
@@ -125,7 +141,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
-        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
+        (uint128 actualExposure,,,) = pricingModule.riskParams(assetState.creditor, assetKey);
 
         assertEq(actualExposure, expectedExposure);
     }
@@ -144,7 +160,11 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
         // When: Asset is indirectly deposited.
         vm.prank(address(mainRegistryExtension));
         (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = pricingModule.processIndirectDeposit(
-            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, -int256(deltaExposureUpperAssetToAsset)
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            -int256(deltaExposureUpperAssetToAsset)
         );
 
         // Then: Correct output variables are returned.
@@ -153,7 +173,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
-        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
+        (uint128 actualExposure,,,) = pricingModule.riskParams(assetState.creditor, assetKey);
         assertEq(actualExposure, 0);
     }
 }

@@ -47,6 +47,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_processDirectDeposit_NonMainRegistry(
+        address creditor,
         address unprivilegedAddress,
         address asset,
         uint256 id
@@ -55,11 +56,11 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        uniV3PricingModule.processDirectDeposit(asset, id, 1);
+        uniV3PricingModule.processDirectDeposit(creditor, asset, id, 1);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_processDirectDeposit_ZeroLiquidity() public {
+    function testFuzz_Revert_processDirectDeposit_ZeroLiquidity(address creditor) public {
         // Create Uniswap V3 pool initiated at tick 0 with cardinality 300.
         pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(0), 300);
 
@@ -83,7 +84,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("PMUV3_AA: 0 liquidity");
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
+        uniV3PricingModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -134,7 +135,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("APPM_PID: Exposure not in limits");
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
+        uniV3PricingModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -191,7 +192,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("APPM_PID: Exposure not in limits");
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
+        uniV3PricingModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -259,7 +260,8 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
-                baseCurrency: 0
+                baseCurrency: 0,
+                creditor: address(creditorUsd)
             })
         );
         vm.assume(usdExposureProtocol > 0);
@@ -269,7 +271,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("ADPM_PD: Exposure not in limits");
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
+        uniV3PricingModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -336,7 +338,8 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
-                baseCurrency: 0
+                baseCurrency: 0,
+                creditor: address(creditorUsd)
             })
         );
         maxUsdExposureProtocol = bound(maxUsdExposureProtocol, usdExposureProtocol, type(uint256).max);
@@ -344,6 +347,6 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         uniV3PricingModule.setMaxUsdExposureProtocol(maxUsdExposureProtocol);
 
         vm.prank(address(mainRegistryExtension));
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
+        uniV3PricingModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
     }
 }

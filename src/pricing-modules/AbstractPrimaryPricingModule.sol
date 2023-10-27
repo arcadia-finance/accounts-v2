@@ -31,10 +31,21 @@ abstract contract PrimaryPricingModule is PricingModule {
     // Map with the last exposures of each asset.
     mapping(bytes32 assetKey => Exposure exposure) public exposure;
 
+    // Map with the risk parameters of each asset.
+    mapping(address creditor => mapping(bytes32 assetKey => RiskParameters riskParameters)) public riskParams;
+
     // Struct with information about the exposure of a specific asset.
     struct Exposure {
         uint128 maxExposure; // The maximum exposure to an asset.
         uint128 exposureLast; // The exposure to an asset at its last interaction.
+    }
+
+    // Struct with the risk variables of a specific asset for a specific creditor.
+    struct RiskParameters {
+        uint128 exposureLast; // The exposure to an asset at its last interaction.
+        uint128 maxExposure; // The maximum exposure to an asset.
+        uint16 collateralFactor; // The collateral factor, 2 decimals precision.
+        uint16 liquidationFactor; // The liquidation factor, 2 decimals precision.
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -83,6 +94,21 @@ abstract contract PrimaryPricingModule is PricingModule {
         emit MaxExposureSet(asset, uint128(maxExposure));
     }
 
+    function setRiskParameters(
+        address creditor,
+        address asset,
+        uint256 assetId,
+        uint128 maxExposure,
+        uint16 collateralFactor,
+        uint16 liquidationFactor
+    ) external onlyMainReg {
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+
+        riskParams[creditor][assetKey].maxExposure = maxExposure;
+        riskParams[creditor][assetKey].collateralFactor = collateralFactor;
+        riskParams[creditor][assetKey].liquidationFactor = liquidationFactor;
+    }
+
     /*///////////////////////////////////////////////////////////////
                     WITHDRAWALS AND DEPOSITS
     ///////////////////////////////////////////////////////////////*/
@@ -93,19 +119,22 @@ abstract contract PrimaryPricingModule is PricingModule {
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public virtual override onlyMainReg {
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
+        public
+        virtual
+        override
+        onlyMainReg
+    {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Cache exposureLast.
-        uint256 exposureLast = exposure[assetKey].exposureLast;
+        uint256 exposureLast = riskParams[creditor][assetKey].exposureLast;
 
-        require(exposureLast + amount <= exposure[assetKey].maxExposure, "APPM_PDD: Exposure not in limits");
+        require(exposureLast + amount <= riskParams[creditor][assetKey].maxExposure, "APPM_PDD: Exposure not in limits");
 
         unchecked {
-            exposure[assetKey].exposureLast = uint128(exposureLast) + uint128(amount);
+            riskParams[creditor][assetKey].exposureLast = uint128(exposureLast) + uint128(amount);
         }
-
-        emit AssetExposureChanged(asset, uint128(exposureLast), exposure[assetKey].exposureLast);
     }
 
     /**
@@ -116,6 +145,7 @@ abstract contract PrimaryPricingModule is PricingModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function processIndirectDeposit(
+        address creditor,
         address asset,
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
@@ -124,20 +154,18 @@ abstract contract PrimaryPricingModule is PricingModule {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Cache exposureLast.
-        uint256 exposureLast = exposure[assetKey].exposureLast;
+        uint256 exposureLast = riskParams[creditor][assetKey].exposureLast;
 
         uint256 exposureAsset;
         if (deltaExposureUpperAssetToAsset > 0) {
             exposureAsset = exposureLast + uint256(deltaExposureUpperAssetToAsset);
-            require(exposureAsset <= exposure[assetKey].maxExposure, "APPM_PID: Exposure not in limits");
+            require(exposureAsset <= riskParams[creditor][assetKey].maxExposure, "APPM_PID: Exposure not in limits");
         } else {
             exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
                 ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
                 : 0;
         }
-        exposure[assetKey].exposureLast = uint128(exposureAsset);
-
-        emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureAsset));
+        riskParams[creditor][assetKey].exposureLast = uint128(exposureAsset);
 
         // Get Value in Usd
         (usdValueExposureUpperAssetToAsset,,) = getValue(
@@ -145,7 +173,8 @@ abstract contract PrimaryPricingModule is PricingModule {
                 asset: asset,
                 assetId: assetId,
                 assetAmount: exposureUpperAssetToAsset,
-                baseCurrency: 0
+                baseCurrency: 0,
+                creditor: creditor
             })
         );
 
@@ -159,7 +188,7 @@ abstract contract PrimaryPricingModule is PricingModule {
      * @param amount The amount of tokens.
      * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
-    function processDirectWithdrawal(address asset, uint256 assetId, uint256 amount)
+    function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         virtual
         override
@@ -168,13 +197,13 @@ abstract contract PrimaryPricingModule is PricingModule {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Cache exposureLast.
-        uint256 exposureLast = exposure[assetKey].exposureLast;
+        uint256 exposureLast = riskParams[creditor][assetKey].exposureLast;
 
         exposureLast >= amount
-            ? exposure[assetKey].exposureLast = uint128(exposureLast) - uint128(amount)
-            : exposure[assetKey].exposureLast = 0;
+            ? riskParams[creditor][assetKey].exposureLast = uint128(exposureLast) - uint128(amount)
+            : riskParams[creditor][assetKey].exposureLast = 0;
 
-        emit AssetExposureChanged(asset, uint128(exposureLast), exposure[assetKey].exposureLast);
+        emit AssetExposureChanged(asset, uint128(exposureLast), riskParams[creditor][assetKey].exposureLast);
     }
 
     /**
@@ -185,6 +214,7 @@ abstract contract PrimaryPricingModule is PricingModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function processIndirectWithdrawal(
+        address creditor,
         address asset,
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
@@ -193,7 +223,7 @@ abstract contract PrimaryPricingModule is PricingModule {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Cache exposureLast.
-        uint256 exposureLast = exposure[assetKey].exposureLast;
+        uint256 exposureLast = riskParams[creditor][assetKey].exposureLast;
 
         uint256 exposureAsset;
         if (deltaExposureUpperAssetToAsset > 0) {
@@ -204,7 +234,7 @@ abstract contract PrimaryPricingModule is PricingModule {
                 ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
                 : 0;
         }
-        exposure[assetKey].exposureLast = uint128(exposureAsset);
+        riskParams[creditor][assetKey].exposureLast = uint128(exposureAsset);
 
         emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureAsset));
 
@@ -214,7 +244,8 @@ abstract contract PrimaryPricingModule is PricingModule {
                 asset: asset,
                 assetId: assetId,
                 assetAmount: exposureUpperAssetToAsset,
-                baseCurrency: 0
+                baseCurrency: 0,
+                creditor: creditor
             })
         );
 

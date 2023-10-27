@@ -616,7 +616,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ) internal {
         //Reverts in mainRegistry if input is invalid.
         uint256[] memory assetTypes =
-            IMainRegistry(registry).batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
+            IMainRegistry(registry).batchProcessDeposit(trustedCreditor, assetAddresses, assetIds, assetAmounts);
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {
@@ -696,7 +696,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ) internal {
         //Reverts in mainRegistry if input is invalid.
         uint256[] memory assetTypes =
-            IMainRegistry(registry).batchProcessWithdrawal(assetAddresses, assetIds, assetAmounts); //reverts in mainregistry if invalid input
+            IMainRegistry(registry).batchProcessWithdrawal(trustedCreditor, assetAddresses, assetIds, assetAmounts); //reverts in mainregistry if invalid input
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {

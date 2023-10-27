@@ -12,18 +12,20 @@ contract PricingModuleMock is AbstractPricingModuleExtension {
 
     function getValue(GetValueInput memory input) public view override returns (uint256, uint256, uint256) { }
 
-    function processDirectDeposit(address asset, uint256 id, uint256 amount) public override { }
+    function processDirectDeposit(address creditor, address asset, uint256 id, uint256 amount) public override { }
 
     function processIndirectDeposit(
+        address creditor,
         address asset,
         uint256 id,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public override returns (bool, uint256) { }
 
-    function processDirectWithdrawal(address asset, uint256 id, uint256 amount) public override { }
+    function processDirectWithdrawal(address creditor, address asset, uint256 id, uint256 amount) public override { }
 
     function processIndirectWithdrawal(
+        address creditor,
         address asset,
         uint256 id,
         uint256 exposureUpperAssetToAsset,

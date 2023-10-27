@@ -33,6 +33,7 @@ interface IMainRegistry {
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function getUsdValueExposureToUnderlyingAssetAfterDeposit(
+        address creditor,
         address underlyingAsset,
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
@@ -47,6 +48,7 @@ interface IMainRegistry {
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
+        address creditor,
         address underlyingAsset,
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,

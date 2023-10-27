@@ -61,6 +61,7 @@ interface IMainRegistry {
      * 2 = ERC1155.
      */
     function batchProcessDeposit(
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata amounts
@@ -77,6 +78,7 @@ interface IMainRegistry {
      * 2 = ERC1155.
      */
     function batchProcessWithdrawal(
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata amounts
