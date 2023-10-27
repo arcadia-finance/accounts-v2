@@ -105,9 +105,9 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     ) public {
         // Given: Trusted Creditor is set.
         vm.prank(users.accountOwner);
-        proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
+        proxyAccount.openTrustedMarginAccount(address(creditorStable1));
         // Check in creditor if new version is allowed should fail.
-        trustedCreditor.setCallResult(false);
+        creditorStable1.setCallResult(false);
 
         vm.startPrank(address(factory));
         vm.expectRevert("A_UA: Invalid Account version");
@@ -123,7 +123,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     ) public {
         // Given: an account in a random state (with assets, a creditor and debt).
         vm.prank(users.accountOwner);
-        proxyAccount.openTrustedMarginAccount(address(trustedCreditor)); // Mocked Trusted Creditor, approves all account-versions by default.
+        proxyAccount.openTrustedMarginAccount(address(creditorStable1)); // Mocked Trusted Creditor, approves all account-versions by default.
 
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.token1);
@@ -153,7 +153,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         proxyAccount.deposit(assetAddresses, assetIds, assetAmounts);
 
         // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(proxyAccount), debt);
+        creditorStable1.setOpenPosition(address(proxyAccount), debt);
 
         Checks memory checkBefore = createCompareStruct();
 

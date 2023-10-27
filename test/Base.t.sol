@@ -16,7 +16,6 @@ import { StandardERC20PricingModuleExtension } from "./utils/Extensions.sol";
 import { FloorERC721PricingModuleExtension } from "./utils/Extensions.sol";
 import { FloorERC1155PricingModuleExtension } from "./utils/Extensions.sol";
 import { UniswapV3PricingModuleExtension } from "./utils/Extensions.sol";
-import { TrustedCreditorMock } from "./utils/mocks/TrustedCreditorMock.sol";
 import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Errors } from "./utils/Errors.sol";
@@ -32,10 +31,6 @@ abstract contract Base_Test is Test, Events, Errors {
     //////////////////////////////////////////////////////////////////////////*/
 
     Users internal users;
-
-    // This will be the base currency set for the instance of "trustedCreditorWithParams"
-    address internal initBaseCurrency;
-
     PricingModule.RiskVarInput[] emptyRiskVarInput;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -52,7 +47,6 @@ abstract contract Base_Test is Test, Events, Errors {
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
     AccountV1 internal proxyAccount;
-    TrustedCreditorMock internal trustedCreditor;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -92,7 +86,6 @@ abstract contract Base_Test is Test, Events, Errors {
         factory.setNewAccountInfo(
             address(mainRegistryExtension), address(accountV1Logic), Constants.upgradeProof1To2, ""
         );
-        trustedCreditor = new TrustedCreditorMock();
         vm.stopPrank();
 
         // Set the Guardians.
@@ -117,13 +110,6 @@ abstract contract Base_Test is Test, Events, Errors {
         vm.label({ account: address(floorERC1155PricingModule), newLabel: "ERC1155 Pricing Module" });
         vm.label({ account: address(accountV1Logic), newLabel: "Account V1 Logic" });
         vm.label({ account: address(accountV2Logic), newLabel: "Account V2 Logic" });
-        vm.label({ account: address(trustedCreditor), newLabel: "Mocked Trusted Creditor" });
-
-        // Initialize the default liquidation cost and liquidator of trusted creditor
-        // The base currency on initialization will depend on the type of test and set at a lower level
-        trustedCreditor.setRiskManager(users.riskManager);
-        trustedCreditor.setFixedLiquidationCost(Constants.initLiquidationCost);
-        trustedCreditor.setLiquidator(Constants.initLiquidator);
 
         // Deploy an initial Account with all inputs to zero
         vm.prank(users.accountOwner);

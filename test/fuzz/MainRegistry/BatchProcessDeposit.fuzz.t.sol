@@ -80,8 +80,10 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     function testFuzz_Revert_batchProcessDeposit_exposureNotSufficient(uint128 newMaxExposure, uint128 amount) public {
         vm.assume(newMaxExposure < amount);
 
-        vm.prank(users.creatorAddress);
-        erc20PricingModule.setMaxExposureOfAsset(address(mockERC20.token1), 0, newMaxExposure);
+        vm.prank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC20.token1), 0, newMaxExposure, 0, 0
+        );
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);

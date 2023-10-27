@@ -123,11 +123,6 @@ abstract contract Fuzz_Test is Base_Test {
             sft2ToUsd: 1 * 10 ** Constants.erc1155OracleDecimals
         });
 
-        // Set a trusted creditor with initialized params to use across tests
-        initBaseCurrency = address(mockERC20.stable1);
-        trustedCreditor.setBaseCurrency(initBaseCurrency);
-        vm.stopPrank();
-
         // Create a trusted creditor with each baseCurrency.
         creditorUsd = new TrustedCreditorMock();
         creditorStable1 = new TrustedCreditorMock();
@@ -137,6 +132,14 @@ abstract contract Fuzz_Test is Base_Test {
         creditorUsd.setRiskManager(users.riskManager);
         creditorStable1.setRiskManager(users.riskManager);
         creditorToken1.setRiskManager(users.riskManager);
+
+        // Initialize the default liquidation cost and liquidator of trusted creditor
+        // The base currency on initialization will depend on the type of test and set at a lower level
+        creditorStable1.setFixedLiquidationCost(Constants.initLiquidationCost);
+        creditorStable1.setLiquidator(Constants.initLiquidator);
+
+        vm.label({ account: address(creditorUsd), newLabel: "USD Creditor" });
+        vm.label({ account: address(creditorStable1), newLabel: "Stable1 Creditor" });
 
         // Deploy Oracles
         mockOracles = MockOracles({
@@ -388,6 +391,31 @@ abstract contract Fuzz_Test is Base_Test {
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.token1),
+            0,
+            type(uint128).max,
+            Constants.tokenToTokenCollFactor,
+            Constants.tokenToTokenLiqFactor
+        );
+
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd),
+            address(mockERC20.token2),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1),
+            address(mockERC20.token2),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1),
+            address(mockERC20.token2),
             0,
             type(uint128).max,
             Constants.tokenToTokenCollFactor,

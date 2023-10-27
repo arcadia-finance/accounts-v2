@@ -186,7 +186,9 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Given: At least one nft of same collection is deposited in other account.
         // (otherwise processWithdrawal underflows when arrLength is 0: account didn't deposit any nfts yet).
         AccountExtension account2 = new AccountExtension();
-        account2.initialize(users.accountOwner, address(mainRegistryExtension), address(mockERC20.stable1), address(0));
+        account2.initialize(
+            users.accountOwner, address(mainRegistryExtension), address(mockERC20.stable1), address(creditorStable1)
+        );
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(account2)).checked_write(
             true
         );
@@ -258,7 +260,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
 
         // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(accountExtension), debt);
+        creditorStable1.setOpenPosition(address(accountExtension), debt);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
@@ -431,7 +433,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
 
         // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(accountExtension), debt);
+        creditorStable1.setOpenPosition(address(accountExtension), debt);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
