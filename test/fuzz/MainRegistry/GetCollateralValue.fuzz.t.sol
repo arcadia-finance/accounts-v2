@@ -44,7 +44,9 @@ contract GetCollateralValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assetAmounts[1] = 10;
 
         vm.expectRevert("MR_GCV: UNKNOWN_BASECURRENCY");
-        mainRegistryExtension.getCollateralValue(assetAddresses, assetIds, assetAmounts, basecurrency);
+        mainRegistryExtension.getCollateralValue(
+            assetAddresses, assetIds, assetAmounts, basecurrency, address(creditorUsd)
+        );
     }
 
     function testFuzz_Success_getCollateralValue(int64 rateToken1ToUsd, uint64 amountToken1, uint16 collateralFactor_)
@@ -59,13 +61,10 @@ contract GetCollateralValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, amountToken1, oracleToken1ToUsdArr);
         vm.assume(token1ValueInUsd > 0);
 
-        PricingModule.RiskVarInput[] memory riskVarsInput = new PricingModule.RiskVarInput[](1);
-        riskVarsInput[0].asset = address(mockERC20.token1);
-        riskVarsInput[0].baseCurrency = uint8(UsdBaseCurrencyID);
-        riskVarsInput[0].collateralFactor = collateralFactor_;
-
-        vm.startPrank(users.creatorAddress);
-        erc20PricingModule.setBatchRiskVariables(riskVarsInput);
+        vm.prank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC20.token1), 0, type(uint128).max, collateralFactor_, 0
+        );
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -76,8 +75,9 @@ contract GetCollateralValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken1;
 
-        uint256 actualCollateralValue =
-            mainRegistryExtension.getCollateralValue(assetAddresses, assetIds, assetAmounts, address(0));
+        uint256 actualCollateralValue = mainRegistryExtension.getCollateralValue(
+            assetAddresses, assetIds, assetAmounts, address(0), address(creditorUsd)
+        );
 
         uint256 expectedCollateralValue = token1ValueInUsd * collateralFactor_ / 100;
 

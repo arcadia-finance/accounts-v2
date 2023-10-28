@@ -96,7 +96,8 @@ interface IMainRegistry {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts,
-        address baseCurrency
+        address baseCurrency,
+        address creditor
     ) external view returns (uint256);
 
     /**
@@ -111,7 +112,8 @@ interface IMainRegistry {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts,
-        address baseCurrency
+        address baseCurrency,
+        address creditor
     ) external view returns (uint256);
 
     /**
@@ -126,7 +128,8 @@ interface IMainRegistry {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts,
-        address baseCurrency
+        address baseCurrency,
+        address creditor
     ) external view returns (uint256);
 
     function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256);

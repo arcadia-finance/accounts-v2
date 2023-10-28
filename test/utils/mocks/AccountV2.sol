@@ -339,7 +339,9 @@ contract AccountV2 is AccountStorageV2 {
     function getAccountValue(address baseCurrency_) external view returns (uint256 accountValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
-        accountValue = IMainRegistry(registry).getTotalValue(assetAddresses, assetIds, assetAmounts, baseCurrency_);
+        accountValue = IMainRegistry(registry).getTotalValue(
+            assetAddresses, assetIds, assetAmounts, baseCurrency_, trustedCreditor
+        );
     }
 
     /**
@@ -356,8 +358,9 @@ contract AccountV2 is AccountStorageV2 {
     function getCollateralValue() public view returns (uint256 collateralValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
-        collateralValue =
-            IMainRegistry(registry).getCollateralValue(assetAddresses, assetIds, assetAmounts, baseCurrency);
+        collateralValue = IMainRegistry(registry).getCollateralValue(
+            assetAddresses, assetIds, assetAmounts, baseCurrency, trustedCreditor
+        );
     }
 
     /**
@@ -373,8 +376,9 @@ contract AccountV2 is AccountStorageV2 {
     function getLiquidationValue() public view returns (uint256 liquidationValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
-        liquidationValue =
-            IMainRegistry(registry).getLiquidationValue(assetAddresses, assetIds, assetAmounts, baseCurrency);
+        liquidationValue = IMainRegistry(registry).getLiquidationValue(
+            assetAddresses, assetIds, assetAmounts, baseCurrency, trustedCreditor
+        );
     }
 
     /**

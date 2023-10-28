@@ -191,7 +191,8 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
 
         valueInUsd = getValueInput.assetAmount.mulDivDown(rateInUsd, assetToInformation[getValueInput.asset].assetUnit);
 
-        collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
-        liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;
+        bytes32 assetKey = _getKeyFromAsset(getValueInput.asset, 0);
+        collateralFactor = riskParams[getValueInput.creditor][assetKey].collateralFactor;
+        liquidationFactor = riskParams[getValueInput.creditor][assetKey].liquidationFactor;
     }
 }

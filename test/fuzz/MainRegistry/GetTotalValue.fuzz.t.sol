@@ -45,7 +45,9 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assetAmounts[1] = 10;
 
         vm.expectRevert("MR_GTV: UNKNOWN_BASECURRENCY");
-        mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, basecurrency);
+        mainRegistryExtension.getTotalValue(
+            assetAddresses, assetIds, assetAmounts, basecurrency, address(creditorToken1)
+        );
     }
 
     function testFuzz_Revert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdOverflow(
@@ -105,7 +107,9 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         // Then: getTotalValue should revert with arithmetic overflow
         vm.expectRevert(bytes(""));
-        mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, address(mockERC20.token1));
+        mainRegistryExtension.getTotalValue(
+            assetAddresses, assetIds, assetAmounts, address(mockERC20.token1), address(creditorToken1)
+        );
     }
 
     function testFuzz_Revert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdWithRateZero(uint256 amountToken2)
@@ -129,7 +133,9 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         // Then: getTotalValue should revert
         vm.expectRevert(bytes(""));
-        mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, address(mockERC20.token1));
+        mainRegistryExtension.getTotalValue(
+            assetAddresses, assetIds, assetAmounts, address(mockERC20.token1), address(creditorToken1)
+        );
     }
 
     function testFuzz_Success_getTotalValue() public {
@@ -149,8 +155,9 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assetAmounts[2] = 1;
 
         // BaseCurrency for actualTotalValue is set to mockERC20.token1
-        uint256 actualTotalValue =
-            mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, address(mockERC20.token1));
+        uint256 actualTotalValue = mainRegistryExtension.getTotalValue(
+            assetAddresses, assetIds, assetAmounts, address(mockERC20.token1), address(creditorToken1)
+        );
 
         uint256 token1ValueInToken1 = assetAmounts[0];
         uint256 token2ValueInToken1 = convertUsdToBaseCurrency(
@@ -204,8 +211,9 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken2;
 
-        uint256 actualTotalValue =
-            mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, address(mockERC20.token1));
+        uint256 actualTotalValue = mainRegistryExtension.getTotalValue(
+            assetAddresses, assetIds, assetAmounts, address(mockERC20.token1), address(creditorToken1)
+        );
 
         uint256 token2ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, amountToken2, oracleToken2ToUsdArr);
         uint256 token2ValueInToken1 = convertUsdToBaseCurrency(
@@ -241,8 +249,9 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken2;
 
-        uint256 actualTotalValue =
-            mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, address(mockERC20.token1));
+        uint256 actualTotalValue = mainRegistryExtension.getTotalValue(
+            assetAddresses, assetIds, assetAmounts, address(mockERC20.token1), address(creditorToken1)
+        );
 
         uint256 token2ValueInUsd = convertAssetToUsd(Constants.stableDecimals, amountToken2, oracleStable2ToUsdArr);
         uint256 token2ValueInToken1 = convertUsdToBaseCurrency(
