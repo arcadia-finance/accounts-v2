@@ -41,7 +41,6 @@ contract GetValue_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
             asset: address(mockERC20.token1),
             assetId: 0,
             assetAmount: amountToken1,
-            baseCurrency: UsdBaseCurrencyID,
             creditor: address(creditorUsd)
         });
 
@@ -72,7 +71,6 @@ contract GetValue_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
             asset: address(mockERC20.token1),
             assetId: 0,
             assetAmount: amountToken1,
-            baseCurrency: UsdBaseCurrencyID,
             creditor: address(creditorUsd)
         });
         // When: getValue called

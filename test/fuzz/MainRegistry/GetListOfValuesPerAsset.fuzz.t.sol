@@ -40,7 +40,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         assetAmounts[1] = 10;
 
         vm.expectRevert(bytes(""));
-        mainRegistryExtension.getListOfValuesPerAsset(address(creditorUsd), 0, assetAddresses, assetIds, assetAmounts);
+        mainRegistryExtension.getListOfValuesPerAsset(0, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Revert_getListOfValuesPerAsset_UnknownBaseCurrencyId(uint256 basecurrency) public {
@@ -61,7 +61,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
 
         vm.expectRevert(bytes(""));
         mainRegistryExtension.getListOfValuesPerAsset(
-            address(creditorUsd), basecurrency, assetAddresses, assetIds, assetAmounts
+            basecurrency, address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );
     }
 
@@ -84,7 +84,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
 
         vm.expectRevert("MR_GLVA: UNKNOWN_BASECURRENCY");
         mainRegistryExtension.getListOfValuesPerAsset(
-            address(creditorUsd), basecurrency, assetAddresses, assetIds, assetAmounts
+            basecurrency, address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );
     }
 
@@ -105,7 +105,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         assetAmounts[2] = 1;
 
         RiskModule.AssetValueAndRiskVariables[] memory actualValuesPerAsset = mainRegistryExtension
-            .getListOfValuesPerAsset(address(creditorUsd), UsdBaseCurrencyID, assetAddresses, assetIds, assetAmounts);
+            .getListOfValuesPerAsset(UsdBaseCurrencyID, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         uint256 stable1ValueInUsd = convertAssetToUsd(Constants.stableDecimals, assetAmounts[0], oracleStable1ToUsdArr);
         uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, assetAmounts[1], oracleToken1ToUsdArr);
@@ -141,7 +141,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         assetAmounts[2] = 1;
 
         RiskModule.AssetValueAndRiskVariables[] memory actualValuesPerAsset = mainRegistryExtension
-            .getListOfValuesPerAsset(address(creditorUsd), Token1BaseCurrencyID, assetAddresses, assetIds, assetAmounts);
+            .getListOfValuesPerAsset(Token1BaseCurrencyID, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         uint256 stable1ValueInUsd = convertAssetToUsd(Constants.stableDecimals, assetAmounts[0], oracleStable1ToUsdArr);
         uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, assetAmounts[1], oracleToken1ToUsdArr);

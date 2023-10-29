@@ -23,19 +23,15 @@ contract Constructor_AbstractPricingModule_Fuzz_Test is AbstractPricingModule_Fu
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address mainRegistry_, address riskManager_, uint256 assetType_) public {
+    function testFuzz_Success_deployment(address mainRegistry_, uint256 assetType_) public {
         vm.startPrank(users.creatorAddress);
-        vm.expectEmit(true, true, true, true);
-        emit RiskManagerUpdated(riskManager_);
         PricingModuleMock pricingModule_ = new PricingModuleMock(
             mainRegistry_,
-            assetType_,
-            riskManager_
+            assetType_
         );
         vm.stopPrank();
 
         assertEq(pricingModule_.MAIN_REGISTRY(), mainRegistry_);
         assertEq(pricingModule_.ASSET_TYPE(), assetType_);
-        assertEq(pricingModule_.riskManager(), riskManager_);
     }
 }

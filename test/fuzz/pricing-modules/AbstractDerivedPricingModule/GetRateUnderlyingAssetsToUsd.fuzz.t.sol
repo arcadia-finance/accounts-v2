@@ -49,7 +49,6 @@ contract GetRateUnderlyingAssetsToUsd_AbstractDerivedPricingModule_Fuzz_Test is
                     asset: assetState.underlyingAsset,
                     assetId: assetState.underlyingAssetId,
                     assetAmount: 1e18,
-                    baseCurrency: 0,
                     creditor: address(0)
                 })
             )

@@ -10,8 +10,8 @@ contract DerivedPricingModuleMock is AbstractDerivedPricingModuleExtension {
     bool internal returnRateUnderlyingAssetToUsd;
     uint256 internal rateUnderlyingAssetToUsd;
 
-    constructor(address mainRegistry_, uint256 assetType_, address riskManager_)
-        AbstractDerivedPricingModuleExtension(mainRegistry_, assetType_, riskManager_)
+    constructor(address mainRegistry_, uint256 assetType_)
+        AbstractDerivedPricingModuleExtension(mainRegistry_, assetType_)
     { }
 
     function isAllowed(address asset, uint256) public view override returns (bool) { }

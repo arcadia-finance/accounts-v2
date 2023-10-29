@@ -53,14 +53,9 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
      * @notice Adds a new asset to the StandardERC20PricingModule.
      * @param asset The contract address of the asset.
      * @param oracles An array of contract addresses of oracles, to price the asset in USD.
-     * @param riskVars An array of RiskVarInput structs.
      * @dev Assets can't have more than 18 decimals.
-     * @dev The asset slot in the RiskVarInput struct can be any value as it is not used in this function.
-     * @dev If no risk variables are provided, the asset is added with the risk variables set by default to zero,
-     * resulting in the asset being valued at 0.
-     * @dev Risk variables are variables with 2 decimals precision.
      */
-    function addAsset(address asset, address[] calldata oracles, RiskVarInput[] calldata riskVars) external onlyOwner {
+    function addAsset(address asset, address[] calldata oracles) external onlyOwner {
         // View function, reverts in OracleHub if sequence is not correct.
         IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
@@ -72,7 +67,6 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         // Can safely cast to uint64, we previously checked it is smaller than 10e18.
         assetToInformation[asset].assetUnit = uint64(assetUnit);
         assetToInformation[asset].oracles = oracles;
-        _setRiskVariablesForAsset(asset, riskVars);
 
         // Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
@@ -172,7 +166,7 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
      * - asset: The contract address of the asset.
      * - assetId: Since ERC20 tokens have no Id, the Id should be set to 0.
      * - assetAmount: The amount of assets.
-     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * - creditor: The contract address of the creditor.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
      * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.

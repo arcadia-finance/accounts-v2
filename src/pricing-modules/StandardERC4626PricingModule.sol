@@ -29,7 +29,7 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
      * @param mainRegistry_ The address of the Main-registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_) DerivedPricingModule(mainRegistry_, 0, msg.sender) { }
+    constructor(address mainRegistry_) DerivedPricingModule(mainRegistry_, 0) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT

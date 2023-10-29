@@ -123,7 +123,6 @@ contract ProcessIndirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Pri
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
-                baseCurrency: 0,
                 creditor: address(creditorUsd)
             })
         );

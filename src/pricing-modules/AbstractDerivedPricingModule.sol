@@ -60,11 +60,8 @@ abstract contract DerivedPricingModule is PricingModule {
      * 0 = ERC20.
      * 1 = ERC721.
      * 2 = ERC1155.
-     * @param riskManager_ The address of the Risk Manager.
      */
-    constructor(address mainRegistry_, uint256 assetType_, address riskManager_)
-        PricingModule(mainRegistry_, assetType_, riskManager_)
-    { }
+    constructor(address mainRegistry_, uint256 assetType_) PricingModule(mainRegistry_, assetType_) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET INFORMATION
@@ -107,7 +104,6 @@ abstract contract DerivedPricingModule is PricingModule {
                     asset: underlyingAsset,
                     assetId: underlyingAssetId,
                     assetAmount: 1e18,
-                    baseCurrency: 0,
                     creditor: address(0)
                 })
             );
@@ -131,6 +127,26 @@ abstract contract DerivedPricingModule is PricingModule {
         view
         virtual
         returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd);
+
+    /*///////////////////////////////////////////////////////////////
+                    RISK VARIABLES MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Returns the risk factors of an asset for a creditor.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @return collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     */
+    function getRiskFactors(address creditor, address asset, uint256 assetId)
+        external
+        view
+        virtual
+        override
+        returns (uint16 collateralFactor, uint16 liquidationFactor)
+    { }
 
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
@@ -206,7 +222,7 @@ abstract contract DerivedPricingModule is PricingModule {
      * @param maxUsdExposureProtocol_ The maximum total exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
      * @dev Can only be called by the Risk Manager, which can be different from the owner.
      */
-    function setMaxUsdExposureProtocol(uint256 maxUsdExposureProtocol_) public virtual onlyRiskManager {
+    function setMaxUsdExposureProtocol(uint256 maxUsdExposureProtocol_) public virtual onlyOwner {
         maxUsdExposureProtocol = maxUsdExposureProtocol_;
 
         emit MaxUsdExposureProtocolSet(maxUsdExposureProtocol_);

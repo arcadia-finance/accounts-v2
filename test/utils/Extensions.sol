@@ -103,9 +103,7 @@ contract MainRegistryExtension is MainRegistry {
 }
 
 abstract contract AbstractPricingModuleExtension is PricingModule {
-    constructor(address mainRegistry_, uint256 assetType_, address riskManager_)
-        PricingModule(mainRegistry_, assetType_, riskManager_)
-    { }
+    constructor(address mainRegistry_, uint256 assetType_) PricingModule(mainRegistry_, assetType_) { }
 
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
@@ -113,14 +111,6 @@ abstract contract AbstractPricingModuleExtension is PricingModule {
 
     function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
         (key) = _getKeyFromAsset(asset, assetId);
-    }
-
-    function setRiskVariablesForAsset(address asset, RiskVarInput[] memory riskVarInputs) public {
-        _setRiskVariablesForAsset(asset, riskVarInputs);
-    }
-
-    function setRiskVariables(address asset, uint256 basecurrency, RiskVars memory riskVars_) public {
-        _setRiskVariables(asset, basecurrency, riskVars_);
     }
 }
 
@@ -143,9 +133,7 @@ abstract contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule 
 }
 
 abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
-    constructor(address mainRegistry_, uint256 assetType_, address riskManager_)
-        DerivedPricingModule(mainRegistry_, assetType_, riskManager_)
-    { }
+    constructor(address mainRegistry_, uint256 assetType_) DerivedPricingModule(mainRegistry_, assetType_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
@@ -364,8 +352,8 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
 }
 
 contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
-    constructor(address mainRegistry_, address riskManager_, address nonfungiblePositionManager)
-        UniswapV3PricingModule(mainRegistry_, riskManager_, nonfungiblePositionManager)
+    constructor(address mainRegistry_, address nonfungiblePositionManager)
+        UniswapV3PricingModule(mainRegistry_, nonfungiblePositionManager)
     { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {

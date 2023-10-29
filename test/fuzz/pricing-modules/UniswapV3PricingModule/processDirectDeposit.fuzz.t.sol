@@ -84,7 +84,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("PMUV3_AA: 0 liquidity");
-        uniV3PricingModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+        uniV3PricingModule.processDirectDeposit(creditor, address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -260,7 +260,6 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
-                baseCurrency: 0,
                 creditor: address(creditorUsd)
             })
         );
@@ -338,7 +337,6 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
-                baseCurrency: 0,
                 creditor: address(creditorUsd)
             })
         );

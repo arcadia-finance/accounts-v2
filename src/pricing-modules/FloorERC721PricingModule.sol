@@ -51,20 +51,12 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @param idRangeStart: The id of the first NFT of the collection
      * @param idRangeEnd: The id of the last NFT of the collection
      * @param oracles An array of addresses of oracle contracts, to price the asset in USD
-     * @param riskVars An array of Risk Variables for the asset
-     * @dev Only the Collateral Factor, Liquidation Threshold and basecurrency are taken into account.
-     * If no risk variables are provided, the asset is added with the risk variables set to zero, meaning it can't be used as collateral.
-     * @dev RiskVarInput.asset can be zero as it is not taken into account.
-     * @dev Risk variable are variables with 2 decimals precision
      * @dev The assets are added in the Main-Registry as well.
      */
-    function addAsset(
-        address asset,
-        uint256 idRangeStart,
-        uint256 idRangeEnd,
-        address[] calldata oracles,
-        RiskVarInput[] calldata riskVars
-    ) external onlyOwner {
+    function addAsset(address asset, uint256 idRangeStart, uint256 idRangeEnd, address[] calldata oracles)
+        external
+        onlyOwner
+    {
         // View function, reverts in OracleHub if sequence is not correct.
         IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
@@ -73,7 +65,6 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         assetToInformation[asset].idRangeStart = idRangeStart;
         assetToInformation[asset].idRangeEnd = idRangeEnd;
         assetToInformation[asset].oracles = oracles;
-        _setRiskVariablesForAsset(asset, riskVars);
 
         // Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
@@ -213,7 +204,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * - asset: The contract address of the asset.
      * - assetId: The Id of the asset
      * - assetAmount: The amount of floor NFTs, a natural number without decimals (1 by default for ERC721).
-     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * - creditor: The contract address of the creditor.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
      * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
@@ -230,7 +221,8 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         valueInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[getValueInput.asset].oracles)
             * getValueInput.assetAmount;
 
-        collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
-        liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;
+        bytes32 assetKey = _getKeyFromAsset(getValueInput.asset, 0);
+        collateralFactor = riskParams[getValueInput.creditor][assetKey].collateralFactor;
+        liquidationFactor = riskParams[getValueInput.creditor][assetKey].liquidationFactor;
     }
 }

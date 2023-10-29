@@ -10,7 +10,6 @@ interface IPricingModule {
         address asset; // The contract address of the asset.
         uint256 assetId; // The Id of the asset.
         uint256 assetAmount; // The amount of assets.
-        uint256 baseCurrency; // Identifier of the BaseCurrency.
         address creditor; // The contract address of the creditor.
     }
 
@@ -33,13 +32,14 @@ interface IPricingModule {
     function getValue(GetValueInput memory input) external view returns (uint256, uint256, uint256);
 
     /**
-     * @notice Returns the risk variables of an asset.
+     * @notice Returns the risk factors of an asset for a creditor.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
-     * @param baseCurrency An identifier (uint256) of the BaseCurrency.
-     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, 2 decimals precision.
+     * @param assetId The Id of the asset.
+     * @return collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
      */
-    function getRiskVariables(address asset, uint256 baseCurrency) external view returns (uint16, uint16);
+    function getRiskFactors(address creditor, address asset, uint256 assetId) external view returns (uint16, uint16);
 
     /**
      * @notice Increases the exposure to an asset on deposit.

@@ -12,12 +12,6 @@ import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingMo
  * @notice Common logic needed by all "AbstractPricingModule" fuzz tests.
  */
 abstract contract AbstractPricingModule_Fuzz_Test is Fuzz_Test {
-    /* ///////////////////////////////////////////////////////////////
-                             VARIABLES
-    /////////////////////////////////////////////////////////////// */
-
-    PricingModule.RiskVarInput[] riskVarInputs_;
-
     /*////////////////////////////////////////////////////////////////
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
@@ -32,6 +26,6 @@ abstract contract AbstractPricingModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        pricingModule = new PricingModuleMock(address(mainRegistryExtension), 0, users.creatorAddress);
+        pricingModule = new PricingModuleMock(address(mainRegistryExtension), 0);
     }
 }

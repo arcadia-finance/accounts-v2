@@ -31,7 +31,6 @@ abstract contract Base_Test is Test, Events, Errors {
     //////////////////////////////////////////////////////////////////////////*/
 
     Users internal users;
-    PricingModule.RiskVarInput[] emptyRiskVarInput;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -135,7 +134,7 @@ abstract contract Base_Test is Test, Events, Errors {
         bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
 
         // Get the bytecode of UniswapV3PricingModuleExtension.
-        args = abi.encode(address(mainRegistryExtension), users.creatorAddress, nonfungiblePositionManager_);
+        args = abi.encode(address(mainRegistryExtension), nonfungiblePositionManager_);
         bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3PricingModuleExtension"), args);
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.

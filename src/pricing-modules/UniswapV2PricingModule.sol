@@ -47,7 +47,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
      * @param uniswapV2Factory_ The factory for Uniswap V2 pairs.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_, address uniswapV2Factory_) DerivedPricingModule(mainRegistry_, 0, msg.sender) {
+    constructor(address mainRegistry_, address uniswapV2Factory_) DerivedPricingModule(mainRegistry_, 0) {
         UNISWAP_V2_FACTORY = uniswapV2Factory_;
     }
 

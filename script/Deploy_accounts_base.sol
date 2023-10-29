@@ -47,13 +47,6 @@ contract ArcadiaAccountDeployment is Test {
     address[] public oracleCbethToEthToUsdArr = new address[](2);
     address[] public oracleRethToEthToUsdArr = new address[](2);
 
-    PricingModule.RiskVarInput[] public riskVarsComp;
-    PricingModule.RiskVarInput[] public riskVarsDai;
-    PricingModule.RiskVarInput[] public riskVarsEth;
-    PricingModule.RiskVarInput[] public riskVarsUsdc;
-    PricingModule.RiskVarInput[] public riskVarsCbeth;
-    PricingModule.RiskVarInput[] public riskVarsReth;
-
     OracleHub.OracleInformation public compToUsdOracleInfo;
     OracleHub.OracleInformation public daiToUsdOracleInfo;
     OracleHub.OracleInformation public ethToUsdOracleInfo;
@@ -168,107 +161,108 @@ contract ArcadiaAccountDeployment is Test {
                             RISK VARS
         ///////////////////////////////////////////////////////////////*/
 
-        riskVarsComp.push(
-            PricingModule.RiskVarInput({
-                baseCurrency: 0,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.comp_collFact_1,
-                liquidationFactor: DeployRiskConstantsBase.comp_liqFact_1
-            })
-        );
-        riskVarsComp.push(
-            PricingModule.RiskVarInput({
-                baseCurrency: 1,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.comp_collFact_2,
-                liquidationFactor: DeployRiskConstantsBase.comp_liqFact_2
-            })
-        );
+        // ToDo: Refactor riskvars in Arcadia Lending?
+        // riskVarsComp.push(
+        //     PricingModule.RiskVarInput({
+        //         baseCurrency: 0,
+        //         asset: address(0),
+        //         collateralFactor: DeployRiskConstantsBase.comp_collFact_1,
+        //         liquidationFactor: DeployRiskConstantsBase.comp_liqFact_1
+        //     })
+        // );
+        // riskVarsComp.push(
+        //     PricingModule.RiskVarInput({
+        //         baseCurrency: 1,
+        //         asset: address(0),
+        //         collateralFactor: DeployRiskConstantsBase.comp_collFact_2,
+        //         liquidationFactor: DeployRiskConstantsBase.comp_liqFact_2
+        //     })
+        // );
 
-        riskVarsDai.push(
-            PricingModule.RiskVarInput({
-                baseCurrency: 0,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.dai_collFact_1,
-                liquidationFactor: DeployRiskConstantsBase.dai_liqFact_1
-            })
-        );
-        riskVarsDai.push(
-            PricingModule.RiskVarInput({
-                baseCurrency: 1,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.dai_collFact_2,
-                liquidationFactor: DeployRiskConstantsBase.dai_liqFact_2
-            })
-        );
+        // riskVarsDai.push(
+        //     PricingModule.RiskVarInput({
+        //         baseCurrency: 0,
+        //         asset: address(0),
+        //         collateralFactor: DeployRiskConstantsBase.dai_collFact_1,
+        //         liquidationFactor: DeployRiskConstantsBase.dai_liqFact_1
+        //     })
+        // );
+        // riskVarsDai.push(
+        //     PricingModule.RiskVarInput({
+        //         baseCurrency: 1,
+        //         asset: address(0),
+        //         collateralFactor: DeployRiskConstantsBase.dai_collFact_2,
+        //         liquidationFactor: DeployRiskConstantsBase.dai_liqFact_2
+        //     })
+        // );
 
-        riskVarsEth.push(
-            PricingModule.RiskVarInput({
-                baseCurrency: 0,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.eth_collFact_1,
-                liquidationFactor: DeployRiskConstantsBase.eth_liqFact_1
-            })
-        );
-        riskVarsEth.push(
-            PricingModule.RiskVarInput({
-                baseCurrency: 1,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.eth_collFact_2,
-                liquidationFactor: DeployRiskConstantsBase.eth_liqFact_2
-            })
-        );
+        // riskVarsEth.push(
+        //     PricingModule.RiskVarInput({
+        //         baseCurrency: 0,
+        //         asset: address(0),
+        //         collateralFactor: DeployRiskConstantsBase.eth_collFact_1,
+        //         liquidationFactor: DeployRiskConstantsBase.eth_liqFact_1
+        //     })
+        // );
+        // riskVarsEth.push(
+        //     PricingModule.RiskVarInput({
+        //         baseCurrency: 1,
+        //         asset: address(0),
+        //         collateralFactor: DeployRiskConstantsBase.eth_collFact_2,
+        //         liquidationFactor: DeployRiskConstantsBase.eth_liqFact_2
+        //     })
+        // );
 
-        riskVarsUsdc.push(
-            PricingModule.RiskVarInput({
-                baseCurrency: 0,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.usdc_collFact_1,
-                liquidationFactor: DeployRiskConstantsBase.usdc_liqFact_1
-            })
-        );
-        riskVarsUsdc.push(
-            PricingModule.RiskVarInput({
-                baseCurrency: 1,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.usdc_collFact_2,
-                liquidationFactor: DeployRiskConstantsBase.usdc_liqFact_2
-            })
-        );
+        // riskVarsUsdc.push(
+        //     PricingModule.RiskVarInput({
+        //         baseCurrency: 0,
+        //         asset: address(0),
+        //         collateralFactor: DeployRiskConstantsBase.usdc_collFact_1,
+        //         liquidationFactor: DeployRiskConstantsBase.usdc_liqFact_1
+        //     })
+        // );
+        // riskVarsUsdc.push(
+        //     PricingModule.RiskVarInput({
+        //         baseCurrency: 1,
+        //         asset: address(0),
+        //         collateralFactor: DeployRiskConstantsBase.usdc_collFact_2,
+        //         liquidationFactor: DeployRiskConstantsBase.usdc_liqFact_2
+        //     })
+        // );
 
-        riskVarsCbeth.push(
-            PricingModule.RiskVarInput({
-                baseCurrency: 0,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.cbeth_collFact_1,
-                liquidationFactor: DeployRiskConstantsBase.cbeth_liqFact_1
-            })
-        );
-        riskVarsCbeth.push(
-            PricingModule.RiskVarInput({
-                baseCurrency: 1,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.cbeth_collFact_2,
-                liquidationFactor: DeployRiskConstantsBase.cbeth_liqFact_2
-            })
-        );
+        // riskVarsCbeth.push(
+        //     PricingModule.RiskVarInput({
+        //         baseCurrency: 0,
+        //         asset: address(0),
+        //         collateralFactor: DeployRiskConstantsBase.cbeth_collFact_1,
+        //         liquidationFactor: DeployRiskConstantsBase.cbeth_liqFact_1
+        //     })
+        // );
+        // riskVarsCbeth.push(
+        //     PricingModule.RiskVarInput({
+        //         baseCurrency: 1,
+        //         asset: address(0),
+        //         collateralFactor: DeployRiskConstantsBase.cbeth_collFact_2,
+        //         liquidationFactor: DeployRiskConstantsBase.cbeth_liqFact_2
+        //     })
+        // );
 
-        riskVarsReth.push(
-            PricingModule.RiskVarInput({
-                baseCurrency: 0,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.reth_collFact_1,
-                liquidationFactor: DeployRiskConstantsBase.reth_liqFact_1
-            })
-        );
-        riskVarsReth.push(
-            PricingModule.RiskVarInput({
-                baseCurrency: 1,
-                asset: address(0),
-                collateralFactor: DeployRiskConstantsBase.reth_collFact_2,
-                liquidationFactor: DeployRiskConstantsBase.reth_liqFact_2
-            })
-        );
+        // riskVarsReth.push(
+        //     PricingModule.RiskVarInput({
+        //         baseCurrency: 0,
+        //         asset: address(0),
+        //         collateralFactor: DeployRiskConstantsBase.reth_collFact_1,
+        //         liquidationFactor: DeployRiskConstantsBase.reth_liqFact_1
+        //     })
+        // );
+        // riskVarsReth.push(
+        //     PricingModule.RiskVarInput({
+        //         baseCurrency: 1,
+        //         asset: address(0),
+        //         collateralFactor: DeployRiskConstantsBase.reth_collFact_2,
+        //         liquidationFactor: DeployRiskConstantsBase.reth_liqFact_2
+        //     })
+        // );
     }
 
     function run() public {
@@ -286,7 +280,7 @@ contract ArcadiaAccountDeployment is Test {
             address(mainRegistry),
             address(oracleHub)        );
         uniswapV3PricingModule =
-        new UniswapV3PricingModule(address(mainRegistry), deployerAddress, DeployAddresses.uniswapV3PositionMgr_base);
+            new UniswapV3PricingModule(address(mainRegistry), DeployAddresses.uniswapV3PositionMgr_base);
 
         account = new AccountV1();
         actionMultiCall = new ActionMultiCallV2();
@@ -304,19 +298,12 @@ contract ArcadiaAccountDeployment is Test {
         mainRegistry.addPricingModule(address(standardERC20PricingModule));
         mainRegistry.addPricingModule(address(uniswapV3PricingModule));
 
-        PricingModule.RiskVarInput[] memory riskVarsComp_ = riskVarsComp;
-        PricingModule.RiskVarInput[] memory riskVarsDai_ = riskVarsDai;
-        PricingModule.RiskVarInput[] memory riskVarsEth_ = riskVarsEth;
-        PricingModule.RiskVarInput[] memory riskVarsUsdc_ = riskVarsUsdc;
-        PricingModule.RiskVarInput[] memory riskVarsCbeth_ = riskVarsCbeth;
-        PricingModule.RiskVarInput[] memory riskVarsReth_ = riskVarsReth;
-
-        standardERC20PricingModule.addAsset(DeployAddresses.comp_base, oracleCompToUsdArr, riskVarsComp_);
-        standardERC20PricingModule.addAsset(DeployAddresses.dai_base, oracleDaiToUsdArr, riskVarsDai_);
-        standardERC20PricingModule.addAsset(DeployAddresses.weth_base, oracleEthToUsdArr, riskVarsEth_);
-        standardERC20PricingModule.addAsset(DeployAddresses.usdc_base, oracleUsdcToUsdArr, riskVarsUsdc_);
-        standardERC20PricingModule.addAsset(DeployAddresses.cbeth_base, oracleCbethToEthToUsdArr, riskVarsCbeth_);
-        standardERC20PricingModule.addAsset(DeployAddresses.reth_base, oracleRethToEthToUsdArr, riskVarsReth_);
+        standardERC20PricingModule.addAsset(DeployAddresses.comp_base, oracleCompToUsdArr);
+        standardERC20PricingModule.addAsset(DeployAddresses.dai_base, oracleDaiToUsdArr);
+        standardERC20PricingModule.addAsset(DeployAddresses.weth_base, oracleEthToUsdArr);
+        standardERC20PricingModule.addAsset(DeployAddresses.usdc_base, oracleUsdcToUsdArr);
+        standardERC20PricingModule.addAsset(DeployAddresses.cbeth_base, oracleCbethToEthToUsdArr);
+        standardERC20PricingModule.addAsset(DeployAddresses.reth_base, oracleRethToEthToUsdArr);
 
         factory.setNewAccountInfo(address(mainRegistry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);

@@ -84,7 +84,7 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
                 isActive: true
             })
         );
-        erc20PricingModule.addAsset(address(mockERC20.token2), oracleAssetToUsdArr, emptyRiskVarInput);
+        erc20PricingModule.addAsset(address(mockERC20.token2), oracleAssetToUsdArr);
         vm.stopPrank();
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(

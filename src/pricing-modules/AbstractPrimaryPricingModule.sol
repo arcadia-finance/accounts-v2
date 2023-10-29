@@ -64,7 +64,7 @@ abstract contract PrimaryPricingModule is PricingModule {
      * 2 = ERC1155
      */
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        PricingModule(mainRegistry_, assetType_, msg.sender)
+        PricingModule(mainRegistry_, assetType_)
     {
         ORACLE_HUB = oracleHub_;
     }
@@ -72,6 +72,25 @@ abstract contract PrimaryPricingModule is PricingModule {
     /*///////////////////////////////////////////////////////////////
                     RISK PARAMETER MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Returns the risk factors of an asset for a creditor.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @return collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     */
+    function getRiskFactors(address creditor, address asset, uint256 assetId)
+        external
+        view
+        override
+        returns (uint16 collateralFactor, uint16 liquidationFactor)
+    {
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+        collateralFactor = riskParams[creditor][assetKey].collateralFactor;
+        liquidationFactor = riskParams[creditor][assetKey].liquidationFactor;
+    }
 
     /**
      * @notice Sets the risk parameters for an asset for a given creditor.
@@ -164,7 +183,6 @@ abstract contract PrimaryPricingModule is PricingModule {
                 asset: asset,
                 assetId: assetId,
                 assetAmount: exposureUpperAssetToAsset,
-                baseCurrency: 0,
                 creditor: creditor
             })
         );
@@ -235,7 +253,6 @@ abstract contract PrimaryPricingModule is PricingModule {
                 asset: asset,
                 assetId: assetId,
                 assetAmount: exposureUpperAssetToAsset,
-                baseCurrency: 0,
                 creditor: creditor
             })
         );

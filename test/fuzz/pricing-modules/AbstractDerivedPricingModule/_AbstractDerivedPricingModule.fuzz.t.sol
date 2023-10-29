@@ -56,7 +56,7 @@ abstract contract AbstractDerivedPricingModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        derivedPricingModule = new DerivedPricingModuleMock(address(mainRegistryExtension), 0, users.creatorAddress);
+        derivedPricingModule = new DerivedPricingModuleMock(address(mainRegistryExtension), 0);
 
         primaryPricingModule = new PrimaryPricingModuleMock(address(mainRegistryExtension), address(oracleHub), 0);
 

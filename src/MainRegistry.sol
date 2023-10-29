@@ -475,10 +475,10 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
     /**
      * @notice Calculates the value per asset, denominated in a given BaseCurrency.
+     * @param baseCurrency An identifier (uint256) of the BaseCurrency.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @param baseCurrency An identifier (uint256) of the BaseCurrency.
      * @return valuesAndRiskVarPerAsset The array of values per assets, denominated in BaseCurrency.
      * @dev For each token address, a corresponding id and amount at the same index should be present,
      * for tokens without Id (ERC20 for instance), the Id should be set to 0.
@@ -488,8 +488,8 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * Non-equal lists will or revert, or not take all assets into account -> lower value as actual.
      */
     function getListOfValuesPerAsset(
-        address creditor,
         uint256 baseCurrency,
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
@@ -501,12 +501,9 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
         // Cache variables.
         IPricingModule.GetValueInput memory getValueInput;
-        getValueInput.baseCurrency = baseCurrency;
         getValueInput.creditor = creditor;
         BaseCurrencyInformation memory baseCurrencyInformation = baseCurrencyToInformation[baseCurrency];
         int256 rateBaseCurrencyToUsd;
-        address assetAddress;
-        uint256 valueInUsd;
 
         if (baseCurrency > 0) {
             // Get the baseCurrency-USD rate if the BaseCurrency is different from USD (identifier 0).
@@ -518,24 +515,27 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             rateBaseCurrencyToUsd = 1;
         }
 
-        // Loop over all assets.
+        address assetAddress;
+        uint256 assetId;
+        uint256 valueInUsd;
         for (uint256 i; i < assetAddressesLength;) {
             assetAddress = assetAddresses[i];
+            assetId = assetIds[i];
 
             // If the asset is identical to the base Currency, we do not need to get a rate.
             // We only need to fetch the risk variables from the PricingModule.
             if (assetAddress == baseCurrencyInformation.assetAddress) {
                 valuesAndRiskVarPerAsset[i].valueInBaseCurrency = assetAmounts[i];
                 (valuesAndRiskVarPerAsset[i].collateralFactor, valuesAndRiskVarPerAsset[i].liquidationFactor) =
-                IPricingModule(assetToAssetInformation[assetAddress].pricingModule).getRiskVariables(
-                    assetAddress, getValueInput.baseCurrency
+                IPricingModule(assetToAssetInformation[assetAddress].pricingModule).getRiskFactors(
+                    getValueInput.creditor, assetAddress, assetId
                 );
 
                 // Else we need to fetch the value in the assets' PricingModule.
             } else {
                 // Prepare input.
                 getValueInput.asset = assetAddress;
-                getValueInput.assetId = assetIds[i];
+                getValueInput.assetId = assetId;
                 getValueInput.assetAmount = assetAmounts[i];
 
                 // Fetch the Value and the risk variables in the PricingModule.
@@ -580,7 +580,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     ) external view returns (RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset) {
         require(isBaseCurrency[baseCurrency], "MR_GLVA: UNKNOWN_BASECURRENCY");
         valuesAndRiskVarPerAsset =
-            getListOfValuesPerAsset(creditor, assetToBaseCurrency[baseCurrency], assetAddresses, assetIds, assetAmounts);
+            getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
@@ -602,7 +602,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         require(isBaseCurrency[baseCurrency], "MR_GTV: UNKNOWN_BASECURRENCY");
 
         RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
-            getListOfValuesPerAsset(creditor, assetToBaseCurrency[baseCurrency], assetAddresses, assetIds, assetAmounts);
+            getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
 
         for (uint256 i = 0; i < valuesAndRiskVarPerAsset.length;) {
             valueInBaseCurrency += valuesAndRiskVarPerAsset[i].valueInBaseCurrency;
@@ -633,7 +633,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         require(isBaseCurrency[baseCurrency], "MR_GCV: UNKNOWN_BASECURRENCY");
 
         RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
-            getListOfValuesPerAsset(creditor, assetToBaseCurrency[baseCurrency], assetAddresses, assetIds, assetAmounts);
+            getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
 
         collateralValue = RiskModule.calculateCollateralValue(valuesAndRiskVarPerAsset);
     }
@@ -659,7 +659,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         require(isBaseCurrency[baseCurrency], "MR_GLV: UNKNOWN_BASECURRENCY");
 
         RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
-            getListOfValuesPerAsset(creditor, assetToBaseCurrency[baseCurrency], assetAddresses, assetIds, assetAmounts);
+            getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
 
         liquidationValue = RiskModule.calculateLiquidationValue(valuesAndRiskVarPerAsset);
     }
