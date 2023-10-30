@@ -186,7 +186,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         require(isIdInRange(asset, assetId), "PM721_PID: ID not allowed");
 
         return super.processIndirectDeposit(

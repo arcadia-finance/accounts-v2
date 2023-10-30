@@ -33,7 +33,7 @@ contract GetLiquidationValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         depositTokenInAccount(accountExtension, mockERC20.stable1, spotValue);
 
         // Invariant: "liquidationFactor" cannot exceed 100%.
-        liquidationFactor = uint8(bound(liquidationFactor, 0, RiskConstants.RISK_VARIABLES_UNIT));
+        liquidationFactor = uint8(bound(liquidationFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
 
         // Set Liquidation factor of "stable1" for "stable1" to "liquidationFactor".
         vm.prank(users.riskManager);
@@ -41,7 +41,7 @@ contract GetLiquidationValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             address(creditorStable1), address(mockERC20.stable1), 0, type(uint128).max, 0, liquidationFactor
         );
 
-        uint256 expectedValue = uint256(spotValue) * liquidationFactor / RiskConstants.RISK_VARIABLES_UNIT;
+        uint256 expectedValue = uint256(spotValue) * liquidationFactor / RiskConstants.RISK_FACTOR_UNIT;
 
         uint256 actualValue = accountExtension.getLiquidationValue();
 

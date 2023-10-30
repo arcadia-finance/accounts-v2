@@ -33,6 +33,7 @@ contract Liquidate_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     function testFuzz_Revert_liquidate_NonAccount(address liquidator_, address nonAccount) public {
+        vm.assume(liquidator_ != address(proxyAccount));
         vm.assume(nonAccount != address(proxyAccount));
 
         vm.startPrank(liquidator_);

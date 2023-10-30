@@ -31,7 +31,7 @@ abstract contract AbstractPrimaryPricingModule_Fuzz_Test is Fuzz_Test {
         uint96 assetId;
         uint128 exposureAssetLast;
         uint128 exposureAssetMax;
-        uint256 usdValueExposureUpperAssetToAsset;
+        uint256 usdExposureUpperAssetToAsset;
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -63,6 +63,6 @@ abstract contract AbstractPrimaryPricingModule_Fuzz_Test is Fuzz_Test {
             assetState.exposureAssetMax
         );
 
-        pricingModule.setUsdValue(assetState.usdValueExposureUpperAssetToAsset);
+        pricingModule.setUsdValue(assetState.usdExposureUpperAssetToAsset);
     }
 }

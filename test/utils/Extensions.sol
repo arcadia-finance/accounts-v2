@@ -123,11 +123,15 @@ abstract contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule 
         primaryFlag = PRIMARY_FLAG;
     }
 
-    function setExposure(address creditor, address asset, uint256 assetId, uint128 exposureLast, uint128 maxExposure)
-        public
-    {
+    function setExposure(
+        address creditor,
+        address asset,
+        uint256 assetId,
+        uint128 lastExposureAsset,
+        uint128 maxExposure
+    ) public {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
-        riskParams[creditor][assetKey].exposureLast = exposureLast;
+        riskParams[creditor][assetKey].lastExposureAsset = lastExposureAsset;
         riskParams[creditor][assetKey].maxExposure = maxExposure;
     }
 }
@@ -139,44 +143,46 @@ abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule 
         primaryFlag = PRIMARY_FLAG;
     }
 
-    function getAssetToExposureLast(bytes32 assetKey)
+    function getAssetExposureLast(address creditor, bytes32 assetKey)
         external
         view
-        returns (uint128 exposureLast, uint128 usdValueExposureLast)
+        returns (uint128 lastExposureAsset_, uint128 lastUsdExposureAsset)
     {
-        exposureLast = assetToExposureLast[assetKey].exposureLast;
-        usdValueExposureLast = assetToExposureLast[assetKey].usdValueExposureLast;
+        lastExposureAsset_ = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
+        lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
     }
 
-    function getExposureAssetToUnderlyingAssetsLast(bytes32 assetKey, bytes32 underlyingAssetKey)
+    function getExposureAssetToUnderlyingAssetsLast(address creditor, bytes32 assetKey, bytes32 underlyingAssetKey)
         external
         view
         returns (uint256 exposureAssetToUnderlyingAssetsLast_)
     {
-        exposureAssetToUnderlyingAssetsLast_ = exposureAssetToUnderlyingAssetsLast[assetKey][underlyingAssetKey];
+        exposureAssetToUnderlyingAssetsLast_ =
+            lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKey];
     }
 
     function setUsdExposureProtocol(address creditor, uint128 maxUsdExposureProtocol_, uint128 usdExposureProtocol_)
         public
     {
         riskParams[creditor].maxUsdExposureProtocol = maxUsdExposureProtocol_;
-        riskParams[creditor].usdExposureProtocolLast = usdExposureProtocol_;
+        riskParams[creditor].lastUsdExposureProtocol = usdExposureProtocol_;
     }
 
     function setAssetInformation(
+        address creditor,
         address asset,
         uint256 assetId,
         address underLyingAsset,
         uint256 underlyingAssetId,
-        uint128 exposureAssetLast_,
-        uint128 usdValueExposureAssetLast_,
+        uint128 exposureAssetLast,
+        uint128 lastUsdExposureAsset,
         uint128 exposureAssetToUnderlyingAssetLast
     ) public {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
         bytes32 underLyingAssetKey = _getKeyFromAsset(underLyingAsset, underlyingAssetId);
-        assetToExposureLast[assetKey].exposureLast = exposureAssetLast_;
-        assetToExposureLast[assetKey].usdValueExposureLast = usdValueExposureAssetLast_;
-        exposureAssetToUnderlyingAssetsLast[assetKey][underLyingAssetKey] = exposureAssetToUnderlyingAssetLast;
+        lastExposuresAsset[creditor][assetKey].lastExposureAsset = exposureAssetLast;
+        lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = lastUsdExposureAsset;
+        lastExposureAssetToUnderlyingAsset[creditor][assetKey][underLyingAssetKey] = exposureAssetToUnderlyingAssetLast;
     }
 
     function getRateUnderlyingAssetsToUsd(bytes32[] memory underlyingAssetKeys)
@@ -189,9 +195,9 @@ abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule 
 
     function processDeposit(address creditor, bytes32 assetKey, uint256 exposureAsset)
         public
-        returns (uint256 usdValueExposureAsset)
+        returns (uint256 usdExposureAsset)
     {
-        usdValueExposureAsset = _processDeposit(creditor, assetKey, exposureAsset);
+        usdExposureAsset = _processDeposit(creditor, assetKey, exposureAsset);
     }
 
     function getAndUpdateExposureAsset(address creditor, bytes32 assetKey, int256 deltaAsset)
@@ -203,9 +209,9 @@ abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule 
 
     function processWithdrawal(address creditor, bytes32 assetKey, uint256 exposureAsset)
         public
-        returns (uint256 usdValueExposureAsset)
+        returns (uint256 usdExposureAsset)
     {
-        usdValueExposureAsset = _processWithdrawal(creditor, assetKey, exposureAsset);
+        usdExposureAsset = _processWithdrawal(creditor, assetKey, exposureAsset);
     }
 
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
@@ -232,9 +238,9 @@ contract StandardERC20PricingModuleExtension is StandardERC20PricingModule {
         (key) = _getKeyFromAsset(asset, assetId);
     }
 
-    function setExposure(address creditor, address asset, uint128 exposureLast, uint128 maxExposure) public {
+    function setExposure(address creditor, address asset, uint128 lastExposureAsset, uint128 maxExposure) public {
         bytes32 assetKey = _getKeyFromAsset(asset, 0);
-        riskParams[creditor][assetKey].exposureLast = exposureLast;
+        riskParams[creditor][assetKey].lastExposureAsset = lastExposureAsset;
         riskParams[creditor][assetKey].maxExposure = maxExposure;
     }
 }

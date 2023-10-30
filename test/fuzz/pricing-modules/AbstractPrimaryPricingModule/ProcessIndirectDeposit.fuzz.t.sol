@@ -95,7 +95,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
 
         // When: Asset is indirectly deposited.
         vm.prank(address(mainRegistryExtension));
-        (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = pricingModule.processIndirectDeposit(
+        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = pricingModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -105,7 +105,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
 
         // Then: Correct output variables are returned.
         assertTrue(primaryFlag);
-        assertEq(usdValueExposureUpperAssetToAsset, assetState.usdValueExposureUpperAssetToAsset);
+        assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // And: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
@@ -127,7 +127,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
 
         // When: Asset is indirectly deposited.
         vm.prank(address(mainRegistryExtension));
-        (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = pricingModule.processIndirectDeposit(
+        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = pricingModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -137,7 +137,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
 
         // Then: Correct output variables are returned.
         assertTrue(primaryFlag);
-        assertEq(usdValueExposureUpperAssetToAsset, assetState.usdValueExposureUpperAssetToAsset);
+        assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
@@ -159,7 +159,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
 
         // When: Asset is indirectly deposited.
         vm.prank(address(mainRegistryExtension));
-        (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = pricingModule.processIndirectDeposit(
+        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = pricingModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -169,7 +169,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstra
 
         // Then: Correct output variables are returned.
         assertTrue(primaryFlag);
-        assertEq(usdValueExposureUpperAssetToAsset, assetState.usdValueExposureUpperAssetToAsset);
+        assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));

@@ -5,7 +5,8 @@
 pragma solidity 0.8.19;
 
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { PricingModule, IPricingModule } from "./AbstractPricingModule.sol";
+import { IPricingModule, PricingModule } from "./AbstractPricingModule.sol";
+import { RiskConstants } from "../libraries/RiskConstants.sol";
 
 /**
  * @title Primary Pricing Module.
@@ -22,11 +23,6 @@ abstract contract PrimaryPricingModule is PricingModule {
     // the assets being priced have no underlying assets.
     bool internal constant PRIMARY_FLAG = true;
 
-    // The maximum collateral factor of an asset for a creditor, 2 decimals precision.
-    uint16 internal constant MAX_COLLATERAL_FACTOR = 100;
-    // The maximum liquidation factor of an asset for a creditor, 2 decimals precision.
-    uint16 internal constant MAX_LIQUIDATION_FACTOR = 100;
-
     // The contract address of the OracleHub.
     address public immutable ORACLE_HUB;
 
@@ -39,7 +35,7 @@ abstract contract PrimaryPricingModule is PricingModule {
 
     // Struct with the risk parameters of a specific asset for a specific creditor.
     struct RiskParameters {
-        uint128 exposureLast; // The exposure of a creditor to an asset at its last interaction.
+        uint128 lastExposureAsset; // The exposure of a creditor to an asset at its last interaction.
         uint128 maxExposure; // The maximum exposure of a creditor to an asset.
         uint16 collateralFactor; // The collateral factor of the asset for the creditor, 2 decimals precision.
         uint16 liquidationFactor; // The liquidation factor of the asset for the creditor, 2 decimals precision.
@@ -109,8 +105,8 @@ abstract contract PrimaryPricingModule is PricingModule {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external onlyMainReg {
-        require(collateralFactor <= MAX_COLLATERAL_FACTOR, "APPM_SRP: Coll.Fact not in limits");
-        require(liquidationFactor <= MAX_LIQUIDATION_FACTOR, "APPM_SRP: Liq.Fact not in limits");
+        require(collateralFactor <= RiskConstants.RISK_FACTOR_UNIT, "APPM_SRP: Coll.Fact not in limits");
+        require(liquidationFactor <= RiskConstants.RISK_FACTOR_UNIT, "APPM_SRP: Liq.Fact not in limits");
 
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -137,13 +133,15 @@ abstract contract PrimaryPricingModule is PricingModule {
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-        // Cache exposureLast.
-        uint256 exposureLast = riskParams[creditor][assetKey].exposureLast;
+        // Cache lastExposureAsset.
+        uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
-        require(exposureLast + amount <= riskParams[creditor][assetKey].maxExposure, "APPM_PDD: Exposure not in limits");
+        require(
+            lastExposureAsset + amount <= riskParams[creditor][assetKey].maxExposure, "APPM_PDD: Exposure not in limits"
+        );
 
         unchecked {
-            riskParams[creditor][assetKey].exposureLast = uint128(exposureLast) + uint128(amount);
+            riskParams[creditor][assetKey].lastExposureAsset = uint128(lastExposureAsset) + uint128(amount);
         }
     }
 
@@ -160,25 +158,25 @@ abstract contract PrimaryPricingModule is PricingModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-        // Cache exposureLast.
-        uint256 exposureLast = riskParams[creditor][assetKey].exposureLast;
+        // Cache lastExposureAsset.
+        uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
         uint256 exposureAsset;
         if (deltaExposureUpperAssetToAsset > 0) {
-            exposureAsset = exposureLast + uint256(deltaExposureUpperAssetToAsset);
+            exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
             require(exposureAsset <= riskParams[creditor][assetKey].maxExposure, "APPM_PID: Exposure not in limits");
         } else {
-            exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
-                ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
+            exposureAsset = lastExposureAsset > uint256(-deltaExposureUpperAssetToAsset)
+                ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
                 : 0;
         }
-        riskParams[creditor][assetKey].exposureLast = uint128(exposureAsset);
+        riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
 
         // Get Value in Usd
-        (usdValueExposureUpperAssetToAsset,,) = getValue(
+        (usdExposureUpperAssetToAsset,,) = getValue(
             IPricingModule.GetValueInput({
                 asset: asset,
                 assetId: assetId,
@@ -187,7 +185,7 @@ abstract contract PrimaryPricingModule is PricingModule {
             })
         );
 
-        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
+        return (PRIMARY_FLAG, usdExposureUpperAssetToAsset);
     }
 
     /**
@@ -205,14 +203,12 @@ abstract contract PrimaryPricingModule is PricingModule {
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-        // Cache exposureLast.
-        uint256 exposureLast = riskParams[creditor][assetKey].exposureLast;
+        // Cache lastExposureAsset.
+        uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
-        exposureLast >= amount
-            ? riskParams[creditor][assetKey].exposureLast = uint128(exposureLast) - uint128(amount)
-            : riskParams[creditor][assetKey].exposureLast = 0;
-
-        emit AssetExposureChanged(asset, uint128(exposureLast), riskParams[creditor][assetKey].exposureLast);
+        lastExposureAsset >= amount
+            ? riskParams[creditor][assetKey].lastExposureAsset = uint128(lastExposureAsset) - uint128(amount)
+            : riskParams[creditor][assetKey].lastExposureAsset = 0;
     }
 
     /**
@@ -228,27 +224,25 @@ abstract contract PrimaryPricingModule is PricingModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-        // Cache exposureLast.
-        uint256 exposureLast = riskParams[creditor][assetKey].exposureLast;
+        // Cache lastExposureAsset.
+        uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
         uint256 exposureAsset;
         if (deltaExposureUpperAssetToAsset > 0) {
-            exposureAsset = exposureLast + uint256(deltaExposureUpperAssetToAsset);
+            exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
             require(exposureAsset <= type(uint128).max, "APPM_PIW: Overflow");
         } else {
-            exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
-                ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
+            exposureAsset = lastExposureAsset > uint256(-deltaExposureUpperAssetToAsset)
+                ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
                 : 0;
         }
-        riskParams[creditor][assetKey].exposureLast = uint128(exposureAsset);
-
-        emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureAsset));
+        riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
 
         // Get Value in Usd
-        (usdValueExposureUpperAssetToAsset,,) = getValue(
+        (usdExposureUpperAssetToAsset,,) = getValue(
             IPricingModule.GetValueInput({
                 asset: asset,
                 assetId: assetId,
@@ -257,6 +251,6 @@ abstract contract PrimaryPricingModule is PricingModule {
             })
         );
 
-        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
+        return (PRIMARY_FLAG, usdExposureUpperAssetToAsset);
     }
 }

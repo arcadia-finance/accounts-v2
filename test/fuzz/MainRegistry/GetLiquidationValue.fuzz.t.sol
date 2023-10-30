@@ -52,7 +52,7 @@ contract GetLiquidationValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     function testFuzz_Success_getLiquidationValue(int64 rateToken1ToUsd, uint64 amountToken1, uint16 liquidationFactor_)
         public
     {
-        vm.assume(liquidationFactor_ <= RiskConstants.MAX_LIQUIDATION_FACTOR);
+        vm.assume(liquidationFactor_ <= RiskConstants.RISK_FACTOR_UNIT);
         vm.assume(rateToken1ToUsd > 0);
 
         vm.prank(users.defaultTransmitter);

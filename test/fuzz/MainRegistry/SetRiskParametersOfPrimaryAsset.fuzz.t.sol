@@ -6,19 +6,12 @@ pragma solidity 0.8.19;
 
 import { MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
+import { RiskConstants } from "../../../src/libraries/RiskConstants.sol";
+
 /**
  * @notice Fuzz tests for the function "setRiskParametersOfPrimaryAsset" of contract "MainRegistry".
  */
 contract SetRiskParametersOfPrimaryAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
-    /* //////////////////////////////////////////////////////////////
-                                CONSTANTS
-    ////////////////////////////////////////////////////////////// */
-
-    // The maximum collateral factor of an asset for a creditor, 2 decimals precision.
-    uint16 internal constant MAX_COLLATERAL_FACTOR = 100;
-    // The maximum liquidation factor of an asset for a creditor, 2 decimals precision.
-    uint16 internal constant MAX_LIQUIDATION_FACTOR = 100;
-
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -55,8 +48,8 @@ contract SetRiskParametersOfPrimaryAsset_MainRegistry_Fuzz_Test is MainRegistry_
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
-        collateralFactor = uint16(bound(collateralFactor, 0, MAX_COLLATERAL_FACTOR));
-        liquidationFactor = uint16(bound(liquidationFactor, 0, MAX_LIQUIDATION_FACTOR));
+        collateralFactor = uint16(bound(collateralFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
+        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
 
         mainRegistryExtension.setPricingModuleForAsset(asset, address(primaryPricingModule));
 

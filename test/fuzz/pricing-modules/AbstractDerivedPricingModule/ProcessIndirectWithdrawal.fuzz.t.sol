@@ -64,7 +64,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
 
         // When: "MainRegistry" calls "processIndirectWithdrawal".
         vm.prank(address(mainRegistryExtension));
-        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectWithdrawal(
+        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedPricingModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -76,7 +76,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         assertFalse(PRIMARY_FLAG);
 
         // And:
-        assertEq(usdValueExposureUpperAssetToAsset, 0);
+        assertEq(usdExposureUpperAssetToAsset, 0);
     }
 
     function testFuzz_Success_processIndirectWithdrawal_ZeroUsdValueExposureAsset(
@@ -86,7 +86,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given: "usdValueExposureAsset" is 0 (test-case).
+        // Given: "usdExposureAsset" is 0 (test-case).
         underlyingPMState.usdValue = 0;
 
         // And: Withdrawal does not revert.
@@ -102,7 +102,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
 
         // When: "MainRegistry" calls "processIndirectWithdrawal".
         vm.prank(address(mainRegistryExtension));
-        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectWithdrawal(
+        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedPricingModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -114,7 +114,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         assertFalse(PRIMARY_FLAG);
 
         // And:
-        assertEq(usdValueExposureUpperAssetToAsset, 0);
+        assertEq(usdExposureUpperAssetToAsset, 0);
     }
 
     function testFuzz_Success_processIndirectWithdrawal_NonZeroValues(
@@ -124,7 +124,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given: "usdValueExposureToUnderlyingAsset" is not zero (test-case).
+        // Given: "usdExposureToUnderlyingAsset" is not zero (test-case).
         underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint128).max);
 
         // And: Withdrawal does not revert.
@@ -150,7 +150,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
 
         // When: "MainRegistry" calls "processIndirectWithdrawal".
         vm.prank(address(mainRegistryExtension));
-        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectWithdrawal(
+        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedPricingModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -161,9 +161,9 @@ contract ProcessIndirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abs
         // Then: PRIMARY_FLAG is false.
         assertFalse(PRIMARY_FLAG);
 
-        // And: Correct "usdValueExposureUpperAssetToAsset" is returned.
-        uint256 usdValueExposureUpperAssetToAssetExpected =
+        // And: Correct "usdExposureUpperAssetToAsset" is returned.
+        uint256 usdExposureUpperAssetToAssetExpected =
             underlyingPMState.usdValue * exposureUpperAssetToAsset / exposureAsset;
-        assertEq(usdValueExposureUpperAssetToAsset, usdValueExposureUpperAssetToAssetExpected);
+        assertEq(usdExposureUpperAssetToAsset, usdExposureUpperAssetToAssetExpected);
     }
 }

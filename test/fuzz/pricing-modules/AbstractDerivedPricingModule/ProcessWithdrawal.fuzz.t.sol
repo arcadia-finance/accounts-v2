@@ -36,16 +36,16 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         assetState.exposureAssetToUnderlyingAsset =
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
-        // And: delta "usdValueExposureAsset" is positive (test-case).
-        vm.assume(assetState.usdValueExposureAssetLast < type(uint128).max);
+        // And: delta "usdExposureAsset" is positive (test-case).
+        vm.assume(assetState.lastUsdExposureAsset < type(uint128).max);
         underlyingPMState.usdValue =
-            bound(underlyingPMState.usdValue, assetState.usdValueExposureAssetLast + 1, type(uint128).max);
+            bound(underlyingPMState.usdValue, assetState.lastUsdExposureAsset + 1, type(uint128).max);
 
         // And: "usdExposureProtocol" overflows (unrealistically big).
-        protocolState.usdExposureProtocolLast = uint128(
+        protocolState.lastUsdExposureProtocol = uint128(
             bound(
-                protocolState.usdExposureProtocolLast,
-                type(uint128).max - (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast) + 1,
+                protocolState.lastUsdExposureProtocol,
+                type(uint128).max - (underlyingPMState.usdValue - assetState.lastUsdExposureAsset) + 1,
                 type(uint128).max
             )
         );
@@ -75,20 +75,20 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         assetState.exposureAssetToUnderlyingAsset =
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
-        // And: delta "usdValueExposureAsset" is positive (test-case).
+        // And: delta "usdExposureAsset" is positive (test-case).
         underlyingPMState.usdValue =
-            bound(underlyingPMState.usdValue, assetState.usdValueExposureAssetLast, type(uint128).max);
+            bound(underlyingPMState.usdValue, assetState.lastUsdExposureAsset, type(uint128).max);
 
         // And: "usdExposureProtocol" does not overflow (unrealistically big).
-        protocolState.usdExposureProtocolLast = uint128(
+        protocolState.lastUsdExposureProtocol = uint128(
             bound(
-                protocolState.usdExposureProtocolLast,
-                assetState.usdValueExposureAssetLast,
-                type(uint128).max - (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast)
+                protocolState.lastUsdExposureProtocol,
+                assetState.lastUsdExposureAsset,
+                type(uint128).max - (underlyingPMState.usdValue - assetState.lastUsdExposureAsset)
             )
         );
         uint256 usdExposureProtocolExpected =
-            protocolState.usdExposureProtocolLast + (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast);
+            protocolState.lastUsdExposureProtocol + (underlyingPMState.usdValue - assetState.lastUsdExposureAsset);
 
         // And: exposure does not exceeds max exposure.
         protocolState.maxUsdExposureProtocol =
@@ -101,7 +101,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
 
         // And: Underlying Asset is properly added to an underlying Pricing Module.
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
-            - int256(uint256(assetState.exposureAssetToUnderlyingAssetsLast));
+            - int256(uint256(assetState.lastExposureAssetToUnderlyingAsset));
         bytes memory data = abi.encodeCall(
             mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
             (
@@ -117,23 +117,24 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
         vm.expectCall(address(mainRegistryExtension), data);
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        uint256 usdValueExposureAsset =
-            derivedPricingModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
+        uint256 usdExposureAsset = derivedPricingModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 
-        // Then: Transaction returns correct "usdValueExposureAsset".
-        assertEq(usdValueExposureAsset, underlyingPMState.usdValue);
+        // Then: Transaction returns correct "usdExposureAsset".
+        assertEq(usdExposureAsset, underlyingPMState.usdValue);
 
-        // And: "exposureAssetToUnderlyingAssetsLast" is updated.
+        // And: "lastExposureAssetToUnderlyingAsset" is updated.
         bytes32 UnderlyingAssetKey =
             derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         assertEq(
-            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(assetKey, UnderlyingAssetKey),
+            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(
+                assetState.creditor, assetKey, UnderlyingAssetKey
+            ),
             assetState.exposureAssetToUnderlyingAsset
         );
 
-        // And: "usdValueExposureAssetLast" is updated.
-        (, uint256 usdValueExposureLast) = derivedPricingModule.getAssetToExposureLast(assetKey);
-        assertEq(usdValueExposureLast, underlyingPMState.usdValue);
+        // And: "lastUsdExposureAsset" is updated.
+        (, uint256 lastUsdExposureAsset) = derivedPricingModule.getAssetExposureLast(assetState.creditor, assetKey);
+        assertEq(lastUsdExposureAsset, underlyingPMState.usdValue);
 
         // And: "usdExposureProtocol" is updated.
         (uint128 usdExposureProtocolActual,,) = derivedPricingModule.riskParams(assetState.creditor);
@@ -153,20 +154,20 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         assetState.exposureAssetToUnderlyingAsset =
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
-        // And: delta "usdValueExposureAsset" is negative (test-case).
-        vm.assume(assetState.usdValueExposureAssetLast > 0);
-        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.usdValueExposureAssetLast - 1);
+        // And: delta "usdExposureAsset" is negative (test-case).
+        vm.assume(assetState.lastUsdExposureAsset > 0);
+        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.lastUsdExposureAsset - 1);
 
         // And: "usdExposureProtocol" does not underflow (test-case).
-        protocolState.usdExposureProtocolLast = uint128(
+        protocolState.lastUsdExposureProtocol = uint128(
             bound(
-                protocolState.usdExposureProtocolLast,
-                assetState.usdValueExposureAssetLast - underlyingPMState.usdValue,
+                protocolState.lastUsdExposureProtocol,
+                assetState.lastUsdExposureAsset - underlyingPMState.usdValue,
                 type(uint128).max
             )
         );
         uint256 usdExposureProtocolExpected =
-            protocolState.usdExposureProtocolLast - (assetState.usdValueExposureAssetLast - underlyingPMState.usdValue);
+            protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - underlyingPMState.usdValue);
 
         // And: State is persisted.
         setDerivedPricingModuleProtocolState(protocolState, assetState.creditor);
@@ -175,7 +176,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
 
         // And: Underlying Asset is properly added to an underlying Pricing Module.
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
-            - int256(uint256(assetState.exposureAssetToUnderlyingAssetsLast));
+            - int256(uint256(assetState.lastExposureAssetToUnderlyingAsset));
         bytes memory data = abi.encodeCall(
             mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
             (
@@ -191,23 +192,24 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
         vm.expectCall(address(mainRegistryExtension), data);
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        uint256 usdValueExposureAsset =
-            derivedPricingModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
+        uint256 usdExposureAsset = derivedPricingModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 
-        // Then: Transaction returns correct "usdValueExposureAsset".
-        assertEq(usdValueExposureAsset, underlyingPMState.usdValue);
+        // Then: Transaction returns correct "usdExposureAsset".
+        assertEq(usdExposureAsset, underlyingPMState.usdValue);
 
-        // And: "exposureAssetToUnderlyingAssetsLast" is updated.
+        // And: "lastExposureAssetToUnderlyingAsset" is updated.
         bytes32 UnderlyingAssetKey =
             derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         assertEq(
-            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(assetKey, UnderlyingAssetKey),
+            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(
+                assetState.creditor, assetKey, UnderlyingAssetKey
+            ),
             assetState.exposureAssetToUnderlyingAsset
         );
 
-        // And: "usdValueExposureAssetLast" is updated.
-        (, uint256 usdValueExposureLast) = derivedPricingModule.getAssetToExposureLast(assetKey);
-        assertEq(usdValueExposureLast, underlyingPMState.usdValue);
+        // And: "lastUsdExposureAsset" is updated.
+        (, uint256 lastUsdExposureAsset) = derivedPricingModule.getAssetExposureLast(assetState.creditor, assetKey);
+        assertEq(lastUsdExposureAsset, underlyingPMState.usdValue);
 
         // And: "usdExposureProtocol" is updated.
         (uint128 usdExposureProtocolActual,,) = derivedPricingModule.riskParams(assetState.creditor);
@@ -227,16 +229,14 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         assetState.exposureAssetToUnderlyingAsset =
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
-        // And: delta "usdValueExposureAsset" is negative (test-case).
-        vm.assume(assetState.usdValueExposureAssetLast > 0);
-        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.usdValueExposureAssetLast - 1);
+        // And: delta "usdExposureAsset" is negative (test-case).
+        vm.assume(assetState.lastUsdExposureAsset > 0);
+        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.lastUsdExposureAsset - 1);
 
         // And: "usdExposureProtocol" does underflow (test-case).
-        protocolState.usdExposureProtocolLast = uint128(
+        protocolState.lastUsdExposureProtocol = uint128(
             bound(
-                protocolState.usdExposureProtocolLast,
-                0,
-                assetState.usdValueExposureAssetLast - underlyingPMState.usdValue
+                protocolState.lastUsdExposureProtocol, 0, assetState.lastUsdExposureAsset - underlyingPMState.usdValue
             )
         );
 
@@ -247,7 +247,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
 
         // And: Underlying Asset is properly added to an underlying Pricing Module.
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
-            - int256(uint256(assetState.exposureAssetToUnderlyingAssetsLast));
+            - int256(uint256(assetState.lastExposureAssetToUnderlyingAsset));
         bytes memory data = abi.encodeCall(
             mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
             (
@@ -263,23 +263,24 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
         vm.expectCall(address(mainRegistryExtension), data);
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        uint256 usdValueExposureAsset =
-            derivedPricingModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
+        uint256 usdExposureAsset = derivedPricingModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 
-        // Then: Transaction returns correct "usdValueExposureAsset".
-        assertEq(usdValueExposureAsset, underlyingPMState.usdValue);
+        // Then: Transaction returns correct "usdExposureAsset".
+        assertEq(usdExposureAsset, underlyingPMState.usdValue);
 
-        // And: "exposureAssetToUnderlyingAssetsLast" is updated.
+        // And: "lastExposureAssetToUnderlyingAsset" is updated.
         bytes32 UnderlyingAssetKey =
             derivedPricingModule.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         assertEq(
-            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(assetKey, UnderlyingAssetKey),
+            derivedPricingModule.getExposureAssetToUnderlyingAssetsLast(
+                assetState.creditor, assetKey, UnderlyingAssetKey
+            ),
             assetState.exposureAssetToUnderlyingAsset
         );
 
-        // And: "usdValueExposureAssetLast" is updated.
-        (, uint256 usdValueExposureLast) = derivedPricingModule.getAssetToExposureLast(assetKey);
-        assertEq(usdValueExposureLast, underlyingPMState.usdValue);
+        // And: "lastUsdExposureAsset" is updated.
+        (, uint256 lastUsdExposureAsset) = derivedPricingModule.getAssetExposureLast(assetState.creditor, assetKey);
+        assertEq(lastUsdExposureAsset, underlyingPMState.usdValue);
 
         // And: "usdExposureProtocol" is updated.
         (uint128 usdExposureProtocolActual,,) = derivedPricingModule.riskParams(assetState.creditor);

@@ -147,7 +147,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         // Then: batchProcessDeposit should reverted
         vm.prank(address(proxyAccount));
         vm.expectRevert(FunctionIsPaused.selector);
-        mainRegistryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+        mainRegistryExtension.batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Revert_batchProcessDeposit_delegateCall(uint128 amountToken2) public {

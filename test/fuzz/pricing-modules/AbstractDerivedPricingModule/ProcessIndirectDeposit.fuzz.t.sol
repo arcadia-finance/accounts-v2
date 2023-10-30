@@ -64,7 +64,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
 
         // When: "MainRegistry" calls "processDirectDeposit".
         vm.prank(address(mainRegistryExtension));
-        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
+        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -75,8 +75,8 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         // Then: PRIMARY_FLAG is false.
         assertFalse(PRIMARY_FLAG);
 
-        // And: Correct "usdValueExposureUpperAssetToAsset" is returned.
-        assertEq(usdValueExposureUpperAssetToAsset, 0);
+        // And: Correct "usdExposureUpperAssetToAsset" is returned.
+        assertEq(usdExposureUpperAssetToAsset, 0);
     }
 
     function testFuzz_Success_processIndirectDeposit_ZeroUsdValueExposureAsset(
@@ -86,7 +86,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given: "usdValueExposureAsset" is 0 (test-case).
+        // Given: "usdExposureAsset" is 0 (test-case).
         underlyingPMState.usdValue = 0;
 
         // And: Deposit does not revert.
@@ -102,7 +102,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
 
         // When: "MainRegistry" calls "processIndirectDeposit".
         vm.prank(address(mainRegistryExtension));
-        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
+        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -113,8 +113,8 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         // Then: PRIMARY_FLAG is false.
         assertFalse(PRIMARY_FLAG);
 
-        // Correct "usdValueExposureUpperAssetToAsset" is returned.
-        assertEq(usdValueExposureUpperAssetToAsset, 0);
+        // Correct "usdExposureUpperAssetToAsset" is returned.
+        assertEq(usdExposureUpperAssetToAsset, 0);
     }
 
     function testFuzz_Success_processIndirectDeposit_NonZeroValues(
@@ -124,7 +124,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given: "usdValueExposureToUnderlyingAsset" is not zero (test-case).
+        // Given: "usdExposureToUnderlyingAsset" is not zero (test-case).
         underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint128).max);
 
         // And: Deposit does not revert.
@@ -150,7 +150,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
 
         // When: "MainRegistry" calls "processIndirectDeposit".
         vm.prank(address(mainRegistryExtension));
-        (bool PRIMARY_FLAG, uint256 usdValueExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
+        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedPricingModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -161,9 +161,9 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         // Then: PRIMARY_FLAG is false.
         assertFalse(PRIMARY_FLAG);
 
-        // And: Correct "usdValueExposureUpperAssetToAsset" is returned.
-        uint256 usdValueExposureUpperAssetToAssetExpected =
+        // And: Correct "usdExposureUpperAssetToAsset" is returned.
+        uint256 usdExposureUpperAssetToAssetExpected =
             underlyingPMState.usdValue * exposureUpperAssetToAsset / exposureAsset;
-        assertEq(usdValueExposureUpperAssetToAsset, usdValueExposureUpperAssetToAssetExpected);
+        assertEq(usdExposureUpperAssetToAsset, usdExposureUpperAssetToAssetExpected);
     }
 }

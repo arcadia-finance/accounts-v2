@@ -442,11 +442,11 @@ contract UniswapV3PricingModule is DerivedPricingModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) public override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Pricing Module.
         _addAsset(assetId);
 
-        (primaryFlag, usdValueExposureUpperAssetToAsset) = super.processIndirectDeposit(
+        (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
     }

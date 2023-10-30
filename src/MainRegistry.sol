@@ -429,10 +429,9 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
-    ) external onlyPricingModule returns (uint256 usdValueExposureAssetToUnderlyingAsset) {
-        (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule(
-            assetToAssetInformation[underlyingAsset].pricingModule
-        ).processIndirectDeposit(
+    ) external onlyPricingModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
+        (, usdExposureAssetToUnderlyingAsset) = IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule)
+            .processIndirectDeposit(
             creditor,
             underlyingAsset,
             underlyingAssetId,
@@ -454,10 +453,9 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
-    ) external onlyPricingModule returns (uint256 usdValueExposureAssetToUnderlyingAsset) {
-        (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule(
-            assetToAssetInformation[underlyingAsset].pricingModule
-        ).processIndirectWithdrawal(
+    ) external onlyPricingModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
+        (, usdExposureAssetToUnderlyingAsset) = IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule)
+            .processIndirectWithdrawal(
             creditor,
             underlyingAsset,
             underlyingAssetId,

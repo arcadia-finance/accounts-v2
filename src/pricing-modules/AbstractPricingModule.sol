@@ -7,7 +7,6 @@ pragma solidity 0.8.19;
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IPricingModule } from "../interfaces/IPricingModule.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
-import { RiskConstants } from "../libraries/RiskConstants.sol";
 
 /**
  * @title Abstract Pricing Module
@@ -34,8 +33,6 @@ abstract contract PricingModule is Owned, IPricingModule {
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
-
-    event AssetExposureChanged(address asset, uint128 oldExposure, uint128 newExposure);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -170,7 +167,7 @@ abstract contract PricingModule is Owned, IPricingModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset);
+    ) public virtual returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset);
 
     /**
      * @notice Decreases the exposure to an asset on withdrawal.
@@ -193,5 +190,5 @@ abstract contract PricingModule is Owned, IPricingModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset);
+    ) public virtual returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset);
 }

@@ -38,7 +38,7 @@ interface IMainRegistry {
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
-    ) external returns (uint256 usdValueExposureAssetToUnderlyingAsset);
+    ) external returns (uint256 usdExposureAssetToUnderlyingAsset);
 
     /**
      * @notice This function is called by pricing modules of non-primary assets in order to decrease the exposure of the underlying asset.
@@ -53,7 +53,7 @@ interface IMainRegistry {
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
-    ) external returns (uint256 usdValueExposureAssetToUnderlyingAsset);
+    ) external returns (uint256 usdExposureAssetToUnderlyingAsset);
 
     function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256 usdValue);
 

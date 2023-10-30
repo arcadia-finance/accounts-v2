@@ -41,7 +41,7 @@ library RiskModule {
                 ++i;
             }
         }
-        collateralValue = collateralValue / RiskConstants.RISK_VARIABLES_UNIT;
+        collateralValue = collateralValue / RiskConstants.RISK_FACTOR_UNIT;
     }
 
     /**
@@ -62,6 +62,6 @@ library RiskModule {
                 ++i;
             }
         }
-        liquidationValue = liquidationValue / RiskConstants.RISK_VARIABLES_UNIT;
+        liquidationValue = liquidationValue / RiskConstants.RISK_FACTOR_UNIT;
     }
 }

@@ -44,7 +44,7 @@ contract GetAndUpdateExposureAsset_AbstractDerivedPricingModule_Fuzz_Test is Abs
         assertEq(exposureAssetActual, exposureAssetExpected);
 
         // And: "exposureAsset" is updated.
-        (exposureAssetActual,) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        (exposureAssetActual,) = derivedPricingModule.getAssetExposureLast(assetState.creditor, assetKey);
         assertEq(exposureAssetActual, exposureAssetExpected);
     }
 
@@ -71,7 +71,7 @@ contract GetAndUpdateExposureAsset_AbstractDerivedPricingModule_Fuzz_Test is Abs
         assertEq(exposureAssetActual, exposureAssetExpected);
 
         // And: "exposureAsset" is updated.
-        (exposureAssetActual,) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        (exposureAssetActual,) = derivedPricingModule.getAssetExposureLast(assetState.creditor, assetKey);
         assertEq(exposureAssetActual, exposureAssetExpected);
     }
 
@@ -98,7 +98,7 @@ contract GetAndUpdateExposureAsset_AbstractDerivedPricingModule_Fuzz_Test is Abs
         assertEq(exposureAssetActual, exposureAssetExpected);
 
         // And: "exposureAsset" is updated.
-        (exposureAssetActual,) = derivedPricingModule.getAssetToExposureLast(assetKey);
+        (exposureAssetActual,) = derivedPricingModule.getAssetExposureLast(assetState.creditor, assetKey);
         assertEq(exposureAssetActual, exposureAssetExpected);
     }
 }

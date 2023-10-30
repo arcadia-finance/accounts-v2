@@ -5,7 +5,7 @@ import { AbstractPrimaryPricingModuleExtension } from "../Extensions.sol";
 
 contract PrimaryPricingModuleMock is AbstractPrimaryPricingModuleExtension {
     // Price is 1 by default
-    uint256 usdValueExposureToUnderlyingAsset = 1;
+    uint256 usdExposureToUnderlyingAsset = 1;
 
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
         AbstractPrimaryPricingModuleExtension(mainRegistry_, oracleHub_, assetType_)
@@ -15,8 +15,8 @@ contract PrimaryPricingModuleMock is AbstractPrimaryPricingModuleExtension {
         return inPricingModule[asset];
     }
 
-    function setUsdValue(uint256 usdValueExposureToUnderlyingAsset_) public {
-        usdValueExposureToUnderlyingAsset = usdValueExposureToUnderlyingAsset_;
+    function setUsdValue(uint256 usdExposureToUnderlyingAsset_) public {
+        usdExposureToUnderlyingAsset = usdExposureToUnderlyingAsset_;
     }
 
     // The function below is only needed in the case of testing for the "AbstractDerivedPricingModule", in order for the Primary Asset to return a value
@@ -28,7 +28,7 @@ contract PrimaryPricingModuleMock is AbstractPrimaryPricingModuleExtension {
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
         // we assume a price of 1 for this testing purpose
-        valueInUsd = usdValueExposureToUnderlyingAsset;
+        valueInUsd = usdExposureToUnderlyingAsset;
         collateralFactor = 0;
         liquidationFactor = 0;
     }
