@@ -22,20 +22,27 @@ abstract contract DerivedPricingModule is PricingModule {
     // the assets being priced do have underlying assets.
     bool internal constant PRIMARY_FLAG = false;
 
+    // The maximum risk factor of the Pricing Module for a creditor, 2 decimals precision.
+    uint16 internal constant MAX_RISK_FACTOR = 100;
+
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // The maximum total exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
-    uint256 public maxUsdExposureProtocol;
-    // The actual exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
-    uint256 public usdExposureProtocol;
-
     // Map with the last exposures of each asset.
     mapping(bytes32 assetKey => ExposurePerAsset exposure) internal assetToExposureLast;
-    // Map with the last exposures of each asset to its underlying assets..
+    // Map with the last exposures of each asset to its underlying assets.
     mapping(bytes32 assetKey => mapping(bytes32 underlyingAssetKey => uint256 exposure)) internal
         exposureAssetToUnderlyingAssetsLast;
+
+    // Map with the risk parameters for each creditor.
+    mapping(address creditor => RiskParameters riskParameters) public riskParams;
+
+    // Map with the last exposures of each asset for each creditor.
+    mapping(address creditor => mapping(bytes32 assetKey => ExposurePerAsset exposure)) internal assetExposureLast;
+    // Map with the last exposures of each asset to its underlying assets for each creditor.
+    mapping(address creditor => mapping(bytes32 assetKey => mapping(bytes32 underlyingAssetKey => uint256 exposure)))
+        internal exposureAssetToUnderlyingAssetsLast_;
 
     // Struct with information about the exposure of a specific asset.
     struct ExposurePerAsset {
@@ -43,11 +50,17 @@ abstract contract DerivedPricingModule is PricingModule {
         uint128 usdValueExposureLast;
     }
 
+    // Struct with the risk parameters of a specific asset for a specific creditor.
+    struct RiskParameters {
+        uint128 usdExposureProtocolLast; // The exposure in usd of a creditor to a protocol at its last interaction.
+        uint128 maxUsdExposureProtocol; // The maximum exposure in usd of a creditor to a protocol.
+        uint16 riskFactor; // The risk factor of the protocol for the creditor, 2 decimals precision.
+    }
+
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event MaxUsdExposureProtocolSet(uint256 maxExposure);
     event UsdExposureChanged(uint256 oldExposure, uint256 newExposure);
 
     /* //////////////////////////////////////////////////////////////
@@ -148,6 +161,22 @@ abstract contract DerivedPricingModule is PricingModule {
         returns (uint16 collateralFactor, uint16 liquidationFactor)
     { }
 
+    /**
+     * @notice Sets the risk parameters of the Protocol for a given creditor.
+     * @param creditor The contract address of the creditor.
+     * @param maxUsdExposureProtocol_ The maximum usd exposure of the protocol for each creditor, denominated in USD with 18 decimals precision.
+     * @param riskFactor The risk factor of the asset for the creditor, 2 decimals precision.
+     */
+    function setRiskParameters(address creditor, uint128 maxUsdExposureProtocol_, uint16 riskFactor)
+        external
+        onlyMainReg
+    {
+        require(riskFactor <= MAX_RISK_FACTOR, "ADPM_SRP: Risk Fact not in limits");
+
+        riskParams[creditor].maxUsdExposureProtocol = maxUsdExposureProtocol_;
+        riskParams[creditor].riskFactor = riskFactor;
+    }
+
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
@@ -211,21 +240,6 @@ abstract contract DerivedPricingModule is PricingModule {
         }
 
         return (valueInUsd, 0, 0);
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                    RISK VARIABLES MANAGEMENT
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Sets the maximum exposure for the protocol.
-     * @param maxUsdExposureProtocol_ The maximum total exposure of the protocol of this Pricing Module, denominated in USD with 18 decimals precision.
-     * @dev Can only be called by the Risk Manager, which can be different from the owner.
-     */
-    function setMaxUsdExposureProtocol(uint256 maxUsdExposureProtocol_) public virtual onlyOwner {
-        maxUsdExposureProtocol = maxUsdExposureProtocol_;
-
-        emit MaxUsdExposureProtocolSet(maxUsdExposureProtocol_);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -388,23 +402,27 @@ abstract contract DerivedPricingModule is PricingModule {
         assetToExposureLast[assetKey].usdValueExposureLast = uint128(usdValueExposureAsset);
 
         // Cache usdExposureProtocol.
-        uint256 usdExposureProtocolLast = usdExposureProtocol;
+        uint256 usdExposureProtocolLast = riskParams[creditor].usdExposureProtocolLast;
 
         // Update usdExposureProtocolLast.
         // ToDo: also in else case a deposit should be blocked if final exposure is bigger than maxExposure?.
         if (usdValueExposureAsset >= usdValueExposureAssetLast) {
             require(
-                usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast) <= maxUsdExposureProtocol,
+                usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast)
+                    <= riskParams[creditor].maxUsdExposureProtocol,
                 "ADPM_PD: Exposure not in limits"
             );
-            usdExposureProtocol = usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast);
+            riskParams[creditor].usdExposureProtocolLast =
+                uint128(usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast));
         } else {
-            usdExposureProtocol = usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
-                ? usdExposureProtocolLast - (usdValueExposureAssetLast - usdValueExposureAsset)
-                : 0;
+            riskParams[creditor].usdExposureProtocolLast = uint128(
+                usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
+                    ? usdExposureProtocolLast - (usdValueExposureAssetLast - usdValueExposureAsset)
+                    : 0
+            );
         }
 
-        emit UsdExposureChanged(usdExposureProtocolLast, usdExposureProtocol);
+        emit UsdExposureChanged(usdExposureProtocolLast, riskParams[creditor].usdExposureProtocolLast);
     }
 
     /**
@@ -458,18 +476,25 @@ abstract contract DerivedPricingModule is PricingModule {
         assetToExposureLast[assetKey].usdValueExposureLast = uint128(usdValueExposureAsset);
 
         // Cache usdExposureProtocol.
-        uint256 usdExposureProtocolLast = usdExposureProtocol;
+        uint256 usdExposureProtocolLast = riskParams[creditor].usdExposureProtocolLast;
 
         // Update usdExposureProtocolLast.
         if (usdValueExposureAsset >= usdValueExposureAssetLast) {
-            usdExposureProtocol = usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast);
+            require(
+                usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast) <= type(uint128).max,
+                "ADPM_PW: Overflow"
+            );
+            riskParams[creditor].usdExposureProtocolLast =
+                uint128(usdExposureProtocolLast + (usdValueExposureAsset - usdValueExposureAssetLast));
         } else {
-            usdExposureProtocol = usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
-                ? usdExposureProtocolLast - (usdValueExposureAssetLast - usdValueExposureAsset)
-                : 0;
+            riskParams[creditor].usdExposureProtocolLast = uint128(
+                usdExposureProtocolLast > usdValueExposureAssetLast - usdValueExposureAsset
+                    ? usdExposureProtocolLast - (usdValueExposureAssetLast - usdValueExposureAsset)
+                    : 0
+            );
         }
 
-        emit UsdExposureChanged(usdExposureProtocolLast, usdExposureProtocol);
+        emit UsdExposureChanged(usdExposureProtocolLast, riskParams[creditor].usdExposureProtocolLast);
     }
 
     /**

@@ -52,7 +52,7 @@ contract ProcessDirectWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is Abstr
         assert(amount <= 0);
 
         // And: State is persisted.
-        setDerivedPricingModuleProtocolState(protocolState);
+        setDerivedPricingModuleProtocolState(protocolState, assetState.creditor);
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState, underlyingPMState);
 

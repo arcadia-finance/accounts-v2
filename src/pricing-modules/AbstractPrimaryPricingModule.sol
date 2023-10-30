@@ -37,7 +37,7 @@ abstract contract PrimaryPricingModule is PricingModule {
     // Map with the risk parameters of each asset for each creditor.
     mapping(address creditor => mapping(bytes32 assetKey => RiskParameters riskParameters)) public riskParams;
 
-    // Struct with the risk variables of a specific asset for a specific creditor.
+    // Struct with the risk parameters of a specific asset for a specific creditor.
     struct RiskParameters {
         uint128 exposureLast; // The exposure of a creditor to an asset at its last interaction.
         uint128 maxExposure; // The maximum exposure of a creditor to an asset.

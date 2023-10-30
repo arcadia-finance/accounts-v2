@@ -58,7 +58,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         );
 
         // And: State is persisted.
-        setDerivedPricingModuleProtocolState(protocolState);
+        setDerivedPricingModuleProtocolState(protocolState, assetState.creditor);
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
@@ -96,7 +96,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         );
 
         // And: State is persisted.
-        setDerivedPricingModuleProtocolState(protocolState);
+        setDerivedPricingModuleProtocolState(protocolState, assetState.creditor);
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
@@ -144,7 +144,7 @@ contract ProcessIndirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstra
         }
 
         // And: State is persisted.
-        setDerivedPricingModuleProtocolState(protocolState);
+        setDerivedPricingModuleProtocolState(protocolState, assetState.creditor);
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState, underlyingPMState);
 

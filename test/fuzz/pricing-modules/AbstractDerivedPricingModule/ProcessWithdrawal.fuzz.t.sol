@@ -42,21 +42,23 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
             bound(underlyingPMState.usdValue, assetState.usdValueExposureAssetLast + 1, type(uint128).max);
 
         // And: "usdExposureProtocol" overflows (unrealistically big).
-        protocolState.usdExposureProtocolLast = bound(
-            protocolState.usdExposureProtocolLast,
-            type(uint256).max - (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast) + 1,
-            type(uint256).max
+        protocolState.usdExposureProtocolLast = uint128(
+            bound(
+                protocolState.usdExposureProtocolLast,
+                type(uint128).max - (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast) + 1,
+                type(uint128).max
+            )
         );
 
         // And: State is persisted.
-        setDerivedPricingModuleProtocolState(protocolState);
+        setDerivedPricingModuleProtocolState(protocolState, assetState.creditor);
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
         // When: "_processWithdrawal" is called.
-        // Then: The transaction reverts with arithmetic overflow.
+        // Then: The transaction reverts with "ADPM_PW: Overflow".
         bytes32 assetKey = derivedPricingModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        vm.expectRevert(stdError.arithmeticError);
+        vm.expectRevert("ADPM_PW: Overflow");
         derivedPricingModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
     }
 
@@ -78,20 +80,22 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
             bound(underlyingPMState.usdValue, assetState.usdValueExposureAssetLast, type(uint128).max);
 
         // And: "usdExposureProtocol" does not overflow (unrealistically big).
-        protocolState.usdExposureProtocolLast = bound(
-            protocolState.usdExposureProtocolLast,
-            assetState.usdValueExposureAssetLast,
-            type(uint256).max - (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast)
+        protocolState.usdExposureProtocolLast = uint128(
+            bound(
+                protocolState.usdExposureProtocolLast,
+                assetState.usdValueExposureAssetLast,
+                type(uint128).max - (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast)
+            )
         );
         uint256 usdExposureProtocolExpected =
             protocolState.usdExposureProtocolLast + (underlyingPMState.usdValue - assetState.usdValueExposureAssetLast);
 
         // And: exposure does not exceeds max exposure.
         protocolState.maxUsdExposureProtocol =
-            bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected, type(uint256).max);
+            uint128(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected, type(uint128).max));
 
         // And: State is persisted.
-        setDerivedPricingModuleProtocolState(protocolState);
+        setDerivedPricingModuleProtocolState(protocolState, assetState.creditor);
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
@@ -132,7 +136,8 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         assertEq(usdValueExposureLast, underlyingPMState.usdValue);
 
         // And: "usdExposureProtocol" is updated.
-        assertEq(derivedPricingModule.usdExposureProtocol(), usdExposureProtocolExpected);
+        (uint128 usdExposureProtocolActual,,) = derivedPricingModule.riskParams(assetState.creditor);
+        assertEq(usdExposureProtocolActual, usdExposureProtocolExpected);
     }
 
     function testFuzz_Success_processWithdrawal_NegativeDeltaUsdExposure_NoUnderflow(
@@ -153,16 +158,18 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.usdValueExposureAssetLast - 1);
 
         // And: "usdExposureProtocol" does not underflow (test-case).
-        protocolState.usdExposureProtocolLast = bound(
-            protocolState.usdExposureProtocolLast,
-            assetState.usdValueExposureAssetLast - underlyingPMState.usdValue,
-            type(uint256).max
+        protocolState.usdExposureProtocolLast = uint128(
+            bound(
+                protocolState.usdExposureProtocolLast,
+                assetState.usdValueExposureAssetLast - underlyingPMState.usdValue,
+                type(uint128).max
+            )
         );
         uint256 usdExposureProtocolExpected =
             protocolState.usdExposureProtocolLast - (assetState.usdValueExposureAssetLast - underlyingPMState.usdValue);
 
         // And: State is persisted.
-        setDerivedPricingModuleProtocolState(protocolState);
+        setDerivedPricingModuleProtocolState(protocolState, assetState.creditor);
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
@@ -203,7 +210,8 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         assertEq(usdValueExposureLast, underlyingPMState.usdValue);
 
         // And: "usdExposureProtocol" is updated.
-        assertEq(derivedPricingModule.usdExposureProtocol(), usdExposureProtocolExpected);
+        (uint128 usdExposureProtocolActual,,) = derivedPricingModule.riskParams(assetState.creditor);
+        assertEq(usdExposureProtocolActual, usdExposureProtocolExpected);
     }
 
     function testFuzz_Success_processWithdrawal_NegativeDeltaUsdExposure_Underflow(
@@ -224,12 +232,16 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.usdValueExposureAssetLast - 1);
 
         // And: "usdExposureProtocol" does underflow (test-case).
-        protocolState.usdExposureProtocolLast = bound(
-            protocolState.usdExposureProtocolLast, 0, assetState.usdValueExposureAssetLast - underlyingPMState.usdValue
+        protocolState.usdExposureProtocolLast = uint128(
+            bound(
+                protocolState.usdExposureProtocolLast,
+                0,
+                assetState.usdValueExposureAssetLast - underlyingPMState.usdValue
+            )
         );
 
         // And: State is persisted.
-        setDerivedPricingModuleProtocolState(protocolState);
+        setDerivedPricingModuleProtocolState(protocolState, assetState.creditor);
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
@@ -270,6 +282,7 @@ contract ProcessWithdrawal_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         assertEq(usdValueExposureLast, underlyingPMState.usdValue);
 
         // And: "usdExposureProtocol" is updated.
-        assertEq(derivedPricingModule.usdExposureProtocol(), 0);
+        (uint128 usdExposureProtocolActual,,) = derivedPricingModule.riskParams(assetState.creditor);
+        assertEq(usdExposureProtocolActual, 0);
     }
 }

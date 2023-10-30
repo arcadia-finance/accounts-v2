@@ -156,9 +156,11 @@ abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule 
         exposureAssetToUnderlyingAssetsLast_ = exposureAssetToUnderlyingAssetsLast[assetKey][underlyingAssetKey];
     }
 
-    function setUsdExposureProtocol(uint256 maxUsdExposureProtocol_, uint256 usdExposureProtocol_) public {
-        maxUsdExposureProtocol = maxUsdExposureProtocol_;
-        usdExposureProtocol = usdExposureProtocol_;
+    function setUsdExposureProtocol(address creditor, uint128 maxUsdExposureProtocol_, uint128 usdExposureProtocol_)
+        public
+    {
+        riskParams[creditor].maxUsdExposureProtocol = maxUsdExposureProtocol_;
+        riskParams[creditor].usdExposureProtocolLast = usdExposureProtocol_;
     }
 
     function setAssetInformation(

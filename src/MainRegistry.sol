@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
+import { IDerivedPricingModule } from "./interfaces/IDerivedPricingModule.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IPricingModule } from "./interfaces/IPricingModule.sol";
@@ -321,12 +322,23 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         );
     }
 
-    function setRiskVarsOfDerivedPricingModule(
+    /**
+     * @notice Sets the risk parameters of the Protocol for a given creditor.
+     * @param creditor The contract address of the creditor.
+     * @param pricingModule The contract address of the derived pricing-module.
+     * @param maxUsdExposureProtocol The maximum usd exposure of the protocol for each creditor, denominated in USD with 18 decimals precision.
+     * @param riskFactor The risk factor of the asset for the creditor, 2 decimals precision.
+     */
+    function setRiskParametersOfDerivedPricingModule(
+        address creditor,
         address pricingModule,
-        uint128 maxUsdExposure,
-        uint16 collateralFactor,
-        uint16 liquidationFactor
-    ) public onlyOwner { }
+        uint128 maxUsdExposureProtocol,
+        uint16 riskFactor
+    ) external {
+        require(msg.sender == ITrustedCreditor(creditor).riskManager(), "MR_SRPDPM: Not Authorized");
+
+        IDerivedPricingModule(pricingModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
+    }
 
     /*///////////////////////////////////////////////////////////////
                     WITHDRAWALS AND DEPOSITS
