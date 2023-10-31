@@ -7,6 +7,7 @@ pragma solidity 0.8.19;
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IMainRegistry, PricingModule } from "./AbstractPricingModule.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
+import { RiskModule } from "../RiskModule.sol";
 
 /**
  * @title Derived Pricing Module.
@@ -90,29 +91,30 @@ abstract contract DerivedPricingModule is PricingModule {
      * @param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      */
-    function _getRateUnderlyingAssetsToUsd(bytes32[] memory underlyingAssetKeys)
+    function _getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys)
         internal
         view
         virtual
-        returns (uint256[] memory rateUnderlyingAssetsToUsd)
+        returns (RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd)
     {
         uint256 length = underlyingAssetKeys.length;
-        rateUnderlyingAssetsToUsd = new uint256[](length);
 
-        address underlyingAsset;
-        uint256 underlyingAssetId;
+        address[] memory underlyingAssets = new address[](length);
+        uint256[] memory underlyingAssetIds = new uint256[](length);
+        uint256[] memory amounts = new uint256[](length);
         for (uint256 i; i < length;) {
-            (underlyingAsset, underlyingAssetId) = _getAssetFromKey(underlyingAssetKeys[i]);
-
+            (underlyingAssets[i], underlyingAssetIds[i]) = _getAssetFromKey(underlyingAssetKeys[i]);
             // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
             // sufficient precision.
-            rateUnderlyingAssetsToUsd[i] =
-                IMainRegistry(MAIN_REGISTRY).getUsdValue(address(0), underlyingAsset, underlyingAssetId, 1e18);
+            amounts[i] = 1e18;
 
             unchecked {
                 ++i;
             }
         }
+
+        rateUnderlyingAssetsToUsd =
+            IMainRegistry(MAIN_REGISTRY).getUsdValues(creditor, underlyingAssets, underlyingAssetIds, amounts);
     }
 
     /**
@@ -123,11 +125,19 @@ abstract contract DerivedPricingModule is PricingModule {
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      */
-    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory underlyingAssetKeys)
+    function _getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 assetAmount,
+        bytes32[] memory underlyingAssetKeys
+    )
         internal
         view
         virtual
-        returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd);
+        returns (
+            uint256[] memory underlyingAssetsAmounts,
+            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+        );
 
     /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT
@@ -188,45 +198,34 @@ abstract contract DerivedPricingModule is PricingModule {
     {
         bytes32[] memory underlyingAssetKeys;
         uint256[] memory underlyingAssetsAmounts;
-        uint256[] memory rateUnderlyingAssetsToUsd;
+        RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd;
         {
             bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
             underlyingAssetKeys = _getUnderlyingAssets(assetKey);
 
             (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
-                _getUnderlyingAssetsAmounts(assetKey, assetAmount, underlyingAssetKeys);
+                _getUnderlyingAssetsAmounts(creditor, assetKey, assetAmount, underlyingAssetKeys);
         }
 
         uint256 length = underlyingAssetKeys.length;
         // Check if rateToUsd for the underlying assets was already calculated in _getUnderlyingAssetsAmounts().
         if (rateUnderlyingAssetsToUsd.length == 0) {
             // If not, get the usd value of the underlying assets recursively.
-            address underlyingAsset;
-            uint256 underlyingAssetId;
-            for (uint256 i; i < length;) {
-                (underlyingAsset, underlyingAssetId) = _getAssetFromKey(underlyingAssetKeys[i]);
+            rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
+        }
 
-                valueInUsd += IMainRegistry(MAIN_REGISTRY).getUsdValue(
-                    creditor, underlyingAsset, underlyingAssetId, underlyingAssetsAmounts[i]
-                );
+        // If yes, directly calculate the usdValue from the underlying amounts and values.
+        for (uint256 i; i < length;) {
+            // "rateUnderlyingAssetsToUsd" is the usd value with 18 decimals precision for 10 ** 18 tokens of Underlying Asset.
+            // To get the usd value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
+            // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
+            valueInUsd += FixedPointMathLib.mulDivDown(
+                underlyingAssetsAmounts[i], rateUnderlyingAssetsToUsd[i].valueInBaseCurrency, 1e18
+            );
 
-                unchecked {
-                    ++i;
-                }
-            }
-        } else {
-            // If yes, directly calculate the usdValue from the underlying amounts and values.
-            for (uint256 i; i < length;) {
-                // "rateUnderlyingAssetsToUsd" is the usd value with 18 decimals precision for 10 ** 18 tokens of Underlying Asset.
-                // To get the usd value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
-                // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
-                valueInUsd +=
-                    FixedPointMathLib.mulDivDown(underlyingAssetsAmounts[i], rateUnderlyingAssetsToUsd[i], 1e18);
-
-                unchecked {
-                    ++i;
-                }
+            unchecked {
+                ++i;
             }
         }
 
@@ -355,7 +354,7 @@ abstract contract DerivedPricingModule is PricingModule {
 
         // Get the exposure to the asset's underlying asset(s) (in the decimal precision of the underlying assets).
         (uint256[] memory exposureAssetToUnderlyingAssets,) =
-            _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
+            _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
 
         int256 deltaExposureAssetToUnderlyingAsset;
         uint256 length = underlyingAssetKeys.length;
@@ -427,7 +426,7 @@ abstract contract DerivedPricingModule is PricingModule {
 
         // Get the exposure to the asset's underlying asset(s) (in the decimal precision of the underlying assets).
         (uint256[] memory exposureAssetToUnderlyingAssets,) =
-            _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
+            _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
 
         int256 deltaExposureAssetToUnderlyingAsset;
         uint256 length = underlyingAssetKeys.length;

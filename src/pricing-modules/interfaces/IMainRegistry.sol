@@ -5,6 +5,7 @@
 pragma solidity 0.8.19;
 
 import { IPricingModule } from "../../interfaces/IPricingModule.sol";
+import { RiskModule } from "../../RiskModule.sol";
 
 interface IMainRegistry {
     //todo
@@ -67,6 +68,13 @@ interface IMainRegistry {
         external
         view
         returns (uint256);
+
+    function getUsdValues(
+        address creditor,
+        address[] calldata assets,
+        uint256[] calldata assetIds,
+        uint256[] calldata assetAmounts
+    ) external view returns (RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset);
 
     function isAllowed(address asset, uint256 assetId) external view returns (bool);
 }

@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import { AbstractDerivedPricingModuleExtension } from "../Extensions.sol";
+import { RiskModule } from "../../../src/RiskModule.sol";
 
 contract DerivedPricingModuleMock is AbstractDerivedPricingModuleExtension {
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
@@ -43,19 +44,22 @@ contract DerivedPricingModuleMock is AbstractDerivedPricingModuleExtension {
         assetToUnderlyingAssets[assetKey] = underlyingAssetKeys;
     }
 
-    function _getUnderlyingAssetsAmounts(bytes32, uint256, bytes32[] memory)
+    function _getUnderlyingAssetsAmounts(address, bytes32, uint256, bytes32[] memory)
         internal
         view
         override
-        returns (uint256[] memory underlyingAssetsAmount, uint256[] memory rateUnderlyingAssetsToUsd)
+        returns (
+            uint256[] memory underlyingAssetsAmount,
+            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+        )
     {
         underlyingAssetsAmount = new uint256[](1);
         underlyingAssetsAmount[0] = underlyingAssetAmount;
 
         // If rateUnderlyingAssetToUsd is set, also return rateUnderlyingAssetsToUsd.
         if (returnRateUnderlyingAssetToUsd) {
-            rateUnderlyingAssetsToUsd = new uint256[](1);
-            rateUnderlyingAssetsToUsd[0] = rateUnderlyingAssetToUsd;
+            rateUnderlyingAssetsToUsd = new RiskModule.AssetValueAndRiskVariables[](1);
+            rateUnderlyingAssetsToUsd[0].valueInBaseCurrency = rateUnderlyingAssetToUsd;
         }
 
         return (underlyingAssetsAmount, rateUnderlyingAssetsToUsd);

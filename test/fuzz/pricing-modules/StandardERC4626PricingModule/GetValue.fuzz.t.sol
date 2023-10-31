@@ -65,7 +65,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         erc4626PricingModule.getValue(address(creditorUsd), address(ybToken1), 0, shares);
     }
 
-    function testFuzz_Success_getValuea(
+    function testFuzz_Success_getValue(
         uint256 rateToken1ToUsd_,
         uint256 shares,
         uint256 totalSupply,
@@ -75,11 +75,12 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         vm.assume(totalSupply > 0);
 
         // No Overflow OracleHub
-        vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD);
+        vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD / 1e18);
         // No Overflow ERC4626
         if (totalAssets > 0) {
             vm.assume(shares <= type(uint256).max / totalAssets);
         }
+        // No Overflow
 
         if (rateToken1ToUsd_ != 0) {
             vm.assume(

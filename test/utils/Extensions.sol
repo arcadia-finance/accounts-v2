@@ -8,6 +8,7 @@ import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib
 
 import { AccountV1 } from "../../src/AccountV1.sol";
 import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
+import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
 import { FloorERC721PricingModule } from "../../src/pricing-modules/FloorERC721PricingModule.sol";
 import { FloorERC1155PricingModule } from "../../src/pricing-modules/FloorERC1155PricingModule.sol";
@@ -16,7 +17,7 @@ import { MainRegistry } from "../../src/MainRegistry.sol";
 import { IMainRegistry } from "../../src/interfaces/IMainRegistry.sol";
 import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
 import { PrimaryPricingModule } from "../../src/pricing-modules/AbstractPrimaryPricingModule.sol";
-import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
+import { RiskModule } from "../../src/RiskModule.sol";
 import { StandardERC20PricingModule } from "../../src/pricing-modules/StandardERC20PricingModule.sol";
 import { StandardERC4626PricingModule } from "../../src/pricing-modules/StandardERC4626PricingModule.sol";
 import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
@@ -185,12 +186,12 @@ abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule 
         lastExposureAssetToUnderlyingAsset[creditor][assetKey][underLyingAssetKey] = exposureAssetToUnderlyingAssetLast;
     }
 
-    function getRateUnderlyingAssetsToUsd(bytes32[] memory underlyingAssetKeys)
+    function getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys)
         public
         view
-        returns (uint256[] memory rateUnderlyingAssetsToUsd)
+        returns (RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd)
     {
-        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(underlyingAssetKeys);
+        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
     }
 
     function processDeposit(address creditor, bytes32 assetKey, uint256 exposureAsset)
@@ -303,13 +304,21 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
         (underlyingAssets[1],) = _getAssetFromKey(underlyingAssetKeys[1]);
     }
 
-    function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
+    function getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 exposureAsset,
+        bytes32[] memory underlyingAssetKeys
+    )
         public
         view
-        returns (uint256[] memory exposureAssetToUnderlyingAssets, uint256[] memory rateUnderlyingAssetsToUsd)
+        returns (
+            uint256[] memory exposureAssetToUnderlyingAssets,
+            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+        )
     {
         (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
-            _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
+            _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
     }
 
     function getTrustedTokenAmounts(
@@ -388,13 +397,21 @@ contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
         return _getUnderlyingAssets(assetKey);
     }
 
-    function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
+    function getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 exposureAsset,
+        bytes32[] memory underlyingAssetKeys
+    )
         public
         view
-        returns (uint256[] memory exposureAssetToUnderlyingAssets, uint256[] memory rateUnderlyingAssetsToUsd)
+        returns (
+            uint256[] memory exposureAssetToUnderlyingAssets,
+            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+        )
     {
         (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
-            _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
+            _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
     }
 
     function getPosition(uint256 assetId)
@@ -439,13 +456,21 @@ contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
         (key) = _getKeyFromAsset(asset, assetId);
     }
 
-    function getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 exposureAsset, bytes32[] memory underlyingAssetKeys)
+    function getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 exposureAsset,
+        bytes32[] memory underlyingAssetKeys
+    )
         public
         view
-        returns (uint256[] memory exposureAssetToUnderlyingAssets, uint256[] memory rateUnderlyingAssetsToUsd)
+        returns (
+            uint256[] memory exposureAssetToUnderlyingAssets,
+            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+        )
     {
         (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
-            _getUnderlyingAssetsAmounts(assetKey, exposureAsset, underlyingAssetKeys);
+            _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
     }
 
     function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {

@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 
 import { DerivedPricingModule, IMainRegistry } from "./AbstractDerivedPricingModule.sol";
 import { IERC4626 } from "../interfaces/IERC4626.sol";
+import { RiskModule } from "../RiskModule.sol";
 
 /**
  * @title Sub-registry for Standard ERC4626 tokens
@@ -130,11 +131,14 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      */
-    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory)
+    function _getUnderlyingAssetsAmounts(address, bytes32 assetKey, uint256 assetAmount, bytes32[] memory)
         internal
         view
         override
-        returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd)
+        returns (
+            uint256[] memory underlyingAssetsAmounts,
+            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+        )
     {
         (address asset,) = _getAssetFromKey(assetKey);
         underlyingAssetsAmounts = new uint256[](1);

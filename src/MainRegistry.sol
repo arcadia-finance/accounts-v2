@@ -11,9 +11,9 @@ import { IFactory } from "./interfaces/IFactory.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IPricingModule } from "./interfaces/IPricingModule.sol";
 import { IPrimaryPricingModule } from "./interfaces/IPrimaryPricingModule.sol";
+import { ITrustedCreditor } from "./interfaces/ITrustedCreditor.sol";
 import { MainRegistryGuardian } from "./guardians/MainRegistryGuardian.sol";
 import { RiskModule } from "./RiskModule.sol";
-import { ITrustedCreditor } from "./interfaces/ITrustedCreditor.sol";
 
 /**
  * @title Main Asset registry
@@ -486,6 +486,31 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             IPricingModule(assetToAssetInformation[asset].pricingModule).getValue(creditor, asset, assetId, assetAmount);
     }
 
+    function getUsdValues(
+        address creditor,
+        address[] calldata assets,
+        uint256[] calldata assetIds,
+        uint256[] calldata assetAmounts
+    ) external view returns (RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset) {
+        uint256 length = assets.length;
+        valuesAndRiskVarPerAsset = new RiskModule.AssetValueAndRiskVariables[](length);
+
+        for (uint256 i; i < length;) {
+            // Fetch the Value and the risk variables in the PricingModule.
+            (
+                valuesAndRiskVarPerAsset[i].valueInBaseCurrency,
+                valuesAndRiskVarPerAsset[i].collateralFactor,
+                valuesAndRiskVarPerAsset[i].liquidationFactor
+            ) = IPricingModule(assetToAssetInformation[assets[i]].pricingModule).getValue(
+                creditor, assets[i], assetIds[i], assetAmounts[i]
+            );
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     /**
      * @notice Calculates the value per asset, denominated in a given BaseCurrency.
      * @param baseCurrency An identifier (uint256) of the BaseCurrency.
@@ -507,7 +532,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) public view returns (RiskModule.AssetValueAndRiskVariables[] memory) {
+    ) public view returns (RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset) {
         // Cache variables.
         BaseCurrencyInformation memory baseCurrencyInformation = baseCurrencyToInformation[baseCurrency];
         int256 rateBaseCurrencyToUsd;
@@ -524,8 +549,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
         // Cache variables.
         uint256 assetAddressesLength = assetAddresses.length;
-        RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
-            new RiskModule.AssetValueAndRiskVariables[](assetAddressesLength);
+        valuesAndRiskVarPerAsset = new RiskModule.AssetValueAndRiskVariables[](assetAddressesLength);
         uint256 valueInUsd;
         for (uint256 i; i < assetAddressesLength;) {
             // If the asset is identical to the base Currency, we do not need to get a rate.
@@ -561,7 +585,6 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
                 ++i;
             }
         }
-        return valuesAndRiskVarPerAsset;
     }
 
     /**

@@ -11,6 +11,7 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { RiskModule } from "../../../../src/RiskModule.sol";
 
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts()" of contract "UniswapV2PricingModule".
@@ -73,8 +74,12 @@ contract GetUnderlyingAssetsAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
-        (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd) =
-            uniswapV2PricingModule.getUnderlyingAssetsAmounts(assetKey, assetAmount, underlyingAssetKeys);
+        (
+            uint256[] memory underlyingAssetsAmounts,
+            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+        ) = uniswapV2PricingModule.getUnderlyingAssetsAmounts(
+            address(creditorUsd), assetKey, assetAmount, underlyingAssetKeys
+        );
 
         // Then: The correct "underlyingAssetsAmounts" rates are returned.
         uint256 expectedUnderlyingAssetsAmount0 = assetAmount * reserve0 / totalSupply;
@@ -85,7 +90,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV
         // And: The correct "rateUnderlyingAssetsToUsd" are returned.
         uint256 expectedRateUnderlyingAssetsToUsd0 = priceToken0 * 10 ** (18 - Constants.tokenOracleDecimals);
         uint256 expectedRateUnderlyingAssetsToUsd1 = priceToken1 * 10 ** (18 - Constants.tokenOracleDecimals);
-        assertEq(rateUnderlyingAssetsToUsd[0], expectedRateUnderlyingAssetsToUsd0);
-        assertEq(rateUnderlyingAssetsToUsd[1], expectedRateUnderlyingAssetsToUsd1);
+        assertEq(rateUnderlyingAssetsToUsd[0].valueInBaseCurrency, expectedRateUnderlyingAssetsToUsd0);
+        assertEq(rateUnderlyingAssetsToUsd[1].valueInBaseCurrency, expectedRateUnderlyingAssetsToUsd1);
     }
 }

@@ -14,6 +14,7 @@ import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { LiquidityAmounts } from "./libraries/LiquidityAmounts.sol";
 import { PoolAddress } from "./libraries/PoolAddress.sol";
 import { SafeCastLib } from "lib/solmate/src/utils/SafeCastLib.sol";
+import { RiskModule } from "../../RiskModule.sol";
 import { TickMath } from "./libraries/TickMath.sol";
 
 /**
@@ -172,11 +173,14 @@ contract UniswapV3PricingModule is DerivedPricingModule {
      * @dev Uniswap Pools can be manipulated, we can't rely on the current price (or tick) stored in slot0.
      * We use Chainlink oracles of the underlying assets to calculate the flashloan resistant amounts.
      */
-    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256, bytes32[] memory)
+    function _getUnderlyingAssetsAmounts(address creditor, bytes32 assetKey, uint256, bytes32[] memory)
         internal
         view
         override
-        returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd)
+        returns (
+            uint256[] memory underlyingAssetsAmounts,
+            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+        )
     {
         (, uint256 assetId) = _getAssetFromKey(assetKey);
 
@@ -186,11 +190,15 @@ contract UniswapV3PricingModule is DerivedPricingModule {
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
         underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
-        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(underlyingAssetKeys);
+        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
 
         // Calculate amount0 and amount1 of the principal (the actual liquidity position).
         (uint256 principal0, uint256 principal1) = _getPrincipalAmounts(
-            tickLower, tickUpper, liquidity, rateUnderlyingAssetsToUsd[0], rateUnderlyingAssetsToUsd[1]
+            tickLower,
+            tickUpper,
+            liquidity,
+            rateUnderlyingAssetsToUsd[0].valueInBaseCurrency,
+            rateUnderlyingAssetsToUsd[1].valueInBaseCurrency
         );
 
         // Calculate amount0 and amount1 of the accumulated fees.

@@ -6,6 +6,8 @@ pragma solidity 0.8.19;
 
 import { AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
 
+import { RiskModule } from "../../../../src/RiskModule.sol";
+
 /**
  * @notice Fuzz tests for the function "_getRateUnderlyingAssetsToUsd" of contract "AbstractDerivedPricingModule".
  */
@@ -35,23 +37,28 @@ contract GetRateUnderlyingAssetsToUsd_AbstractDerivedPricingModule_Fuzz_Test is
         setDerivedPricingModuleAssetState(assetState);
         setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
-        // Prepare input and expected internal call.
+        // Prepare input.
         bytes32[] memory underlyingAssetKeys = new bytes32[](1);
         underlyingAssetKeys[0] =
             bytes32(abi.encodePacked(uint96(assetState.underlyingAssetId), assetState.underlyingAsset));
 
-        bytes memory data = abi.encodeCall(
-            mainRegistryExtension.getUsdValue,
-            (address(0), assetState.underlyingAsset, assetState.underlyingAssetId, 1e18)
-        );
+        // Prepare expected internal call.
+        address[] memory assets = new address[](1);
+        uint256[] memory assetIds = new uint256[](1);
+        uint256[] memory assetAmounts = new uint256[](1);
+        assets[0] = assetState.underlyingAsset;
+        assetIds[0] = assetState.underlyingAssetId;
+        assetAmounts[0] = 1e18;
+        bytes memory data =
+            abi.encodeCall(mainRegistryExtension.getUsdValues, (assetState.creditor, assets, assetIds, assetAmounts));
 
         // When: "_getRateUnderlyingAssetsToUsd" is called.
         // Then: The Function "getUsdValue" on "MainRegistry" is called with correct parameters.
         vm.expectCall(address(mainRegistryExtension), data);
-        uint256[] memory rateUnderlyingAssetsToUsd =
-            derivedPricingModule.getRateUnderlyingAssetsToUsd(underlyingAssetKeys);
+        RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd =
+            derivedPricingModule.getRateUnderlyingAssetsToUsd(assetState.creditor, underlyingAssetKeys);
 
         // And: Transaction returns correct "rateUnderlyingAssetsToUsd".
-        assertEq(rateUnderlyingAssetsToUsd[0], underlyingPMState.usdValue);
+        assertEq(rateUnderlyingAssetsToUsd[0].valueInBaseCurrency, underlyingPMState.usdValue);
     }
 }
