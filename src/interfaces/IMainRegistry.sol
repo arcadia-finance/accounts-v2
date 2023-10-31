@@ -86,50 +86,53 @@ interface IMainRegistry {
 
     /**
      * @notice Calculates the combined value of a combination of assets, denominated in a given BaseCurrency.
+     * @param baseCurrency The contract address of the BaseCurrency.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @param baseCurrency The contract address of the BaseCurrency.
      * @return valueInBaseCurrency The combined value of the assets, denominated in BaseCurrency.
      */
     function getTotalValue(
+        address baseCurrency,
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
-        uint256[] calldata assetAmounts,
-        address baseCurrency,
-        address creditor
+        uint256[] calldata assetAmounts
     ) external view returns (uint256);
 
     /**
      * @notice Calculates the collateralValue of a combination of assets, denominated in a given BaseCurrency.
+     * @param baseCurrency The contract address of the BaseCurrency.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @param baseCurrency The contract address of the BaseCurrency.
      * @return collateralValue The collateral value of the assets, denominated in BaseCurrency.
      */
     function getCollateralValue(
+        address baseCurrency,
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
-        uint256[] calldata assetAmounts,
-        address baseCurrency,
-        address creditor
+        uint256[] calldata assetAmounts
     ) external view returns (uint256);
 
     /**
      * @notice Calculates the getLiquidationValue of a combination of assets, denominated in a given BaseCurrency.
+     * @param baseCurrency The contract address of the BaseCurrency.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @param baseCurrency The contract address of the BaseCurrency.
      * @return liquidationValue The liquidation value of the assets, denominated in BaseCurrency.
      */
     function getLiquidationValue(
+        address baseCurrency,
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
-        uint256[] calldata assetAmounts,
-        address baseCurrency,
-        address creditor
+        uint256[] calldata assetAmounts
     ) external view returns (uint256);
 
     function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256);

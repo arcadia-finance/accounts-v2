@@ -120,7 +120,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         mainRegistry2 = new MainRegistryExtension(address(factory));
-        //Add randomAssetAddress as second basecurrency
+        //Add randomAssetAddress as second baseCurrency
         mainRegistry2.addBaseCurrency(
             MainRegistry.BaseCurrencyInformation({
                 baseCurrencyToUsdOracleUnit: 0,

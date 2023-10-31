@@ -43,9 +43,9 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         mainRegistryExtension.getListOfValuesPerAsset(0, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
-    function testFuzz_Revert_getListOfValuesPerAsset_UnknownBaseCurrencyId(uint256 basecurrency) public {
+    function testFuzz_Revert_getListOfValuesPerAsset_UnknownBaseCurrencyId(uint256 baseCurrency) public {
         // Given: the baseCurrencyID is greater than the number of baseCurrencies added in the protocol
-        vm.assume(basecurrency >= 3);
+        vm.assume(baseCurrency >= 3);
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
@@ -61,14 +61,14 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
 
         vm.expectRevert(bytes(""));
         mainRegistryExtension.getListOfValuesPerAsset(
-            basecurrency, address(creditorUsd), assetAddresses, assetIds, assetAmounts
+            baseCurrency, address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );
     }
 
-    function testFuzz_Revert_getListOfValuesPerAsset_UnknownBaseCurrencyAddress(address basecurrency) public {
-        vm.assume(basecurrency != address(0));
-        vm.assume(basecurrency != address(mockERC20.stable1));
-        vm.assume(basecurrency != address(mockERC20.token1));
+    function testFuzz_Revert_getListOfValuesPerAsset_UnknownBaseCurrencyAddress(address baseCurrency) public {
+        vm.assume(baseCurrency != address(0));
+        vm.assume(baseCurrency != address(mockERC20.stable1));
+        vm.assume(baseCurrency != address(mockERC20.token1));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.stable2);
@@ -84,7 +84,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
 
         vm.expectRevert("MR_GLVA: UNKNOWN_BASECURRENCY");
         mainRegistryExtension.getListOfValuesPerAsset(
-            basecurrency, address(creditorUsd), assetAddresses, assetIds, assetAmounts
+            baseCurrency, address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );
     }
 

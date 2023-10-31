@@ -371,7 +371,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
         accountValue = IMainRegistry(registry).getTotalValue(
-            assetAddresses, assetIds, assetAmounts, baseCurrency_, trustedCreditor
+            baseCurrency_, trustedCreditor, assetAddresses, assetIds, assetAmounts
         );
     }
 
@@ -390,7 +390,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
         collateralValue = IMainRegistry(registry).getCollateralValue(
-            assetAddresses, assetIds, assetAmounts, baseCurrency, trustedCreditor
+            baseCurrency, trustedCreditor, assetAddresses, assetIds, assetAmounts
         );
     }
 
@@ -408,7 +408,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
         liquidationValue = IMainRegistry(registry).getLiquidationValue(
-            assetAddresses, assetIds, assetAmounts, baseCurrency, trustedCreditor
+            baseCurrency, trustedCreditor, assetAddresses, assetIds, assetAmounts
         );
     }
 
