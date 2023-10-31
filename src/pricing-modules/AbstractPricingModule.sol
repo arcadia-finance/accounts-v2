@@ -150,7 +150,8 @@ abstract contract PricingModule is Owned, IPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Increases the exposure to an asset on deposit.
+     * @notice Increases the exposure to an asset on a direct deposit.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
@@ -158,11 +159,14 @@ abstract contract PricingModule is Owned, IPricingModule {
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount) public virtual;
 
     /**
-     * @notice Increases the exposure to an underlying asset on deposit.
+     * @notice Increases the exposure to an asset on an indirect deposit.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Pricing Module.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Pricing Module since last interaction.
+     * @return primaryFlag Identifier indicating if it is a Primary or Derived Pricing Module.
+     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Pricing Module, 18 decimals precision.
      */
     function processIndirectDeposit(
         address creditor,
@@ -173,7 +177,8 @@ abstract contract PricingModule is Owned, IPricingModule {
     ) public virtual returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset);
 
     /**
-     * @notice Decreases the exposure to an asset on withdrawal.
+     * @notice Decreases the exposure to an asset on a direct withdrawal.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
@@ -181,11 +186,14 @@ abstract contract PricingModule is Owned, IPricingModule {
     function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount) public virtual;
 
     /**
-     * @notice Decreases the exposure to an asset on withdrawal.
+     * @notice Decreases the exposure to an asset on an indirect withdrawal.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Pricing Module.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Pricing Module since last interaction.
+     * @return primaryFlag Identifier indicating if it is a Primary or Derived Pricing Module.
+     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Pricing Module, 18 decimals precision.
      */
     function processIndirectWithdrawal(
         address creditor,

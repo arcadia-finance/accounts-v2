@@ -167,6 +167,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
 
     /**
      * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
+     * @param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
      * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
      * param underlyingAssetKeys The unique identifiers of the underlying assets.

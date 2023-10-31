@@ -21,7 +21,7 @@ contract PrimaryPricingModuleMock is AbstractPrimaryPricingModuleExtension {
 
     // The function below is only needed in the case of testing for the "AbstractDerivedPricingModule", in order for the Primary Asset to return a value
     // getValue() will be tested separately per PM.
-    function getValue(address, address, uint256, uint256)
+    function getValue(address creditor, address asset, uint256 assetId, uint256)
         public
         view
         override
@@ -29,7 +29,8 @@ contract PrimaryPricingModuleMock is AbstractPrimaryPricingModuleExtension {
     {
         // we assume a price of 1 for this testing purpose
         valueInUsd = usdExposureToUnderlyingAsset;
-        collateralFactor = 0;
-        liquidationFactor = 0;
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+        collateralFactor = riskParams[creditor][assetKey].collateralFactor;
+        liquidationFactor = riskParams[creditor][assetKey].liquidationFactor;
     }
 }

@@ -86,7 +86,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         vm.stopPrank();
     }
 
-    function testFuzz_Success_addAsset_EmptyListRiskVariables() public {
+    function testFuzz_Success_addAsset() public {
         // Given: All necessary contracts deployed on setup
         vm.startPrank(users.creatorAddress);
         // When: users.creatorAddress calls addAsset with empty list credit ratings

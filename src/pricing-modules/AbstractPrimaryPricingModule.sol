@@ -120,7 +120,8 @@ abstract contract PrimaryPricingModule is PricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Increases the exposure to an asset on deposit.
+     * @notice Increases the exposure to an asset on a direct deposit.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
@@ -146,11 +147,14 @@ abstract contract PrimaryPricingModule is PricingModule {
     }
 
     /**
-     * @notice Increases the exposure to an underlying asset on deposit.
+     * @notice Increases the exposure to an asset on an indirect deposit.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Pricing Module.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Pricing Module since last interaction.
+     * @return primaryFlag Identifier indicating if it is a Primary or Derived Pricing Module.
+     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Pricing Module, 18 decimals precision.
      */
     function processIndirectDeposit(
         address creditor,
@@ -182,11 +186,11 @@ abstract contract PrimaryPricingModule is PricingModule {
     }
 
     /**
-     * @notice Decreases the exposure to an asset on withdrawal.
+     * @notice Decreases the exposure to an asset on a direct withdrawal.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
-     * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
      */
     function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
         public
@@ -205,11 +209,14 @@ abstract contract PrimaryPricingModule is PricingModule {
     }
 
     /**
-     * @notice Decreases the exposure to an underlying asset on withdrawal.
+     * @notice Decreases the exposure to an asset on an indirect withdrawal.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Pricing Module.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Pricing Module since last interaction.
+     * @return primaryFlag Identifier indicating if it is a Primary or Derived Pricing Module.
+     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Pricing Module, 18 decimals precision.
      */
     function processIndirectWithdrawal(
         address creditor,

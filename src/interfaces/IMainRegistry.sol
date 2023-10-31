@@ -50,6 +50,7 @@ interface IMainRegistry {
 
     /**
      * @notice Batch deposit multiple assets.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param amounts Array with the amounts of the assets.
@@ -67,6 +68,7 @@ interface IMainRegistry {
 
     /**
      * @notice Batch withdraw multiple assets.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param amounts Array with the amounts of the assets.

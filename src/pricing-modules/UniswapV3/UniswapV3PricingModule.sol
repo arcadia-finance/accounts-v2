@@ -165,6 +165,7 @@ contract UniswapV3PricingModule is DerivedPricingModule {
 
     /**
      * @notice Calculates for a given asset id the corresponding amount(s) of underlying asset(s).
+     * @param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
      * param assetAmount The amount of the asset, in the decimal precision of the Asset.
      * param underlyingAssetKeys The unique identifiers of the underlying assets.
@@ -378,7 +379,8 @@ contract UniswapV3PricingModule is DerivedPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Increases the exposure to an asset on deposit.
+     * @notice Increases the exposure to an asset on a direct deposit.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
@@ -395,11 +397,14 @@ contract UniswapV3PricingModule is DerivedPricingModule {
     }
 
     /**
-     * @notice Increases the exposure to an underlying asset on deposit.
+     * @notice Increases the exposure to an asset on an indirect deposit.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Pricing Module.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Pricing Module since last interaction.
+     * @return primaryFlag Identifier indicating if it is a Primary or Derived Pricing Module.
+     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Pricing Module, 18 decimals precision.
      */
     function processIndirectDeposit(
         address creditor,

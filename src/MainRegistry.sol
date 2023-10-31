@@ -341,6 +341,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
     /**
      * @notice Batch deposit multiple assets.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param amounts Array with the amounts of the assets.
@@ -377,6 +378,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
     /**
      * @notice Batch withdraw multiple assets.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param amounts Array with the amounts of the assets.
@@ -412,11 +414,13 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /**
-     * @notice This function is called by pricing modules of non-primary assets in order to increase the exposure of the underlying asset.
-     * @param underlyingAsset The underlying asset of a non-primary asset.
+     * @notice This function is called by pricing modules of non-primary assets in order to update the exposure of an underlying asset after a deposit.
+     * @param creditor The contract address of the creditor.
+     * @param underlyingAsset The underlying asset.
      * @param underlyingAssetId The underlying asset ID.
-     * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the asset to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the asset to the underlying asset since the last interaction.
+     * @return usdExposureAssetToUnderlyingAsset The Usd value of the exposure of the asset to the underlying asset, 18 decimals precision.
      */
     function getUsdValueExposureToUnderlyingAssetAfterDeposit(
         address creditor,
@@ -436,11 +440,13 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /**
-     * @notice This function is called by pricing modules of non-primary assets in order to decrease the exposure of the underlying asset.
-     * @param underlyingAsset The underlying asset of a non-primary asset.
+     * @notice This function is called by pricing modules of non-primary assets in order to update the exposure of an underlying asset after a withdrawal.
+     * @param creditor The contract address of the creditor.
+     * @param underlyingAsset The underlying asset.
      * @param underlyingAssetId The underlying asset ID.
-     * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the asset to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the asset to the underlying asset since the last interaction.
+     * @return usdExposureAssetToUnderlyingAsset The Usd value of the exposure of the asset to the underlying asset, 18 decimals precision.
      */
     function getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
         address creditor,
@@ -466,21 +472,11 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     /**
      * @notice Calculates the usd value of an asset.
      * @param creditor The contract address of the creditor.
-     * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
-     * @param assetAmount The amount of assets.
-     * @return usdValue The value of the asset denominated in USD, with 18 Decimals precision.
+     * @param assets Array of the contract addresses of the assets.
+     * @param assetIds Array of the IDs of the assets.
+     * @param assetAmounts Array with the amounts of the assets.
+     * @return valuesAndRiskVarPerAsset The value of the asset denominated in USD, with 18 Decimals precision.
      */
-    function getUsdValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
-        external
-        view
-        returns (uint256 usdValue)
-    {
-        // Fetch the Value and the risk variables in the PricingModule.
-        (usdValue,,) =
-            IPricingModule(assetToAssetInformation[asset].pricingModule).getValue(creditor, asset, assetId, assetAmount);
-    }
-
     function getUsdValues(
         address creditor,
         address[] calldata assets,
