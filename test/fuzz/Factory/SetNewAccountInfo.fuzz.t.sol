@@ -167,6 +167,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         bytes calldata data
     ) public {
         vm.assume(logic > address(10));
+        vm.assume(logic != address(factory));
         vm.assume(logic != address(vm));
         vm.assume(logic != address(mainRegistryExtension));
 
