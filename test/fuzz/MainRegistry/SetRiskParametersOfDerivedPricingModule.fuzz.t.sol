@@ -38,11 +38,9 @@ contract SetRiskParametersOfDerivedPricingModule_MainRegistry_Fuzz_Test is MainR
         vm.stopPrank();
     }
 
-    function testFuzz_Success_setRiskParametersOfDerivedPricingModule(
-        address asset,
-        uint128 maxUsdExposureProtocol,
-        uint16 riskFactor
-    ) public {
+    function testFuzz_Success_setRiskParametersOfDerivedPricingModule(uint128 maxUsdExposureProtocol, uint16 riskFactor)
+        public
+    {
         riskFactor = uint16(bound(riskFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
 
         vm.prank(users.riskManager);
