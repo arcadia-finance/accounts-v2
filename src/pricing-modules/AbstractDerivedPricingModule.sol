@@ -106,14 +106,8 @@ abstract contract DerivedPricingModule is PricingModule {
 
             // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
             // sufficient precision.
-            rateUnderlyingAssetsToUsd[i] = IMainRegistry(MAIN_REGISTRY).getUsdValue(
-                GetValueInput({
-                    asset: underlyingAsset,
-                    assetId: underlyingAssetId,
-                    assetAmount: 1e18,
-                    creditor: address(0)
-                })
-            );
+            rateUnderlyingAssetsToUsd[i] =
+                IMainRegistry(MAIN_REGISTRY).getUsdValue(address(0), underlyingAsset, underlyingAssetId, 1e18);
 
             unchecked {
                 ++i;
@@ -177,28 +171,32 @@ abstract contract DerivedPricingModule is PricingModule {
 
     /**
      * @notice Returns the usd value of an asset.
-     * @param getValueInput A Struct with the input variables.
-     * - asset: The contract address of the asset.
-     * - assetId: The Id of the asset.
-     * - assetAmount: The amount of assets.
-     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
      */
-    function getValue(GetValueInput memory getValueInput)
+    function getValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
         public
         view
         virtual
         override
         returns (uint256 valueInUsd, uint256, uint256)
     {
-        bytes32 assetKey = _getKeyFromAsset(getValueInput.asset, getValueInput.assetId);
+        bytes32[] memory underlyingAssetKeys;
+        uint256[] memory underlyingAssetsAmounts;
+        uint256[] memory rateUnderlyingAssetsToUsd;
+        {
+            bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-        bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+            underlyingAssetKeys = _getUnderlyingAssets(assetKey);
 
-        (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd) =
-            _getUnderlyingAssetsAmounts(assetKey, getValueInput.assetAmount, underlyingAssetKeys);
+            (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
+                _getUnderlyingAssetsAmounts(assetKey, assetAmount, underlyingAssetKeys);
+        }
 
         uint256 length = underlyingAssetKeys.length;
         // Check if rateToUsd for the underlying assets was already calculated in _getUnderlyingAssetsAmounts().
@@ -208,11 +206,10 @@ abstract contract DerivedPricingModule is PricingModule {
             uint256 underlyingAssetId;
             for (uint256 i; i < length;) {
                 (underlyingAsset, underlyingAssetId) = _getAssetFromKey(underlyingAssetKeys[i]);
-                getValueInput.asset = underlyingAsset;
-                getValueInput.assetId = underlyingAssetId;
-                getValueInput.assetAmount = underlyingAssetsAmounts[i];
 
-                valueInUsd += IMainRegistry(MAIN_REGISTRY).getUsdValue(getValueInput);
+                valueInUsd += IMainRegistry(MAIN_REGISTRY).getUsdValue(
+                    creditor, underlyingAsset, underlyingAssetId, underlyingAssetsAmounts[i]
+                );
 
                 unchecked {
                     ++i;

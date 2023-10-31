@@ -6,8 +6,6 @@ pragma solidity 0.8.19;
 
 import { AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
 
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
-
 /**
  * @notice Fuzz tests for the function "getValue" of contract "AbstractDerivedPricingModule".
  */
@@ -43,14 +41,8 @@ contract GetValue_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPrici
         derivedPricingModule.setRateUnderlyingAssetToUsd(rateUnderlyingAssetToUsd);
 
         // When: "getValue" is called.
-        (uint256 actualValueInUsd,,) = derivedPricingModule.getValue(
-            IPricingModule.GetValueInput({
-                asset: assetState.asset,
-                assetId: assetState.assetId,
-                assetAmount: amount,
-                creditor: address(creditorUsd)
-            })
-        );
+        (uint256 actualValueInUsd,,) =
+            derivedPricingModule.getValue(address(creditorUsd), assetState.asset, assetState.assetId, amount);
 
         // Then: Transaction returns correct "valueInUsd".
         uint256 expectedValueInUsd = rateUnderlyingAssetToUsd * assetState.exposureAssetToUnderlyingAsset / 1e18;
@@ -74,26 +66,18 @@ contract GetValue_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPrici
         bytes memory data = abi.encodeCall(
             mainRegistryExtension.getUsdValue,
             (
-                IPricingModule.GetValueInput({
-                    asset: assetState.underlyingAsset,
-                    assetId: assetState.underlyingAssetId,
-                    assetAmount: assetState.exposureAssetToUnderlyingAsset,
-                    creditor: address(creditorUsd)
-                })
+                address(creditorUsd),
+                assetState.underlyingAsset,
+                assetState.underlyingAssetId,
+                assetState.exposureAssetToUnderlyingAsset
             )
         );
 
         // When: "getValue" is called.
         // Then: The Function "getUsdValue" on "MainRegistry" is called with correct parameters.
         vm.expectCall(address(mainRegistryExtension), data);
-        (uint256 actualValueInUsd,,) = derivedPricingModule.getValue(
-            IPricingModule.GetValueInput({
-                asset: assetState.asset,
-                assetId: assetState.assetId,
-                assetAmount: amount,
-                creditor: address(creditorUsd)
-            })
-        );
+        (uint256 actualValueInUsd,,) =
+            derivedPricingModule.getValue(address(creditorUsd), assetState.asset, assetState.assetId, amount);
 
         // And: Transaction returns correct "valueInUsd".
         assertEq(actualValueInUsd, underlyingPMState.usdValue);

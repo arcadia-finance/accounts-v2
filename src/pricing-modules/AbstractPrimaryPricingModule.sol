@@ -5,7 +5,7 @@
 pragma solidity 0.8.19;
 
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IPricingModule, PricingModule } from "./AbstractPricingModule.sol";
+import { PricingModule } from "./AbstractPricingModule.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
 
 /**
@@ -176,14 +176,7 @@ abstract contract PrimaryPricingModule is PricingModule {
         riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
 
         // Get Value in Usd
-        (usdExposureUpperAssetToAsset,,) = getValue(
-            IPricingModule.GetValueInput({
-                asset: asset,
-                assetId: assetId,
-                assetAmount: exposureUpperAssetToAsset,
-                creditor: creditor
-            })
-        );
+        (usdExposureUpperAssetToAsset,,) = getValue(creditor, asset, assetId, exposureUpperAssetToAsset);
 
         return (PRIMARY_FLAG, usdExposureUpperAssetToAsset);
     }
@@ -242,14 +235,7 @@ abstract contract PrimaryPricingModule is PricingModule {
         riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
 
         // Get Value in Usd
-        (usdExposureUpperAssetToAsset,,) = getValue(
-            IPricingModule.GetValueInput({
-                asset: asset,
-                assetId: assetId,
-                assetAmount: exposureUpperAssetToAsset,
-                creditor: creditor
-            })
-        );
+        (usdExposureUpperAssetToAsset,,) = getValue(creditor, asset, assetId, exposureUpperAssetToAsset);
 
         return (PRIMARY_FLAG, usdExposureUpperAssetToAsset);
     }

@@ -5,31 +5,29 @@
 pragma solidity 0.8.19;
 
 interface IPricingModule {
-    // A Struct with the input variables for the function getValue() (avoid stack to deep).
-    struct GetValueInput {
-        address asset; // The contract address of the asset.
-        uint256 assetId; // The Id of the asset.
-        uint256 assetAmount; // The amount of assets.
-        address creditor; // The contract address of the creditor.
-    }
-
     /**
      * @notice Checks for a token address and the corresponding Id if it is allowed.
      * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
+     * @param assetId The Id of the asset.
      * @return A boolean, indicating if the asset is allowed.
      * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
      */
-    function isAllowed(address asset, uint256) external view returns (bool);
+    function isAllowed(address asset, uint256 assetId) external view returns (bool);
 
     /**
-     * @notice Returns the value of a certain asset, denominated in USD or in another BaseCurrency.
-     * @param input A Struct with the input variables (avoid stack to deep).
+     * @notice Returns the usd value of an asset.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
-     * @return liquidationFactor liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
      */
-    function getValue(GetValueInput memory input) external view returns (uint256, uint256, uint256);
+    function getValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
+        external
+        view
+        returns (uint256, uint256, uint256);
 
     /**
      * @notice Returns the risk factors of an asset for a creditor.

@@ -9,7 +9,6 @@ import { StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626Pricin
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the function "getValue" of contract "StandardERC4626PricingModule".
@@ -61,16 +60,9 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         stdstore.target(address(mockERC20.token1)).sig(ybToken1.balanceOf.selector).with_key(address(ybToken1))
             .checked_write(totalAssets);
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
-            asset: address(ybToken1),
-            assetId: 0,
-            assetAmount: shares,
-            creditor: address(creditorUsd)
-        });
-
         //Arithmetic overflow.
         vm.expectRevert(bytes(""));
-        erc4626PricingModule.getValue(getValueInput);
+        erc4626PricingModule.getValue(address(creditorUsd), address(ybToken1), 0, shares);
     }
 
     function testFuzz_Success_getValuea(
@@ -112,13 +104,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         stdstore.target(address(mockERC20.token1)).sig(ybToken1.balanceOf.selector).with_key(address(ybToken1))
             .checked_write(totalAssets);
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
-            asset: address(ybToken1),
-            assetId: 0,
-            assetAmount: shares,
-            creditor: address(creditorUsd)
-        });
-        (uint256 actualValueInUsd,,) = erc4626PricingModule.getValue(getValueInput);
+        (uint256 actualValueInUsd,,) = erc4626PricingModule.getValue(address(creditorUsd), address(ybToken1), 0, shares);
 
         assertEq(actualValueInUsd, expectedValueInUsd);
     }

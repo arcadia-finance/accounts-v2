@@ -6,8 +6,6 @@ pragma solidity 0.8.19;
 
 import { AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
 
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
-
 /**
  * @notice Fuzz tests for the function "_getRateUnderlyingAssetsToUsd" of contract "AbstractDerivedPricingModule".
  */
@@ -44,14 +42,7 @@ contract GetRateUnderlyingAssetsToUsd_AbstractDerivedPricingModule_Fuzz_Test is
 
         bytes memory data = abi.encodeCall(
             mainRegistryExtension.getUsdValue,
-            (
-                IPricingModule.GetValueInput({
-                    asset: assetState.underlyingAsset,
-                    assetId: assetState.underlyingAssetId,
-                    assetAmount: 1e18,
-                    creditor: address(0)
-                })
-            )
+            (address(0), assetState.underlyingAsset, assetState.underlyingAssetId, 1e18)
         );
 
         // When: "_getRateUnderlyingAssetsToUsd" is called.

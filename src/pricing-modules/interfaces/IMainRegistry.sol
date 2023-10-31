@@ -55,7 +55,18 @@ interface IMainRegistry {
         int256 deltaExposureAssetToUnderlyingAsset
     ) external returns (uint256 usdExposureAssetToUnderlyingAsset);
 
-    function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256 usdValue);
+    /**
+     * @notice Calculates the usd value of an asset.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param assetAmount The amount of assets.
+     * @return usdValue The value of the asset denominated in USD, with 18 Decimals precision.
+     */
+    function getUsdValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
+        external
+        view
+        returns (uint256);
 
     function isAllowed(address asset, uint256 assetId) external view returns (bool);
 }

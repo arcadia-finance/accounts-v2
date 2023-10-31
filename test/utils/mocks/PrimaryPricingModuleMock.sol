@@ -21,7 +21,7 @@ contract PrimaryPricingModuleMock is AbstractPrimaryPricingModuleExtension {
 
     // The function below is only needed in the case of testing for the "AbstractDerivedPricingModule", in order for the Primary Asset to return a value
     // getValue() will be tested separately per PM.
-    function getValue(GetValueInput memory)
+    function getValue(address, address, uint256, uint256)
         public
         view
         override

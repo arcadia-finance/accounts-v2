@@ -200,29 +200,27 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
 
     /**
      * @notice Returns the usd value of an asset.
-     * @param getValueInput A Struct with the input variables.
-     * - asset: The contract address of the asset.
-     * - assetId: The Id of the asset
-     * - assetAmount: The amount of floor NFTs, a natural number without decimals (1 by default for ERC721).
-     * - creditor: The contract address of the creditor.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
      * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
      * However no check in FloorERC721PricingModule is necessary, since the check if the asset is added to the PricingModule
      * is already done in the MainRegistry.
      */
-    function getValue(GetValueInput memory getValueInput)
+    function getValue(address creditor, address asset, uint256, uint256 assetAmount)
         public
         view
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        valueInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[getValueInput.asset].oracles)
-            * getValueInput.assetAmount;
+        valueInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[asset].oracles) * assetAmount;
 
-        bytes32 assetKey = _getKeyFromAsset(getValueInput.asset, 0);
-        collateralFactor = riskParams[getValueInput.creditor][assetKey].collateralFactor;
-        liquidationFactor = riskParams[getValueInput.creditor][assetKey].liquidationFactor;
+        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+        collateralFactor = riskParams[creditor][assetKey].collateralFactor;
+        liquidationFactor = riskParams[creditor][assetKey].liquidationFactor;
     }
 }

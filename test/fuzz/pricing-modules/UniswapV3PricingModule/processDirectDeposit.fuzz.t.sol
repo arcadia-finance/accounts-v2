@@ -9,7 +9,6 @@ import { UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
-import { IPricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import { INonfungiblePositionManagerExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { IUniswapV3PoolExtension } from
@@ -258,14 +257,8 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         {
             // And: usd exposure to protocol below max usd exposure.
-            (uint256 usdExposureProtocol,,) = uniV3PricingModule.getValue(
-                IPricingModule.GetValueInput({
-                    asset: address(nonfungiblePositionManager),
-                    assetId: tokenId,
-                    assetAmount: 1,
-                    creditor: address(creditorUsd)
-                })
-            );
+            (uint256 usdExposureProtocol,,) =
+                uniV3PricingModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
             vm.assume(usdExposureProtocol > 0);
             vm.assume(usdExposureProtocol <= type(uint128).max);
             maxUsdExposureProtocol = uint128(bound(maxUsdExposureProtocol, 0, usdExposureProtocol - 1));
@@ -343,14 +336,8 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         {
             // And: usd exposure to protocol below max usd exposure.
-            (uint256 usdExposureProtocol,,) = uniV3PricingModule.getValue(
-                IPricingModule.GetValueInput({
-                    asset: address(nonfungiblePositionManager),
-                    assetId: tokenId,
-                    assetAmount: 1,
-                    creditor: address(creditorUsd)
-                })
-            );
+            (uint256 usdExposureProtocol,,) =
+                uniV3PricingModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
             vm.assume(usdExposureProtocol <= type(uint128).max);
             maxUsdExposureProtocol = uint128(bound(maxUsdExposureProtocol, usdExposureProtocol, type(uint128).max));
         }

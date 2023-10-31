@@ -5,7 +5,6 @@
 pragma solidity 0.8.19;
 
 import { FloorERC721PricingModule_Fuzz_Test } from "./_FloorERC721PricingModule.fuzz.t.sol";
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the function "processIndirectDeposit" of contract "FloorERC721PricingModule".
@@ -93,14 +92,8 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
             address(creditorUsd), address(mockERC721.nft2), 0, maxExposure, 0, 0
         );
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
-            asset: address(mockERC721.nft2),
-            assetId: 0,
-            assetAmount: 1,
-            creditor: address(creditorUsd)
-        });
-
-        (uint256 actualValueInUsd,,) = floorERC721PricingModule.getValue(getValueInput);
+        (uint256 actualValueInUsd,,) =
+            floorERC721PricingModule.getValue(address(creditorUsd), address(mockERC721.nft2), 0, 1);
 
         vm.assume(actualValueInUsd * exposureUpperAssetToAsset < type(uint256).max);
 
@@ -148,14 +141,8 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         floorERC721PricingModule.processDirectDeposit(address(creditorUsd), address(mockERC721.nft2), 3, 1);
         vm.stopPrank();
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
-            asset: address(mockERC721.nft2),
-            assetId: 0,
-            assetAmount: 1,
-            creditor: address(creditorUsd)
-        });
-
-        (uint256 actualValueInUsd,,) = floorERC721PricingModule.getValue(getValueInput);
+        (uint256 actualValueInUsd,,) =
+            floorERC721PricingModule.getValue(address(creditorUsd), address(mockERC721.nft2), 0, 1);
 
         vm.prank(address(mainRegistryExtension));
         (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = floorERC721PricingModule.processIndirectDeposit(
@@ -201,14 +188,8 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         floorERC721PricingModule.processDirectDeposit(address(creditorUsd), address(mockERC721.nft2), 3, 1);
         vm.stopPrank();
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
-            asset: address(mockERC721.nft2),
-            assetId: 0,
-            assetAmount: 1,
-            creditor: address(creditorUsd)
-        });
-
-        (uint256 actualValueInUsd,,) = floorERC721PricingModule.getValue(getValueInput);
+        (uint256 actualValueInUsd,,) =
+            floorERC721PricingModule.getValue(address(creditorUsd), address(mockERC721.nft2), 0, 1);
 
         vm.prank(address(mainRegistryExtension));
         (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = floorERC721PricingModule.processIndirectDeposit(

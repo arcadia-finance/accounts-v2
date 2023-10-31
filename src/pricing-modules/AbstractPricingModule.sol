@@ -113,16 +113,19 @@ abstract contract PricingModule is Owned, IPricingModule {
 
     /**
      * @notice Returns the usd value of an asset.
-     * param getValueInput A Struct with the input variables.
-     * - asset: The contract address of the asset.
-     * - assetId: The Id of the asset.
-     * - assetAmount: The amount of assets.
-     * - creditor: The contract address of the creditor.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
      */
-    function getValue(GetValueInput memory) public view virtual returns (uint256, uint256, uint256);
+    function getValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
+        public
+        view
+        virtual
+        returns (uint256, uint256, uint256);
 
     /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT

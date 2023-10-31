@@ -9,9 +9,7 @@ import { UniswapV3PricingModule_Fuzz_Test } from "./_UniswapV3PricingModule.fuzz
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
-import {
-    DerivedPricingModule, IPricingModule
-} from "../../../../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
+import { DerivedPricingModule } from "../../../../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
 import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/pricing-modules/UniswapV3/libraries/LiquidityAmounts.sol";
@@ -101,14 +99,8 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         uint256 valueToken0 = 1e18 * uint256(vars.priceToken0) * amount0 / 10 ** vars.decimals0;
         uint256 valueToken1 = 1e18 * uint256(vars.priceToken1) * amount1 / 10 ** vars.decimals1;
 
-        (uint256 actualValueInUsd,,) = uniV3PricingModule.getValue(
-            IPricingModule.GetValueInput({
-                asset: address(nonfungiblePositionManager),
-                assetId: tokenId,
-                assetAmount: 1,
-                creditor: address(creditorUsd)
-            })
-        );
+        (uint256 actualValueInUsd,,) =
+            uniV3PricingModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
 
         assertEq(actualValueInUsd, valueToken0 + valueToken1);
     }
@@ -157,14 +149,8 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         uint256 expectedCollFactor = collFactor0 < collFactor1 ? collFactor0 : collFactor1;
         uint256 expectedLiqFactor = liqFactor0 < liqFactor1 ? liqFactor0 : liqFactor1;
 
-        (, uint256 actualCollFactor, uint256 actualLiqFactor) = uniV3PricingModule.getValue(
-            IPricingModule.GetValueInput({
-                asset: address(nonfungiblePositionManager),
-                assetId: tokenId,
-                assetAmount: 1,
-                creditor: address(creditorUsd)
-            })
-        );
+        (, uint256 actualCollFactor, uint256 actualLiqFactor) =
+            uniV3PricingModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
 
         assertEq(actualCollFactor, expectedCollFactor);
         assertEq(actualLiqFactor, expectedLiqFactor);

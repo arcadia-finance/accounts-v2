@@ -470,17 +470,20 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
     /**
      * @notice Calculates the usd value of an asset.
-     * @param getValueInput A Struct with the input variables.
-     * - asset: The contract address of the asset.
-     * - assetId: The Id of the asset.
-     * - assetAmount: The amount of assets.
-     * - creditor: The contract address of the creditor.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param assetAmount The amount of assets.
      * @return usdValue The value of the asset denominated in USD, with 18 Decimals precision.
      */
-    function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256 usdValue) {
+    function getUsdValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
+        external
+        view
+        returns (uint256 usdValue)
+    {
         // Fetch the Value and the risk variables in the PricingModule.
         (usdValue,,) =
-            IPricingModule(assetToAssetInformation[getValueInput.asset].pricingModule).getValue(getValueInput);
+            IPricingModule(assetToAssetInformation[asset].pricingModule).getValue(creditor, asset, assetId, assetAmount);
     }
 
     /**
@@ -505,14 +508,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
     ) public view returns (RiskModule.AssetValueAndRiskVariables[] memory) {
-        // Cache Output array.
-        uint256 assetAddressesLength = assetAddresses.length;
-        RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
-            new RiskModule.AssetValueAndRiskVariables[](assetAddressesLength);
-
         // Cache variables.
-        IPricingModule.GetValueInput memory getValueInput;
-        getValueInput.creditor = creditor;
         BaseCurrencyInformation memory baseCurrencyInformation = baseCurrencyToInformation[baseCurrency];
         int256 rateBaseCurrencyToUsd;
 
@@ -526,35 +522,30 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             rateBaseCurrencyToUsd = 1;
         }
 
-        address assetAddress;
-        uint256 assetId;
+        // Cache variables.
+        uint256 assetAddressesLength = assetAddresses.length;
+        RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
+            new RiskModule.AssetValueAndRiskVariables[](assetAddressesLength);
         uint256 valueInUsd;
         for (uint256 i; i < assetAddressesLength;) {
-            assetAddress = assetAddresses[i];
-            assetId = assetIds[i];
-
             // If the asset is identical to the base Currency, we do not need to get a rate.
             // We only need to fetch the risk variables from the PricingModule.
-            if (assetAddress == baseCurrencyInformation.assetAddress) {
+            if (assetAddresses[i] == baseCurrencyInformation.assetAddress) {
                 valuesAndRiskVarPerAsset[i].valueInBaseCurrency = assetAmounts[i];
                 (valuesAndRiskVarPerAsset[i].collateralFactor, valuesAndRiskVarPerAsset[i].liquidationFactor) =
-                IPricingModule(assetToAssetInformation[assetAddress].pricingModule).getRiskFactors(
-                    getValueInput.creditor, assetAddress, assetId
+                IPricingModule(assetToAssetInformation[assetAddresses[i]].pricingModule).getRiskFactors(
+                    creditor, assetAddresses[i], assetIds[i]
                 );
 
                 // Else we need to fetch the value in the assets' PricingModule.
             } else {
-                // Prepare input.
-                getValueInput.asset = assetAddress;
-                getValueInput.assetId = assetId;
-                getValueInput.assetAmount = assetAmounts[i];
-
-                // Fetch the Value and the risk variables in the PricingModule.
                 (
                     valueInUsd,
                     valuesAndRiskVarPerAsset[i].collateralFactor,
                     valuesAndRiskVarPerAsset[i].liquidationFactor
-                ) = IPricingModule(assetToAssetInformation[assetAddress].pricingModule).getValue(getValueInput);
+                ) = IPricingModule(assetToAssetInformation[assetAddresses[i]].pricingModule).getValue(
+                    creditor, assetAddresses[i], assetIds[i], assetAmounts[i]
+                );
 
                 // Calculate "valueInBaseCurrency" from "valueInUsd" by dividing by the "rateBaseCurrencyToUsd".
                 // Bring the "valueInBaseCurrency" from internal 18 decimals to the actual number of decimals of "baseCurrency".
