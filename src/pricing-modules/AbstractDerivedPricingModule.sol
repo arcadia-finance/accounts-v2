@@ -194,42 +194,81 @@ abstract contract DerivedPricingModule is PricingModule {
         view
         virtual
         override
-        returns (uint256 valueInUsd, uint256, uint256)
+        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        bytes32[] memory underlyingAssetKeys;
-        uint256[] memory underlyingAssetsAmounts;
-        RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd;
-        {
-            bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-            underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+        bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
 
-            (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
-                _getUnderlyingAssetsAmounts(creditor, assetKey, assetAmount, underlyingAssetKeys);
-        }
+        (
+            uint256[] memory underlyingAssetsAmounts,
+            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+        ) = _getUnderlyingAssetsAmounts(creditor, assetKey, assetAmount, underlyingAssetKeys);
 
-        uint256 length = underlyingAssetKeys.length;
         // Check if rateToUsd for the underlying assets was already calculated in _getUnderlyingAssetsAmounts().
         if (rateUnderlyingAssetsToUsd.length == 0) {
             // If not, get the usd value of the underlying assets recursively.
             rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
         }
 
-        // If yes, directly calculate the usdValue from the underlying amounts and values.
-        for (uint256 i; i < length;) {
-            // "rateUnderlyingAssetsToUsd" is the usd value with 18 decimals precision for 10 ** 18 tokens of Underlying Asset.
-            // To get the usd value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
-            // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
+        (valueInUsd, collateralFactor, liquidationFactor) =
+            _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
+
+    /**
+     * @notice Returns the usd value of an asset.
+     * @param creditor The contract address of the creditor.
+     * @param underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
+     * @param rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
+     * @dev We take the most conservative (lowest) risk factor of all underlying assets.
+     */
+    function _calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+    ) internal view virtual returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        // Initialize variables with first elements of array.
+        // "rateUnderlyingAssetsToUsd" is the usd value with 18 decimals precision for 10 ** 18 tokens of Underlying Asset.
+        // To get the usd value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
+        // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
+        valueInUsd = FixedPointMathLib.mulDivDown(
+            underlyingAssetsAmounts[0], rateUnderlyingAssetsToUsd[0].valueInBaseCurrency, 1e18
+        );
+        collateralFactor = rateUnderlyingAssetsToUsd[0].collateralFactor;
+        liquidationFactor = rateUnderlyingAssetsToUsd[0].liquidationFactor;
+
+        // Update variables with elements from index 1 until end of arrays:
+        //  - Add Usd value of all underlying assets together.
+        //  - Keep the lowest risk factor of all underlying assets.
+        uint256 length = underlyingAssetsAmounts.length;
+        for (uint256 i = 1; i < length;) {
             valueInUsd += FixedPointMathLib.mulDivDown(
                 underlyingAssetsAmounts[i], rateUnderlyingAssetsToUsd[i].valueInBaseCurrency, 1e18
             );
+
+            if (collateralFactor > rateUnderlyingAssetsToUsd[i].collateralFactor) {
+                collateralFactor = rateUnderlyingAssetsToUsd[i].collateralFactor;
+            }
+
+            if (liquidationFactor > rateUnderlyingAssetsToUsd[i].liquidationFactor) {
+                liquidationFactor = rateUnderlyingAssetsToUsd[i].liquidationFactor;
+            }
 
             unchecked {
                 ++i;
             }
         }
 
-        return (valueInUsd, 0, 0);
+        // Lower risk factors with the protocol wide risk factor.
+        collateralFactor = FixedPointMathLib.mulDivDown(
+            collateralFactor, riskParams[creditor].riskFactor, RiskConstants.RISK_FACTOR_UNIT
+        );
+        liquidationFactor = FixedPointMathLib.mulDivDown(
+            liquidationFactor, riskParams[creditor].riskFactor, RiskConstants.RISK_FACTOR_UNIT
+        );
     }
 
     /*///////////////////////////////////////////////////////////////

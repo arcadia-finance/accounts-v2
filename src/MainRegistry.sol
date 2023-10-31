@@ -249,11 +249,6 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         emit PricingModuleAdded(pricingModule);
     }
 
-    // Todo Remove, temporary Used in UNIV3 pricing modules.
-    function getPricingModuleOfAsset(address asset) public view returns (address pricingModule) {
-        pricingModule = assetToAssetInformation[asset].pricingModule;
-    }
-
     /* ///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
     /////////////////////////////////////////////////////////////// */

@@ -14,6 +14,7 @@ import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/pricing-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
@@ -106,17 +107,19 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
     }
 
     function testFuzz_Success_getValue_RiskFactors(
+        uint256 decimals0,
+        uint256 decimals1,
         uint256 collFactor0,
         uint256 liqFactor0,
         uint256 collFactor1,
         uint256 liqFactor1,
-        uint256 decimals0,
-        uint256 decimals1
+        uint256 riskFactorUniV3
     ) public {
-        liqFactor0 = bound(liqFactor0, 0, 100);
+        liqFactor0 = bound(liqFactor0, 0, RiskConstants.RISK_FACTOR_UNIT);
         collFactor0 = bound(collFactor0, 0, liqFactor0);
-        liqFactor1 = bound(liqFactor1, 0, 100);
+        liqFactor1 = bound(liqFactor1, 0, RiskConstants.RISK_FACTOR_UNIT);
         collFactor1 = bound(collFactor1, 0, liqFactor1);
+        riskFactorUniV3 = bound(riskFactorUniV3, 0, RiskConstants.RISK_FACTOR_UNIT);
 
         // Deploy and sort tokens.
         decimals0 = bound(decimals0, 6, 18);
@@ -144,10 +147,18 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(token1), 0, type(uint128).max, uint16(collFactor1), uint16(liqFactor1)
         );
+        mainRegistryExtension.setRiskParametersOfDerivedPricingModule(
+            address(creditorUsd), address(uniV3PricingModule), type(uint128).max, uint16(riskFactorUniV3)
+        );
         vm.stopPrank();
 
+        // First take minimum of each risk factor.
         uint256 expectedCollFactor = collFactor0 < collFactor1 ? collFactor0 : collFactor1;
         uint256 expectedLiqFactor = liqFactor0 < liqFactor1 ? liqFactor0 : liqFactor1;
+
+        // Next apply risk factor for uniswap V3.
+        expectedCollFactor = expectedCollFactor * riskFactorUniV3 / RiskConstants.RISK_FACTOR_UNIT;
+        expectedLiqFactor = expectedLiqFactor * riskFactorUniV3 / RiskConstants.RISK_FACTOR_UNIT;
 
         (, uint256 actualCollFactor, uint256 actualLiqFactor) =
             uniV3PricingModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);

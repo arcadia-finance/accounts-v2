@@ -8,8 +8,7 @@ import { IPricingModule } from "../../interfaces/IPricingModule.sol";
 import { RiskModule } from "../../RiskModule.sol";
 
 interface IMainRegistry {
-    //todo
-    function getPricingModuleOfAsset(address asset) external view returns (address pricingModule);
+    function isAllowed(address asset, uint256 assetId) external view returns (bool);
 
     /**
      * @notice Returns the number of baseCurrencies.
@@ -75,6 +74,4 @@ interface IMainRegistry {
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
     ) external view returns (RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset);
-
-    function isAllowed(address asset, uint256 assetId) external view returns (bool);
 }
