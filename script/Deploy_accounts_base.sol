@@ -156,113 +156,6 @@ contract ArcadiaAccountDeployment is Test {
             baseCurrencyLabel: "USDC",
             baseCurrencyUnitCorrection: uint64(10 ** (18 - DeployNumbers.usdcDecimals))
         });
-
-        /*///////////////////////////////////////////////////////////////
-                            RISK VARS
-        ///////////////////////////////////////////////////////////////*/
-
-        // ToDo: Refactor riskvars in Arcadia Lending?
-        // riskVarsComp.push(
-        //     PricingModule.RiskVarInput({
-        //         baseCurrency: 0,
-        //         asset: address(0),
-        //         collateralFactor: DeployRiskConstantsBase.comp_collFact_1,
-        //         liquidationFactor: DeployRiskConstantsBase.comp_liqFact_1
-        //     })
-        // );
-        // riskVarsComp.push(
-        //     PricingModule.RiskVarInput({
-        //         baseCurrency: 1,
-        //         asset: address(0),
-        //         collateralFactor: DeployRiskConstantsBase.comp_collFact_2,
-        //         liquidationFactor: DeployRiskConstantsBase.comp_liqFact_2
-        //     })
-        // );
-
-        // riskVarsDai.push(
-        //     PricingModule.RiskVarInput({
-        //         baseCurrency: 0,
-        //         asset: address(0),
-        //         collateralFactor: DeployRiskConstantsBase.dai_collFact_1,
-        //         liquidationFactor: DeployRiskConstantsBase.dai_liqFact_1
-        //     })
-        // );
-        // riskVarsDai.push(
-        //     PricingModule.RiskVarInput({
-        //         baseCurrency: 1,
-        //         asset: address(0),
-        //         collateralFactor: DeployRiskConstantsBase.dai_collFact_2,
-        //         liquidationFactor: DeployRiskConstantsBase.dai_liqFact_2
-        //     })
-        // );
-
-        // riskVarsEth.push(
-        //     PricingModule.RiskVarInput({
-        //         baseCurrency: 0,
-        //         asset: address(0),
-        //         collateralFactor: DeployRiskConstantsBase.eth_collFact_1,
-        //         liquidationFactor: DeployRiskConstantsBase.eth_liqFact_1
-        //     })
-        // );
-        // riskVarsEth.push(
-        //     PricingModule.RiskVarInput({
-        //         baseCurrency: 1,
-        //         asset: address(0),
-        //         collateralFactor: DeployRiskConstantsBase.eth_collFact_2,
-        //         liquidationFactor: DeployRiskConstantsBase.eth_liqFact_2
-        //     })
-        // );
-
-        // riskVarsUsdc.push(
-        //     PricingModule.RiskVarInput({
-        //         baseCurrency: 0,
-        //         asset: address(0),
-        //         collateralFactor: DeployRiskConstantsBase.usdc_collFact_1,
-        //         liquidationFactor: DeployRiskConstantsBase.usdc_liqFact_1
-        //     })
-        // );
-        // riskVarsUsdc.push(
-        //     PricingModule.RiskVarInput({
-        //         baseCurrency: 1,
-        //         asset: address(0),
-        //         collateralFactor: DeployRiskConstantsBase.usdc_collFact_2,
-        //         liquidationFactor: DeployRiskConstantsBase.usdc_liqFact_2
-        //     })
-        // );
-
-        // riskVarsCbeth.push(
-        //     PricingModule.RiskVarInput({
-        //         baseCurrency: 0,
-        //         asset: address(0),
-        //         collateralFactor: DeployRiskConstantsBase.cbeth_collFact_1,
-        //         liquidationFactor: DeployRiskConstantsBase.cbeth_liqFact_1
-        //     })
-        // );
-        // riskVarsCbeth.push(
-        //     PricingModule.RiskVarInput({
-        //         baseCurrency: 1,
-        //         asset: address(0),
-        //         collateralFactor: DeployRiskConstantsBase.cbeth_collFact_2,
-        //         liquidationFactor: DeployRiskConstantsBase.cbeth_liqFact_2
-        //     })
-        // );
-
-        // riskVarsReth.push(
-        //     PricingModule.RiskVarInput({
-        //         baseCurrency: 0,
-        //         asset: address(0),
-        //         collateralFactor: DeployRiskConstantsBase.reth_collFact_1,
-        //         liquidationFactor: DeployRiskConstantsBase.reth_liqFact_1
-        //     })
-        // );
-        // riskVarsReth.push(
-        //     PricingModule.RiskVarInput({
-        //         baseCurrency: 1,
-        //         asset: address(0),
-        //         collateralFactor: DeployRiskConstantsBase.reth_collFact_2,
-        //         liquidationFactor: DeployRiskConstantsBase.reth_liqFact_2
-        //     })
-        // );
     }
 
     function run() public {
@@ -316,6 +209,104 @@ contract ArcadiaAccountDeployment is Test {
 
         wethLendingPool.setBorrowCap(uint128(2000 * 10 ** 18));
         usdcLendingPool.setBorrowCap(uint128(5_000_000 * 10 ** 6));
+
+        mainRegistry.setRiskParametersOfPrimaryAsset(
+            address(wethLendingPool),
+            DeployAddresses.comp_base,
+            0,
+            type(uint128).max,
+            DeployRiskConstantsBase.comp_collFact_1,
+            DeployRiskConstantsBase.comp_liqFact_1
+        );
+        mainRegistry.setRiskParametersOfPrimaryAsset(
+            address(wethLendingPool),
+            DeployAddresses.dai_base,
+            0,
+            type(uint128).max,
+            DeployRiskConstantsBase.dai_collFact_1,
+            DeployRiskConstantsBase.dai_liqFact_1
+        );
+        mainRegistry.setRiskParametersOfPrimaryAsset(
+            address(wethLendingPool),
+            DeployAddresses.weth_base,
+            0,
+            type(uint128).max,
+            DeployRiskConstantsBase.eth_collFact_1,
+            DeployRiskConstantsBase.eth_liqFact_1
+        );
+        mainRegistry.setRiskParametersOfPrimaryAsset(
+            address(wethLendingPool),
+            DeployAddresses.usdc_base,
+            0,
+            type(uint128).max,
+            DeployRiskConstantsBase.usdc_collFact_1,
+            DeployRiskConstantsBase.usdc_liqFact_1
+        );
+        mainRegistry.setRiskParametersOfPrimaryAsset(
+            address(wethLendingPool),
+            DeployAddresses.cbeth_base,
+            0,
+            type(uint128).max,
+            DeployRiskConstantsBase.cbeth_collFact_1,
+            DeployRiskConstantsBase.cbeth_liqFact_1
+        );
+        mainRegistry.setRiskParametersOfPrimaryAsset(
+            address(wethLendingPool),
+            DeployAddresses.reth_base,
+            0,
+            type(uint128).max,
+            DeployRiskConstantsBase.reth_collFact_1,
+            DeployRiskConstantsBase.reth_liqFact_1
+        );
+
+        mainRegistry.setRiskParametersOfPrimaryAsset(
+            address(usdcLendingPool),
+            DeployAddresses.comp_base,
+            0,
+            type(uint128).max,
+            DeployRiskConstantsBase.comp_collFact_2,
+            DeployRiskConstantsBase.comp_liqFact_2
+        );
+        mainRegistry.setRiskParametersOfPrimaryAsset(
+            address(usdcLendingPool),
+            DeployAddresses.dai_base,
+            0,
+            type(uint128).max,
+            DeployRiskConstantsBase.dai_collFact_2,
+            DeployRiskConstantsBase.dai_liqFact_2
+        );
+        mainRegistry.setRiskParametersOfPrimaryAsset(
+            address(usdcLendingPool),
+            DeployAddresses.weth_base,
+            0,
+            type(uint128).max,
+            DeployRiskConstantsBase.eth_collFact_2,
+            DeployRiskConstantsBase.eth_liqFact_2
+        );
+        mainRegistry.setRiskParametersOfPrimaryAsset(
+            address(usdcLendingPool),
+            DeployAddresses.usdc_base,
+            0,
+            type(uint128).max,
+            DeployRiskConstantsBase.usdc_collFact_2,
+            DeployRiskConstantsBase.usdc_liqFact_2
+        );
+        mainRegistry.setRiskParametersOfPrimaryAsset(
+            address(usdcLendingPool),
+            DeployAddresses.cbeth_base,
+            0,
+            type(uint128).max,
+            DeployRiskConstantsBase.cbeth_collFact_2,
+            DeployRiskConstantsBase.cbeth_liqFact_2
+        );
+        mainRegistry.setRiskParametersOfPrimaryAsset(
+            address(usdcLendingPool),
+            DeployAddresses.reth_base,
+            0,
+            type(uint128).max,
+            DeployRiskConstantsBase.reth_collFact_2,
+            DeployRiskConstantsBase.reth_liqFact_2
+        );
 
         vm.stopBroadcast();
     }
