@@ -6,7 +6,6 @@ pragma solidity 0.8.19;
 
 import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
 import { IOraclesHub } from "./pricing-modules/interfaces/IOraclesHub.sol";
-import { StringHelpers } from "./libraries/StringHelpers.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { Owned } from "../lib/solmate/src/auth/Owned.sol";
 
