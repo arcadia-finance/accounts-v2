@@ -17,7 +17,9 @@ contract CalculateLiquidationValue_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public override { }
+    function setUp() public override {
+        RiskModule_Fuzz_Test.setUp();
+    }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
@@ -42,7 +44,7 @@ contract CalculateLiquidationValue_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
         values[1].liquidationFactor = secondLiqFactor;
 
         // When: The Liquidation factor is calculated with given values
-        uint256 liquidationValue = RiskModule.calculateLiquidationValue(values);
+        uint256 liquidationValue = riskModule.calculateLiquidationValue(values);
 
         // Then: It should be equal to calculated Liquidation factor
         uint256 calcLiquidationValue;

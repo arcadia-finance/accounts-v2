@@ -103,6 +103,24 @@ contract MainRegistryExtension is MainRegistry {
     }
 }
 
+contract RiskModuleExtension {
+    function calculateCollateralValue(RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset)
+        external
+        pure
+        returns (uint256 collateralValue)
+    {
+        collateralValue = RiskModule._calculateCollateralValue(valuesAndRiskVarPerAsset);
+    }
+
+    function calculateLiquidationValue(RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset)
+        external
+        pure
+        returns (uint256 liquidationValue)
+    {
+        liquidationValue = RiskModule._calculateLiquidationValue(valuesAndRiskVarPerAsset);
+    }
+}
+
 abstract contract AbstractPricingModuleExtension is PricingModule {
     constructor(address mainRegistry_, uint256 assetType_) PricingModule(mainRegistry_, assetType_) { }
 

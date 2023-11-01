@@ -681,7 +681,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
             getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
 
-        collateralValue = RiskModule.calculateCollateralValue(valuesAndRiskVarPerAsset);
+        collateralValue = RiskModule._calculateCollateralValue(valuesAndRiskVarPerAsset);
     }
 
     /**
@@ -708,6 +708,6 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
             getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
 
-        liquidationValue = RiskModule.calculateLiquidationValue(valuesAndRiskVarPerAsset);
+        liquidationValue = RiskModule._calculateLiquidationValue(valuesAndRiskVarPerAsset);
     }
 }

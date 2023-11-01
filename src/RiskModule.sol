@@ -28,8 +28,8 @@ library RiskModule {
      * @param valuesAndRiskVarPerAsset Array of asset values and corresponding collateral factors.
      * @return collateralValue The collateral value of the given assets.
      */
-    function calculateCollateralValue(AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset)
-        public
+    function _calculateCollateralValue(AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset)
+        internal
         pure
         returns (uint256 collateralValue)
     {
@@ -49,8 +49,8 @@ library RiskModule {
      * @param valuesAndRiskVarPerAsset List of asset values and corresponding liquidation factors.
      * @return liquidationValue The liquidation value of the given assets.
      */
-    function calculateLiquidationValue(AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset)
-        public
+    function _calculateLiquidationValue(AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset)
+        internal
         pure
         returns (uint256 liquidationValue)
     {

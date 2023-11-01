@@ -17,7 +17,9 @@ contract CalculateCollateralFactor_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public override { }
+    function setUp() public override {
+        RiskModule_Fuzz_Test.setUp();
+    }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
@@ -42,7 +44,7 @@ contract CalculateCollateralFactor_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
         values[1].collateralFactor = secondCollFactor;
 
         // When: The collateral factor is calculated with given values
-        uint256 collateralValue = RiskModule.calculateCollateralValue(values);
+        uint256 collateralValue = riskModule.calculateCollateralValue(values);
 
         // Then: It should be equal to calculated collateral factor
         uint256 calcCollateralValue;
