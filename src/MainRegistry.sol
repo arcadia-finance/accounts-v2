@@ -509,14 +509,14 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         address[] calldata assets,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset) {
+    ) external view returns (RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset) {
         uint256 length = assets.length;
-        valuesAndRiskVarPerAsset = new RiskModule.AssetValueAndRiskVariables[](length);
+        valuesAndRiskVarPerAsset = new RiskModule.AssetValueAndRiskFactors[](length);
 
         for (uint256 i; i < length;) {
             // Fetch the Value and the risk variables in the PricingModule.
             (
-                valuesAndRiskVarPerAsset[i].valueInBaseCurrency,
+                valuesAndRiskVarPerAsset[i].assetValue,
                 valuesAndRiskVarPerAsset[i].collateralFactor,
                 valuesAndRiskVarPerAsset[i].liquidationFactor
             ) = IPricingModule(assetToAssetInformation[assets[i]].pricingModule).getValue(
@@ -550,7 +550,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) public view returns (RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset) {
+    ) public view returns (RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset) {
         // Cache variables.
         BaseCurrencyInformation memory baseCurrencyInformation = baseCurrencyToInformation[baseCurrency];
         int256 rateBaseCurrencyToUsd;
@@ -567,13 +567,13 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
         // Cache variables.
         uint256 assetAddressesLength = assetAddresses.length;
-        valuesAndRiskVarPerAsset = new RiskModule.AssetValueAndRiskVariables[](assetAddressesLength);
+        valuesAndRiskVarPerAsset = new RiskModule.AssetValueAndRiskFactors[](assetAddressesLength);
         uint256 valueInUsd;
         for (uint256 i; i < assetAddressesLength;) {
             // If the asset is identical to the base Currency, we do not need to get a rate.
             // We only need to fetch the risk variables from the PricingModule.
             if (assetAddresses[i] == baseCurrencyInformation.assetAddress) {
-                valuesAndRiskVarPerAsset[i].valueInBaseCurrency = assetAmounts[i];
+                valuesAndRiskVarPerAsset[i].assetValue = assetAmounts[i];
                 (valuesAndRiskVarPerAsset[i].collateralFactor, valuesAndRiskVarPerAsset[i].liquidationFactor) =
                 IPricingModule(assetToAssetInformation[assetAddresses[i]].pricingModule).getRiskFactors(
                     creditor, assetAddresses[i], assetIds[i]
@@ -589,10 +589,10 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
                     creditor, assetAddresses[i], assetIds[i], assetAmounts[i]
                 );
 
-                // Calculate "valueInBaseCurrency" from "valueInUsd" by dividing by the "rateBaseCurrencyToUsd".
-                // Bring the "valueInBaseCurrency" from internal 18 decimals to the actual number of decimals of "baseCurrency".
+                // Calculate "assetValue" from "valueInUsd" by dividing by the "rateBaseCurrencyToUsd".
+                // Bring the "assetValue" from internal 18 decimals to the actual number of decimals of "baseCurrency".
                 unchecked {
-                    valuesAndRiskVarPerAsset[i].valueInBaseCurrency = (
+                    valuesAndRiskVarPerAsset[i].assetValue = (
                         valueInUsd.mulDivDown(
                             baseCurrencyInformation.baseCurrencyToUsdOracleUnit, uint256(rateBaseCurrencyToUsd)
                         )
@@ -621,7 +621,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset) {
+    ) external view returns (RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset) {
         require(isBaseCurrency[baseCurrency], "MR_GLVA: UNKNOWN_BASECURRENCY");
         valuesAndRiskVarPerAsset =
             getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
@@ -634,7 +634,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @return valueInBaseCurrency The combined value of the assets, denominated in BaseCurrency.
+     * @return assetValue The combined value of the assets, denominated in BaseCurrency.
      * @dev No need to check equality of length of arrays, since they are generated by the Account.
      */
     function getTotalValue(
@@ -643,14 +643,14 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) public view returns (uint256 valueInBaseCurrency) {
+    ) public view returns (uint256 assetValue) {
         require(isBaseCurrency[baseCurrency], "MR_GTV: UNKNOWN_BASECURRENCY");
 
-        RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
+        RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset =
             getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
 
         for (uint256 i = 0; i < valuesAndRiskVarPerAsset.length;) {
-            valueInBaseCurrency += valuesAndRiskVarPerAsset[i].valueInBaseCurrency;
+            assetValue += valuesAndRiskVarPerAsset[i].assetValue;
             unchecked {
                 ++i;
             }
@@ -678,7 +678,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     ) external view returns (uint256 collateralValue) {
         require(isBaseCurrency[baseCurrency], "MR_GCV: UNKNOWN_BASECURRENCY");
 
-        RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
+        RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset =
             getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
 
         collateralValue = RiskModule._calculateCollateralValue(valuesAndRiskVarPerAsset);
@@ -705,7 +705,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     ) external view returns (uint256 liquidationValue) {
         require(isBaseCurrency[baseCurrency], "MR_GLV: UNKNOWN_BASECURRENCY");
 
-        RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
+        RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset =
             getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
 
         liquidationValue = RiskModule._calculateLiquidationValue(valuesAndRiskVarPerAsset);

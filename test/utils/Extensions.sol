@@ -104,7 +104,7 @@ contract MainRegistryExtension is MainRegistry {
 }
 
 contract RiskModuleExtension {
-    function calculateCollateralValue(RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset)
+    function calculateCollateralValue(RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset)
         external
         pure
         returns (uint256 collateralValue)
@@ -112,7 +112,7 @@ contract RiskModuleExtension {
         collateralValue = RiskModule._calculateCollateralValue(valuesAndRiskVarPerAsset);
     }
 
-    function calculateLiquidationValue(RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset)
+    function calculateLiquidationValue(RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset)
         external
         pure
         returns (uint256 liquidationValue)
@@ -207,7 +207,7 @@ abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule 
     function getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys)
         public
         view
-        returns (RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd)
+        returns (RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
     }
@@ -332,7 +332,7 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
         view
         returns (
             uint256[] memory exposureAssetToUnderlyingAssets,
-            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
         (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
@@ -425,7 +425,7 @@ contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
         view
         returns (
             uint256[] memory exposureAssetToUnderlyingAssets,
-            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
         (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
@@ -484,7 +484,7 @@ contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
         view
         returns (
             uint256[] memory exposureAssetToUnderlyingAssets,
-            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
         (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =

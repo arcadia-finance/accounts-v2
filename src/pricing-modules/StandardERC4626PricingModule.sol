@@ -138,7 +138,7 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
         override
         returns (
             uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
         (address asset,) = _getAssetFromKey(assetKey);

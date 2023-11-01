@@ -13,10 +13,13 @@ import { RiskConstants } from "./libraries/RiskConstants.sol";
  */
 library RiskModule {
     // Struct with risk related information for a certain asset.
-    struct AssetValueAndRiskVariables {
-        uint256 valueInBaseCurrency; // The value of the asset, denominated in a certain baseCurrency.
-        uint256 collateralFactor; // The collateral factor of the asset for the given baseCurrency.
-        uint256 liquidationFactor; // The liquidation factor of the asset for the given baseCurrency.
+    struct AssetValueAndRiskFactors {
+        // The value of the asset.
+        uint256 assetValue;
+        // The collateral factor of the asset, for a given creditor.
+        uint256 collateralFactor;
+        // The liquidation factor of the asset, for a given creditor.
+        uint256 liquidationFactor;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -28,15 +31,14 @@ library RiskModule {
      * @param valuesAndRiskVarPerAsset Array of asset values and corresponding collateral factors.
      * @return collateralValue The collateral value of the given assets.
      */
-    function _calculateCollateralValue(AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset)
+    function _calculateCollateralValue(AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset)
         internal
         pure
         returns (uint256 collateralValue)
     {
         uint256 valuesAndRiskVarPerAssetLength = valuesAndRiskVarPerAsset.length;
         for (uint256 i; i < valuesAndRiskVarPerAssetLength;) {
-            collateralValue +=
-                valuesAndRiskVarPerAsset[i].valueInBaseCurrency * valuesAndRiskVarPerAsset[i].collateralFactor;
+            collateralValue += valuesAndRiskVarPerAsset[i].assetValue * valuesAndRiskVarPerAsset[i].collateralFactor;
             unchecked {
                 ++i;
             }
@@ -49,15 +51,14 @@ library RiskModule {
      * @param valuesAndRiskVarPerAsset List of asset values and corresponding liquidation factors.
      * @return liquidationValue The liquidation value of the given assets.
      */
-    function _calculateLiquidationValue(AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset)
+    function _calculateLiquidationValue(AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset)
         internal
         pure
         returns (uint256 liquidationValue)
     {
         uint256 valuesAndRiskVarPerAssetLength = valuesAndRiskVarPerAsset.length;
         for (uint256 i; i < valuesAndRiskVarPerAssetLength;) {
-            liquidationValue +=
-                valuesAndRiskVarPerAsset[i].valueInBaseCurrency * valuesAndRiskVarPerAsset[i].liquidationFactor;
+            liquidationValue += valuesAndRiskVarPerAsset[i].assetValue * valuesAndRiskVarPerAsset[i].liquidationFactor;
             unchecked {
                 ++i;
             }

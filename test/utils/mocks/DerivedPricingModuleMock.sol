@@ -50,7 +50,7 @@ contract DerivedPricingModuleMock is AbstractDerivedPricingModuleExtension {
         override
         returns (
             uint256[] memory underlyingAssetsAmount,
-            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
         underlyingAssetsAmount = new uint256[](1);
@@ -58,8 +58,8 @@ contract DerivedPricingModuleMock is AbstractDerivedPricingModuleExtension {
 
         // If rateUnderlyingAssetToUsd is set, also return rateUnderlyingAssetsToUsd.
         if (returnRateUnderlyingAssetToUsd) {
-            rateUnderlyingAssetsToUsd = new RiskModule.AssetValueAndRiskVariables[](1);
-            rateUnderlyingAssetsToUsd[0].valueInBaseCurrency = rateUnderlyingAssetToUsd;
+            rateUnderlyingAssetsToUsd = new RiskModule.AssetValueAndRiskFactors[](1);
+            rateUnderlyingAssetsToUsd[0].assetValue = rateUnderlyingAssetToUsd;
         }
 
         return (underlyingAssetsAmount, rateUnderlyingAssetsToUsd);

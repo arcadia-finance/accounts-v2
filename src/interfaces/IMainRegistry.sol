@@ -91,7 +91,7 @@ interface IMainRegistry {
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @return valueInBaseCurrency The combined value of the assets, denominated in BaseCurrency.
+     * @return assetValue The combined value of the assets, denominated in BaseCurrency.
      */
     function getTotalValue(
         address baseCurrency,

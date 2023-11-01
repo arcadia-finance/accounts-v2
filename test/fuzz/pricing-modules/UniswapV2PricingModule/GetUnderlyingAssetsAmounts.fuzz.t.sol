@@ -76,7 +76,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
         (
             uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         ) = uniswapV2PricingModule.getUnderlyingAssetsAmounts(
             address(creditorUsd), assetKey, assetAmount, underlyingAssetKeys
         );
@@ -90,7 +90,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV2PricingModule_Fuzz_Test is UniswapV
         // And: The correct "rateUnderlyingAssetsToUsd" are returned.
         uint256 expectedRateUnderlyingAssetsToUsd0 = priceToken0 * 10 ** (18 - Constants.tokenOracleDecimals);
         uint256 expectedRateUnderlyingAssetsToUsd1 = priceToken1 * 10 ** (18 - Constants.tokenOracleDecimals);
-        assertEq(rateUnderlyingAssetsToUsd[0].valueInBaseCurrency, expectedRateUnderlyingAssetsToUsd0);
-        assertEq(rateUnderlyingAssetsToUsd[1].valueInBaseCurrency, expectedRateUnderlyingAssetsToUsd1);
+        assertEq(rateUnderlyingAssetsToUsd[0].assetValue, expectedRateUnderlyingAssetsToUsd0);
+        assertEq(rateUnderlyingAssetsToUsd[1].assetValue, expectedRateUnderlyingAssetsToUsd1);
     }
 }

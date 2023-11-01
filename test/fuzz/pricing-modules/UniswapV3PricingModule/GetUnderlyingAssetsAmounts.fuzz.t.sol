@@ -164,7 +164,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3PricingModule_Fuzz_Test is UniswapV
 
         // When: "getUnderlyingAssetsAmounts" is called.
         uint256[] memory underlyingAssetsAmounts;
-        RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd;
+        RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
         {
             bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
             (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
@@ -174,8 +174,8 @@ contract GetUnderlyingAssetsAmounts_UniswapV3PricingModule_Fuzz_Test is UniswapV
         // Then: The correct "rateUnderlyingAssetsToUsd" are returned.
         uint256 expectedRateUnderlyingAssetsToUsd0 = asset0.usdValue * 10 ** (36 - asset0.decimals);
         uint256 expectedRateUnderlyingAssetsToUsd1 = asset1.usdValue * 10 ** (36 - asset1.decimals);
-        assertEq(rateUnderlyingAssetsToUsd[0].valueInBaseCurrency, expectedRateUnderlyingAssetsToUsd0);
-        assertEq(rateUnderlyingAssetsToUsd[1].valueInBaseCurrency, expectedRateUnderlyingAssetsToUsd1);
+        assertEq(rateUnderlyingAssetsToUsd[0].assetValue, expectedRateUnderlyingAssetsToUsd0);
+        assertEq(rateUnderlyingAssetsToUsd[1].assetValue, expectedRateUnderlyingAssetsToUsd1);
 
         // And: The correct "underlyingAssetsAmounts" rates are returned.
         uint160 sqrtPriceX96 =

@@ -55,10 +55,10 @@ contract GetRateUnderlyingAssetsToUsd_AbstractDerivedPricingModule_Fuzz_Test is
         // When: "_getRateUnderlyingAssetsToUsd" is called.
         // Then: The Function "getUsdValue" on "MainRegistry" is called with correct parameters.
         vm.expectCall(address(mainRegistryExtension), data);
-        RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd =
+        RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd =
             derivedPricingModule.getRateUnderlyingAssetsToUsd(assetState.creditor, underlyingAssetKeys);
 
         // And: Transaction returns correct "rateUnderlyingAssetsToUsd".
-        assertEq(rateUnderlyingAssetsToUsd[0].valueInBaseCurrency, underlyingPMState.usdValue);
+        assertEq(rateUnderlyingAssetsToUsd[0].assetValue, underlyingPMState.usdValue);
     }
 }
