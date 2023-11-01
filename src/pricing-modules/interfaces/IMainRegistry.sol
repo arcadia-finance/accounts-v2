@@ -33,6 +33,19 @@ interface IMainRegistry {
     function addAsset(address asset, uint256 assetType) external;
 
     /**
+     * @notice Returns the risk factors per asset for a creditor.
+     * @param creditor The contract address of the creditor.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assetIds Array of the IDs of the assets.
+     * @return collateralFactors Array of the collateral factors of the assets for the creditor, 2 decimals precision.
+     * @return liquidationFactors Array of the liquidation factors of the assets for the creditor, 2 decimals precision.
+     */
+    function getRiskFactors(address creditor, address[] calldata assetAddresses, uint256[] calldata assetIds)
+        external
+        view
+        returns (uint16[] memory, uint16[] memory);
+
+    /**
      * @notice This function is called by pricing modules of non-primary assets in order to update the exposure of an underlying asset after a deposit.
      * @param creditor The contract address of the creditor.
      * @param underlyingAsset The underlying asset.

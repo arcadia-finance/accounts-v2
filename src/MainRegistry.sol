@@ -292,6 +292,33 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /**
+     * @notice Returns the risk factors per asset for a creditor.
+     * @param creditor The contract address of the creditor.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assetIds Array of the IDs of the assets.
+     * @return collateralFactors Array of the collateral factors of the assets for the creditor, 2 decimals precision.
+     * @return liquidationFactors Array of the liquidation factors of the assets for the creditor, 2 decimals precision.
+     */
+    function getRiskFactors(address creditor, address[] calldata assetAddresses, uint256[] calldata assetIds)
+        external
+        view
+        returns (uint16[] memory collateralFactors, uint16[] memory liquidationFactors)
+    {
+        uint256 length = assetAddresses.length;
+        collateralFactors = new uint16[](length);
+        liquidationFactors = new uint16[](length);
+        for (uint256 i; i < length;) {
+            (collateralFactors[i], liquidationFactors[i]) = IPricingModule(
+                assetToAssetInformation[assetAddresses[i]].pricingModule
+            ).getRiskFactors(creditor, assetAddresses[i], assetIds[i]);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /**
      * @notice Sets the risk parameters for a primary asset.
      * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.

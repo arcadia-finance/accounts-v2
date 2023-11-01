@@ -159,7 +159,50 @@ abstract contract DerivedPricingModule is PricingModule {
         virtual
         override
         returns (uint16 collateralFactor, uint16 liquidationFactor)
-    { }
+    {
+        bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(_getKeyFromAsset(asset, assetId));
+
+        uint256 length = underlyingAssetKeys.length;
+        address[] memory assets = new address[](length);
+        uint256[] memory assetIds = new uint256[](length);
+        for (uint256 i; i < length;) {
+            (assets[i], assetIds[i]) = _getAssetFromKey(underlyingAssetKeys[i]);
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        (uint16[] memory collateralFactors, uint16[] memory liquidationFactors) =
+            IMainRegistry(MAIN_REGISTRY).getRiskFactors(creditor, assets, assetIds);
+
+        // Initialize risk factors with first elements of array.
+        collateralFactor = collateralFactors[0];
+        liquidationFactor = liquidationFactors[0];
+
+        // Keep the lowest risk factor of all underlying assets.
+        for (uint256 i = 1; i < length;) {
+            if (collateralFactor > collateralFactors[i]) collateralFactor = collateralFactors[i];
+
+            if (liquidationFactor > liquidationFactors[i]) liquidationFactor = liquidationFactors[i];
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        // Lower risk factors with the protocol wide risk factor.
+        collateralFactor = uint16(
+            FixedPointMathLib.mulDivDown(
+                collateralFactor, riskParams[creditor].riskFactor, RiskConstants.RISK_FACTOR_UNIT
+            )
+        );
+        liquidationFactor = uint16(
+            FixedPointMathLib.mulDivDown(
+                liquidationFactor, riskParams[creditor].riskFactor, RiskConstants.RISK_FACTOR_UNIT
+            )
+        );
+    }
 
     /**
      * @notice Sets the risk parameters of the Protocol for a given creditor.
@@ -199,7 +242,6 @@ abstract contract DerivedPricingModule is PricingModule {
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
-
         bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
 
         (
