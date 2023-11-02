@@ -19,6 +19,10 @@ library RiskModule {
         uint256 liquidationFactor; // The liquidation factor of the asset for the given baseCurrency.
     }
 
+    /*///////////////////////////////////////////////////////////////
+                        RISK FACTORS
+    ///////////////////////////////////////////////////////////////*/
+
     /**
      * @notice Calculates the weighted collateral value given a combination of asset values and corresponding collateral factors.
      * @param valuesAndRiskVarPerAsset Array of asset values and corresponding collateral factors.
@@ -37,7 +41,7 @@ library RiskModule {
                 ++i;
             }
         }
-        collateralValue = collateralValue / RiskConstants.RISK_VARIABLES_UNIT;
+        collateralValue = collateralValue / RiskConstants.RISK_FACTOR_UNIT;
     }
 
     /**
@@ -58,6 +62,6 @@ library RiskModule {
                 ++i;
             }
         }
-        liquidationValue = liquidationValue / RiskConstants.RISK_VARIABLES_UNIT;
+        liquidationValue = liquidationValue / RiskConstants.RISK_FACTOR_UNIT;
     }
 }

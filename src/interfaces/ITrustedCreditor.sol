@@ -21,4 +21,10 @@ interface ITrustedCreditor {
      * @return openPosition The open position of the Account.
      */
     function getOpenPosition(address account) external view returns (uint256);
+
+    /**
+     * @notice Returns the Risk Manager of the creditor.
+     * @return riskManager The Risk Manager of the creditor.
+     */
+    function riskManager() external view returns (address riskManager);
 }

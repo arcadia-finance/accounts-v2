@@ -26,9 +26,7 @@ contract IsAllowed_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModul
         assetId = uint96(bound(assetId, idRangeStart, idRangeEnd));
 
         vm.prank(users.creatorAddress);
-        floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), idRangeStart, idRangeEnd, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), idRangeStart, idRangeEnd, oracleNft2ToUsdArr);
 
         assertTrue(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), assetId));
     }
@@ -45,9 +43,7 @@ contract IsAllowed_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModul
         assetId = uint96(bound(assetId, 0, idRangeStart - 1));
 
         vm.prank(users.creatorAddress);
-        floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), idRangeStart, idRangeEnd, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), idRangeStart, idRangeEnd, oracleNft2ToUsdArr);
 
         assertFalse(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), assetId));
     }
@@ -60,9 +56,7 @@ contract IsAllowed_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModul
         assetId = uint96(bound(assetId, idRangeEnd + 1, type(uint96).max));
 
         vm.prank(users.creatorAddress);
-        floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), idRangeStart, idRangeEnd, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), idRangeStart, idRangeEnd, oracleNft2ToUsdArr);
 
         assertFalse(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), assetId));
     }

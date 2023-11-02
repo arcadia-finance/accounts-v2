@@ -106,7 +106,7 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
-                baseCurrency: 0
+                creditor: address(creditorUsd)
             })
         );
 
@@ -145,21 +145,14 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
         addUnderlyingTokenToArcadia(address(token0), 1);
         addUnderlyingTokenToArcadia(address(token1), 1);
 
-        PricingModule.RiskVarInput[] memory riskVarInputs = new PricingModule.RiskVarInput[](2);
-        riskVarInputs[0] = PricingModule.RiskVarInput({
-            asset: address(token0),
-            baseCurrency: 0,
-            collateralFactor: uint16(collFactor0),
-            liquidationFactor: uint16(liqFactor0)
-        });
-        riskVarInputs[1] = PricingModule.RiskVarInput({
-            asset: address(token1),
-            baseCurrency: 0,
-            collateralFactor: uint16(collFactor1),
-            liquidationFactor: uint16(liqFactor1)
-        });
-        vm.prank(users.creatorAddress);
-        erc20PricingModule.setBatchRiskVariables(riskVarInputs);
+        vm.startPrank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(token0), 0, type(uint128).max, uint16(collFactor0), uint16(liqFactor0)
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(token1), 0, type(uint128).max, uint16(collFactor1), uint16(liqFactor1)
+        );
+        vm.stopPrank();
 
         uint256 expectedCollFactor = collFactor0 < collFactor1 ? collFactor0 : collFactor1;
         uint256 expectedLiqFactor = liqFactor0 < liqFactor1 ? liqFactor0 : liqFactor1;
@@ -169,7 +162,7 @@ contract GetValue_UniswapV3PricingModule_Fuzz_Test is UniswapV3PricingModule_Fuz
                 asset: address(nonfungiblePositionManager),
                 assetId: tokenId,
                 assetAmount: 1,
-                baseCurrency: 0
+                creditor: address(creditorUsd)
             })
         );
 

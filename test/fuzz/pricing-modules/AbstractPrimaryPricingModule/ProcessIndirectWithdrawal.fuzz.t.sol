@@ -38,7 +38,11 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is Abs
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
         pricingModule.processIndirectWithdrawal(
-            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            deltaExposureUpperAssetToAsset
         );
         vm.stopPrank();
     }
@@ -67,7 +71,11 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is Abs
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("APPM_PIW: Overflow");
         pricingModule.processIndirectWithdrawal(
-            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, int256(deltaExposureUpperAssetToAsset)
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            int256(deltaExposureUpperAssetToAsset)
         );
         vm.stopPrank();
     }
@@ -89,17 +97,21 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is Abs
 
         // When: Asset is indirectly withdrawn.
         vm.prank(address(mainRegistryExtension));
-        (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = pricingModule.processIndirectWithdrawal(
-            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, int256(deltaExposureUpperAssetToAsset)
+        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = pricingModule.processIndirectWithdrawal(
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            int256(deltaExposureUpperAssetToAsset)
         );
 
         // Then: Correct output variables are returned.
         assertTrue(primaryFlag);
-        assertEq(usdValueExposureUpperAssetToAsset, assetState.usdValueExposureUpperAssetToAsset);
+        assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // And: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
-        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
+        (uint128 actualExposure,,,) = pricingModule.riskParams(assetState.creditor, assetKey);
         assertEq(actualExposure, expectedExposure);
     }
 
@@ -117,17 +129,21 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is Abs
 
         // When: Asset is indirectly withdrawn.
         vm.prank(address(mainRegistryExtension));
-        (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = pricingModule.processIndirectWithdrawal(
-            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, -int256(deltaExposureUpperAssetToAsset)
+        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = pricingModule.processIndirectWithdrawal(
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            -int256(deltaExposureUpperAssetToAsset)
         );
 
         // Then: Correct output variables are returned.
         assertTrue(primaryFlag);
-        assertEq(usdValueExposureUpperAssetToAsset, assetState.usdValueExposureUpperAssetToAsset);
+        assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // And: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
-        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
+        (uint128 actualExposure,,,) = pricingModule.riskParams(assetState.creditor, assetKey);
         assertEq(actualExposure, expectedExposure);
     }
 
@@ -144,17 +160,21 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryPricingModule_Fuzz_Test is Abs
 
         // When: Asset is indirectly withdrawn.
         vm.prank(address(mainRegistryExtension));
-        (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) = pricingModule.processIndirectWithdrawal(
-            assetState.asset, assetState.assetId, exposureUpperAssetToAsset, -int256(deltaExposureUpperAssetToAsset)
+        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = pricingModule.processIndirectWithdrawal(
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            -int256(deltaExposureUpperAssetToAsset)
         );
 
         // Then: Correct output variables are returned.
         assertTrue(primaryFlag);
-        assertEq(usdValueExposureUpperAssetToAsset, assetState.usdValueExposureUpperAssetToAsset);
+        assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // And: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
-        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
+        (uint128 actualExposure,,,) = pricingModule.riskParams(assetState.creditor, assetKey);
         assertEq(actualExposure, 0);
     }
 }

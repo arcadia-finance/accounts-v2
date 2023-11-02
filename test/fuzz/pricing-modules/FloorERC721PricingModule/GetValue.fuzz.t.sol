@@ -22,8 +22,11 @@ contract GetValue_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
 
         // Add Nft2 (which has an oracle directly to usd).
         vm.prank(users.creatorAddress);
-        floorERC721PricingModule.addAsset(
-            address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr, emptyRiskVarInput, type(uint128).max
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr);
+
+        vm.prank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC721.nft2), 0, type(uint128).max, 0, 0
         );
     }
 
@@ -46,7 +49,7 @@ contract GetValue_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
             asset: address(mockERC721.nft2),
             assetId: assetId,
             assetAmount: amount,
-            baseCurrency: UsdBaseCurrencyID
+            creditor: address(creditorUsd)
         });
         // When: getValue called
         (uint256 actualValueInUsd,,) = floorERC721PricingModule.getValue(getValueInput);

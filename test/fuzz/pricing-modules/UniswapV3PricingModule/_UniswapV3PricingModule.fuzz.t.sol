@@ -186,20 +186,13 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
         internal
     {
         addUnderlyingTokenToArcadia(token, price);
-        erc20PricingModule.setExposure(token, initialExposure, maxExposure);
+        erc20PricingModule.setExposure(address(creditorUsd), token, initialExposure, maxExposure);
     }
 
     function addUnderlyingTokenToArcadia(address token, int256 price) internal {
         ArcadiaOracle oracle = initMockedOracle(0, "Token / USD");
         address[] memory oracleArr = new address[](1);
         oracleArr[0] = address(oracle);
-        PricingModule.RiskVarInput[] memory riskVars = new PricingModule.RiskVarInput[](1);
-        riskVars[0] = PricingModule.RiskVarInput({
-            baseCurrency: 0,
-            asset: address(0),
-            collateralFactor: 80,
-            liquidationFactor: 90
-        });
 
         vm.prank(users.defaultTransmitter);
         oracle.transmit(price);
@@ -214,8 +207,11 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
                 isActive: true
             })
         );
-        erc20PricingModule.addAsset(token, oracleArr, riskVars, type(uint128).max);
+        erc20PricingModule.addAsset(token, oracleArr);
         vm.stopPrank();
+
+        vm.prank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint128).max, 80, 90);
     }
 
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)

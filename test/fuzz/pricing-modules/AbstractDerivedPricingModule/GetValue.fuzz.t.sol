@@ -48,7 +48,7 @@ contract GetValue_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPrici
                 asset: assetState.asset,
                 assetId: assetState.assetId,
                 assetAmount: amount,
-                baseCurrency: 0
+                creditor: address(creditorUsd)
             })
         );
 
@@ -68,7 +68,7 @@ contract GetValue_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPrici
 
         // And: State is persisted.
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
         // Prepare expected internal call.
         bytes memory data = abi.encodeCall(
@@ -78,7 +78,7 @@ contract GetValue_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPrici
                     asset: assetState.underlyingAsset,
                     assetId: assetState.underlyingAssetId,
                     assetAmount: assetState.exposureAssetToUnderlyingAsset,
-                    baseCurrency: 0
+                    creditor: address(creditorUsd)
                 })
             )
         );
@@ -91,7 +91,7 @@ contract GetValue_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPrici
                 asset: assetState.asset,
                 assetId: assetState.assetId,
                 assetAmount: amount,
-                baseCurrency: 0
+                creditor: address(creditorUsd)
             })
         );
 

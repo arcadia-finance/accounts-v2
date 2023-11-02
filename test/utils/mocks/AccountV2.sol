@@ -339,7 +339,9 @@ contract AccountV2 is AccountStorageV2 {
     function getAccountValue(address baseCurrency_) external view returns (uint256 accountValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
-        accountValue = IMainRegistry(registry).getTotalValue(assetAddresses, assetIds, assetAmounts, baseCurrency_);
+        accountValue = IMainRegistry(registry).getTotalValue(
+            baseCurrency_, trustedCreditor, assetAddresses, assetIds, assetAmounts
+        );
     }
 
     /**
@@ -356,8 +358,9 @@ contract AccountV2 is AccountStorageV2 {
     function getCollateralValue() public view returns (uint256 collateralValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
-        collateralValue =
-            IMainRegistry(registry).getCollateralValue(assetAddresses, assetIds, assetAmounts, baseCurrency);
+        collateralValue = IMainRegistry(registry).getCollateralValue(
+            baseCurrency, trustedCreditor, assetAddresses, assetIds, assetAmounts
+        );
     }
 
     /**
@@ -373,8 +376,9 @@ contract AccountV2 is AccountStorageV2 {
     function getLiquidationValue() public view returns (uint256 liquidationValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
-        liquidationValue =
-            IMainRegistry(registry).getLiquidationValue(assetAddresses, assetIds, assetAmounts, baseCurrency);
+        liquidationValue = IMainRegistry(registry).getLiquidationValue(
+            baseCurrency, trustedCreditor, assetAddresses, assetIds, assetAmounts
+        );
     }
 
     /**
@@ -561,7 +565,7 @@ contract AccountV2 is AccountStorageV2 {
     ) internal {
         //Reverts in mainRegistry if input is invalid.
         uint256[] memory assetTypes =
-            IMainRegistry(registry).batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
+            IMainRegistry(registry).batchProcessDeposit(trustedCreditor, assetAddresses, assetIds, assetAmounts);
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {
@@ -638,7 +642,7 @@ contract AccountV2 is AccountStorageV2 {
     ) internal {
         //Reverts in mainRegistry if input is invalid.
         uint256[] memory assetTypes =
-            IMainRegistry(registry).batchProcessWithdrawal(assetAddresses, assetIds, assetAmounts); //reverts in mainregistry if invalid input
+            IMainRegistry(registry).batchProcessWithdrawal(trustedCreditor, assetAddresses, assetIds, assetAmounts); //reverts in mainregistry if invalid input
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {
@@ -999,8 +1003,10 @@ contract AccountV2 is AccountStorageV2 {
      */
     function upgradeHook(address, address oldRegistry, uint16, bytes calldata) external {
         require(msg.sender == address(this), "Not the right address");
-        IMainRegistry(oldRegistry).batchProcessWithdrawal(new address[](0), new uint256[](0), new uint256[](0));
-        IMainRegistry(registry).batchProcessDeposit(new address[](0), new uint256[](0), new uint256[](0));
+        IMainRegistry(oldRegistry).batchProcessWithdrawal(
+            address(0), new address[](0), new uint256[](0), new uint256[](0)
+        );
+        IMainRegistry(registry).batchProcessDeposit(address(0), new address[](0), new uint256[](0), new uint256[](0));
 
         storageV2 = returnFive();
     }

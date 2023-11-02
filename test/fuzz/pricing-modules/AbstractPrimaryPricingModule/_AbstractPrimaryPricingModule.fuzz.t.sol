@@ -26,11 +26,12 @@ abstract contract AbstractPrimaryPricingModule_Fuzz_Test is Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     struct PrimaryPricingModuleAssetState {
+        address creditor;
         address asset;
         uint96 assetId;
         uint128 exposureAssetLast;
         uint128 exposureAssetMax;
-        uint256 usdValueExposureUpperAssetToAsset;
+        uint256 usdExposureUpperAssetToAsset;
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -55,9 +56,13 @@ abstract contract AbstractPrimaryPricingModule_Fuzz_Test is Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
     function setPrimaryPricingModuleAssetState(PrimaryPricingModuleAssetState memory assetState) internal {
         pricingModule.setExposure(
-            assetState.asset, assetState.assetId, assetState.exposureAssetLast, assetState.exposureAssetMax
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            assetState.exposureAssetLast,
+            assetState.exposureAssetMax
         );
 
-        pricingModule.setUsdValue(assetState.usdValueExposureUpperAssetToAsset);
+        pricingModule.setUsdValue(assetState.usdExposureUpperAssetToAsset);
     }
 }

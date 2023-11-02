@@ -55,13 +55,10 @@ contract UniswapV3PricingModule is DerivedPricingModule {
 
     /**
      * @param mainRegistry_ The contract address of the MainRegistry.
-     * @param riskManager_ The address of the Risk Manager.
      * @param nonFungiblePositionManager The contract address of the protocols NonFungiblePositionManager.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for Uniswap V3 Liquidity Positions (ERC721) is 1.
      */
-    constructor(address mainRegistry_, address riskManager_, address nonFungiblePositionManager)
-        DerivedPricingModule(mainRegistry_, 1, riskManager_)
-    {
+    constructor(address mainRegistry_, address nonFungiblePositionManager) DerivedPricingModule(mainRegistry_, 1) {
         NON_FUNGIBLE_POSITION_MANAGER = nonFungiblePositionManager;
         UNISWAP_V3_FACTORY = INonfungiblePositionManager(nonFungiblePositionManager).factory();
     }
@@ -378,7 +375,7 @@ contract UniswapV3PricingModule is DerivedPricingModule {
      * - asset: The contract address of the asset.
      * - assetId: The Id of the range.
      * - assetAmount: Since ERC721 tokens have no amount, the amount should be set to 1.
-     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * - creditor: The contract address of the creditor.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
      * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
@@ -396,10 +393,10 @@ contract UniswapV3PricingModule is DerivedPricingModule {
         // Fetch the risk variables of the underlying tokens for the given baseCurrency.
         (uint256 collateralFactor0, uint256 liquidationFactor0) = IPricingModule(
             IMainRegistry(MAIN_REGISTRY).getPricingModuleOfAsset(token0)
-        ).getRiskVariables(token0, getValueInput.baseCurrency);
+        ).getRiskFactors(getValueInput.creditor, token0, 0);
         (uint256 collateralFactor1, uint256 liquidationFactor1) = IPricingModule(
             IMainRegistry(MAIN_REGISTRY).getPricingModuleOfAsset(token1)
-        ).getRiskVariables(token1, getValueInput.baseCurrency);
+        ).getRiskFactors(getValueInput.creditor, token1, 0);
 
         // We take the most conservative (lowest) factor of both underlying assets.
         // If one token loses in value compared to the other token, Liquidity Providers will be relatively more exposed
@@ -421,11 +418,15 @@ contract UniswapV3PricingModule is DerivedPricingModule {
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public override onlyMainReg {
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
+        public
+        override
+        onlyMainReg
+    {
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Pricing Module.
         _addAsset(assetId);
 
-        super.processDirectDeposit(asset, assetId, amount);
+        super.processDirectDeposit(creditor, asset, assetId, amount);
     }
 
     /**
@@ -436,15 +437,17 @@ contract UniswapV3PricingModule is DerivedPricingModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function processIndirectDeposit(
+        address creditor,
         address asset,
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) public override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Pricing Module.
         _addAsset(assetId);
 
-        (primaryFlag, usdValueExposureUpperAssetToAsset) =
-            super.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
+            creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
     }
 }

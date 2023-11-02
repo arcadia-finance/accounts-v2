@@ -103,9 +103,7 @@ contract MainRegistryExtension is MainRegistry {
 }
 
 abstract contract AbstractPricingModuleExtension is PricingModule {
-    constructor(address mainRegistry_, uint256 assetType_, address riskManager_)
-        PricingModule(mainRegistry_, assetType_, riskManager_)
-    { }
+    constructor(address mainRegistry_, uint256 assetType_) PricingModule(mainRegistry_, assetType_) { }
 
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
@@ -113,14 +111,6 @@ abstract contract AbstractPricingModuleExtension is PricingModule {
 
     function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
         (key) = _getKeyFromAsset(asset, assetId);
-    }
-
-    function setRiskVariablesForAsset(address asset, RiskVarInput[] memory riskVarInputs) public {
-        _setRiskVariablesForAsset(asset, riskVarInputs);
-    }
-
-    function setRiskVariables(address asset, uint256 basecurrency, RiskVars memory riskVars_) public {
-        _setRiskVariables(asset, basecurrency, riskVars_);
     }
 }
 
@@ -133,58 +123,66 @@ abstract contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule 
         primaryFlag = PRIMARY_FLAG;
     }
 
-    function setExposure(address asset, uint256 assetId, uint128 exposureLast, uint128 maxExposure) public {
+    function setExposure(
+        address creditor,
+        address asset,
+        uint256 assetId,
+        uint128 lastExposureAsset,
+        uint128 maxExposure
+    ) public {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
-        exposure[assetKey].exposureLast = exposureLast;
-        exposure[assetKey].maxExposure = maxExposure;
+        riskParams[creditor][assetKey].lastExposureAsset = lastExposureAsset;
+        riskParams[creditor][assetKey].maxExposure = maxExposure;
     }
 }
 
 abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
-    constructor(address mainRegistry_, uint256 assetType_, address riskManager_)
-        DerivedPricingModule(mainRegistry_, assetType_, riskManager_)
-    { }
+    constructor(address mainRegistry_, uint256 assetType_) DerivedPricingModule(mainRegistry_, assetType_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
     }
 
-    function getAssetToExposureLast(bytes32 assetKey)
+    function getAssetExposureLast(address creditor, bytes32 assetKey)
         external
         view
-        returns (uint128 exposureLast, uint128 usdValueExposureLast)
+        returns (uint128 lastExposureAsset_, uint128 lastUsdExposureAsset)
     {
-        exposureLast = assetToExposureLast[assetKey].exposureLast;
-        usdValueExposureLast = assetToExposureLast[assetKey].usdValueExposureLast;
+        lastExposureAsset_ = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
+        lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
     }
 
-    function getExposureAssetToUnderlyingAssetsLast(bytes32 assetKey, bytes32 underlyingAssetKey)
+    function getExposureAssetToUnderlyingAssetsLast(address creditor, bytes32 assetKey, bytes32 underlyingAssetKey)
         external
         view
         returns (uint256 exposureAssetToUnderlyingAssetsLast_)
     {
-        exposureAssetToUnderlyingAssetsLast_ = exposureAssetToUnderlyingAssetsLast[assetKey][underlyingAssetKey];
+        exposureAssetToUnderlyingAssetsLast_ =
+            lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKey];
     }
 
-    function setUsdExposureProtocol(uint256 maxUsdExposureProtocol_, uint256 usdExposureProtocol_) public {
-        maxUsdExposureProtocol = maxUsdExposureProtocol_;
-        usdExposureProtocol = usdExposureProtocol_;
+    function setUsdExposureProtocol(address creditor, uint128 maxUsdExposureProtocol_, uint128 usdExposureProtocol_)
+        public
+    {
+        riskParams[creditor].maxUsdExposureProtocol = maxUsdExposureProtocol_;
+        riskParams[creditor].lastUsdExposureProtocol = usdExposureProtocol_;
     }
 
     function setAssetInformation(
+        address creditor,
         address asset,
         uint256 assetId,
         address underLyingAsset,
         uint256 underlyingAssetId,
-        uint128 exposureAssetLast_,
-        uint128 usdValueExposureAssetLast_,
+        uint128 exposureAssetLast,
+        uint128 lastUsdExposureAsset,
         uint128 exposureAssetToUnderlyingAssetLast
     ) public {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
         bytes32 underLyingAssetKey = _getKeyFromAsset(underLyingAsset, underlyingAssetId);
-        assetToExposureLast[assetKey].exposureLast = exposureAssetLast_;
-        assetToExposureLast[assetKey].usdValueExposureLast = usdValueExposureAssetLast_;
-        exposureAssetToUnderlyingAssetsLast[assetKey][underLyingAssetKey] = exposureAssetToUnderlyingAssetLast;
+        lastExposuresAsset[creditor][assetKey].lastExposureAsset = exposureAssetLast;
+        lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = lastUsdExposureAsset;
+        lastExposureAssetToUnderlyingAsset[creditor][assetKey][underLyingAssetKey] = exposureAssetToUnderlyingAssetLast;
     }
 
     function getRateUnderlyingAssetsToUsd(bytes32[] memory underlyingAssetKeys)
@@ -195,19 +193,25 @@ abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule 
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(underlyingAssetKeys);
     }
 
-    function processDeposit(bytes32 assetKey, uint256 exposureAsset) public returns (uint256 usdValueExposureAsset) {
-        usdValueExposureAsset = _processDeposit(assetKey, exposureAsset);
-    }
-
-    function getAndUpdateExposureAsset(bytes32 assetKey, int256 deltaAsset) public returns (uint256 exposureAsset) {
-        exposureAsset = _getAndUpdateExposureAsset(assetKey, deltaAsset);
-    }
-
-    function processWithdrawal(bytes32 assetKey, uint256 exposureAsset)
+    function processDeposit(address creditor, bytes32 assetKey, uint256 exposureAsset)
         public
-        returns (uint256 usdValueExposureAsset)
+        returns (uint256 usdExposureAsset)
     {
-        usdValueExposureAsset = _processWithdrawal(assetKey, exposureAsset);
+        usdExposureAsset = _processDeposit(creditor, assetKey, exposureAsset);
+    }
+
+    function getAndUpdateExposureAsset(address creditor, bytes32 assetKey, int256 deltaAsset)
+        public
+        returns (uint256 exposureAsset)
+    {
+        exposureAsset = _getAndUpdateExposureAsset(creditor, assetKey, deltaAsset);
+    }
+
+    function processWithdrawal(address creditor, bytes32 assetKey, uint256 exposureAsset)
+        public
+        returns (uint256 usdExposureAsset)
+    {
+        usdExposureAsset = _processWithdrawal(creditor, assetKey, exposureAsset);
     }
 
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
@@ -234,10 +238,10 @@ contract StandardERC20PricingModuleExtension is StandardERC20PricingModule {
         (key) = _getKeyFromAsset(asset, assetId);
     }
 
-    function setExposure(address asset, uint128 exposureLast, uint128 maxExposure) public {
+    function setExposure(address creditor, address asset, uint128 lastExposureAsset, uint128 maxExposure) public {
         bytes32 assetKey = _getKeyFromAsset(asset, 0);
-        exposure[assetKey].exposureLast = exposureLast;
-        exposure[assetKey].maxExposure = maxExposure;
+        riskParams[creditor][assetKey].lastExposureAsset = lastExposureAsset;
+        riskParams[creditor][assetKey].maxExposure = maxExposure;
     }
 }
 
@@ -356,8 +360,8 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
 }
 
 contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
-    constructor(address mainRegistry_, address riskManager_, address nonfungiblePositionManager)
-        UniswapV3PricingModule(mainRegistry_, riskManager_, nonfungiblePositionManager)
+    constructor(address mainRegistry_, address nonfungiblePositionManager)
+        UniswapV3PricingModule(mainRegistry_, nonfungiblePositionManager)
     { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {

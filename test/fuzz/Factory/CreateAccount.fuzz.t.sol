@@ -118,19 +118,19 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint256 amountBefore = factory.allAccountsLength();
 
         vm.expectEmit();
-        emit TrustedMarginAccountChanged(address(trustedCreditor), Constants.initLiquidator);
+        emit TrustedMarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
         vm.expectEmit();
         emit Transfer(address(0), address(this), amountBefore + 1);
         vm.expectEmit(false, true, true, true);
         emit AccountUpgraded(address(0), 0, 1);
 
         // Here we create a Account by specifying the trusted creditor address
-        address actualDeployed = factory.createAccount(salt, 0, address(0), address(trustedCreditor));
+        address actualDeployed = factory.createAccount(salt, 0, address(0), address(creditorStable1));
 
         assertEq(amountBefore + 1, factory.allAccountsLength());
         assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
         assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
-        assertEq(AccountV1(actualDeployed).trustedCreditor(), address(trustedCreditor));
+        assertEq(AccountV1(actualDeployed).trustedCreditor(), address(creditorStable1));
         assertEq(AccountV1(actualDeployed).isTrustedCreditorSet(), true);
     }
 

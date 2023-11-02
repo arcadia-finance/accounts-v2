@@ -35,8 +35,8 @@ contract CalculateLiquidationValue_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
         values[1].valueInBaseCurrency = secondValue;
 
         // And: Liquidation factors are within allowed ranges
-        vm.assume(firstLiqFactor <= RiskConstants.MAX_LIQUIDATION_FACTOR);
-        vm.assume(secondLiqFactor <= RiskConstants.MAX_LIQUIDATION_FACTOR);
+        vm.assume(firstLiqFactor <= RiskConstants.RISK_FACTOR_UNIT);
+        vm.assume(secondLiqFactor <= RiskConstants.RISK_FACTOR_UNIT);
 
         values[0].liquidationFactor = firstLiqFactor;
         values[1].liquidationFactor = secondLiqFactor;

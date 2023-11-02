@@ -40,12 +40,12 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         assetAmounts[1] = 10;
 
         vm.expectRevert(bytes(""));
-        mainRegistryExtension.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, 0);
+        mainRegistryExtension.getListOfValuesPerAsset(0, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
-    function testFuzz_Revert_getListOfValuesPerAsset_UnknownBaseCurrencyId(uint256 basecurrency) public {
+    function testFuzz_Revert_getListOfValuesPerAsset_UnknownBaseCurrencyId(uint256 baseCurrency) public {
         // Given: the baseCurrencyID is greater than the number of baseCurrencies added in the protocol
-        vm.assume(basecurrency >= 3);
+        vm.assume(baseCurrency >= 3);
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
@@ -60,13 +60,15 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         assetAmounts[1] = 10;
 
         vm.expectRevert(bytes(""));
-        mainRegistryExtension.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, basecurrency);
+        mainRegistryExtension.getListOfValuesPerAsset(
+            baseCurrency, address(creditorUsd), assetAddresses, assetIds, assetAmounts
+        );
     }
 
-    function testFuzz_Revert_getListOfValuesPerAsset_UnknownBaseCurrencyAddress(address basecurrency) public {
-        vm.assume(basecurrency != address(0));
-        vm.assume(basecurrency != address(mockERC20.stable1));
-        vm.assume(basecurrency != address(mockERC20.token1));
+    function testFuzz_Revert_getListOfValuesPerAsset_UnknownBaseCurrencyAddress(address baseCurrency) public {
+        vm.assume(baseCurrency != address(0));
+        vm.assume(baseCurrency != address(mockERC20.stable1));
+        vm.assume(baseCurrency != address(mockERC20.token1));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.stable2);
@@ -81,7 +83,9 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         assetAmounts[1] = 10;
 
         vm.expectRevert("MR_GLVA: UNKNOWN_BASECURRENCY");
-        mainRegistryExtension.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, basecurrency);
+        mainRegistryExtension.getListOfValuesPerAsset(
+            baseCurrency, address(creditorUsd), assetAddresses, assetIds, assetAmounts
+        );
     }
 
     function testFuzz_Success_getListOfValuesPerAsset_BaseCurrencyIsUsd() public {
@@ -100,8 +104,8 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         assetAmounts[1] = 10 ** Constants.tokenDecimals;
         assetAmounts[2] = 1;
 
-        RiskModule.AssetValueAndRiskVariables[] memory actualValuesPerAsset =
-            mainRegistryExtension.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, UsdBaseCurrencyID);
+        RiskModule.AssetValueAndRiskVariables[] memory actualValuesPerAsset = mainRegistryExtension
+            .getListOfValuesPerAsset(UsdBaseCurrencyID, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         uint256 stable1ValueInUsd = convertAssetToUsd(Constants.stableDecimals, assetAmounts[0], oracleStable1ToUsdArr);
         uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, assetAmounts[1], oracleToken1ToUsdArr);
@@ -136,8 +140,8 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         assetAmounts[1] = 10 ** Constants.tokenDecimals;
         assetAmounts[2] = 1;
 
-        RiskModule.AssetValueAndRiskVariables[] memory actualValuesPerAsset =
-            mainRegistryExtension.getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, Token1BaseCurrencyID);
+        RiskModule.AssetValueAndRiskVariables[] memory actualValuesPerAsset = mainRegistryExtension
+            .getListOfValuesPerAsset(Token1BaseCurrencyID, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         uint256 stable1ValueInUsd = convertAssetToUsd(Constants.stableDecimals, assetAmounts[0], oracleStable1ToUsdArr);
         uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, assetAmounts[1], oracleToken1ToUsdArr);

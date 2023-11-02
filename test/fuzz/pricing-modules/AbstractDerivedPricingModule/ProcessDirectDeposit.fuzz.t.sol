@@ -23,6 +23,7 @@ contract ProcessDirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstract
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_processDirectDeposit_NonMainRegistry(
         address unprivilegedAddress_,
+        address creditor,
         address asset,
         uint256 id,
         uint128 amount
@@ -31,7 +32,7 @@ contract ProcessDirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstract
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        derivedPricingModule.processDirectDeposit(asset, id, amount);
+        derivedPricingModule.processDirectDeposit(creditor, asset, id, amount);
         vm.stopPrank();
     }
 
@@ -51,13 +52,15 @@ contract ProcessDirectDeposit_AbstractDerivedPricingModule_Fuzz_Test is Abstract
         assert(amount >= 0);
 
         // And: State is persisted.
-        setDerivedPricingModuleProtocolState(protocolState);
+        setDerivedPricingModuleProtocolState(protocolState, assetState.creditor);
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
         // When: "MainRegistry" calls "processDirectDeposit".
         vm.prank(address(mainRegistryExtension));
-        derivedPricingModule.processDirectDeposit(assetState.asset, assetState.assetId, uint256(amount));
+        derivedPricingModule.processDirectDeposit(
+            assetState.creditor, assetState.asset, assetState.assetId, uint256(amount)
+        );
 
         // Then: Transaction does not revert.
     }

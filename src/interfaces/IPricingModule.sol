@@ -10,7 +10,7 @@ interface IPricingModule {
         address asset; // The contract address of the asset.
         uint256 assetId; // The Id of the asset.
         uint256 assetAmount; // The amount of assets.
-        uint256 baseCurrency; // Identifier of the BaseCurrency.
+        address creditor; // The contract address of the creditor.
     }
 
     /**
@@ -32,13 +32,14 @@ interface IPricingModule {
     function getValue(GetValueInput memory input) external view returns (uint256, uint256, uint256);
 
     /**
-     * @notice Returns the risk variables of an asset.
+     * @notice Returns the risk factors of an asset for a creditor.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
-     * @param baseCurrency An identifier (uint256) of the BaseCurrency.
-     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, 2 decimals precision.
+     * @param assetId The Id of the asset.
+     * @return collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
      */
-    function getRiskVariables(address asset, uint256 baseCurrency) external view returns (uint16, uint16);
+    function getRiskFactors(address creditor, address asset, uint256 assetId) external view returns (uint16, uint16);
 
     /**
      * @notice Increases the exposure to an asset on deposit.
@@ -46,7 +47,7 @@ interface IPricingModule {
      * @param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256 id, uint256 amount) external;
+    function processDirectDeposit(address creditor, address asset, uint256 id, uint256 amount) external;
 
     /**
      * @notice Increases the exposure to an underlying asset on deposit.
@@ -56,6 +57,7 @@ interface IPricingModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function processIndirectDeposit(
+        address creditor,
         address asset,
         uint256 id,
         uint256 exposureUpperAssetToAsset,
@@ -68,7 +70,7 @@ interface IPricingModule {
      * @param id The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectWithdrawal(address asset, uint256 id, uint256 amount) external;
+    function processDirectWithdrawal(address creditor, address asset, uint256 id, uint256 amount) external;
 
     /**
      * @notice Decreases the exposure to an underlying asset on withdrawal.
@@ -78,6 +80,7 @@ interface IPricingModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function processIndirectWithdrawal(
+        address creditor,
         address asset,
         uint256 id,
         uint256 exposureUpperAssetToAsset,

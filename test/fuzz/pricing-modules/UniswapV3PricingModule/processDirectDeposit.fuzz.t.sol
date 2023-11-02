@@ -47,6 +47,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_processDirectDeposit_NonMainRegistry(
+        address creditor,
         address unprivilegedAddress,
         address asset,
         uint256 id
@@ -55,11 +56,11 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        uniV3PricingModule.processDirectDeposit(asset, id, 1);
+        uniV3PricingModule.processDirectDeposit(creditor, asset, id, 1);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_processDirectDeposit_ZeroLiquidity() public {
+    function testFuzz_Revert_processDirectDeposit_ZeroLiquidity(address creditor) public {
         // Create Uniswap V3 pool initiated at tick 0 with cardinality 300.
         pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(0), 300);
 
@@ -83,7 +84,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("PMUV3_AA: 0 liquidity");
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
+        uniV3PricingModule.processDirectDeposit(creditor, address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -134,7 +135,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("APPM_PID: Exposure not in limits");
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
+        uniV3PricingModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -191,7 +192,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("APPM_PID: Exposure not in limits");
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
+        uniV3PricingModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -199,7 +200,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
-        uint256 maxUsdExposureProtocol,
+        uint128 maxUsdExposureProtocol,
         uint256 priceToken0,
         uint256 priceToken1,
         uint128 initialExposure0,
@@ -233,43 +234,51 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         ticks[1] = tickLower;
         ticks[2] = tickUpper;
 
-        // Calculate amounts of underlying tokens.
-        // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
-        // This is because there might be some small differences due to rounding errors.
-        (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
-        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
-        );
+        {
+            // Calculate amounts of underlying tokens.
+            // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
+            // This is because there might be some small differences due to rounding errors.
+            (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+            (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
+                sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
+            );
 
-        // Check that exposure to underlying tokens stays below maxExposures.
-        vm.assume(amount0 + initialExposure0 <= maxExposure0);
-        vm.assume(amount1 + initialExposure1 <= maxExposure1);
+            // Check that exposure to underlying tokens stays below maxExposures.
+            vm.assume(amount0 + initialExposure0 <= maxExposure0);
+            vm.assume(amount1 + initialExposure1 <= maxExposure1);
 
-        // And: Usd value of underlying assets does not overflow.
-        vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-        vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            // And: Usd value of underlying assets does not overflow.
+            vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+        }
 
         // Add underlying tokens and its oracles to Arcadia.
         addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
         addUnderlyingTokenToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
 
-        // And: usd exposure to protocol below max usd exposure.
-        (uint256 usdExposureProtocol,,) = uniV3PricingModule.getValue(
-            IPricingModule.GetValueInput({
-                asset: address(nonfungiblePositionManager),
-                assetId: tokenId,
-                assetAmount: 1,
-                baseCurrency: 0
-            })
+        {
+            // And: usd exposure to protocol below max usd exposure.
+            (uint256 usdExposureProtocol,,) = uniV3PricingModule.getValue(
+                IPricingModule.GetValueInput({
+                    asset: address(nonfungiblePositionManager),
+                    assetId: tokenId,
+                    assetAmount: 1,
+                    creditor: address(creditorUsd)
+                })
+            );
+            vm.assume(usdExposureProtocol > 0);
+            vm.assume(usdExposureProtocol <= type(uint128).max);
+            maxUsdExposureProtocol = uint128(bound(maxUsdExposureProtocol, 0, usdExposureProtocol - 1));
+        }
+
+        vm.prank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfDerivedPricingModule(
+            address(creditorUsd), address(uniV3PricingModule), maxUsdExposureProtocol, 100
         );
-        vm.assume(usdExposureProtocol > 0);
-        maxUsdExposureProtocol = bound(maxUsdExposureProtocol, 0, usdExposureProtocol - 1);
-        vm.prank(users.creatorAddress);
-        uniV3PricingModule.setMaxUsdExposureProtocol(maxUsdExposureProtocol);
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("ADPM_PD: Exposure not in limits");
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
+        uniV3PricingModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -277,7 +286,7 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
-        uint256 maxUsdExposureProtocol,
+        uint128 maxUsdExposureProtocol,
         uint256 priceToken0,
         uint256 priceToken1,
         uint128 initialExposure0,
@@ -310,40 +319,48 @@ contract ProcessDirectDeposit_UniswapV3PricingModule_Fuzz_Test is UniswapV3Prici
         ticks[1] = tickLower;
         ticks[2] = tickUpper;
 
-        // Calculate amounts of underlying tokens.
-        // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
-        // This is because there might be some small differences due to rounding errors.
-        (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
-        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
-        );
+        {
+            // Calculate amounts of underlying tokens.
+            // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
+            // This is because there might be some small differences due to rounding errors.
+            (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+            (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
+                sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
+            );
 
-        // Check that exposure to underlying tokens stays below maxExposures.
-        vm.assume(amount0 + initialExposure0 <= maxExposure0);
-        vm.assume(amount1 + initialExposure1 <= maxExposure1);
+            // Check that exposure to underlying tokens stays below maxExposures.
+            vm.assume(amount0 + initialExposure0 <= maxExposure0);
+            vm.assume(amount1 + initialExposure1 <= maxExposure1);
 
-        // And: Usd value of underlying assets does not overflow.
-        vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-        vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            // And: Usd value of underlying assets does not overflow.
+            vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+        }
 
         // Add underlying tokens and its oracles to Arcadia.
         addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
         addUnderlyingTokenToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
 
-        // And: usd exposure to protocol below max usd exposure.
-        (uint256 usdExposureProtocol,,) = uniV3PricingModule.getValue(
-            IPricingModule.GetValueInput({
-                asset: address(nonfungiblePositionManager),
-                assetId: tokenId,
-                assetAmount: 1,
-                baseCurrency: 0
-            })
+        {
+            // And: usd exposure to protocol below max usd exposure.
+            (uint256 usdExposureProtocol,,) = uniV3PricingModule.getValue(
+                IPricingModule.GetValueInput({
+                    asset: address(nonfungiblePositionManager),
+                    assetId: tokenId,
+                    assetAmount: 1,
+                    creditor: address(creditorUsd)
+                })
+            );
+            vm.assume(usdExposureProtocol <= type(uint128).max);
+            maxUsdExposureProtocol = uint128(bound(maxUsdExposureProtocol, usdExposureProtocol, type(uint128).max));
+        }
+
+        vm.prank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfDerivedPricingModule(
+            address(creditorUsd), address(uniV3PricingModule), maxUsdExposureProtocol, 100
         );
-        maxUsdExposureProtocol = bound(maxUsdExposureProtocol, usdExposureProtocol, type(uint256).max);
-        vm.prank(users.creatorAddress);
-        uniV3PricingModule.setMaxUsdExposureProtocol(maxUsdExposureProtocol);
 
         vm.prank(address(mainRegistryExtension));
-        uniV3PricingModule.processDirectDeposit(address(nonfungiblePositionManager), tokenId, 1);
+        uniV3PricingModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
     }
 }

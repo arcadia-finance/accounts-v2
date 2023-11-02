@@ -24,8 +24,11 @@ contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
 
         // Add Sft2 (which has an oracle directly to usd).
         vm.prank(users.creatorAddress);
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 1, oracleSft2ToUsdArr);
+
+        vm.prank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC1155.sft2), 1, type(uint128).max, 0, 0
         );
     }
 
@@ -48,7 +51,7 @@ contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
             asset: address(mockERC1155.sft2),
             assetId: 1,
             assetAmount: amountSft2,
-            baseCurrency: UsdBaseCurrencyID
+            creditor: address(creditorUsd)
         });
 
         // When: getValue called
@@ -77,7 +80,7 @@ contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
             asset: address(mockERC1155.sft2),
             assetId: 0,
             assetAmount: amountSft2,
-            baseCurrency: UsdBaseCurrencyID
+            creditor: address(creditorUsd)
         });
         // When: getValue called
         (uint256 actualValueInUsd,,) = floorERC1155PricingModule.getValue(getValueInput);

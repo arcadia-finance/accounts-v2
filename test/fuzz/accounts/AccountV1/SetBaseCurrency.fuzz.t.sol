@@ -16,6 +16,9 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function setUp() public override {
         AccountV1_Fuzz_Test.setUp();
+
+        vm.prank(users.accountOwner);
+        accountExtension.closeTrustedMarginAccount();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -31,7 +34,8 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Revert_setBaseCurrency_TrustedCreditorSet() public {
-        openMarginAccount();
+        vm.prank(users.accountOwner);
+        accountExtension.openTrustedMarginAccount(address(creditorStable1));
 
         vm.startPrank(users.accountOwner);
         vm.expectRevert("A_SBC: Trusted Creditor Set");

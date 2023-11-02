@@ -47,9 +47,7 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
         vm.assume(oracle != address(mockOracles.token4ToUsd));
 
         vm.prank(users.creatorAddress);
-        erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        erc20PricingModule.addAsset(address(mockERC20.token4), oracleToken4ToUsdArr);
 
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("PM20_SO: Unknown Oracle");
@@ -59,9 +57,7 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
 
     function testFuzz_Revert_setOracles_ActiveOracle() public {
         vm.prank(users.creatorAddress);
-        erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        erc20PricingModule.addAsset(address(mockERC20.token4), oracleToken4ToUsdArr);
 
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("PM20_SO: Oracle still active");
@@ -71,9 +67,7 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
 
     function testFuzz_Revert_setOracles_BadOracleSequence() public {
         vm.prank(users.creatorAddress);
-        erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        erc20PricingModule.addAsset(address(mockERC20.token4), oracleToken4ToUsdArr);
 
         vm.prank(users.defaultTransmitter);
         mockOracles.token4ToUsd.transmit(0);
@@ -87,9 +81,7 @@ contract SetOracles_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricing
 
     function testFuzz_Success_setOracles() public {
         vm.prank(users.creatorAddress);
-        erc20PricingModule.addAsset(
-            address(mockERC20.token4), oracleToken4ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        erc20PricingModule.addAsset(address(mockERC20.token4), oracleToken4ToUsdArr);
 
         vm.prank(users.defaultTransmitter);
         mockOracles.token4ToUsd.transmit(0);

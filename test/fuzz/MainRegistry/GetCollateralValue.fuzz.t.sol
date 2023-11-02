@@ -26,10 +26,10 @@ contract GetCollateralValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_getCollateralValue_UnknownBaseCurrency(address basecurrency) public {
-        vm.assume(basecurrency != address(0));
-        vm.assume(basecurrency != address(mockERC20.stable1));
-        vm.assume(basecurrency != address(mockERC20.token1));
+    function testFuzz_Revert_getCollateralValue_UnknownBaseCurrency(address baseCurrency) public {
+        vm.assume(baseCurrency != address(0));
+        vm.assume(baseCurrency != address(mockERC20.stable1));
+        vm.assume(baseCurrency != address(mockERC20.token1));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.stable2);
@@ -44,13 +44,15 @@ contract GetCollateralValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assetAmounts[1] = 10;
 
         vm.expectRevert("MR_GCV: UNKNOWN_BASECURRENCY");
-        mainRegistryExtension.getCollateralValue(assetAddresses, assetIds, assetAmounts, basecurrency);
+        mainRegistryExtension.getCollateralValue(
+            baseCurrency, address(creditorUsd), assetAddresses, assetIds, assetAmounts
+        );
     }
 
     function testFuzz_Success_getCollateralValue(int64 rateToken1ToUsd, uint64 amountToken1, uint16 collateralFactor_)
         public
     {
-        vm.assume(collateralFactor_ <= RiskConstants.MAX_COLLATERAL_FACTOR);
+        vm.assume(collateralFactor_ <= RiskConstants.RISK_FACTOR_UNIT);
         vm.assume(rateToken1ToUsd > 0);
 
         vm.prank(users.defaultTransmitter);
@@ -59,13 +61,10 @@ contract GetCollateralValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, amountToken1, oracleToken1ToUsdArr);
         vm.assume(token1ValueInUsd > 0);
 
-        PricingModule.RiskVarInput[] memory riskVarsInput = new PricingModule.RiskVarInput[](1);
-        riskVarsInput[0].asset = address(mockERC20.token1);
-        riskVarsInput[0].baseCurrency = uint8(UsdBaseCurrencyID);
-        riskVarsInput[0].collateralFactor = collateralFactor_;
-
-        vm.startPrank(users.creatorAddress);
-        erc20PricingModule.setBatchRiskVariables(riskVarsInput);
+        vm.prank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC20.token1), 0, type(uint128).max, collateralFactor_, 0
+        );
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -76,8 +75,9 @@ contract GetCollateralValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken1;
 
-        uint256 actualCollateralValue =
-            mainRegistryExtension.getCollateralValue(assetAddresses, assetIds, assetAmounts, address(0));
+        uint256 actualCollateralValue = mainRegistryExtension.getCollateralValue(
+            address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts
+        );
 
         uint256 expectedCollateralValue = token1ValueInUsd * collateralFactor_ / 100;
 

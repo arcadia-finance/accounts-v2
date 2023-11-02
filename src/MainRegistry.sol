@@ -4,13 +4,16 @@
  */
 pragma solidity 0.8.19;
 
-import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
-import { IFactory } from "./interfaces/IFactory.sol";
-import { IPricingModule } from "./interfaces/IPricingModule.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { RiskModule } from "./RiskModule.sol";
+import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
+import { IDerivedPricingModule } from "./interfaces/IDerivedPricingModule.sol";
+import { IFactory } from "./interfaces/IFactory.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IPricingModule } from "./interfaces/IPricingModule.sol";
+import { IPrimaryPricingModule } from "./interfaces/IPrimaryPricingModule.sol";
 import { MainRegistryGuardian } from "./guardians/MainRegistryGuardian.sol";
+import { RiskModule } from "./RiskModule.sol";
+import { ITrustedCreditor } from "./interfaces/ITrustedCreditor.sol";
 
 /**
  * @title Main Asset registry
@@ -256,6 +259,20 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     /////////////////////////////////////////////////////////////// */
 
     /**
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset is allowed.
+     */
+    function isAllowed(address asset, uint256 assetId) external view returns (bool) {
+        address pricingModule = assetToAssetInformation[asset].pricingModule;
+
+        if (pricingModule == address(0)) return false;
+
+        return IPricingModule(assetToAssetInformation[asset].pricingModule).isAllowed(asset, assetId);
+    }
+
+    /**
      * @notice Adds a new asset to the Main Registry.
      * @param assetAddress The contract address of the asset.
      * @param assetType Identifier for the type of the asset:
@@ -278,6 +295,54 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /**
+     * @notice Sets the risk parameters for a primary asset.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param maxExposure The maximum exposure of a creditor to the asset.
+     * @param collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
+     * @param liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     * @dev Any creditor can set risk parameters for any asset, does not have any influence on risk parameters
+     * set by other creditors.
+     */
+    function setRiskParametersOfPrimaryAsset(
+        address creditor,
+        address asset,
+        uint256 assetId,
+        uint128 maxExposure,
+        uint16 collateralFactor,
+        uint16 liquidationFactor
+    ) external {
+        require(msg.sender == ITrustedCreditor(creditor).riskManager(), "MR_SRPPA: Not Authorized");
+
+        IPrimaryPricingModule(assetToAssetInformation[asset].pricingModule).setRiskParameters(
+            creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor
+        );
+    }
+
+    /**
+     * @notice Sets the risk parameters of the Protocol for a given creditor.
+     * @param creditor The contract address of the creditor.
+     * @param pricingModule The contract address of the derived pricing-module.
+     * @param maxUsdExposureProtocol The maximum usd exposure of the protocol for each creditor, denominated in USD with 18 decimals precision.
+     * @param riskFactor The risk factor of the asset for the creditor, 2 decimals precision.
+     */
+    function setRiskParametersOfDerivedPricingModule(
+        address creditor,
+        address pricingModule,
+        uint128 maxUsdExposureProtocol,
+        uint16 riskFactor
+    ) external {
+        require(msg.sender == ITrustedCreditor(creditor).riskManager(), "MR_SRPDPM: Not Authorized");
+
+        IDerivedPricingModule(pricingModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                    WITHDRAWALS AND DEPOSITS
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
      * @notice Batch deposit multiple assets.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
@@ -289,6 +354,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @dev increaseExposure in the pricing module checks whether it's allowlisted and updates the exposure.
      */
     function batchProcessDeposit(
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata amounts
@@ -303,28 +369,12 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 
             IPricingModule(assetToAssetInformation[assetAddress].pricingModule).processDirectDeposit(
-                assetAddress, assetIds[i], amounts[i]
+                creditor, assetAddress, assetIds[i], amounts[i]
             );
 
             unchecked {
                 ++i;
             }
-        }
-    }
-
-    /**
-     * @notice Checks for a token address and the corresponding Id if it is allowed.
-     * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
-     * @return A boolean, indicating if the asset is allowed.
-     */
-    function isAllowed(address asset, uint256 assetId) external view returns (bool) {
-        address pricingModule = assetToAssetInformation[asset].pricingModule;
-
-        if (pricingModule == address(0)) {
-            return false;
-        } else {
-            return IPricingModule(assetToAssetInformation[asset].pricingModule).isAllowed(asset, assetId);
         }
     }
 
@@ -340,6 +390,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @dev batchProcessWithdrawal in the pricing module updates the exposure.
      */
     function batchProcessWithdrawal(
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata amounts
@@ -354,7 +405,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 
             IPricingModule(assetToAssetInformation[assetAddress].pricingModule).processDirectWithdrawal(
-                assetAddress, assetIds[i], amounts[i]
+                creditor, assetAddress, assetIds[i], amounts[i]
             );
 
             unchecked {
@@ -371,15 +422,19 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function getUsdValueExposureToUnderlyingAssetAfterDeposit(
+        address creditor,
         address underlyingAsset,
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
-    ) external onlyPricingModule returns (uint256 usdValueExposureAssetToUnderlyingAsset) {
-        (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule(
-            assetToAssetInformation[underlyingAsset].pricingModule
-        ).processIndirectDeposit(
-            underlyingAsset, underlyingAssetId, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
+    ) external onlyPricingModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
+        (, usdExposureAssetToUnderlyingAsset) = IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule)
+            .processIndirectDeposit(
+            creditor,
+            underlyingAsset,
+            underlyingAssetId,
+            exposureAssetToUnderlyingAsset,
+            deltaExposureAssetToUnderlyingAsset
         );
     }
 
@@ -391,15 +446,19 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
      */
     function getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
+        address creditor,
         address underlyingAsset,
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
-    ) external onlyPricingModule returns (uint256 usdValueExposureAssetToUnderlyingAsset) {
-        (, usdValueExposureAssetToUnderlyingAsset) = IPricingModule(
-            assetToAssetInformation[underlyingAsset].pricingModule
-        ).processIndirectWithdrawal(
-            underlyingAsset, underlyingAssetId, exposureAssetToUnderlyingAsset, deltaExposureAssetToUnderlyingAsset
+    ) external onlyPricingModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
+        (, usdExposureAssetToUnderlyingAsset) = IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule)
+            .processIndirectWithdrawal(
+            creditor,
+            underlyingAsset,
+            underlyingAssetId,
+            exposureAssetToUnderlyingAsset,
+            deltaExposureAssetToUnderlyingAsset
         );
     }
 
@@ -413,7 +472,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * - asset: The contract address of the asset.
      * - assetId: The Id of the asset.
      * - assetAmount: The amount of assets.
-     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * - creditor: The contract address of the creditor.
      * @return usdValue The value of the asset denominated in USD, with 18 Decimals precision.
      */
     function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256 usdValue) {
@@ -424,10 +483,11 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
     /**
      * @notice Calculates the value per asset, denominated in a given BaseCurrency.
+     * @param baseCurrency An identifier (uint256) of the BaseCurrency.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @param baseCurrency An identifier (uint256) of the BaseCurrency.
      * @return valuesAndRiskVarPerAsset The array of values per assets, denominated in BaseCurrency.
      * @dev For each token address, a corresponding id and amount at the same index should be present,
      * for tokens without Id (ERC20 for instance), the Id should be set to 0.
@@ -437,10 +497,11 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * Non-equal lists will or revert, or not take all assets into account -> lower value as actual.
      */
     function getListOfValuesPerAsset(
+        uint256 baseCurrency,
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
-        uint256[] calldata assetAmounts,
-        uint256 baseCurrency
+        uint256[] calldata assetAmounts
     ) public view returns (RiskModule.AssetValueAndRiskVariables[] memory) {
         // Cache Output array.
         uint256 assetAddressesLength = assetAddresses.length;
@@ -449,11 +510,9 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
         // Cache variables.
         IPricingModule.GetValueInput memory getValueInput;
-        getValueInput.baseCurrency = baseCurrency;
+        getValueInput.creditor = creditor;
         BaseCurrencyInformation memory baseCurrencyInformation = baseCurrencyToInformation[baseCurrency];
         int256 rateBaseCurrencyToUsd;
-        address assetAddress;
-        uint256 valueInUsd;
 
         if (baseCurrency > 0) {
             // Get the baseCurrency-USD rate if the BaseCurrency is different from USD (identifier 0).
@@ -465,24 +524,27 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             rateBaseCurrencyToUsd = 1;
         }
 
-        // Loop over all assets.
+        address assetAddress;
+        uint256 assetId;
+        uint256 valueInUsd;
         for (uint256 i; i < assetAddressesLength;) {
             assetAddress = assetAddresses[i];
+            assetId = assetIds[i];
 
             // If the asset is identical to the base Currency, we do not need to get a rate.
             // We only need to fetch the risk variables from the PricingModule.
             if (assetAddress == baseCurrencyInformation.assetAddress) {
                 valuesAndRiskVarPerAsset[i].valueInBaseCurrency = assetAmounts[i];
                 (valuesAndRiskVarPerAsset[i].collateralFactor, valuesAndRiskVarPerAsset[i].liquidationFactor) =
-                IPricingModule(assetToAssetInformation[assetAddress].pricingModule).getRiskVariables(
-                    assetAddress, baseCurrency
+                IPricingModule(assetToAssetInformation[assetAddress].pricingModule).getRiskFactors(
+                    getValueInput.creditor, assetAddress, assetId
                 );
 
                 // Else we need to fetch the value in the assets' PricingModule.
             } else {
                 // Prepare input.
                 getValueInput.asset = assetAddress;
-                getValueInput.assetId = assetIds[i];
+                getValueInput.assetId = assetId;
                 getValueInput.assetAmount = assetAmounts[i];
 
                 // Fetch the Value and the risk variables in the PricingModule.
@@ -511,43 +573,47 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
     /**
      * @notice Calculates the values per asset, denominated in a given BaseCurrency.
+     * @param baseCurrency The contract address of the BaseCurrency.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @param baseCurrency The contract address of the BaseCurrency.
      * @return valuesAndRiskVarPerAsset The array of values per assets, denominated in BaseCurrency.
      * @dev No need to check equality of length of arrays, since they are generated by the Account.
      */
     function getListOfValuesPerAsset(
+        address baseCurrency,
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
-        uint256[] calldata assetAmounts,
-        address baseCurrency
+        uint256[] calldata assetAmounts
     ) external view returns (RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset) {
         require(isBaseCurrency[baseCurrency], "MR_GLVA: UNKNOWN_BASECURRENCY");
         valuesAndRiskVarPerAsset =
-            getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, assetToBaseCurrency[baseCurrency]);
+            getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
      * @notice Calculates the combined value of a combination of assets, denominated in a given BaseCurrency.
+     * @param baseCurrency The contract address of the BaseCurrency.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @param baseCurrency The contract address of the BaseCurrency.
      * @return valueInBaseCurrency The combined value of the assets, denominated in BaseCurrency.
      * @dev No need to check equality of length of arrays, since they are generated by the Account.
      */
     function getTotalValue(
+        address baseCurrency,
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
-        uint256[] calldata assetAmounts,
-        address baseCurrency
+        uint256[] calldata assetAmounts
     ) public view returns (uint256 valueInBaseCurrency) {
         require(isBaseCurrency[baseCurrency], "MR_GTV: UNKNOWN_BASECURRENCY");
 
         RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
-            getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, assetToBaseCurrency[baseCurrency]);
+            getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
 
         for (uint256 i = 0; i < valuesAndRiskVarPerAsset.length;) {
             valueInBaseCurrency += valuesAndRiskVarPerAsset[i].valueInBaseCurrency;
@@ -559,50 +625,54 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
     /**
      * @notice Calculates the collateralValue of a combination of assets, denominated in a given BaseCurrency.
+     * @param baseCurrency The contract address of the BaseCurrency.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @param baseCurrency The contract address of the BaseCurrency.
      * @return collateralValue The collateral value of the assets, denominated in BaseCurrency.
      * @dev No need to check equality of length of arrays, since they are generated by the Account.
      * @dev The collateral value is equal to the spot value of the assets,
      * discounted by a haircut (the collateral factor).
      */
     function getCollateralValue(
+        address baseCurrency,
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
-        uint256[] calldata assetAmounts,
-        address baseCurrency
+        uint256[] calldata assetAmounts
     ) external view returns (uint256 collateralValue) {
         require(isBaseCurrency[baseCurrency], "MR_GCV: UNKNOWN_BASECURRENCY");
 
         RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
-            getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, assetToBaseCurrency[baseCurrency]);
+            getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
 
         collateralValue = RiskModule.calculateCollateralValue(valuesAndRiskVarPerAsset);
     }
 
     /**
      * @notice Calculates the getLiquidationValue of a combination of assets, denominated in a given BaseCurrency.
+     * @param baseCurrency The contract address of the BaseCurrency.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @param baseCurrency The contract address of the BaseCurrency.
      * @return liquidationValue The liquidation value of the assets, denominated in BaseCurrency.
      * @dev No need to check equality of length of arrays, since they are generated by the Account.
      * @dev The liquidation value is equal to the spot value of the assets,
      * discounted by a haircut (the liquidation factor).
      */
     function getLiquidationValue(
+        address baseCurrency,
+        address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
-        uint256[] calldata assetAmounts,
-        address baseCurrency
+        uint256[] calldata assetAmounts
     ) external view returns (uint256 liquidationValue) {
         require(isBaseCurrency[baseCurrency], "MR_GLV: UNKNOWN_BASECURRENCY");
 
         RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
-            getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, assetToBaseCurrency[baseCurrency]);
+            getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
 
         liquidationValue = RiskModule.calculateLiquidationValue(valuesAndRiskVarPerAsset);
     }

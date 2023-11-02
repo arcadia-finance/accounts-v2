@@ -25,8 +25,6 @@ contract Constructor_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricin
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address mainRegistry_, address oracleHub_) public {
         vm.startPrank(users.creatorAddress);
-        vm.expectEmit(true, true, true, true);
-        emit RiskManagerUpdated(users.creatorAddress);
         StandardERC20PricingModuleExtension erc20PricingModule_ = new StandardERC20PricingModuleExtension(
             mainRegistry_,
             oracleHub_);
@@ -35,7 +33,6 @@ contract Constructor_StandardERC20PricingModule_Fuzz_Test is StandardERC20Pricin
         assertEq(erc20PricingModule_.MAIN_REGISTRY(), mainRegistry_);
         assertEq(erc20PricingModule_.ORACLE_HUB(), oracleHub_);
         assertEq(erc20PricingModule_.ASSET_TYPE(), 0);
-        assertEq(erc20PricingModule_.riskManager(), users.creatorAddress);
         assertTrue(erc20PricingModule_.getPrimaryFlag());
     }
 }

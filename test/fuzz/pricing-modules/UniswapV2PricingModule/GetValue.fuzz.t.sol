@@ -79,7 +79,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
             asset: address(pairToken1Token2),
             assetId: 0,
             assetAmount: pairToken1Token2.totalSupply(),
-            baseCurrency: UsdBaseCurrencyID
+            creditor: address(creditorUsd)
         });
 
         //Arithmetic overflow.
@@ -162,7 +162,7 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
             asset: address(pairToken1Token2),
             assetId: 0,
             assetAmount: pairToken1Token2.totalSupply(),
-            baseCurrency: UsdBaseCurrencyID
+            creditor: address(creditorUsd)
         });
         (uint256 actualValueInUsd,,) = uniswapV2PricingModule.getValue(getValueInput);
 

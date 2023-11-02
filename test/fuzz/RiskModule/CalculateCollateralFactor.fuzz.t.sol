@@ -35,8 +35,8 @@ contract CalculateCollateralFactor_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
         values[1].valueInBaseCurrency = secondValue;
 
         // And: collateral factors are within allowed ranges
-        vm.assume(firstCollFactor <= RiskConstants.MAX_COLLATERAL_FACTOR);
-        vm.assume(secondCollFactor <= RiskConstants.MAX_COLLATERAL_FACTOR);
+        vm.assume(firstCollFactor <= RiskConstants.RISK_FACTOR_UNIT);
+        vm.assume(secondCollFactor <= RiskConstants.RISK_FACTOR_UNIT);
 
         values[0].collateralFactor = firstCollFactor;
         values[1].collateralFactor = secondCollFactor;

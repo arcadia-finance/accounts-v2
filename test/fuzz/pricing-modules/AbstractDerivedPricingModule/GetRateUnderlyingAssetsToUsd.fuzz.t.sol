@@ -35,7 +35,7 @@ contract GetRateUnderlyingAssetsToUsd_AbstractDerivedPricingModule_Fuzz_Test is
 
         // And: State is persisted.
         setDerivedPricingModuleAssetState(assetState);
-        setUnderlyingPricingModuleState(assetState.underlyingAsset, assetState.underlyingAssetId, underlyingPMState);
+        setUnderlyingPricingModuleState(assetState, underlyingPMState);
 
         // Prepare input and expected internal call.
         bytes32[] memory underlyingAssetKeys = new bytes32[](1);
@@ -49,7 +49,7 @@ contract GetRateUnderlyingAssetsToUsd_AbstractDerivedPricingModule_Fuzz_Test is
                     asset: assetState.underlyingAsset,
                     assetId: assetState.underlyingAssetId,
                     assetAmount: 1e18,
-                    baseCurrency: 0
+                    creditor: address(0)
                 })
             )
         );

@@ -43,10 +43,11 @@ contract UniswapV3PricingModule_Fork_Test is Fork_Test {
         // Deploy uniV3PricingModule.
         deployUniswapV3PricingModule(address(NONFUNGIBLE_POSITION_MANAGER));
 
-        // Set max exposure to underlying tokens.
-        vm.startPrank(users.creatorAddress);
-        uniV3PricingModule.setMaxUsdExposureProtocol(type(uint256).max);
-        vm.stopPrank();
+        // Set max exposure to uniswap V3.
+        vm.prank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfDerivedPricingModule(
+            address(uniV3PricingModule), address(0), type(uint128).max, 100
+        );
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -209,7 +210,8 @@ contract UniswapV3PricingModule_Fork_Test is Fork_Test {
         assetAmounts[0] = amountUsdc;
         assetAmounts[1] = amountWeth;
 
-        uint256 expectedValue = mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, address(0));
+        uint256 expectedValue =
+            mainRegistryExtension.getTotalValue(address(0), address(0), assetAddresses, assetIds, assetAmounts);
 
         // Precision Chainlink oracles is often in the order of percentages.
         assertInRange(actualValue, expectedValue, 2);
