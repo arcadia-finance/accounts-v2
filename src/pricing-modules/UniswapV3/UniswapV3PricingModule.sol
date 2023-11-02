@@ -180,7 +180,7 @@ contract UniswapV3PricingModule is DerivedPricingModule {
         override
         returns (
             uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
         (, uint256 assetId) = _getAssetFromKey(assetKey);
@@ -198,8 +198,8 @@ contract UniswapV3PricingModule is DerivedPricingModule {
             tickLower,
             tickUpper,
             liquidity,
-            rateUnderlyingAssetsToUsd[0].valueInBaseCurrency,
-            rateUnderlyingAssetsToUsd[1].valueInBaseCurrency
+            rateUnderlyingAssetsToUsd[0].assetValue,
+            rateUnderlyingAssetsToUsd[1].assetValue
         );
 
         // Calculate amount0 and amount1 of the accumulated fees.

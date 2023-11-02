@@ -92,5 +92,5 @@ interface IMainRegistry {
         address[] calldata assets,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset);
+    ) external view returns (RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset);
 }

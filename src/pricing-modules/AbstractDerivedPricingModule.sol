@@ -96,7 +96,7 @@ abstract contract DerivedPricingModule is PricingModule {
         internal
         view
         virtual
-        returns (RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd)
+        returns (RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
         uint256 length = underlyingAssetKeys.length;
 
@@ -138,7 +138,7 @@ abstract contract DerivedPricingModule is PricingModule {
         virtual
         returns (
             uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         );
 
     /*///////////////////////////////////////////////////////////////
@@ -246,7 +246,7 @@ abstract contract DerivedPricingModule is PricingModule {
 
         (
             uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         ) = _getUnderlyingAssetsAmounts(creditor, assetKey, assetAmount, underlyingAssetKeys);
 
         // Check if rateToUsd for the underlying assets was already calculated in _getUnderlyingAssetsAmounts().
@@ -272,15 +272,14 @@ abstract contract DerivedPricingModule is PricingModule {
     function _calculateValueAndRiskFactors(
         address creditor,
         uint256[] memory underlyingAssetsAmounts,
-        RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+        RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
     ) internal view virtual returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
         // Initialize variables with first elements of array.
         // "rateUnderlyingAssetsToUsd" is the usd value with 18 decimals precision for 10 ** 18 tokens of Underlying Asset.
         // To get the usd value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
         // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
-        valueInUsd = FixedPointMathLib.mulDivDown(
-            underlyingAssetsAmounts[0], rateUnderlyingAssetsToUsd[0].valueInBaseCurrency, 1e18
-        );
+        valueInUsd =
+            FixedPointMathLib.mulDivDown(underlyingAssetsAmounts[0], rateUnderlyingAssetsToUsd[0].assetValue, 1e18);
         collateralFactor = rateUnderlyingAssetsToUsd[0].collateralFactor;
         liquidationFactor = rateUnderlyingAssetsToUsd[0].liquidationFactor;
 
@@ -289,9 +288,8 @@ abstract contract DerivedPricingModule is PricingModule {
         //  - Keep the lowest risk factor of all underlying assets.
         uint256 length = underlyingAssetsAmounts.length;
         for (uint256 i = 1; i < length;) {
-            valueInUsd += FixedPointMathLib.mulDivDown(
-                underlyingAssetsAmounts[i], rateUnderlyingAssetsToUsd[i].valueInBaseCurrency, 1e18
-            );
+            valueInUsd +=
+                FixedPointMathLib.mulDivDown(underlyingAssetsAmounts[i], rateUnderlyingAssetsToUsd[i].assetValue, 1e18);
 
             if (collateralFactor > rateUnderlyingAssetsToUsd[i].collateralFactor) {
                 collateralFactor = rateUnderlyingAssetsToUsd[i].collateralFactor;

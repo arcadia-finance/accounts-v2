@@ -68,10 +68,10 @@ contract GetUsdValues_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = assetAmount;
 
-        RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
+        RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset =
             mainRegistryExtension.getUsdValues(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
-        assertEq(valuesAndRiskVarPerAsset[0].valueInBaseCurrency, usdValue);
+        assertEq(valuesAndRiskVarPerAsset[0].assetValue, usdValue);
         assertEq(valuesAndRiskVarPerAsset[0].collateralFactor, collateralFactor);
         assertEq(valuesAndRiskVarPerAsset[0].liquidationFactor, liquidationFactor);
     }

@@ -104,7 +104,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         assetAmounts[1] = 10 ** Constants.tokenDecimals;
         assetAmounts[2] = 1;
 
-        RiskModule.AssetValueAndRiskVariables[] memory actualValuesPerAsset = mainRegistryExtension
+        RiskModule.AssetValueAndRiskFactors[] memory actualValuesPerAsset = mainRegistryExtension
             .getListOfValuesPerAsset(UsdBaseCurrencyID, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         uint256 stable1ValueInUsd = convertAssetToUsd(Constants.stableDecimals, assetAmounts[0], oracleStable1ToUsdArr);
@@ -118,7 +118,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
 
         uint256[] memory actualListOfValuesPerAsset = new uint256[](3);
         for (uint256 i; i < actualValuesPerAsset.length; ++i) {
-            actualListOfValuesPerAsset[i] = actualValuesPerAsset[i].valueInBaseCurrency;
+            actualListOfValuesPerAsset[i] = actualValuesPerAsset[i].assetValue;
         }
 
         assertTrue(CompareArrays.compareArrays(expectedListOfValuesPerAsset, actualListOfValuesPerAsset));
@@ -140,7 +140,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
         assetAmounts[1] = 10 ** Constants.tokenDecimals;
         assetAmounts[2] = 1;
 
-        RiskModule.AssetValueAndRiskVariables[] memory actualValuesPerAsset = mainRegistryExtension
+        RiskModule.AssetValueAndRiskFactors[] memory actualValuesPerAsset = mainRegistryExtension
             .getListOfValuesPerAsset(Token1BaseCurrencyID, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         uint256 stable1ValueInUsd = convertAssetToUsd(Constants.stableDecimals, assetAmounts[0], oracleStable1ToUsdArr);
@@ -164,7 +164,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
 
         uint256[] memory actualListOfValuesPerAsset = new uint256[](3);
         for (uint256 i; i < actualValuesPerAsset.length; ++i) {
-            actualListOfValuesPerAsset[i] = actualValuesPerAsset[i].valueInBaseCurrency;
+            actualListOfValuesPerAsset[i] = actualValuesPerAsset[i].assetValue;
         }
 
         assertTrue(CompareArrays.compareArrays(expectedListOfValuesPerAsset, actualListOfValuesPerAsset));

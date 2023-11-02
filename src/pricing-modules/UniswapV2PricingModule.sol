@@ -185,7 +185,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         override
         returns (
             uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
@@ -193,10 +193,7 @@ contract UniswapV2PricingModule is DerivedPricingModule {
         (address asset,) = _getAssetFromKey(assetKey);
         underlyingAssetsAmounts = new uint256[](2);
         (underlyingAssetsAmounts[0], underlyingAssetsAmounts[1]) = _getTrustedTokenAmounts(
-            asset,
-            rateUnderlyingAssetsToUsd[0].valueInBaseCurrency,
-            rateUnderlyingAssetsToUsd[1].valueInBaseCurrency,
-            assetAmount
+            asset, rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue, assetAmount
         );
 
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);

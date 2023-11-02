@@ -50,7 +50,7 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626PricingModule_Fuzz_Test is St
         bytes32[] memory emptyArray = new bytes32[](1);
         (
             uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskVariables[] memory rateUnderlyingAssetsToUsd
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         ) = erc4626PricingModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, shares, emptyArray);
 
         // Then: The correct underlyingAssetsAmount is returned.
