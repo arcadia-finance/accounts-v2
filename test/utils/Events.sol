@@ -69,7 +69,7 @@ abstract contract Events {
 
     event AllowedActionSet(address indexed action, bool allowed);
     event AssetAdded(address indexed assetAddress, address indexed pricingModule, uint8 assetType);
-    event BaseCurrencyAdded(address indexed assetAddress, uint8 indexed baseCurrencyId, bytes8 label);
+    event BaseCurrencyAdded(address indexed assetAddress, uint8 indexed baseCurrencyId);
     event PricingModuleAdded(address pricingModule);
 
     /*//////////////////////////////////////////////////////////////////////////

@@ -71,7 +71,10 @@ contract DecommissionOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         assertEq(rate, 0);
     }
 
-    function testFuzz_Success_decommissionOracle_answerTooLow(address sender) public {
+    function testFuzz_Success_decommissionOracle_answerTooLow(address sender, int192 minAnswer, int192 price) public {
+        vm.assume(minAnswer >= 0);
+        vm.assume(price <= minAnswer);
+
         vm.startPrank(users.creatorAddress);
         oracleHub.addOracle(
             OracleHub.OracleInformation({
@@ -89,8 +92,57 @@ contract DecommissionOracle_OracleHub_Fuzz_Test is OracleHub_Fuzz_Test {
         vm.warp(2 weeks); //to not run into an underflow
 
         vm.startPrank(users.defaultTransmitter);
-        //minAnswer is set to 100 in the oracle mocks
-        mockOracles.token3ToToken4.transmit(int256(1));
+        mockOracles.token3ToToken4.transmit(price);
+        mockOracles.token3ToToken4.setMinAnswer(minAnswer);
+        mockOracles.token3ToToken4.setMaxAnswer(type(int192).max);
+        mockOracles.token4ToUsd.transmit(int256(500_000_000_000));
+        vm.stopPrank();
+
+        (bool isActive,,,,,) = oracleHub.oracleToOracleInformation(address(mockOracles.token3ToToken4));
+        assertEq(isActive, true);
+
+        vm.startPrank(sender);
+        vm.expectEmit();
+        emit OracleDecommissioned(address(mockOracles.token3ToToken4), false);
+        oracleHub.decommissionOracle(address(mockOracles.token3ToToken4));
+        vm.stopPrank();
+
+        (isActive,,,,,) = oracleHub.oracleToOracleInformation(address(mockOracles.token3ToToken4));
+        assertEq(isActive, false);
+
+        address[] memory oracles = new address[](2);
+        oracles[0] = address(mockOracles.token3ToToken4);
+        oracles[1] = address(mockOracles.token4ToUsd);
+
+        uint256 rate = oracleHub.getRateInUsd(oracles);
+
+        assertEq(rate, 0);
+    }
+
+    function testFuzz_Success_decommissionOracle_answerTooHigh(address sender, int192 maxAnswer, int256 price) public {
+        vm.assume(maxAnswer >= 0);
+        vm.assume(price >= maxAnswer);
+
+        vm.startPrank(users.creatorAddress);
+        oracleHub.addOracle(
+            OracleHub.OracleInformation({
+                oracleUnit: uint64(Constants.tokenOracleDecimals),
+                baseAsset: "TOKEN3",
+                quoteAsset: "TOKEN4",
+                oracle: address(mockOracles.token3ToToken4),
+                baseAssetAddress: address(mockERC20.token3),
+                isActive: true
+            })
+        );
+
+        vm.stopPrank();
+
+        vm.warp(2 weeks); //to not run into an underflow
+
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.token3ToToken4.transmit(price);
+        mockOracles.token3ToToken4.setMinAnswer(0);
+        mockOracles.token3ToToken4.setMaxAnswer(maxAnswer);
         mockOracles.token4ToUsd.transmit(int256(500_000_000_000));
         vm.stopPrank();
 

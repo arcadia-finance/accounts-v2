@@ -6,6 +6,26 @@ pragma solidity 0.8.19;
 
 interface IMainRegistry {
     /**
+     * @notice Returns the Factory address.
+     * @return factory The contract address of the Factory.
+     */
+    function factory() external view returns (address);
+
+    /**
+     * @notice Checks if an asset is in the MainRegistry.
+     * @param asset The contract address of the asset.
+     * @return boolean.
+     */
+    function inMainRegistry(address asset) external view returns (bool);
+
+    /**
+     * @notice Checks if an action is allowed.
+     * @param action The contract address of the action.
+     * @return boolean.
+     */
+    function isActionAllowed(address action) external view returns (bool);
+
+    /**
      * @notice Adds a new asset to the Main Registry.
      * @param asset The contract address of the asset.
      * @param assetType Identifier for the type of the asset:
@@ -14,39 +34,6 @@ interface IMainRegistry {
      * 2 = ERC1155.
      */
     function addAsset(address asset, uint256 assetType) external;
-
-    /**
-     * @notice Returns the number of baseCurrencies.
-     * @return Counter for the number of baseCurrencies in use.
-     */
-    function baseCurrencyCounter() external view returns (uint256);
-
-    /**
-     * @notice Returns the Factory address.
-     * @return factory The contract address of the Factory.
-     */
-    function factory() external view returns (address);
-
-    /**
-     * @notice Returns the contract address of a baseCurrency.
-     * @param index The index of the baseCurrency in the array baseCurrencies.
-     * @return baseCurrency The contract address of a baseCurrency.
-     */
-    function baseCurrencies(uint256 index) external view returns (address);
-
-    /**
-     * @notice Checks if a contract is a baseCurrency.
-     * @param baseCurrency The contract address of the baseCurrency.
-     * @return boolean.
-     */
-    function isBaseCurrency(address baseCurrency) external view returns (bool);
-
-    /**
-     * @notice Checks if an action is allowed.
-     * @param action The contract address of the action.
-     * @return boolean.
-     */
-    function isActionAllowed(address action) external view returns (bool);
 
     /**
      * @notice Batch deposit multiple assets.

@@ -115,7 +115,7 @@ abstract contract DerivedPricingModule is PricingModule {
         }
 
         rateUnderlyingAssetsToUsd =
-            IMainRegistry(MAIN_REGISTRY).getUsdValues(creditor, underlyingAssets, underlyingAssetIds, amounts);
+            IMainRegistry(MAIN_REGISTRY).getValuesInUsd(creditor, underlyingAssets, underlyingAssetIds, amounts);
     }
 
     /**

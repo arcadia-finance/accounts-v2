@@ -28,8 +28,7 @@ contract GetLiquidationValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_getLiquidationValue_UnknownBaseCurrency(address baseCurrency) public {
         vm.assume(baseCurrency != address(0));
-        vm.assume(baseCurrency != address(mockERC20.stable1));
-        vm.assume(baseCurrency != address(mockERC20.token1));
+        vm.assume(!mainRegistryExtension.inMainRegistry(baseCurrency));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token2);
@@ -43,7 +42,7 @@ contract GetLiquidationValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assetAmounts[0] = 10;
         assetAmounts[1] = 1;
 
-        vm.expectRevert("MR_GLV: UNKNOWN_BASECURRENCY");
+        vm.expectRevert(bytes(""));
         mainRegistryExtension.getLiquidationValue(
             baseCurrency, address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );

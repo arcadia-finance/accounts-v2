@@ -104,20 +104,20 @@ contract MainRegistryExtension is MainRegistry {
 }
 
 contract RiskModuleExtension {
-    function calculateCollateralValue(RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset)
+    function calculateCollateralValue(RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors)
         external
         pure
         returns (uint256 collateralValue)
     {
-        collateralValue = RiskModule._calculateCollateralValue(valuesAndRiskVarPerAsset);
+        collateralValue = RiskModule._calculateCollateralValue(valuesAndRiskFactors);
     }
 
-    function calculateLiquidationValue(RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset)
+    function calculateLiquidationValue(RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors)
         external
         pure
         returns (uint256 liquidationValue)
     {
-        liquidationValue = RiskModule._calculateLiquidationValue(valuesAndRiskVarPerAsset);
+        liquidationValue = RiskModule._calculateLiquidationValue(valuesAndRiskFactors);
     }
 }
 
