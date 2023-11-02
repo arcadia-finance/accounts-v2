@@ -267,11 +267,9 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     function isAllowed(address asset, uint256 assetId) external view returns (bool) {
         address pricingModule = assetToAssetInformation[asset].pricingModule;
 
-        if (pricingModule == address(0)) {
-            return false;
-        } else {
-            return IPricingModule(assetToAssetInformation[asset].pricingModule).isAllowed(asset, assetId);
-        }
+        if (pricingModule == address(0)) return false;
+
+        return IPricingModule(assetToAssetInformation[asset].pricingModule).isAllowed(asset, assetId);
     }
 
     /**
