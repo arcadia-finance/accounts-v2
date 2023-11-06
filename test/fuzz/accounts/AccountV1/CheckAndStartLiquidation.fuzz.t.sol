@@ -174,6 +174,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             address[] memory assetAddresses_,
             uint256[] memory assetIds_,
             uint256[] memory assetAmounts_,
+            address owner_,
             address creditor_,
             uint256 totalOpenDebt,
             RiskModule.AssetValueAndRiskVariables[] memory assetAndRiskValues_

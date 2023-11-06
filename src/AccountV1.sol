@@ -507,6 +507,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @return assetAddresses Array of the contract addresses of the assets in Account.
      * @return assetIds Array of the IDs of the assets in Account.
      * @return assetAmounts Array with the amounts of the assets in Account.
+     * @return owner_ Owner of the account.
      * @return creditor_ The trusted creditor, address 0 if no active trusted creditor.
      * @return totalOpenDebt The total open Debt against the Account.
      * @return assetAndRiskValues Array of asset values and corresponding collateral factors.
@@ -518,6 +519,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             address[] memory assetAddresses,
             uint256[] memory assetIds,
             uint256[] memory assetAmounts,
+            address owner_,
             address creditor_,
             uint256 totalOpenDebt,
             RiskModule.AssetValueAndRiskVariables[] memory assetAndRiskValues
@@ -527,6 +529,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         assetAndRiskValues =
             IMainRegistry(registry).getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, baseCurrency);
         creditor_ = trustedCreditor;
+        owner_ = owner;
 
         uint256 fixedLiquidationCost_ = fixedLiquidationCost;
 
