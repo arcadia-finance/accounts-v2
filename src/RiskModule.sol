@@ -28,17 +28,17 @@ library RiskModule {
 
     /**
      * @notice Calculates the weighted collateral value given a combination of asset values and corresponding collateral factors.
-     * @param valuesAndRiskVarPerAsset Array of asset values and corresponding collateral factors.
+     * @param valuesAndRiskFactors Array of asset values and corresponding collateral factors.
      * @return collateralValue The collateral value of the given assets.
      */
-    function _calculateCollateralValue(AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset)
+    function _calculateCollateralValue(AssetValueAndRiskFactors[] memory valuesAndRiskFactors)
         internal
         pure
         returns (uint256 collateralValue)
     {
-        uint256 valuesAndRiskVarPerAssetLength = valuesAndRiskVarPerAsset.length;
-        for (uint256 i; i < valuesAndRiskVarPerAssetLength;) {
-            collateralValue += valuesAndRiskVarPerAsset[i].assetValue * valuesAndRiskVarPerAsset[i].collateralFactor;
+        uint256 valuesAndRiskFactorsLength = valuesAndRiskFactors.length;
+        for (uint256 i; i < valuesAndRiskFactorsLength;) {
+            collateralValue += valuesAndRiskFactors[i].assetValue * valuesAndRiskFactors[i].collateralFactor;
             unchecked {
                 ++i;
             }
@@ -48,17 +48,17 @@ library RiskModule {
 
     /**
      * @notice Calculates the weighted liquidation value given a combination of asset values and corresponding liquidation factors.
-     * @param valuesAndRiskVarPerAsset List of asset values and corresponding liquidation factors.
+     * @param valuesAndRiskFactors List of asset values and corresponding liquidation factors.
      * @return liquidationValue The liquidation value of the given assets.
      */
-    function _calculateLiquidationValue(AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset)
+    function _calculateLiquidationValue(AssetValueAndRiskFactors[] memory valuesAndRiskFactors)
         internal
         pure
         returns (uint256 liquidationValue)
     {
-        uint256 valuesAndRiskVarPerAssetLength = valuesAndRiskVarPerAsset.length;
-        for (uint256 i; i < valuesAndRiskVarPerAssetLength;) {
-            liquidationValue += valuesAndRiskVarPerAsset[i].assetValue * valuesAndRiskVarPerAsset[i].liquidationFactor;
+        uint256 valuesAndRiskFactorsLength = valuesAndRiskFactors.length;
+        for (uint256 i; i < valuesAndRiskFactorsLength;) {
+            liquidationValue += valuesAndRiskFactors[i].assetValue * valuesAndRiskFactors[i].liquidationFactor;
             unchecked {
                 ++i;
             }

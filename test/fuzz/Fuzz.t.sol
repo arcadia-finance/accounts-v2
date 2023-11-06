@@ -156,28 +156,7 @@ abstract contract Fuzz_Test is Base_Test {
             sft2ToUsd: initMockedOracle(uint8(Constants.erc1155OracleDecimals), "SFT2 / TOKEN1", rates.sft2ToUsd)
         });
 
-        // Add STABLE1 AND TOKEN1 as baseCurrencies in MainRegistry
         vm.startPrank(mainRegistryExtension.owner());
-        mainRegistryExtension.addBaseCurrency(
-            MainRegistry.BaseCurrencyInformation({
-                baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
-                assetAddress: address(mockERC20.stable1),
-                baseCurrencyToUsdOracle: address(mockOracles.stable1ToUsd),
-                baseCurrencyLabel: "STABLE1",
-                baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.stableDecimals))
-            })
-        );
-
-        mainRegistryExtension.addBaseCurrency(
-            MainRegistry.BaseCurrencyInformation({
-                baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
-                assetAddress: address(mockERC20.token1),
-                baseCurrencyToUsdOracle: address(mockOracles.token1ToUsd),
-                baseCurrencyLabel: "TOKEN1",
-                baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.tokenDecimals))
-            })
-        );
-
         // Add Oracles to the OracleHub.
         // Do not add TOKEN4/USD, TOKEN3/TOKEN4 as we are testing it on a case-by-case basis
         oracleHub.addOracle(

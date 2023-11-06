@@ -132,8 +132,9 @@ contract OracleHub is Owned, IOraclesHub {
 
         try IChainLinkData(oracle).latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80)
         {
-            int192 min = IChainLinkData(IChainLinkData(oracle).aggregator()).minAnswer();
-            if (answer <= min) {
+            if (answer <= IChainLinkData(IChainLinkData(oracle).aggregator()).minAnswer()) {
+                oracleIsInUse = false;
+            } else if (answer >= IChainLinkData(IChainLinkData(oracle).aggregator()).maxAnswer()) {
                 oracleIsInUse = false;
             } else if (updatedAt <= block.timestamp - 1 weeks) {
                 oracleIsInUse = false;

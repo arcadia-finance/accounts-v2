@@ -6,7 +6,6 @@ pragma solidity 0.8.19;
 
 import { Proxy } from "./Proxy.sol";
 import { IAccount } from "./interfaces/IAccount.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { ERC721 } from "../lib/solmate/src/tokens/ERC721.sol";
 import { Strings } from "./libraries/Strings.sol";
@@ -220,9 +219,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param versionRoot The Merkle root of the merkle tree of all the compatible Account versions.
      * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.
      * @dev Changing any of the contracts does NOT change the contracts for existing deployed Accounts,
-     * unless the Account owner explicitly chooses to upgrade their Account to a newer version
-     * If a new Main Registry contract is set, all the BaseCurrencies currently stored in the Factory
-     * are checked against the new Main Registry contract. If they do not match, the function reverts.
+     * unless the Account owner explicitly chooses to upgrade their Account to a newer version.
      */
     function setNewAccountInfo(address registry, address logic, bytes32 versionRoot, bytes calldata data)
         external
@@ -230,23 +227,6 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     {
         require(versionRoot != bytes32(0), "FTRY_SNVI: version root is zero");
         require(logic != address(0), "FTRY_SNVI: logic address is zero");
-
-        //If there is a new Main Registry Contract, Check that baseCurrencies in factory and main registry match.
-        if (accountDetails[latestAccountVersion].registry != registry && latestAccountVersion != 0) {
-            address oldRegistry = accountDetails[latestAccountVersion].registry;
-            uint256 oldCounter = IMainRegistry(oldRegistry).baseCurrencyCounter();
-            uint256 newCounter = IMainRegistry(registry).baseCurrencyCounter();
-            require(oldCounter <= newCounter, "FTRY_SNVI: counter mismatch");
-            for (uint256 i; i < oldCounter;) {
-                require(
-                    IMainRegistry(oldRegistry).baseCurrencies(i) == IMainRegistry(registry).baseCurrencies(i),
-                    "FTRY_SNVI: no baseCurrency match"
-                );
-                unchecked {
-                    ++i;
-                }
-            }
-        }
 
         unchecked {
             ++latestAccountVersion;

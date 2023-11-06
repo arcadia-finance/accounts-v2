@@ -85,12 +85,12 @@ interface IMainRegistry {
      * @param assets Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @return valuesAndRiskVarPerAsset The value of the asset denominated in USD, with 18 Decimals precision.
+     * @return valuesAndRiskFactors The value of the asset denominated in USD, with 18 Decimals precision.
      */
-    function getUsdValues(
+    function getValuesInUsd(
         address creditor,
         address[] calldata assets,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset);
+    ) external view returns (RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors);
 }

@@ -76,7 +76,7 @@ contract GetValue_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPrici
         assetIds[0] = assetState.underlyingAssetId;
         assetAmounts[0] = 1e18;
         bytes memory data =
-            abi.encodeCall(mainRegistryExtension.getUsdValues, (assetState.creditor, assets, assetIds, assetAmounts));
+            abi.encodeCall(mainRegistryExtension.getValuesInUsd, (assetState.creditor, assets, assetIds, assetAmounts));
 
         // When: "getValue" is called.
         // Then: The Function "getUsdValue" on "MainRegistry" is called with correct parameters.

@@ -219,7 +219,7 @@ contract AccountV2 is AccountStorageV2 {
      * @param baseCurrency_ the new baseCurrency for the Account.
      */
     function _setBaseCurrency(address baseCurrency_) internal {
-        require(IMainRegistry(registry).isBaseCurrency(baseCurrency_), "A_SBC: baseCurrency not found");
+        require(IMainRegistry(registry).inMainRegistry(baseCurrency_), "A_SBC: baseCurrency not found");
         baseCurrency = baseCurrency_;
 
         emit BaseCurrencySet(baseCurrency_);

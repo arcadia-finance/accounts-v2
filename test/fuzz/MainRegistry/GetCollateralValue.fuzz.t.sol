@@ -28,8 +28,7 @@ contract GetCollateralValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_getCollateralValue_UnknownBaseCurrency(address baseCurrency) public {
         vm.assume(baseCurrency != address(0));
-        vm.assume(baseCurrency != address(mockERC20.stable1));
-        vm.assume(baseCurrency != address(mockERC20.token1));
+        vm.assume(!mainRegistryExtension.inMainRegistry(baseCurrency));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.stable2);
@@ -43,7 +42,7 @@ contract GetCollateralValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assetAmounts[0] = 10;
         assetAmounts[1] = 10;
 
-        vm.expectRevert("MR_GCV: UNKNOWN_BASECURRENCY");
+        vm.expectRevert(bytes(""));
         mainRegistryExtension.getCollateralValue(
             baseCurrency, address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );
