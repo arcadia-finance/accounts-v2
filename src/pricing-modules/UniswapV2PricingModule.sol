@@ -8,6 +8,7 @@ import { DerivedPricingModule, FixedPointMathLib, IMainRegistry } from "./Abstra
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
 import { PRBMath } from "../libraries/PRBMath.sol";
+import { RiskModule } from "../RiskModule.sol";
 
 /**
  * @title Pricing-Module for Uniswap V2 LP tokens
@@ -166,24 +167,34 @@ contract UniswapV2PricingModule is DerivedPricingModule {
 
     /**
      * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
+     * @param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
      * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
      * param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      */
-    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory underlyingAssetKeys)
+    function _getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 assetAmount,
+        bytes32[] memory underlyingAssetKeys
+    )
         internal
         view
         override
-        returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd)
+        returns (
+            uint256[] memory underlyingAssetsAmounts,
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+        )
     {
-        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(underlyingAssetKeys);
+        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
 
         (address asset,) = _getAssetFromKey(assetKey);
         underlyingAssetsAmounts = new uint256[](2);
-        (underlyingAssetsAmounts[0], underlyingAssetsAmounts[1]) =
-            _getTrustedTokenAmounts(asset, rateUnderlyingAssetsToUsd[0], rateUnderlyingAssetsToUsd[1], assetAmount);
+        (underlyingAssetsAmounts[0], underlyingAssetsAmounts[1]) = _getTrustedTokenAmounts(
+            asset, rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue, assetAmount
+        );
 
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }

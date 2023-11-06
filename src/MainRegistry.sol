@@ -11,9 +11,9 @@ import { IFactory } from "./interfaces/IFactory.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IPricingModule } from "./interfaces/IPricingModule.sol";
 import { IPrimaryPricingModule } from "./interfaces/IPrimaryPricingModule.sol";
+import { ITrustedCreditor } from "./interfaces/ITrustedCreditor.sol";
 import { MainRegistryGuardian } from "./guardians/MainRegistryGuardian.sol";
 import { RiskModule } from "./RiskModule.sol";
-import { ITrustedCreditor } from "./interfaces/ITrustedCreditor.sol";
 
 /**
  * @title Main Asset registry
@@ -28,11 +28,6 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // The contract address of the this contract,
-    // used to prevent delegateCalls for certain functions.
-    address immutable _this;
-    // Counter for the number of baseCurrencies in use.
-    uint256 public baseCurrencyCounter;
     // Contract address of the Factory.
     address public immutable factory;
 
@@ -40,23 +35,15 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     address[] public pricingModules;
     // Array with all the contract addresses of Tokens that can be Priced.
     address[] public assetsInMainRegistry;
-    // Array with all the contract addresses of baseCurrencies.
-    address[] public baseCurrencies;
 
     // Map mainRegistry => flag.
     mapping(address => bool) public inMainRegistry;
     // Map pricingModule => flag.
     mapping(address => bool) public isPricingModule;
-    // Map baseCurrency => flag.
-    mapping(address => bool) public isBaseCurrency;
     // Map action => flag.
     mapping(address => bool) public isActionAllowed;
-    // Map baseCurrency => baseCurrencyIdentifier.
-    mapping(address => uint256) public assetToBaseCurrency;
     // Map asset => assetInformation.
     mapping(address => AssetInformation) public assetToAssetInformation;
-    // Map baseCurrencyIdentifier => baseCurrencyInformation.
-    mapping(uint256 => BaseCurrencyInformation) public baseCurrencyToInformation;
 
     // Struct with additional information for a specific asset.
     struct AssetInformation {
@@ -64,20 +51,10 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         address pricingModule; // Contract address of the module that can price the specific asset.
     }
 
-    // Struct with additional information for a specific baseCurrency.
-    struct BaseCurrencyInformation {
-        uint64 baseCurrencyUnitCorrection; // The factor with which the baseCurrency should be multiplied to bring it to 18 decimals.
-        address assetAddress; // The contract address of the baseCurrency.
-        uint64 baseCurrencyToUsdOracleUnit; // The unit of the oracle, equal to 10^decimalsOracle.
-        address baseCurrencyToUsdOracle; // The contract address of the pricing oracle for baseCurrency -> USD.
-        bytes8 baseCurrencyLabel; // Human readable label.
-    }
-
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event BaseCurrencyAdded(address indexed assetAddress, uint8 indexed baseCurrencyId, bytes8 label);
     event AllowedActionSet(address indexed action, bool allowed);
     event PricingModuleAdded(address pricingModule);
     event AssetAdded(address indexed assetAddress, address indexed pricingModule, uint8 assetType);
@@ -100,7 +77,6 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      */
     modifier onlyAccount() {
         require(IFactory(factory).isAccount(msg.sender), "MR: Only Accounts.");
-        require(address(this) == _this, "MR: No delegate.");
         _;
     }
 
@@ -110,31 +86,9 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
     /**
      * @param factory_ The contract address of the Factory.
-     * @dev The mainRegistry must be initialised with baseCurrency USD, at baseCurrencyCounter of 0.
-     * Usd is initialised with the following BaseCurrencyInformation.
-     * - baseCurrencyToUsdOracleUnit: Since there is no price oracle for usd to USD, this is 1 by default for USD.
-     * - baseCurrencyUnitCorrection: We use 18 decimals precision for USD, so unitCorrection is 1 for USD.
-     * - assetAddress: Since there is no native token for usd, this is the 0 address by default for USD.
-     * - baseCurrencyToUsdOracle: Since there is no price oracle for usd to USD, this is the 0 address by default for USD.
-     * - baseCurrencyLabel: 'USD' (only used for readability purpose).
      */
     constructor(address factory_) {
-        _this = address(this);
         factory = factory_;
-
-        // Main Registry must be initialised with usd, other values of baseCurrencyToInformation[0] are 0 or the zero-address.
-        baseCurrencyToInformation[0].baseCurrencyLabel = "USD";
-        // No need for a unit correction, since USD has hardcoded precision of 18 decimals, identical to the internal precision 18 decimals.
-        baseCurrencyToInformation[0].baseCurrencyUnitCorrection = 1;
-        // "rateUsdToUsd" is hardcoded to 1, with 0 decimals -> "usdToUsdOracleUnit" is 1.
-        baseCurrencyToInformation[0].baseCurrencyToUsdOracleUnit = 1;
-
-        // Usd is the first baseCurrency at index 0 of array baseCurrencies.
-        isBaseCurrency[address(0)] = true;
-        baseCurrencies.push(address(0));
-        baseCurrencyCounter = 1;
-
-        emit BaseCurrencyAdded(address(0), 0, "USD");
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -154,86 +108,6 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /* ///////////////////////////////////////////////////////////////
-                        BASE CURRENCY MANAGEMENT
-    /////////////////////////////////////////////////////////////// */
-
-    /**
-     * @notice Adds a new baseCurrency (a unit of account in which price is denominated, like USD or ETH) to the Main Registry.
-     * @param baseCurrencyInformation A Struct with information about the BaseCurrency:
-     * - baseCurrencyToUsdOracleUnit: The unit of the oracle, equal to 10^decimalsOracle.
-     * - baseCurrencyUnitCorrection: The factor with which the baseCurrency should be multiplied to bring it to 18 decimals.
-     * - assetAddress: The contract address of the baseCurrency.
-     * - baseCurrencyToUsdOracle: The contract address of the pricing oracle for baseCurrency -> USD.
-     * - baseCurrencyLabel: Human readable label.
-     * @dev If the BaseCurrency has no native token (USD, EUR...), baseCurrencyDecimals is 0 and assetAddress the null address.
-     * Tokens pegged to the native token do not count as native tokens.
-     * - USDC is not a native token for USD as BaseCurrency.
-     * - WETH is a native token for ETH as BaseCurrency.
-     * @dev A baseCurrency cannot be added twice, as that would result in the ability to manipulate prices.
-     */
-    function addBaseCurrency(BaseCurrencyInformation calldata baseCurrencyInformation) external onlyOwner {
-        require(!isBaseCurrency[baseCurrencyInformation.assetAddress], "MR_ABC: BaseCurrency exists");
-
-        baseCurrencyToInformation[baseCurrencyCounter] = baseCurrencyInformation;
-        assetToBaseCurrency[baseCurrencyInformation.assetAddress] = baseCurrencyCounter;
-        isBaseCurrency[baseCurrencyInformation.assetAddress] = true;
-        baseCurrencies.push(baseCurrencyInformation.assetAddress);
-
-        unchecked {
-            ++baseCurrencyCounter;
-        }
-
-        emit BaseCurrencyAdded(
-            baseCurrencyInformation.assetAddress, uint8(baseCurrencyCounter), baseCurrencyInformation.baseCurrencyLabel
-        );
-    }
-
-    /**
-     * @notice Sets a new oracle for the rate baseCurrency-USD.
-     * @param baseCurrency The identifier of the baseCurrency for which the new oracle is set.
-     * @param newOracle The new oracle address.
-     * @param baseCurrencyToUsdOracleUnit The new baseCurrencyToUsdOracleUnit.
-     * @dev This function is part of an oracle failsafe mechanism.
-     * New oracles can only be set if the current oracle is not performing as intended:
-     * - A call to the oracle reverts.
-     * - The oracle returns the minimum value.
-     * - The oracle returns the maximum value.
-     * - The oracle didn't update for over a week.
-     * @dev This function could be called to set a new oracle address for the baseCurrency USD (since it is initiated with the zero address).
-     * This oracle is however never used, hence would not cause any problems (except gas waste).
-     */
-    function setOracle(uint256 baseCurrency, address newOracle, uint64 baseCurrencyToUsdOracleUnit)
-        external
-        onlyOwner
-    {
-        require(baseCurrency < baseCurrencyCounter, "MR_SO: UNKNOWN_BASECURRENCY");
-
-        bool oracleIsHealthy = true;
-        address oldOracle = baseCurrencyToInformation[baseCurrency].baseCurrencyToUsdOracle;
-
-        try IChainLinkData(oldOracle).latestRoundData() returns (
-            uint80, int256 answer, uint256, uint256 updatedAt, uint80
-        ) {
-            if (answer <= IChainLinkData(IChainLinkData(oldOracle).aggregator()).minAnswer()) {
-                oracleIsHealthy = false;
-            } else if (answer >= IChainLinkData(IChainLinkData(oldOracle).aggregator()).maxAnswer()) {
-                oracleIsHealthy = false;
-            } else if (updatedAt <= block.timestamp - 1 weeks) {
-                oracleIsHealthy = false;
-            }
-        } catch {
-            oracleIsHealthy = false;
-        }
-
-        if (oracleIsHealthy) {
-            revert("MR_SO: ORACLE_HEALTHY");
-        } else {
-            baseCurrencyToInformation[baseCurrency].baseCurrencyToUsdOracle = newOracle;
-            baseCurrencyToInformation[baseCurrency].baseCurrencyToUsdOracleUnit = baseCurrencyToUsdOracleUnit;
-        }
-    }
-
-    /* ///////////////////////////////////////////////////////////////
                         PRICE MODULE MANAGEMENT
     /////////////////////////////////////////////////////////////// */
 
@@ -247,11 +121,6 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         pricingModules.push(pricingModule);
 
         emit PricingModuleAdded(pricingModule);
-    }
-
-    // Todo Remove, temporary Used in UNIV3 pricing modules.
-    function getPricingModuleOfAsset(address asset) public view returns (address pricingModule) {
-        pricingModule = assetToAssetInformation[asset].pricingModule;
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -292,6 +161,37 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             AssetInformation({ assetType: uint96(assetType), pricingModule: msg.sender });
 
         emit AssetAdded(assetAddress, msg.sender, uint8(assetType));
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                    RISK VARIABLES MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Returns the risk factors per asset for a creditor.
+     * @param creditor The contract address of the creditor.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assetIds Array of the IDs of the assets.
+     * @return collateralFactors Array of the collateral factors of the assets for the creditor, 2 decimals precision.
+     * @return liquidationFactors Array of the liquidation factors of the assets for the creditor, 2 decimals precision.
+     */
+    function getRiskFactors(address creditor, address[] calldata assetAddresses, uint256[] calldata assetIds)
+        external
+        view
+        returns (uint16[] memory collateralFactors, uint16[] memory liquidationFactors)
+    {
+        uint256 length = assetAddresses.length;
+        collateralFactors = new uint16[](length);
+        liquidationFactors = new uint16[](length);
+        for (uint256 i; i < length;) {
+            (collateralFactors[i], liquidationFactors[i]) = IPricingModule(
+                assetToAssetInformation[assetAddresses[i]].pricingModule
+            ).getRiskFactors(creditor, assetAddresses[i], assetIds[i]);
+
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     /**
@@ -344,6 +244,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
     /**
      * @notice Batch deposit multiple assets.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param amounts Array with the amounts of the assets.
@@ -380,6 +281,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
     /**
      * @notice Batch withdraw multiple assets.
+     * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param amounts Array with the amounts of the assets.
@@ -415,11 +317,13 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /**
-     * @notice This function is called by pricing modules of non-primary assets in order to increase the exposure of the underlying asset.
-     * @param underlyingAsset The underlying asset of a non-primary asset.
+     * @notice This function is called by pricing modules of non-primary assets in order to update the exposure of an underlying asset after a deposit.
+     * @param creditor The contract address of the creditor.
+     * @param underlyingAsset The underlying asset.
      * @param underlyingAssetId The underlying asset ID.
-     * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the asset to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the asset to the underlying asset since the last interaction.
+     * @return usdExposureAssetToUnderlyingAsset The Usd value of the exposure of the asset to the underlying asset, 18 decimals precision.
      */
     function getUsdValueExposureToUnderlyingAssetAfterDeposit(
         address creditor,
@@ -439,11 +343,13 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /**
-     * @notice This function is called by pricing modules of non-primary assets in order to decrease the exposure of the underlying asset.
-     * @param underlyingAsset The underlying asset of a non-primary asset.
+     * @notice This function is called by pricing modules of non-primary assets in order to update the exposure of an underlying asset after a withdrawal.
+     * @param creditor The contract address of the creditor.
+     * @param underlyingAsset The underlying asset.
      * @param underlyingAssetId The underlying asset ID.
-     * @param exposureAssetToUnderlyingAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the asset to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the asset to the underlying asset since the last interaction.
+     * @return usdExposureAssetToUnderlyingAsset The Usd value of the exposure of the asset to the underlying asset, 18 decimals precision.
      */
     function getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
         address creditor,
@@ -468,107 +374,34 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
     /**
      * @notice Calculates the usd value of an asset.
-     * @param getValueInput A Struct with the input variables.
-     * - asset: The contract address of the asset.
-     * - assetId: The Id of the asset.
-     * - assetAmount: The amount of assets.
-     * - creditor: The contract address of the creditor.
-     * @return usdValue The value of the asset denominated in USD, with 18 Decimals precision.
-     */
-    function getUsdValue(IPricingModule.GetValueInput memory getValueInput) external view returns (uint256 usdValue) {
-        // Fetch the Value and the risk variables in the PricingModule.
-        (usdValue,,) =
-            IPricingModule(assetToAssetInformation[getValueInput.asset].pricingModule).getValue(getValueInput);
-    }
-
-    /**
-     * @notice Calculates the value per asset, denominated in a given BaseCurrency.
-     * @param baseCurrency An identifier (uint256) of the BaseCurrency.
      * @param creditor The contract address of the creditor.
-     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assets Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @return valuesAndRiskVarPerAsset The array of values per assets, denominated in BaseCurrency.
-     * @dev For each token address, a corresponding id and amount at the same index should be present,
-     * for tokens without Id (ERC20 for instance), the Id should be set to 0.
-     * @dev No checks of input parameters necessary, all generated by the Account.
-     * Additionally, unknown assetAddresses cause IPricingModule(assetAddresses) to revert,
-     * Unknown baseCurrency will cause IChainLinkData(baseCurrency) to revert.
-     * Non-equal lists will or revert, or not take all assets into account -> lower value as actual.
+     * @return valuesAndRiskFactors The value of the asset denominated in USD, with 18 Decimals precision.
      */
-    function getListOfValuesPerAsset(
-        uint256 baseCurrency,
+    function getValuesInUsd(
         address creditor,
-        address[] calldata assetAddresses,
+        address[] calldata assets,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) public view returns (RiskModule.AssetValueAndRiskVariables[] memory) {
-        // Cache Output array.
-        uint256 assetAddressesLength = assetAddresses.length;
-        RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
-            new RiskModule.AssetValueAndRiskVariables[](assetAddressesLength);
+    ) public view returns (RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+        uint256 length = assets.length;
+        valuesAndRiskFactors = new RiskModule.AssetValueAndRiskFactors[](length);
 
-        // Cache variables.
-        IPricingModule.GetValueInput memory getValueInput;
-        getValueInput.creditor = creditor;
-        BaseCurrencyInformation memory baseCurrencyInformation = baseCurrencyToInformation[baseCurrency];
-        int256 rateBaseCurrencyToUsd;
+        for (uint256 i; i < length;) {
+            (
+                valuesAndRiskFactors[i].assetValue,
+                valuesAndRiskFactors[i].collateralFactor,
+                valuesAndRiskFactors[i].liquidationFactor
+            ) = IPricingModule(assetToAssetInformation[assets[i]].pricingModule).getValue(
+                creditor, assets[i], assetIds[i], assetAmounts[i]
+            );
 
-        if (baseCurrency > 0) {
-            // Get the baseCurrency-USD rate if the BaseCurrency is different from USD (identifier 0).
-            (, rateBaseCurrencyToUsd,,,) =
-                IChainLinkData(baseCurrencyInformation.baseCurrencyToUsdOracle).latestRoundData();
-        } else {
-            // If baseCurrency is USD, set "rateUsdToUsd" to 1.
-            // Both USD and the internal precision of calculations have 18 decimals.
-            rateBaseCurrencyToUsd = 1;
-        }
-
-        address assetAddress;
-        uint256 assetId;
-        uint256 valueInUsd;
-        for (uint256 i; i < assetAddressesLength;) {
-            assetAddress = assetAddresses[i];
-            assetId = assetIds[i];
-
-            // If the asset is identical to the base Currency, we do not need to get a rate.
-            // We only need to fetch the risk variables from the PricingModule.
-            if (assetAddress == baseCurrencyInformation.assetAddress) {
-                valuesAndRiskVarPerAsset[i].valueInBaseCurrency = assetAmounts[i];
-                (valuesAndRiskVarPerAsset[i].collateralFactor, valuesAndRiskVarPerAsset[i].liquidationFactor) =
-                IPricingModule(assetToAssetInformation[assetAddress].pricingModule).getRiskFactors(
-                    getValueInput.creditor, assetAddress, assetId
-                );
-
-                // Else we need to fetch the value in the assets' PricingModule.
-            } else {
-                // Prepare input.
-                getValueInput.asset = assetAddress;
-                getValueInput.assetId = assetId;
-                getValueInput.assetAmount = assetAmounts[i];
-
-                // Fetch the Value and the risk variables in the PricingModule.
-                (
-                    valueInUsd,
-                    valuesAndRiskVarPerAsset[i].collateralFactor,
-                    valuesAndRiskVarPerAsset[i].liquidationFactor
-                ) = IPricingModule(assetToAssetInformation[assetAddress].pricingModule).getValue(getValueInput);
-
-                // Calculate "valueInBaseCurrency" from "valueInUsd" by dividing by the "rateBaseCurrencyToUsd".
-                // Bring the "valueInBaseCurrency" from internal 18 decimals to the actual number of decimals of "baseCurrency".
-                unchecked {
-                    valuesAndRiskVarPerAsset[i].valueInBaseCurrency = (
-                        valueInUsd.mulDivDown(
-                            baseCurrencyInformation.baseCurrencyToUsdOracleUnit, uint256(rateBaseCurrencyToUsd)
-                        )
-                    ) / baseCurrencyInformation.baseCurrencyUnitCorrection;
-                }
-            }
             unchecked {
                 ++i;
             }
         }
-        return valuesAndRiskVarPerAsset;
     }
 
     /**
@@ -578,19 +411,40 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @return valuesAndRiskVarPerAsset The array of values per assets, denominated in BaseCurrency.
+     * @return valuesAndRiskFactors The array of values per assets, denominated in BaseCurrency.
      * @dev No need to check equality of length of arrays, since they are generated by the Account.
+     * @dev No need to check the baseCurrency, since getValue()-call will revert for unknown assets.
+     * @dev Only fungible tokens can be used as baseCurrency.
      */
-    function getListOfValuesPerAsset(
+    function getValuesInBaseCurrency(
         address baseCurrency,
         address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset) {
-        require(isBaseCurrency[baseCurrency], "MR_GLVA: UNKNOWN_BASECURRENCY");
-        valuesAndRiskVarPerAsset =
-            getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
+    ) external view returns (RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+        valuesAndRiskFactors = getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
+
+        // Convert the usd-vales to values in BaseCurrency if the BaseCurrency is different from USD (0-address).
+        if (baseCurrency != address(0)) {
+            // We use the USD price per 10^18 tokens instead of the price per token to guarantee sufficient precision.
+            (uint256 rateBaseCurrencyToUsd,,) = IPricingModule(assetToAssetInformation[baseCurrency].pricingModule)
+                .getValue(creditor, baseCurrency, 0, 1e18);
+
+            uint256 length = assetAddresses.length;
+            for (uint256 i; i < length;) {
+                // "valuesAndRiskFactors.assetValue" is the usd value of the asset with 18 decimals precision.
+                // "rateBaseCurrencyToUsd" is the usd value of 10 ** 18 tokens of numeraire with 18 decimals precision.
+                // To get the asset value denominated in the numeraire, we have to multiply usd value of "assetValue" with 10**18
+                // and divide by "rateBaseCurrencyToUsd".
+                valuesAndRiskFactors[i].assetValue =
+                    valuesAndRiskFactors[i].assetValue.mulDivDown(1e18, rateBaseCurrencyToUsd);
+
+                unchecked {
+                    ++i;
+                }
+            }
+        }
     }
 
     /**
@@ -600,8 +454,9 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @return valueInBaseCurrency The combined value of the assets, denominated in BaseCurrency.
+     * @return assetValue The combined value of the assets, denominated in BaseCurrency.
      * @dev No need to check equality of length of arrays, since they are generated by the Account.
+     * @dev No need to check the baseCurrency, since getValue()-call will revert for unknown assets.
      */
     function getTotalValue(
         address baseCurrency,
@@ -609,18 +464,20 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) public view returns (uint256 valueInBaseCurrency) {
-        require(isBaseCurrency[baseCurrency], "MR_GTV: UNKNOWN_BASECURRENCY");
+    ) external view returns (uint256 assetValue) {
+        RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
+            getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
-        RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
-            getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
-
-        for (uint256 i = 0; i < valuesAndRiskVarPerAsset.length;) {
-            valueInBaseCurrency += valuesAndRiskVarPerAsset[i].valueInBaseCurrency;
+        uint256 length = assetAddresses.length;
+        for (uint256 i = 0; i < length;) {
+            assetValue += valuesAndRiskFactors[i].assetValue;
             unchecked {
                 ++i;
             }
         }
+
+        // Convert the usd-vale to the value in BaseCurrency if the BaseCurrency is different from USD (0-address).
+        if (baseCurrency != address(0)) assetValue = _convertValueInUsdToValueInBaseCurrency(baseCurrency, assetValue);
     }
 
     /**
@@ -632,6 +489,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @param assetAmounts Array with the amounts of the assets.
      * @return collateralValue The collateral value of the assets, denominated in BaseCurrency.
      * @dev No need to check equality of length of arrays, since they are generated by the Account.
+     * @dev No need to check the baseCurrency, since getValue()-call will revert for unknown assets.
      * @dev The collateral value is equal to the spot value of the assets,
      * discounted by a haircut (the collateral factor).
      */
@@ -642,12 +500,16 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
     ) external view returns (uint256 collateralValue) {
-        require(isBaseCurrency[baseCurrency], "MR_GCV: UNKNOWN_BASECURRENCY");
+        RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
+            getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
-        RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
-            getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
+        // Calculate the "collateralValue" in Usd with 18 decimals precision.
+        collateralValue = RiskModule._calculateCollateralValue(valuesAndRiskFactors);
 
-        collateralValue = RiskModule.calculateCollateralValue(valuesAndRiskVarPerAsset);
+        // Convert the usd-vale to the value in BaseCurrency if the BaseCurrency is different from USD (0-address).
+        if (baseCurrency != address(0)) {
+            collateralValue = _convertValueInUsdToValueInBaseCurrency(baseCurrency, collateralValue);
+        }
     }
 
     /**
@@ -659,6 +521,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @param assetAmounts Array with the amounts of the assets.
      * @return liquidationValue The liquidation value of the assets, denominated in BaseCurrency.
      * @dev No need to check equality of length of arrays, since they are generated by the Account.
+     * @dev No need to check the baseCurrency, since getValue()-call will revert for unknown assets.
      * @dev The liquidation value is equal to the spot value of the assets,
      * discounted by a haircut (the liquidation factor).
      */
@@ -669,11 +532,38 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
     ) external view returns (uint256 liquidationValue) {
-        require(isBaseCurrency[baseCurrency], "MR_GLV: UNKNOWN_BASECURRENCY");
+        RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
+            getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
-        RiskModule.AssetValueAndRiskVariables[] memory valuesAndRiskVarPerAsset =
-            getListOfValuesPerAsset(assetToBaseCurrency[baseCurrency], creditor, assetAddresses, assetIds, assetAmounts);
+        // Calculate the "liquidationValue" in Usd with 18 decimals precision.
+        liquidationValue = RiskModule._calculateLiquidationValue(valuesAndRiskFactors);
 
-        liquidationValue = RiskModule.calculateLiquidationValue(valuesAndRiskVarPerAsset);
+        // Convert the usd-vale to the value in BaseCurrency if the BaseCurrency is different from USD (0-address).
+        if (baseCurrency != address(0)) {
+            liquidationValue = _convertValueInUsdToValueInBaseCurrency(baseCurrency, liquidationValue);
+        }
+    }
+
+    /**
+     * @notice Converts a value denominated in Usd to a value denominated in BaseCurrency.
+     * @param baseCurrency The contract address of the BaseCurrency.
+     * @param valueInUsd The value in Usd, with 18 decimals precision.
+     * @return valueInBaseCurrency The value denominated in BaseCurrency.
+     */
+    function _convertValueInUsdToValueInBaseCurrency(address baseCurrency, uint256 valueInUsd)
+        internal
+        view
+        returns (uint256 valueInBaseCurrency)
+    {
+        // We use the USD price per 10^18 tokens instead of the price per token to guarantee sufficient precision.
+        (uint256 rateBaseCurrencyToUsd,,) = IPricingModule(assetToAssetInformation[baseCurrency].pricingModule).getValue(
+            address(0), baseCurrency, 0, 1e18
+        );
+
+        // "liquidationValue" is the usd value of the assets with 18 decimals precision.
+        // "rateBaseCurrencyToUsd" is the usd value of 10 ** 18 tokens of numeraire with 18 decimals precision.
+        // To get the value of the asset denominated in the numeraire, we have to multiply usd value of "assetValue" with 10**18
+        // and divide by "rateBaseCurrencyToUsd".
+        valueInBaseCurrency = valueInUsd.mulDivDown(1e18, rateBaseCurrencyToUsd);
     }
 }

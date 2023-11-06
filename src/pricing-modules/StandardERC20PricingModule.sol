@@ -8,8 +8,8 @@ import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
-import { IPricingModule, PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
+import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 
 /**
  * @title Pricing Module for Standard ERC20 tokens.
@@ -162,31 +162,30 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
 
     /**
      * @notice Returns the usd value of an asset.
-     * @param getValueInput A Struct with the input variables.
-     * - asset: The contract address of the asset.
-     * - assetId: Since ERC20 tokens have no Id, the Id should be set to 0.
-     * - assetAmount: The amount of assets.
-     * - creditor: The contract address of the creditor.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
      * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256.
      * @dev If the asset is not added to PricingModule, this function will return value 0 without throwing an error.
      * However no check in StandardERC20PricingModule is necessary, since the check if the asset is added to the PricingModule
      * is already done in the MainRegistry.
      */
-    function getValue(IPricingModule.GetValueInput memory getValueInput)
+    function getValue(address creditor, address asset, uint256, uint256 assetAmount)
         public
         view
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        uint256 rateInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
+        uint256 rateInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[asset].oracles);
 
-        valueInUsd = getValueInput.assetAmount.mulDivDown(rateInUsd, assetToInformation[getValueInput.asset].assetUnit);
+        valueInUsd = assetAmount.mulDivDown(rateInUsd, assetToInformation[asset].assetUnit);
 
-        bytes32 assetKey = _getKeyFromAsset(getValueInput.asset, 0);
-        collateralFactor = riskParams[getValueInput.creditor][assetKey].collateralFactor;
-        liquidationFactor = riskParams[getValueInput.creditor][assetKey].liquidationFactor;
+        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+        collateralFactor = riskParams[creditor][assetKey].collateralFactor;
+        liquidationFactor = riskParams[creditor][assetKey].liquidationFactor;
     }
 }

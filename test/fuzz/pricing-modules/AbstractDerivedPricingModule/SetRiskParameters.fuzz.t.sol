@@ -6,17 +6,12 @@ pragma solidity 0.8.19;
 
 import { AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
 
+import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
+
 /**
  * @notice Fuzz tests for the function "setRiskParameters" of contract "AbstractDerivedPricingModule".
  */
 contract SetRiskParameters_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPricingModule_Fuzz_Test {
-    /* //////////////////////////////////////////////////////////////
-                                CONSTANTS
-    ////////////////////////////////////////////////////////////// */
-
-    // The maximum collateral factor of an asset for a creditor, 2 decimals precision.
-    uint16 internal constant MAX_RISK_FACTOR = 100;
-
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -47,7 +42,7 @@ contract SetRiskParameters_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
         uint128 maxExposureInUsd,
         uint16 riskFactor
     ) public {
-        riskFactor = uint16(bound(riskFactor, MAX_RISK_FACTOR + 1, type(uint16).max));
+        riskFactor = uint16(bound(riskFactor, RiskConstants.RISK_FACTOR_UNIT + 1, type(uint16).max));
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("ADPM_SRP: Risk Fact not in limits");
@@ -56,7 +51,7 @@ contract SetRiskParameters_AbstractDerivedPricingModule_Fuzz_Test is AbstractDer
     }
 
     function testFuzz_Success_setRiskParameters(address creditor, uint128 maxExposureInUsd, uint16 riskFactor) public {
-        riskFactor = uint16(bound(riskFactor, 0, MAX_RISK_FACTOR));
+        riskFactor = uint16(bound(riskFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
 
         vm.prank(address(mainRegistryExtension));
         derivedPricingModule.setRiskParameters(creditor, maxExposureInUsd, riskFactor);

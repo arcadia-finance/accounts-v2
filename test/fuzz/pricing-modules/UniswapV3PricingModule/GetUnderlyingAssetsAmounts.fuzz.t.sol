@@ -11,6 +11,7 @@ import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/pricing-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/NonfungiblePositionManager.sol";
+import { RiskModule } from "../../../../src/RiskModule.sol";
 import { TickMath } from "../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
 import { UniswapV3PricingModuleExtension } from "../../../utils/Extensions.sol";
 
@@ -74,7 +75,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3PricingModule_Fuzz_Test is UniswapV
         // Then: The transaction overflows.
         bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
         vm.expectRevert(bytes(""));
-        uniV3PricingModule.getUnderlyingAssetsAmounts(assetKey, 1, new bytes32[](0));
+        uniV3PricingModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
     }
 
     function testFuzz_Revert_GetUnderlyingAssetsAmounts_Overflow_PriceToken1(
@@ -114,7 +115,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3PricingModule_Fuzz_Test is UniswapV
         // Then: The transaction overflows.
         bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
         vm.expectRevert(bytes(""));
-        uniV3PricingModule.getUnderlyingAssetsAmounts(assetKey, 1, new bytes32[](0));
+        uniV3PricingModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
     }
 
     function testFuzz_Success_GetUnderlyingAssetsAmounts(
@@ -163,18 +164,18 @@ contract GetUnderlyingAssetsAmounts_UniswapV3PricingModule_Fuzz_Test is UniswapV
 
         // When: "getUnderlyingAssetsAmounts" is called.
         uint256[] memory underlyingAssetsAmounts;
-        uint256[] memory rateUnderlyingAssetsToUsd;
+        RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
         {
             bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
             (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
-                uniV3PricingModule.getUnderlyingAssetsAmounts(assetKey, 1, new bytes32[](0));
+                uniV3PricingModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
         }
 
         // Then: The correct "rateUnderlyingAssetsToUsd" are returned.
         uint256 expectedRateUnderlyingAssetsToUsd0 = asset0.usdValue * 10 ** (36 - asset0.decimals);
         uint256 expectedRateUnderlyingAssetsToUsd1 = asset1.usdValue * 10 ** (36 - asset1.decimals);
-        assertEq(rateUnderlyingAssetsToUsd[0], expectedRateUnderlyingAssetsToUsd0);
-        assertEq(rateUnderlyingAssetsToUsd[1], expectedRateUnderlyingAssetsToUsd1);
+        assertEq(rateUnderlyingAssetsToUsd[0].assetValue, expectedRateUnderlyingAssetsToUsd0);
+        assertEq(rateUnderlyingAssetsToUsd[1].assetValue, expectedRateUnderlyingAssetsToUsd1);
 
         // And: The correct "underlyingAssetsAmounts" rates are returned.
         uint160 sqrtPriceX96 =

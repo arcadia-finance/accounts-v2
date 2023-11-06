@@ -54,10 +54,6 @@ contract ArcadiaAccountDeployment is Test {
     OracleHub.OracleInformation public cbethToEthToUsdOracleInfo;
     OracleHub.OracleInformation public rethToEthOracleInfo;
 
-    MainRegistry.BaseCurrencyInformation public usdBaseCurrencyInfo;
-    MainRegistry.BaseCurrencyInformation public ethBaseCurrencyInfo;
-    MainRegistry.BaseCurrencyInformation public usdcBaseCurrencyInfo;
-
     constructor() {
         // /*///////////////////////////////////////////////////////////////
         //                   ADDRESSES
@@ -140,22 +136,6 @@ contract ArcadiaAccountDeployment is Test {
             baseAssetAddress: DeployAddresses.reth_base,
             isActive: true
         });
-
-        ethBaseCurrencyInfo = MainRegistry.BaseCurrencyInformation({
-            baseCurrencyToUsdOracleUnit: uint64(DeployNumbers.oracleEthToUsdUnit),
-            assetAddress: DeployAddresses.weth_base,
-            baseCurrencyToUsdOracle: DeployAddresses.oracleEthToUsd_base,
-            baseCurrencyLabel: "wETH",
-            baseCurrencyUnitCorrection: uint64(10 ** (18 - DeployNumbers.wethDecimals))
-        });
-
-        usdcBaseCurrencyInfo = MainRegistry.BaseCurrencyInformation({
-            baseCurrencyToUsdOracleUnit: uint64(DeployNumbers.oracleUsdcToUsdUnit),
-            assetAddress: DeployAddresses.usdc_base,
-            baseCurrencyToUsdOracle: DeployAddresses.oracleUsdcToUsd_base,
-            baseCurrencyLabel: "USDC",
-            baseCurrencyUnitCorrection: uint64(10 ** (18 - DeployNumbers.usdcDecimals))
-        });
     }
 
     function run() public {
@@ -184,9 +164,6 @@ contract ArcadiaAccountDeployment is Test {
         oracleHub.addOracle(usdcToUsdOracleInfo);
         oracleHub.addOracle(cbethToEthToUsdOracleInfo);
         oracleHub.addOracle(rethToEthOracleInfo);
-
-        mainRegistry.addBaseCurrency(ethBaseCurrencyInfo);
-        mainRegistry.addBaseCurrency(usdcBaseCurrencyInfo);
 
         mainRegistry.addPricingModule(address(standardERC20PricingModule));
         mainRegistry.addPricingModule(address(uniswapV3PricingModule));

@@ -14,6 +14,7 @@ import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { LiquidityAmounts } from "./libraries/LiquidityAmounts.sol";
 import { PoolAddress } from "./libraries/PoolAddress.sol";
 import { SafeCastLib } from "lib/solmate/src/utils/SafeCastLib.sol";
+import { RiskModule } from "../../RiskModule.sol";
 import { TickMath } from "./libraries/TickMath.sol";
 
 /**
@@ -164,6 +165,7 @@ contract UniswapV3PricingModule is DerivedPricingModule {
 
     /**
      * @notice Calculates for a given asset id the corresponding amount(s) of underlying asset(s).
+     * @param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
      * param assetAmount The amount of the asset, in the decimal precision of the Asset.
      * param underlyingAssetKeys The unique identifiers of the underlying assets.
@@ -172,11 +174,14 @@ contract UniswapV3PricingModule is DerivedPricingModule {
      * @dev Uniswap Pools can be manipulated, we can't rely on the current price (or tick) stored in slot0.
      * We use Chainlink oracles of the underlying assets to calculate the flashloan resistant amounts.
      */
-    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256, bytes32[] memory)
+    function _getUnderlyingAssetsAmounts(address creditor, bytes32 assetKey, uint256, bytes32[] memory)
         internal
         view
         override
-        returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd)
+        returns (
+            uint256[] memory underlyingAssetsAmounts,
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+        )
     {
         (, uint256 assetId) = _getAssetFromKey(assetKey);
 
@@ -186,11 +191,15 @@ contract UniswapV3PricingModule is DerivedPricingModule {
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
         underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
-        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(underlyingAssetKeys);
+        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
 
         // Calculate amount0 and amount1 of the principal (the actual liquidity position).
         (uint256 principal0, uint256 principal1) = _getPrincipalAmounts(
-            tickLower, tickUpper, liquidity, rateUnderlyingAssetsToUsd[0], rateUnderlyingAssetsToUsd[1]
+            tickLower,
+            tickUpper,
+            liquidity,
+            rateUnderlyingAssetsToUsd[0].assetValue,
+            rateUnderlyingAssetsToUsd[1].assetValue
         );
 
         // Calculate amount0 and amount1 of the accumulated fees.
@@ -366,54 +375,12 @@ contract UniswapV3PricingModule is DerivedPricingModule {
     }
 
     /*///////////////////////////////////////////////////////////////
-                          PRICING LOGIC
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Returns the usd value of a Uniswap V3 Liquidity Range.
-     * @param getValueInput A Struct with the input variables.
-     * - asset: The contract address of the asset.
-     * - assetId: The Id of the range.
-     * - assetAmount: Since ERC721 tokens have no amount, the amount should be set to 1.
-     * - creditor: The contract address of the creditor.
-     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
-     */
-    function getValue(IPricingModule.GetValueInput memory getValueInput)
-        public
-        view
-        override
-        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
-    {
-        (valueInUsd,,) = super.getValue(getValueInput);
-
-        (address token0, address token1,,,) = _getPosition(getValueInput.assetId);
-
-        // Fetch the risk variables of the underlying tokens for the given baseCurrency.
-        (uint256 collateralFactor0, uint256 liquidationFactor0) = IPricingModule(
-            IMainRegistry(MAIN_REGISTRY).getPricingModuleOfAsset(token0)
-        ).getRiskFactors(getValueInput.creditor, token0, 0);
-        (uint256 collateralFactor1, uint256 liquidationFactor1) = IPricingModule(
-            IMainRegistry(MAIN_REGISTRY).getPricingModuleOfAsset(token1)
-        ).getRiskFactors(getValueInput.creditor, token1, 0);
-
-        // We take the most conservative (lowest) factor of both underlying assets.
-        // If one token loses in value compared to the other token, Liquidity Providers will be relatively more exposed
-        // to the asset that loses value. This is especially true for Uniswap V3: when the current tick is outside of the
-        // liquidity range the LP is fully exposed to a single asset.
-        collateralFactor = collateralFactor0 < collateralFactor1 ? collateralFactor0 : collateralFactor1;
-        liquidationFactor = liquidationFactor0 < liquidationFactor1 ? liquidationFactor0 : liquidationFactor1;
-
-        return (valueInUsd, collateralFactor, liquidationFactor);
-    }
-
-    /*///////////////////////////////////////////////////////////////
                     WITHDRAWALS AND DEPOSITS
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Increases the exposure to an asset on deposit.
+     * @notice Increases the exposure to an asset on a direct deposit.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
@@ -430,11 +397,14 @@ contract UniswapV3PricingModule is DerivedPricingModule {
     }
 
     /**
-     * @notice Increases the exposure to an underlying asset on deposit.
+     * @notice Increases the exposure to an asset on an indirect deposit.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Pricing Module.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Pricing Module since last interaction.
+     * @return primaryFlag Identifier indicating if it is a Primary or Derived Pricing Module.
+     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Pricing Module, 18 decimals precision.
      */
     function processIndirectDeposit(
         address creditor,

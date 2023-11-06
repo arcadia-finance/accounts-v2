@@ -16,7 +16,12 @@ contract PricingModuleMock is AbstractPricingModuleExtension {
         returns (uint16 collateralFactor, uint16 liquidationFactor)
     { }
 
-    function getValue(GetValueInput memory input) public view override returns (uint256, uint256, uint256) { }
+    function getValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
+        public
+        view
+        override
+        returns (uint256, uint256, uint256)
+    { }
 
     function processDirectDeposit(address creditor, address asset, uint256 id, uint256 amount) public override { }
 

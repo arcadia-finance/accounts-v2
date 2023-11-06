@@ -6,8 +6,6 @@ pragma solidity 0.8.19;
 
 import { AbstractDerivedPricingModule_Fuzz_Test } from "./_AbstractDerivedPricingModule.fuzz.t.sol";
 
-import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
-
 /**
  * @notice Fuzz tests for the function "_processWithdrawal" of contract "AbstractDerivedPricingModule".
  */
