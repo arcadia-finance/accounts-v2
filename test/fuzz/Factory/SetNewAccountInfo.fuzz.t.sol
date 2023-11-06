@@ -67,6 +67,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Revert_setNewAccountInfo_InvalidAccountContract(address newAssetAddress, address logic) public {
         vm.assume(logic != address(0));
         vm.assume(logic != address(mainRegistryExtension));
+        vm.assume(logic != address(vm));
         vm.assume(newAssetAddress != address(0));
 
         vm.startPrank(users.creatorAddress);
