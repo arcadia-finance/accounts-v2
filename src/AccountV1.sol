@@ -563,6 +563,16 @@ contract AccountV1 is AccountStorageV1, IAccount {
         _withdraw(assetAddresses, assetIds, assetAmounts, bidder);
     }
 
+    /**
+     * @notice Transfers tokens purchased by a bidder during a liquidation event.
+     * @param to The recipient's address to receive the purchased assets.
+     */
+    function auctionBuyIn(address to) external onlyLiquidator {
+        (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
+            generateAssetData();
+        _withdraw(assetAddresses, assetIds, assetAmounts, to);
+    }
+
     /*///////////////////////////////////////////////////////////////
                     ASSET MANAGEMENT LOGIC
     ///////////////////////////////////////////////////////////////*/
