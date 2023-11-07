@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 
 import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
 import { IOraclesHub } from "./pricing-modules/interfaces/IOraclesHub.sol";
+import { IOracleModule } from "./interfaces/IOracleModule.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { Owned } from "../lib/solmate/src/auth/Owned.sol";
 
@@ -57,7 +58,7 @@ contract OracleHub is Owned, IOraclesHub {
 
     /**
      * @notice Adds a new oracle to the Oracle Hub.
-     * @param oracleInformation A Struct with information about the Oracle:
+     * @param oracleInformation_ A Struct with information about the Oracle:
      * - isActive: Flag indicating if the oracle is active or decommissioned.
      * - oracleUnit: The unit of the oracle, equal to 10^decimalsOracle.
      * - oracle: The contract address of the oracle.
@@ -67,14 +68,14 @@ contract OracleHub is Owned, IOraclesHub {
      * @dev It is not possible to overwrite the information of an existing Oracle in the Oracle Hub.
      * @dev Oracles can't have more than 18 decimals.
      */
-    function addOracle(OracleInformation calldata oracleInformation) external onlyOwner {
-        address oracle = oracleInformation.oracle;
+    function addOracle(OracleInformation calldata oracleInformation_) external onlyOwner {
+        address oracle = oracleInformation_.oracle;
         require(!inOracleHub[oracle], "OH_AO: Oracle not unique");
-        require(oracleInformation.oracleUnit <= 1_000_000_000_000_000_000, "OH_AO: Maximal 18 decimals");
+        require(oracleInformation_.oracleUnit <= 1_000_000_000_000_000_000, "OH_AO: Maximal 18 decimals");
         inOracleHub[oracle] = true;
-        oracleToOracleInformation[oracle] = oracleInformation;
+        oracleToOracleInformation[oracle] = oracleInformation_;
 
-        emit OracleAdded(oracle, oracleInformation.baseAssetAddress, oracleInformation.quoteAsset);
+        emit OracleAdded(oracle, oracleInformation_.baseAssetAddress, oracleInformation_.quoteAsset);
     }
 
     /**
@@ -177,7 +178,7 @@ contract OracleHub is Owned, IOraclesHub {
      * - Third and final rate will overflow when R1 * R2 * R3 * 10**(18 - D1 - D2) > MAXUINT256.
      */
     function getRateInUsd(address[] memory oracles) external view returns (uint256 rate) {
-        rate = FixedPointMathLib.WAD; // Scalar 1 with 18 decimals (The internal precision).
+        rate = 1e18; // Scalar 1 with 18 decimals (The internal precision).
         int256 tempRate;
         uint256 oraclesLength = oracles.length;
         address oracle;
@@ -195,6 +196,203 @@ contract OracleHub is Owned, IOraclesHub {
 
             unchecked {
                 ++i;
+            }
+        }
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                          NEW LOGIC
+    ///////////////////////////////////////////////////////////////*/
+
+    uint256 oracleCounter;
+
+    mapping(address => OracleInformation2) public oracleToOracleInformation2;
+
+    mapping(uint256 => address) internal oracleToOracleModule;
+
+    // Map oracleModule => flag.
+    mapping(address => bool) public isOracleModule;
+
+    struct OracleInformation2 {
+        // Flag indicating if the oracle is active or decommissioned.
+        bool isActive;
+        // The correction with which the oracle-rate has to be multiplied to get a precision of 18 decimals.
+        uint64 unitCorrection;
+        // Label for the base asset.
+        bytes16 baseAsset;
+        // Label for the quote asset.
+        bytes16 quoteAsset;
+    }
+
+    /**
+     * @dev Only Oracle Modules can call functions with this modifier.
+     */
+    modifier onlyOracleModule() {
+        require(isOracleModule[msg.sender], "MR: Only OracleMod.");
+        _;
+    }
+
+    /**
+     * @notice Adds a new Oracle Module to the OracleHub.
+     * @param oracleModule The contract address of the Oracle Module.
+     */
+    function addOracleModule(address oracleModule) external onlyOwner {
+        require(!isOracleModule[oracleModule], "MR_APM: PriceMod. not unique");
+        isOracleModule[oracleModule] = true;
+    }
+
+    function addOracle() external onlyOracleModule returns (uint256 oracleCounter_) {
+        // Cache oracleCounter.
+        oracleCounter_ = oracleCounter;
+
+        oracleToOracleModule[oracleCounter_] = msg.sender;
+
+        unchecked {
+            oracleCounter = oracleCounter_ + 1;
+        }
+    }
+
+    function getRateInUsd(bytes32 oracleSequence) external view returns (uint256 rate) {
+        (bool[] memory directions, uint256[] memory oracles) = unpackValues(oracleSequence);
+
+        rate = 1e18; // Scalar 1 with 18 decimals (The internal precision).
+
+        uint256 length = oracles.length;
+        for (uint256 i; i < length;) {
+            if (!directions[i]) {
+                // Normal rate (how much of the QuoteAsset is required to buy 1 unit of the BaseAsset).
+                rate = rate.mulDivDown(IOracleModule(oracleToOracleModule[oracles[i]]).getRate(oracles[i]), 1e18);
+            } else {
+                // Inverse rate (how much of the BaseAsset is required to buy 1 unit of the QuoteAsset).
+                rate = rate.mulDivDown(1e18, IOracleModule(oracleToOracleModule[oracles[i]]).getRate(oracles[i]));
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function checkOracleSequence(bytes32 oracleSequence) external view returns (bool) {
+        (bool[] memory directions, uint256[] memory oracles) = unpackValues(oracleSequence);
+        uint256 length = oracles.length;
+        require(length > 0, "OH_COS: Min 1 Oracle");
+        require(length <= 3, "OH_COS: Max 3 Oracles");
+
+        address oracleModule;
+        bytes16 baseAsset;
+        bytes16 quoteAsset;
+        bytes16 lastAsset;
+        for (uint256 i; i < length;) {
+            oracleModule = oracleToOracleModule[oracles[i]];
+
+            if (!IOracleModule(oracleModule).isActive(oracles[i])) return false;
+            (baseAsset, quoteAsset) = IOracleModule(oracleModule).assetPair(oracles[i]);
+
+            if (i == 0) {
+                lastAsset = !directions[i] ? quoteAsset : baseAsset;
+            } else {
+                if (!directions[i]) {
+                    if (lastAsset != baseAsset) return false;
+                    lastAsset = quoteAsset;
+                } else {
+                    if (lastAsset == quoteAsset) return false;
+                    lastAsset = baseAsset;
+                }
+            }
+            if (i == length - 1) {
+                if (lastAsset != "USD") return false;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+
+        return true;
+    }
+
+    // ToDo: move to utils since it is not used within the contract.
+    // ToDo: use calldata.
+    function pack(bool[] memory boolValues, uint80[] memory uintValues) public pure returns (bytes32 packedData) {
+        assembly {
+            // Get the length of the arrays.
+            let length := mload(boolValues)
+
+            // Store the total length in the two left most bits.
+            packedData := length
+
+            let offset
+            let boolValue
+            let uintValue
+            // Loop to pack the array-elements.
+            for { let i := 0 } lt(i, length) { i := add(i, 1) } {
+                // Calculate the offset for elements at index i.
+                offset := mul(32, add(i, 1))
+
+                // Read the value of the boolean at index i.
+                boolValue := mload(add(boolValues, offset))
+
+                // Read the value of the uint80 at index i.
+                uintValue := mload(add(uintValues, offset))
+
+                // Shift the boolValue to the left by 2 + i * 80 bits.
+                // Then OR the result with packedData.
+                packedData := or(packedData, shl(add(mul(i, 81), 2), boolValue))
+
+                // Shift the uintValue to the left by 3 + i * 80 bits.
+                // Then OR the result with packedData.
+                packedData := or(packedData, shl(add(mul(i, 81), 3), uintValue))
+            }
+        }
+    }
+
+    // ToDo: use bit operations and logic operation in Solidity instead of Assembly.
+    function unpackValues(bytes32 packedData)
+        public
+        pure
+        returns (bool[] memory boolValues, uint256[] memory uintValues)
+    {
+        assembly {
+            // Use bitmask to extract the array length from the rightmost 2 bits.
+            let length := and(packedData, 0x3)
+
+            // Calculate the total memory size of each array.
+            let memSize := mul(add(length, 1), 32) // 32 bytes per index + 1 for the array length.
+
+            // Initiate the boolean array at the next free memory slot.
+            boolValues := mload(0x40)
+
+            // Initiate the uint80 array after the boolean array.
+            uintValues := add(boolValues, memSize)
+
+            // Update the free memory pointer.
+            mstore(0x40, add(uintValues, memSize))
+
+            // Store the sizes of arrays at the first slot of each array.
+            mstore(boolValues, length)
+            mstore(uintValues, length)
+
+            let offset
+            let boolValue
+            let uintValue
+            // Loop to pack the array-elements.
+            for { let i := 0 } lt(i, length) { i := add(i, 1) } {
+                // Shift to the right by 2 + i * 81 bits.
+                // Then use bitmask to extract the rightmost bit for value of the boolean at index i.
+                boolValue := and(shr(add(mul(i, 81), 2), packedData), 0x1)
+
+                // Shift to the right by 3 + i * 81 bits.
+                // Then use bitmask to extract the rightmost 80 bits for the value of the uint80 at index i.
+                uintValue := and(shr(add(mul(i, 81), 3), packedData), 0xFFFFFFFFFFFFFFFFFFFF)
+
+                // Calculate the offset for elements at index i.
+                offset := mul(32, add(i, 1))
+
+                // Store the value of the boolean at index i.
+                mstore(add(boolValues, offset), boolValue)
+
+                // Store the value of the boolean at index i.
+                mstore(add(uintValues, offset), uintValue)
             }
         }
     }

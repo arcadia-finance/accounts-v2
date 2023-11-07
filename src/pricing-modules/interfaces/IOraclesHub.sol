@@ -12,6 +12,8 @@ interface IOraclesHub {
      */
     function checkOracleSequence(address[] memory oracles, address asset) external view;
 
+    function checkOracleSequence(bytes32 oracleSequence) external view returns (bool);
+
     /**
      * @notice Returns the state of an oracle.
      * @param oracle The contract address of the oracle to be checked.
@@ -25,4 +27,6 @@ interface IOraclesHub {
      * @return rateInUsd The rate of the asset denominated in USD, with 18 Decimals precision.
      */
     function getRateInUsd(address[] memory oracles) external view returns (uint256);
+
+    function getRateInUsd(bytes32 oracleSequence) external view returns (uint256);
 }
