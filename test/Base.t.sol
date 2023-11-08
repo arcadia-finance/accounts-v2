@@ -23,6 +23,7 @@ import { Utils } from "./utils/Utils.sol";
 import { ERC20Mock } from "./utils/mocks/ERC20Mock.sol";
 import { ERC721Mock } from "./utils/mocks/ERC721Mock.sol";
 import { ERC1155Mock } from "./utils/mocks/ERC1155Mock.sol";
+import { TrustedCreditorMock } from "./utils/mocks/TrustedCreditorMock.sol";
 
 /// @notice Base test contract with common logic needed by all tests.
 abstract contract Base_Test is Test, Events, Errors {
@@ -46,6 +47,7 @@ abstract contract Base_Test is Test, Events, Errors {
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
     AccountV1 internal proxyAccount;
+    TrustedCreditorMock internal trustedCreditor;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION

@@ -65,4 +65,12 @@ library RiskModule {
         }
         liquidationValue = liquidationValue / RiskConstants.RISK_FACTOR_UNIT;
     }
+
+    function calculateLiquidationValue(AssetValueAndRiskFactors[] memory valuesAndRiskVarPerAsset)
+        public
+        pure
+        returns (uint256 liquidationValue)
+    {
+        return _calculateLiquidationValue(valuesAndRiskVarPerAsset);
+    }
 }

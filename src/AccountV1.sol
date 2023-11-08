@@ -529,13 +529,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
             address owner_,
             address creditor_,
             uint256 totalOpenDebt,
-            RiskModule.AssetValueAndRiskVariables[] memory assetAndRiskValues
+            RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues
         )
     {
-        (assetAddresses, assetIds, assetAmounts) = generateAssetData();
-        assetAndRiskValues =
-            IMainRegistry(registry).getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, baseCurrency);
         creditor_ = trustedCreditor;
+        (assetAddresses, assetIds, assetAmounts) = generateAssetData();
+        assetAndRiskValues = IMainRegistry(registry).getValuesInBaseCurrency(
+            baseCurrency, creditor_, assetAddresses, assetIds, assetAmounts
+        );
         owner_ = owner;
 
         uint256 fixedLiquidationCost_ = fixedLiquidationCost;

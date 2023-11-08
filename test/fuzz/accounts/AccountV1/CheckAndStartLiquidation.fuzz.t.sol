@@ -78,8 +78,13 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 
-        RiskModule.AssetValueAndRiskVariables[] memory assetAndRiskValues = mainRegistryExtension
-            .getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, accountExtension2.baseCurrency());
+        RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues = mainRegistryExtension.getValuesInBaseCurrency(
+            accountExtension2.baseCurrency(),
+            accountExtension2.trustedCreditor(),
+            assetAddresses,
+            assetIds,
+            assetAmounts
+        );
 
         // Given : Liquidation value is greater than or equal to used margin
         vm.assume(openDebt + fixedLiquidationCost <= RiskModule.calculateLiquidationValue(assetAndRiskValues));
@@ -153,8 +158,13 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 
-        RiskModule.AssetValueAndRiskVariables[] memory assetAndRiskValues = mainRegistryExtension
-            .getListOfValuesPerAsset(assetAddresses, assetIds, assetAmounts, accountExtension2.baseCurrency());
+        RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues = mainRegistryExtension.getValuesInBaseCurrency(
+            accountExtension2.baseCurrency(),
+            accountExtension2.trustedCreditor(),
+            assetAddresses,
+            assetIds,
+            assetAmounts
+        );
 
         // Given : Liquidation value is smaller than used margin
         vm.assume(openDebt + fixedLiquidationCost > RiskModule.calculateLiquidationValue(assetAndRiskValues));
@@ -177,7 +187,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             address owner_,
             address creditor_,
             uint256 totalOpenDebt,
-            RiskModule.AssetValueAndRiskVariables[] memory assetAndRiskValues_
+            RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues_
         ) = accountExtension2.checkAndStartLiquidation();
         vm.stopPrank();
 
@@ -190,7 +200,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             totalOpenDebt,
             ITrustedCreditor(accountExtension2.trustedCreditor()).getOpenPosition(address(accountExtension2))
         );
-        assertEq(assetAndRiskValues_[0].valueInBaseCurrency, assetAndRiskValues[0].valueInBaseCurrency);
+        assertEq(assetAndRiskValues_[0].assetValue, assetAndRiskValues[0].assetValue);
         assertEq(assetAndRiskValues_[0].collateralFactor, assetAndRiskValues[0].collateralFactor);
         assertEq(assetAndRiskValues_[0].liquidationFactor, assetAndRiskValues[0].liquidationFactor);
     }
