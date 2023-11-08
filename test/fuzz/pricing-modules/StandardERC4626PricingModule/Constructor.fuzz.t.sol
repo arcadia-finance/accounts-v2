@@ -25,8 +25,6 @@ contract Constructor_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Pr
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address mainRegistry_) public {
         vm.startPrank(users.creatorAddress);
-        vm.expectEmit(true, true, true, true);
-        emit RiskManagerUpdated(users.creatorAddress);
         ERC4626PricingModuleExtension erc4626PricingModule_ = new ERC4626PricingModuleExtension(
             mainRegistry_
         );
@@ -34,7 +32,6 @@ contract Constructor_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Pr
 
         assertEq(erc4626PricingModule_.MAIN_REGISTRY(), mainRegistry_);
         assertEq(erc4626PricingModule_.ASSET_TYPE(), 0);
-        assertEq(erc4626PricingModule_.riskManager(), users.creatorAddress);
         assertFalse(erc4626PricingModule_.getPrimaryFlag());
     }
 }

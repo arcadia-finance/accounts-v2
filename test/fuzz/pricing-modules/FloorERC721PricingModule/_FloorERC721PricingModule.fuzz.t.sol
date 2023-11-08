@@ -7,7 +7,6 @@ pragma solidity 0.8.19;
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { OracleHub } from "../../../../src/OracleHub.sol";
-import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 
 /**
  * @notice Common logic needed by all "FloorERC721PricingModule" fuzz tests.
@@ -16,9 +15,6 @@ abstract contract FloorERC721PricingModule_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
-
-    uint16 internal collateralFactor = RiskConstants.DEFAULT_COLLATERAL_FACTOR;
-    uint16 internal liquidationFactor = RiskConstants.DEFAULT_LIQUIDATION_FACTOR;
 
     address[] internal oracleNft2ToUsdArr = new address[](1);
 

@@ -8,6 +8,8 @@ import { StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626Pricin
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
+import { RiskModule } from "../../../../src/RiskModule.sol";
+
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts()" of contract "StandardERC4626PricingModule".
  */
@@ -46,8 +48,10 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626PricingModule_Fuzz_Test is St
         // When: "_getUnderlyingAssetsAmounts" is called with 'shares'.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(ybToken1)));
         bytes32[] memory emptyArray = new bytes32[](1);
-        (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd) =
-            erc4626PricingModule.getUnderlyingAssetsAmounts(assetKey, shares, emptyArray);
+        (
+            uint256[] memory underlyingAssetsAmounts,
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+        ) = erc4626PricingModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, shares, emptyArray);
 
         // Then: The correct underlyingAssetsAmount is returned.
         uint256 expectedUnderlyingAssetsAmount = totalSupply > 0 ? shares * totalAssets / totalSupply : 0;

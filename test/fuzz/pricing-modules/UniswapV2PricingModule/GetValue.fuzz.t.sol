@@ -7,7 +7,6 @@ pragma solidity 0.8.19;
 import { UniswapV2PricingModule_Fuzz_Test } from "./_UniswapV2PricingModule.fuzz.t.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2PairMock.sol";
 
 /**
@@ -75,16 +74,10 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
             > type(uint256).max / Constants.WAD / Constants.WAD * 10 ** _oracleToken1ToUsdDecimals; // trustedPriceToken1ToUsd overflows
         vm.assume(cond0 || cond1);
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
-            asset: address(pairToken1Token2),
-            assetId: 0,
-            assetAmount: pairToken1Token2.totalSupply(),
-            baseCurrency: UsdBaseCurrencyID
-        });
-
         //Arithmetic overflow.
+        uint256 amount = pairToken1Token2.totalSupply();
         vm.expectRevert(bytes(""));
-        uniswapV2PricingModule.getValue(getValueInput);
+        uniswapV2PricingModule.getValue(address(creditorUsd), address(pairToken1Token2), 0, amount);
     }
 
     function testFuzz_Success_getValue(
@@ -158,13 +151,9 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
             Constants.WAD * _rateToken1ToUsd / 10 ** _oracleToken1ToUsdDecimals * amountToken1 / 10 ** _token1Decimals;
         uint256 expectedValueInUsd = valueToken2 + valueToken1;
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
-            asset: address(pairToken1Token2),
-            assetId: 0,
-            assetAmount: pairToken1Token2.totalSupply(),
-            baseCurrency: UsdBaseCurrencyID
-        });
-        (uint256 actualValueInUsd,,) = uniswapV2PricingModule.getValue(getValueInput);
+        (uint256 actualValueInUsd,,) = uniswapV2PricingModule.getValue(
+            address(creditorUsd), address(pairToken1Token2), 0, pairToken1Token2.totalSupply()
+        );
 
         assertInRange(actualValueInUsd, expectedValueInUsd, 4);
     }

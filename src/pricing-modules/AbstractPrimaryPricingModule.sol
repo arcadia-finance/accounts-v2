@@ -5,7 +5,8 @@
 pragma solidity 0.8.19;
 
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { PricingModule, IPricingModule } from "./AbstractPricingModule.sol";
+import { PricingModule } from "./AbstractPricingModule.sol";
+import { RiskConstants } from "../libraries/RiskConstants.sol";
 
 /**
  * @title Primary Pricing Module.
@@ -21,6 +22,7 @@ abstract contract PrimaryPricingModule is PricingModule {
     // Identifier indicating that it is a Primary Pricing Module:
     // the assets being priced have no underlying assets.
     bool internal constant PRIMARY_FLAG = true;
+
     // The contract address of the OracleHub.
     address public immutable ORACLE_HUB;
 
@@ -28,13 +30,15 @@ abstract contract PrimaryPricingModule is PricingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Map with the last exposures of each asset.
-    mapping(bytes32 assetKey => Exposure exposure) public exposure;
+    // Map with the risk parameters of each asset for each creditor.
+    mapping(address creditor => mapping(bytes32 assetKey => RiskParameters riskParameters)) public riskParams;
 
-    // Struct with information about the exposure of a specific asset.
-    struct Exposure {
-        uint128 maxExposure; // The maximum exposure to an asset.
-        uint128 exposureLast; // The exposure to an asset at its last interaction.
+    // Struct with the risk parameters of a specific asset for a specific creditor.
+    struct RiskParameters {
+        uint128 lastExposureAsset; // The exposure of a creditor to an asset at its last interaction.
+        uint128 maxExposure; // The maximum exposure of a creditor to an asset.
+        uint16 collateralFactor; // The collateral factor of the asset for the creditor, 2 decimals precision.
+        uint16 liquidationFactor; // The liquidation factor of the asset for the creditor, 2 decimals precision.
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -56,31 +60,59 @@ abstract contract PrimaryPricingModule is PricingModule {
      * 2 = ERC1155
      */
     constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        PricingModule(mainRegistry_, assetType_, msg.sender)
+        PricingModule(mainRegistry_, assetType_)
     {
         ORACLE_HUB = oracleHub_;
     }
 
     /*///////////////////////////////////////////////////////////////
-                    RISK VARIABLES MANAGEMENT
+                    RISK PARAMETER MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Sets the maximum exposure for an asset.
+     * @notice Returns the risk factors of an asset for a creditor.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @param maxExposure The maximum protocol wide exposure to the asset.
-     * @dev Can only be called by the Risk Manager, which can be different from the owner.
+     * @return collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
      */
-    function setMaxExposureOfAsset(address asset, uint256 assetId, uint256 maxExposure)
-        public
-        virtual
-        onlyRiskManager
+    function getRiskFactors(address creditor, address asset, uint256 assetId)
+        external
+        view
+        override
+        returns (uint16 collateralFactor, uint16 liquidationFactor)
     {
-        require(maxExposure <= type(uint128).max, "APPM_SEA: Max Exp. not in limits");
-        exposure[_getKeyFromAsset(asset, assetId)].maxExposure = uint128(maxExposure);
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+        collateralFactor = riskParams[creditor][assetKey].collateralFactor;
+        liquidationFactor = riskParams[creditor][assetKey].liquidationFactor;
+    }
 
-        emit MaxExposureSet(asset, uint128(maxExposure));
+    /**
+     * @notice Sets the risk parameters for an asset for a given creditor.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param maxExposure The maximum exposure of a creditor to the asset.
+     * @param collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
+     * @param liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     */
+    function setRiskParameters(
+        address creditor,
+        address asset,
+        uint256 assetId,
+        uint128 maxExposure,
+        uint16 collateralFactor,
+        uint16 liquidationFactor
+    ) external onlyMainReg {
+        require(collateralFactor <= RiskConstants.RISK_FACTOR_UNIT, "APPM_SRP: Coll.Fact not in limits");
+        require(liquidationFactor <= RiskConstants.RISK_FACTOR_UNIT, "APPM_SRP: Liq.Fact not in limits");
+
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+
+        riskParams[creditor][assetKey].maxExposure = maxExposure;
+        riskParams[creditor][assetKey].collateralFactor = collateralFactor;
+        riskParams[creditor][assetKey].liquidationFactor = liquidationFactor;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -88,78 +120,13 @@ abstract contract PrimaryPricingModule is PricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Increases the exposure to an asset on deposit.
+     * @notice Increases the exposure to an asset on a direct deposit.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
      */
-    function processDirectDeposit(address asset, uint256 assetId, uint256 amount) public virtual override onlyMainReg {
-        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
-
-        // Cache exposureLast.
-        uint256 exposureLast = exposure[assetKey].exposureLast;
-
-        require(exposureLast + amount <= exposure[assetKey].maxExposure, "APPM_PDD: Exposure not in limits");
-
-        unchecked {
-            exposure[assetKey].exposureLast = uint128(exposureLast) + uint128(amount);
-        }
-
-        emit AssetExposureChanged(asset, uint128(exposureLast), exposure[assetKey].exposureLast);
-    }
-
-    /**
-     * @notice Increases the exposure to an underlying asset on deposit.
-     * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
-     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
-     */
-    function processIndirectDeposit(
-        address asset,
-        uint256 assetId,
-        uint256 exposureUpperAssetToAsset,
-        int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
-        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
-
-        // Cache exposureLast.
-        uint256 exposureLast = exposure[assetKey].exposureLast;
-
-        uint256 exposureAsset;
-        if (deltaExposureUpperAssetToAsset > 0) {
-            exposureAsset = exposureLast + uint256(deltaExposureUpperAssetToAsset);
-            require(exposureAsset <= exposure[assetKey].maxExposure, "APPM_PID: Exposure not in limits");
-        } else {
-            exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
-                ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
-                : 0;
-        }
-        exposure[assetKey].exposureLast = uint128(exposureAsset);
-
-        emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureAsset));
-
-        // Get Value in Usd
-        (usdValueExposureUpperAssetToAsset,,) = getValue(
-            IPricingModule.GetValueInput({
-                asset: asset,
-                assetId: assetId,
-                assetAmount: exposureUpperAssetToAsset,
-                baseCurrency: 0
-            })
-        );
-
-        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
-    }
-
-    /**
-     * @notice Decreases the exposure to an asset on withdrawal.
-     * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
-     * @param amount The amount of tokens.
-     * @dev Unsafe cast to uint128, it is assumed no more than 10**(20+decimals) tokens will ever be deposited.
-     */
-    function processDirectWithdrawal(address asset, uint256 assetId, uint256 amount)
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         virtual
         override
@@ -167,57 +134,116 @@ abstract contract PrimaryPricingModule is PricingModule {
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-        // Cache exposureLast.
-        uint256 exposureLast = exposure[assetKey].exposureLast;
+        // Cache lastExposureAsset.
+        uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
-        exposureLast >= amount
-            ? exposure[assetKey].exposureLast = uint128(exposureLast) - uint128(amount)
-            : exposure[assetKey].exposureLast = 0;
+        require(
+            lastExposureAsset + amount <= riskParams[creditor][assetKey].maxExposure, "APPM_PDD: Exposure not in limits"
+        );
 
-        emit AssetExposureChanged(asset, uint128(exposureLast), exposure[assetKey].exposureLast);
+        unchecked {
+            riskParams[creditor][assetKey].lastExposureAsset = uint128(lastExposureAsset) + uint128(amount);
+        }
     }
 
     /**
-     * @notice Decreases the exposure to an underlying asset on withdrawal.
+     * @notice Increases the exposure to an asset on an indirect deposit.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Pricing Module.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Pricing Module since last interaction.
+     * @return primaryFlag Identifier indicating if it is a Primary or Derived Pricing Module.
+     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Pricing Module, 18 decimals precision.
      */
-    function processIndirectWithdrawal(
+    function processIndirectDeposit(
+        address creditor,
         address asset,
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-        // Cache exposureLast.
-        uint256 exposureLast = exposure[assetKey].exposureLast;
+        // Cache lastExposureAsset.
+        uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
         uint256 exposureAsset;
         if (deltaExposureUpperAssetToAsset > 0) {
-            exposureAsset = exposureLast + uint256(deltaExposureUpperAssetToAsset);
-            require(exposureAsset <= type(uint128).max, "APPM_PIW: Overflow");
+            exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
+            require(exposureAsset <= riskParams[creditor][assetKey].maxExposure, "APPM_PID: Exposure not in limits");
         } else {
-            exposureAsset = exposureLast > uint256(-deltaExposureUpperAssetToAsset)
-                ? exposureLast - uint256(-deltaExposureUpperAssetToAsset)
+            exposureAsset = lastExposureAsset > uint256(-deltaExposureUpperAssetToAsset)
+                ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
                 : 0;
         }
-        exposure[assetKey].exposureLast = uint128(exposureAsset);
-
-        emit AssetExposureChanged(asset, uint128(exposureLast), uint128(exposureAsset));
+        riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
 
         // Get Value in Usd
-        (usdValueExposureUpperAssetToAsset,,) = getValue(
-            IPricingModule.GetValueInput({
-                asset: asset,
-                assetId: assetId,
-                assetAmount: exposureUpperAssetToAsset,
-                baseCurrency: 0
-            })
-        );
+        (usdExposureUpperAssetToAsset,,) = getValue(creditor, asset, assetId, exposureUpperAssetToAsset);
 
-        return (PRIMARY_FLAG, usdValueExposureUpperAssetToAsset);
+        return (PRIMARY_FLAG, usdExposureUpperAssetToAsset);
+    }
+
+    /**
+     * @notice Decreases the exposure to an asset on a direct withdrawal.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param amount The amount of tokens.
+     */
+    function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
+        public
+        virtual
+        override
+        onlyMainReg
+    {
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+
+        // Cache lastExposureAsset.
+        uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
+
+        lastExposureAsset >= amount
+            ? riskParams[creditor][assetKey].lastExposureAsset = uint128(lastExposureAsset) - uint128(amount)
+            : riskParams[creditor][assetKey].lastExposureAsset = 0;
+    }
+
+    /**
+     * @notice Decreases the exposure to an asset on an indirect withdrawal.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Pricing Module.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Pricing Module since last interaction.
+     * @return primaryFlag Identifier indicating if it is a Primary or Derived Pricing Module.
+     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Pricing Module, 18 decimals precision.
+     */
+    function processIndirectWithdrawal(
+        address creditor,
+        address asset,
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+
+        // Cache lastExposureAsset.
+        uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
+
+        uint256 exposureAsset;
+        if (deltaExposureUpperAssetToAsset > 0) {
+            exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
+            require(exposureAsset <= type(uint128).max, "APPM_PIW: Overflow");
+        } else {
+            exposureAsset = lastExposureAsset > uint256(-deltaExposureUpperAssetToAsset)
+                ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
+                : 0;
+        }
+        riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
+
+        // Get Value in Usd
+        (usdExposureUpperAssetToAsset,,) = getValue(creditor, asset, assetId, exposureUpperAssetToAsset);
+
+        return (PRIMARY_FLAG, usdExposureUpperAssetToAsset);
     }
 }

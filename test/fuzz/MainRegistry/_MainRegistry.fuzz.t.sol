@@ -8,6 +8,8 @@ import { Fuzz_Test, Constants } from "../Fuzz.t.sol";
 
 import { AccountV1 } from "../../../src/AccountV1.sol";
 import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
+import { DerivedPricingModuleMock } from "../../utils/mocks/DerivedPricingModuleMock.sol";
+import { PrimaryPricingModuleMock } from "../../utils/mocks/PrimaryPricingModuleMock.sol";
 
 /**
  * @notice Common logic needed by all "MainRegistry" fuzz tests.
@@ -21,12 +23,23 @@ abstract contract MainRegistry_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
+    PrimaryPricingModuleMock internal primaryPricingModule;
+    DerivedPricingModuleMock internal derivedPricingModule;
+
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
+
+        vm.startPrank(users.creatorAddress);
+        primaryPricingModule = new PrimaryPricingModuleMock(address(mainRegistryExtension), address(oracleHub), 0);
+        mainRegistryExtension.addPricingModule(address(primaryPricingModule));
+
+        derivedPricingModule = new DerivedPricingModuleMock(address(mainRegistryExtension), 0);
+        mainRegistryExtension.addPricingModule(address(derivedPricingModule));
+        vm.stopPrank();
     }
 
     /* ///////////////////////////////////////////////////////////////

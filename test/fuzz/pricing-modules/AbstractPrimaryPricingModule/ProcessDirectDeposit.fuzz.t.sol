@@ -36,7 +36,7 @@ contract ProcessDirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstract
         // Then: The transaction reverts with "APM: ONLY_MAIN_REGISTRY".
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
-        pricingModule.processDirectDeposit(assetState.asset, assetState.assetId, amount);
+        pricingModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }
 
@@ -59,7 +59,7 @@ contract ProcessDirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstract
         // Then: The transaction reverts with "APPM_PDD: Exposure not in limits".
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("APPM_PDD: Exposure not in limits");
-        pricingModule.processDirectDeposit(assetState.asset, assetState.assetId, amount);
+        pricingModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }
 
@@ -76,11 +76,11 @@ contract ProcessDirectDeposit_AbstractPrimaryPricingModule_Fuzz_Test is Abstract
 
         // When: "amount" is deposited.
         vm.prank(address(mainRegistryExtension));
-        pricingModule.processDirectDeposit(assetState.asset, assetState.assetId, amount);
+        pricingModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
-        (, uint128 actualExposure) = pricingModule.exposure(assetKey);
+        (uint128 actualExposure,,,) = pricingModule.riskParams(assetState.creditor, assetKey);
 
         assertEq(actualExposure, expectedExposure);
     }

@@ -51,7 +51,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
 
         // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(accountExtension), debtInitial);
+        creditorStable1.setOpenPosition(address(accountExtension), debtInitial);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
@@ -61,7 +61,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then: The action is not successful.
         assertTrue(!success);
-        assertEq(creditor, address(trustedCreditor));
+        assertEq(creditor, address(creditorStable1));
         assertEq(version, 1);
     }
 
@@ -81,7 +81,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
 
         // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(accountExtension), debtInitial);
+        creditorStable1.setOpenPosition(address(accountExtension), debtInitial);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
@@ -91,7 +91,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then: The action is successful
         assertTrue(success);
-        assertEq(creditor, address(trustedCreditor));
+        assertEq(creditor, address(creditorStable1));
         assertEq(version, 1);
     }
 
@@ -120,7 +120,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then: The action is not successful
         assertTrue(!success);
-        assertEq(creditor, address(trustedCreditor));
+        assertEq(creditor, address(creditorStable1));
         assertEq(version, 1);
     }
 
@@ -145,7 +145,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then: The action is successful
         assertTrue(success);
-        assertEq(creditor, address(trustedCreditor));
+        assertEq(creditor, address(creditorStable1));
         assertEq(version, 1);
     }
 }

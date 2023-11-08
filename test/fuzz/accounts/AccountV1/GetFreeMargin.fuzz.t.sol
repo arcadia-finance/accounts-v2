@@ -42,7 +42,7 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
 
         // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(accountExtension), openDebt);
+        creditorStable1.setOpenPosition(address(accountExtension), openDebt);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
@@ -68,7 +68,7 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
 
         // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(accountExtension), openDebt);
+        creditorStable1.setOpenPosition(address(accountExtension), openDebt);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
@@ -93,7 +93,7 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
 
         // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(accountExtension), openDebt);
+        creditorStable1.setOpenPosition(address(accountExtension), openDebt);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);

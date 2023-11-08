@@ -96,7 +96,7 @@ contract LiquidateAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         assertEq(originalOwner, users.accountOwner);
         assertEq(baseCurrency, address(mockERC20.stable1));
-        assertEq(trustedCreditor_, address(trustedCreditor));
+        assertEq(trustedCreditor_, address(creditorStable1));
 
         assertEq(accountExtension.owner(), Constants.initLiquidator);
         assertEq(accountExtension.isTrustedCreditorSet(), false);

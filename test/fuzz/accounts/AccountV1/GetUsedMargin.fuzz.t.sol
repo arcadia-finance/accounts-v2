@@ -34,7 +34,7 @@ contract GetUsedMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
 
         // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(accountExtension), openDebt);
+        creditorStable1.setOpenPosition(address(accountExtension), openDebt);
 
         assertEq(0, accountExtension.getUsedMargin());
     }
@@ -51,7 +51,7 @@ contract GetUsedMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
 
         // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(accountExtension), openDebt);
+        creditorStable1.setOpenPosition(address(accountExtension), openDebt);
 
         assertEq(openDebt + fixedLiquidationCost, accountExtension.getUsedMargin());
     }

@@ -33,7 +33,7 @@ contract ProcessIndirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC1
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("APM: ONLY_MAIN_REGISTRY");
         floorERC1155PricingModule.processIndirectDeposit(
-            asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            address(creditorUsd), asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
         vm.stopPrank();
     }
@@ -46,14 +46,12 @@ contract ProcessIndirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC1
     ) public {
         vm.assume(assetId > 0); //Wrong Id
         vm.prank(users.creatorAddress);
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 0, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 0, oracleSft2ToUsdArr);
 
         vm.startPrank(address(mainRegistryExtension));
         vm.expectRevert("PM1155_PID: ID not allowed");
         floorERC1155PricingModule.processIndirectDeposit(
-            asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            address(creditorUsd), asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
         vm.stopPrank();
     }

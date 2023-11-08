@@ -62,6 +62,10 @@ abstract contract Fuzz_Test is Base_Test {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
+    TrustedCreditorMock internal creditorUsd;
+    TrustedCreditorMock internal creditorStable1;
+    TrustedCreditorMock internal creditorToken1;
+
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
@@ -119,10 +123,23 @@ abstract contract Fuzz_Test is Base_Test {
             sft2ToUsd: 1 * 10 ** Constants.erc1155OracleDecimals
         });
 
-        // Set a trusted creditor with initialized params to use across tests
-        initBaseCurrency = address(mockERC20.stable1);
-        trustedCreditor.setBaseCurrency(initBaseCurrency);
-        vm.stopPrank();
+        // Create a trusted creditor with each baseCurrency.
+        creditorUsd = new TrustedCreditorMock();
+        creditorStable1 = new TrustedCreditorMock();
+        creditorToken1 = new TrustedCreditorMock();
+        creditorStable1.setBaseCurrency(address(mockERC20.stable1));
+        creditorToken1.setBaseCurrency(address(mockERC20.token1));
+        creditorUsd.setRiskManager(users.riskManager);
+        creditorStable1.setRiskManager(users.riskManager);
+        creditorToken1.setRiskManager(users.riskManager);
+
+        // Initialize the default liquidation cost and liquidator of trusted creditor
+        // The base currency on initialization will depend on the type of test and set at a lower level
+        creditorStable1.setFixedLiquidationCost(Constants.initLiquidationCost);
+        creditorStable1.setLiquidator(Constants.initLiquidator);
+
+        vm.label({ account: address(creditorUsd), newLabel: "USD Creditor" });
+        vm.label({ account: address(creditorStable1), newLabel: "Stable1 Creditor" });
 
         // Deploy Oracles
         mockOracles = MockOracles({
@@ -139,28 +156,7 @@ abstract contract Fuzz_Test is Base_Test {
             sft2ToUsd: initMockedOracle(uint8(Constants.erc1155OracleDecimals), "SFT2 / TOKEN1", rates.sft2ToUsd)
         });
 
-        // Add STABLE1 AND TOKEN1 as baseCurrencies in MainRegistry
         vm.startPrank(mainRegistryExtension.owner());
-        mainRegistryExtension.addBaseCurrency(
-            MainRegistry.BaseCurrencyInformation({
-                baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
-                assetAddress: address(mockERC20.stable1),
-                baseCurrencyToUsdOracle: address(mockOracles.stable1ToUsd),
-                baseCurrencyLabel: "STABLE1",
-                baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.stableDecimals))
-            })
-        );
-
-        mainRegistryExtension.addBaseCurrency(
-            MainRegistry.BaseCurrencyInformation({
-                baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
-                assetAddress: address(mockERC20.token1),
-                baseCurrencyToUsdOracle: address(mockOracles.token1ToUsd),
-                baseCurrencyLabel: "TOKEN1",
-                baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.tokenDecimals))
-            })
-        );
-
         // Add Oracles to the OracleHub.
         // Do not add TOKEN4/USD, TOKEN3/TOKEN4 as we are testing it on a case-by-case basis
         oracleHub.addOracle(
@@ -229,76 +225,151 @@ abstract contract Fuzz_Test is Base_Test {
             })
         );
 
-        PricingModule.RiskVarInput[] memory riskVarsStable = new PricingModule.RiskVarInput[](3);
-        PricingModule.RiskVarInput[] memory riskVarsToken = new PricingModule.RiskVarInput[](3);
-
-        riskVarsStable[0] = PricingModule.RiskVarInput({
-            baseCurrency: 0,
-            asset: address(0),
-            collateralFactor: Constants.stableToStableCollFactor,
-            liquidationFactor: Constants.stableToStableLiqFactor
-        });
-        riskVarsStable[1] = PricingModule.RiskVarInput({
-            baseCurrency: 1,
-            asset: address(0),
-            collateralFactor: Constants.stableToStableCollFactor,
-            liquidationFactor: Constants.stableToStableLiqFactor
-        });
-        riskVarsStable[2] = PricingModule.RiskVarInput({
-            baseCurrency: 2,
-            asset: address(0),
-            collateralFactor: Constants.tokenToStableCollFactor,
-            liquidationFactor: Constants.tokenToStableLiqFactor
-        });
-
-        riskVarsToken[0] = PricingModule.RiskVarInput({
-            baseCurrency: 0,
-            asset: address(0),
-            collateralFactor: Constants.tokenToStableCollFactor,
-            liquidationFactor: Constants.tokenToStableLiqFactor
-        });
-        riskVarsToken[1] = PricingModule.RiskVarInput({
-            baseCurrency: 1,
-            asset: address(0),
-            collateralFactor: Constants.tokenToStableCollFactor,
-            liquidationFactor: Constants.tokenToStableLiqFactor
-        });
-        riskVarsToken[2] = PricingModule.RiskVarInput({
-            baseCurrency: 2,
-            asset: address(0),
-            collateralFactor: Constants.tokenToTokenLiqFactor,
-            liquidationFactor: Constants.tokenToTokenLiqFactor
-        });
-
         // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
         oracleStable1ToUsdArr[0] = address(mockOracles.stable1ToUsd);
         oracleStable2ToUsdArr[0] = address(mockOracles.stable2ToUsd);
         oracleToken1ToUsdArr[0] = address(mockOracles.token1ToUsd);
         oracleToken2ToUsdArr[0] = address(mockOracles.token2ToUsd);
 
-        erc20PricingModule.addAsset(
-            address(mockERC20.stable1), oracleStable1ToUsdArr, riskVarsStable, type(uint128).max
-        );
-        erc20PricingModule.addAsset(
-            address(mockERC20.stable2), oracleStable2ToUsdArr, riskVarsStable, type(uint128).max
-        );
-        erc20PricingModule.addAsset(address(mockERC20.token1), oracleToken1ToUsdArr, riskVarsToken, type(uint128).max);
-        erc20PricingModule.addAsset(address(mockERC20.token2), oracleToken2ToUsdArr, riskVarsToken, type(uint128).max);
+        erc20PricingModule.addAsset(address(mockERC20.stable1), oracleStable1ToUsdArr);
+        erc20PricingModule.addAsset(address(mockERC20.stable2), oracleStable2ToUsdArr);
+        erc20PricingModule.addAsset(address(mockERC20.token1), oracleToken1ToUsdArr);
+        erc20PricingModule.addAsset(address(mockERC20.token2), oracleToken2ToUsdArr);
 
         // Add NFT1 to the floorERC721PricingModule.
         oracleNft1ToToken1ToUsd[0] = address(mockOracles.nft1ToToken1);
         oracleNft1ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
 
-        floorERC721PricingModule.addAsset(
-            address(mockERC721.nft1), 0, 999, oracleNft1ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
-        );
+        floorERC721PricingModule.addAsset(address(mockERC721.nft1), 0, 999, oracleNft1ToToken1ToUsd);
 
         // Add ERC1155 contract to the floorERC1155PricingModule
         oracleSft1ToToken1ToUsd[0] = address(mockOracles.sft1ToToken1);
         oracleSft1ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
 
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft1), 1, oracleSft1ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft1), 1, oracleSft1ToToken1ToUsd);
+
+        vm.stopPrank();
+
+        // Set Risk Variables.
+        vm.startPrank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd),
+            address(mockERC20.stable1),
+            0,
+            type(uint128).max,
+            Constants.stableToStableCollFactor,
+            Constants.stableToStableLiqFactor
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1),
+            address(mockERC20.stable1),
+            0,
+            type(uint128).max,
+            Constants.stableToStableCollFactor,
+            Constants.stableToStableLiqFactor
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1),
+            address(mockERC20.stable1),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
+        );
+
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd),
+            address(mockERC20.stable2),
+            0,
+            type(uint128).max,
+            Constants.stableToStableCollFactor,
+            Constants.stableToStableLiqFactor
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1),
+            address(mockERC20.stable2),
+            0,
+            type(uint128).max,
+            Constants.stableToStableCollFactor,
+            Constants.stableToStableLiqFactor
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1),
+            address(mockERC20.stable2),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
+        );
+
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd),
+            address(mockERC20.token1),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1),
+            address(mockERC20.token1),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1),
+            address(mockERC20.token1),
+            0,
+            type(uint128).max,
+            Constants.tokenToTokenCollFactor,
+            Constants.tokenToTokenLiqFactor
+        );
+
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd),
+            address(mockERC20.token2),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1),
+            address(mockERC20.token2),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1),
+            address(mockERC20.token2),
+            0,
+            type(uint128).max,
+            Constants.tokenToTokenCollFactor,
+            Constants.tokenToTokenLiqFactor
+        );
+
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
+        );
+
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
+        );
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
         );
 
         vm.stopPrank();

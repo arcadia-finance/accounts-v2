@@ -51,22 +51,12 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @param idRangeStart: The id of the first NFT of the collection
      * @param idRangeEnd: The id of the last NFT of the collection
      * @param oracles An array of addresses of oracle contracts, to price the asset in USD
-     * @param riskVars An array of Risk Variables for the asset
-     * @param maxExposure The maximum exposure of the asset in its own decimals
-     * @dev Only the Collateral Factor, Liquidation Threshold and basecurrency are taken into account.
-     * If no risk variables are provided, the asset is added with the risk variables set to zero, meaning it can't be used as collateral.
-     * @dev RiskVarInput.asset can be zero as it is not taken into account.
-     * @dev Risk variable are variables with 2 decimals precision
      * @dev The assets are added in the Main-Registry as well.
      */
-    function addAsset(
-        address asset,
-        uint256 idRangeStart,
-        uint256 idRangeEnd,
-        address[] calldata oracles,
-        RiskVarInput[] calldata riskVars,
-        uint128 maxExposure
-    ) external onlyOwner {
+    function addAsset(address asset, uint256 idRangeStart, uint256 idRangeEnd, address[] calldata oracles)
+        external
+        onlyOwner
+    {
         // View function, reverts in OracleHub if sequence is not correct.
         IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
@@ -75,9 +65,6 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         assetToInformation[asset].idRangeStart = idRangeStart;
         assetToInformation[asset].idRangeEnd = idRangeEnd;
         assetToInformation[asset].oracles = oracles;
-        _setRiskVariablesForAsset(asset, riskVars);
-
-        exposure[_getKeyFromAsset(asset, 0)].maxExposure = uint128(maxExposure);
 
         // Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
@@ -170,34 +157,45 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Increases the exposure to an asset on deposit.
+     * @notice Increases the exposure to an asset on a direct deposit.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * param amount The amount of tokens.
      * @dev amount of a deposit in ERC721 pricing module must be 1.
      */
-    function processDirectDeposit(address asset, uint256 assetId, uint256) public override onlyMainReg {
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256)
+        public
+        override
+        onlyMainReg
+    {
         require(isIdInRange(asset, assetId), "PM721_PDD: ID not allowed");
 
-        super.processDirectDeposit(asset, assetId, 1);
+        super.processDirectDeposit(creditor, asset, assetId, 1);
     }
 
     /**
-     * @notice Increases the exposure to an underlying asset on deposit.
+     * @notice Increases the exposure to an asset on an indirect deposit.
+     * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset (asset in previous pricing module called) to the underlying asset.
-     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the underlying asset since last update.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Pricing Module.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Pricing Module since last interaction.
+     * @return primaryFlag Identifier indicating if it is a Primary or Derived Pricing Module.
+     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Pricing Module, 18 decimals precision.
      */
     function processIndirectDeposit(
+        address creditor,
         address asset,
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdValueExposureUpperAssetToAsset) {
+    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         require(isIdInRange(asset, assetId), "PM721_PID: ID not allowed");
 
-        return super.processIndirectDeposit(asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
+        return super.processIndirectDeposit(
+            creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -206,28 +204,27 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
 
     /**
      * @notice Returns the usd value of an asset.
-     * @param getValueInput A Struct with the input variables.
-     * - asset: The contract address of the asset.
-     * - assetId: The Id of the asset
-     * - assetAmount: The amount of floor NFTs, a natural number without decimals (1 by default for ERC721).
-     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
      * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
      * However no check in FloorERC721PricingModule is necessary, since the check if the asset is added to the PricingModule
      * is already done in the MainRegistry.
      */
-    function getValue(GetValueInput memory getValueInput)
+    function getValue(address creditor, address asset, uint256, uint256 assetAmount)
         public
         view
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        valueInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[getValueInput.asset].oracles)
-            * getValueInput.assetAmount;
+        valueInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[asset].oracles) * assetAmount;
 
-        collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
-        liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;
+        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+        collateralFactor = riskParams[creditor][assetKey].collateralFactor;
+        liquidationFactor = riskParams[creditor][assetKey].liquidationFactor;
     }
 }

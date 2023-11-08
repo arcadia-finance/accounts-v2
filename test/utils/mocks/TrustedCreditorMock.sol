@@ -10,6 +10,7 @@ contract TrustedCreditorMock {
     uint96 public fixedLiquidationCost;
 
     address public baseCurrency;
+    address public riskManager;
     address public liquidator;
 
     mapping(address => uint256) openPosition;
@@ -48,6 +49,10 @@ contract TrustedCreditorMock {
 
     function setBaseCurrency(address baseCurrency_) external {
         baseCurrency = baseCurrency_;
+    }
+
+    function setRiskManager(address riskManager_) external {
+        riskManager = riskManager_;
     }
 
     function setLiquidator(address liquidator_) external {
