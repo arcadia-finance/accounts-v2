@@ -89,10 +89,10 @@ abstract contract PrimaryPricingModule is PricingModule {
 
         // Old oracles must be decommissioned before a new sequence can be set.
         bytes32 oldOracles = assetToInformation2[assetKey].oracles;
-        require(!IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oldOracles), "PM20_SO: Oracle still active");
+        require(!IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oldOracles), "APPM_SO: Oracle still active");
 
         // The new oracle sequence must be correct.
-        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(newOracles), "PM20_SO: Bad sequence");
+        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(newOracles), "APPM_SO: Bad sequence");
 
         assetToInformation2[assetKey].oracles = newOracles;
     }
@@ -110,7 +110,6 @@ abstract contract PrimaryPricingModule is PricingModule {
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
      * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
-     * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256.
      * @dev If the asset is not added to PricingModule, this function will return value 0 without throwing an error.
      * However no check in StandardERC20PricingModule is necessary, since the check if the asset is added to the PricingModule
      * is already done in the MainRegistry.

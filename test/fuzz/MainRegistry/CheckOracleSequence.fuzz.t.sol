@@ -7,8 +7,6 @@ pragma solidity 0.8.19;
 import { MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../src/libraries/BitPackingLib.sol";
-import { Constants } from "../../utils/Constants.sol";
-import { OracleHub } from "../../../src/OracleHub.sol";
 import { OracleModuleMock } from "../../utils/mocks/OracleModuleMock.sol";
 
 /**

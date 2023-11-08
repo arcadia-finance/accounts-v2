@@ -4,6 +4,8 @@ pragma solidity 0.8.19;
 import { OracleModule } from "../../../src/oracle-modules/AbstractOracleModule.sol";
 
 contract OracleModuleMock is OracleModule {
+    mapping(address => bool) public inOracleModule;
+
     mapping(uint256 => bool) internal isActive_;
 
     mapping(uint256 => uint256) internal rate;
