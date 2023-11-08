@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { OracleModule } from "./AbstractOracleModule.sol";
 import { IChainLinkData } from "../interfaces/IChainLinkData.sol";
-import { IOracleHub } from "./interfaces/IOracleHub.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 
 /**
  * @title Abstract Oracle Module
@@ -17,6 +17,9 @@ contract ChainLinkOracleModule is OracleModule {
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
+
+    // Map oracle => flag.
+    mapping(address => bool) internal inOracleModule;
 
     // Map identifier => oracle information.
     mapping(uint256 => OracleInformation) internal oracleInformation;
@@ -56,11 +59,14 @@ contract ChainLinkOracleModule is OracleModule {
                           ORACLE MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
-    function addAsset(address oracle, bytes16 baseAsset, bytes16 quoteAsset) external onlyOwner {
+    function addOracle(address oracle, bytes16 baseAsset, bytes16 quoteAsset) external onlyOwner {
+        require(!inOracleModule[oracle], "CLOM_AO: Oracle already added");
+
         uint256 decimals = IChainLinkData(oracle).decimals();
         require(decimals <= 18, "OH_AO: Maximal 18 decimals");
 
-        uint256 oracleId = IOracleHub(ORACLE_HUB).addOracle();
+        inOracleModule[oracle] = true;
+        uint256 oracleId = IMainRegistry(MAIN_REGISTRY).addOracle();
 
         assetPair[oracleId] = AssetPair({ baseAsset: baseAsset, quoteAsset: quoteAsset });
         oracleInformation[oracleId] =
@@ -71,13 +77,13 @@ contract ChainLinkOracleModule is OracleModule {
      * @notice Sets an oracle to inactive if it is not properly functioning.
      * @param oracleId The identifier of the oracle to be checked.
      * @return success Boolean indicating if the oracle is still in use.
-     * @dev An inactive oracle will always return a rate of 0.
+     * @dev An inactive oracle will revert.
      * @dev Anyone can call this function as part of an oracle failsafe mechanism.
-     * An oracles can only be decommissioned if it is not performing as intended:
+     * @dev If the oracle becomes functionally again (all checks pass), anyone can activate the oracle again.
+     * @dev An oracles can only be decommissioned if it is not performing as intended:
      * - A call to the oracle reverts.
      * - The oracle returns the minimum value.
      * - The oracle didn't update for over a week.
-     * @dev If the oracle would becomes functionally again (all checks pass), anyone can activate the oracle again.
      */
     function decommissionOracle(uint256 oracleId) external override returns (bool) {
         address oracle = oracleInformation[oracleId].oracle;
@@ -107,15 +113,19 @@ contract ChainLinkOracleModule is OracleModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the rate of two assets.
-     * @param oracleId The identifier of the oracle to be checked.
-     * @return oracleRate The current rate, with 18 Decimals precision.
-     * @dev The oracle rate reflects how much of the QuoteAsset is required to buy 1 unit of the BaseAsset.
+     * @notice Returns the rate of the BaseAsset in units of QuoteAsset.
+     * @param oracleId The identifier of the oracle.
+     * @return oracleRate The rate of the BaseAsset in units of QuoteAsset, with 18 Decimals precision.
+     * @dev The oracle rate reflects how much units of the QuoteAsset are required to buy 1 unit of the BaseAsset.
      */
     function getRate(uint256 oracleId) external view override returns (uint256 oracleRate) {
         OracleInformation memory oracleInformation_ = oracleInformation[oracleId];
-        // If the oracle is not active anymore (decommissioned), return value 0 -> assets do not count as collateral anymore.
-        if (!oracleInformation_.isActive) return (0);
+
+        // If the oracle is not active (decommissioned), the transactions reverts.
+        // This implies that no new credit can be taken against assets that use the decommissioned oracle,
+        // but at the same time positions with these assets cannot be liquidated.
+        // A new oracleSequence for these assets must be set ASAP by the protocol owner.
+        require(oracleInformation_.isActive, "OH_GR: Inactive Oracle");
 
         (, int256 tempRate,,,) = IChainLinkData(oracleInformation_.oracle).latestRoundData();
         require(tempRate >= 0, "OH_GR: Negative Rate");

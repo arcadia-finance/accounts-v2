@@ -16,15 +16,12 @@ abstract contract OracleModule is Owned {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
-    // The contract address of the OracleHub.
-    address public immutable ORACLE_HUB;
+    // The contract address of the MainRegistry.
+    address public immutable MAIN_REGISTRY;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
-
-    // Map oracle => flag.
-    mapping(address => bool) public inOracleModule;
 
     // Map identifier => oracle information.
     mapping(uint256 => AssetPair) public assetPair;
@@ -48,7 +45,7 @@ abstract contract OracleModule is Owned {
      * @dev Only the Main Registry can call functions with this modifier.
      */
     modifier onlyMainReg() {
-        require(msg.sender == ORACLE_HUB, "APM: ONLY_MAIN_REGISTRY");
+        require(msg.sender == MAIN_REGISTRY, "APM: ONLY_MAIN_REGISTRY");
         _;
     }
 
@@ -57,10 +54,10 @@ abstract contract OracleModule is Owned {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param oracleHub_ The contract address of the OracleHub.
+     * @param mainRegistry_ The contract address of the MainRegistry.
      */
-    constructor(address oracleHub_) Owned(msg.sender) {
-        ORACLE_HUB = oracleHub_;
+    constructor(address mainRegistry_) Owned(msg.sender) {
+        MAIN_REGISTRY = mainRegistry_;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -82,13 +79,9 @@ abstract contract OracleModule is Owned {
      * @notice Sets an oracle to inactive if it is not properly functioning.
      * @param oracleId The identifier of the oracle to be checked.
      * @return success Boolean indicating if the oracle is still in use.
-     * @dev An inactive oracle will always return a rate of 0.
+     * @dev An inactive oracle will revert.
      * @dev Anyone can call this function as part of an oracle failsafe mechanism.
-     * An oracles can only be decommissioned if it is not performing as intended:
-     * - A call to the oracle reverts.
-     * - The oracle returns the minimum value.
-     * - The oracle didn't update for over a week.
-     * @dev If the oracle would becomes functionally again (all checks pass), anyone can activate the oracle again.
+     * @dev If the oracle becomes functionally again (all checks pass), anyone can activate the oracle again.
      */
     function decommissionOracle(uint256 oracleId) external virtual returns (bool);
 
@@ -97,10 +90,10 @@ abstract contract OracleModule is Owned {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the rate of two assets.
-     * @param oracleId The identifier of the oracle to be checked.
-     * @return oracleRate The value of the asset denominated in USD, with 18 Decimals precision.
-     * @dev The oracle rate reflects how much of the QuoteAsset is required to buy 1 unit of the BaseAsset
+     * @notice Returns the rate of the BaseAsset in units of QuoteAsset.
+     * @param oracleId The identifier of the oracle.
+     * @return oracleRate The rate of the BaseAsset in units of QuoteAsset, with 18 Decimals precision.
+     * @dev The oracle rate reflects how much units of the QuoteAsset are required to buy 1 unit of the BaseAsset.
      */
     function getRate(uint256 oracleId) external view virtual returns (uint256);
 }

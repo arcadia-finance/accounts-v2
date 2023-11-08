@@ -4,11 +4,13 @@
  */
 pragma solidity 0.8.19;
 
+import { BitPackingLib } from "./libraries/BitPackingLib.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
 import { IDerivedPricingModule } from "./interfaces/IDerivedPricingModule.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IOracleModule } from "./interfaces/IOracleModule.sol";
 import { IPricingModule } from "./interfaces/IPricingModule.sol";
 import { IPrimaryPricingModule } from "./interfaces/IPrimaryPricingModule.sol";
 import { ITrustedCreditor } from "./interfaces/ITrustedCreditor.sol";
@@ -23,10 +25,14 @@ import { RiskModule } from "./RiskModule.sol";
  */
 contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     using FixedPointMathLib for uint256;
+    using BitPackingLib for bytes32;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
+
+    // Counter with the number of oracles in the MainRegistry.
+    uint256 internal oracleCounter;
 
     // Contract address of the Factory.
     address public immutable factory;
@@ -40,10 +46,14 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     mapping(address => bool) public inMainRegistry;
     // Map pricingModule => flag.
     mapping(address => bool) public isPricingModule;
+    // Map oracleModule => flag.
+    mapping(address => bool) public isOracleModule;
     // Map action => flag.
     mapping(address => bool) public isActionAllowed;
     // Map asset => assetInformation.
     mapping(address => AssetInformation) public assetToAssetInformation;
+    // Map oracleIdentifier => oracleModule.
+    mapping(uint256 => address) internal oracleToOracleModule;
 
     // Struct with additional information for a specific asset.
     struct AssetInformation {
@@ -57,6 +67,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
     event AllowedActionSet(address indexed action, bool allowed);
     event PricingModuleAdded(address pricingModule);
+    event OracleModuleAdded(address oracleModule);
     event AssetAdded(address indexed assetAddress, address indexed pricingModule, uint8 assetType);
 
     /* //////////////////////////////////////////////////////////////
@@ -72,8 +83,15 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /**
+     * @dev Only Oracle Modules can call functions with this modifier.
+     */
+    modifier onlyOracleModule() {
+        require(isOracleModule[msg.sender], "MR: Only OracleMod.");
+        _;
+    }
+
+    /**
      * @dev Only Accounts can call functions with this modifier.
-     * @dev Cannot be called via delegate calls.
      */
     modifier onlyAccount() {
         require(IFactory(factory).isAccount(msg.sender), "MR: Only Accounts.");
@@ -96,8 +114,8 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Sets an allowed action handler.
-     * @param action The address of the action handler.
+     * @notice Sets an allowance of an action handler.
+     * @param action The contract address of the action handler.
      * @param allowed Bool to indicate its status.
      * @dev Can only be called by owner.
      */
@@ -108,7 +126,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /* ///////////////////////////////////////////////////////////////
-                        PRICE MODULE MANAGEMENT
+                        MODULE MANAGEMENT
     /////////////////////////////////////////////////////////////// */
 
     /**
@@ -121,6 +139,17 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         pricingModules.push(pricingModule);
 
         emit PricingModuleAdded(pricingModule);
+    }
+
+    /**
+     * @notice Adds a new Oracle Module to the Main Registry.
+     * @param oracleModule The contract address of the Oracle Module.
+     */
+    function addOracleModule(address oracleModule) external onlyOwner {
+        require(!isOracleModule[oracleModule], "MR_AOM: OracleMod. not unique");
+        isOracleModule[oracleModule] = true;
+
+        emit OracleModuleAdded(oracleModule);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -161,6 +190,76 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             AssetInformation({ assetType: uint96(assetType), pricingModule: msg.sender });
 
         emit AssetAdded(assetAddress, msg.sender, uint8(assetType));
+    }
+
+    /* ///////////////////////////////////////////////////////////////
+                        ORACLE MANAGEMENT
+    /////////////////////////////////////////////////////////////// */
+
+    /**
+     * @notice Adds a new oracle to the Main Registry.
+     * @return oracleId Unique identifier of the oracle.
+     */
+    function addOracle() external onlyOracleModule returns (uint256 oracleId) {
+        // New oracle get.
+        oracleId = oracleCounter;
+
+        oracleToOracleModule[oracleId] = msg.sender;
+
+        unchecked {
+            oracleCounter = oracleId + 1;
+        }
+    }
+
+    /**
+     * @notice Verifies whether a sequence of oracles complies with a predetermined set of criteria.
+     * @param oracleSequence The sequence of the oracles.
+     * @return A boolean, indicating if the sequence complies with the set of criteria.
+     * @dev The following checks are performed:
+     * - The oracle must be previously added to the Oracle-Hub and must still be active.
+     * - ToDo The first asset of the first oracle must be the asset being priced.
+     * - The last asset of all oracles must be equal to the first asset of the next oracle.
+     * - The last asset of the last oracle must be USD.
+     */
+    function checkOracleSequence(bytes32 oracleSequence) external view returns (bool) {
+        (bool[] memory directions, uint256[] memory oracles) = oracleSequence.unpack();
+        uint256 length = oracles.length;
+        require(length > 0, "MR_COS: Min 1 Oracle");
+        // Length can be maximally 3,
+        //but no need to explicitly check it because unpack() can maximally return arrays of length 3.
+
+        address oracleModule;
+        bytes16 baseAsset;
+        bytes16 quoteAsset;
+        bytes16 lastAsset;
+        for (uint256 i; i < length;) {
+            oracleModule = oracleToOracleModule[oracles[i]];
+
+            if (!IOracleModule(oracleModule).isActive(oracles[i])) return false;
+            (baseAsset, quoteAsset) = IOracleModule(oracleModule).assetPair(oracles[i]);
+
+            if (i == 0) {
+                // ToDo: check if first asset matches the asset to be priced?
+                lastAsset = directions[i] ? quoteAsset : baseAsset;
+            } else {
+                // Last asset of an oracle must match with the first asset of the next oracle.
+                if (directions[i]) {
+                    if (lastAsset != baseAsset) return false;
+                    lastAsset = quoteAsset;
+                } else {
+                    if (lastAsset != quoteAsset) return false;
+                    lastAsset = baseAsset;
+                }
+            }
+            // Last asset in the sequence must end with "USD".
+            if (i == length - 1 && lastAsset != "USD") return false;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return true;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -371,6 +470,27 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     /* ///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     /////////////////////////////////////////////////////////////// */
+
+    function getRateInUsd(bytes32 oracleSequence) external view returns (uint256 rate) {
+        (bool[] memory directions, uint256[] memory oracles) = oracleSequence.unpack();
+
+        rate = 1e18; // Scalar 1 with 18 decimals (The internal precision).
+
+        uint256 length = oracles.length;
+        for (uint256 i; i < length;) {
+            if (directions[i]) {
+                // Normal rate (how much of the QuoteAsset is required to buy 1 unit of the BaseAsset).
+                rate = rate.mulDivDown(IOracleModule(oracleToOracleModule[oracles[i]]).getRate(oracles[i]), 1e18);
+            } else {
+                // Inverse rate (how much of the BaseAsset is required to buy 1 unit of the QuoteAsset).
+                rate = rate.mulDivDown(1e18, IOracleModule(oracleToOracleModule[oracles[i]]).getRate(oracles[i]));
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
 
     /**
      * @notice Calculates the usd value of an asset.

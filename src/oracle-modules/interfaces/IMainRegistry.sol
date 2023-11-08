@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-interface IOracleHub {
+interface IMainRegistry {
     /**
      * @notice Adds a new oracle to the Oracle Hub.
      */

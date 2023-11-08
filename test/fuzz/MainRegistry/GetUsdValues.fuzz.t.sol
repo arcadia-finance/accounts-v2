@@ -30,6 +30,13 @@ contract GetUsdValues_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint96 assetId,
         uint256 assetAmount
     ) public {
+        vm.assume(asset != address(mockERC20.stable1));
+        vm.assume(asset != address(mockERC20.stable2));
+        vm.assume(asset != address(mockERC20.token1));
+        vm.assume(asset != address(mockERC20.token2));
+        vm.assume(asset != address(mockERC721.nft1));
+        vm.assume(asset != address(mockERC1155.sft1));
+
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;
         uint256[] memory assetIds = new uint256[](1);

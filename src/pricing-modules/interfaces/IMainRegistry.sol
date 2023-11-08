@@ -32,6 +32,8 @@ interface IMainRegistry {
      */
     function addAsset(address asset, uint256 assetType) external;
 
+    function checkOracleSequence(bytes32 oracleSequence) external view returns (bool);
+
     /**
      * @notice Returns the risk factors per asset for a creditor.
      * @param creditor The contract address of the creditor.
@@ -78,6 +80,8 @@ interface IMainRegistry {
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
     ) external returns (uint256 usdExposureAssetToUnderlyingAsset);
+
+    function getRateInUsd(bytes32 oracleSequence) external view returns (uint256);
 
     /**
      * @notice Calculates the usd value of an asset.

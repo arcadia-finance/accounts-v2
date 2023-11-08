@@ -5,17 +5,17 @@
 pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
-import { PricingModuleMock } from "../../../utils/mocks/PricingModuleMock.sol";
+import { OracleModuleMock } from "../../../utils/mocks/OracleModuleMock.sol";
 
 /**
- * @notice Common logic needed by all "AbstractPricingModule" fuzz tests.
+ * @notice Common logic needed by all "AbstractOracleModule" fuzz tests.
  */
-abstract contract AbstractPricingModule_Fuzz_Test is Fuzz_Test {
+abstract contract AbstractOracleModule_Fuzz_Test is Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    PricingModuleMock internal pricingModule;
+    OracleModuleMock internal oracleModule;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -25,6 +25,6 @@ abstract contract AbstractPricingModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        pricingModule = new PricingModuleMock(address(mainRegistryExtension), 0);
+        oracleModule = new OracleModuleMock(address(mainRegistryExtension));
     }
 }

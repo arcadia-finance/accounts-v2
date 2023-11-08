@@ -9,6 +9,7 @@ import { Fuzz_Test, Constants } from "../Fuzz.t.sol";
 import { AccountV1 } from "../../../src/AccountV1.sol";
 import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
 import { DerivedPricingModuleMock } from "../../utils/mocks/DerivedPricingModuleMock.sol";
+import { OracleModuleMock } from "../../utils/mocks/OracleModuleMock.sol";
 import { PrimaryPricingModuleMock } from "../../utils/mocks/PrimaryPricingModuleMock.sol";
 
 /**
@@ -25,6 +26,8 @@ abstract contract MainRegistry_Fuzz_Test is Fuzz_Test {
 
     PrimaryPricingModuleMock internal primaryPricingModule;
     DerivedPricingModuleMock internal derivedPricingModule;
+
+    OracleModuleMock internal oracleModule;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -45,6 +48,14 @@ abstract contract MainRegistry_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                          HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
+
+    function addMockedOracle(uint256 oracleId, uint256 rate, bytes16 baseAsset, bytes16 quoteAsset, bool active)
+        public
+    {
+        oracleModule.setOracle(oracleId, baseAsset, quoteAsset, active);
+        mainRegistryExtension.setOracleToOracleModule(oracleId, address(oracleModule));
+        oracleModule.setRate(oracleId, rate);
+    }
 
     function convertAssetToUsd(uint256 assetDecimals, uint256 amount, address[] memory oracleArr)
         public

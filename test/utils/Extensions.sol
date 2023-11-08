@@ -7,6 +7,7 @@ pragma solidity 0.8.19;
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { AccountV1 } from "../../src/AccountV1.sol";
+import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
 import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
@@ -63,6 +64,16 @@ contract BaseGuardianExtension is BaseGuardian {
     constructor() BaseGuardian() { }
 }
 
+contract BitPackingLibExtension {
+    function pack(bool[] memory boolValues, uint80[] memory uintValues) public pure returns (bytes32 packedData) {
+        packedData = BitPackingLib.pack(boolValues, uintValues);
+    }
+
+    function unpack(bytes32 packedData) public pure returns (bool[] memory boolValues, uint256[] memory uintValues) {
+        (boolValues, uintValues) = BitPackingLib.unpack(packedData);
+    }
+}
+
 contract FactoryGuardianExtension is FactoryGuardian {
     constructor() FactoryGuardian() { }
 
@@ -93,6 +104,22 @@ contract MainRegistryExtension is MainRegistry {
     using FixedPointMathLib for uint256;
 
     constructor(address factory_) MainRegistry(factory_) { }
+
+    function getOracleCounter() public view returns (uint256 oracleCounter_) {
+        oracleCounter_ = oracleCounter;
+    }
+
+    function setOracleCounter(uint256 oracleCounter_) public {
+        oracleCounter = oracleCounter_;
+    }
+
+    function getOracleToOracleModule(uint256 oracleId) public view returns (address oracleModule) {
+        oracleModule = oracleToOracleModule[oracleId];
+    }
+
+    function setOracleToOracleModule(uint256 oracleId, address oracleModule) public {
+        oracleToOracleModule[oracleId] = oracleModule;
+    }
 
     function setAssetType(address asset, uint96 assetType) public {
         assetToAssetInformation[asset].assetType = assetType;
