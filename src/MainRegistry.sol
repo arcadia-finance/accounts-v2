@@ -6,7 +6,6 @@ pragma solidity 0.8.19;
 
 import { BitPackingLib } from "./libraries/BitPackingLib.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
 import { IDerivedPricingModule } from "./interfaces/IDerivedPricingModule.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
@@ -52,13 +51,15 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     mapping(address => bool) public isActionAllowed;
     // Map asset => assetInformation.
     mapping(address => AssetInformation) public assetToAssetInformation;
-    // Map oracleIdentifier => oracleModule.
+    // Map oracle identifier => oracleModule.
     mapping(uint256 => address) internal oracleToOracleModule;
 
     // Struct with additional information for a specific asset.
     struct AssetInformation {
-        uint96 assetType; // Identifier for the token standard of the asset.
-        address pricingModule; // Contract address of the module that can price the specific asset.
+        // Identifier for the token standard of the asset.
+        uint96 assetType;
+        // Contract address of the module that can price the specific asset.
+        address pricingModule;
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -213,7 +214,8 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
     /**
      * @notice Verifies whether a sequence of oracles complies with a predetermined set of criteria.
-     * @param oracleSequence The sequence of the oracles.
+     * @param oracleSequence The sequence of the oracles to price a certain asset in USD,
+     * packed in a single bytes32 object.
      * @return A boolean, indicating if the sequence complies with the set of criteria.
      * @dev The following checks are performed:
      * - The oracle must be previously added to the MainRegistry and must still be active.
@@ -222,11 +224,11 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * - The last asset of the last oracle must be USD.
      */
     function checkOracleSequence(bytes32 oracleSequence) external view returns (bool) {
-        (bool[] memory directions, uint256[] memory oracles) = oracleSequence.unpack();
+        (bool[] memory baseToQuoteAsset, uint256[] memory oracles) = oracleSequence.unpack();
         uint256 length = oracles.length;
         require(length > 0, "MR_COS: Min 1 Oracle");
-        // Length can be maximally 3,
-        //but no need to explicitly check it because unpack() can maximally return arrays of length 3.
+        // Length can be maximally 3, but no need to explicitly check it.
+        // BitPackingLib.unpack() can maximally return arrays of length 3.
 
         address oracleModule;
         bytes16 baseAsset;
@@ -240,10 +242,10 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
 
             if (i == 0) {
                 // ToDo: check if first asset matches the asset to be priced?
-                lastAsset = directions[i] ? quoteAsset : baseAsset;
+                lastAsset = baseToQuoteAsset[i] ? quoteAsset : baseAsset;
             } else {
                 // Last asset of an oracle must match with the first asset of the next oracle.
-                if (directions[i]) {
+                if (baseToQuoteAsset[i]) {
                     if (lastAsset != baseAsset) return false;
                     lastAsset = quoteAsset;
                 } else {
@@ -323,7 +325,8 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @notice Sets the risk parameters of the Protocol for a given creditor.
      * @param creditor The contract address of the creditor.
      * @param pricingModule The contract address of the derived pricing-module.
-     * @param maxUsdExposureProtocol The maximum usd exposure of the protocol for each creditor, denominated in USD with 18 decimals precision.
+     * @param maxUsdExposureProtocol The maximum usd exposure of the protocol for each creditor,
+     * denominated in USD with 18 decimals precision.
      * @param riskFactor The risk factor of the asset for the creditor, 2 decimals precision.
      */
     function setRiskParametersOfDerivedPricingModule(
@@ -471,18 +474,31 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
                           PRICING LOGIC
     /////////////////////////////////////////////////////////////// */
 
+    /**
+     * @notice Returns the rate of a certain asset in USD.
+     * @param oracleSequence The sequence of the oracles to price a certain asset in USD,
+     * packed in a single bytes32 object.
+     * @return rate The USD rate of an asset with 18 decimals precision.
+     * @dev The oracle rate expresses how much USD (18 decimals precision) is required
+     * to buy 1 unit of the asset.
+     */
     function getRateInUsd(bytes32 oracleSequence) external view returns (uint256 rate) {
-        (bool[] memory directions, uint256[] memory oracles) = oracleSequence.unpack();
+        (bool[] memory baseToQuoteAsset, uint256[] memory oracles) = oracleSequence.unpack();
 
         rate = 1e18; // Scalar 1 with 18 decimals (The internal precision).
 
         uint256 length = oracles.length;
         for (uint256 i; i < length;) {
-            if (directions[i]) {
-                // Normal rate (how much of the QuoteAsset is required to buy 1 unit of the BaseAsset).
+            // Each Oracle has a fixed BaseAsset and quote asset.
+            // The oracle-rate expresses how much units of the QuoteAsset (18 decimals precision) are required
+            // to buy 1 unit of the BaseAsset.
+            if (baseToQuoteAsset[i]) {
+                // "Normal direction" (how much of the QuoteAsset is required to buy 1 unit of the BaseAsset).
+                // -> Multiply with the oracle-rate.
                 rate = rate.mulDivDown(IOracleModule(oracleToOracleModule[oracles[i]]).getRate(oracles[i]), 1e18);
             } else {
-                // Inverse rate (how much of the BaseAsset is required to buy 1 unit of the QuoteAsset).
+                // "Inverse direction" (how much of the BaseAsset is required to buy 1 unit of the QuoteAsset).
+                // -> Divide by the oracle-rate.
                 rate = rate.mulDivDown(1e18, IOracleModule(oracleToOracleModule[oracles[i]]).getRate(oracles[i]));
             }
 

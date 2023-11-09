@@ -77,7 +77,7 @@ contract AddAsset_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
         assertTrue(floorERC721PricingModule.inPricingModule(address(mockERC721.nft2)));
         assertTrue(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), id));
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft2)));
-        (uint64 assetUnit, bytes32 oracles) = floorERC721PricingModule.assetToInformation2(assetKey);
+        (uint64 assetUnit, bytes32 oracles) = floorERC721PricingModule.assetToInformation(assetKey);
         assertEq(assetUnit, 1);
         assertEq(oracles, oraclesNft2ToUsd);
         (uint256 start_, uint256 end_) = floorERC721PricingModule.getIdRange(address(mockERC721.nft2));

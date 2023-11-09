@@ -83,7 +83,7 @@ contract AddAsset_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
         assertTrue(erc20PricingModule.inPricingModule(address(mockERC20.token4)));
         assertTrue(erc20PricingModule.isAllowed(address(mockERC20.token4), 0));
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token4)));
-        (uint64 assetUnit, bytes32 oracles) = erc20PricingModule.assetToInformation2(assetKey);
+        (uint64 assetUnit, bytes32 oracles) = erc20PricingModule.assetToInformation(assetKey);
         assertEq(assetUnit, 10 ** Constants.tokenDecimals);
         assertEq(oracles, oraclesToken4ToUsd);
 

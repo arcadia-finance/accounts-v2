@@ -9,12 +9,6 @@ import { RiskModule } from "../../RiskModule.sol";
 
 interface IMainRegistry {
     /**
-     * @notice Returns the number of baseCurrencies.
-     * @return Counter for the number of baseCurrencies in use.
-     */
-    function baseCurrencyCounter() external view returns (uint256);
-
-    /**
      * @notice Checks for a token address and the corresponding Id if it is allowed.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
@@ -32,6 +26,12 @@ interface IMainRegistry {
      */
     function addAsset(address asset, uint256 assetType) external;
 
+    /**
+     * @notice Verifies whether a sequence of oracles complies with a predetermined set of criteria.
+     * @param oracleSequence The sequence of the oracles to price a certain asset in USD,
+     * packed in a single bytes32 object.
+     * @return A boolean, indicating if the sequence complies with the set of criteria.
+     */
     function checkOracleSequence(bytes32 oracleSequence) external view returns (bool);
 
     /**
@@ -81,6 +81,12 @@ interface IMainRegistry {
         int256 deltaExposureAssetToUnderlyingAsset
     ) external returns (uint256 usdExposureAssetToUnderlyingAsset);
 
+    /**
+     * @notice Returns the rate of a certain asset in USD.
+     * @param oracleSequence The sequence of the oracles to price a certain asset in USD,
+     * packed in a single bytes32 object.
+     * @return rate The USD rate of an asset with 18 decimals precision.
+     */
     function getRateInUsd(bytes32 oracleSequence) external view returns (uint256);
 
     /**

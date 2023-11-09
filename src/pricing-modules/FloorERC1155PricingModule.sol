@@ -10,8 +10,8 @@ import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 /**
  * @title Pricing Module for ERC1155 tokens
  * @author Pragma Labs
- * @notice The FloorERC1155PricingModule stores pricing logic and basic information for ERC721 tokens for which a direct price feeds exists
- * for the floor price of the collection
+ * @notice The FloorERC1155PricingModule stores pricing logic and basic information for ERC1155 tokens,
+ *  for which a direct price feed exists per Id.
  * @dev No end-user should directly interact with the FloorERC1155PricingModule, only the Main-registry or the contract owner
  */
 contract FloorERC1155PricingModule is PrimaryPricingModule {
@@ -32,14 +32,15 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
     /**
      * @notice Adds a new asset to the FloorERC1155PricingModule.
      * @param asset The contract address of the asset.
-     * @param assetId: The id of the collection.
-     * @param oracles The sequence of the oracles, to price the asset in USD.
+     * @param assetId The id of the asset.
+     * @param oracleSequence The sequence of the oracles to price the asset in USD,
+     * packed in a single bytes32 object.
      */
-    function addAsset(address asset, uint256 assetId, bytes32 oracles) external onlyOwner {
+    function addAsset(address asset, uint256 assetId, bytes32 oracleSequence) external onlyOwner {
         if (inPricingModule[asset]) {
-            // Contract address already added -> must have a new Id.
+            // Contract address already added -> must be a new Id.
             require(
-                assetToInformation2[_getKeyFromAsset(asset, assetId)].assetUnit == 0, "PM1155_AA: Asset already in PM"
+                assetToInformation[_getKeyFromAsset(asset, assetId)].assetUnit == 0, "PM1155_AA: Asset already in PM"
             );
         } else {
             // New contract address.
@@ -47,10 +48,11 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
             inPricingModule[asset] = true;
         }
         require(assetId <= type(uint96).max, "PM1155_AA: Invalid Id");
-        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracles), "PM1155_AA: Bad Sequence");
+        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracleSequence), "PM1155_AA: Bad Sequence");
 
         // Unit for ERC1155 is 1 (standard ERC1155s don't have decimals).
-        assetToInformation2[_getKeyFromAsset(asset, assetId)] = AssetInformation2({ assetUnit: 1, oracles: oracles });
+        assetToInformation[_getKeyFromAsset(asset, assetId)] =
+            AssetInformation({ assetUnit: 1, oracleSequence: oracleSequence });
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -58,13 +60,13 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Checks for a token address and the corresponding Id if it is allowed
-     * @param asset The address of the asset
-     * @param assetId The Id of the asset
-     * @return A boolean, indicating if the asset passed as input is allowed
+     * @notice Checks for a token address and the corresponding Id if it is allowed.
+     * @param asset The contract address of the asset.
+     * @param assetId The Id of the asset.
+     * @return A boolean, indicating if the asset passed as input is allowed.
      */
     function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
-        if (assetToInformation2[_getKeyFromAsset(asset, assetId)].assetUnit == 1) return true;
+        if (assetToInformation[_getKeyFromAsset(asset, assetId)].assetUnit == 1) return true;
 
         return false;
     }

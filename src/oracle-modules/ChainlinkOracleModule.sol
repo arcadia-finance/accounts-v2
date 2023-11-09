@@ -24,7 +24,7 @@ contract ChainlinkOracleModule is OracleModule {
     // Map oracle => oracleId.
     mapping(address => uint256) public oracleToOracleId;
 
-    // Map identifier => oracle information.
+    // Map oracle identifier => oracle information.
     mapping(uint256 => OracleInformation) internal oracleInformation;
 
     struct OracleInformation {
@@ -62,6 +62,13 @@ contract ChainlinkOracleModule is OracleModule {
                           ORACLE MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
+    /**
+     * @notice Adds a new oracle to this Oracle Module.
+     * @param oracle The contract address of the oracle.
+     * @param baseAsset Label for the base asset.
+     * @param quoteAsset Label for the quote asset.
+     * @return oracleId Unique identifier of the oracle.
+     */
     function addOracle(address oracle, bytes16 baseAsset, bytes16 quoteAsset)
         external
         onlyOwner
@@ -91,6 +98,7 @@ contract ChainlinkOracleModule is OracleModule {
      * @dev An oracles can only be decommissioned if it is not performing as intended:
      * - A call to the oracle reverts.
      * - The oracle returns the minimum value.
+     * - The oracle returns the maximum value.
      * - The oracle didn't update for over a week.
      */
     function decommissionOracle(uint256 oracleId) external override returns (bool oracleIsInUse) {
@@ -122,7 +130,8 @@ contract ChainlinkOracleModule is OracleModule {
      * @notice Returns the rate of the BaseAsset in units of QuoteAsset.
      * @param oracleId The identifier of the oracle.
      * @return oracleRate The rate of the BaseAsset in units of QuoteAsset, with 18 Decimals precision.
-     * @dev The oracle rate reflects how much units of the QuoteAsset are required to buy 1 unit of the BaseAsset.
+     * @dev The oracle rate reflects how much units of the QuoteAsset (18 decimals precision) are required,
+     * to buy 1 unit of the BaseAsset.
      */
     function getRate(uint256 oracleId) external view override returns (uint256 oracleRate) {
         OracleInformation memory oracleInformation_ = oracleInformation[oracleId];

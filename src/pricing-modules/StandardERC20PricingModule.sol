@@ -33,12 +33,13 @@ contract StandardERC20PricingModule is PrimaryPricingModule {
     /**
      * @notice Adds a new asset to the StandardERC20PricingModule.
      * @param asset The contract address of the asset.
-     * @param oracles An array of contract addresses of oracles, to price the asset in USD.
+     * @param oracleSequence The sequence of the oracles to price the asset in USD,
+     * packed in a single bytes32 object.
      * @dev Assets can't have more than 18 decimals.
      */
-    function addAsset(address asset, bytes32 oracles) external onlyOwner {
+    function addAsset(address asset, bytes32 oracleSequence) external onlyOwner {
         // View function, reverts in MainRegistry if sequence is not correct.
-        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracles), "PM20_AA: Bad Sequence");
+        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracleSequence), "PM20_AA: Bad Sequence");
         // Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
 
@@ -48,8 +49,8 @@ contract StandardERC20PricingModule is PrimaryPricingModule {
         require(assetUnit <= 1e18, "PM20_AA: Maximal 18 decimals");
 
         // Can safely cast to uint64, we previously checked it is smaller than 10e18.
-        assetToInformation2[_getKeyFromAsset(asset, 0)] =
-            AssetInformation2({ assetUnit: uint64(assetUnit), oracles: oracles });
+        assetToInformation[_getKeyFromAsset(asset, 0)] =
+            AssetInformation({ assetUnit: uint64(assetUnit), oracleSequence: oracleSequence });
     }
 
     /*///////////////////////////////////////////////////////////////

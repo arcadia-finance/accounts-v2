@@ -18,8 +18,8 @@ contract PrimaryPricingModuleMock is AbstractPrimaryPricingModuleExtension {
 
     function setAssetInformation(address asset, uint256 assetId, uint64 assetUnit, bytes32 oracles) public {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
-        assetToInformation2[assetKey].assetUnit = assetUnit;
-        assetToInformation2[assetKey].oracles = oracles;
+        assetToInformation[assetKey].assetUnit = assetUnit;
+        assetToInformation[assetKey].oracleSequence = oracles;
     }
 
     // ToDo: Refactor, due to legacy tests with getValue hardcoded we now use a workaround

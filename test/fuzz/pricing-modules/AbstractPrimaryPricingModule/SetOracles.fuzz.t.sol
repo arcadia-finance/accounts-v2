@@ -27,7 +27,7 @@ contract CheckOracleSequence_AbstractPrimaryPricingModule_Fuzz_Test is AbstractP
                          HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function getOracleSequence(uint256 length, bool[3] memory directions, uint80[3] memory oracles)
+    function getOracleSequence(uint256 length, bool[3] memory baseToQuoteAsset, uint80[3] memory oracles)
         public
         pure
         returns (bytes32 oracleSequence)
@@ -35,7 +35,7 @@ contract CheckOracleSequence_AbstractPrimaryPricingModule_Fuzz_Test is AbstractP
         bool[] memory directions_ = new bool[](length);
         uint80[] memory oracles_ = new uint80[](length);
         for (uint256 i; i < length; ++i) {
-            directions_[i] = directions[i];
+            directions_[i] = baseToQuoteAsset[i];
             oracles_[i] = oracles[i];
 
             // Oracles must be unique.
@@ -47,24 +47,26 @@ contract CheckOracleSequence_AbstractPrimaryPricingModule_Fuzz_Test is AbstractP
         oracleSequence = BitPackingLib.pack(directions_, oracles_);
     }
 
-    function addOracles(uint256 length, bool[3] memory directions, uint80[3] memory oracles) public {
+    function addOracles(uint256 length, bool[3] memory baseToQuoteAsset, uint80[3] memory oracles) public {
         bytes16 baseAsset;
         bytes16 quoteAsset;
         if (length == 1) {
-            (baseAsset, quoteAsset) = directions[0] ? (bytes16("A"), bytes16("USD")) : (bytes16("USD"), bytes16("A"));
+            (baseAsset, quoteAsset) =
+                baseToQuoteAsset[0] ? (bytes16("A"), bytes16("USD")) : (bytes16("USD"), bytes16("A"));
             addMockedOracle(oracles[0], 0, baseAsset, quoteAsset, true);
         } else {
-            (baseAsset, quoteAsset) = directions[0] ? (bytes16("A"), bytes16("B")) : (bytes16("B"), bytes16("A"));
+            (baseAsset, quoteAsset) = baseToQuoteAsset[0] ? (bytes16("A"), bytes16("B")) : (bytes16("B"), bytes16("A"));
             addMockedOracle(oracles[0], 0, baseAsset, quoteAsset, true);
             if (length == 2) {
                 (baseAsset, quoteAsset) =
-                    directions[1] ? (bytes16("B"), bytes16("USD")) : (bytes16("USD"), bytes16("B"));
+                    baseToQuoteAsset[1] ? (bytes16("B"), bytes16("USD")) : (bytes16("USD"), bytes16("B"));
                 addMockedOracle(oracles[1], 0, baseAsset, quoteAsset, true);
             } else {
-                (baseAsset, quoteAsset) = directions[1] ? (bytes16("B"), bytes16("C")) : (bytes16("C"), bytes16("B"));
+                (baseAsset, quoteAsset) =
+                    baseToQuoteAsset[1] ? (bytes16("B"), bytes16("C")) : (bytes16("C"), bytes16("B"));
                 addMockedOracle(oracles[1], 0, baseAsset, quoteAsset, true);
                 (baseAsset, quoteAsset) =
-                    directions[2] ? (bytes16("C"), bytes16("USD")) : (bytes16("USD"), bytes16("C"));
+                    baseToQuoteAsset[2] ? (bytes16("C"), bytes16("USD")) : (bytes16("USD"), bytes16("C"));
                 addMockedOracle(oracles[2], 0, baseAsset, quoteAsset, true);
             }
         }
@@ -131,9 +133,9 @@ contract CheckOracleSequence_AbstractPrimaryPricingModule_Fuzz_Test is AbstractP
 
         uint80[] memory oraclesIds = new uint80[](1);
         oraclesIds[0] = oracleNew;
-        bool[] memory directions = new bool[](1);
-        directions[0] = directionNew;
-        bytes32 oracleSequenceNew = BitPackingLib.pack(directions, oraclesIds);
+        bool[] memory baseToQuoteAsset = new bool[](1);
+        baseToQuoteAsset[0] = directionNew;
+        bytes32 oracleSequenceNew = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
         vm.prank(users.creatorAddress);
         vm.expectRevert(bytes(""));
@@ -165,9 +167,9 @@ contract CheckOracleSequence_AbstractPrimaryPricingModule_Fuzz_Test is AbstractP
         addMockedOracle(oracleNew, 0, baseAsset, quoteAsset, false);
         uint80[] memory oraclesIds = new uint80[](1);
         oraclesIds[0] = oracleNew;
-        bool[] memory directions = new bool[](1);
-        directions[0] = directionNew;
-        bytes32 oracleSequenceNew = BitPackingLib.pack(directions, oraclesIds);
+        bool[] memory baseToQuoteAsset = new bool[](1);
+        baseToQuoteAsset[0] = directionNew;
+        bytes32 oracleSequenceNew = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
         vm.prank(users.creatorAddress);
         vm.expectRevert("APPM_SO: Bad sequence");
@@ -205,7 +207,7 @@ contract CheckOracleSequence_AbstractPrimaryPricingModule_Fuzz_Test is AbstractP
         pricingModule.setOracles(asset, assetId, oracleSequenceNew);
 
         bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
-        (, bytes32 oracleSequence) = pricingModule.assetToInformation2(assetKey);
+        (, bytes32 oracleSequence) = pricingModule.assetToInformation(assetKey);
 
         assertEq(oracleSequence, oracleSequenceNew);
     }

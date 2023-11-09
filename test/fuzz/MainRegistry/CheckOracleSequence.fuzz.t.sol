@@ -27,7 +27,7 @@ contract CheckOracleSequence_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
                          HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function getOracleSequence(uint256 length, bool[3] memory directions, uint80[3] memory oracles)
+    function getOracleSequence(uint256 length, bool[3] memory baseToQuoteAsset, uint80[3] memory oracles)
         public
         pure
         returns (bytes32 oracleSequence)
@@ -35,7 +35,7 @@ contract CheckOracleSequence_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         bool[] memory directions_ = new bool[](length);
         uint80[] memory oracles_ = new uint80[](length);
         for (uint256 i; i < length; ++i) {
-            directions_[i] = directions[i];
+            directions_[i] = baseToQuoteAsset[i];
             oracles_[i] = oracles[i];
 
             // Oracles must be unique.
@@ -65,10 +65,10 @@ contract CheckOracleSequence_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         uint80[] memory oraclesIds = new uint80[](1);
         oraclesIds[0] = oracleId;
-        bool[] memory directions = new bool[](1);
-        directions[0] = direction;
+        bool[] memory baseToQuoteAsset = new bool[](1);
+        baseToQuoteAsset[0] = direction;
 
-        bytes32 oracleSequence = BitPackingLib.pack(directions, oraclesIds);
+        bytes32 oracleSequence = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
         vm.expectRevert(bytes(""));
         mainRegistryExtension.checkOracleSequence(oracleSequence);
@@ -76,30 +76,32 @@ contract CheckOracleSequence_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
     function testFuzz_Success_checkOracleSequence_Negative_InactiveOracle(
         uint256 length,
-        bool[3] memory directions,
+        bool[3] memory baseToQuoteAsset,
         uint80[3] memory oracles
     ) public {
         length = bound(length, 1, 3);
-        bytes32 oracleSequence = getOracleSequence(length, directions, oracles);
+        bytes32 oracleSequence = getOracleSequence(length, baseToQuoteAsset, oracles);
 
         bytes16 baseAsset;
         bytes16 quoteAsset;
         // Set first oracle to inactive
         if (length == 1) {
-            (baseAsset, quoteAsset) = directions[0] ? (bytes16("A"), bytes16("USD")) : (bytes16("USD"), bytes16("A"));
+            (baseAsset, quoteAsset) =
+                baseToQuoteAsset[0] ? (bytes16("A"), bytes16("USD")) : (bytes16("USD"), bytes16("A"));
             addMockedOracle(oracles[0], 0, baseAsset, quoteAsset, false);
         } else {
-            (baseAsset, quoteAsset) = directions[0] ? (bytes16("A"), bytes16("B")) : (bytes16("B"), bytes16("A"));
+            (baseAsset, quoteAsset) = baseToQuoteAsset[0] ? (bytes16("A"), bytes16("B")) : (bytes16("B"), bytes16("A"));
             addMockedOracle(oracles[0], 0, baseAsset, quoteAsset, false);
             if (length == 2) {
                 (baseAsset, quoteAsset) =
-                    directions[1] ? (bytes16("B"), bytes16("USD")) : (bytes16("USD"), bytes16("B"));
+                    baseToQuoteAsset[1] ? (bytes16("B"), bytes16("USD")) : (bytes16("USD"), bytes16("B"));
                 addMockedOracle(oracles[1], 0, baseAsset, quoteAsset, true);
             } else {
-                (baseAsset, quoteAsset) = directions[1] ? (bytes16("B"), bytes16("C")) : (bytes16("C"), bytes16("B"));
+                (baseAsset, quoteAsset) =
+                    baseToQuoteAsset[1] ? (bytes16("B"), bytes16("C")) : (bytes16("C"), bytes16("B"));
                 addMockedOracle(oracles[1], 0, baseAsset, quoteAsset, true);
                 (baseAsset, quoteAsset) =
-                    directions[2] ? (bytes16("C"), bytes16("USD")) : (bytes16("USD"), bytes16("C"));
+                    baseToQuoteAsset[2] ? (bytes16("C"), bytes16("USD")) : (bytes16("USD"), bytes16("C"));
                 addMockedOracle(oracles[2], 0, baseAsset, quoteAsset, true);
             }
         }
@@ -111,24 +113,25 @@ contract CheckOracleSequence_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
     function testFuzz_Success_checkOracleSequence_Negative_NonMatchingConsecutiveAssets(
         uint256 length,
-        bool[3] memory directions,
+        bool[3] memory baseToQuoteAsset,
         uint80[3] memory oracles
     ) public {
         length = bound(length, 2, 3);
-        bytes32 oracleSequence = getOracleSequence(length, directions, oracles);
+        bytes32 oracleSequence = getOracleSequence(length, baseToQuoteAsset, oracles);
 
         (bytes16 baseAsset, bytes16 quoteAsset) =
-            directions[0] ? (bytes16("A"), bytes16("B")) : (bytes16("B"), bytes16("A"));
+            baseToQuoteAsset[0] ? (bytes16("A"), bytes16("B")) : (bytes16("B"), bytes16("A"));
         addMockedOracle(oracles[0], 0, baseAsset, quoteAsset, true);
         if (length == 2) {
             (baseAsset, quoteAsset) =
-                directions[1] ? (bytes16("NOT_B"), bytes16("USD")) : (bytes16("USD"), bytes16("NOT_B"));
+                baseToQuoteAsset[1] ? (bytes16("NOT_B"), bytes16("USD")) : (bytes16("USD"), bytes16("NOT_B"));
             addMockedOracle(oracles[1], 0, baseAsset, quoteAsset, true);
         } else {
             (baseAsset, quoteAsset) =
-                directions[1] ? (bytes16("NOT_B"), bytes16("C")) : (bytes16("C"), bytes16("NOT_B"));
+                baseToQuoteAsset[1] ? (bytes16("NOT_B"), bytes16("C")) : (bytes16("C"), bytes16("NOT_B"));
             addMockedOracle(oracles[1], 0, baseAsset, quoteAsset, true);
-            (baseAsset, quoteAsset) = directions[2] ? (bytes16("C"), bytes16("USD")) : (bytes16("USD"), bytes16("C"));
+            (baseAsset, quoteAsset) =
+                baseToQuoteAsset[2] ? (bytes16("C"), bytes16("USD")) : (bytes16("USD"), bytes16("C"));
             addMockedOracle(oracles[2], 0, baseAsset, quoteAsset, true);
         }
 
@@ -139,30 +142,31 @@ contract CheckOracleSequence_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
     function testFuzz_Success_checkOracleSequence_Negative_LastBaseAssetNotUsd(
         uint256 length,
-        bool[3] memory directions,
+        bool[3] memory baseToQuoteAsset,
         uint80[3] memory oracles
     ) public {
         length = bound(length, 1, 3);
-        bytes32 oracleSequence = getOracleSequence(length, directions, oracles);
+        bytes32 oracleSequence = getOracleSequence(length, baseToQuoteAsset, oracles);
 
         bytes16 baseAsset;
         bytes16 quoteAsset;
         if (length == 1) {
             (baseAsset, quoteAsset) =
-                directions[0] ? (bytes16("A"), bytes16("NOT_USD")) : (bytes16("NOT_USD"), bytes16("A"));
+                baseToQuoteAsset[0] ? (bytes16("A"), bytes16("NOT_USD")) : (bytes16("NOT_USD"), bytes16("A"));
             addMockedOracle(oracles[0], 0, baseAsset, quoteAsset, true);
         } else {
-            (baseAsset, quoteAsset) = directions[0] ? (bytes16("A"), bytes16("B")) : (bytes16("B"), bytes16("A"));
+            (baseAsset, quoteAsset) = baseToQuoteAsset[0] ? (bytes16("A"), bytes16("B")) : (bytes16("B"), bytes16("A"));
             addMockedOracle(oracles[0], 0, baseAsset, quoteAsset, true);
             if (length == 2) {
                 (baseAsset, quoteAsset) =
-                    directions[1] ? (bytes16("B"), bytes16("NOT_USD")) : (bytes16("NOT_USD"), bytes16("B"));
+                    baseToQuoteAsset[1] ? (bytes16("B"), bytes16("NOT_USD")) : (bytes16("NOT_USD"), bytes16("B"));
                 addMockedOracle(oracles[1], 0, baseAsset, quoteAsset, true);
             } else {
-                (baseAsset, quoteAsset) = directions[1] ? (bytes16("B"), bytes16("C")) : (bytes16("C"), bytes16("B"));
+                (baseAsset, quoteAsset) =
+                    baseToQuoteAsset[1] ? (bytes16("B"), bytes16("C")) : (bytes16("C"), bytes16("B"));
                 addMockedOracle(oracles[1], 0, baseAsset, quoteAsset, true);
                 (baseAsset, quoteAsset) =
-                    directions[2] ? (bytes16("C"), bytes16("NOT_USD")) : (bytes16("NOT_USD"), bytes16("C"));
+                    baseToQuoteAsset[2] ? (bytes16("C"), bytes16("NOT_USD")) : (bytes16("NOT_USD"), bytes16("C"));
                 addMockedOracle(oracles[2], 0, baseAsset, quoteAsset, true);
             }
         }
@@ -172,29 +176,33 @@ contract CheckOracleSequence_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assertFalse(success);
     }
 
-    function testFuzz_Success_checkOracleSequence(uint256 length, bool[3] memory directions, uint80[3] memory oracles)
-        public
-    {
+    function testFuzz_Success_checkOracleSequence(
+        uint256 length,
+        bool[3] memory baseToQuoteAsset,
+        uint80[3] memory oracles
+    ) public {
         length = bound(length, 1, 3);
-        bytes32 oracleSequence = getOracleSequence(length, directions, oracles);
+        bytes32 oracleSequence = getOracleSequence(length, baseToQuoteAsset, oracles);
 
         bytes16 baseAsset;
         bytes16 quoteAsset;
         if (length == 1) {
-            (baseAsset, quoteAsset) = directions[0] ? (bytes16("A"), bytes16("USD")) : (bytes16("USD"), bytes16("A"));
+            (baseAsset, quoteAsset) =
+                baseToQuoteAsset[0] ? (bytes16("A"), bytes16("USD")) : (bytes16("USD"), bytes16("A"));
             addMockedOracle(oracles[0], 0, baseAsset, quoteAsset, true);
         } else {
-            (baseAsset, quoteAsset) = directions[0] ? (bytes16("A"), bytes16("B")) : (bytes16("B"), bytes16("A"));
+            (baseAsset, quoteAsset) = baseToQuoteAsset[0] ? (bytes16("A"), bytes16("B")) : (bytes16("B"), bytes16("A"));
             addMockedOracle(oracles[0], 0, baseAsset, quoteAsset, true);
             if (length == 2) {
                 (baseAsset, quoteAsset) =
-                    directions[1] ? (bytes16("B"), bytes16("USD")) : (bytes16("USD"), bytes16("B"));
+                    baseToQuoteAsset[1] ? (bytes16("B"), bytes16("USD")) : (bytes16("USD"), bytes16("B"));
                 addMockedOracle(oracles[1], 0, baseAsset, quoteAsset, true);
             } else {
-                (baseAsset, quoteAsset) = directions[1] ? (bytes16("B"), bytes16("C")) : (bytes16("C"), bytes16("B"));
+                (baseAsset, quoteAsset) =
+                    baseToQuoteAsset[1] ? (bytes16("B"), bytes16("C")) : (bytes16("C"), bytes16("B"));
                 addMockedOracle(oracles[1], 0, baseAsset, quoteAsset, true);
                 (baseAsset, quoteAsset) =
-                    directions[2] ? (bytes16("C"), bytes16("USD")) : (bytes16("USD"), bytes16("C"));
+                    baseToQuoteAsset[2] ? (bytes16("C"), bytes16("USD")) : (bytes16("USD"), bytes16("C"));
                 addMockedOracle(oracles[2], 0, baseAsset, quoteAsset, true);
             }
         }

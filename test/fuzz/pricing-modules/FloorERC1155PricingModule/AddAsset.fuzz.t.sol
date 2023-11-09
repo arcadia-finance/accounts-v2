@@ -67,7 +67,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         assertTrue(floorERC1155PricingModule.inPricingModule(address(mockERC1155.sft2)));
         assertTrue(floorERC1155PricingModule.isAllowed(address(mockERC1155.sft2), 1));
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft2)));
-        (uint64 assetUnit, bytes32 oracles) = floorERC1155PricingModule.assetToInformation2(assetKey);
+        (uint64 assetUnit, bytes32 oracles) = floorERC1155PricingModule.assetToInformation(assetKey);
         assertEq(assetUnit, 1);
         assertEq(oracles, oraclesSft2ToUsd);
 
@@ -86,7 +86,7 @@ contract AddAsset_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
 
         assertTrue(floorERC1155PricingModule.isAllowed(address(mockERC1155.sft2), 2));
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(2), address(mockERC1155.sft2)));
-        (uint64 assetUnit, bytes32 oracles) = floorERC1155PricingModule.assetToInformation2(assetKey);
+        (uint64 assetUnit, bytes32 oracles) = floorERC1155PricingModule.assetToInformation(assetKey);
         assertEq(assetUnit, 1);
         assertEq(oracles, oraclesSft2ToUsd);
     }

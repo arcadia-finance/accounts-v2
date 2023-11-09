@@ -19,12 +19,14 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Map asset => assetInformation.
+    // Map asset => index range.
     mapping(address => IdRange) internal idRange;
 
     // Struct with additional information for a specific asset.
     struct IdRange {
+        // The first index of the allowed range.
         uint256 start;
+        // The last index of the allowed range.
         uint256 end;
     }
 
@@ -47,19 +49,23 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @param asset The contract address of the asset
      * @param idRangeStart: The id of the first NFT of the collection
      * @param idRangeEnd: The id of the last NFT of the collection
-     * @param oracles An array of addresses of oracle contracts, to price the asset in USD
-     * @dev The assets are added in the Main-Registry as well.
+     * @param oracleSequence The sequence of the oracles to price the asset in USD,
+     * packed in a single bytes32 object.
      */
-    function addAsset(address asset, uint256 idRangeStart, uint256 idRangeEnd, bytes32 oracles) external onlyOwner {
+    function addAsset(address asset, uint256 idRangeStart, uint256 idRangeEnd, bytes32 oracleSequence)
+        external
+        onlyOwner
+    {
         require(idRangeStart < idRangeEnd, "PM721_AA: Invalid Range");
-        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracles), "PM721_AA: Bad Sequence");
+        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracleSequence), "PM721_AA: Bad Sequence");
         // Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
 
         inPricingModule[asset] = true;
 
         // Unit for ERC721 is 1 (standard ERC721s don't have decimals).
-        assetToInformation2[_getKeyFromAsset(asset, 0)] = AssetInformation2({ assetUnit: 1, oracles: oracles });
+        assetToInformation[_getKeyFromAsset(asset, 0)] =
+            AssetInformation({ assetUnit: 1, oracleSequence: oracleSequence });
         idRange[asset] = IdRange({ start: idRangeStart, end: idRangeEnd });
     }
 
@@ -68,7 +74,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Checks for a token address and the corresponding Id if it is allowed.
+     * @notice Checks for an asset and the corresponding Id if it is allowed.
      * @param asset The address of the asset
      * @param assetId The Id of the asset
      * @return A boolean, indicating if the asset passed as input is allowed.

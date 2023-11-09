@@ -32,20 +32,26 @@ abstract contract PrimaryPricingModule is PricingModule {
     mapping(address creditor => mapping(bytes32 assetKey => RiskParameters riskParameters)) public riskParams;
 
     // Map asset => assetInformation.
-    mapping(bytes32 assetKey => AssetInformation2) public assetToInformation2;
+    mapping(bytes32 assetKey => AssetInformation) public assetToInformation;
 
     // Struct with the risk parameters of a specific asset for a specific creditor.
     struct RiskParameters {
-        uint128 lastExposureAsset; // The exposure of a creditor to an asset at its last interaction.
-        uint128 maxExposure; // The maximum exposure of a creditor to an asset.
-        uint16 collateralFactor; // The collateral factor of the asset for the creditor, 2 decimals precision.
-        uint16 liquidationFactor; // The liquidation factor of the asset for the creditor, 2 decimals precision.
+        // The exposure of a creditor to an asset at its last interaction.
+        uint128 lastExposureAsset;
+        // The maximum exposure of a creditor to an asset.
+        uint128 maxExposure;
+        // The collateral factor of the asset for the creditor, 2 decimals precision.
+        uint16 collateralFactor;
+        // The liquidation factor of the asset for the creditor, 2 decimals precision.
+        uint16 liquidationFactor;
     }
 
     // Struct with additional information for a specific asset.
-    struct AssetInformation2 {
-        uint64 assetUnit; // The unit of the asset, equal to 10^decimals.
-        bytes32 oracles; // The sequence of the oracles, to price the asset in USD.
+    struct AssetInformation {
+        // The unit of the asset, equal to 10^decimals.
+        uint64 assetUnit;
+        // The sequence of the oracles to price a the asset in USD, packed in a single bytes32 object.
+        bytes32 oracleSequence;
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -74,19 +80,21 @@ abstract contract PrimaryPricingModule is PricingModule {
     /**
      * @notice Sets a new oracle sequence in the case one of the current oracles is decommissioned.
      * @param asset The contract address of the asset.
-     * @param newOracles The new sequence of the oracles, to price the asset in USD.
+     * @param assetId The Id of the asset.
+     * @param newOracles The new sequence of the oracles, to price the asset in USD,
+     * packed in a single bytes32 object.
      */
     function setOracles(address asset, uint256 assetId, bytes32 newOracles) external onlyOwner {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Old oracles must be decommissioned before a new sequence can be set.
-        bytes32 oldOracles = assetToInformation2[assetKey].oracles;
+        bytes32 oldOracles = assetToInformation[assetKey].oracleSequence;
         require(!IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oldOracles), "APPM_SO: Oracle still active");
 
         // The new oracle sequence must be correct.
         require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(newOracles), "APPM_SO: Bad sequence");
 
-        assetToInformation2[assetKey].oracles = newOracles;
+        assetToInformation[assetKey].oracleSequence = newOracles;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -97,7 +105,7 @@ abstract contract PrimaryPricingModule is PricingModule {
      * @notice Returns the usd value of an asset.
      * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
+     * @param assetId The Id of the asset.
      * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
@@ -115,8 +123,8 @@ abstract contract PrimaryPricingModule is PricingModule {
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-        uint256 rateInUsd = IMainRegistry(MAIN_REGISTRY).getRateInUsd(assetToInformation2[assetKey].oracles);
-        valueInUsd = assetAmount.mulDivDown(rateInUsd, assetToInformation2[assetKey].assetUnit);
+        uint256 rateInUsd = IMainRegistry(MAIN_REGISTRY).getRateInUsd(assetToInformation[assetKey].oracleSequence);
+        valueInUsd = assetAmount.mulDivDown(rateInUsd, assetToInformation[assetKey].assetUnit);
 
         collateralFactor = riskParams[creditor][assetKey].collateralFactor;
         liquidationFactor = riskParams[creditor][assetKey].liquidationFactor;

@@ -81,6 +81,8 @@ abstract contract PricingModule is Owned, IPricingModule {
      * @param assetId The Id of the asset.
      * @return key The unique identifier.
      * @dev Unsafe cast from uint256 to uint96, use only when the id's of the assets cannot exceed type(uint96).max.
+     * For asset where the id can be bigger as a uint96, use a mapping of asset and assetId to storage,
+     * these assets can however NOT be used as underlying assets (processIndirectDeposit() must revert).
      */
     function _getKeyFromAsset(address asset, uint256 assetId) internal view virtual returns (bytes32 key) {
         assembly {

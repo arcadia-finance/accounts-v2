@@ -46,7 +46,7 @@ abstract contract Fuzz_Test is Base_Test {
     MockERC1155 internal mockERC1155;
     Rates internal rates;
 
-    // Directions arrays
+    // baseToQuoteAsset arrays
     bool[] internal BA_TO_QA_SINGLE = new bool[](1);
     bool[] internal BA_TO_QA_DOUBLE = new bool[](2);
 

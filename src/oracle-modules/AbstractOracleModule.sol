@@ -23,7 +23,7 @@ abstract contract OracleModule is Owned {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Map identifier => oracle information.
+    // Map oracle identifier => Asset pair.
     mapping(uint256 => AssetPair) public assetPair;
 
     struct AssetPair {
@@ -78,7 +78,7 @@ abstract contract OracleModule is Owned {
     /**
      * @notice Sets an oracle to inactive if it is not properly functioning.
      * @param oracleId The identifier of the oracle to be checked.
-     * @return success Boolean indicating if the oracle is still in use.
+     * @return oracleIsInUse Boolean indicating if the oracle is still in use.
      * @dev An inactive oracle will revert.
      * @dev Anyone can call this function as part of an oracle failsafe mechanism.
      * @dev If the oracle becomes functionally again (all checks pass), anyone can activate the oracle again.
@@ -93,7 +93,8 @@ abstract contract OracleModule is Owned {
      * @notice Returns the rate of the BaseAsset in units of QuoteAsset.
      * @param oracleId The identifier of the oracle.
      * @return oracleRate The rate of the BaseAsset in units of QuoteAsset, with 18 Decimals precision.
-     * @dev The oracle rate reflects how much units of the QuoteAsset are required to buy 1 unit of the BaseAsset.
+     * @dev The oracle rate expresses how much units of the QuoteAsset (18 decimals precision) are required
+     * to buy 1 unit of the BaseAsset.
      */
     function getRate(uint256 oracleId) external view virtual returns (uint256);
 }

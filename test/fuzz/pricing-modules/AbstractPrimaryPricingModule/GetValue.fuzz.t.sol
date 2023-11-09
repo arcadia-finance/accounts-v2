@@ -47,9 +47,9 @@ contract GetValue_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPrimaryPrici
         // Add asset to PricingModule.
         uint80[] memory oraclesIds = new uint80[](1);
         oraclesIds[0] = oracleId;
-        bool[] memory directions = new bool[](1);
-        directions[0] = true;
-        bytes32 oracleSequence = BitPackingLib.pack(directions, oraclesIds);
+        bool[] memory baseToQuoteAsset = new bool[](1);
+        baseToQuoteAsset[0] = true;
+        bytes32 oracleSequence = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
         decimals = bound(decimals, 0, 18);
         pricingModule.setAssetInformation(asset, assetId, uint64(10 ** decimals), oracleSequence);
 
@@ -81,9 +81,9 @@ contract GetValue_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPrimaryPrici
         // Add asset to PricingModule.
         uint80[] memory oraclesIds = new uint80[](1);
         oraclesIds[0] = oracleId;
-        bool[] memory directions = new bool[](1);
-        directions[0] = true;
-        bytes32 oracleSequence = BitPackingLib.pack(directions, oraclesIds);
+        bool[] memory baseToQuoteAsset = new bool[](1);
+        baseToQuoteAsset[0] = true;
+        bytes32 oracleSequence = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
         decimals = bound(decimals, 0, 18);
         pricingModule.setAssetInformation(asset, assetId, uint64(10 ** decimals), oracleSequence);
 
