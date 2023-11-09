@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { MultiCall_Fuzz_Test } from "./_MultiCall.fuzz.t.sol";
 
 import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
-import { NonfungiblePositionManagerMock } from "../../.././utils/mocks/NonFungiblePositionManager.sol";
+import { NonfungiblePositionManagerMock } from "../../.././utils/mocks/NonfungiblePositionManager.sol";
 
 /**
  * @notice Fuzz tests for the "checkAmountOut" of contract "MultiCall".
