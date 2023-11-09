@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { OracleHub } from "../../../../src/OracleHub.sol";
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 /**
  * @notice Common logic needed by all "FloorERC721PricingModule" fuzz tests.
@@ -16,7 +16,7 @@ abstract contract FloorERC721PricingModule_Fuzz_Test is Fuzz_Test {
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    address[] internal oracleNft2ToUsdArr = new address[](1);
+    bytes32 internal oraclesNft2ToUsd;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -26,17 +26,10 @@ abstract contract FloorERC721PricingModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.nftOracleDecimals),
-                baseAsset: "NFT2",
-                quoteAsset: "USD",
-                oracle: address(mockOracles.nft2ToUsd),
-                baseAssetAddress: address(mockERC721.nft2),
-                isActive: true
-            })
-        );
+        chainlinkOM.addOracle(address(mockOracles.nft2ToUsd), "NFT2", "USD");
 
-        oracleNft2ToUsdArr[0] = address(mockOracles.nft2ToUsd);
+        uint80[] memory oracleNft2ToUsdArr = new uint80[](1);
+        oracleNft2ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.nft2ToUsd)));
+        oraclesNft2ToUsd = BitPackingLib.pack(BA_TO_QA_SINGLE, oracleNft2ToUsdArr);
     }
 }

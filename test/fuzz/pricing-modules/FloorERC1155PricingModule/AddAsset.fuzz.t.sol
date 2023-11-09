@@ -7,7 +7,6 @@ pragma solidity 0.8.19;
 import { FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModule.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**

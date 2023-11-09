@@ -21,13 +21,12 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
     ////////////////////////////////////////////////////////////// */
 
     // Map asset => assetInformation.
-    mapping(address => AssetInformation) public assetToInformation;
+    mapping(address => IdRange) internal idRange;
 
     // Struct with additional information for a specific asset.
-    struct AssetInformation {
-        uint256 idRangeStart;
-        uint256 idRangeEnd;
-        address[] oracles;
+    struct IdRange {
+        uint256 start;
+        uint256 end;
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -53,42 +52,22 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @param oracles An array of addresses of oracle contracts, to price the asset in USD
      * @dev The assets are added in the Main-Registry as well.
      */
-    function addAsset(address asset, uint256 idRangeStart, uint256 idRangeEnd, address[] calldata oracles)
-        external
-        onlyOwner
-    {
-        // View function, reverts in OracleHub if sequence is not correct.
-        IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
+    function addAsset(address asset, uint256 idRangeStart, uint256 idRangeEnd, bytes32 oracles) external onlyOwner {
+        require(idRangeStart < idRangeEnd, "PM721_AA: Invalid Range");
+        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracles), "PM721_AA: Bad Sequence");
+        // Will revert in MainRegistry if asset was already added.
+        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
 
         inPricingModule[asset] = true;
 
-        assetToInformation[asset].idRangeStart = idRangeStart;
-        assetToInformation[asset].idRangeEnd = idRangeEnd;
-        assetToInformation[asset].oracles = oracles;
-
-        // Will revert in MainRegistry if asset was already added.
-        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
+        // Unit for ERC721 is 1 (standard ERC721s don't have decimals).
+        assetToInformation2[_getKeyFromAsset(asset, 0)] = AssetInformation2({ assetUnit: 1, oracles: oracles });
+        idRange[asset] = IdRange({ start: idRangeStart, end: idRangeEnd });
     }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET INFORMATION
     ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Returns the information that is stored in the Pricing Module for a given asset
-     * @dev struct is not taken into memory; saves 6613 gas
-     * @param asset The Token address of the asset
-     * @return idRangeStart The id of the first token of the collection
-     * @return idRangeEnd The id of the last token of the collection
-     * @return oracles The list of addresses of the oracles to get the exchange rate of the asset in USD
-     */
-    function getAssetInformation(address asset) external view returns (uint256, uint256, address[] memory) {
-        return (
-            assetToInformation[asset].idRangeStart,
-            assetToInformation[asset].idRangeEnd,
-            assetToInformation[asset].oracles
-        );
-    }
 
     /**
      * @notice Checks for a token address and the corresponding Id if it is allowed.
@@ -112,8 +91,8 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
      * @param assetId The Id of the asset
      * @return A boolean, indicating if the Id of the given asset is in range.
      */
-    function isIdInRange(address asset, uint256 assetId) private view returns (bool) {
-        if (assetId >= assetToInformation[asset].idRangeStart && assetId <= assetToInformation[asset].idRangeEnd) {
+    function isIdInRange(address asset, uint256 assetId) internal view returns (bool) {
+        if (assetId >= idRange[asset].start && assetId <= idRange[asset].end) {
             return true;
         } else {
             return false;
@@ -169,7 +148,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         override
         onlyMainReg
     {
-        require(isIdInRange(asset, assetId), "PM721_PDD: ID not allowed");
+        require(isAllowed(asset, assetId), "PM721_PDD: Asset not allowed");
 
         super.processDirectDeposit(creditor, asset, assetId, 1);
     }
@@ -191,40 +170,10 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
-        require(isIdInRange(asset, assetId), "PM721_PID: ID not allowed");
+        require(isAllowed(asset, assetId), "PM721_PID: Asset not allowed");
 
         return super.processIndirectDeposit(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                          PRICING LOGIC
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Returns the usd value of an asset.
-     * @param creditor The contract address of the creditor.
-     * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
-     * @param assetAmount The amount of assets.
-     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
-     * @dev If the asset is not first added to PricingModule this function will return value 0 without throwing an error.
-     * However no check in FloorERC721PricingModule is necessary, since the check if the asset is added to the PricingModule
-     * is already done in the MainRegistry.
-     */
-    function getValue(address creditor, address asset, uint256, uint256 assetAmount)
-        public
-        view
-        override
-        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
-    {
-        valueInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[asset].oracles) * assetAmount;
-
-        bytes32 assetKey = _getKeyFromAsset(asset, 0);
-        collateralFactor = riskParams[creditor][assetKey].collateralFactor;
-        liquidationFactor = riskParams[creditor][assetKey].liquidationFactor;
     }
 }

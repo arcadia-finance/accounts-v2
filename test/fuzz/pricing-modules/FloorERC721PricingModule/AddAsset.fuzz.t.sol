@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 
 import { FloorERC721PricingModule_Fuzz_Test } from "./_FloorERC721PricingModule.fuzz.t.sol";
 
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 
 /**
@@ -23,44 +24,70 @@ contract AddAsset_FloorERC721PricingModule_Fuzz_Test is FloorERC721PricingModule
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_addAsset_NonOwner(address unprivilegedAddress_) public {
-        // Given: unprivilegedAddress_ is not users.creatorAddress
+    function testFuzz_Revert_addAsset_NonOwner(address unprivilegedAddress_, uint256 start, uint256 end) public {
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
-        vm.startPrank(unprivilegedAddress_);
-        // When: unprivilegedAddress_ calls addAsset
 
-        // Then: addAsset should revert with "UNAUTHORIZED"
+        vm.prank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
-        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr);
-        vm.stopPrank();
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
     }
 
-    function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
-        // Given:
+    function testFuzz_Revert_addAsset_InvalidRange(uint256 start, uint256 end) public {
+        end = bound(end, 0, start);
+
+        vm.prank(users.creatorAddress);
+        vm.expectRevert("PM721_AA: Invalid Range");
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
+    }
+
+    function testFuzz_Revert_addAsset_BadOracleSequence(uint256 start, uint256 end) public {
+        start = bound(start, 0, type(uint256).max - 1);
+        end = bound(end, start + 1, type(uint256).max);
+
+        bool[] memory badDirection = new bool[](1);
+        badDirection[0] = false;
+        uint80[] memory oracleNft2ToUsdArr = new uint80[](1);
+        oracleNft2ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.nft2ToUsd)));
+        bytes32 badSequence = BitPackingLib.pack(badDirection, oracleNft2ToUsdArr);
+
+        vm.prank(users.creatorAddress);
+        vm.expectRevert("PM721_AA: Bad Sequence");
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), start, end, badSequence);
+    }
+
+    function testFuzz_Revert_addAsset_OverwriteExistingAsset(uint256 start, uint256 end) public {
+        start = bound(start, 0, type(uint256).max - 1);
+        end = bound(end, start + 1, type(uint256).max);
+
         vm.startPrank(users.creatorAddress);
-        // When: users.creatorAddress addAsset twice
-        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr);
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
         vm.expectRevert("MR_AA: Asset already in mainreg");
-        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr);
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_addAsset() public {
-        // Given: All necessary contracts deployed on setup
-        vm.startPrank(users.creatorAddress);
-        // When: users.creatorAddress calls addAsset with empty list credit ratings
-        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr);
-        vm.stopPrank();
+    function testFuzz_Success_addAsset(uint256 start, uint256 end, uint256 id) public {
+        start = bound(start, 0, type(uint256).max - 1);
+        end = bound(end, start + 1, type(uint256).max);
+        id = bound(id, start, end);
 
-        // Then: inPricingModule for address(mockERC721.nft2) should return true
+        vm.prank(users.creatorAddress);
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
+
         assertTrue(floorERC721PricingModule.inPricingModule(address(mockERC721.nft2)));
-        (uint256 idRangeStart, uint256 idRangeEnd, address[] memory oracles) =
-            floorERC721PricingModule.getAssetInformation(address(mockERC721.nft2));
-        assertEq(idRangeStart, 0);
-        assertEq(idRangeEnd, type(uint256).max);
-        for (uint256 i; i < oracleNft2ToUsdArr.length; ++i) {
-            assertEq(oracles[i], oracleNft2ToUsdArr[i]);
-        }
-        assertTrue(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), 0));
+        assertTrue(floorERC721PricingModule.isAllowed(address(mockERC721.nft2), id));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft2)));
+        (uint64 assetUnit, bytes32 oracles) = floorERC721PricingModule.assetToInformation2(assetKey);
+        assertEq(assetUnit, 1);
+        assertEq(oracles, oraclesNft2ToUsd);
+        (uint256 start_, uint256 end_) = floorERC721PricingModule.getIdRange(address(mockERC721.nft2));
+        assertEq(start_, start);
+        assertEq(end_, end);
+
+        assertTrue(mainRegistryExtension.inMainRegistry(address(mockERC721.nft2)));
+        (uint96 assetType_, address pricingModule) =
+            mainRegistryExtension.assetToAssetInformation(address(mockERC721.nft2));
+        assertEq(assetType_, 1);
+        assertEq(pricingModule, address(floorERC721PricingModule));
     }
 }

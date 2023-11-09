@@ -25,7 +25,7 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         public
     {
         vm.prank(users.creatorAddress);
-        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr);
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC721.nft2), 0, type(uint128).max, 0, 0
@@ -40,16 +40,16 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
     }
 
     function testFuzz_Revert_processIndirectDeposit_WrongID(uint256 assetId) public {
-        vm.assume(assetId > 0); //Not in range
+        vm.assume(assetId > 1); //Not in range
         vm.prank(users.creatorAddress);
-        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, 0, oracleNft2ToUsdArr);
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, 1, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC721.nft2), 0, 1, 0, 0
         );
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PM721_PID: ID not allowed");
+        vm.expectRevert("PM721_PID: Asset not allowed");
         floorERC721PricingModule.processIndirectDeposit(address(creditorUsd), address(mockERC721.nft2), assetId, 0, 0);
         vm.stopPrank();
 
@@ -60,7 +60,7 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
 
     function testFuzz_Revert_processIndirectDeposit_OverExposure(uint256 assetId) public {
         vm.prank(users.creatorAddress);
-        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr);
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC721.nft2), 0, 1, 0, 0
@@ -86,7 +86,7 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         vm.assume(exposureUpperAssetToAsset < type(uint128).max);
 
         vm.prank(users.creatorAddress);
-        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr);
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC721.nft2), 0, maxExposure, 0, 0
@@ -129,7 +129,7 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         exposureUpperAssetToAsset = bound(exposureUpperAssetToAsset, 0, type(uint128).max);
 
         vm.prank(users.creatorAddress);
-        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr);
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC721.nft2), 0, 3, 0, 0
@@ -176,7 +176,7 @@ contract ProcessIndirectDeposit_FloorERC721PricingModule_Fuzz_Test is FloorERC72
         exposureUpperAssetToAsset = bound(exposureUpperAssetToAsset, 0, type(uint128).max);
 
         vm.prank(users.creatorAddress);
-        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oracleNft2ToUsdArr);
+        floorERC721PricingModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC721.nft2), 0, 3, 0, 0

@@ -317,6 +317,11 @@ contract FloorERC721PricingModuleExtension is FloorERC721PricingModule {
         primaryFlag = PRIMARY_FLAG;
     }
 
+    function getIdRange(address asset) public view returns (uint256 start, uint256 end) {
+        start = idRange[asset].start;
+        end = idRange[asset].end;
+    }
+
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
     }

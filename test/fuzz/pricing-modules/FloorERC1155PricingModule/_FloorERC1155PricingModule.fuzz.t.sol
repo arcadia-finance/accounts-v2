@@ -7,7 +7,6 @@ pragma solidity 0.8.19;
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { OracleHub } from "../../../../src/OracleHub.sol";
 
 /**
  * @notice Common logic needed by all "FloorERC1155PricingModule" fuzz tests.

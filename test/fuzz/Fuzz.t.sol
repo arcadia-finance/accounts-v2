@@ -58,7 +58,7 @@ abstract contract Fuzz_Test is Base_Test {
     address[] public oracleToken2ToUsdArr = new address[](1);
 
     // ERC721 oracle arrays
-    address[] public oracleNft1ToToken1ToUsd = new address[](2);
+    uint80[] internal oracleNft1ToToken1ToUsd = new uint80[](2);
 
     // ERC1155 oracle array
     uint80[] internal oracleSft1ToToken1ToUsd = new uint80[](2);
@@ -257,10 +257,12 @@ abstract contract Fuzz_Test is Base_Test {
         erc20PricingModule.addAsset(address(mockERC20.token2), oracleToken2ToUsdArr);
 
         // Add NFT1 to the floorERC721PricingModule.
-        oracleNft1ToToken1ToUsd[0] = address(mockOracles.nft1ToToken1);
-        oracleNft1ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
+        oracleNft1ToToken1ToUsd[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.nft1ToToken1)));
+        oracleNft1ToToken1ToUsd[1] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token1ToUsd)));
 
-        floorERC721PricingModule.addAsset(address(mockERC721.nft1), 0, 999, oracleNft1ToToken1ToUsd);
+        floorERC721PricingModule.addAsset(
+            address(mockERC721.nft1), 0, 999, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleNft1ToToken1ToUsd)
+        );
 
         // Add ERC1155 contract to the floorERC1155PricingModule
         oracleSft1ToToken1ToUsd[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.sft1ToToken1)));
