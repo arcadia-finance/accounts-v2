@@ -53,30 +53,28 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_checkAndStartLiquidation_notLiquidatable_usedMarginSmallerThanLiquidationValue(
         uint96 fixedLiquidationCost,
         uint256 openDebt,
-        uint128 depositAmountStable1
+        uint128 depositAmountToken1
     ) public {
-        vm.assume(depositAmountStable1 > 0);
+        vm.assume(depositAmountToken1 > 0);
 
         // Given: openDebt > 0
-        openDebt = bound(openDebt, 1, type(uint256).max - fixedLiquidationCost);
+        openDebt = bound(openDebt, 1, type(uint128).max - fixedLiquidationCost);
 
         address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = address(mockERC20.stable1);
+        assetAddresses[0] = address(mockERC20.token1);
 
         uint256[] memory assetIds = new uint256[](1);
         assetIds[0] = 0;
 
         uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = depositAmountStable1;
-
-        trustedCreditor.setBaseCurrency(address(mockERC20.token1));
+        assetAmounts[0] = depositAmountToken1;
 
         // Initialize Account and set open position on trusted creditor
         accountExtension2.initialize(
-            users.accountOwner, address(mainRegistryExtension), address(mockERC20.token1), address(trustedCreditor)
+            users.accountOwner, address(mainRegistryExtension), address(mockERC20.token1), address(creditorToken1)
         );
         accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
-        trustedCreditor.setOpenPosition(address(accountExtension2), openDebt);
+        creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 
@@ -91,11 +89,11 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Given : Liquidation value is greater than or equal to used margin
         vm.assume(openDebt + fixedLiquidationCost <= RiskModule.calculateLiquidationValue(assetAndRiskValues));
 
-        /*         // Mint and approve Stable1 tokens
+        // Mint and approve token1 tokens
         vm.startPrank(users.tokenCreatorAddress);
-        mockERC20.stable1.mint(users.accountOwner, depositAmountStable1);
+        mockERC20.token1.mint(users.accountOwner, depositAmountToken1);
         vm.startPrank(users.accountOwner);
-        mockERC20.stable1.approve(address(accountExtension2), type(uint256).max);
+        mockERC20.token1.approve(address(accountExtension2), type(uint256).max);
 
         // Deposit stable1 token in account
         accountExtension2.deposit(assetAddresses, assetIds, assetAmounts);
@@ -104,7 +102,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.startPrank(accountExtension2.liquidator());
         vm.expectRevert("A_CASL: Account not liquidatable");
         accountExtension2.checkAndStartLiquidation();
-        vm.stopPrank(); */
+        vm.stopPrank();
     }
 
     function testFuzz_Revert_checkAndStartLiquidation_notLiquidatable_zeroOpenDebt(uint96 fixedLiquidationCost)
@@ -115,15 +113,15 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Initialize Account and set open position on trusted creditor
         accountExtension2.initialize(
-            users.accountOwner, address(mainRegistryExtension), address(mockERC20.token1), address(trustedCreditor)
+            users.accountOwner, address(mainRegistryExtension), address(mockERC20.token1), address(creditorToken1)
         );
         accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
-        trustedCreditor.setOpenPosition(address(accountExtension2), openDebt);
+        creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 
         // Assert openDebt of Account == 0
-        assert(trustedCreditor.getOpenPosition(address(accountExtension2)) == 0);
+        assert(creditorToken1.getOpenPosition(address(accountExtension2)) == 0);
 
         // Then : Account should not be liquidatable as openDebt == 0
         vm.startPrank(accountExtension2.liquidator());
@@ -135,28 +133,28 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_checkAndStartLiquidation(
         uint96 fixedLiquidationCost,
         uint256 openDebt,
-        uint128 depositAmountStable1
+        uint128 depositAmountToken1
     ) public {
-        vm.assume(depositAmountStable1 > 0);
+        vm.assume(depositAmountToken1 > 0);
 
         // Given: openDebt > 0
-        openDebt = bound(openDebt, 1, type(uint256).max - fixedLiquidationCost);
+        openDebt = bound(openDebt, 1, type(uint128).max - fixedLiquidationCost);
 
         address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = address(mockERC20.stable1);
+        assetAddresses[0] = address(mockERC20.token1);
 
         uint256[] memory assetIds = new uint256[](1);
         assetIds[0] = 0;
 
         uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = depositAmountStable1;
+        assetAmounts[0] = depositAmountToken1;
 
         // Given: Account is initialized and an open position is set on trusted creditor
         accountExtension2.initialize(
-            users.accountOwner, address(mainRegistryExtension), address(mockERC20.token1), address(trustedCreditor)
+            users.accountOwner, address(mainRegistryExtension), address(mockERC20.token1), address(creditorToken1)
         );
         accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
-        trustedCreditor.setOpenPosition(address(accountExtension2), openDebt);
+        creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 
@@ -173,9 +171,9 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Mint and approve stable1 tokens
         vm.startPrank(users.tokenCreatorAddress);
-        mockERC20.stable1.mint(users.accountOwner, depositAmountStable1);
+        mockERC20.token1.mint(users.accountOwner, depositAmountToken1);
         vm.startPrank(users.accountOwner);
-        mockERC20.stable1.approve(address(accountExtension2), type(uint256).max);
+        mockERC20.token1.approve(address(accountExtension2), type(uint256).max);
 
         // Deposit stable1 token in account
         accountExtension2.deposit(assetAddresses, assetIds, assetAmounts);
@@ -195,9 +193,9 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then : Account should be liquidatable and return specific values
         assertEq(owner_, accountExtension2.owner());
-        assertEq(assetAddresses_[0], address(mockERC20.stable1));
+        assertEq(assetAddresses_[0], address(mockERC20.token1));
         assertEq(assetIds_[0], 0);
-        assertEq(assetAmounts_[0], mockERC20.stable1.balanceOf(address(accountExtension2)));
+        assertEq(assetAmounts_[0], mockERC20.token1.balanceOf(address(accountExtension2)));
         assertEq(creditor_, accountExtension2.trustedCreditor());
         assertEq(
             totalOpenDebt,
