@@ -7,6 +7,7 @@ pragma solidity 0.8.19;
 import { MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
 import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
+import { BitPackingLib } from "../../../src/libraries/BitPackingLib.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { ERC20Mock } from "../../utils/mocks/ERC20Mock.sol";
 import { OracleHub } from "../../../src/OracleHub.sol";
@@ -69,19 +70,12 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
             "TOKEN2",
             "T2",
             token2Decimals);
-        address[] memory oracleAssetToUsdArr = new address[](1);
-        oracleAssetToUsdArr[0] = address(oracle);
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: 0,
-                baseAsset: "ASSET",
-                quoteAsset: "USD",
-                oracle: address(oracle),
-                baseAssetAddress: address(mockERC20.token2),
-                isActive: true
-            })
-        );
-        erc20PricingModule.addAsset(address(mockERC20.token2), oracleAssetToUsdArr);
+
+        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "TOKEN2", "USD"));
+        uint80[] memory oracleAssetToUsdArr = new uint80[](1);
+        oracleAssetToUsdArr[0] = oracleId;
+
+        erc20PricingModule.addAsset(address(mockERC20.token2), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
         vm.stopPrank();
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(

@@ -4,11 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
-import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
-import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
 import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 
 /**
@@ -18,22 +15,7 @@ import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
  * @dev No end-user should directly interact with the StandardERC20PricingModule, only the Main-registry,
  * Oracle-Hub or the contract owner.
  */
-contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20PricingModule {
-    using FixedPointMathLib for uint256;
-
-    /* //////////////////////////////////////////////////////////////
-                                STORAGE
-    ////////////////////////////////////////////////////////////// */
-
-    // Map asset => assetInformation.
-    mapping(address => AssetInformation) public assetToInformation;
-
-    // Struct with additional information for a specific asset.
-    struct AssetInformation {
-        uint64 assetUnit; // The unit of the asset, equal to 10^decimals.
-        address[] oracles; // Array of contract addresses of oracles.
-    }
-
+contract StandardERC20PricingModule is PrimaryPricingModule {
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
@@ -55,9 +37,11 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
      * @param oracles An array of contract addresses of oracles, to price the asset in USD.
      * @dev Assets can't have more than 18 decimals.
      */
-    function addAsset(address asset, address[] calldata oracles) external onlyOwner {
+    function addAsset(address asset, bytes32 oracles) external onlyOwner {
         // View function, reverts in OracleHub if sequence is not correct.
-        IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
+        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracles), "PM20_AA: Bad Sequence");
+        // Will revert in MainRegistry if asset was already added.
+        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
 
         inPricingModule[asset] = true;
 
@@ -65,57 +49,13 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         require(assetUnit <= 1e18, "PM20_AA: Maximal 18 decimals");
 
         // Can safely cast to uint64, we previously checked it is smaller than 10e18.
-        assetToInformation[asset].assetUnit = uint64(assetUnit);
-        assetToInformation[asset].oracles = oracles;
-
-        // Will revert in MainRegistry if asset was already added.
-        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
-    }
-
-    /**
-     * @notice Sets a new oracle sequence in the case one of the current oracles is decommissioned.
-     * @param asset The contract address of the asset.
-     * @param newOracles An array of contract addresses of oracles, to price the asset in USD.
-     * @param decommissionedOracle The contract address of the decommissioned oracle.
-     */
-    function setOracles(address asset, address[] calldata newOracles, address decommissionedOracle)
-        external
-        onlyOwner
-    {
-        // If asset is not added to the Pricing Module, oldOracles will have length 0,
-        // in this case the for loop will be skipped and the function will revert.
-        address[] memory oldOracles = assetToInformation[asset].oracles;
-        uint256 oraclesLength = oldOracles.length;
-        for (uint256 i; i < oraclesLength;) {
-            if (oldOracles[i] == decommissionedOracle) {
-                require(!IOraclesHub(ORACLE_HUB).isActive(oldOracles[i]), "PM20_SO: Oracle still active");
-                // View function, reverts in OracleHub if sequence is not correct.
-                IOraclesHub(ORACLE_HUB).checkOracleSequence(newOracles, asset);
-                assetToInformation[asset].oracles = newOracles;
-                return;
-            }
-            unchecked {
-                ++i;
-            }
-        }
-        // We only arrive in tis state if length of oldOracles was zero, or decommissionedOracle was not in the oldOracles array.
-        // -> reverts.
-        revert("PM20_SO: Unknown Oracle");
+        assetToInformation2[_getKeyFromAsset(asset, 0)] =
+            AssetInformation2({ assetUnit: uint64(assetUnit), oracles: oracles });
     }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET INFORMATION
     ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Returns the asset information of an asset.
-     * @param asset The contract address of the asset.
-     * @return assetUnit The unit (10^decimals) of the asset.
-     * @return oracles An array of contract addresses of oracles, to price the asset in USD.
-     */
-    function getAssetInformation(address asset) external view returns (uint64, address[] memory) {
-        return (assetToInformation[asset].assetUnit, assetToInformation[asset].oracles);
-    }
 
     /**
      * @notice Checks for a token address and the corresponding Id if it is allowed.
@@ -154,38 +94,5 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         }
 
         return (asset, 0);
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                          PRICING LOGIC
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Returns the usd value of an asset.
-     * @param creditor The contract address of the creditor.
-     * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
-     * @param assetAmount The amount of assets.
-     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
-     * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256.
-     * @dev If the asset is not added to PricingModule, this function will return value 0 without throwing an error.
-     * However no check in StandardERC20PricingModule is necessary, since the check if the asset is added to the PricingModule
-     * is already done in the MainRegistry.
-     */
-    function getValue(address creditor, address asset, uint256, uint256 assetAmount)
-        public
-        view
-        override
-        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
-    {
-        uint256 rateInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[asset].oracles);
-
-        valueInUsd = assetAmount.mulDivDown(rateInUsd, assetToInformation[asset].assetUnit);
-
-        bytes32 assetKey = _getKeyFromAsset(asset, 0);
-        collateralFactor = riskParams[creditor][assetKey].collateralFactor;
-        liquidationFactor = riskParams[creditor][assetKey].liquidationFactor;
     }
 }

@@ -45,21 +45,10 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
 
         // Redeploy tokens with variable amount of decimals
         mockERC20.token1 = deployToken(
-            mockOracles.token1ToUsd,
-            _token1Decimals,
-            _oracleToken1ToUsdDecimals,
-            _rateToken1ToUsd,
-            "TOKEN1",
-            oracleToken1ToUsdArr
+            mockOracles.token1ToUsd, _token1Decimals, _oracleToken1ToUsdDecimals, _rateToken1ToUsd, "TOKEN1"
         );
-        mockERC20.token2 = deployToken(
-            oracleToken2ToUsd,
-            _token2Decimals,
-            _oracleToken2ToUsdDecimals,
-            _rateToken2ToUsd,
-            "TOKEN2",
-            oracleToken2ToUsdArr
-        );
+        mockERC20.token2 =
+            deployToken(oracleToken2ToUsd, _token2Decimals, _oracleToken2ToUsdDecimals, _rateToken2ToUsd, "TOKEN2");
         pairToken1Token2 =
             UniswapV2PairMock(uniswapV2Factory.createPair(address(mockERC20.token2), address(mockERC20.token1)));
         uniswapV2PricingModule.addAsset(address(pairToken1Token2));
@@ -98,21 +87,10 @@ contract GetValue_UniswapV2PricingModule_Fuzz_Test is UniswapV2PricingModule_Fuz
 
         // Redeploy tokens with variable amount of decimals
         mockERC20.token1 = deployToken(
-            mockOracles.token1ToUsd,
-            _token1Decimals,
-            _oracleToken1ToUsdDecimals,
-            _rateToken1ToUsd,
-            "TOKEN1",
-            oracleToken1ToUsdArr
+            mockOracles.token1ToUsd, _token1Decimals, _oracleToken1ToUsdDecimals, _rateToken1ToUsd, "TOKEN1"
         );
-        mockERC20.token2 = deployToken(
-            oracleToken2ToUsd,
-            _token2Decimals,
-            _oracleToken2ToUsdDecimals,
-            _rateToken2ToUsd,
-            "TOKEN2",
-            oracleToken2ToUsdArr
-        );
+        mockERC20.token2 =
+            deployToken(oracleToken2ToUsd, _token2Decimals, _oracleToken2ToUsdDecimals, _rateToken2ToUsd, "TOKEN2");
         pairToken1Token2 =
             UniswapV2PairMock(uniswapV2Factory.createPair(address(mockERC20.token2), address(mockERC20.token1)));
         uniswapV2PricingModule.addAsset(address(pairToken1Token2));

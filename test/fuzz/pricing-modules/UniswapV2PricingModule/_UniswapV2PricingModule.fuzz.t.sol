@@ -10,6 +10,7 @@ import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
@@ -69,8 +70,6 @@ abstract contract UniswapV2PricingModule_Fuzz_Test is Fuzz_Test {
         );
         mainRegistryExtension.addPricingModule(address(uniswapV2PricingModule));
         vm.stopPrank();
-
-        oracleToken2ToUsdArr = new address[](1);
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -91,26 +90,18 @@ abstract contract UniswapV2PricingModule_Fuzz_Test is Fuzz_Test {
         uint8 tokenDecimals,
         uint8 oracleTokenToUsdDecimals,
         uint256 rate,
-        string memory label,
-        address[] memory oracleTokenToUsdArr
+        string memory label
     ) internal returns (ERC20Mock token) {
         token =
             new ERC20Mock(string(abi.encodePacked(label, " Mock")), string(abi.encodePacked("m", label)), tokenDecimals);
         oracleTokenToUsd = initMockedOracle(oracleTokenToUsdDecimals, string(abi.encodePacked(label, " / USD")), rate);
-        oracleTokenToUsdArr[0] = address(oracleTokenToUsd);
 
         vm.startPrank(users.creatorAddress);
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** oracleTokenToUsdDecimals),
-                baseAsset: bytes8(abi.encodePacked(label)),
-                quoteAsset: "USD",
-                oracle: address(oracleTokenToUsd),
-                baseAssetAddress: address(token),
-                isActive: true
-            })
-        );
-        erc20PricingModule.addAsset(address(token), oracleTokenToUsdArr);
+        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracleTokenToUsd), "Mock", "USD"));
+        uint80[] memory oracleTokenToUsdArr = new uint80[](1);
+        oracleTokenToUsdArr[0] = oracleId;
+
+        erc20PricingModule.addAsset(address(token), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleTokenToUsdArr));
         vm.stopPrank();
 
         vm.startPrank(users.riskManager);

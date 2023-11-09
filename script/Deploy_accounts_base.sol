@@ -7,9 +7,11 @@ pragma solidity 0.8.19;
 import "../lib/forge-std/src/Test.sol";
 import { DeployAddresses, DeployNumbers, DeployBytes, DeployRiskConstantsBase } from "./Constants/DeployConstants.sol";
 
+import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/AccountV1.sol";
 import { MainRegistry } from "../src/MainRegistry.sol";
+import { ChainlinkOracleModule } from "../src/oracle-modules/ChainlinkOracleModule.sol";
 import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
 import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
 import { UniswapV3PricingModule } from "../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
@@ -21,38 +23,42 @@ import { ILendingPool } from "./interfaces/ILendingPool.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
 
 contract ArcadiaAccountDeployment is Test {
-    Factory public factory;
-    AccountV1 public account;
+    Factory internal factory;
+    AccountV1 internal account;
 
-    ERC20 public comp;
-    ERC20 public dai;
-    ERC20 public weth;
-    ERC20 public usdc;
-    ERC20 public cbeth;
-    ERC20 public reth;
+    ERC20 internal comp;
+    ERC20 internal dai;
+    ERC20 internal weth;
+    ERC20 internal usdc;
+    ERC20 internal cbeth;
+    ERC20 internal reth;
 
-    OracleHub public oracleHub;
-    MainRegistry public mainRegistry;
-    StandardERC20PricingModule public standardERC20PricingModule;
-    UniswapV3PricingModule public uniswapV3PricingModule;
-    ActionMultiCallV2 public actionMultiCall;
+    OracleHub internal oracleHub;
+    MainRegistry internal mainRegistry;
+    StandardERC20PricingModule internal standardERC20PricingModule;
+    UniswapV3PricingModule internal uniswapV3PricingModule;
+    ChainlinkOracleModule internal chainlinkOM;
+    ActionMultiCallV2 internal actionMultiCall;
 
-    ILendingPool public wethLendingPool;
-    ILendingPool public usdcLendingPool;
+    ILendingPool internal wethLendingPool;
+    ILendingPool internal usdcLendingPool;
 
-    address[] public oracleCompToUsdArr = new address[](1);
-    address[] public oracleDaiToUsdArr = new address[](1);
-    address[] public oracleEthToUsdArr = new address[](1);
-    address[] public oracleUsdcToUsdArr = new address[](1);
-    address[] public oracleCbethToEthToUsdArr = new address[](2);
-    address[] public oracleRethToEthToUsdArr = new address[](2);
+    bool[] internal BA_TO_QA_SINGLE = new bool[](1);
+    bool[] internal BA_TO_QA_DOUBLE = new bool[](2);
 
-    OracleHub.OracleInformation public compToUsdOracleInfo;
-    OracleHub.OracleInformation public daiToUsdOracleInfo;
-    OracleHub.OracleInformation public ethToUsdOracleInfo;
-    OracleHub.OracleInformation public usdcToUsdOracleInfo;
-    OracleHub.OracleInformation public cbethToEthToUsdOracleInfo;
-    OracleHub.OracleInformation public rethToEthOracleInfo;
+    uint80[] internal oracleCompToUsdArr = new uint80[](1);
+    uint80[] internal oracleDaiToUsdArr = new uint80[](1);
+    uint80[] internal oracleEthToUsdArr = new uint80[](1);
+    uint80[] internal oracleUsdcToUsdArr = new uint80[](1);
+    uint80[] internal oracleCbethToEthToUsdArr = new uint80[](2);
+    uint80[] internal oracleRethToEthToUsdArr = new uint80[](2);
+
+    uint80 internal oracleCompToUsdId;
+    uint80 internal oracleDaiToUsdId;
+    uint80 internal oracleEthToUsdId;
+    uint80 internal oracleUsdcToUsdId;
+    uint80 internal oracleCbethToEthId;
+    uint80 internal oracleRethToEthId;
 
     constructor() {
         // /*///////////////////////////////////////////////////////////////
@@ -65,77 +71,6 @@ contract ArcadiaAccountDeployment is Test {
         usdc = ERC20(DeployAddresses.usdc_base);
         cbeth = ERC20(DeployAddresses.cbeth_base);
         reth = ERC20(DeployAddresses.reth_base);
-
-        // /*///////////////////////////////////////////////////////////////
-        //                   ORACLE TRAINS
-        // ///////////////////////////////////////////////////////////////*/
-
-        oracleCompToUsdArr[0] = DeployAddresses.oracleCompToUsd_base;
-        oracleDaiToUsdArr[0] = DeployAddresses.oracleDaiToUsd_base;
-        oracleEthToUsdArr[0] = DeployAddresses.oracleEthToUsd_base;
-        oracleUsdcToUsdArr[0] = DeployAddresses.oracleUsdcToUsd_base;
-        oracleCbethToEthToUsdArr[0] = DeployAddresses.oracleCbethToEth_base;
-        oracleCbethToEthToUsdArr[1] = DeployAddresses.oracleEthToUsd_base;
-        oracleRethToEthToUsdArr[0] = DeployAddresses.oracleRethToEth_base;
-        oracleRethToEthToUsdArr[1] = DeployAddresses.oracleEthToUsd_base;
-
-        // /*///////////////////////////////////////////////////////////////
-        //                   ORACLE INFO
-        // ///////////////////////////////////////////////////////////////*/
-
-        compToUsdOracleInfo = OracleHub.OracleInformation({
-            oracleUnit: uint64(DeployNumbers.oracleCompToUsdUnit),
-            baseAsset: "COMP",
-            quoteAsset: "USD",
-            oracle: DeployAddresses.oracleCompToUsd_base,
-            baseAssetAddress: DeployAddresses.comp_base,
-            isActive: true
-        });
-
-        daiToUsdOracleInfo = OracleHub.OracleInformation({
-            oracleUnit: uint64(DeployNumbers.oracleDaiToUsdUnit),
-            baseAsset: "DAI",
-            quoteAsset: "USD",
-            oracle: DeployAddresses.oracleDaiToUsd_base,
-            baseAssetAddress: DeployAddresses.dai_base,
-            isActive: true
-        });
-
-        ethToUsdOracleInfo = OracleHub.OracleInformation({
-            oracleUnit: uint64(DeployNumbers.oracleEthToUsdUnit),
-            baseAsset: "ETH",
-            quoteAsset: "USD",
-            oracle: DeployAddresses.oracleEthToUsd_base,
-            baseAssetAddress: DeployAddresses.weth_base,
-            isActive: true
-        });
-
-        usdcToUsdOracleInfo = OracleHub.OracleInformation({
-            oracleUnit: uint64(DeployNumbers.oracleUsdcToUsdUnit),
-            baseAsset: "USDC",
-            quoteAsset: "USD",
-            oracle: DeployAddresses.oracleUsdcToUsd_base,
-            baseAssetAddress: DeployAddresses.usdc_base,
-            isActive: true
-        });
-
-        cbethToEthToUsdOracleInfo = OracleHub.OracleInformation({
-            oracleUnit: uint64(DeployNumbers.oracleCbethToEthUnit),
-            baseAsset: "CBETH",
-            quoteAsset: "ETH",
-            oracle: DeployAddresses.oracleCbethToEth_base,
-            baseAssetAddress: DeployAddresses.cbeth_base,
-            isActive: true
-        });
-
-        rethToEthOracleInfo = OracleHub.OracleInformation({
-            oracleUnit: uint64(DeployNumbers.oracleRethToEthUnit),
-            baseAsset: "RETH",
-            quoteAsset: "ETH",
-            oracle: DeployAddresses.oracleRethToEth_base,
-            baseAssetAddress: DeployAddresses.reth_base,
-            isActive: true
-        });
     }
 
     function run() public {
@@ -155,25 +90,50 @@ contract ArcadiaAccountDeployment is Test {
         uniswapV3PricingModule =
             new UniswapV3PricingModule(address(mainRegistry), DeployAddresses.uniswapV3PositionMgr_base);
 
+        chainlinkOM = new ChainlinkOracleModule(address(mainRegistry));
+
         account = new AccountV1();
         actionMultiCall = new ActionMultiCallV2();
-
-        oracleHub.addOracle(compToUsdOracleInfo);
-        oracleHub.addOracle(daiToUsdOracleInfo);
-        oracleHub.addOracle(ethToUsdOracleInfo);
-        oracleHub.addOracle(usdcToUsdOracleInfo);
-        oracleHub.addOracle(cbethToEthToUsdOracleInfo);
-        oracleHub.addOracle(rethToEthOracleInfo);
 
         mainRegistry.addPricingModule(address(standardERC20PricingModule));
         mainRegistry.addPricingModule(address(uniswapV3PricingModule));
 
-        standardERC20PricingModule.addAsset(DeployAddresses.comp_base, oracleCompToUsdArr);
-        standardERC20PricingModule.addAsset(DeployAddresses.dai_base, oracleDaiToUsdArr);
-        standardERC20PricingModule.addAsset(DeployAddresses.weth_base, oracleEthToUsdArr);
-        standardERC20PricingModule.addAsset(DeployAddresses.usdc_base, oracleUsdcToUsdArr);
-        standardERC20PricingModule.addAsset(DeployAddresses.cbeth_base, oracleCbethToEthToUsdArr);
-        standardERC20PricingModule.addAsset(DeployAddresses.reth_base, oracleRethToEthToUsdArr);
+        mainRegistry.addOracleModule(address(chainlinkOM));
+
+        oracleCompToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCompToUsd_base, "COMP", "USD"));
+        oracleDaiToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "COMP", "DAI"));
+        oracleEthToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleEthToUsd_base, "ETH", "USD"));
+        oracleUsdcToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleUsdcToUsd_base, "USDC", "USD"));
+        oracleCbethToEthId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCbethToEth_base, "CBETH", "ETH"));
+        oracleRethToEthId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleRethToEth_base, "RETH", "ETH"));
+
+        oracleCompToUsdArr[0] = oracleCompToUsdId;
+        oracleDaiToUsdArr[0] = oracleDaiToUsdId;
+        oracleEthToUsdArr[0] = oracleEthToUsdId;
+        oracleUsdcToUsdArr[0] = oracleUsdcToUsdId;
+        oracleCbethToEthToUsdArr[0] = oracleCbethToEthId;
+        oracleCbethToEthToUsdArr[1] = oracleEthToUsdId;
+        oracleRethToEthToUsdArr[0] = oracleRethToEthId;
+        oracleRethToEthToUsdArr[1] = oracleEthToUsdId;
+
+        standardERC20PricingModule.addAsset(
+            DeployAddresses.comp_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleCompToUsdArr)
+        );
+        standardERC20PricingModule.addAsset(
+            DeployAddresses.dai_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleDaiToUsdArr)
+        );
+        standardERC20PricingModule.addAsset(
+            DeployAddresses.weth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleEthToUsdArr)
+        );
+        standardERC20PricingModule.addAsset(
+            DeployAddresses.usdc_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdcToUsdArr)
+        );
+        standardERC20PricingModule.addAsset(
+            DeployAddresses.cbeth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleCbethToEthToUsdArr)
+        );
+        standardERC20PricingModule.addAsset(
+            DeployAddresses.reth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleRethToEthToUsdArr)
+        );
 
         factory.setNewAccountInfo(address(mainRegistry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);

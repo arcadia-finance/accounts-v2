@@ -12,6 +12,7 @@ import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointM
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { INonfungiblePositionManagerExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
@@ -197,17 +198,11 @@ abstract contract UniswapV3PricingModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixtur
         vm.prank(users.defaultTransmitter);
         oracle.transmit(price);
         vm.startPrank(users.creatorAddress);
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: 1,
-                baseAsset: "Token",
-                quoteAsset: "USD",
-                oracle: address(oracle),
-                baseAssetAddress: token,
-                isActive: true
-            })
-        );
-        erc20PricingModule.addAsset(token, oracleArr);
+        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD"));
+        uint80[] memory oracleAssetToUsdArr = new uint80[](1);
+        oracleAssetToUsdArr[0] = oracleId;
+
+        erc20PricingModule.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
         vm.stopPrank();
 
         vm.prank(users.riskManager);

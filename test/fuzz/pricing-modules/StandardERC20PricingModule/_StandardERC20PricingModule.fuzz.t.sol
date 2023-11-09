@@ -6,8 +6,7 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { OracleHub } from "../../../../src/OracleHub.sol";
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 /**
  * @notice Common logic needed by all "StandardERC20PricingModule" fuzz tests.
@@ -17,7 +16,7 @@ abstract contract StandardERC20PricingModule_Fuzz_Test is Fuzz_Test {
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    address[] internal oracleToken4ToUsdArr = new address[](1);
+    bytes32 internal oraclesToken4ToUsd;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -27,17 +26,10 @@ abstract contract StandardERC20PricingModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
-                baseAsset: "TOKEN4",
-                quoteAsset: "USD",
-                oracle: address(mockOracles.token4ToUsd),
-                baseAssetAddress: address(mockERC20.token4),
-                isActive: true
-            })
-        );
+        chainlinkOM.addOracle(address(mockOracles.token4ToUsd), "TOKEN4", "USD");
 
-        oracleToken4ToUsdArr[0] = address(mockOracles.token4ToUsd);
+        uint80[] memory oracleToken4ToUsdArr = new uint80[](1);
+        oracleToken4ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token4ToUsd)));
+        oraclesToken4ToUsd = BitPackingLib.pack(BA_TO_QA_SINGLE, oracleToken4ToUsdArr);
     }
 }
