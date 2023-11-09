@@ -256,31 +256,6 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     }
 
     /*///////////////////////////////////////////////////////////////
-                    ACCOUNT LIQUIDATION LOGIC
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Function called by a Account at the start of a liquidation to transfer ownership to the Liquidator contract.
-     * @param liquidator The contract address of the liquidator.
-     * @dev This transfer bypasses the standard transferFrom and safeTransferFrom from the ERC-721 standard.
-     */
-    function liquidate(address liquidator) external whenLiquidateNotPaused {
-        require(isAccount(msg.sender), "FTRY: Not a Account");
-
-        uint256 id = accountIndex[msg.sender];
-        address from = _ownerOf[id];
-        unchecked {
-            _balanceOf[from]--;
-            _balanceOf[liquidator]++;
-        }
-
-        _ownerOf[id] = liquidator;
-
-        delete getApproved[id];
-        emit Transfer(from, liquidator, id);
-    }
-
-    /*///////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
 
