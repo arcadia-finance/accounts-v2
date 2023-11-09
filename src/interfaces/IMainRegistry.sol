@@ -132,11 +132,4 @@ interface IMainRegistry {
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
     ) external view returns (RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors);
-
-    //    function getListOfValuesPerAsset(
-    //        address[] calldata assetAddresses,
-    //        uint256[] calldata assetIds,
-    //        uint256[] calldata assetAmounts,
-    //        address baseCurrency
-    //    ) external view returns (RiskModule.AssetValueAndRiskFactors[] memory);
 }
