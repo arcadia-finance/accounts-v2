@@ -177,22 +177,6 @@ contract ArcadiaAccountDeployment is Test {
 
         uniswapV3PricingModule.setProtocol();
 
-        PricingModule.RiskVarInput[] memory riskVarInputs = new PricingModule.RiskVarInput[](12);
-        riskVarInputs[0] = riskVarsComp[0];
-        riskVarInputs[1] = riskVarsComp[1];
-        riskVarInputs[2] = riskVarsDai[0];
-        riskVarInputs[3] = riskVarsDai[1];
-        riskVarInputs[4] = riskVarsEth[0];
-        riskVarInputs[5] = riskVarsEth[1];
-        riskVarInputs[6] = riskVarsUsdc[0];
-        riskVarInputs[7] = riskVarsUsdc[1];
-        riskVarInputs[8] = riskVarsCbeth[0];
-        riskVarInputs[9] = riskVarsCbeth[1];
-        riskVarInputs[10] = riskVarsReth[0];
-        riskVarInputs[11] = riskVarsReth[1];
-
-        uniswapV3PricingModule.setBatchRiskVariables(riskVarInputs);
-
         factory.setNewAccountInfo(address(mainRegistry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);
 

@@ -18,8 +18,8 @@ import { IPermit2 } from "../interfaces/IPermit2.sol";
  * @dev This address will approve random addresses. Do not store any funds on this address!
  */
 contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
-    address[] internal _assets;
-    uint256[] internal _ids;
+    address[] internal _mintedAssets;
+    uint256[] internal _mintedIds;
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -59,14 +59,12 @@ contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
             if (depositData.assetTypes[i] == 0) {
                 depositData.assetAmounts[i] = IERC20(depositData.assets[i]).balanceOf(address(this));
             } else if (depositData.assetTypes[i] == 1) {
-                address asset = _assets[_assets.length - 1];
-                if (depositData.assets[i] == asset) {
+                if (depositData.assetAmounts[i] == 0) {
                     depositData.assetAmounts[i] = 1;
-                    depositData.assetIds[i] = _ids[_ids.length - 1];
-                    _ids.pop();
-                    _assets.pop();
-                } else {
-                    depositData.assetAmounts[i] = 1;
+                    depositData.assetIds[i] = _mintedIds[_mintedIds.length - 1];
+                    depositData.assets[i] = _mintedAssets[_mintedAssets.length - 1]; //we overwrite the asset if needed
+                    _mintedIds.pop();
+                    _mintedAssets.pop();
                 }
             } else if (depositData.assetTypes[i] == 2) {
                 depositData.assetAmounts[i] =
@@ -78,7 +76,7 @@ contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
         }
 
         // if any assets were minted and are left in this contract, revert
-        require(_ids.length == 0 && _assets.length == 0, "AH: leftover NFTs");
+        require(_mintedIds.length == 0 && _mintedAssets.length == 0, "AH: leftover NFTs");
 
         return depositData;
     }
@@ -121,12 +119,12 @@ contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
      * @param data The data to call the lp contract with.
      * @dev Asset address and ID is temporarily stored in this contract.
      */
-    function mintLP(address to, bytes memory data) external {
+    function mintUniV3LP(address to, bytes memory data) external {
         (bool success, bytes memory result) = to.call(data);
         require(success, string(result));
 
         (uint256 tokenId,,,) = abi.decode(result, (uint256, uint128, uint256, uint256));
-        _assets.push(to);
-        _ids.push(tokenId);
+        _mintedAssets.push(to);
+        _mintedIds.push(tokenId);
     }
 }

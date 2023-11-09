@@ -12,7 +12,7 @@ import { NonfungiblePositionManagerMock } from "../../.././utils/mocks/NonFungib
 /**
  * @notice Fuzz tests for the "checkAmountOut" of contract "MultiCall".
  */
-contract MintLP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
+contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -78,7 +78,7 @@ contract MintLP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
 
         assertEq(action.assets(), new address[](0));
         assertEq(action.ids(), new uint256[](0));
-        action.mintLP(address(univ3PosMgr), data);
+        action.mintUniV3LP(address(univ3PosMgr), data);
 
         uint256 tokenId = univ3PosMgr.id();
         address[] memory assetArr = new address[](1);

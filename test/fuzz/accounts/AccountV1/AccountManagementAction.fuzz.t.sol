@@ -451,6 +451,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         assetDataIn.assetIds[0] = 0;
         assetDataIn.assetIds[1] = 0;
         assetDataIn.assetIds[2] = 1;
+        assetDataIn.assetAmounts[2] = 1;
 
         ActionData memory transferFromOwner = ActionData({
             assets: new address[](2),
