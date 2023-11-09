@@ -8,8 +8,8 @@ contract PrimaryPricingModuleMock is AbstractPrimaryPricingModuleExtension {
     bool useRealUsdValue;
     uint256 usdExposureToUnderlyingAsset = 1;
 
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        AbstractPrimaryPricingModuleExtension(mainRegistry_, oracleHub_, assetType_)
+    constructor(address mainRegistry_, uint256 assetType_)
+        AbstractPrimaryPricingModuleExtension(mainRegistry_, assetType_)
     { }
 
     function isAllowed(address asset, uint256) public view override returns (bool) {

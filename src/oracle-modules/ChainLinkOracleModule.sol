@@ -41,9 +41,9 @@ contract ChainlinkOracleModule is OracleModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param oracleHub_ The contract address of the OracleHub.
+     * @param mainRegistry_ The contract address of the MainRegistry.
      */
-    constructor(address oracleHub_) OracleModule(oracleHub_) { }
+    constructor(address mainRegistry_) OracleModule(mainRegistry_) { }
 
     /*///////////////////////////////////////////////////////////////
                         ORACLE INFORMATION

@@ -12,7 +12,6 @@ import { AccountV2 } from "./utils/mocks/AccountV2.sol";
 import { ChainlinkOracleModuleExtension } from "./utils/Extensions.sol";
 import { MainRegistryExtension } from "./utils/Extensions.sol";
 import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
-import { OracleHub } from "../src/OracleHub.sol";
 import { StandardERC20PricingModuleExtension } from "./utils/Extensions.sol";
 import { FloorERC721PricingModuleExtension } from "./utils/Extensions.sol";
 import { FloorERC1155PricingModuleExtension } from "./utils/Extensions.sol";
@@ -39,7 +38,6 @@ abstract contract Base_Test is Test, Events, Errors {
 
     Factory internal factory;
     MainRegistryExtension internal mainRegistryExtension;
-    OracleHub internal oracleHub;
     ChainlinkOracleModuleExtension internal chainlinkOM;
     StandardERC20PricingModuleExtension internal erc20PricingModule;
     FloorERC721PricingModuleExtension internal floorERC721PricingModule;
@@ -73,14 +71,11 @@ abstract contract Base_Test is Test, Events, Errors {
         vm.startPrank(users.creatorAddress);
         factory = new Factory();
         mainRegistryExtension = new MainRegistryExtension(address(factory));
-        oracleHub = new OracleHub();
         chainlinkOM = new ChainlinkOracleModuleExtension(address(mainRegistryExtension));
-        erc20PricingModule = new StandardERC20PricingModuleExtension(address(mainRegistryExtension), address(oracleHub));
-        floorERC721PricingModule =
-            new FloorERC721PricingModuleExtension(address(mainRegistryExtension), address(oracleHub));
+        erc20PricingModule = new StandardERC20PricingModuleExtension(address(mainRegistryExtension));
+        floorERC721PricingModule = new FloorERC721PricingModuleExtension(address(mainRegistryExtension));
         floorERC1155PricingModule = new FloorERC1155PricingModuleExtension(
-            address(mainRegistryExtension),
-            address(oracleHub)
+            address(mainRegistryExtension)
         );
 
         accountV1Logic = new AccountV1();
@@ -111,7 +106,6 @@ abstract contract Base_Test is Test, Events, Errors {
         // Label the base test contracts.
         vm.label({ account: address(factory), newLabel: "Factory" });
         vm.label({ account: address(mainRegistryExtension), newLabel: "Main Registry" });
-        vm.label({ account: address(oracleHub), newLabel: "Oracle Hub" });
         vm.label({ account: address(chainlinkOM), newLabel: "Chainlink Oracle Module" });
         vm.label({ account: address(erc20PricingModule), newLabel: "Standard ERC20 Pricing Module" });
         vm.label({ account: address(floorERC721PricingModule), newLabel: "ERC721 Pricing Module" });

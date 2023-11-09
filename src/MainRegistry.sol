@@ -216,7 +216,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @param oracleSequence The sequence of the oracles.
      * @return A boolean, indicating if the sequence complies with the set of criteria.
      * @dev The following checks are performed:
-     * - The oracle must be previously added to the Oracle-Hub and must still be active.
+     * - The oracle must be previously added to the MainRegistry and must still be active.
      * - ToDo The first asset of the first oracle must be the asset being priced.
      * - The last asset of all oracles must be equal to the first asset of the next oracle.
      * - The last asset of the last oracle must be USD.

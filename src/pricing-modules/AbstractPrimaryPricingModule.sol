@@ -24,9 +24,6 @@ abstract contract PrimaryPricingModule is PricingModule {
     // the assets being priced have no underlying assets.
     bool internal constant PRIMARY_FLAG = true;
 
-    // The contract address of the OracleHub.
-    address public immutable ORACLE_HUB;
-
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
@@ -63,17 +60,12 @@ abstract contract PrimaryPricingModule is PricingModule {
 
     /**
      * @param mainRegistry_ The address of the Main-registry.
-     * @param oracleHub_ The address of the Oracle-Hub.
      * @param assetType_ Identifier for the type of asset, necessary for the deposit and withdraw logic in the Accounts.
      * 0 = ERC20
      * 1 = ERC721
      * 2 = ERC1155
      */
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        PricingModule(mainRegistry_, assetType_)
-    {
-        ORACLE_HUB = oracleHub_;
-    }
+    constructor(address mainRegistry_, uint256 assetType_) PricingModule(mainRegistry_, assetType_) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET INFORMATION

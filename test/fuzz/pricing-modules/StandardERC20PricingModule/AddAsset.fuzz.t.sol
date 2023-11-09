@@ -11,7 +11,6 @@ import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
-import { OracleHub } from "../../../../src/OracleHub.sol";
 import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
 import {
     PrimaryPricingModule,

@@ -23,15 +23,14 @@ contract Constructor_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingM
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address mainRegistry_, address oracleHub_) public {
+    function testFuzz_Success_deployment(address mainRegistry_) public {
         vm.startPrank(users.creatorAddress);
         FloorERC1155PricingModuleExtension pricingModule_ = new FloorERC1155PricingModuleExtension(
-            mainRegistry_,
-            oracleHub_);
+            mainRegistry_
+            );
         vm.stopPrank();
 
         assertEq(pricingModule_.MAIN_REGISTRY(), mainRegistry_);
-        assertEq(pricingModule_.ORACLE_HUB(), oracleHub_);
         assertEq(pricingModule_.ASSET_TYPE(), 2);
         assertTrue(pricingModule_.getPrimaryFlag());
     }

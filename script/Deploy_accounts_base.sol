@@ -15,7 +15,6 @@ import { ChainlinkOracleModule } from "../src/oracle-modules/ChainlinkOracleModu
 import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
 import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
 import { UniswapV3PricingModule } from "../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
-import { OracleHub } from "../src/OracleHub.sol";
 
 import { ActionMultiCallV2 } from "../src/actions/MultiCallV2.sol";
 
@@ -33,7 +32,6 @@ contract ArcadiaAccountDeployment is Test {
     ERC20 internal cbeth;
     ERC20 internal reth;
 
-    OracleHub internal oracleHub;
     MainRegistry internal mainRegistry;
     StandardERC20PricingModule internal standardERC20PricingModule;
     UniswapV3PricingModule internal uniswapV3PricingModule;
@@ -83,10 +81,8 @@ contract ArcadiaAccountDeployment is Test {
         usdcLendingPool = ILendingPool(0x4d39409993dBe365c9AcaAe7c7e259C06FBFFa4A); //todo: change after LP deploy
 
         mainRegistry = new MainRegistry(address(factory));
-        oracleHub = new OracleHub();
         standardERC20PricingModule = new StandardERC20PricingModule(
-            address(mainRegistry),
-            address(oracleHub)        );
+            address(mainRegistry));
         uniswapV3PricingModule =
             new UniswapV3PricingModule(address(mainRegistry), DeployAddresses.uniswapV3PositionMgr_base);
 

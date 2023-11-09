@@ -8,7 +8,6 @@ import { Base_Test, Constants } from "../Base.t.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
 import { MainRegistry } from "../../src/MainRegistry.sol";
-import { OracleHub } from "../../src/OracleHub.sol";
 import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
 import { TrustedCreditorMock } from "../utils/mocks/TrustedCreditorMock.sol";
 import { Proxy } from "../../src/Proxy.sol";
@@ -172,74 +171,6 @@ abstract contract Fuzz_Test is Base_Test {
         vm.stopPrank();
 
         vm.startPrank(mainRegistryExtension.owner());
-        // Add Oracles to the OracleHub.
-        // Do not add TOKEN4/USD, TOKEN3/TOKEN4 as we are testing it on a case-by-case basis
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
-                baseAsset: "STABLE1",
-                quoteAsset: "USD",
-                oracle: address(mockOracles.stable1ToUsd),
-                baseAssetAddress: address(mockERC20.stable1),
-                isActive: true
-            })
-        );
-
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
-                baseAsset: "STABLE2",
-                quoteAsset: "USD",
-                oracle: address(mockOracles.stable2ToUsd),
-                baseAssetAddress: address(mockERC20.stable2),
-                isActive: true
-            })
-        );
-
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
-                baseAsset: "TOKEN1",
-                quoteAsset: "USD",
-                oracle: address(mockOracles.token1ToUsd),
-                baseAssetAddress: address(mockERC20.token1),
-                isActive: true
-            })
-        );
-
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
-                baseAsset: "TOKEN2",
-                quoteAsset: "USD",
-                oracle: address(mockOracles.token2ToUsd),
-                baseAssetAddress: address(mockERC20.token2),
-                isActive: true
-            })
-        );
-
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.nftOracleDecimals),
-                baseAsset: "NFT1",
-                quoteAsset: "TOKEN1",
-                oracle: address(mockOracles.nft1ToToken1),
-                baseAssetAddress: address(mockERC721.nft1),
-                isActive: true
-            })
-        );
-
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.erc1155OracleDecimals),
-                baseAsset: "SFT1",
-                quoteAsset: "TOKEN1",
-                oracle: address(mockOracles.sft1ToToken1),
-                baseAssetAddress: address(mockERC1155.sft1),
-                isActive: true
-            })
-        );
-
         // Create the direction arrays.
         BA_TO_QA_SINGLE[0] = true;
         BA_TO_QA_DOUBLE[0] = true;

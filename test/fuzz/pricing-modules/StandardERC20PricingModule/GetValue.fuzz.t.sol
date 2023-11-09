@@ -24,7 +24,7 @@ contract GetValue_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_getValue_Overflow(uint256 rateToken1ToUsdNew, uint256 amountToken1) public {
-        // No Overflow OracleHub
+        // No Overflow MainRegistry
         rateToken1ToUsdNew =
             bound(rateToken1ToUsdNew, 1, type(uint256).max / 10 ** (36 - Constants.tokenOracleDecimals));
 
@@ -43,7 +43,7 @@ contract GetValue_StandardERC20PricingModule_Fuzz_Test is StandardERC20PricingMo
     }
 
     function testFuzz_Success_getValue(uint256 rateToken1ToUsdNew, uint256 amountToken1) public {
-        // No Overflow OracleHub
+        // No Overflow MainRegistry
         rateToken1ToUsdNew =
             bound(rateToken1ToUsdNew, 1, type(uint256).max / 10 ** (36 - Constants.tokenOracleDecimals));
 

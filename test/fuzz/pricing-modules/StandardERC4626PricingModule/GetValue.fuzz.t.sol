@@ -37,7 +37,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         vm.assume(totalAssets > 0);
         vm.assume(rateToken1ToUsd_ > 0);
 
-        // No Overflow OracleHub
+        // No Overflow MainRegistry
         vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD);
         // No Overflow ERC4626
         vm.assume(shares <= type(uint256).max / totalAssets);
@@ -74,7 +74,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         vm.assume(shares <= totalSupply);
         vm.assume(totalSupply > 0);
 
-        // No Overflow OracleHub
+        // No Overflow MainRegistry
         vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD / 1e18);
         // No Overflow ERC4626
         if (totalAssets > 0) {

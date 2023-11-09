@@ -180,9 +180,7 @@ abstract contract AbstractPricingModuleExtension is PricingModule {
 }
 
 abstract contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule {
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_)
-    { }
+    constructor(address mainRegistry_, uint256 assetType_) PrimaryPricingModule(mainRegistry_, assetType_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
@@ -289,7 +287,7 @@ abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule 
 }
 
 contract StandardERC20PricingModuleExtension is StandardERC20PricingModule {
-    constructor(address mainRegistry_, address oracleHub_) StandardERC20PricingModule(mainRegistry_, oracleHub_) { }
+    constructor(address mainRegistry_) StandardERC20PricingModule(mainRegistry_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
@@ -311,7 +309,7 @@ contract StandardERC20PricingModuleExtension is StandardERC20PricingModule {
 }
 
 contract FloorERC721PricingModuleExtension is FloorERC721PricingModule {
-    constructor(address mainRegistry_, address oracleHub_) FloorERC721PricingModule(mainRegistry_, oracleHub_) { }
+    constructor(address mainRegistry_) FloorERC721PricingModule(mainRegistry_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
@@ -332,7 +330,7 @@ contract FloorERC721PricingModuleExtension is FloorERC721PricingModule {
 }
 
 contract FloorERC1155PricingModuleExtension is FloorERC1155PricingModule {
-    constructor(address mainRegistry_, address oracleHub_) FloorERC1155PricingModule(mainRegistry_, oracleHub_) { }
+    constructor(address mainRegistry_) FloorERC1155PricingModule(mainRegistry_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;

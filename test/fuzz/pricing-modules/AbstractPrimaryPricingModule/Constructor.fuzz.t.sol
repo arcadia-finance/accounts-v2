@@ -23,17 +23,15 @@ contract Constructor_AbstractPrimaryPricingModule_Fuzz_Test is AbstractPrimaryPr
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address mainRegistry_, address oracleHub_, uint256 assetType_) public {
+    function testFuzz_Success_deployment(address mainRegistry_, uint256 assetType_) public {
         vm.startPrank(users.creatorAddress);
         PrimaryPricingModuleMock pricingModule_ = new PrimaryPricingModuleMock(
             mainRegistry_,
-            oracleHub_,
             assetType_
         );
         vm.stopPrank();
 
         assertEq(pricingModule_.MAIN_REGISTRY(), mainRegistry_);
-        assertEq(pricingModule_.ORACLE_HUB(), oracleHub_);
         assertEq(pricingModule_.ASSET_TYPE(), assetType_);
         assertTrue(pricingModule_.getPrimaryFlag());
     }

@@ -12,8 +12,8 @@ import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
  * @title Pricing Module for Standard ERC20 tokens.
  * @author Pragma Labs
  * @notice The pricing logic and basic information for ERC20 tokens for which a direct price feed exists.
- * @dev No end-user should directly interact with the StandardERC20PricingModule, only the Main-registry,
- * Oracle-Hub or the contract owner.
+ * @dev No end-user should directly interact with the StandardERC20PricingModule, only the Main-registry
+ * or the contract owner.
  */
 contract StandardERC20PricingModule is PrimaryPricingModule {
     /* //////////////////////////////////////////////////////////////
@@ -22,10 +22,9 @@ contract StandardERC20PricingModule is PrimaryPricingModule {
 
     /**
      * @param mainRegistry_ The contract address of the MainRegistry.
-     * @param oracleHub_ The contract address of the OracleHub.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_, address oracleHub_) PrimaryPricingModule(mainRegistry_, oracleHub_, 0) { }
+    constructor(address mainRegistry_) PrimaryPricingModule(mainRegistry_, 0) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -38,7 +37,7 @@ contract StandardERC20PricingModule is PrimaryPricingModule {
      * @dev Assets can't have more than 18 decimals.
      */
     function addAsset(address asset, bytes32 oracles) external onlyOwner {
-        // View function, reverts in OracleHub if sequence is not correct.
+        // View function, reverts in MainRegistry if sequence is not correct.
         require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracles), "PM20_AA: Bad Sequence");
         // Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);

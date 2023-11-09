@@ -9,22 +9,22 @@ import { ArcadiaAddresses, ArcadiaContractAddresses } from "./Constants/Transfer
 
 import "../src/Factory.sol";
 import { MainRegistry } from "../src/MainRegistry.sol";
+import { ChainlinkOracleModule } from "../src/oracle-modules/ChainlinkOracleModule.sol";
 import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
 import { ILiquidator } from "./interfaces/ILiquidator.sol";
-import "../src/OracleHub.sol";
 
 contract ArcadiaAccountTransferOwnership is Test {
-    Factory public factory;
-    OracleHub public oracleHub;
-    MainRegistry public mainRegistry;
-    StandardERC20PricingModule public standardERC20PricingModule;
-    ILiquidator public liquidator;
+    Factory internal factory;
+    MainRegistry internal mainRegistry;
+    StandardERC20PricingModule internal standardERC20PricingModule;
+    ChainlinkOracleModule internal chainlinkOM;
+    ILiquidator internal liquidator;
 
     constructor() {
         factory = Factory(ArcadiaContractAddresses.factory);
-        oracleHub = OracleHub(ArcadiaContractAddresses.oracleHub);
         mainRegistry = MainRegistry(ArcadiaContractAddresses.mainRegistry);
         standardERC20PricingModule = StandardERC20PricingModule(ArcadiaContractAddresses.standardERC20PricingModule);
+        chainlinkOM = ChainlinkOracleModule(ArcadiaContractAddresses.standardERC20PricingModule);
         liquidator = ILiquidator(ArcadiaContractAddresses.liquidator);
     }
 
@@ -32,9 +32,9 @@ contract ArcadiaAccountTransferOwnership is Test {
         uint256 ownerPrivateKey = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(ownerPrivateKey);
         factory.transferOwnership(ArcadiaAddresses.factoryOwner);
-        oracleHub.transferOwnership(ArcadiaAddresses.oracleHubOwner);
         mainRegistry.transferOwnership(ArcadiaAddresses.mainRegistryOwner);
         standardERC20PricingModule.transferOwnership(ArcadiaAddresses.standardERC20PricingModuleOwner);
+        chainlinkOM.transferOwnership(ArcadiaAddresses.chainlinkOMOwner);
         liquidator.transferOwnership(ArcadiaAddresses.liquidatorOwner);
         vm.stopBroadcast();
     }

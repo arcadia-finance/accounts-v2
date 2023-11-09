@@ -12,7 +12,7 @@ import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
  * @author Pragma Labs
  * @notice The FloorERC1155PricingModule stores pricing logic and basic information for ERC721 tokens for which a direct price feeds exists
  * for the floor price of the collection
- * @dev No end-user should directly interact with the FloorERC1155PricingModule, only the Main-registry, Oracle-Hub or the contract owner
+ * @dev No end-user should directly interact with the FloorERC1155PricingModule, only the Main-registry or the contract owner
  */
 contract FloorERC1155PricingModule is PrimaryPricingModule {
     /* //////////////////////////////////////////////////////////////
@@ -21,10 +21,9 @@ contract FloorERC1155PricingModule is PrimaryPricingModule {
 
     /**
      * @param mainRegistry_ The address of the Main-registry.
-     * @param oracleHub_ The address of the Oracle-Hub.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC1155 tokens is 2.
      */
-    constructor(address mainRegistry_, address oracleHub_) PrimaryPricingModule(mainRegistry_, oracleHub_, 2) { }
+    constructor(address mainRegistry_) PrimaryPricingModule(mainRegistry_, 2) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
