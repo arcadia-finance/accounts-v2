@@ -9,7 +9,7 @@ import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib
 import { AccountV1 } from "../../src/AccountV1.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
-import { ChainLinkOracleModule } from "../../src/oracle-modules/ChainLinkOracleModule.sol";
+import { ChainlinkOracleModule } from "../../src/oracle-modules/ChainlinkOracleModule.sol";
 import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
 import { FloorERC721PricingModule } from "../../src/pricing-modules/FloorERC721PricingModule.sol";
@@ -75,8 +75,8 @@ contract BitPackingLibExtension {
     }
 }
 
-contract ChainLinkOracleModuleExtension is ChainLinkOracleModule {
-    constructor(address mainRegistry_) ChainLinkOracleModule(mainRegistry_) { }
+contract ChainlinkOracleModuleExtension is ChainlinkOracleModule {
+    constructor(address mainRegistry_) ChainlinkOracleModule(mainRegistry_) { }
 
     function getInOracleModule(address oracle) public view returns (bool) {
         return inOracleModule[oracle];

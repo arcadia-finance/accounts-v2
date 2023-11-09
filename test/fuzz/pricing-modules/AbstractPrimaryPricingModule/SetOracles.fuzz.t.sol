@@ -121,8 +121,9 @@ contract CheckOracleSequence_AbstractPrimaryPricingModule_Fuzz_Test is AbstractP
         bytes32 oracleSequenceOld = getOracleSequence(lengthOld, directionsOld, oraclesOld);
         pricingModule.setAssetInformation(asset, assetId, 0, oracleSequenceOld);
 
-        // New oracle must be different from old oracles (-> unknown).
+        // New oracle must be different from old oracles or oracles in Chainlink OM (-> unknown).
         vm.assume(!oracleModule.isActive(oracleNew));
+        vm.assume(!chainlinkOM.isActive(oracleNew));
 
         // And one of the old oracles is not active anymore.
         vm.assume(oraclesOld[0] != oracleNew);

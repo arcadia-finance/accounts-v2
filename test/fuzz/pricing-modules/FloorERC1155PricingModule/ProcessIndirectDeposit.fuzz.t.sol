@@ -40,16 +40,16 @@ contract ProcessIndirectDeposit_FloorERC1155PricingModule_Fuzz_Test is FloorERC1
 
     function testFuzz_Revert_processIndirectDeposit_WrongId(
         address asset,
-        uint256 assetId,
+        uint96 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
         vm.assume(assetId > 0); //Wrong Id
         vm.prank(users.creatorAddress);
-        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 0, oracleSft2ToUsdArr);
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 0, oraclesSft2ToUsd);
 
         vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("PM1155_PID: ID not allowed");
+        vm.expectRevert("PM1155_PID: Asset not allowed");
         floorERC1155PricingModule.processIndirectDeposit(
             address(creditorUsd), asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );

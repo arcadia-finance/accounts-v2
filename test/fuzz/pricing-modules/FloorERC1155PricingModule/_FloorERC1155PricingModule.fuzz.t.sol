@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
 
 /**
@@ -16,7 +17,7 @@ abstract contract FloorERC1155PricingModule_Fuzz_Test is Fuzz_Test {
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    address[] internal oracleSft2ToUsdArr = new address[](1);
+    bytes32 internal oraclesSft2ToUsd;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -26,17 +27,10 @@ abstract contract FloorERC1155PricingModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.erc1155OracleDecimals),
-                baseAsset: "SFT2",
-                quoteAsset: "USD",
-                oracle: address(mockOracles.sft2ToUsd),
-                baseAssetAddress: address(mockERC1155.sft2),
-                isActive: true
-            })
-        );
+        chainlinkOM.addOracle(address(mockOracles.sft2ToUsd), "SFT2", "USD");
 
-        oracleSft2ToUsdArr[0] = address(mockOracles.sft2ToUsd);
+        uint80[] memory oracleSft2ToUsdArr = new uint80[](1);
+        oracleSft2ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.sft2ToUsd)));
+        oraclesSft2ToUsd = BitPackingLib.pack(BA_TO_QA_SINGLE, oracleSft2ToUsdArr);
     }
 }

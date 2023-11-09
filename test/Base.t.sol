@@ -9,6 +9,7 @@ import { Users, MockOracles, MockERC20, MockERC721, Rates } from "./utils/Types.
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/AccountV1.sol";
 import { AccountV2 } from "./utils/mocks/AccountV2.sol";
+import { ChainlinkOracleModuleExtension } from "./utils/Extensions.sol";
 import { MainRegistryExtension } from "./utils/Extensions.sol";
 import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
@@ -39,6 +40,7 @@ abstract contract Base_Test is Test, Events, Errors {
     Factory internal factory;
     MainRegistryExtension internal mainRegistryExtension;
     OracleHub internal oracleHub;
+    ChainlinkOracleModuleExtension internal chainlinkOM;
     StandardERC20PricingModuleExtension internal erc20PricingModule;
     FloorERC721PricingModuleExtension internal floorERC721PricingModule;
     FloorERC1155PricingModuleExtension internal floorERC1155PricingModule;
@@ -72,6 +74,7 @@ abstract contract Base_Test is Test, Events, Errors {
         factory = new Factory();
         mainRegistryExtension = new MainRegistryExtension(address(factory));
         oracleHub = new OracleHub();
+        chainlinkOM = new ChainlinkOracleModuleExtension(address(mainRegistryExtension));
         erc20PricingModule = new StandardERC20PricingModuleExtension(address(mainRegistryExtension), address(oracleHub));
         floorERC721PricingModule =
             new FloorERC721PricingModuleExtension(address(mainRegistryExtension), address(oracleHub));
@@ -100,10 +103,16 @@ abstract contract Base_Test is Test, Events, Errors {
         mainRegistryExtension.addPricingModule(address(floorERC1155PricingModule));
         vm.stopPrank();
 
+        // Add Oracle Modules to the Main Registry.
+        vm.startPrank(users.creatorAddress);
+        mainRegistryExtension.addOracleModule(address(chainlinkOM));
+        vm.stopPrank();
+
         // Label the base test contracts.
         vm.label({ account: address(factory), newLabel: "Factory" });
         vm.label({ account: address(mainRegistryExtension), newLabel: "Main Registry" });
         vm.label({ account: address(oracleHub), newLabel: "Oracle Hub" });
+        vm.label({ account: address(chainlinkOM), newLabel: "Chainlink Oracle Module" });
         vm.label({ account: address(erc20PricingModule), newLabel: "Standard ERC20 Pricing Module" });
         vm.label({ account: address(floorERC721PricingModule), newLabel: "ERC721 Pricing Module" });
         vm.label({ account: address(floorERC1155PricingModule), newLabel: "ERC1155 Pricing Module" });

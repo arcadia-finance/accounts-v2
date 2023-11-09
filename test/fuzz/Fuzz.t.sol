@@ -5,6 +5,7 @@
 pragma solidity 0.8.19;
 
 import { Base_Test, Constants } from "../Base.t.sol";
+import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
 import { MainRegistry } from "../../src/MainRegistry.sol";
 import { OracleHub } from "../../src/OracleHub.sol";
@@ -46,6 +47,10 @@ abstract contract Fuzz_Test is Base_Test {
     MockERC1155 internal mockERC1155;
     Rates internal rates;
 
+    // Directions arrays
+    bool[] internal BA_TO_QA_SINGLE = new bool[](1);
+    bool[] internal BA_TO_QA_DOUBLE = new bool[](2);
+
     // ERC20 oracle arrays
     address[] public oracleStable1ToUsdArr = new address[](1);
     address[] public oracleStable2ToUsdArr = new address[](1);
@@ -56,7 +61,7 @@ abstract contract Fuzz_Test is Base_Test {
     address[] public oracleNft1ToToken1ToUsd = new address[](2);
 
     // ERC1155 oracle array
-    address[] public oracleSft1ToToken1ToUsd = new address[](2);
+    uint80[] internal oracleSft1ToToken1ToUsd = new uint80[](2);
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -156,6 +161,16 @@ abstract contract Fuzz_Test is Base_Test {
             sft2ToUsd: initMockedOracle(uint8(Constants.erc1155OracleDecimals), "SFT2 / TOKEN1", rates.sft2ToUsd)
         });
 
+        // Add Chainlink Oracles to the Chainlink Oracles Module.
+        vm.startPrank(users.creatorAddress);
+        chainlinkOM.addOracle(address(mockOracles.stable1ToUsd), "STABLE1", "USD");
+        chainlinkOM.addOracle(address(mockOracles.stable2ToUsd), "STABLE2", "USD");
+        chainlinkOM.addOracle(address(mockOracles.token1ToUsd), "TOKEN1", "USD");
+        chainlinkOM.addOracle(address(mockOracles.token2ToUsd), "TOKEN2", "USD");
+        chainlinkOM.addOracle(address(mockOracles.nft1ToToken1), "NFT1", "TOKEN1");
+        chainlinkOM.addOracle(address(mockOracles.sft1ToToken1), "SFT1", "TOKEN1");
+        vm.stopPrank();
+
         vm.startPrank(mainRegistryExtension.owner());
         // Add Oracles to the OracleHub.
         // Do not add TOKEN4/USD, TOKEN3/TOKEN4 as we are testing it on a case-by-case basis
@@ -225,6 +240,11 @@ abstract contract Fuzz_Test is Base_Test {
             })
         );
 
+        // Create the direction arrays.
+        BA_TO_QA_SINGLE[0] = true;
+        BA_TO_QA_DOUBLE[0] = true;
+        BA_TO_QA_DOUBLE[1] = true;
+
         // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
         oracleStable1ToUsdArr[0] = address(mockOracles.stable1ToUsd);
         oracleStable2ToUsdArr[0] = address(mockOracles.stable2ToUsd);
@@ -243,10 +263,12 @@ abstract contract Fuzz_Test is Base_Test {
         floorERC721PricingModule.addAsset(address(mockERC721.nft1), 0, 999, oracleNft1ToToken1ToUsd);
 
         // Add ERC1155 contract to the floorERC1155PricingModule
-        oracleSft1ToToken1ToUsd[0] = address(mockOracles.sft1ToToken1);
-        oracleSft1ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
+        oracleSft1ToToken1ToUsd[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.sft1ToToken1)));
+        oracleSft1ToToken1ToUsd[1] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token1ToUsd)));
 
-        floorERC1155PricingModule.addAsset(address(mockERC1155.sft1), 1, oracleSft1ToToken1ToUsd);
+        floorERC1155PricingModule.addAsset(
+            address(mockERC1155.sft1), 1, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleSft1ToToken1ToUsd)
+        );
 
         vm.stopPrank();
 

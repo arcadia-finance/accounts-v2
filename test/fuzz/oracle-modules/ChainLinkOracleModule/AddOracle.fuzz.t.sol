@@ -4,20 +4,20 @@
  */
 pragma solidity 0.8.19;
 
-import { ChainLinkOracleModule_Fuzz_Test } from "./_ChainLinkOracleModule.fuzz.t.sol";
+import { ChainlinkOracleModule_Fuzz_Test } from "./_ChainlinkOracleModule.fuzz.t.sol";
 
 import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
 
 /**
- * @notice Fuzz tests for the function "addOracle" of contract "ChainLinkOracleModule".
+ * @notice Fuzz tests for the function "addOracle" of contract "ChainlinkOracleModule".
  */
-contract AddOracle_ChainLinkOracleModule_Fuzz_Test is ChainLinkOracleModule_Fuzz_Test {
+contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        ChainLinkOracleModule_Fuzz_Test.setUp();
+        ChainlinkOracleModule_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////

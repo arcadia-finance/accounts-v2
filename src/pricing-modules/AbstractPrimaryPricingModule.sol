@@ -48,7 +48,7 @@ abstract contract PrimaryPricingModule is PricingModule {
     // Struct with additional information for a specific asset.
     struct AssetInformation2 {
         uint64 assetUnit; // The unit of the asset, equal to 10^decimals.
-        bytes32 oracles; // Array of contract addresses of oracles.
+        bytes32 oracles; // The sequence of the oracles, to price the asset in USD.
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ abstract contract PrimaryPricingModule is PricingModule {
     /**
      * @notice Sets a new oracle sequence in the case one of the current oracles is decommissioned.
      * @param asset The contract address of the asset.
-     * @param newOracles An array of contract addresses of oracles, to price the asset in USD.
+     * @param newOracles The new sequence of the oracles, to price the asset in USD.
      */
     function setOracles(address asset, uint256 assetId, bytes32 newOracles) external onlyOwner {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);

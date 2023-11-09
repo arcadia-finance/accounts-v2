@@ -13,7 +13,7 @@ import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
  * @author Pragma Labs
  * @notice Abstract contract with the minimal implementation of an Oracle Module.
  */
-contract ChainLinkOracleModule is OracleModule {
+contract ChainlinkOracleModule is OracleModule {
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */

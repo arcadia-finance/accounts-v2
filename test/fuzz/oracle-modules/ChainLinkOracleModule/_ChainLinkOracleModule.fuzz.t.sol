@@ -5,17 +5,15 @@
 pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
-import { ChainLinkOracleModuleExtension } from "../../../utils/Extensions.sol";
+import { ChainlinkOracleModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
- * @notice Common logic needed by all "ChainLinkOracleModule" fuzz tests.
+ * @notice Common logic needed by all "ChainlinkOracleModule" fuzz tests.
  */
-abstract contract ChainLinkOracleModule_Fuzz_Test is Fuzz_Test {
+abstract contract ChainlinkOracleModule_Fuzz_Test is Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
-
-    ChainLinkOracleModuleExtension internal chainlinkOM;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -25,7 +23,7 @@ abstract contract ChainLinkOracleModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.creatorAddress);
-        chainlinkOM = new ChainLinkOracleModuleExtension(address(mainRegistryExtension));
+        chainlinkOM = new ChainlinkOracleModuleExtension(address(mainRegistryExtension));
         mainRegistryExtension.addOracleModule(address(chainlinkOM));
         vm.stopPrank();
     }
