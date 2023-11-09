@@ -11,10 +11,4 @@ interface IFactory {
      * @return bool indicating if the address is a Account or not.
      */
     function isAccount(address account) external view returns (bool);
-
-    /**
-     * @notice Function called by a Account at the start of a liquidation to transfer ownership to the Liquidator contract.
-     * @param liquidator The contract address of the liquidator.
-     */
-    function liquidate(address liquidator) external;
 }

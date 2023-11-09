@@ -70,9 +70,8 @@ contract FactoryGuardianExtension is FactoryGuardian {
         pauseTimestamp = pauseTimestamp_;
     }
 
-    function setFlags(bool createPaused_, bool liquidatePaused_) public {
+    function setFlags(bool createPaused_) public {
         createPaused = createPaused_;
-        liquidatePaused = liquidatePaused_;
     }
 }
 

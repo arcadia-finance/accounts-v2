@@ -44,12 +44,9 @@ contract UnPause_WithoutArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_T
         vm.stopPrank();
     }
 
-    function testFuzz_Success_unPause(
-        uint256 lastPauseTimestamp,
-        uint256 timePassed,
-        address sender,
-        Flags memory initialFlags
-    ) public {
+    function testFuzz_Success_unPause(uint256 lastPauseTimestamp, uint256 timePassed, address sender, bool initialFlag)
+        public
+    {
         lastPauseTimestamp = bound(lastPauseTimestamp, 32 days + 1, type(uint32).max - 30 days - 1);
         timePassed = bound(timePassed, 30 days + 1, type(uint32).max);
 
@@ -59,20 +56,19 @@ contract UnPause_WithoutArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_T
         factoryGuardian.pause();
 
         // And: Flags are in random state.
-        setFlags(initialFlags);
+        setFlags(initialFlag);
 
         // Given: More than 30 days passed.
         vm.warp(lastPauseTimestamp + timePassed);
 
         // When: A "sender" un-pauses.
         vm.startPrank(sender);
-        vm.expectEmit(true, true, true, true);
-        emit PauseUpdate(false, false);
+        vm.expectEmit();
+        emit PauseUpdate(false);
         factoryGuardian.unPause();
         vm.stopPrank();
 
         // Then: All flags are set to False.
         assertFalse(factoryGuardian.createPaused());
-        assertFalse(factoryGuardian.liquidatePaused());
     }
 }

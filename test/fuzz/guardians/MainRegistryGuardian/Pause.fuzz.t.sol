@@ -67,7 +67,7 @@ contract Pause_MainRegistryGuardian_Fuzz_Test is MainRegistryGuardian_Fuzz_Test 
 
         // When: the Guardian pauses.
         vm.startPrank(users.guardian);
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit();
         emit PauseUpdate(true, true);
         mainRegistryGuardian.pause();
         vm.stopPrank();
