@@ -49,10 +49,15 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
     function testFuzz_Revert_addOracle_NonOracle(address oracle, bytes16 baseAsset, bytes16 quoteAsset) public {
         vm.assume(oracle != address(mockOracles.token1ToUsd));
         vm.assume(oracle != address(mockOracles.token2ToUsd));
+        vm.assume(oracle != address(mockOracles.token3ToToken4));
+        vm.assume(oracle != address(mockOracles.token4ToUsd));
         vm.assume(oracle != address(mockOracles.stable1ToUsd));
         vm.assume(oracle != address(mockOracles.stable2ToUsd));
         vm.assume(oracle != address(mockOracles.nft1ToToken1));
+        vm.assume(oracle != address(mockOracles.nft2ToUsd));
+        vm.assume(oracle != address(mockOracles.nft3ToToken1));
         vm.assume(oracle != address(mockOracles.sft1ToToken1));
+        vm.assume(oracle != address(mockOracles.sft2ToUsd));
 
         vm.prank(users.creatorAddress);
         vm.expectRevert(bytes(""));
