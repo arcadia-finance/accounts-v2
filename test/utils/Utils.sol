@@ -59,6 +59,50 @@ library Utils {
         return IPermit2.PermitBatchTransferFrom({ permitted: permitted, nonce: nonce, deadline: deadline_ });
     }
 
+    /**
+     * @notice Casts a static array of addresses of length two to a dynamic array of addresses.
+     * @param staticArray The static array of addresses.
+     * @return dynamicArray The dynamic array of addresses.
+     */
+    function castArrayStaticToDynamic(address[2] calldata staticArray)
+        public
+        pure
+        returns (address[] memory dynamicArray)
+    {
+        uint256 length = staticArray.length;
+        dynamicArray = new address[](length);
+
+        for (uint256 i; i < length;) {
+            dynamicArray[i] = staticArray[i];
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /**
+     * @notice Casts a static array of uint256's of length two to a dynamic array of uint256's.
+     * @param staticArray The static array of uint256's.
+     * @return dynamicArray The dynamic array of uint256's.
+     */
+    function castArrayStaticToDynamic(uint256[2] calldata staticArray)
+        public
+        pure
+        returns (uint256[] memory dynamicArray)
+    {
+        uint256 length = staticArray.length;
+        dynamicArray = new uint256[](length);
+
+        for (uint256 i; i < length;) {
+            dynamicArray[i] = staticArray[i];
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     function deployBytecode(bytes memory bytecode) internal returns (address addr) {
         assembly {
             addr := create(0, add(bytecode, 0x20), mload(bytecode))

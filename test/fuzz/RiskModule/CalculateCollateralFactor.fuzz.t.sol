@@ -17,7 +17,9 @@ contract CalculateCollateralFactor_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public override { }
+    function setUp() public override {
+        RiskModule_Fuzz_Test.setUp();
+    }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
@@ -30,24 +32,24 @@ contract CalculateCollateralFactor_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
     ) public {
         // Given: 2 Assets with value bigger than zero
         // Values are uint128 to prevent overflow in multiplication
-        RiskModule.AssetValueAndRiskVariables[] memory values = new RiskModule.AssetValueAndRiskVariables[](2);
-        values[0].valueInBaseCurrency = firstValue;
-        values[1].valueInBaseCurrency = secondValue;
+        RiskModule.AssetValueAndRiskFactors[] memory values = new RiskModule.AssetValueAndRiskFactors[](2);
+        values[0].assetValue = firstValue;
+        values[1].assetValue = secondValue;
 
         // And: collateral factors are within allowed ranges
-        vm.assume(firstCollFactor <= RiskConstants.MAX_COLLATERAL_FACTOR);
-        vm.assume(secondCollFactor <= RiskConstants.MAX_COLLATERAL_FACTOR);
+        vm.assume(firstCollFactor <= RiskConstants.RISK_FACTOR_UNIT);
+        vm.assume(secondCollFactor <= RiskConstants.RISK_FACTOR_UNIT);
 
         values[0].collateralFactor = firstCollFactor;
         values[1].collateralFactor = secondCollFactor;
 
         // When: The collateral factor is calculated with given values
-        uint256 collateralValue = RiskModule.calculateCollateralValue(values);
+        uint256 collateralValue = riskModule.calculateCollateralValue(values);
 
         // Then: It should be equal to calculated collateral factor
         uint256 calcCollateralValue;
         for (uint256 i; i < values.length;) {
-            calcCollateralValue += values[i].valueInBaseCurrency * values[i].collateralFactor;
+            calcCollateralValue += values[i].assetValue * values[i].collateralFactor;
             unchecked {
                 ++i;
             }

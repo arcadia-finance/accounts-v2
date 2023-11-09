@@ -7,7 +7,9 @@ pragma solidity 0.8.19;
 import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountV2 } from "../../../utils/mocks/AccountV2.sol";
+import { AccountVariableVersion } from "../../../utils/mocks/AccountVariableVersion.sol";
 import { Constants } from "../../../utils/Constants.sol";
+import { MainRegistryExtension } from "../../../utils/Extensions.sol";
 
 /**
  * @notice Fuzz tests for the function "upgradeAccount" of contract "AccountV1".
@@ -105,13 +107,42 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     ) public {
         // Given: Trusted Creditor is set.
         vm.prank(users.accountOwner);
-        proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
+        proxyAccount.openTrustedMarginAccount(address(creditorStable1));
         // Check in creditor if new version is allowed should fail.
-        trustedCreditor.setCallResult(false);
+        creditorStable1.setCallResult(false);
 
         vm.startPrank(address(factory));
         vm.expectRevert("A_UA: Invalid Account version");
         proxyAccount.upgradeAccount(newImplementation, newRegistry, newVersion, data);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_upgradeAccount_InvalidMainRegistry(address newImplementation, bytes calldata data)
+        public
+    {
+        vm.assume(newImplementation > address(10));
+        vm.assume(newImplementation != address(factory));
+        vm.assume(newImplementation != address(vm));
+        vm.assume(newImplementation != address(mainRegistryExtension));
+
+        // Given: Trusted Creditor is set.
+        vm.prank(users.accountOwner);
+        proxyAccount.openTrustedMarginAccount(address(creditorStable1));
+
+        uint256 accountVersion = factory.latestAccountVersion() + 1;
+        AccountVariableVersion accountVarVersion = new AccountVariableVersion(accountVersion);
+        bytes memory code = address(accountVarVersion).code;
+        vm.etch(newImplementation, code);
+        AccountVariableVersion(newImplementation).setAccountVersion(accountVersion);
+
+        vm.startPrank(users.creatorAddress);
+        MainRegistryExtension mainRegistry2 = new MainRegistryExtension(address(factory));
+        factory.setNewAccountInfo(address(mainRegistry2), newImplementation, Constants.upgradeRoot1To2, data);
+        vm.stopPrank();
+
+        vm.startPrank(address(factory));
+        vm.expectRevert("A_UA: Invalid Main Registry.");
+        proxyAccount.upgradeAccount(newImplementation, address(mainRegistry2), uint16(accountVersion), data);
         vm.stopPrank();
     }
 
@@ -123,7 +154,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     ) public {
         // Given: an account in a random state (with assets, a creditor and debt).
         vm.prank(users.accountOwner);
-        proxyAccount.openTrustedMarginAccount(address(trustedCreditor)); // Mocked Trusted Creditor, approves all account-versions by default.
+        proxyAccount.openTrustedMarginAccount(address(creditorStable1)); // Mocked Trusted Creditor, approves all account-versions by default.
 
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.token1);
@@ -153,7 +184,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         proxyAccount.deposit(assetAddresses, assetIds, assetAmounts);
 
         // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(proxyAccount), debt);
+        creditorStable1.setOpenPosition(address(proxyAccount), debt);
 
         Checks memory checkBefore = createCompareStruct();
 

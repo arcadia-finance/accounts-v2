@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 
 import { DerivedPricingModule, IMainRegistry } from "./AbstractDerivedPricingModule.sol";
 import { IERC4626 } from "../interfaces/IERC4626.sol";
+import { RiskModule } from "../RiskModule.sol";
 
 /**
  * @title Sub-registry for Standard ERC4626 tokens
@@ -29,7 +30,7 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
      * @param mainRegistry_ The address of the Main-registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_) DerivedPricingModule(mainRegistry_, 0, msg.sender) { }
+    constructor(address mainRegistry_) DerivedPricingModule(mainRegistry_, 0) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -124,17 +125,21 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
 
     /**
      * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
+     * param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
      * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
      * param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      */
-    function _getUnderlyingAssetsAmounts(bytes32 assetKey, uint256 assetAmount, bytes32[] memory)
+    function _getUnderlyingAssetsAmounts(address, bytes32 assetKey, uint256 assetAmount, bytes32[] memory)
         internal
         view
         override
-        returns (uint256[] memory underlyingAssetsAmounts, uint256[] memory rateUnderlyingAssetsToUsd)
+        returns (
+            uint256[] memory underlyingAssetsAmounts,
+            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+        )
     {
         (address asset,) = _getAssetFromKey(assetKey);
         underlyingAssetsAmounts = new uint256[](1);

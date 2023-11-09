@@ -23,20 +23,16 @@ contract Constructor_AbstractDerivedPricingModule_Fuzz_Test is AbstractDerivedPr
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address mainRegistry_, uint256 assetType_, address riskManager_) public {
+    function testFuzz_Success_deployment(address mainRegistry_, uint256 assetType_) public {
         vm.startPrank(users.creatorAddress);
-        vm.expectEmit(true, true, true, true);
-        emit RiskManagerUpdated(riskManager_);
         DerivedPricingModuleMock pricingModule_ = new DerivedPricingModuleMock(
             mainRegistry_,
-            assetType_,
-            riskManager_
+            assetType_
         );
         vm.stopPrank();
 
         assertEq(pricingModule_.MAIN_REGISTRY(), mainRegistry_);
         assertEq(pricingModule_.ASSET_TYPE(), assetType_);
-        assertEq(pricingModule_.riskManager(), riskManager_);
         assertFalse(pricingModule_.getPrimaryFlag());
     }
 }

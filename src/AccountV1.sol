@@ -157,25 +157,30 @@ contract AccountV1 is AccountStorageV1, IAccount {
         onlyFactory
     {
         if (isTrustedCreditorSet) {
-            //If a trustedCreditor is set, new version should be compatible.
-            //openMarginAccount() is a view function, cannot modify state.
+            // If a trustedCreditor is set, new version should be compatible.
+            // openMarginAccount() is a view function, cannot modify state.
             (bool success,,,) = ITrustedCreditor(trustedCreditor).openMarginAccount(newVersion);
             require(success, "A_UA: Invalid Account version");
         }
 
-        //Cache old parameters
+        // Cache old parameters.
         address oldImplementation = _getAddressSlot(_IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
         uint16 oldVersion = ACCOUNT_VERSION;
         _getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
 
-        //Hook on the new logic to finalize upgrade.
-        //Used to eg. Remove exposure from old Registry and Add exposure to the new Registry.
-        //Extra data can be added by the factory for complex instructions.
+        // Prevent that Account is upgraded to a new version where the baseCurrency can't be priced.
+        if (newRegistry != oldRegistry) {
+            require(IMainRegistry(newRegistry).inMainRegistry(baseCurrency), "A_UA: Invalid Main Registry.");
+        }
+
+        // Hook on the new logic to finalize upgrade.
+        // Used to eg. Remove exposure from old Registry and Add exposure to the new Registry.
+        // Extra data can be added by the factory for complex instructions.
         this.upgradeHook(oldImplementation, oldRegistry, oldVersion, data);
 
-        //Event emitted by Factory.
+        // Event emitted by Factory.
     }
 
     /**
@@ -250,7 +255,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param baseCurrency_ the new baseCurrency for the Account.
      */
     function _setBaseCurrency(address baseCurrency_) internal {
-        require(IMainRegistry(registry).isBaseCurrency(baseCurrency_), "A_SBC: baseCurrency not found");
+        require(IMainRegistry(registry).inMainRegistry(baseCurrency_), "A_SBC: baseCurrency not found");
         baseCurrency = baseCurrency_;
 
         emit BaseCurrencySet(baseCurrency_);
@@ -370,7 +375,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function getAccountValue(address baseCurrency_) external view returns (uint256 accountValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
-        accountValue = IMainRegistry(registry).getTotalValue(assetAddresses, assetIds, assetAmounts, baseCurrency_);
+        accountValue = IMainRegistry(registry).getTotalValue(
+            baseCurrency_, trustedCreditor, assetAddresses, assetIds, assetAmounts
+        );
     }
 
     /**
@@ -387,8 +394,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function getCollateralValue() public view returns (uint256 collateralValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
-        collateralValue =
-            IMainRegistry(registry).getCollateralValue(assetAddresses, assetIds, assetAmounts, baseCurrency);
+        collateralValue = IMainRegistry(registry).getCollateralValue(
+            baseCurrency, trustedCreditor, assetAddresses, assetIds, assetAmounts
+        );
     }
 
     /**
@@ -404,8 +412,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function getLiquidationValue() public view returns (uint256 liquidationValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
-        liquidationValue =
-            IMainRegistry(registry).getLiquidationValue(assetAddresses, assetIds, assetAmounts, baseCurrency);
+        liquidationValue = IMainRegistry(registry).getLiquidationValue(
+            baseCurrency, trustedCreditor, assetAddresses, assetIds, assetAmounts
+        );
     }
 
     /**
@@ -464,11 +473,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
         //Cache trustedCreditor.
         trustedCreditor_ = trustedCreditor;
 
-        //Close margin account.
-        isTrustedCreditorSet = false;
-        trustedCreditor = address(0);
-        liquidator = address(0);
-
         //If getLiquidationValue (total value discounted with liquidation factor to account for slippage)
         //is smaller than the Used Margin: sum of the liabilities of the Account (openDebt)
         //and the max gas cost to liquidate the Account (fixedLiquidationCost),
@@ -477,7 +481,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
         //passed as input to avoid the need of another contract call back to trustedCreditor.
         require(getLiquidationValue() < openDebt + fixedLiquidationCost, "A_LA: liqValue above usedMargin");
 
-        //Set fixedLiquidationCost to 0 since margin account is closed.
+        //Close margin account.
+        isTrustedCreditorSet = false;
+        trustedCreditor = address(0);
+        liquidator = address(0);
         fixedLiquidationCost = 0;
 
         //Transfer ownership of the ERC721 in Factory of the Account to the Liquidator.
@@ -616,7 +623,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ) internal {
         //Reverts in mainRegistry if input is invalid.
         uint256[] memory assetTypes =
-            IMainRegistry(registry).batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
+            IMainRegistry(registry).batchProcessDeposit(trustedCreditor, assetAddresses, assetIds, assetAmounts);
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {
@@ -696,7 +703,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ) internal {
         //Reverts in mainRegistry if input is invalid.
         uint256[] memory assetTypes =
-            IMainRegistry(registry).batchProcessWithdrawal(assetAddresses, assetIds, assetAmounts); //reverts in mainregistry if invalid input
+            IMainRegistry(registry).batchProcessWithdrawal(trustedCreditor, assetAddresses, assetIds, assetAmounts); //reverts in mainregistry if invalid input
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {

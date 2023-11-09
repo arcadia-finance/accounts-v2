@@ -37,7 +37,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         vm.startPrank(sender);
         vm.expectRevert(FunctionIsPaused.selector);
-        mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
+        mainRegistryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
 
@@ -55,7 +55,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("MR: Only Accounts.");
-        mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
+        mainRegistryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
 
@@ -73,15 +73,17 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         vm.startPrank(address(proxyAccount));
         vm.expectRevert("MR_BPD: LENGTH_MISMATCH");
-        mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
+        mainRegistryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
 
     function testFuzz_Revert_batchProcessDeposit_exposureNotSufficient(uint128 newMaxExposure, uint128 amount) public {
         vm.assume(newMaxExposure < amount);
 
-        vm.prank(users.creatorAddress);
-        erc20PricingModule.setMaxExposureOfAsset(address(mockERC20.token1), 0, newMaxExposure);
+        vm.prank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC20.token1), 0, newMaxExposure, 0, 0
+        );
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -94,7 +96,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         vm.startPrank(address(proxyAccount));
         vm.expectRevert("APPM_PDD: Exposure not in limits");
-        mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
+        mainRegistryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
 
@@ -112,13 +114,16 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
 
         vm.startPrank(address(proxyAccount));
         vm.expectRevert();
-        mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
+        mainRegistryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_batchProcessDeposit_Paused(uint128 amountToken1, uint128 amountToken2, address guardian)
-        public
-    {
+    function testFuzz_Revert_batchProcessDeposit_Paused(
+        address creditor,
+        uint128 amountToken1,
+        uint128 amountToken2,
+        address guardian
+    ) public {
         // Given: Assets
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
@@ -142,7 +147,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         // Then: batchProcessDeposit should reverted
         vm.prank(address(proxyAccount));
         vm.expectRevert(FunctionIsPaused.selector);
-        mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
+        mainRegistryExtension.batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Revert_batchProcessDeposit_delegateCall(uint128 amountToken2) public {
@@ -181,12 +186,13 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.prank(address(proxyAccount));
-        uint256[] memory assetTypes = mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
+        uint256[] memory assetTypes =
+            mainRegistryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         assertEq(assetTypes[0], 0);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
-        (, uint128 exposure) = erc20PricingModule.exposure(assetKey);
+        (uint128 exposure,,,) = erc20PricingModule.riskParams(address(creditorUsd), assetKey);
         assertEq(exposure, amount);
     }
 
@@ -204,15 +210,16 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assetAmounts[1] = amountToken2;
 
         vm.prank(address(proxyAccount));
-        uint256[] memory assetTypes = mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
+        uint256[] memory assetTypes =
+            mainRegistryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         assertEq(assetTypes[0], 0);
         assertEq(assetTypes[1], 0);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
-        (, uint256 exposureToken1) = erc20PricingModule.exposure(assetKey);
+        (uint128 exposureToken1,,,) = erc20PricingModule.riskParams(address(creditorUsd), assetKey);
         assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));
-        (, uint256 exposureToken2) = erc20PricingModule.exposure(assetKey);
+        (uint128 exposureToken2,,,) = erc20PricingModule.riskParams(address(creditorUsd), assetKey);
 
         assertEq(exposureToken1, amountToken1);
         assertEq(exposureToken2, amountToken2);
@@ -229,11 +236,11 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assetAmounts[0] = amountToken2;
 
         vm.startPrank(address(proxyAccount));
-        mainRegistryExtension.batchProcessDeposit(assetAddresses, assetIds, assetAmounts);
+        mainRegistryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));
-        (, uint128 newExposure) = erc20PricingModule.exposure(assetKey);
+        (uint128 newExposure,,,) = erc20PricingModule.riskParams(address(creditorUsd), assetKey);
 
         assertEq(newExposure, amountToken2);
     }

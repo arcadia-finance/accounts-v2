@@ -8,7 +8,6 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { ERC4626Mock } from "../../../utils/mocks/ERC4626Mock.sol";
 import { OracleHub } from "../../../../src/OracleHub.sol";
-import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 import { ERC4626PricingModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
@@ -18,9 +17,6 @@ abstract contract StandardERC4626PricingModule_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
-
-    uint16 internal collateralFactor = RiskConstants.DEFAULT_COLLATERAL_FACTOR;
-    uint16 internal liquidationFactor = RiskConstants.DEFAULT_LIQUIDATION_FACTOR;
 
     ERC4626Mock public ybToken1;
 

@@ -9,7 +9,6 @@ import { FloorERC1155PricingModule_Fuzz_Test } from "./_FloorERC1155PricingModul
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the function "getValue" of contract "FloorERC1155PricingModule".
@@ -24,8 +23,11 @@ contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
 
         // Add Sft2 (which has an oracle directly to usd).
         vm.prank(users.creatorAddress);
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft2), 1, oracleSft2ToUsdArr, emptyRiskVarInput, type(uint128).max
+        floorERC1155PricingModule.addAsset(address(mockERC1155.sft2), 1, oracleSft2ToUsdArr);
+
+        vm.prank(users.riskManager);
+        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC1155.sft2), 1, type(uint128).max, 0, 0
         );
     }
 
@@ -44,17 +46,10 @@ contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         vm.prank(users.defaultTransmitter);
         mockOracles.sft2ToUsd.transmit(int256(rateSft2ToUsd));
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
-            asset: address(mockERC1155.sft2),
-            assetId: 1,
-            assetAmount: amountSft2,
-            baseCurrency: UsdBaseCurrencyID
-        });
-
         // When: getValue called
         // Then: getValue should be reverted
         vm.expectRevert(stdError.arithmeticError);
-        floorERC1155PricingModule.getValue(getValueInput);
+        floorERC1155PricingModule.getValue(address(creditorUsd), address(mockERC1155.sft2), 1, amountSft2);
     }
 
     function testFuzz_Success_getValue(uint256 amountSft2, uint256 rateSft2ToUsd) public {
@@ -73,14 +68,9 @@ contract GetValue_FloorERC1155PricingModule_Fuzz_Test is FloorERC1155PricingModu
         vm.prank(users.defaultTransmitter);
         mockOracles.sft2ToUsd.transmit(int256(rateSft2ToUsd));
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
-            asset: address(mockERC1155.sft2),
-            assetId: 0,
-            assetAmount: amountSft2,
-            baseCurrency: UsdBaseCurrencyID
-        });
         // When: getValue called
-        (uint256 actualValueInUsd,,) = floorERC1155PricingModule.getValue(getValueInput);
+        (uint256 actualValueInUsd,,) =
+            floorERC1155PricingModule.getValue(address(creditorUsd), address(mockERC1155.sft2), 0, amountSft2);
 
         // Then: actualValueInUsd should be equal to expectedValueInUsd
         assertEq(actualValueInUsd, expectedValueInUsd);

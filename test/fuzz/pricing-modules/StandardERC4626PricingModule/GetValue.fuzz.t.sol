@@ -9,7 +9,6 @@ import { StandardERC4626PricingModule_Fuzz_Test } from "./_StandardERC4626Pricin
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
-import { IPricingModule } from "../../../../src/interfaces/IPricingModule.sol";
 
 /**
  * @notice Fuzz tests for the function "getValue" of contract "StandardERC4626PricingModule".
@@ -61,19 +60,12 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         stdstore.target(address(mockERC20.token1)).sig(ybToken1.balanceOf.selector).with_key(address(ybToken1))
             .checked_write(totalAssets);
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
-            asset: address(ybToken1),
-            assetId: 0,
-            assetAmount: shares,
-            baseCurrency: UsdBaseCurrencyID
-        });
-
         //Arithmetic overflow.
         vm.expectRevert(bytes(""));
-        erc4626PricingModule.getValue(getValueInput);
+        erc4626PricingModule.getValue(address(creditorUsd), address(ybToken1), 0, shares);
     }
 
-    function testFuzz_Success_getValuea(
+    function testFuzz_Success_getValue(
         uint256 rateToken1ToUsd_,
         uint256 shares,
         uint256 totalSupply,
@@ -83,11 +75,12 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         vm.assume(totalSupply > 0);
 
         // No Overflow OracleHub
-        vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD);
+        vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD / 1e18);
         // No Overflow ERC4626
         if (totalAssets > 0) {
             vm.assume(shares <= type(uint256).max / totalAssets);
         }
+        // No Overflow
 
         if (rateToken1ToUsd_ != 0) {
             vm.assume(
@@ -112,13 +105,7 @@ contract GetValue_StandardERC4626PricingModule_Fuzz_Test is StandardERC4626Prici
         stdstore.target(address(mockERC20.token1)).sig(ybToken1.balanceOf.selector).with_key(address(ybToken1))
             .checked_write(totalAssets);
 
-        IPricingModule.GetValueInput memory getValueInput = IPricingModule.GetValueInput({
-            asset: address(ybToken1),
-            assetId: 0,
-            assetAmount: shares,
-            baseCurrency: UsdBaseCurrencyID
-        });
-        (uint256 actualValueInUsd,,) = erc4626PricingModule.getValue(getValueInput);
+        (uint256 actualValueInUsd,,) = erc4626PricingModule.getValue(address(creditorUsd), address(ybToken1), 0, shares);
 
         assertEq(actualValueInUsd, expectedValueInUsd);
     }

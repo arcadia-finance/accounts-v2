@@ -8,8 +8,8 @@ import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IOraclesHub } from "./interfaces/IOraclesHub.sol";
-import { IPricingModule, PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 import { IStandardERC20PricingModule } from "./interfaces/IStandardERC20PricingModule.sol";
+import { PrimaryPricingModule } from "./AbstractPrimaryPricingModule.sol";
 
 /**
  * @title Pricing Module for Standard ERC20 tokens.
@@ -53,18 +53,9 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
      * @notice Adds a new asset to the StandardERC20PricingModule.
      * @param asset The contract address of the asset.
      * @param oracles An array of contract addresses of oracles, to price the asset in USD.
-     * @param riskVars An array of RiskVarInput structs.
-     * @param maxExposure The maximum protocol wide exposure to the asset.
      * @dev Assets can't have more than 18 decimals.
-     * @dev The asset slot in the RiskVarInput struct can be any value as it is not used in this function.
-     * @dev If no risk variables are provided, the asset is added with the risk variables set by default to zero,
-     * resulting in the asset being valued at 0.
-     * @dev Risk variables are variables with 2 decimals precision.
      */
-    function addAsset(address asset, address[] calldata oracles, RiskVarInput[] calldata riskVars, uint128 maxExposure)
-        external
-        onlyOwner
-    {
+    function addAsset(address asset, address[] calldata oracles) external onlyOwner {
         // View function, reverts in OracleHub if sequence is not correct.
         IOraclesHub(ORACLE_HUB).checkOracleSequence(oracles, asset);
 
@@ -76,14 +67,9 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
         // Can safely cast to uint64, we previously checked it is smaller than 10e18.
         assetToInformation[asset].assetUnit = uint64(assetUnit);
         assetToInformation[asset].oracles = oracles;
-        _setRiskVariablesForAsset(asset, riskVars);
-
-        exposure[_getKeyFromAsset(asset, 0)].maxExposure = maxExposure;
 
         // Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
-
-        emit MaxExposureSet(asset, maxExposure);
     }
 
     /**
@@ -176,30 +162,30 @@ contract StandardERC20PricingModule is PrimaryPricingModule, IStandardERC20Prici
 
     /**
      * @notice Returns the usd value of an asset.
-     * @param getValueInput A Struct with the input variables.
-     * - asset: The contract address of the asset.
-     * - assetId: Since ERC20 tokens have no Id, the Id should be set to 0.
-     * - assetAmount: The amount of assets.
-     * - baseCurrency: The BaseCurrency in which the value is ideally denominated.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * param assetId The Id of the asset.
+     * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given baseCurrency, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given baseCurrency, with 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
      * @dev Function will overflow when assetAmount * Rate * 10**(18 - rateDecimals) > MAXUINT256.
      * @dev If the asset is not added to PricingModule, this function will return value 0 without throwing an error.
      * However no check in StandardERC20PricingModule is necessary, since the check if the asset is added to the PricingModule
      * is already done in the MainRegistry.
      */
-    function getValue(IPricingModule.GetValueInput memory getValueInput)
+    function getValue(address creditor, address asset, uint256, uint256 assetAmount)
         public
         view
         override
         returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
     {
-        uint256 rateInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[getValueInput.asset].oracles);
+        uint256 rateInUsd = IOraclesHub(ORACLE_HUB).getRateInUsd(assetToInformation[asset].oracles);
 
-        valueInUsd = getValueInput.assetAmount.mulDivDown(rateInUsd, assetToInformation[getValueInput.asset].assetUnit);
+        valueInUsd = assetAmount.mulDivDown(rateInUsd, assetToInformation[asset].assetUnit);
 
-        collateralFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].collateralFactor;
-        liquidationFactor = assetRiskVars[getValueInput.asset][getValueInput.baseCurrency].liquidationFactor;
+        bytes32 assetKey = _getKeyFromAsset(asset, 0);
+        collateralFactor = riskParams[creditor][assetKey].collateralFactor;
+        liquidationFactor = riskParams[creditor][assetKey].liquidationFactor;
     }
 }

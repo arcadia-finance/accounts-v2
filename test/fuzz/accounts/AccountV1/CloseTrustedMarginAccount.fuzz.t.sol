@@ -43,11 +43,11 @@ contract CloseTrustedMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_closeTrustedMarginAccount_OpenPosition(uint256 debt_) public {
         vm.prank(users.accountOwner);
-        proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
+        proxyAccount.openTrustedMarginAccount(address(creditorStable1));
 
         // Mock debt.
         vm.assume(debt_ > 0);
-        trustedCreditor.setOpenPosition(address(proxyAccount), debt_);
+        creditorStable1.setOpenPosition(address(proxyAccount), debt_);
 
         vm.startPrank(users.accountOwner);
         vm.expectRevert("A_CTMA: NON-ZERO OPEN POSITION");
@@ -57,7 +57,7 @@ contract CloseTrustedMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_closeTrustedMarginAccount() public {
         vm.prank(users.accountOwner);
-        proxyAccount.openTrustedMarginAccount(address(trustedCreditor));
+        proxyAccount.openTrustedMarginAccount(address(creditorStable1));
 
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);

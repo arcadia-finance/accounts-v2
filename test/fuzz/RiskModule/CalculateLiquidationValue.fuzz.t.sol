@@ -17,7 +17,9 @@ contract CalculateLiquidationValue_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public override { }
+    function setUp() public override {
+        RiskModule_Fuzz_Test.setUp();
+    }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
@@ -30,24 +32,24 @@ contract CalculateLiquidationValue_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
     ) public {
         // Given: 2 Assets with value bigger than zero
         // Values are uint128 to prevent overflow in multiplication
-        RiskModule.AssetValueAndRiskVariables[] memory values = new RiskModule.AssetValueAndRiskVariables[](2);
-        values[0].valueInBaseCurrency = firstValue;
-        values[1].valueInBaseCurrency = secondValue;
+        RiskModule.AssetValueAndRiskFactors[] memory values = new RiskModule.AssetValueAndRiskFactors[](2);
+        values[0].assetValue = firstValue;
+        values[1].assetValue = secondValue;
 
         // And: Liquidation factors are within allowed ranges
-        vm.assume(firstLiqFactor <= RiskConstants.MAX_LIQUIDATION_FACTOR);
-        vm.assume(secondLiqFactor <= RiskConstants.MAX_LIQUIDATION_FACTOR);
+        vm.assume(firstLiqFactor <= RiskConstants.RISK_FACTOR_UNIT);
+        vm.assume(secondLiqFactor <= RiskConstants.RISK_FACTOR_UNIT);
 
         values[0].liquidationFactor = firstLiqFactor;
         values[1].liquidationFactor = secondLiqFactor;
 
         // When: The Liquidation factor is calculated with given values
-        uint256 liquidationValue = RiskModule.calculateLiquidationValue(values);
+        uint256 liquidationValue = riskModule.calculateLiquidationValue(values);
 
         // Then: It should be equal to calculated Liquidation factor
         uint256 calcLiquidationValue;
         for (uint256 i; i < values.length;) {
-            calcLiquidationValue += values[i].valueInBaseCurrency * values[i].liquidationFactor;
+            calcLiquidationValue += values[i].assetValue * values[i].liquidationFactor;
             unchecked {
                 ++i;
             }
