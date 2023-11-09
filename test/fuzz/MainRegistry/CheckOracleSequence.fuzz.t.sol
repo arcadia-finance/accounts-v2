@@ -60,7 +60,7 @@ contract CheckOracleSequence_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     }
 
     function testFuzz_Revert_checkOracleSequence_UnknownOracle(bool direction, uint80 oracleId) public {
-        // Given a contract not added to the "OracleHub".
+        // Given: An oracle not added to the "MainRegistry".
         oracleId = uint80(bound(oracleId, mainRegistryExtension.getOracleCounter(), type(uint80).max));
 
         uint80[] memory oraclesIds = new uint80[](1);

@@ -21,6 +21,9 @@ contract ChainLinkOracleModule is OracleModule {
     // Map oracle => flag.
     mapping(address => bool) internal inOracleModule;
 
+    // Map oracle => oracleId.
+    mapping(address => uint256) public oracleToOracleId;
+
     // Map identifier => oracle information.
     mapping(uint256 => OracleInformation) internal oracleInformation;
 
@@ -59,15 +62,20 @@ contract ChainLinkOracleModule is OracleModule {
                           ORACLE MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
-    function addOracle(address oracle, bytes16 baseAsset, bytes16 quoteAsset) external onlyOwner {
+    function addOracle(address oracle, bytes16 baseAsset, bytes16 quoteAsset)
+        external
+        onlyOwner
+        returns (uint256 oracleId)
+    {
         require(!inOracleModule[oracle], "CLOM_AO: Oracle already added");
 
         uint256 decimals = IChainLinkData(oracle).decimals();
-        require(decimals <= 18, "OH_AO: Maximal 18 decimals");
+        require(decimals <= 18, "CLOM_AO: Maximal 18 decimals");
 
         inOracleModule[oracle] = true;
-        uint256 oracleId = IMainRegistry(MAIN_REGISTRY).addOracle();
+        oracleId = IMainRegistry(MAIN_REGISTRY).addOracle();
 
+        oracleToOracleId[oracle] = oracleId;
         assetPair[oracleId] = AssetPair({ baseAsset: baseAsset, quoteAsset: quoteAsset });
         oracleInformation[oracleId] =
             OracleInformation({ isActive: true, unitCorrection: uint64(10 ** (18 - decimals)), oracle: oracle });
@@ -76,7 +84,7 @@ contract ChainLinkOracleModule is OracleModule {
     /**
      * @notice Sets an oracle to inactive if it is not properly functioning.
      * @param oracleId The identifier of the oracle to be checked.
-     * @return success Boolean indicating if the oracle is still in use.
+     * @return oracleIsInUse Boolean indicating if the oracle is still in use.
      * @dev An inactive oracle will revert.
      * @dev Anyone can call this function as part of an oracle failsafe mechanism.
      * @dev If the oracle becomes functionally again (all checks pass), anyone can activate the oracle again.
@@ -85,10 +93,10 @@ contract ChainLinkOracleModule is OracleModule {
      * - The oracle returns the minimum value.
      * - The oracle didn't update for over a week.
      */
-    function decommissionOracle(uint256 oracleId) external override returns (bool) {
+    function decommissionOracle(uint256 oracleId) external override returns (bool oracleIsInUse) {
         address oracle = oracleInformation[oracleId].oracle;
 
-        bool oracleIsInUse = true;
+        oracleIsInUse = true;
 
         try IChainLinkData(oracle).latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80)
         {
@@ -104,8 +112,6 @@ contract ChainLinkOracleModule is OracleModule {
         }
 
         oracleInformation[oracleId].isActive = oracleIsInUse;
-
-        return oracleIsInUse;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -128,8 +134,8 @@ contract ChainLinkOracleModule is OracleModule {
         require(oracleInformation_.isActive, "OH_GR: Inactive Oracle");
 
         (, int256 tempRate,,,) = IChainLinkData(oracleInformation_.oracle).latestRoundData();
-        require(tempRate >= 0, "OH_GR: Negative Rate");
 
+        // Only overflows at absurdly large rates.
         unchecked {
             oracleRate = uint256(tempRate) * oracleInformation_.unitCorrection;
         }

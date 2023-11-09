@@ -125,6 +125,7 @@ contract CheckOracleSequence_AbstractPrimaryPricingModule_Fuzz_Test is AbstractP
         vm.assume(!oracleModule.isActive(oracleNew));
 
         // And one of the old oracles is not active anymore.
+        vm.assume(oraclesOld[0] != oracleNew);
         oracleModule.setIsActive(oraclesOld[0], false);
 
         uint80[] memory oraclesIds = new uint80[](1);
@@ -154,6 +155,7 @@ contract CheckOracleSequence_AbstractPrimaryPricingModule_Fuzz_Test is AbstractP
         pricingModule.setAssetInformation(asset, assetId, 0, oracleSequenceOld);
 
         // And one of the old oracles is not active anymore.
+        vm.assume(oraclesOld[0] != oracleNew);
         oracleModule.setIsActive(oraclesOld[0], false);
 
         // And new oracles have a bad sequence.
@@ -188,10 +190,13 @@ contract CheckOracleSequence_AbstractPrimaryPricingModule_Fuzz_Test is AbstractP
         pricingModule.setAssetInformation(asset, assetId, 0, oracleSequenceOld);
 
         // And one of the old oracles is not active anymore.
+        lengthNew = bound(lengthNew, 1, 3);
+        for (uint256 i; i < lengthNew; ++i) {
+            vm.assume(oraclesOld[0] != oraclesNew[i]);
+        }
         oracleModule.setIsActive(oraclesOld[0], false);
 
         // Add the new oracles.
-        lengthNew = bound(lengthNew, 1, 3);
         addOracles(lengthNew, directionsNew, oraclesNew);
         bytes32 oracleSequenceNew = getOracleSequence(lengthNew, directionsNew, oraclesNew);
 

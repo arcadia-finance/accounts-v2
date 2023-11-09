@@ -9,6 +9,7 @@ import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib
 import { AccountV1 } from "../../src/AccountV1.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
+import { ChainLinkOracleModule } from "../../src/oracle-modules/ChainLinkOracleModule.sol";
 import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
 import { FloorERC721PricingModule } from "../../src/pricing-modules/FloorERC721PricingModule.sol";
@@ -71,6 +72,24 @@ contract BitPackingLibExtension {
 
     function unpack(bytes32 packedData) public pure returns (bool[] memory boolValues, uint256[] memory uintValues) {
         (boolValues, uintValues) = BitPackingLib.unpack(packedData);
+    }
+}
+
+contract ChainLinkOracleModuleExtension is ChainLinkOracleModule {
+    constructor(address mainRegistry_) ChainLinkOracleModule(mainRegistry_) { }
+
+    function getInOracleModule(address oracle) public view returns (bool) {
+        return inOracleModule[oracle];
+    }
+
+    function getOracleInformation(uint256 oracleId)
+        public
+        view
+        returns (bool isActive_, uint64 unitCorrection, address oracle)
+    {
+        isActive_ = oracleInformation[oracleId].isActive;
+        unitCorrection = oracleInformation[oracleId].unitCorrection;
+        oracle = oracleInformation[oracleId].oracle;
     }
 }
 

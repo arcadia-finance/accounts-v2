@@ -68,6 +68,9 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(0));
         vm.assume(logic != address(mainRegistryExtension));
         vm.assume(logic != address(vm));
+        vm.assume(logic != address(accountV1Logic));
+        vm.assume(logic != address(accountV2Logic));
+        vm.assume(logic != address(proxyAccount));
         vm.assume(newAssetAddress != address(0));
 
         vm.startPrank(users.creatorAddress);
