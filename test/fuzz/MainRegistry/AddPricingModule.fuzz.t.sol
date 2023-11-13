@@ -49,6 +49,8 @@ contract AddPricingModule_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.assume(pricingModule != address(floorERC721PricingModule));
         vm.assume(pricingModule != address(floorERC1155PricingModule));
         vm.assume(pricingModule != address(uniV3PricingModule));
+        vm.assume(pricingModule != address(derivedPricingModule));
+        vm.assume(pricingModule != address(primaryPricingModule));
 
         // When: users.creatorAddress calls addPricingModule for address(erc20PricingModule)
         vm.startPrank(users.creatorAddress);

@@ -5,7 +5,7 @@
 pragma solidity 0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
-import { DeployAddresses, DeployNumbers, DeployBytes, DeployRiskConstantsBase } from "./Constants/DeployConstants.sol";
+import { DeployAddresses, DeployBytes, DeployRiskConstantsBase } from "./Constants/DeployConstants.sol";
 
 import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
 import { Factory } from "../src/Factory.sol";
@@ -16,7 +16,7 @@ import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20
 import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
 import { UniswapV3PricingModule } from "../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
 
-import { ActionMultiCallV2 } from "../src/actions/MultiCallV2.sol";
+import { ActionMultiCall } from "../src/actions/MultiCall.sol";
 
 import { ILendingPool } from "./interfaces/ILendingPool.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
@@ -36,7 +36,7 @@ contract ArcadiaAccountDeployment is Test {
     StandardERC20PricingModule internal standardERC20PricingModule;
     UniswapV3PricingModule internal uniswapV3PricingModule;
     ChainlinkOracleModule internal chainlinkOM;
-    ActionMultiCallV2 internal actionMultiCall;
+    ActionMultiCall internal actionMultiCall;
 
     ILendingPool internal wethLendingPool;
     ILendingPool internal usdcLendingPool;
@@ -89,7 +89,7 @@ contract ArcadiaAccountDeployment is Test {
         chainlinkOM = new ChainlinkOracleModule(address(mainRegistry));
 
         account = new AccountV1();
-        actionMultiCall = new ActionMultiCallV2();
+        actionMultiCall = new ActionMultiCall();
 
         mainRegistry.addPricingModule(address(standardERC20PricingModule));
         mainRegistry.addPricingModule(address(uniswapV3PricingModule));
@@ -130,6 +130,8 @@ contract ArcadiaAccountDeployment is Test {
         standardERC20PricingModule.addAsset(
             DeployAddresses.reth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleRethToEthToUsdArr)
         );
+
+        uniswapV3PricingModule.setProtocol();
 
         factory.setNewAccountInfo(address(mainRegistry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);
