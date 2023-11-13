@@ -68,6 +68,7 @@ contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         token0.approve(address(univ3PosMgr), amount0Desired);
         token1.approve(address(univ3PosMgr), amount1Desired);
 
+        bound(tickUpper, type(int24).min + 1, type(int24).max);
         bound(tickLower, type(int24).min, tickUpper - 1);
 
         NonfungiblePositionManagerMock.MintParams memory params = NonfungiblePositionManagerMock.MintParams({
