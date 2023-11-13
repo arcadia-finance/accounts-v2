@@ -61,8 +61,8 @@ abstract contract Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     event AllowedActionSet(address indexed action, bool allowed);
-    event AssetAdded(address indexed assetAddress, address indexed pricingModule, uint8 assetType);
-    event PricingModuleAdded(address pricingModule);
+    event AssetAdded(address indexed assetAddress, address indexed assetModule, uint8 assetType);
+    event AssetModuleAdded(address assetModule);
     event OracleModuleAdded(address oracleModule);
 
     /*//////////////////////////////////////////////////////////////////////////

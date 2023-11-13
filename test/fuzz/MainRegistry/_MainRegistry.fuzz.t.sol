@@ -8,9 +8,9 @@ import { Fuzz_Test, Constants } from "../Fuzz.t.sol";
 
 import { AccountV1 } from "../../../src/AccountV1.sol";
 import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
-import { DerivedPricingModuleMock } from "../../utils/mocks/DerivedPricingModuleMock.sol";
+import { DerivedAssetModuleMock } from "../../utils/mocks/DerivedAssetModuleMock.sol";
 import { OracleModuleMock } from "../../utils/mocks/OracleModuleMock.sol";
-import { PrimaryPricingModuleMock } from "../../utils/mocks/PrimaryPricingModuleMock.sol";
+import { PrimaryAssetModuleMock } from "../../utils/mocks/PrimaryAssetModuleMock.sol";
 
 /**
  * @notice Common logic needed by all "MainRegistry" fuzz tests.
@@ -24,8 +24,8 @@ abstract contract MainRegistry_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    PrimaryPricingModuleMock internal primaryPricingModule;
-    DerivedPricingModuleMock internal derivedPricingModule;
+    PrimaryAssetModuleMock internal primaryAssetModule;
+    DerivedAssetModuleMock internal derivedAssetModule;
 
     OracleModuleMock internal oracleModule;
 
@@ -37,11 +37,11 @@ abstract contract MainRegistry_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.creatorAddress);
-        primaryPricingModule = new PrimaryPricingModuleMock(address(mainRegistryExtension), 0);
-        mainRegistryExtension.addPricingModule(address(primaryPricingModule));
+        primaryAssetModule = new PrimaryAssetModuleMock(address(mainRegistryExtension), 0);
+        mainRegistryExtension.addAssetModule(address(primaryAssetModule));
 
-        derivedPricingModule = new DerivedPricingModuleMock(address(mainRegistryExtension), 0);
-        mainRegistryExtension.addPricingModule(address(derivedPricingModule));
+        derivedAssetModule = new DerivedAssetModuleMock(address(mainRegistryExtension), 0);
+        mainRegistryExtension.addAssetModule(address(derivedAssetModule));
         vm.stopPrank();
     }
 

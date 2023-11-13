@@ -1,0 +1,63 @@
+/**
+ * Created by Pragma Labs
+ * SPDX-License-Identifier: BUSL-1.1
+ */
+pragma solidity 0.8.19;
+
+import { MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
+
+/**
+ * @notice Fuzz tests for the function "addAssetModule" of contract "MainRegistry".
+ */
+contract AddAssetModule_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
+    /* ///////////////////////////////////////////////////////////////
+                              SETUP
+    /////////////////////////////////////////////////////////////// */
+
+    function setUp() public override {
+        MainRegistry_Fuzz_Test.setUp();
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              TESTS
+    //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_addAssetModule_NonOwner(address unprivilegedAddress_) public {
+        // Given: unprivilegedAddress_ is not users.creatorAddress
+        vm.assume(unprivilegedAddress_ != users.creatorAddress);
+        vm.startPrank(unprivilegedAddress_);
+        // When: unprivilegedAddress_ calls addAssetModule
+
+        // Then: addAssetModule should revert with "UNAUTHORIZED"
+        vm.expectRevert("UNAUTHORIZED");
+        mainRegistryExtension.addAssetModule(address(erc20AssetModule));
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_addAssetModule_AddExistingAssetModule() public {
+        // Given: All necessary contracts deployed on setup
+
+        // When: users.creatorAddress calls addAssetModule for address(erc20AssetModule)
+        // Then: addAssetModule should revert with "MR_APM: AssetMod. not unique"
+        vm.prank(users.creatorAddress);
+        vm.expectRevert("MR_APM: AssetMod. not unique");
+        mainRegistryExtension.addAssetModule(address(erc20AssetModule));
+    }
+
+    function testFuzz_Success_addAssetModule(address assetModule) public {
+        // Given: assetModule is different from previously deployed asset modules.
+        vm.assume(assetModule != address(erc20AssetModule));
+        vm.assume(assetModule != address(floorERC721AssetModule));
+        vm.assume(assetModule != address(floorERC1155AssetModule));
+        vm.assume(assetModule != address(uniV3AssetModule));
+
+        // When: users.creatorAddress calls addAssetModule for address(erc20AssetModule)
+        vm.startPrank(users.creatorAddress);
+        vm.expectEmit(true, true, true, true);
+        emit AssetModuleAdded(assetModule);
+        mainRegistryExtension.addAssetModule(assetModule);
+        vm.stopPrank();
+
+        // Then: isAssetModule for address(erc20AssetModule) should return true
+        assertTrue(mainRegistryExtension.isAssetModule(assetModule));
+    }
+}

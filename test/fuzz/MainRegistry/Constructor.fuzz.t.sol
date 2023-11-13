@@ -28,6 +28,6 @@ contract Constructor_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         MainRegistry mainRegistry = new MainRegistry(address(factory));
         vm.stopPrank();
 
-        assertEq(mainRegistry.factory(), address(factory));
+        assertEq(mainRegistry.FACTORY(), address(factory));
     }
 }

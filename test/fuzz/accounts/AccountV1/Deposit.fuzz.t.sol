@@ -201,7 +201,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         uint256[] memory assetAmounts = new uint256[](3);
         assetAmounts[0] = 0;
-        assetAmounts[1] = 1; // NFT amounts must be 1 in Pricing Module.
+        assetAmounts[1] = 1; // NFT amounts must be 1 in Asset Module.
         assetAmounts[2] = 0;
 
         mintDepositAssets(0, erc721Id, 0);

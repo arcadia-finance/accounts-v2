@@ -45,7 +45,7 @@ abstract contract OracleModule is Owned {
      * @dev Only the Main Registry can call functions with this modifier.
      */
     modifier onlyMainReg() {
-        require(msg.sender == MAIN_REGISTRY, "APM: ONLY_MAIN_REGISTRY");
+        require(msg.sender == MAIN_REGISTRY, "AAM: ONLY_MAIN_REGISTRY");
         _;
     }
 

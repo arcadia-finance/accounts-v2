@@ -21,7 +21,7 @@ contract AddOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_addOracle_NonPricingModule(address unprivilegedAddress_) public {
+    function testFuzz_Revert_addOracle_NonAssetModule(address unprivilegedAddress_) public {
         vm.assume(!mainRegistryExtension.isOracleModule(unprivilegedAddress_));
 
         vm.prank(users.creatorAddress);

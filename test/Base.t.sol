@@ -11,11 +11,11 @@ import { AccountV1 } from "../src/AccountV1.sol";
 import { AccountV2 } from "./utils/mocks/AccountV2.sol";
 import { ChainlinkOracleModuleExtension } from "./utils/Extensions.sol";
 import { MainRegistryExtension } from "./utils/Extensions.sol";
-import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
-import { StandardERC20PricingModuleExtension } from "./utils/Extensions.sol";
-import { FloorERC721PricingModuleExtension } from "./utils/Extensions.sol";
-import { FloorERC1155PricingModuleExtension } from "./utils/Extensions.sol";
-import { UniswapV3PricingModuleExtension } from "./utils/Extensions.sol";
+import { AssetModule } from "../src/asset-modules/AbstractAssetModule.sol";
+import { StandardERC20AssetModuleExtension } from "./utils/Extensions.sol";
+import { FloorERC721AssetModuleExtension } from "./utils/Extensions.sol";
+import { FloorERC1155AssetModuleExtension } from "./utils/Extensions.sol";
+import { UniswapV3AssetModuleExtension } from "./utils/Extensions.sol";
 import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Errors } from "./utils/Errors.sol";
@@ -39,10 +39,10 @@ abstract contract Base_Test is Test, Events, Errors {
     Factory internal factory;
     MainRegistryExtension internal mainRegistryExtension;
     ChainlinkOracleModuleExtension internal chainlinkOM;
-    StandardERC20PricingModuleExtension internal erc20PricingModule;
-    FloorERC721PricingModuleExtension internal floorERC721PricingModule;
-    FloorERC1155PricingModuleExtension internal floorERC1155PricingModule;
-    UniswapV3PricingModuleExtension internal uniV3PricingModule;
+    StandardERC20AssetModuleExtension internal erc20AssetModule;
+    FloorERC721AssetModuleExtension internal floorERC721AssetModule;
+    FloorERC1155AssetModuleExtension internal floorERC1155AssetModule;
+    UniswapV3AssetModuleExtension internal uniV3AssetModule;
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
     AccountV1 internal proxyAccount;
@@ -72,9 +72,9 @@ abstract contract Base_Test is Test, Events, Errors {
         factory = new Factory();
         mainRegistryExtension = new MainRegistryExtension(address(factory));
         chainlinkOM = new ChainlinkOracleModuleExtension(address(mainRegistryExtension));
-        erc20PricingModule = new StandardERC20PricingModuleExtension(address(mainRegistryExtension));
-        floorERC721PricingModule = new FloorERC721PricingModuleExtension(address(mainRegistryExtension));
-        floorERC1155PricingModule = new FloorERC1155PricingModuleExtension(
+        erc20AssetModule = new StandardERC20AssetModuleExtension(address(mainRegistryExtension));
+        floorERC721AssetModule = new FloorERC721AssetModuleExtension(address(mainRegistryExtension));
+        floorERC1155AssetModule = new FloorERC1155AssetModuleExtension(
             address(mainRegistryExtension)
         );
 
@@ -91,11 +91,11 @@ abstract contract Base_Test is Test, Events, Errors {
         mainRegistryExtension.changeGuardian(users.guardian);
         vm.stopPrank();
 
-        // Add Pricing Modules to the Main Registry.
+        // Add Asset Modules to the Main Registry.
         vm.startPrank(users.creatorAddress);
-        mainRegistryExtension.addPricingModule(address(erc20PricingModule));
-        mainRegistryExtension.addPricingModule(address(floorERC721PricingModule));
-        mainRegistryExtension.addPricingModule(address(floorERC1155PricingModule));
+        mainRegistryExtension.addAssetModule(address(erc20AssetModule));
+        mainRegistryExtension.addAssetModule(address(floorERC721AssetModule));
+        mainRegistryExtension.addAssetModule(address(floorERC1155AssetModule));
         vm.stopPrank();
 
         // Add Oracle Modules to the Main Registry.
@@ -107,9 +107,9 @@ abstract contract Base_Test is Test, Events, Errors {
         vm.label({ account: address(factory), newLabel: "Factory" });
         vm.label({ account: address(mainRegistryExtension), newLabel: "Main Registry" });
         vm.label({ account: address(chainlinkOM), newLabel: "Chainlink Oracle Module" });
-        vm.label({ account: address(erc20PricingModule), newLabel: "Standard ERC20 Pricing Module" });
-        vm.label({ account: address(floorERC721PricingModule), newLabel: "ERC721 Pricing Module" });
-        vm.label({ account: address(floorERC1155PricingModule), newLabel: "ERC1155 Pricing Module" });
+        vm.label({ account: address(erc20AssetModule), newLabel: "Standard ERC20 Asset Module" });
+        vm.label({ account: address(floorERC721AssetModule), newLabel: "ERC721 Asset Module" });
+        vm.label({ account: address(floorERC1155AssetModule), newLabel: "ERC1155 Asset Module" });
         vm.label({ account: address(accountV1Logic), newLabel: "Account V1 Logic" });
         vm.label({ account: address(accountV2Logic), newLabel: "Account V2 Logic" });
 
@@ -130,15 +130,15 @@ abstract contract Base_Test is Test, Events, Errors {
         return user;
     }
 
-    function deployUniswapV3PricingModule(address nonfungiblePositionManager_) internal {
+    function deployUniswapV3AssetModule(address nonfungiblePositionManager_) internal {
         // Get the bytecode of the UniswapV3PoolExtension.
         bytes memory args = abi.encode();
         bytes memory bytecode = abi.encodePacked(vm.getCode("UniswapV3PoolExtension.sol"), args);
         bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
 
-        // Get the bytecode of UniswapV3PricingModuleExtension.
+        // Get the bytecode of UniswapV3AssetModuleExtension.
         args = abi.encode(address(mainRegistryExtension), nonfungiblePositionManager_);
-        bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3PricingModuleExtension"), args);
+        bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3AssetModuleExtension"), args);
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.
         // -> Replace the code hash of UniswapV3Pool.sol with the code hash of UniswapV3PoolExtension.sol
@@ -147,19 +147,15 @@ abstract contract Base_Test is Test, Events, Errors {
 
         // Deploy UniswapV3PoolExtension with modified bytecode.
         vm.prank(users.creatorAddress);
-        address uniV3PricingModule_ = Utils.deployBytecode(bytecode);
-        uniV3PricingModule = UniswapV3PricingModuleExtension(uniV3PricingModule_);
+        address uniV3AssetModule_ = Utils.deployBytecode(bytecode);
+        uniV3AssetModule = UniswapV3AssetModuleExtension(uniV3AssetModule_);
 
-        vm.label({ account: address(uniV3PricingModule), newLabel: "Uniswap V3 Pricing Module" });
+        vm.label({ account: address(uniV3AssetModule), newLabel: "Uniswap V3 Asset Module" });
 
-        // Add the Pricing Module to the MainRegistry.
+        // Add the Asset Module to the MainRegistry.
         vm.startPrank(users.creatorAddress);
-        mainRegistryExtension.addPricingModule(address(uniV3PricingModule));
-        uniV3PricingModule.setProtocol();
+        mainRegistryExtension.addAssetModule(address(uniV3AssetModule));
+        uniV3AssetModule.setProtocol();
         vm.stopPrank();
     }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                                    CALL EXPECTS
-    //////////////////////////////////////////////////////////////////////////*/
 }

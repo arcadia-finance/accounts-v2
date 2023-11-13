@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
-import { PricingModule } from "../../../../src/pricing-modules/AbstractPricingModule.sol";
+import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 
 /**
