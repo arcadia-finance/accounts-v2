@@ -27,4 +27,11 @@ interface ITrustedCreditor {
      * @return riskManager The Risk Manager of the creditor.
      */
     function riskManager() external view returns (address riskManager);
+
+    /**
+     * @notice Starts the liquidation of an account and returns the open position of the Account.
+     * @param account The account address.
+     * @return openPosition the open position of the Account
+     */
+    function startLiquidation(address account) external view returns (uint256);
 }

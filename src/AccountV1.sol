@@ -496,7 +496,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256 fixedLiquidationCost_ = fixedLiquidationCost;
 
         //As the function is only callable by the liquidator, it means that a liquidator and a trustedCreditor are set.
-        totalOpenDebt = ITrustedCreditor(trustedCreditor).getOpenPosition(address(this));
+        totalOpenDebt = ITrustedCreditor(trustedCreditor).startLiquidation(address(this));
 
         uint256 usedMargin = totalOpenDebt + fixedLiquidationCost_;
 
