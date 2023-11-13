@@ -32,8 +32,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
             assets: new address[](1),
             assetIds: new uint256[](0),
             assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](1)
         });
 
         ActionData memory fromOwner;
@@ -59,8 +58,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
             assets: new address[](1),
             assetIds: new uint256[](0),
             assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](1)
         });
 
         ActionData memory fromOwner;
@@ -107,13 +105,8 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
             }
         }
 
-        ActionData memory depositData = ActionData({
-            assets: assets_,
-            assetIds: ids,
-            assetAmounts: amounts,
-            assetTypes: types,
-            actionBalances: new uint256[](assets.length)
-        });
+        ActionData memory depositData =
+            ActionData({ assets: assets_, assetIds: ids, assetAmounts: amounts, assetTypes: types });
 
         address[] memory mintedAssets_ = mintedAssets;
         uint256[] memory mintedIds_ = mintedIds;

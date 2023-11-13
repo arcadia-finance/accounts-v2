@@ -133,8 +133,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: assetAddresses,
             assetIds: assetIds,
             assetAmounts: assetAmounts,
-            assetTypes: assetTypes,
-            actionBalances: new uint256[](0)
+            assetTypes: assetTypes
         });
 
         IPermit2.TokenPermissions[] memory tokenPermissions;
@@ -224,8 +223,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](1)
         });
 
         assetDataOut.assets[0] = address(mockERC20.token1);
@@ -237,8 +235,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](1)
         });
 
         assetDataIn.assets[0] = address(mockERC20.token2);
@@ -420,8 +417,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](1)
         });
 
         assetDataOut.assets[0] = address(mockERC20.token1);
@@ -433,8 +429,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: new address[](3),
             assetIds: new uint256[](3),
             assetAmounts: new uint256[](3),
-            assetTypes: new uint256[](3),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](3)
         });
 
         // Bring signature back to stack to avoid stack too deep below
@@ -457,8 +452,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: new address[](2),
             assetIds: new uint256[](2),
             assetAmounts: new uint256[](2),
-            assetTypes: new uint256[](2),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](2)
         });
 
         transferFromOwner.assets[0] = address(mockERC20.stable1);
@@ -577,8 +571,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](1)
         });
 
         assetDataOut.assets[0] = address(mockERC20.token1);
@@ -590,8 +583,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](1)
         });
 
         assetDataIn.assets[0] = address(mockERC20.token2);
