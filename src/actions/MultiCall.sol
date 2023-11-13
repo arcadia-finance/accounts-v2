@@ -59,10 +59,15 @@ contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
             if (depositData.assetTypes[i] == 0) {
                 depositData.assetAmounts[i] = IERC20(depositData.assets[i]).balanceOf(address(this));
             } else if (depositData.assetTypes[i] == 1) {
+                // if the amount is 0, we minted a new NFT
                 if (depositData.assetAmounts[i] == 0) {
                     depositData.assetAmounts[i] = 1;
+
+                    // start taking data from the minted arrays
+                    // we can overwrite address and ID from depositData
+                    // all assets with type == 1 and amount == 0 are stored in the minted arrays
                     depositData.assetIds[i] = mintedIds[mintedIds.length - 1];
-                    depositData.assets[i] = mintedAssets[mintedAssets.length - 1]; //we overwrite the asset if needed
+                    depositData.assets[i] = mintedAssets[mintedAssets.length - 1];
                     mintedIds.pop();
                     mintedAssets.pop();
                 }
