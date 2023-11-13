@@ -498,10 +498,10 @@ contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
 
 contract MultiCallExtention is ActionMultiCall {
     function assets() public view returns (address[] memory) {
-        return _mintedAssets;
+        return mintedAssets;
     }
 
     function ids() public view returns (uint256[] memory) {
-        return _mintedIds;
+        return mintedIds;
     }
 }
