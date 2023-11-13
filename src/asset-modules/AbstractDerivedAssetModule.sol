@@ -483,7 +483,6 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 lastUsdExposureProtocol = riskParams[creditor].lastUsdExposureProtocol;
 
         // Update lastUsdExposureProtocol.
-        // ToDo: What about the edge case of a deposit with 0 usdExposureProtocol and 0 maxUsdExposureProtocol?
         uint256 usdExposureProtocol;
         if (usdExposureAsset >= lastUsdExposureAsset) {
             usdExposureProtocol = lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset);
@@ -492,7 +491,7 @@ abstract contract DerivedAssetModule is AssetModule {
                 ? lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset)
                 : 0;
         }
-        require(usdExposureProtocol <= riskParams[creditor].maxUsdExposureProtocol, "ADAM_PD: Exposure not in limits");
+        require(usdExposureProtocol < riskParams[creditor].maxUsdExposureProtocol, "ADAM_PD: Exposure not in limits");
         riskParams[creditor].lastUsdExposureProtocol = uint128(usdExposureProtocol);
     }
 

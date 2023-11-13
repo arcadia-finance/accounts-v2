@@ -148,10 +148,7 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
      * @dev amount of a deposit in ERC721 asset module must be 1.
      * @dev super.processDirectDeposit does check that msg.sender is the MainRegistry.
      */
-    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256)
-        public
-        override
-    {
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256) public override {
         require(isAllowed(asset, assetId), "AM721_PDD: Asset not allowed");
 
         // Also checks that msg.sender == MainRegistry.

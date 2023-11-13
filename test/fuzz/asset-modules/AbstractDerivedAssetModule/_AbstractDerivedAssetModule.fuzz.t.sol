@@ -190,9 +190,9 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
             }
         }
 
-        // And: No overflow on exposureAssetToUnderlyingAsset.
+        // And: "exposure" of underlyingAsset is strictly smaller as its "maxExposure".
         assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max - 1);
 
         if (underlyingPMState.usdValue >= assetState.lastUsdExposureAsset) {
             // And: "usdExposureProtocol" does not overflow (unrealistically big).
@@ -231,7 +231,7 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
             protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 
-        // And: exposure does not exceeds max exposure.
+        // And: "exposure" is strictly smaller as "maxExposure".
         uint256 usdExposureProtocolExpected;
         if (underlyingPMState.usdValue >= assetState.lastUsdExposureAsset) {
             usdExposureProtocolExpected =
@@ -242,8 +242,9 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
                 ? protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - underlyingPMState.usdValue)
                 : 0;
         }
+        vm.assume(usdExposureProtocolExpected < type(uint128).max);
         protocolState.maxUsdExposureProtocol =
-            uint128(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected, type(uint128).max));
+            uint128(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected + 1, type(uint128).max));
 
         return (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
     }

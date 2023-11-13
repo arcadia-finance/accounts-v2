@@ -203,7 +203,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
         require(
-            lastExposureAsset + amount <= riskParams[creditor][assetKey].maxExposure, "APAM_PDD: Exposure not in limits"
+            lastExposureAsset + amount < riskParams[creditor][assetKey].maxExposure, "APAM_PDD: Exposure not in limits"
         );
 
         unchecked {
@@ -242,7 +242,7 @@ abstract contract PrimaryAssetModule is AssetModule {
                 ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
                 : 0;
         }
-        require(exposureAsset <= riskParams[creditor][assetKey].maxExposure, "APAM_PID: Exposure not in limits");
+        require(exposureAsset < riskParams[creditor][assetKey].maxExposure, "APAM_PID: Exposure not in limits");
         // Unsafe cast: "RiskParameters.maxExposure" is a uint128.
         riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
 

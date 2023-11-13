@@ -48,14 +48,37 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
     function testFuzz_Revert_processDirectDeposit_NonMainRegistry(
         address creditor,
         address unprivilegedAddress,
-        address asset,
-        uint256 id
+        uint128 liquidity,
+        int24 tickLower,
+        int24 tickUpper,
+        uint256 priceToken0,
+        uint256 priceToken1
     ) public {
         vm.assume(unprivilegedAddress != address(mainRegistryExtension));
 
+        // Check that ticks are within allowed ranges.
+        vm.assume(tickLower < tickUpper);
+        vm.assume(isWithinAllowedRange(tickLower));
+        vm.assume(isWithinAllowedRange(tickUpper));
+
+        vm.assume(liquidity > 0);
+
+        // Calculate and check that tick current is within allowed ranges.
+        uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
+        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
+
+        // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
+        pool = createPool(token0, token1, sqrtPriceX96, 300);
+
+        // Check that Liquidity is within allowed ranges.
+        vm.assume(liquidity <= pool.maxLiquidityPerTick());
+
+        // Mint liquidity position.
+        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
-        uniV3AssetModule.processDirectDeposit(creditor, asset, id, 1);
+        uniV3AssetModule.processDirectDeposit(creditor, address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -126,7 +149,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
 
         // Condition on which the call should revert: exposure to token0 becomes bigger as maxExposure0.
         vm.assume(amount0 > 0);
-        vm.assume(amount0 + initialExposure0 > maxExposure0);
+        vm.assume(amount0 + initialExposure0 >= maxExposure0);
 
         // Add underlying tokens and its oracles to Arcadia.
         addUnderlyingTokenToArcadia(address(token0), int256(priceToken0), initialExposure0, maxExposure0);
@@ -176,11 +199,11 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         );
 
         // And: exposure0 does not exceed maximum.
-        vm.assume(amount0 <= type(uint128).max);
+        vm.assume(amount0 < type(uint128).max);
 
         // Condition on which the call should revert: exposure to token1 becomes bigger as maxExposure1.
         vm.assume(amount1 > 0);
-        vm.assume(amount1 + initialExposure1 > maxExposure1);
+        vm.assume(amount1 + initialExposure1 >= maxExposure1);
 
         // And: Usd value of underlying asset does not overflow.
         vm.assume(amount0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
@@ -243,8 +266,8 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
             );
 
             // Check that exposure to underlying tokens stays below maxExposures.
-            vm.assume(amount0 + initialExposure0 <= maxExposure0);
-            vm.assume(amount1 + initialExposure1 <= maxExposure1);
+            vm.assume(amount0 + initialExposure0 < maxExposure0);
+            vm.assume(amount1 + initialExposure1 < maxExposure1);
 
             // And: Usd value of underlying assets does not overflow.
             vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
@@ -259,9 +282,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
                 uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
-            vm.assume(usdExposureProtocol > 0);
-            vm.assume(usdExposureProtocol <= type(uint128).max);
-            maxUsdExposureProtocol = uint128(bound(maxUsdExposureProtocol, 0, usdExposureProtocol - 1));
+            maxUsdExposureProtocol = uint128(bound(maxUsdExposureProtocol, 0, usdExposureProtocol));
         }
 
         vm.prank(users.riskManager);
@@ -322,8 +343,8 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
             );
 
             // Check that exposure to underlying tokens stays below maxExposures.
-            vm.assume(amount0 + initialExposure0 <= maxExposure0);
-            vm.assume(amount1 + initialExposure1 <= maxExposure1);
+            vm.assume(amount0 + initialExposure0 < maxExposure0);
+            vm.assume(amount1 + initialExposure1 < maxExposure1);
 
             // And: Usd value of underlying assets does not overflow.
             vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
@@ -338,8 +359,8 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
                 uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
-            vm.assume(usdExposureProtocol <= type(uint128).max);
-            maxUsdExposureProtocol = uint128(bound(maxUsdExposureProtocol, usdExposureProtocol, type(uint128).max));
+            vm.assume(usdExposureProtocol < type(uint128).max);
+            maxUsdExposureProtocol = uint128(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint128).max));
         }
 
         vm.prank(users.riskManager);

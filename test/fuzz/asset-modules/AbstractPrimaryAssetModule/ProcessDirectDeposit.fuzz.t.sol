@@ -48,9 +48,8 @@ contract ProcessDirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPr
         amount = bound(amount, 0, type(uint256).max - assetState.exposureAssetLast);
         uint256 expectedExposure = assetState.exposureAssetLast + amount;
 
-        // And: "exposureAsset" is bigger than"exposureAssetMax" (test-case).
-        vm.assume(expectedExposure > 0);
-        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, 0, expectedExposure - 1));
+        // And: "exposureAsset" is bigger or equal as "exposureAssetMax" (test-case).
+        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, 0, expectedExposure));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
@@ -66,10 +65,12 @@ contract ProcessDirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPr
     function testFuzz_Success_processDirectDeposit(PrimaryAssetModuleAssetState memory assetState, uint256 amount)
         public
     {
-        // Given: "exposureAsset" is smaller or equal as "exposureAssetMax" (test-case).
-        amount = bound(amount, 0, type(uint128).max - assetState.exposureAssetLast);
+        // Given: "exposureAsset" is strictly smaller as "exposureAssetMax" (test-case).
+        assetState.exposureAssetLast = uint128(bound(assetState.exposureAssetLast, 0, type(uint128).max - 1));
+        amount = bound(amount, 0, type(uint128).max - assetState.exposureAssetLast - 1);
         uint256 expectedExposure = assetState.exposureAssetLast + amount;
-        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, expectedExposure, type(uint128).max));
+        assetState.exposureAssetMax =
+            uint128(bound(assetState.exposureAssetMax, expectedExposure + 1, type(uint128).max));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);

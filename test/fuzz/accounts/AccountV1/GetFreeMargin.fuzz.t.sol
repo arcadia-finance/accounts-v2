@@ -44,6 +44,9 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Mock initial debt.
         creditorStable1.setOpenPosition(address(accountExtension), openDebt);
 
+        // Given: "exposure" is strictly smaller as "maxExposure".
+        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
+
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
 
@@ -58,8 +61,9 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // No overflow of Used Margin.
         vm.assume(openDebt <= type(uint256).max - fixedLiquidationCost);
 
+        // "exposure" is strictly smaller as "maxExposure" -> collateralValue < type(uint128).max.
         // Non zero free margin -> "collateralValue" bigger as "usedMargin".
-        collateralValue = uint128(bound(collateralValue, 1, type(uint128).max));
+        collateralValue = uint128(bound(collateralValue, 1, type(uint128).max - 1));
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, collateralValue - 1);
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
         openDebt = bound(openDebt, 0, collateralValue - fixedLiquidationCost - 1);
@@ -88,6 +92,8 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Zero free margin -> "collateralValue" smaller or equal as "usedMargin".
         collateralValue = uint128(bound(collateralValue, 0, usedMargin));
+        // "exposure" is strictly smaller as "maxExposure" -> collateralValue < type(uint128).max.
+        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
