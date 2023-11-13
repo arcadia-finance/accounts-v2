@@ -6,8 +6,6 @@ pragma solidity 0.8.19;
 
 import { MultiCall_Fuzz_Test } from "./_MultiCall.fuzz.t.sol";
 
-import "../../../../src/actions/utils/ActionData.sol";
-
 /**
  * @notice Fuzz tests for the function "checkAmountOut" of contract "MultiCall".
  */

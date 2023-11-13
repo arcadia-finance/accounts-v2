@@ -15,7 +15,7 @@ import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol"
 import { UniswapV3PricingModule } from "../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
 import { OracleHub } from "../src/OracleHub.sol";
 
-import { ActionMultiCallV2 } from "../src/actions/MultiCallV2.sol";
+import { ActionMultiCall } from "../src/actions/MultiCall.sol";
 
 import { ILendingPool } from "./interfaces/ILendingPool.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
@@ -35,7 +35,7 @@ contract ArcadiaAccountDeployment is Test {
     MainRegistry public mainRegistry;
     StandardERC20PricingModule public standardERC20PricingModule;
     UniswapV3PricingModule public uniswapV3PricingModule;
-    ActionMultiCallV2 public actionMultiCall;
+    ActionMultiCall public actionMultiCall;
 
     ILendingPool public wethLendingPool;
     ILendingPool public usdcLendingPool;
@@ -156,7 +156,7 @@ contract ArcadiaAccountDeployment is Test {
             new UniswapV3PricingModule(address(mainRegistry), DeployAddresses.uniswapV3PositionMgr_base);
 
         account = new AccountV1();
-        actionMultiCall = new ActionMultiCallV2();
+        actionMultiCall = new ActionMultiCall();
 
         oracleHub.addOracle(compToUsdOracleInfo);
         oracleHub.addOracle(daiToUsdOracleInfo);
@@ -174,6 +174,8 @@ contract ArcadiaAccountDeployment is Test {
         standardERC20PricingModule.addAsset(DeployAddresses.usdc_base, oracleUsdcToUsdArr);
         standardERC20PricingModule.addAsset(DeployAddresses.cbeth_base, oracleCbethToEthToUsdArr);
         standardERC20PricingModule.addAsset(DeployAddresses.reth_base, oracleRethToEthToUsdArr);
+
+        uniswapV3PricingModule.setProtocol();
 
         factory.setNewAccountInfo(address(mainRegistry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);

@@ -14,7 +14,6 @@ import { FloorERC721PricingModule } from "../../src/pricing-modules/FloorERC721P
 import { FloorERC1155PricingModule } from "../../src/pricing-modules/FloorERC1155PricingModule.sol";
 import { MainRegistryGuardian } from "../../src/guardians/MainRegistryGuardian.sol";
 import { MainRegistry } from "../../src/MainRegistry.sol";
-import { IMainRegistry } from "../../src/interfaces/IMainRegistry.sol";
 import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
 import { PrimaryPricingModule } from "../../src/pricing-modules/AbstractPrimaryPricingModule.sol";
 import { RiskModule } from "../../src/RiskModule.sol";
@@ -22,6 +21,7 @@ import { StandardERC20PricingModule } from "../../src/pricing-modules/StandardER
 import { StandardERC4626PricingModule } from "../../src/pricing-modules/StandardERC4626PricingModule.sol";
 import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
 import { UniswapV3PricingModule } from "../../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
+import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
 
 contract AccountExtension is AccountV1 {
     constructor() AccountV1() { }
@@ -493,5 +493,23 @@ contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
 
     function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {
         return _getUnderlyingAssets(assetKey);
+    }
+}
+
+contract MultiCallExtention is ActionMultiCall {
+    function assets() public view returns (address[] memory) {
+        return mintedAssets;
+    }
+
+    function ids() public view returns (uint256[] memory) {
+        return mintedIds;
+    }
+
+    function setMintedAssets(address[] memory mintedAssets_) public {
+        mintedAssets = mintedAssets_;
+    }
+
+    function setMintedIds(uint256[] memory mintedIds_) public {
+        mintedIds = mintedIds_;
     }
 }
