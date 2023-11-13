@@ -483,22 +483,17 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 lastUsdExposureProtocol = riskParams[creditor].lastUsdExposureProtocol;
 
         // Update lastUsdExposureProtocol.
-        // ToDo: also in else case a deposit should be blocked if final exposure is bigger than maxExposure?.
+        // ToDo: What about the edge case of a deposit with 0 usdExposureProtocol and 0 maxUsdExposureProtocol?
+        uint256 usdExposureProtocol;
         if (usdExposureAsset >= lastUsdExposureAsset) {
-            require(
-                lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset)
-                    <= riskParams[creditor].maxUsdExposureProtocol,
-                "ADAM_PD: Exposure not in limits"
-            );
-            riskParams[creditor].lastUsdExposureProtocol =
-                uint128(lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset));
+            usdExposureProtocol = lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset);
         } else {
-            riskParams[creditor].lastUsdExposureProtocol = uint128(
-                lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset
-                    ? lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset)
-                    : 0
-            );
+            usdExposureProtocol = lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset
+                ? lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset)
+                : 0;
         }
+        require(usdExposureProtocol <= riskParams[creditor].maxUsdExposureProtocol, "ADAM_PD: Exposure not in limits");
+        riskParams[creditor].lastUsdExposureProtocol = uint128(usdExposureProtocol);
     }
 
     /**
@@ -557,20 +552,16 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 lastUsdExposureProtocol = riskParams[creditor].lastUsdExposureProtocol;
 
         // Update lastUsdExposureProtocol.
+        uint256 usdExposureProtocol;
         if (usdExposureAsset >= lastUsdExposureAsset) {
-            require(
-                lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset) <= type(uint128).max,
-                "ADAM_PW: Overflow"
-            );
-            riskParams[creditor].lastUsdExposureProtocol =
-                uint128(lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset));
+            usdExposureProtocol = lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset);
+            require(usdExposureProtocol <= type(uint128).max, "ADAM_PW: Overflow");
         } else {
-            riskParams[creditor].lastUsdExposureProtocol = uint128(
-                lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset
-                    ? lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset)
-                    : 0
-            );
+            usdExposureProtocol = lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset
+                ? lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset)
+                : 0;
         }
+        riskParams[creditor].lastUsdExposureProtocol = uint128(usdExposureProtocol);
     }
 
     /**

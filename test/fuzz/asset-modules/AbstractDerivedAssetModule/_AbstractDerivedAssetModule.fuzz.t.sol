@@ -232,13 +232,18 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
         );
 
         // And: exposure does not exceeds max exposure.
+        uint256 usdExposureProtocolExpected;
         if (underlyingPMState.usdValue >= assetState.lastUsdExposureAsset) {
-            uint256 usdExposureProtocolExpected =
+            usdExposureProtocolExpected =
                 protocolState.lastUsdExposureProtocol + (underlyingPMState.usdValue - assetState.lastUsdExposureAsset);
-
-            protocolState.maxUsdExposureProtocol =
-                uint128(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected, type(uint128).max));
+        } else {
+            usdExposureProtocolExpected = protocolState.lastUsdExposureProtocol
+                > assetState.lastUsdExposureAsset - underlyingPMState.usdValue
+                ? protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - underlyingPMState.usdValue)
+                : 0;
         }
+        protocolState.maxUsdExposureProtocol =
+            uint128(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected, type(uint128).max));
 
         return (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
     }

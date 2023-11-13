@@ -233,15 +233,17 @@ abstract contract PrimaryAssetModule is AssetModule {
         // Cache lastExposureAsset.
         uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
+        // Update lastExposureAsset.
         uint256 exposureAsset;
         if (deltaExposureUpperAssetToAsset > 0) {
             exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
-            require(exposureAsset <= riskParams[creditor][assetKey].maxExposure, "APAM_PID: Exposure not in limits");
         } else {
             exposureAsset = lastExposureAsset > uint256(-deltaExposureUpperAssetToAsset)
                 ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
                 : 0;
         }
+        require(exposureAsset <= riskParams[creditor][assetKey].maxExposure, "APAM_PID: Exposure not in limits");
+        // Unsafe cast: "RiskParameters.maxExposure" is a uint128.
         riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
 
         // Get Value in Usd

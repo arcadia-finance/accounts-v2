@@ -66,6 +66,51 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         derivedAssetModule.processDeposit(assetState.creditor, assetKey, exposureAsset);
     }
 
+    function testFuzz_Revert_processDeposit_NegativeDeltaUsdExposure_OverExposure(
+        DerivedAssetModuleProtocolState memory protocolState,
+        DerivedAssetModuleAssetState memory assetState,
+        UnderlyingAssetModuleState memory underlyingPMState,
+        uint256 exposureAsset
+    ) public {
+        // Given: valid initial state.
+        (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
+
+        // And: No overflow on exposureAssetToUnderlyingAsset.
+        assetState.exposureAssetToUnderlyingAsset =
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
+
+        // And: delta "usdExposureAsset" is negative (test-case).
+        assetState.lastUsdExposureAsset = uint128(bound(assetState.lastUsdExposureAsset, 1, type(uint128).max));
+        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.lastUsdExposureAsset - 1);
+
+        // And: "usdExposureProtocol" does not underflow (test-case).
+        protocolState.lastUsdExposureProtocol = uint128(
+            bound(
+                protocolState.lastUsdExposureProtocol,
+                assetState.lastUsdExposureAsset - underlyingPMState.usdValue,
+                type(uint128).max
+            )
+        );
+        uint256 usdExposureProtocolExpected =
+            protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - underlyingPMState.usdValue);
+
+        // And: exposure exceeds max exposure.
+        vm.assume(usdExposureProtocolExpected > 0);
+        protocolState.maxUsdExposureProtocol =
+            uint128(bound(protocolState.maxUsdExposureProtocol, 0, usdExposureProtocolExpected - 1));
+
+        // And: State is persisted.
+        setDerivedAssetModuleProtocolState(protocolState, assetState.creditor);
+        setDerivedAssetModuleAssetState(assetState);
+        setUnderlyingAssetModuleState(assetState, underlyingPMState);
+
+        // When: "_processDeposit" is called.
+        // Then: The transaction reverts with "ADAM_PD: Exposure not in limits".
+        bytes32 assetKey = derivedAssetModule.getKeyFromAsset(assetState.asset, assetState.assetId);
+        vm.expectRevert("ADAM_PD: Exposure not in limits");
+        derivedAssetModule.processDeposit(assetState.creditor, assetKey, exposureAsset);
+    }
+
     function testFuzz_Success_processDeposit_PositiveDeltaUsdExposure_UnderExposure(
         DerivedAssetModuleProtocolState memory protocolState,
         DerivedAssetModuleAssetState memory assetState,
@@ -157,7 +202,7 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
 
         // And: delta "usdExposureAsset" is negative (test-case).
-        vm.assume(assetState.lastUsdExposureAsset > 0);
+        assetState.lastUsdExposureAsset = uint128(bound(assetState.lastUsdExposureAsset, 1, type(uint128).max));
         underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.lastUsdExposureAsset - 1);
 
         // And: "usdExposureProtocol" does not underflow (test-case).
@@ -170,6 +215,10 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         );
         uint256 usdExposureProtocolExpected =
             protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - underlyingPMState.usdValue);
+
+        // And: exposure does not exceeds max exposure.
+        protocolState.maxUsdExposureProtocol =
+            uint128(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected, type(uint128).max));
 
         // And: State is persisted.
         setDerivedAssetModuleProtocolState(protocolState, assetState.creditor);

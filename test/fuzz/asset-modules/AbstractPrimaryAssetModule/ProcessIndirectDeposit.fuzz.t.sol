@@ -47,7 +47,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_processIndirectDeposit_OverExposure(
+    function testFuzz_Revert_processIndirectDeposit_PositiveDelta_OverExposure(
         PrimaryAssetModuleAssetState memory assetState,
         uint256 exposureUpperAssetToAsset,
         uint256 deltaExposureUpperAssetToAsset
@@ -78,7 +78,37 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         vm.stopPrank();
     }
 
-    function testFuzz_Success_processIndirectDeposit_positiveDelta(
+    function testFuzz_Revert_processIndirectDeposit_NegativeDelta_OverExposure(
+        PrimaryAssetModuleAssetState memory assetState,
+        uint256 exposureUpperAssetToAsset,
+        uint256 deltaExposureUpperAssetToAsset
+    ) public {
+        // Given: "expectedExposure" is not 0.
+        assetState.exposureAssetLast = uint128(bound(assetState.exposureAssetLast, 1, type(uint128).max));
+        deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, 0, assetState.exposureAssetLast - 1);
+        uint256 expectedExposure = assetState.exposureAssetLast - deltaExposureUpperAssetToAsset;
+
+        // And: "exposureAsset" is bigger than"exposureAssetMax" (test-case).
+        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, 0, expectedExposure - 1));
+
+        // And: State is persisted.
+        setPrimaryAssetModuleAssetState(assetState);
+
+        // When: Asset is indirectly deposited.
+        // Then: The transaction reverts with "APAM_PID: Exposure not in limits".
+        vm.startPrank(address(mainRegistryExtension));
+        vm.expectRevert("APAM_PID: Exposure not in limits");
+        assetModule.processIndirectDeposit(
+            assetState.creditor,
+            assetState.asset,
+            assetState.assetId,
+            exposureUpperAssetToAsset,
+            -int256(deltaExposureUpperAssetToAsset)
+        );
+        vm.stopPrank();
+    }
+
+    function testFuzz_Success_processIndirectDeposit_PositiveDelta(
         PrimaryAssetModuleAssetState memory assetState,
         uint256 exposureUpperAssetToAsset,
         uint256 deltaExposureUpperAssetToAsset
@@ -113,7 +143,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         assertEq(actualExposure, expectedExposure);
     }
 
-    function testFuzz_Success_processIndirectDeposit_negativeDeltaWithAbsoluteValueSmallerThanExposure(
+    function testFuzz_Success_processIndirectDeposit_NegativeDelta_DeltaSmallerThanExposureLast(
         PrimaryAssetModuleAssetState memory assetState,
         uint256 exposureUpperAssetToAsset,
         uint256 deltaExposureUpperAssetToAsset
@@ -121,6 +151,9 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         // Given: deltaExposure is smaller or equal as assetState.exposureAssetLast.
         deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, 0, assetState.exposureAssetLast);
         uint256 expectedExposure = assetState.exposureAssetLast - deltaExposureUpperAssetToAsset;
+
+        // And: "exposureAsset" is smaller or equal as "exposureAssetMax" (test-case).
+        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, expectedExposure, type(uint128).max));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
@@ -146,7 +179,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         assertEq(actualExposure, expectedExposure);
     }
 
-    function testFuzz_Success_processIndirectDeposit_negativeDeltaGreaterThanExposure(
+    function testFuzz_Success_processIndirectDeposit_NegativeDelta_DeltaGreaterThanExposureLast(
         PrimaryAssetModuleAssetState memory assetState,
         uint256 exposureUpperAssetToAsset,
         uint256 deltaExposureUpperAssetToAsset
