@@ -10,7 +10,7 @@ import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
 import { NonfungiblePositionManagerMock } from "../../.././utils/mocks/NonfungiblePositionManager.sol";
 
 /**
- * @notice Fuzz tests for the "checkAmountOut" of contract "MultiCall".
+ * @notice Fuzz tests for the "mintUniV3LP" function of contract "MultiCall".
  */
 contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -38,29 +38,32 @@ contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
         token0.mint(users.creatorAddress, 10 ** 38);
         token1.mint(users.creatorAddress, 10 ** 38);
-
-        // vm.prank(users.creatorAddress);
-        // uniV3PricingModule.addAsset(address(univ3PosMgr));
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_NotV3(address notV3Contract, bytes4 randomSelector, bytes memory randomBytes) public {
+    function testFuzz_Revert_mintUniV3LP_NotV3(address notV3Contract, bytes4 randomSelector, bytes memory randomBytes)
+        public
+    {
+        vm.assume(notV3contract != address(uniV3PosMgr));
         vm.expectRevert(bytes(""));
         action.mintUniV3LP(notV3Contract, abi.encodeWithSelector(randomSelector, randomBytes));
     }
 
-    function testFuzz_Success_MintLP(int24 tickLower, int24 tickUpper, uint96 amount0Desired, uint96 amount1Desired)
-        public
-    {
+    function testFuzz_Success_mintUniV3LP_MintLP(
+        int24 tickLower,
+        int24 tickUpper,
+        uint96 amount0Desired,
+        uint96 amount1Desired
+    ) public {
         token0.mint(address(this), amount0Desired);
         token1.mint(address(this), amount1Desired);
         token0.approve(address(univ3PosMgr), amount0Desired);
         token1.approve(address(univ3PosMgr), amount1Desired);
 
-        vm.assume(tickLower < tickUpper);
+        bound(tickLower, type(int24).min, tickUpper - 1);
 
         NonfungiblePositionManagerMock.MintParams memory params = NonfungiblePositionManagerMock.MintParams({
             token0: address(token0),
