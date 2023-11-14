@@ -51,7 +51,7 @@ contract SetRiskParametersOfPrimaryAsset_MainRegistry_Fuzz_Test is MainRegistry_
         collateralFactor = uint16(bound(collateralFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
         liquidationFactor = uint16(bound(liquidationFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
 
-        mainRegistryExtension.setPricingModuleForAsset(asset, address(primaryPricingModule));
+        mainRegistryExtension.setAssetModuleForAsset(asset, address(primaryAssetModule));
 
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
@@ -60,7 +60,7 @@ contract SetRiskParametersOfPrimaryAsset_MainRegistry_Fuzz_Test is MainRegistry_
 
         bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
         (, uint128 actualMaxExposure, uint16 actualCollateralFactor, uint16 actualLiquidationFactor) =
-            primaryPricingModule.riskParams(address(creditorUsd), assetKey);
+            primaryAssetModule.riskParams(address(creditorUsd), assetKey);
         assertEq(actualMaxExposure, maxExposure);
         assertEq(actualCollateralFactor, collateralFactor);
         assertEq(actualLiquidationFactor, liquidationFactor);

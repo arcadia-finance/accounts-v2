@@ -63,19 +63,13 @@ abstract contract Events {
     event PauseUpdate(bool withdrawPauseUpdate, bool depositPauseUpdate);
 
     /*//////////////////////////////////////////////////////////////////////////
-                                    ORACLEHUB
-    //////////////////////////////////////////////////////////////////////////*/
-
-    event OracleAdded(address indexed oracle, address indexed quoteAsset, bytes16 baseAsset);
-    event OracleDecommissioned(address indexed oracle, bool isActive);
-
-    /*//////////////////////////////////////////////////////////////////////////
                                   MAIN REGISTRY
     //////////////////////////////////////////////////////////////////////////*/
 
     event AllowedActionSet(address indexed action, bool allowed);
-    event AssetAdded(address indexed assetAddress, address indexed pricingModule, uint8 assetType);
-    event PricingModuleAdded(address pricingModule);
+    event AssetAdded(address indexed assetAddress, address indexed assetModule, uint8 assetType);
+    event AssetModuleAdded(address assetModule);
+    event OracleModuleAdded(address oracleModule);
 
     /*//////////////////////////////////////////////////////////////////////////
                                 PRICING MODULE

@@ -46,10 +46,12 @@ contract AuctionBuy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 erc1155WithdrawAmount,
         address bidder
     ) public {
-        // Given: total deposit amounts are bigger as zero.
         vm.assume(bidder != address(0));
-        vm.assume(erc20InitialAmount > 0);
-        vm.assume(erc1155InitialAmount > 0);
+
+        // Given: total deposit amounts are bigger as zero.
+        // And: "exposure" is strictly smaller as "maxExposure".
+        erc20InitialAmount = uint128(bound(erc20InitialAmount, 1, type(uint128).max - 1));
+        erc1155InitialAmount = uint128(bound(erc1155InitialAmount, 1, type(uint128).max - 1));
         // And: Assets don't underflow.
         erc20WithdrawAmount = uint128(bound(erc20WithdrawAmount, 0, erc20InitialAmount - 1));
         erc1155WithdrawAmount = uint128(bound(erc1155WithdrawAmount, 0, erc1155InitialAmount - 1));
@@ -120,7 +122,11 @@ contract AuctionBuy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 erc1155Amount,
         address bidder
     ) public {
-        // Given: An initial state of the account with assets.
+        // Given: "exposure" is strictly smaller as "maxExposure".
+        erc20Amount = uint128(bound(erc20Amount, 0, type(uint128).max - 1));
+        erc1155Amount = uint128(bound(erc1155Amount, 0, type(uint128).max - 1));
+
+        // And: An initial state of the account with assets.
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC721.nft1);

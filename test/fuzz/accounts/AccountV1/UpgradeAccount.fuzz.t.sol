@@ -124,6 +124,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(newImplementation != address(factory));
         vm.assume(newImplementation != address(vm));
         vm.assume(newImplementation != address(mainRegistryExtension));
+        vm.assume(newImplementation != address(proxyAccount));
 
         // Given: Trusted Creditor is set.
         vm.prank(users.accountOwner);
@@ -152,7 +153,11 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 erc1155Amount,
         uint256 debt
     ) public {
-        // Given: an account in a random state (with assets, a creditor and debt).
+        // Given: "exposure" is strictly smaller as "maxExposure".
+        erc20Amount = uint128(bound(erc20Amount, 0, type(uint128).max - 1));
+        erc1155Amount = uint128(bound(erc1155Amount, 0, type(uint128).max - 1));
+
+        // And: an account in a random state (with assets, a creditor and debt).
         vm.prank(users.accountOwner);
         proxyAccount.openTrustedMarginAccount(address(creditorStable1)); // Mocked Trusted Creditor, approves all account-versions by default.
 

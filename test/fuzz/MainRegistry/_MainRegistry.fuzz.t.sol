@@ -6,10 +6,10 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../Fuzz.t.sol";
 
-import { AccountV1 } from "../../../src/AccountV1.sol";
 import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
-import { DerivedPricingModuleMock } from "../../utils/mocks/DerivedPricingModuleMock.sol";
-import { PrimaryPricingModuleMock } from "../../utils/mocks/PrimaryPricingModuleMock.sol";
+import { DerivedAssetModuleMock } from "../../utils/mocks/DerivedAssetModuleMock.sol";
+import { OracleModuleMock } from "../../utils/mocks/OracleModuleMock.sol";
+import { PrimaryAssetModuleMock } from "../../utils/mocks/PrimaryAssetModuleMock.sol";
 
 /**
  * @notice Common logic needed by all "MainRegistry" fuzz tests.
@@ -23,8 +23,10 @@ abstract contract MainRegistry_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    PrimaryPricingModuleMock internal primaryPricingModule;
-    DerivedPricingModuleMock internal derivedPricingModule;
+    PrimaryAssetModuleMock internal primaryAssetModule;
+    DerivedAssetModuleMock internal derivedAssetModule;
+
+    OracleModuleMock internal oracleModule;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -34,11 +36,11 @@ abstract contract MainRegistry_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.creatorAddress);
-        primaryPricingModule = new PrimaryPricingModuleMock(address(mainRegistryExtension), address(oracleHub), 0);
-        mainRegistryExtension.addPricingModule(address(primaryPricingModule));
+        primaryAssetModule = new PrimaryAssetModuleMock(address(mainRegistryExtension), 0);
+        mainRegistryExtension.addAssetModule(address(primaryAssetModule));
 
-        derivedPricingModule = new DerivedPricingModuleMock(address(mainRegistryExtension), 0);
-        mainRegistryExtension.addPricingModule(address(derivedPricingModule));
+        derivedAssetModule = new DerivedAssetModuleMock(address(mainRegistryExtension), 0);
+        mainRegistryExtension.addAssetModule(address(derivedAssetModule));
         vm.stopPrank();
     }
 
@@ -46,7 +48,15 @@ abstract contract MainRegistry_Fuzz_Test is Fuzz_Test {
                          HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
-    function convertAssetToUsd(uint256 assetDecimals, uint256 amount, address[] memory oracleArr)
+    function addMockedOracle(uint256 oracleId, uint256 rate, bytes16 baseAsset, bytes16 quoteAsset, bool active)
+        public
+    {
+        oracleModule.setOracle(oracleId, baseAsset, quoteAsset, active);
+        mainRegistryExtension.setOracleToOracleModule(oracleId, address(oracleModule));
+        oracleModule.setRate(oracleId, rate);
+    }
+
+    function convertAssetToUsd(uint256 assetDecimals, uint256 amount, uint80[] memory oracleArr)
         public
         view
         returns (uint256 usdValue)
@@ -54,9 +64,10 @@ abstract contract MainRegistry_Fuzz_Test is Fuzz_Test {
         uint256 ratesMultiplied = 1;
         uint256 sumOfOracleDecimals;
         for (uint8 i; i < oracleArr.length; i++) {
-            (, int256 answer,,,) = ArcadiaOracle(oracleArr[i]).latestRoundData();
+            (,, address oracle) = chainlinkOM.getOracleInformation(oracleArr[i]);
+            (, int256 answer,,,) = ArcadiaOracle(oracle).latestRoundData();
             ratesMultiplied *= uint256(answer);
-            sumOfOracleDecimals += ArcadiaOracle(oracleArr[i]).decimals();
+            sumOfOracleDecimals += ArcadiaOracle(oracle).decimals();
         }
 
         usdValue = (Constants.WAD * ratesMultiplied * amount) / (10 ** (sumOfOracleDecimals + assetDecimals));

@@ -55,7 +55,8 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256 openDebt,
         uint128 depositAmountToken1
     ) public {
-        vm.assume(depositAmountToken1 > 0);
+        // "exposure" is strictly smaller as "maxExposure".
+        depositAmountToken1 = uint128(bound(depositAmountToken1, 1, type(uint128).max - 1));
 
         // Given: openDebt > 0
         openDebt = bound(openDebt, 1, type(uint128).max - fixedLiquidationCost);
@@ -135,7 +136,8 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256 openDebt,
         uint128 depositAmountToken1
     ) public {
-        vm.assume(depositAmountToken1 > 0);
+        // "exposure" is strictly smaller as "maxExposure".
+        depositAmountToken1 = uint128(bound(depositAmountToken1, 1, type(uint128).max - 1));
 
         // Given: openDebt > 0
         openDebt = bound(openDebt, 1, type(uint128).max - fixedLiquidationCost);

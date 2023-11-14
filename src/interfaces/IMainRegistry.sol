@@ -5,14 +5,13 @@
 pragma solidity 0.8.19;
 
 import { RiskModule } from "../RiskModule.sol";
-import { IPricingModule } from "./IPricingModule.sol";
 
 interface IMainRegistry {
     /**
      * @notice Returns the Factory address.
      * @return factory The contract address of the Factory.
      */
-    function factory() external view returns (address);
+    function FACTORY() external view returns (address);
 
     /**
      * @notice Checks if an asset is in the MainRegistry.

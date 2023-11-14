@@ -63,7 +63,7 @@ contract TrustedCreditorMock {
         fixedLiquidationCost = fixedLiquidationCost_;
     }
 
-    function startLiquidation(address account) external returns (uint256 openPosition_) {
+    function startLiquidation(address account) external view returns (uint256 openPosition_) {
         openPosition_ = openPosition[account];
     }
 }

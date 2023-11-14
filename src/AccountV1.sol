@@ -83,7 +83,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Throws if called by any account other than the factory address.
      */
     modifier onlyFactory() {
-        require(msg.sender == IMainRegistry(registry).factory(), "A: Only Factory");
+        require(msg.sender == IMainRegistry(registry).FACTORY(), "A: Only Factory");
         _;
     }
 

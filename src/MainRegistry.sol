@@ -4,13 +4,14 @@
  */
 pragma solidity 0.8.19;
 
+import { BitPackingLib } from "./libraries/BitPackingLib.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
-import { IDerivedPricingModule } from "./interfaces/IDerivedPricingModule.sol";
+import { IDerivedAssetModule } from "./interfaces/IDerivedAssetModule.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
-import { IPricingModule } from "./interfaces/IPricingModule.sol";
-import { IPrimaryPricingModule } from "./interfaces/IPrimaryPricingModule.sol";
+import { IOracleModule } from "./interfaces/IOracleModule.sol";
+import { IAssetModule } from "./interfaces/IAssetModule.sol";
+import { IPrimaryAssetModule } from "./interfaces/IPrimaryAssetModule.sol";
 import { ITrustedCreditor } from "./interfaces/ITrustedCreditor.sol";
 import { MainRegistryGuardian } from "./guardians/MainRegistryGuardian.sol";
 import { RiskModule } from "./RiskModule.sol";
@@ -18,37 +19,51 @@ import { RiskModule } from "./RiskModule.sol";
 /**
  * @title Main Asset registry
  * @author Pragma Labs
- * @notice The Main Registry stores basic information for each token that can, or could at some point, be deposited in the Accounts.
- * @dev No end-user should directly interact with the Main Registry, only Accounts, Pricing Modules or the contract owner.
+ * @notice The Main Registry has a number of responsibilities, all related to the management of asset and oracles:
+ *  - It stores the mapping between assets and their respective asset-modules.
+ *  - It stores the mapping between oracles and their respective oracle-modules.
+ *  - It orchestrates the pricing of a basket of assets in a single unit of account.
+ *  - It orchestrates deposits and withdrawals of an Account per certain Creditor.
+ *  - It manages the risk parameters of all assets per Creditor.
+ *  - It manages the action handlers.
  */
 contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     using FixedPointMathLib for uint256;
+    using BitPackingLib for bytes32;
+
+    /* //////////////////////////////////////////////////////////////
+                               CONSTANTS
+    ////////////////////////////////////////////////////////////// */
+
+    // Contract address of the Factory.
+    address public immutable FACTORY;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Contract address of the Factory.
-    address public immutable factory;
-
-    // Array with all the contract addresses of Pricing Modules.
-    address[] public pricingModules;
-    // Array with all the contract addresses of Tokens that can be Priced.
-    address[] public assetsInMainRegistry;
+    // Counter with the number of oracles in the MainRegistry.
+    uint256 internal oracleCounter;
 
     // Map mainRegistry => flag.
     mapping(address => bool) public inMainRegistry;
-    // Map pricingModule => flag.
-    mapping(address => bool) public isPricingModule;
+    // Map assetModule => flag.
+    mapping(address => bool) public isAssetModule;
+    // Map oracleModule => flag.
+    mapping(address => bool) public isOracleModule;
     // Map action => flag.
     mapping(address => bool) public isActionAllowed;
     // Map asset => assetInformation.
     mapping(address => AssetInformation) public assetToAssetInformation;
+    // Map oracle identifier => oracleModule.
+    mapping(uint256 => address) internal oracleToOracleModule;
 
     // Struct with additional information for a specific asset.
     struct AssetInformation {
-        uint96 assetType; // Identifier for the token standard of the asset.
-        address pricingModule; // Contract address of the module that can price the specific asset.
+        // Identifier for the token standard of the asset.
+        uint96 assetType;
+        // Contract address of the module that can price the specific asset.
+        address assetModule;
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -56,27 +71,35 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     ////////////////////////////////////////////////////////////// */
 
     event AllowedActionSet(address indexed action, bool allowed);
-    event PricingModuleAdded(address pricingModule);
-    event AssetAdded(address indexed assetAddress, address indexed pricingModule, uint8 assetType);
+    event AssetModuleAdded(address assetModule);
+    event OracleModuleAdded(address oracleModule);
+    event AssetAdded(address indexed assetAddress, address indexed assetModule, uint8 assetType);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @dev Only Pricing Modules can call functions with this modifier.
+     * @dev Only Asset Modules can call functions with this modifier.
      */
-    modifier onlyPricingModule() {
-        require(isPricingModule[msg.sender], "MR: Only PriceMod.");
+    modifier onlyAssetModule() {
+        require(isAssetModule[msg.sender], "MR: Only AssetMod.");
+        _;
+    }
+
+    /**
+     * @dev Only Oracle Modules can call functions with this modifier.
+     */
+    modifier onlyOracleModule() {
+        require(isOracleModule[msg.sender], "MR: Only OracleMod.");
         _;
     }
 
     /**
      * @dev Only Accounts can call functions with this modifier.
-     * @dev Cannot be called via delegate calls.
      */
     modifier onlyAccount() {
-        require(IFactory(factory).isAccount(msg.sender), "MR: Only Accounts.");
+        require(IFactory(FACTORY).isAccount(msg.sender), "MR: Only Accounts.");
         _;
     }
 
@@ -85,10 +108,10 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param factory_ The contract address of the Factory.
+     * @param factory The contract address of the Factory.
      */
-    constructor(address factory_) {
-        factory = factory_;
+    constructor(address factory) {
+        FACTORY = factory;
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -96,8 +119,8 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Sets an allowed action handler.
-     * @param action The address of the action handler.
+     * @notice Sets an allowance of an action handler.
+     * @param action The contract address of the action handler.
      * @param allowed Bool to indicate its status.
      * @dev Can only be called by owner.
      */
@@ -108,19 +131,29 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /* ///////////////////////////////////////////////////////////////
-                        PRICE MODULE MANAGEMENT
+                        MODULE MANAGEMENT
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Adds a new Pricing Module to the Main Registry.
-     * @param pricingModule The contract address of the Pricing Module.
+     * @notice Adds a new Asset Module to the Main Registry.
+     * @param assetModule The contract address of the Asset Module.
      */
-    function addPricingModule(address pricingModule) external onlyOwner {
-        require(!isPricingModule[pricingModule], "MR_APM: PriceMod. not unique");
-        isPricingModule[pricingModule] = true;
-        pricingModules.push(pricingModule);
+    function addAssetModule(address assetModule) external onlyOwner {
+        require(!isAssetModule[assetModule], "MR_APM: AssetMod. not unique");
+        isAssetModule[assetModule] = true;
 
-        emit PricingModuleAdded(pricingModule);
+        emit AssetModuleAdded(assetModule);
+    }
+
+    /**
+     * @notice Adds a new Oracle Module to the Main Registry.
+     * @param oracleModule The contract address of the Oracle Module.
+     */
+    function addOracleModule(address oracleModule) external onlyOwner {
+        require(!isOracleModule[oracleModule], "MR_AOM: OracleMod. not unique");
+        isOracleModule[oracleModule] = true;
+
+        emit OracleModuleAdded(oracleModule);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -134,11 +167,11 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @return A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address asset, uint256 assetId) external view returns (bool) {
-        address pricingModule = assetToAssetInformation[asset].pricingModule;
+        address assetModule = assetToAssetInformation[asset].assetModule;
 
-        if (pricingModule == address(0)) return false;
+        if (assetModule == address(0)) return false;
 
-        return IPricingModule(assetToAssetInformation[asset].pricingModule).isAllowed(asset, assetId);
+        return IAssetModule(assetToAssetInformation[asset].assetModule).isAllowed(asset, assetId);
     }
 
     /**
@@ -151,16 +184,86 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @dev Assets that are already in the mainRegistry cannot be overwritten,
      * as that would make it possible for devs to change the asset pricing.
      */
-    function addAsset(address assetAddress, uint256 assetType) external onlyPricingModule {
+    function addAsset(address assetAddress, uint256 assetType) external onlyAssetModule {
         require(!inMainRegistry[assetAddress], "MR_AA: Asset already in mainreg");
         require(assetType <= type(uint96).max, "MR_AA: Invalid AssetType");
 
         inMainRegistry[assetAddress] = true;
-        assetsInMainRegistry.push(assetAddress);
         assetToAssetInformation[assetAddress] =
-            AssetInformation({ assetType: uint96(assetType), pricingModule: msg.sender });
+            AssetInformation({ assetType: uint96(assetType), assetModule: msg.sender });
 
         emit AssetAdded(assetAddress, msg.sender, uint8(assetType));
+    }
+
+    /* ///////////////////////////////////////////////////////////////
+                        ORACLE MANAGEMENT
+    /////////////////////////////////////////////////////////////// */
+
+    /**
+     * @notice Adds a new oracle to the Main Registry.
+     * @return oracleId Unique identifier of the oracle.
+     */
+    function addOracle() external onlyOracleModule returns (uint256 oracleId) {
+        // New oracle get.
+        oracleId = oracleCounter;
+
+        oracleToOracleModule[oracleId] = msg.sender;
+
+        unchecked {
+            oracleCounter = oracleId + 1;
+        }
+    }
+
+    /**
+     * @notice Verifies whether a sequence of oracles complies with a predetermined set of criteria.
+     * @param oracleSequence The sequence of the oracles to price a certain asset in USD,
+     * packed in a single bytes32 object.
+     * @return A boolean, indicating if the sequence complies with the set of criteria.
+     * @dev The following checks are performed:
+     * - The oracle must be previously added to the MainRegistry and must still be active.
+     * - ToDo The first asset of the first oracle must be the asset being priced.
+     * - The last asset of all oracles must be equal to the first asset of the next oracle.
+     * - The last asset of the last oracle must be USD.
+     */
+    function checkOracleSequence(bytes32 oracleSequence) external view returns (bool) {
+        (bool[] memory baseToQuoteAsset, uint256[] memory oracles) = oracleSequence.unpack();
+        uint256 length = oracles.length;
+        require(length > 0, "MR_COS: Min 1 Oracle");
+        // Length can be maximally 3, but no need to explicitly check it.
+        // BitPackingLib.unpack() can maximally return arrays of length 3.
+
+        address oracleModule;
+        bytes16 baseAsset;
+        bytes16 quoteAsset;
+        bytes16 lastAsset;
+        for (uint256 i; i < length;) {
+            oracleModule = oracleToOracleModule[oracles[i]];
+
+            if (!IOracleModule(oracleModule).isActive(oracles[i])) return false;
+            (baseAsset, quoteAsset) = IOracleModule(oracleModule).assetPair(oracles[i]);
+
+            if (i == 0) {
+                // ToDo: check if first asset matches the asset to be priced?
+                lastAsset = baseToQuoteAsset[i] ? quoteAsset : baseAsset;
+            } else {
+                // Last asset of an oracle must match with the first asset of the next oracle.
+                if (baseToQuoteAsset[i]) {
+                    if (lastAsset != baseAsset) return false;
+                    lastAsset = quoteAsset;
+                } else {
+                    if (lastAsset != quoteAsset) return false;
+                    lastAsset = baseAsset;
+                }
+            }
+            // Last asset in the sequence must end with "USD".
+            if (i == length - 1 && lastAsset != "USD") return false;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return true;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -168,7 +271,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the risk factors per asset for a creditor.
+     * @notice Returns the risk factors per asset for a given creditor.
      * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
@@ -184,8 +287,8 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         collateralFactors = new uint16[](length);
         liquidationFactors = new uint16[](length);
         for (uint256 i; i < length;) {
-            (collateralFactors[i], liquidationFactors[i]) = IPricingModule(
-                assetToAssetInformation[assetAddresses[i]].pricingModule
+            (collateralFactors[i], liquidationFactors[i]) = IAssetModule(
+                assetToAssetInformation[assetAddresses[i]].assetModule
             ).getRiskFactors(creditor, assetAddresses[i], assetIds[i]);
 
             unchecked {
@@ -195,7 +298,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /**
-     * @notice Sets the risk parameters for a primary asset.
+     * @notice Sets the risk parameters for a primary asset for a given creditor.
      * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
@@ -215,27 +318,28 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     ) external {
         require(msg.sender == ITrustedCreditor(creditor).riskManager(), "MR_SRPPA: Not Authorized");
 
-        IPrimaryPricingModule(assetToAssetInformation[asset].pricingModule).setRiskParameters(
+        IPrimaryAssetModule(assetToAssetInformation[asset].assetModule).setRiskParameters(
             creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
     }
 
     /**
-     * @notice Sets the risk parameters of the Protocol for a given creditor.
+     * @notice Sets the risk parameters for the protocol of the Derived Asset Module for a given creditor.
      * @param creditor The contract address of the creditor.
-     * @param pricingModule The contract address of the derived pricing-module.
-     * @param maxUsdExposureProtocol The maximum usd exposure of the protocol for each creditor, denominated in USD with 18 decimals precision.
+     * @param assetModule The contract address of the derived asset-module.
+     * @param maxUsdExposureProtocol The maximum usd exposure of the protocol for each creditor,
+     * denominated in USD with 18 decimals precision.
      * @param riskFactor The risk factor of the asset for the creditor, 2 decimals precision.
      */
-    function setRiskParametersOfDerivedPricingModule(
+    function setRiskParametersOfDerivedAssetModule(
         address creditor,
-        address pricingModule,
+        address assetModule,
         uint128 maxUsdExposureProtocol,
         uint16 riskFactor
     ) external {
         require(msg.sender == ITrustedCreditor(creditor).riskManager(), "MR_SRPDPM: Not Authorized");
 
-        IDerivedPricingModule(pricingModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
+        IDerivedAssetModule(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -252,7 +356,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * 0 = ERC20.
      * 1 = ERC721.
      * 2 = ERC1155.
-     * @dev increaseExposure in the pricing module checks whether it's allowlisted and updates the exposure.
+     * @dev increaseExposure in the asset module checks and updates the exposure for each asset and underlying asset.
      */
     function batchProcessDeposit(
         address creditor,
@@ -269,7 +373,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             assetAddress = assetAddresses[i];
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 
-            IPricingModule(assetToAssetInformation[assetAddress].pricingModule).processDirectDeposit(
+            IAssetModule(assetToAssetInformation[assetAddress].assetModule).processDirectDeposit(
                 creditor, assetAddress, assetIds[i], amounts[i]
             );
 
@@ -289,7 +393,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * 0 = ERC20.
      * 1 = ERC721.
      * 2 = ERC1155.
-     * @dev batchProcessWithdrawal in the pricing module updates the exposure.
+     * @dev batchProcessWithdrawal in the asset module updates the exposure for each asset and underlying asset.
      */
     function batchProcessWithdrawal(
         address creditor,
@@ -306,7 +410,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             assetAddress = assetAddresses[i];
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 
-            IPricingModule(assetToAssetInformation[assetAddress].pricingModule).processDirectWithdrawal(
+            IAssetModule(assetToAssetInformation[assetAddress].assetModule).processDirectWithdrawal(
                 creditor, assetAddress, assetIds[i], amounts[i]
             );
 
@@ -317,13 +421,16 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /**
-     * @notice This function is called by pricing modules of non-primary assets in order to update the exposure of an underlying asset after a deposit.
+     * @notice This function is called by asset modules of non-primary assets
+     * in order to update the exposure of an underlying asset after a deposit.
      * @param creditor The contract address of the creditor.
      * @param underlyingAsset The underlying asset.
      * @param underlyingAssetId The underlying asset ID.
      * @param exposureAssetToUnderlyingAsset The amount of exposure of the asset to the underlying asset.
-     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the asset to the underlying asset since the last interaction.
-     * @return usdExposureAssetToUnderlyingAsset The Usd value of the exposure of the asset to the underlying asset, 18 decimals precision.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the asset to the underlying asset
+     * since the last interaction.
+     * @return usdExposureAssetToUnderlyingAsset The Usd value of the exposure of the asset to its underlying asset,
+     * 18 decimals precision.
      */
     function getUsdValueExposureToUnderlyingAssetAfterDeposit(
         address creditor,
@@ -331,8 +438,8 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
-    ) external onlyPricingModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
-        (, usdExposureAssetToUnderlyingAsset) = IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule)
+    ) external onlyAssetModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
+        (, usdExposureAssetToUnderlyingAsset) = IAssetModule(assetToAssetInformation[underlyingAsset].assetModule)
             .processIndirectDeposit(
             creditor,
             underlyingAsset,
@@ -343,13 +450,16 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     /**
-     * @notice This function is called by pricing modules of non-primary assets in order to update the exposure of an underlying asset after a withdrawal.
+     * @notice This function is called by asset modules of non-primary assets
+     * in order to update the exposure of an underlying asset after a withdrawal.
      * @param creditor The contract address of the creditor.
      * @param underlyingAsset The underlying asset.
      * @param underlyingAssetId The underlying asset ID.
      * @param exposureAssetToUnderlyingAsset The amount of exposure of the asset to the underlying asset.
-     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the asset to the underlying asset since the last interaction.
-     * @return usdExposureAssetToUnderlyingAsset The Usd value of the exposure of the asset to the underlying asset, 18 decimals precision.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the asset to the underlying asset
+     * since the last interaction.
+     * @return usdExposureAssetToUnderlyingAsset The Usd value of the exposure of the asset to its underlying asset,
+     * 18 decimals precision.
      */
     function getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
         address creditor,
@@ -357,8 +467,8 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
-    ) external onlyPricingModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
-        (, usdExposureAssetToUnderlyingAsset) = IPricingModule(assetToAssetInformation[underlyingAsset].pricingModule)
+    ) external onlyAssetModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
+        (, usdExposureAssetToUnderlyingAsset) = IAssetModule(assetToAssetInformation[underlyingAsset].assetModule)
             .processIndirectWithdrawal(
             creditor,
             underlyingAsset,
@@ -373,12 +483,48 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     /////////////////////////////////////////////////////////////// */
 
     /**
+     * @notice Returns the rate of a certain asset in USD.
+     * @param oracleSequence The sequence of the oracles to price the asset in USD,
+     * packed in a single bytes32 object.
+     * @return rate The USD rate of an asset, 18 decimals precision.
+     * @dev The oracle rate expresses how much USD (18 decimals precision) is required
+     * to buy 1 unit of the asset.
+     */
+    function getRateInUsd(bytes32 oracleSequence) external view returns (uint256 rate) {
+        (bool[] memory baseToQuoteAsset, uint256[] memory oracles) = oracleSequence.unpack();
+
+        rate = 1e18; // Scalar 1 with 18 decimals (The internal precision).
+
+        uint256 length = oracles.length;
+        for (uint256 i; i < length;) {
+            // Each Oracle has a fixed BaseAsset and quote asset.
+            // The oracle-rate expresses how much units of the QuoteAsset (18 decimals precision) are required
+            // to buy 1 unit of the BaseAsset.
+            if (baseToQuoteAsset[i]) {
+                // "Normal direction" (how much of the QuoteAsset is required to buy 1 unit of the BaseAsset).
+                // -> Multiply with the oracle-rate.
+                rate = rate.mulDivDown(IOracleModule(oracleToOracleModule[oracles[i]]).getRate(oracles[i]), 1e18);
+            } else {
+                // "Inverse direction" (how much of the BaseAsset is required to buy 1 unit of the QuoteAsset).
+                // -> Divide by the oracle-rate.
+                rate = rate.mulDivDown(1e18, IOracleModule(oracleToOracleModule[oracles[i]]).getRate(oracles[i]));
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /**
      * @notice Calculates the usd value of an asset.
      * @param creditor The contract address of the creditor.
      * @param assets Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @return valuesAndRiskFactors The value of the asset denominated in USD, with 18 Decimals precision.
+     * @dev No need to check equality of length of arrays, since they are generated by the Account.
+     * @return valuesAndRiskFactors The values of the assets denominated in USD () with 18 Decimals precision)
+     * and the corresponding risk factors for each asset for the given creditor.
      */
     function getValuesInUsd(
         address creditor,
@@ -394,7 +540,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
                 valuesAndRiskFactors[i].assetValue,
                 valuesAndRiskFactors[i].collateralFactor,
                 valuesAndRiskFactors[i].liquidationFactor
-            ) = IPricingModule(assetToAssetInformation[assets[i]].pricingModule).getValue(
+            ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule).getValue(
                 creditor, assets[i], assetIds[i], assetAmounts[i]
             );
 
@@ -428,8 +574,9 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         // Convert the usd-vales to values in BaseCurrency if the BaseCurrency is different from USD (0-address).
         if (baseCurrency != address(0)) {
             // We use the USD price per 10^18 tokens instead of the price per token to guarantee sufficient precision.
-            (uint256 rateBaseCurrencyToUsd,,) = IPricingModule(assetToAssetInformation[baseCurrency].pricingModule)
-                .getValue(creditor, baseCurrency, 0, 1e18);
+            (uint256 rateBaseCurrencyToUsd,,) = IAssetModule(assetToAssetInformation[baseCurrency].assetModule).getValue(
+                creditor, baseCurrency, 0, 1e18
+            );
 
             uint256 length = assetAddresses.length;
             for (uint256 i; i < length;) {
@@ -457,6 +604,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @return assetValue The combined value of the assets, denominated in BaseCurrency.
      * @dev No need to check equality of length of arrays, since they are generated by the Account.
      * @dev No need to check the baseCurrency, since getValue()-call will revert for unknown assets.
+     * @dev Only fungible tokens can be used as baseCurrency.
      */
     function getTotalValue(
         address baseCurrency,
@@ -490,6 +638,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @return collateralValue The collateral value of the assets, denominated in BaseCurrency.
      * @dev No need to check equality of length of arrays, since they are generated by the Account.
      * @dev No need to check the baseCurrency, since getValue()-call will revert for unknown assets.
+     * @dev Only fungible tokens can be used as baseCurrency.
      * @dev The collateral value is equal to the spot value of the assets,
      * discounted by a haircut (the collateral factor).
      */
@@ -522,6 +671,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
      * @return liquidationValue The liquidation value of the assets, denominated in BaseCurrency.
      * @dev No need to check equality of length of arrays, since they are generated by the Account.
      * @dev No need to check the baseCurrency, since getValue()-call will revert for unknown assets.
+     * @dev Only fungible tokens can be used as baseCurrency.
      * @dev The liquidation value is equal to the spot value of the assets,
      * discounted by a haircut (the liquidation factor).
      */
@@ -556,9 +706,8 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         returns (uint256 valueInBaseCurrency)
     {
         // We use the USD price per 10^18 tokens instead of the price per token to guarantee sufficient precision.
-        (uint256 rateBaseCurrencyToUsd,,) = IPricingModule(assetToAssetInformation[baseCurrency].pricingModule).getValue(
-            address(0), baseCurrency, 0, 1e18
-        );
+        (uint256 rateBaseCurrencyToUsd,,) =
+            IAssetModule(assetToAssetInformation[baseCurrency].assetModule).getValue(address(0), baseCurrency, 0, 1e18);
 
         // "liquidationValue" is the usd value of the assets with 18 decimals precision.
         // "rateBaseCurrencyToUsd" is the usd value of 10 ** 18 tokens of numeraire with 18 decimals precision.

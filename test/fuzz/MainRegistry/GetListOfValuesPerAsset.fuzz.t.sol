@@ -28,7 +28,7 @@ contract GetListOfValuesPerAsset_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Tes
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_getValuesInBaseCurrency_UnknownAsset() public {
-        // Should revert here as mockERC20.token3 was not added to a pricing module
+        // Should revert here as mockERC20.token3 was not added to an asset  module
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC20.token3);

@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { MainRegistry_Fuzz_Test } from "./_MainRegistry.fuzz.t.sol";
 
 import { Constants } from "../../utils/Constants.sol";
-import { PricingModule } from "../../../src/pricing-modules/AbstractPricingModule.sol";
+import { AssetModule } from "../../../src/asset-modules/AbstractAssetModule.sol";
 import { RiskConstants } from "../../../src/libraries/RiskConstants.sol";
 import { RiskModule } from "../../../src/RiskModule.sol";
 

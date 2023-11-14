@@ -38,7 +38,11 @@ contract AuctionBuyIn_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 erc1155Amount,
         address protocol
     ) public {
-        // Given: An initial state of the account with assets.
+        // Given: "exposure" is strictly smaller as "maxExposure".
+        erc20Amount = uint128(bound(erc20Amount, 0, type(uint128).max - 1));
+        erc1155Amount = uint128(bound(erc1155Amount, 0, type(uint128).max - 1));
+
+        // And: An initial state of the account with assets.
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC721.nft1);

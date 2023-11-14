@@ -80,7 +80,10 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
     }
 
     function testFuzz_Revert_batchProcessWithdrawal_Paused(uint128 amountToken2, address guardian) public {
-        // Given: Assets are deposited
+        // Given: "exposure" is strictly smaller as "maxExposure".
+        amountToken2 = uint128(bound(amountToken2, 0, type(uint128).max - 1));
+
+        // And: Assets are deposited
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token2);
 
@@ -165,7 +168,9 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
     }
 
     function testFuzz_Success_batchProcessWithdrawal(uint128 amountDeposited, uint128 amountWithdrawn) public {
-        vm.assume(amountDeposited >= amountWithdrawn);
+        // Given: "exposure" is strictly smaller as "maxExposure".
+        amountDeposited = uint128(bound(amountDeposited, 0, type(uint128).max - 1));
+        amountWithdrawn = uint128(bound(amountWithdrawn, 0, amountDeposited));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -180,7 +185,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         mainRegistryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
-        (uint128 exposure,,,) = erc20PricingModule.riskParams(address(creditorUsd), assetKey);
+        (uint128 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
 
         assertEq(exposure, amountDeposited);
 
@@ -192,12 +197,15 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
 
         assertEq(assetTypes[0], 0);
 
-        (exposure,,,) = erc20PricingModule.riskParams(address(creditorUsd), assetKey);
+        (exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
 
         assertEq(exposure, amountDeposited - amountWithdrawn);
     }
 
     function testFuzz_Success_batchProcessWithdrawal_directCall(uint128 amountToken2) public {
+        // Given: "exposure" is strictly smaller as "maxExposure".
+        amountToken2 = uint128(bound(amountToken2, 0, type(uint128).max - 1));
+
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token2);
 
@@ -216,7 +224,7 @@ contract BatchProcessWithdrawal_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test
         vm.stopPrank();
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));
-        (uint128 endExposure,,,) = erc20PricingModule.riskParams(address(creditorUsd), assetKey);
+        (uint128 endExposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
 
         assertEq(endExposure, 0);
     }

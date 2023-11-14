@@ -4,13 +4,12 @@
  */
 pragma solidity 0.8.19;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 import { ActionData } from "../../../../src/actions/utils/ActionData.sol";
-import { ActionMultiCallV2 } from "../../../../src/actions/MultiCallV2.sol";
-import { Constants } from "../../../utils/Constants.sol";
-import { MultiActionMock } from "../../../utils/mocks/MultiActionMock.sol";
+import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
+import { MultiActionMock } from "../../.././utils/mocks/MultiActionMock.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { IPermit2 } from "../../../utils/Interfaces.sol";
 import { Utils } from "../../../utils/Utils.sol";
@@ -26,7 +25,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
     /////////////////////////////////////////////////////////////// */
 
     AccountExtension internal accountNotInitialised;
-    ActionMultiCallV2 internal action;
+    ActionMultiCall internal action;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -37,7 +36,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         Permit2Fixture.setUp();
 
         // Deploy multicall contract and actions
-        action = new ActionMultiCallV2();
+        action = new ActionMultiCall();
         multiActionMock = new MultiActionMock();
 
         // Set allowed action contract
@@ -134,8 +133,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: assetAddresses,
             assetIds: assetIds,
             assetAmounts: assetAmounts,
-            assetTypes: assetTypes,
-            actionBalances: new uint256[](0)
+            assetTypes: assetTypes
         });
 
         IPermit2.TokenPermissions[] memory tokenPermissions;
@@ -223,8 +221,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](1)
         });
 
         assetDataOut.assets[0] = address(mockERC20.token1);
@@ -236,8 +233,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](1)
         });
 
         assetDataIn.assets[0] = address(mockERC20.token2);
@@ -419,8 +415,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](1)
         });
 
         assetDataOut.assets[0] = address(mockERC20.token1);
@@ -432,8 +427,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: new address[](3),
             assetIds: new uint256[](3),
             assetAmounts: new uint256[](3),
-            assetTypes: new uint256[](3),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](3)
         });
 
         // Bring signature back to stack to avoid stack too deep below
@@ -450,13 +444,13 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         assetDataIn.assetIds[0] = 0;
         assetDataIn.assetIds[1] = 0;
         assetDataIn.assetIds[2] = 1;
+        assetDataIn.assetAmounts[2] = 1;
 
         ActionData memory transferFromOwner = ActionData({
             assets: new address[](2),
             assetIds: new uint256[](2),
             assetAmounts: new uint256[](2),
-            assetTypes: new uint256[](2),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](2)
         });
 
         transferFromOwner.assets[0] = address(mockERC20.stable1);
@@ -575,8 +569,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](1)
         });
 
         assetDataOut.assets[0] = address(mockERC20.token1);
@@ -588,8 +581,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1),
-            actionBalances: new uint256[](0)
+            assetTypes: new uint256[](1)
         });
 
         assetDataIn.assets[0] = address(mockERC20.token2);
