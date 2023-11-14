@@ -59,6 +59,42 @@ contract AccountExtension is AccountV1 {
     }
 }
 
+contract AccountV1Extension is AccountV1 {
+    constructor() AccountV1() { }
+
+    function getLocked() external view returns (uint256 locked_) {
+        locked_ = locked;
+    }
+
+    function setLocked(uint256 locked_) external {
+        locked = locked_;
+    }
+
+    function getLengths() external view returns (uint256, uint256, uint256, uint256) {
+        return (erc20Stored.length, erc721Stored.length, erc721TokenIds.length, erc1155Stored.length);
+    }
+
+    function setTrustedCreditor(address trustedCreditor_) public {
+        trustedCreditor = trustedCreditor_;
+    }
+
+    function setIsTrustedCreditorSet(bool set) public {
+        isTrustedCreditorSet = set;
+    }
+
+    function setFixedLiquidationCost(uint96 fixedLiquidationCost_) public {
+        fixedLiquidationCost = fixedLiquidationCost_;
+    }
+
+    function setOwner(address newOwner) public {
+        owner = newOwner;
+    }
+
+    function setRegistry(address registry_) public {
+        registry = registry_;
+    }
+}
+
 contract BaseGuardianExtension is BaseGuardian {
     constructor() BaseGuardian() { }
 }

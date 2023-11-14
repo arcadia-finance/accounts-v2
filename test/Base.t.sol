@@ -16,6 +16,7 @@ import { StandardERC20PricingModuleExtension } from "./utils/Extensions.sol";
 import { FloorERC721PricingModuleExtension } from "./utils/Extensions.sol";
 import { FloorERC1155PricingModuleExtension } from "./utils/Extensions.sol";
 import { UniswapV3PricingModuleExtension } from "./utils/Extensions.sol";
+import { AccountV1Extension } from "./utils/Extensions.sol";
 import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Errors } from "./utils/Errors.sol";
@@ -46,7 +47,7 @@ abstract contract Base_Test is Test, Events, Errors {
     UniswapV3PricingModuleExtension internal uniV3PricingModule;
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
-    AccountV1 internal proxyAccount;
+    AccountV1Extension internal proxyAccount;
     TrustedCreditorMock internal trustedCreditor;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -114,7 +115,7 @@ abstract contract Base_Test is Test, Events, Errors {
         // Deploy an initial Account with all inputs to zero
         vm.startPrank(users.accountOwner);
         address proxyAddress = factory.createAccount(0, 0, address(0), address(0));
-        proxyAccount = AccountV1(proxyAddress);
+        proxyAccount = AccountV1Extension(proxyAddress);
         vm.stopPrank();
     }
 

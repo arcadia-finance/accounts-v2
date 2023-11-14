@@ -47,6 +47,7 @@ contract AuctionBuy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         address bidder
     ) public {
         // Given: total deposit amounts are bigger as zero.
+        vm.assume(bidder != address(0));
         vm.assume(erc20InitialAmount > 0);
         vm.assume(erc1155InitialAmount > 0);
         // And: Assets don't underflow.
