@@ -124,6 +124,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(newImplementation != address(factory));
         vm.assume(newImplementation != address(vm));
         vm.assume(newImplementation != address(mainRegistryExtension));
+        vm.assume(newImplementation != address(proxyAccount));
 
         // Given: Trusted Creditor is set.
         vm.prank(users.accountOwner);
