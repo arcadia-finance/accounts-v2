@@ -461,9 +461,9 @@ abstract contract DerivedAssetModule is AssetModule {
             lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]] =
                 uint128(exposureAssetToUnderlyingAssets[i]); // ToDo: safecast?
 
-            // Get the USD Value of the total exposure of "Asset" for for all of its "Underlying Assets".
-            // If an "underlyingAsset" has one or more underlying assets itself, the lower level
-            // Asset Modules will recursively update their respective exposures and return
+            // Get the USD Value of the total exposure of "Asset" for its "Underlying Assets" at index "i".
+            // If the "underlyingAsset" has one or more underlying assets itself, the lower level
+            // Asset Module(s) will recursively update their respective exposures and return
             // the requested USD value to this Asset Module.
             (address underlyingAsset, uint256 underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
             usdExposureAsset += IMainRegistry(MAIN_REGISTRY).getUsdValueExposureToUnderlyingAssetAfterDeposit(
@@ -487,22 +487,17 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 lastUsdExposureProtocol = riskParams[creditor].lastUsdExposureProtocol;
 
         // Update lastUsdExposureProtocol.
-        // ToDo: also in else case a deposit should be blocked if final exposure is bigger than maxExposure?.
-        if (usdExposureAsset >= lastUsdExposureAsset) {
-            require(
-                lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset)
-                    <= riskParams[creditor].maxUsdExposureProtocol,
-                "ADAM_PD: Exposure not in limits"
-            );
-            riskParams[creditor].lastUsdExposureProtocol =
-                uint128(lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset));
-        } else {
-            riskParams[creditor].lastUsdExposureProtocol = uint128(
-                lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset
-                    ? lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset)
-                    : 0
-            );
+        uint256 usdExposureProtocol;
+        unchecked {
+            if (usdExposureAsset >= lastUsdExposureAsset) {
+                usdExposureProtocol = lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset);
+            } else if (lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset) {
+                usdExposureProtocol = lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset);
+            }
+            // If (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset), call does not revert, but usdExposureProtocol is set to 0.
         }
+        require(usdExposureProtocol < riskParams[creditor].maxUsdExposureProtocol, "ADAM_PD: Exposure not in limits");
+        riskParams[creditor].lastUsdExposureProtocol = uint128(usdExposureProtocol);
     }
 
     /**
@@ -561,20 +556,17 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 lastUsdExposureProtocol = riskParams[creditor].lastUsdExposureProtocol;
 
         // Update lastUsdExposureProtocol.
-        if (usdExposureAsset >= lastUsdExposureAsset) {
-            require(
-                lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset) <= type(uint128).max,
-                "ADAM_PW: Overflow"
-            );
-            riskParams[creditor].lastUsdExposureProtocol =
-                uint128(lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset));
-        } else {
-            riskParams[creditor].lastUsdExposureProtocol = uint128(
-                lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset
-                    ? lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset)
-                    : 0
-            );
+        uint256 usdExposureProtocol;
+        unchecked {
+            if (usdExposureAsset >= lastUsdExposureAsset) {
+                usdExposureProtocol = lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset);
+                require(usdExposureProtocol <= type(uint128).max, "ADAM_PW: Overflow");
+            } else if (lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset) {
+                usdExposureProtocol = lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset);
+            }
         }
+        // If (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset), call does not revert, but usdExposureProtocol is set to 0.
+        riskParams[creditor].lastUsdExposureProtocol = uint128(usdExposureProtocol);
     }
 
     /**

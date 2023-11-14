@@ -63,7 +63,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC721.nft2), 0, 1, 0, 0
+            address(creditorUsd), address(mockERC721.nft2), 0, 2, 0, 0
         );
 
         vm.startPrank(address(mainRegistryExtension));
@@ -132,7 +132,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC721.nft2), 0, 3, 0, 0
+            address(creditorUsd), address(mockERC721.nft2), 0, 4, 0, 0
         );
 
         vm.startPrank(address(mainRegistryExtension));
@@ -179,7 +179,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC721.nft2), 0, 3, 0, 0
+            address(creditorUsd), address(mockERC721.nft2), 0, 4, 0, 0
         );
 
         vm.startPrank(address(mainRegistryExtension));

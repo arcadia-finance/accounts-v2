@@ -78,7 +78,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     }
 
     function testFuzz_Revert_batchProcessDeposit_exposureNotSufficient(uint128 newMaxExposure, uint128 amount) public {
-        vm.assume(newMaxExposure < amount);
+        vm.assume(newMaxExposure <= amount);
 
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
@@ -176,6 +176,9 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     }
 
     function testFuzz_Success_batchProcessDeposit_SingleAsset(uint128 amount) public {
+        // Given: "exposure" is strictly smaller as "maxExposure".
+        amount = uint128(bound(amount, 0, type(uint128).max - 1));
+
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
 
@@ -197,6 +200,10 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     }
 
     function testFuzz_Success_batchProcessDeposit_MultipleAssets(uint128 amountToken1, uint128 amountToken2) public {
+        // Given: "exposure" is strictly smaller as "maxExposure".
+        amountToken1 = uint128(bound(amountToken1, 0, type(uint128).max - 1));
+        amountToken2 = uint128(bound(amountToken2, 0, type(uint128).max - 1));
+
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC20.token2);
@@ -226,6 +233,9 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
     }
 
     function testFuzz_Success_batchProcessDeposit_directCall(uint128 amountToken2) public {
+        // Given: "exposure" is strictly smaller as "maxExposure".
+        amountToken2 = uint128(bound(amountToken2, 0, type(uint128).max - 1));
+
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token2);
 

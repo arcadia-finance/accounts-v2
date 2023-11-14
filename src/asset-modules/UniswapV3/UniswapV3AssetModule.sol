@@ -12,7 +12,6 @@ import { INonfungiblePositionManager } from "./interfaces/INonfungiblePositionMa
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { LiquidityAmounts } from "./libraries/LiquidityAmounts.sol";
 import { PoolAddress } from "./libraries/PoolAddress.sol";
-import { SafeCastLib } from "lib/solmate/src/utils/SafeCastLib.sol";
 import { RiskModule } from "../../RiskModule.sol";
 import { TickMath } from "./libraries/TickMath.sol";
 
@@ -383,15 +382,13 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
+     * @dev super.processDirectDeposit does check that msg.sender is the MainRegistry.
      */
-    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
-        public
-        override
-        onlyMainReg
-    {
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount) public override {
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Asset Module.
         _addAsset(assetId);
 
+        // Also checks that msg.sender == MainRegistry.
         super.processDirectDeposit(creditor, asset, assetId, amount);
     }
 
@@ -404,6 +401,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     * @dev super.processIndirectDeposit does check that msg.sender is the MainRegistry.
      */
     function processIndirectDeposit(
         address creditor,
@@ -411,10 +409,11 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public override returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Asset Module.
         _addAsset(assetId);
 
+        // Also checks that msg.sender == MainRegistry.
         (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
