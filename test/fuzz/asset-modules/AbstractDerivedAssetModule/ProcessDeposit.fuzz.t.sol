@@ -30,9 +30,9 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         // Given: valid initial state.
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
-        // And: No overflow on exposureAssetToUnderlyingAsset.
+        // And: "exposure" of underlyingAsset is strictly smaller as its "maxExposure".
         assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max - 1);
 
         // And: delta "usdExposureAsset" is positive (test-case).
         underlyingPMState.usdValue =
@@ -75,9 +75,9 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         // Given: valid initial state.
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
-        // And: No overflow on exposureAssetToUnderlyingAsset.
+        // And: "exposure" of underlyingAsset is strictly smaller as its "maxExposure".
         assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max - 1);
 
         // And: delta "usdExposureAsset" is negative (test-case).
         underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.lastUsdExposureAsset);
@@ -112,9 +112,9 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         // Given: valid initial state.
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
-        // And: No overflow on exposureAssetToUnderlyingAsset.
+        // And: "exposure" of underlyingAsset is strictly smaller as its "maxExposure".
         assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max - 1);
 
         // And: delta "usdExposureAsset" is positive (test-case).
         underlyingPMState.usdValue =
@@ -190,9 +190,9 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         // Given: valid initial state.
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
-        // And: No overflow on exposureAssetToUnderlyingAsset.
+        // And: "exposure" of underlyingAsset is strictly smaller as its "maxExposure".
         assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max - 1);
 
         // And: delta "usdExposureAsset" is negative (test-case).
         assetState.lastUsdExposureAsset = uint128(bound(assetState.lastUsdExposureAsset, 1, type(uint128).max));

@@ -12,6 +12,8 @@ import { RiskConstants } from "../libraries/RiskConstants.sol";
 /**
  * @title Primary Asset Module.
  * @author Pragma Labs
+ * @notice Abstract contract with the minimal implementation of a Primary Asset Module.
+ * @dev Primary assets are assets with no underlying assets, that can be priced using external oracles.
  */
 abstract contract PrimaryAssetModule is AssetModule {
     using FixedPointMathLib for uint256;

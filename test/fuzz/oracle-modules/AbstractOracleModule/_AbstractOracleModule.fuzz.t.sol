@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { OracleModuleMock } from "../../../utils/mocks/OracleModuleMock.sol";
 
 /**

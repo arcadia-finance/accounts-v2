@@ -10,7 +10,6 @@ import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils
 import { MainRegistry } from "../../src/MainRegistry.sol";
 import { AssetModule } from "../../src/asset-modules/AbstractAssetModule.sol";
 import { TrustedCreditorMock } from "../utils/mocks/TrustedCreditorMock.sol";
-import { Proxy } from "../../src/Proxy.sol";
 import { ERC20Mock } from "../utils/mocks/ERC20Mock.sol";
 import { ERC721Mock } from "../utils/mocks/ERC721Mock.sol";
 import { ERC1155Mock } from "../utils/mocks/ERC1155Mock.sol";

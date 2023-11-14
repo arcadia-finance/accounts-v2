@@ -11,7 +11,12 @@ import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 /**
  * @title Abstract Asset Module
  * @author Pragma Labs
- * @notice Abstract contract with the minimal implementation of an Asset  Module.
+ * @notice Abstract contract with the minimal implementation of an Asset Module.
+ * @dev Each different asset class should have it's own Oracle Module.
+ * The Asset Modules will:
+ *  - Implement the pricing logic to calculate the USD value (with 18 decimals precision).
+ *  - Process Deposits and Withdrawals.
+ *  - Manager the risk parameters.
  */
 abstract contract AssetModule is Owned, IAssetModule {
     /* //////////////////////////////////////////////////////////////

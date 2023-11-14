@@ -4,9 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 
-import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
