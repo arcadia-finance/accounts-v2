@@ -33,7 +33,8 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
     }
 
     function testFuzz_Revert_addAsset_InvalidRange(uint256 start, uint256 end) public {
-        end = bound(end, 0, start);
+        start = bound(start, 1, type(uint256).max);
+        end = bound(end, 0, start - 1);
 
         vm.prank(users.creatorAddress);
         vm.expectRevert("AM721_AA: Invalid Range");
@@ -41,8 +42,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
     }
 
     function testFuzz_Revert_addAsset_BadOracleSequence(uint256 start, uint256 end) public {
-        start = bound(start, 0, type(uint256).max - 1);
-        end = bound(end, start + 1, type(uint256).max);
+        end = bound(end, start, type(uint256).max);
 
         bool[] memory badDirection = new bool[](1);
         badDirection[0] = false;
@@ -56,8 +56,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
     }
 
     function testFuzz_Revert_addAsset_OverwriteExistingAsset(uint256 start, uint256 end) public {
-        start = bound(start, 0, type(uint256).max - 1);
-        end = bound(end, start + 1, type(uint256).max);
+        end = bound(end, start, type(uint256).max);
 
         vm.startPrank(users.creatorAddress);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
@@ -67,8 +66,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
     }
 
     function testFuzz_Success_addAsset(uint256 start, uint256 end, uint256 id) public {
-        start = bound(start, 0, type(uint256).max - 1);
-        end = bound(end, start + 1, type(uint256).max);
+        end = bound(end, start, type(uint256).max);
         id = bound(id, start, end);
 
         vm.prank(users.creatorAddress);

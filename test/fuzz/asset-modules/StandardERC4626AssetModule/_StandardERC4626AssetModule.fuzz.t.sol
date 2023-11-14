@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 
 import { ERC4626Mock } from "../../../utils/mocks/ERC4626Mock.sol";
 import { ERC4626AssetModuleExtension } from "../../../utils/Extensions.sol";

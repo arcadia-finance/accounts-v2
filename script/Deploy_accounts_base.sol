@@ -5,7 +5,7 @@
 pragma solidity 0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
-import { DeployAddresses, DeployNumbers, DeployBytes, DeployRiskConstantsBase } from "./Constants/DeployConstants.sol";
+import { DeployAddresses, DeployBytes, DeployRiskConstantsBase } from "./Constants/DeployConstants.sol";
 
 import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
 import { Factory } from "../src/Factory.sol";
@@ -16,7 +16,7 @@ import { StandardERC20AssetModule } from "../src/asset-modules/StandardERC20Asse
 import { AssetModule } from "../src/asset-modules/AbstractAssetModule.sol";
 import { UniswapV3AssetModule } from "../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 
-import { ActionMultiCallV2 } from "../src/actions/MultiCallV2.sol";
+import { ActionMultiCall } from "../src/actions/MultiCall.sol";
 
 import { ILendingPool } from "./interfaces/ILendingPool.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
@@ -36,7 +36,7 @@ contract ArcadiaAccountDeployment is Test {
     StandardERC20AssetModule internal standardERC20AssetModule;
     UniswapV3AssetModule internal uniswapV3AssetModule;
     ChainlinkOracleModule internal chainlinkOM;
-    ActionMultiCallV2 internal actionMultiCall;
+    ActionMultiCall internal actionMultiCall;
 
     ILendingPool internal wethLendingPool;
     ILendingPool internal usdcLendingPool;
@@ -89,7 +89,7 @@ contract ArcadiaAccountDeployment is Test {
         chainlinkOM = new ChainlinkOracleModule(address(mainRegistry));
 
         account = new AccountV1();
-        actionMultiCall = new ActionMultiCallV2();
+        actionMultiCall = new ActionMultiCall();
 
         mainRegistry.addAssetModule(address(standardERC20AssetModule));
         mainRegistry.addAssetModule(address(uniswapV3AssetModule));
@@ -97,7 +97,7 @@ contract ArcadiaAccountDeployment is Test {
         mainRegistry.addOracleModule(address(chainlinkOM));
 
         oracleCompToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCompToUsd_base, "COMP", "USD"));
-        oracleDaiToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "COMP", "DAI"));
+        oracleDaiToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "DAI", "USD"));
         oracleEthToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleEthToUsd_base, "ETH", "USD"));
         oracleUsdcToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleUsdcToUsd_base, "USDC", "USD"));
         oracleCbethToEthId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCbethToEth_base, "CBETH", "ETH"));
@@ -125,11 +125,13 @@ contract ArcadiaAccountDeployment is Test {
             DeployAddresses.usdc_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdcToUsdArr)
         );
         standardERC20AssetModule.addAsset(
-            DeployAddresses.cbeth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleCbethToEthToUsdArr)
+            DeployAddresses.cbeth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleCbethToEthToUsdArr)
         );
         standardERC20AssetModule.addAsset(
-            DeployAddresses.reth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleRethToEthToUsdArr)
+            DeployAddresses.reth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleRethToEthToUsdArr)
         );
+
+        uniswapV3AssetModule.setProtocol();
 
         factory.setNewAccountInfo(address(mainRegistry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);

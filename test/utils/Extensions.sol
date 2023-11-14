@@ -24,6 +24,7 @@ import { StandardERC20AssetModule } from "../../src/asset-modules/StandardERC20A
 import { StandardERC4626AssetModule } from "../../src/asset-modules/StandardERC4626AssetModule.sol";
 import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModule.sol";
 import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
+import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
 
 contract AccountExtension is AccountV1 {
     constructor() AccountV1() { }
@@ -542,5 +543,23 @@ contract ERC4626AssetModuleExtension is StandardERC4626AssetModule {
 
     function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {
         return _getUnderlyingAssets(assetKey);
+    }
+}
+
+contract MultiCallExtention is ActionMultiCall {
+    function assets() public view returns (address[] memory) {
+        return mintedAssets;
+    }
+
+    function ids() public view returns (uint256[] memory) {
+        return mintedIds;
+    }
+
+    function setMintedAssets(address[] memory mintedAssets_) public {
+        mintedAssets = mintedAssets_;
+    }
+
+    function setMintedIds(uint256[] memory mintedIds_) public {
+        mintedIds = mintedIds_;
     }
 }

@@ -1,5 +1,10 @@
-// SPDX-License-Identifier: MIT
+/**
+ * Created by Pragma Labs
+ * SPDX-License-Identifier: BUSL-1.1
+ */
 pragma solidity 0.8.19;
+
+import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
 
 import { IUniswapV3PoolExtension } from
     "../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
@@ -8,7 +13,9 @@ import {
     PoolAddressExtension
 } from "../../utils/fixtures/uniswap-v3/extensions/libraries/PoolAddressExtension.sol";
 
-contract NonfungiblePositionManagerMock {
+contract NonfungiblePositionManagerMock is ERC721 {
+    uint256 public id;
+
     address public immutable factory;
 
     mapping(address => uint80) internal _poolIds;
@@ -38,7 +45,7 @@ contract NonfungiblePositionManagerMock {
         uint128 tokensOwed1;
     }
 
-    constructor(address factory_) {
+    constructor(address factory_) ERC721("Uniswap V3 Mock", "UNI-V3") {
         factory = factory_;
     }
 
@@ -94,5 +101,32 @@ contract NonfungiblePositionManagerMock {
         setPool(pool, position.poolId);
 
         _positions[tokenId] = position;
+    }
+
+    struct MintParams {
+        address token0;
+        address token1;
+        uint24 fee;
+        int24 tickLower;
+        int24 tickUpper;
+        uint256 amount0Desired;
+        uint256 amount1Desired;
+        uint256 amount0Min;
+        uint256 amount1Min;
+        address recipient;
+        uint256 deadline;
+    }
+
+    function mint(MintParams memory params)
+        public
+        returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)
+    {
+        _mint(params.recipient, (id++));
+
+        return (id, 10 ** 18, 10 ** 18, 10 ** 18);
+    }
+
+    function tokenURI(uint256) public pure override returns (string memory) {
+        return string("https://ipfs.io/ipfs/");
     }
 }

@@ -5,13 +5,18 @@
 pragma solidity 0.8.19;
 
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IMainRegistry, AssetModule } from "./AbstractAssetModule.sol";
+import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { AssetModule } from "./AbstractAssetModule.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
 import { RiskModule } from "../RiskModule.sol";
 
 /**
  * @title Derived Asset Module.
  * @author Pragma Labs
+ * @notice Abstract contract with the minimal implementation of a Derived Asset Module.
+ * @dev Derived assets are assets with underlying assets, the underlying assets can be Primary Assets or also Derived assets.
+ * For Derived assets there are are no direct external oracles.
+ * USD-values of assets must be calculated in a recursive manner via the pricing logic of the Underlying Assets.
  */
 abstract contract DerivedAssetModule is AssetModule {
     using FixedPointMathLib for uint256;
@@ -20,8 +25,7 @@ abstract contract DerivedAssetModule is AssetModule {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
-    // Identifier indicating that it is a Derived Asset Module and not a Primary Asset Module.
-    // The assets being priced do have underlying assets.
+    // Identifier indicating that it is a Derived Asset Module.
     bool internal constant PRIMARY_FLAG = false;
 
     /* //////////////////////////////////////////////////////////////

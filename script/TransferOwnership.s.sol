@@ -24,7 +24,7 @@ contract ArcadiaAccountTransferOwnership is Test {
         factory = Factory(ArcadiaContractAddresses.factory);
         mainRegistry = MainRegistry(ArcadiaContractAddresses.mainRegistry);
         standardERC20AssetModule = StandardERC20AssetModule(ArcadiaContractAddresses.standardERC20AssetModule);
-        chainlinkOM = ChainlinkOracleModule(ArcadiaContractAddresses.standardERC20AssetModule);
+        chainlinkOM = ChainlinkOracleModule(ArcadiaContractAddresses.chainlinkOM);
         liquidator = ILiquidator(ArcadiaContractAddresses.liquidator);
     }
 

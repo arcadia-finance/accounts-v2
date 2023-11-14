@@ -4,7 +4,6 @@
  */
 pragma solidity 0.8.19;
 
-import { IAssetModule } from "../../interfaces/IAssetModule.sol";
 import { RiskModule } from "../../RiskModule.sol";
 
 interface IMainRegistry {
@@ -48,7 +47,7 @@ interface IMainRegistry {
         returns (uint16[] memory, uint16[] memory);
 
     /**
-     * @notice This function is called by asset modules of non-primary assets in order to update the exposure of an underlying asset after a deposit.
+     * @notice This function is called by pricing modules of non-primary assets in order to update the exposure of an underlying asset after a deposit.
      * @param creditor The contract address of the creditor.
      * @param underlyingAsset The underlying asset.
      * @param underlyingAssetId The underlying asset ID.
@@ -65,7 +64,7 @@ interface IMainRegistry {
     ) external returns (uint256 usdExposureAssetToUnderlyingAsset);
 
     /**
-     * @notice This function is called by asset modules of non-primary assets in order to update the exposure of an underlying asset after a withdrawal.
+     * @notice This function is called by pricing modules of non-primary assets in order to update the exposure of an underlying asset after a withdrawal.
      * @param creditor The contract address of the creditor.
      * @param underlyingAsset The underlying asset.
      * @param underlyingAssetId The underlying asset ID.

@@ -10,5 +10,4 @@ struct ActionData {
     uint256[] assetIds; // Array of the IDs of the assets.
     uint256[] assetAmounts; // Array with the amounts of the assets.
     uint256[] assetTypes; // Array with the types of the assets.
-    uint256[] actionBalances; // Array with the balances of the actionHandler.
 }

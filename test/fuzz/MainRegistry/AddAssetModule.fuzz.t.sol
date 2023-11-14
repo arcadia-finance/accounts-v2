@@ -49,6 +49,8 @@ contract AddAssetModule_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.assume(assetModule != address(floorERC721AssetModule));
         vm.assume(assetModule != address(floorERC1155AssetModule));
         vm.assume(assetModule != address(uniV3AssetModule));
+        vm.assume(assetModule != address(derivedAssetModule));
+        vm.assume(assetModule != address(primaryAssetModule));
 
         // When: users.creatorAddress calls addAssetModule for address(erc20AssetModule)
         vm.startPrank(users.creatorAddress);
