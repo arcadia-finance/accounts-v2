@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Vm } from "forge-std/Vm.sol";
+import { Vm } from "../../lib/forge-std/src/Vm.sol";
 import { IPermit2 } from "./Interfaces.sol";
 
 library Utils {
@@ -152,7 +152,7 @@ library Utils {
     }
 
     /**
-     * @dev Reverts if startPosition + replacement.length is bigger thanbytecode.length.
+     * @dev Reverts if startPosition + replacement.length is bigger than bytecode.length.
      */
     function replaceBytes(bytes memory bytecode, bytes memory replacement, uint256 startPosition)
         internal

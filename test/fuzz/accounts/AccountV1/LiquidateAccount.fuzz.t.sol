@@ -53,9 +53,12 @@ contract LiquidateAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 liquidationValue,
         uint96 fixedLiquidationCost
     ) public {
+        // "exposure" is strictly smaller as "maxExposure".
+        liquidationValue = uint128(bound(liquidationValue, 0, type(uint128).max - 1));
+
         // Assume account is healthy: liquidationValue is bigger than usedMargin (debt + fixedLiquidationCost).
-        uint256 usedMargin = uint256(debt) + fixedLiquidationCost;
-        vm.assume(liquidationValue >= usedMargin);
+        debt = uint128(bound(debt, 0, liquidationValue));
+        fixedLiquidationCost = uint96(bound(fixedLiquidationCost, 0, liquidationValue - debt));
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(fixedLiquidationCost);
@@ -81,6 +84,9 @@ contract LiquidateAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(fixedLiquidationCost);
+
+        // "exposure" is strictly smaller as "maxExposure".
+        liquidationValue = uint128(bound(liquidationValue, 0, type(uint128).max - 1));
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, liquidationValue);

@@ -82,7 +82,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Throws if called by any account other than the factory address.
      */
     modifier onlyFactory() {
-        require(msg.sender == IMainRegistry(registry).factory(), "A: Only Factory");
+        require(msg.sender == IMainRegistry(registry).FACTORY(), "A: Only Factory");
         _;
     }
 
@@ -488,7 +488,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         fixedLiquidationCost = 0;
 
         //Transfer ownership of the ERC721 in Factory of the Account to the Liquidator.
-        IFactory(IMainRegistry(registry).factory()).liquidate(msg.sender);
+        IFactory(IMainRegistry(registry).FACTORY()).liquidate(msg.sender);
 
         //Transfer ownership of the Account itself to the Liquidator.
         originalOwner = owner;

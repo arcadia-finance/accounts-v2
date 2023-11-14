@@ -27,17 +27,17 @@ contract GetUsdValueExposureToUnderlyingAssetAfterWithdrawal_MainRegistry_Fuzz_T
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_getUsdValueExposureToUnderlyingAssetAfterWithdrawal_NonPricingModule(
+    function testFuzz_Revert_getUsdValueExposureToUnderlyingAssetAfterWithdrawal_NonAssetModule(
         address unprivilegedAddress_,
         address underlyingAsset,
         uint96 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
     ) public {
-        vm.assume(!mainRegistryExtension.isPricingModule(unprivilegedAddress_));
+        vm.assume(!mainRegistryExtension.isAssetModule(unprivilegedAddress_));
 
         vm.prank(unprivilegedAddress_);
-        vm.expectRevert("MR: Only PriceMod.");
+        vm.expectRevert("MR: Only AssetMod.");
         mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
             address(creditorUsd),
             underlyingAsset,
@@ -48,7 +48,7 @@ contract GetUsdValueExposureToUnderlyingAssetAfterWithdrawal_MainRegistry_Fuzz_T
     }
 
     function testFuzz_Success_getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
-        address upperPricingModule,
+        address upperAssetModule,
         address underlyingAsset,
         uint96 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
@@ -58,21 +58,21 @@ contract GetUsdValueExposureToUnderlyingAssetAfterWithdrawal_MainRegistry_Fuzz_T
         vm.assume(deltaExposureAssetToUnderlyingAsset <= type(int128).max); // MaxExposure.
         vm.assume(deltaExposureAssetToUnderlyingAsset > type(int256).min); // Overflows on inversion.
 
-        mainRegistryExtension.setPricingModuleForAsset(underlyingAsset, address(primaryPricingModule));
-        primaryPricingModule.setUsdValue(usdValue);
+        mainRegistryExtension.setAssetModuleForAsset(underlyingAsset, address(primaryAssetModule));
+        primaryAssetModule.setUsdValue(usdValue);
 
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), underlyingAsset, underlyingAssetId, type(uint128).max, 100, 100
         );
 
-        stdstore.target(address(mainRegistryExtension)).sig(mainRegistryExtension.isPricingModule.selector).with_key(
-            address(upperPricingModule)
+        stdstore.target(address(mainRegistryExtension)).sig(mainRegistryExtension.isAssetModule.selector).with_key(
+            address(upperAssetModule)
         ).checked_write(true);
 
         // Prepare expected internal call.
         bytes memory data = abi.encodeCall(
-            primaryPricingModule.processIndirectWithdrawal,
+            primaryAssetModule.processIndirectWithdrawal,
             (
                 address(creditorUsd),
                 underlyingAsset,
@@ -82,8 +82,8 @@ contract GetUsdValueExposureToUnderlyingAssetAfterWithdrawal_MainRegistry_Fuzz_T
             )
         );
 
-        vm.prank(upperPricingModule);
-        vm.expectCall(address(primaryPricingModule), data);
+        vm.prank(upperAssetModule);
+        vm.expectCall(address(primaryAssetModule), data);
         uint256 usdExposureAssetToUnderlyingAsset = mainRegistryExtension
             .getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
             address(creditorUsd),

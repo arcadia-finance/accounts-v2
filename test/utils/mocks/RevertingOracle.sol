@@ -5,6 +5,8 @@
 pragma solidity 0.8.19;
 
 contract RevertingOracle {
+    uint8 public decimals;
+
     function latestRoundData() public pure returns (uint80, int256, uint256, uint256, uint80) {
         revert();
     }

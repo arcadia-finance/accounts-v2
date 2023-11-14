@@ -46,6 +46,8 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // test-case: Insufficient margin
         vm.assume(usedMargin > 0);
         collateralValue = uint128(bound(collateralValue, 0, usedMargin - 1));
+        // "exposure" is strictly smaller as "maxExposure".
+        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
@@ -71,6 +73,9 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 collateralValue,
         uint256 fixedLiquidationCost
     ) public {
+        // "exposure" is strictly smaller as "maxExposure".
+        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
+
         // test-case: Sufficient margin
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, collateralValue);
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
@@ -108,6 +113,8 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // test-case: Insufficient margin
         vm.assume(usedMargin > 0);
         collateralValue = uint128(bound(collateralValue, 0, usedMargin - 1));
+        // "exposure" is strictly smaller as "maxExposure".
+        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
@@ -129,6 +136,8 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 collateralValue,
         uint256 fixedLiquidationCost
     ) public {
+        // "exposure" is strictly smaller as "maxExposure".
+        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
         // test-case: Sufficient margin
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, collateralValue);
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);

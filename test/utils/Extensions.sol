@@ -7,20 +7,23 @@ pragma solidity 0.8.19;
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { AccountV1 } from "../../src/AccountV1.sol";
+import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
-import { DerivedPricingModule } from "../../src/pricing-modules/AbstractDerivedPricingModule.sol";
+import { ChainlinkOracleModule } from "../../src/oracle-modules/ChainlinkOracleModule.sol";
+import { DerivedAssetModule } from "../../src/asset-modules/AbstractDerivedAssetModule.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
-import { FloorERC721PricingModule } from "../../src/pricing-modules/FloorERC721PricingModule.sol";
-import { FloorERC1155PricingModule } from "../../src/pricing-modules/FloorERC1155PricingModule.sol";
+import { FloorERC721AssetModule } from "../../src/asset-modules/FloorERC721AssetModule.sol";
+import { FloorERC1155AssetModule } from "../../src/asset-modules/FloorERC1155AssetModule.sol";
 import { MainRegistryGuardian } from "../../src/guardians/MainRegistryGuardian.sol";
 import { MainRegistry } from "../../src/MainRegistry.sol";
-import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
-import { PrimaryPricingModule } from "../../src/pricing-modules/AbstractPrimaryPricingModule.sol";
+import { IMainRegistry } from "../../src/interfaces/IMainRegistry.sol";
+import { AssetModule } from "../../src/asset-modules/AbstractAssetModule.sol";
+import { PrimaryAssetModule } from "../../src/asset-modules/AbstractPrimaryAssetModule.sol";
 import { RiskModule } from "../../src/RiskModule.sol";
-import { StandardERC20PricingModule } from "../../src/pricing-modules/StandardERC20PricingModule.sol";
-import { StandardERC4626PricingModule } from "../../src/pricing-modules/StandardERC4626PricingModule.sol";
-import { UniswapV2PricingModule } from "../../src/pricing-modules/UniswapV2PricingModule.sol";
-import { UniswapV3PricingModule } from "../../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
+import { StandardERC20AssetModule } from "../../src/asset-modules/StandardERC20AssetModule.sol";
+import { StandardERC4626AssetModule } from "../../src/asset-modules/StandardERC4626AssetModule.sol";
+import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModule.sol";
+import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
 
 contract AccountExtension is AccountV1 {
@@ -63,6 +66,34 @@ contract BaseGuardianExtension is BaseGuardian {
     constructor() BaseGuardian() { }
 }
 
+contract BitPackingLibExtension {
+    function pack(bool[] memory boolValues, uint80[] memory uintValues) public pure returns (bytes32 packedData) {
+        packedData = BitPackingLib.pack(boolValues, uintValues);
+    }
+
+    function unpack(bytes32 packedData) public pure returns (bool[] memory boolValues, uint256[] memory uintValues) {
+        (boolValues, uintValues) = BitPackingLib.unpack(packedData);
+    }
+}
+
+contract ChainlinkOracleModuleExtension is ChainlinkOracleModule {
+    constructor(address mainRegistry_) ChainlinkOracleModule(mainRegistry_) { }
+
+    function getInOracleModule(address oracle) public view returns (bool) {
+        return inOracleModule[oracle];
+    }
+
+    function getOracleInformation(uint256 oracleId)
+        public
+        view
+        returns (bool isActive_, uint64 unitCorrection, address oracle)
+    {
+        isActive_ = oracleInformation[oracleId].isActive;
+        unitCorrection = oracleInformation[oracleId].unitCorrection;
+        oracle = oracleInformation[oracleId].oracle;
+    }
+}
+
 contract FactoryGuardianExtension is FactoryGuardian {
     constructor() FactoryGuardian() { }
 
@@ -94,12 +125,28 @@ contract MainRegistryExtension is MainRegistry {
 
     constructor(address factory_) MainRegistry(factory_) { }
 
+    function getOracleCounter() public view returns (uint256 oracleCounter_) {
+        oracleCounter_ = oracleCounter;
+    }
+
+    function setOracleCounter(uint256 oracleCounter_) public {
+        oracleCounter = oracleCounter_;
+    }
+
+    function getOracleToOracleModule(uint256 oracleId) public view returns (address oracleModule) {
+        oracleModule = oracleToOracleModule[oracleId];
+    }
+
+    function setOracleToOracleModule(uint256 oracleId, address oracleModule) public {
+        oracleToOracleModule[oracleId] = oracleModule;
+    }
+
     function setAssetType(address asset, uint96 assetType) public {
         assetToAssetInformation[asset].assetType = assetType;
     }
 
-    function setPricingModuleForAsset(address asset, address pricingModule) public {
-        assetToAssetInformation[asset].pricingModule = pricingModule;
+    function setAssetModuleForAsset(address asset, address assetModule) public {
+        assetToAssetInformation[asset].assetModule = assetModule;
     }
 }
 
@@ -121,8 +168,8 @@ contract RiskModuleExtension {
     }
 }
 
-abstract contract AbstractPricingModuleExtension is PricingModule {
-    constructor(address mainRegistry_, uint256 assetType_) PricingModule(mainRegistry_, assetType_) { }
+abstract contract AbstractAssetModuleExtension is AssetModule {
+    constructor(address mainRegistry_, uint256 assetType_) AssetModule(mainRegistry_, assetType_) { }
 
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
@@ -133,10 +180,8 @@ abstract contract AbstractPricingModuleExtension is PricingModule {
     }
 }
 
-abstract contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule {
-    constructor(address mainRegistry_, address oracleHub_, uint256 assetType_)
-        PrimaryPricingModule(mainRegistry_, oracleHub_, assetType_)
-    { }
+abstract contract AbstractPrimaryAssetModuleExtension is PrimaryAssetModule {
+    constructor(address mainRegistry_, uint256 assetType_) PrimaryAssetModule(mainRegistry_, assetType_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
@@ -155,8 +200,8 @@ abstract contract AbstractPrimaryPricingModuleExtension is PrimaryPricingModule 
     }
 }
 
-abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule {
-    constructor(address mainRegistry_, uint256 assetType_) DerivedPricingModule(mainRegistry_, assetType_) { }
+abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
+    constructor(address mainRegistry_, uint256 assetType_) DerivedAssetModule(mainRegistry_, assetType_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
@@ -242,8 +287,8 @@ abstract contract AbstractDerivedPricingModuleExtension is DerivedPricingModule 
     }
 }
 
-contract StandardERC20PricingModuleExtension is StandardERC20PricingModule {
-    constructor(address mainRegistry_, address oracleHub_) StandardERC20PricingModule(mainRegistry_, oracleHub_) { }
+contract StandardERC20AssetModuleExtension is StandardERC20AssetModule {
+    constructor(address mainRegistry_) StandardERC20AssetModule(mainRegistry_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
@@ -264,11 +309,16 @@ contract StandardERC20PricingModuleExtension is StandardERC20PricingModule {
     }
 }
 
-contract FloorERC721PricingModuleExtension is FloorERC721PricingModule {
-    constructor(address mainRegistry_, address oracleHub_) FloorERC721PricingModule(mainRegistry_, oracleHub_) { }
+contract FloorERC721AssetModuleExtension is FloorERC721AssetModule {
+    constructor(address mainRegistry_) FloorERC721AssetModule(mainRegistry_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
+    }
+
+    function getIdRange(address asset) public view returns (uint256 start, uint256 end) {
+        start = idRange[asset].start;
+        end = idRange[asset].end;
     }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
@@ -280,17 +330,17 @@ contract FloorERC721PricingModuleExtension is FloorERC721PricingModule {
     }
 }
 
-contract FloorERC1155PricingModuleExtension is FloorERC1155PricingModule {
-    constructor(address mainRegistry_, address oracleHub_) FloorERC1155PricingModule(mainRegistry_, oracleHub_) { }
+contract FloorERC1155AssetModuleExtension is FloorERC1155AssetModule {
+    constructor(address mainRegistry_) FloorERC1155AssetModule(mainRegistry_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
     }
 }
 
-contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
+contract UniswapV2AssetModuleExtension is UniswapV2AssetModule {
     constructor(address mainRegistry_, address uniswapV2Factory_)
-        UniswapV2PricingModule(mainRegistry_, uniswapV2Factory_)
+        UniswapV2AssetModule(mainRegistry_, uniswapV2Factory_)
     { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
@@ -386,9 +436,9 @@ contract UniswapV2PricingModuleExtension is UniswapV2PricingModule {
     }
 }
 
-contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
+contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
     constructor(address mainRegistry_, address nonfungiblePositionManager)
-        UniswapV3PricingModule(mainRegistry_, nonfungiblePositionManager)
+        UniswapV3AssetModule(mainRegistry_, nonfungiblePositionManager)
     { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
@@ -459,8 +509,8 @@ contract UniswapV3PricingModuleExtension is UniswapV3PricingModule {
     }
 }
 
-contract ERC4626PricingModuleExtension is StandardERC4626PricingModule {
-    constructor(address mainRegistry_) StandardERC4626PricingModule(mainRegistry_) { }
+contract ERC4626AssetModuleExtension is StandardERC4626AssetModule {
+    constructor(address mainRegistry_) StandardERC4626AssetModule(mainRegistry_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;

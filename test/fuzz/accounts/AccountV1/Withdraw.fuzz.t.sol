@@ -69,7 +69,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Revert_withdraw_ERC20WithId(uint256 id, uint128 amount) public {
-        amount = uint128(bound(amount, 1, type(uint128).max));
+        amount = uint128(bound(amount, 1, type(uint128).max - 1));
         id = bound(id, 1, type(uint256).max);
 
         address[] memory assetAddresses = new address[](1);
@@ -88,7 +88,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Revert_withdraw_ERC721WithAmount(uint8 id, uint128 amount) public {
-        amount = uint128(bound(amount, 2, type(uint128).max));
+        amount = uint128(bound(amount, 2, type(uint128).max - 1));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC721.nft1);
@@ -253,6 +253,9 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
         uint256 usedMargin = debt + fixedLiquidationCost;
 
+        // "exposure" is strictly smaller as "maxExposure".
+        collateralValueInitial = uint128(bound(collateralValueInitial, 0, type(uint128).max - 1));
+
         // No underflow Withdrawal.
         collateralValueDecrease = bound(collateralValueDecrease, 0, collateralValueInitial);
 
@@ -284,7 +287,11 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_withdraw_NoDebt_FullWithdrawal(uint128 erc20Amount, uint8 erc721Id, uint128 erc1155Amount)
         public
     {
-        // Given: An initial state of the account with assets.
+        // Given: "exposure" is strictly smaller as "maxExposure".
+        erc20Amount = uint128(bound(erc20Amount, 0, type(uint128).max - 1));
+        erc1155Amount = uint128(bound(erc1155Amount, 0, type(uint128).max - 1));
+
+        // And: An initial state of the account with assets.
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC721.nft1);
@@ -339,7 +346,11 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 erc1155InitialAmount,
         uint128 erc1155WithdrawAmount
     ) public {
-        // Given: total deposit amounts are bigger as zero.
+        // Given: "exposure" is strictly smaller as "maxExposure".
+        erc20InitialAmount = uint128(bound(erc20InitialAmount, 0, type(uint128).max - 1));
+        erc1155InitialAmount = uint128(bound(erc1155InitialAmount, 0, type(uint128).max - 1));
+
+        // And: total deposit amounts are bigger as zero.
         vm.assume(erc20InitialAmount > 0);
         vm.assume(erc1155InitialAmount > 0);
         // And: Assets don't underflow.
@@ -425,6 +436,9 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint256).max - debt);
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
         uint256 usedMargin = debt + fixedLiquidationCost;
+
+        // "exposure" is strictly smaller as "maxExposure".
+        collateralValueInitial = uint128(bound(collateralValueInitial, 0, type(uint128).max - 1));
 
         // No underflow Withdrawal.
         collateralValueDecrease = bound(collateralValueDecrease, 0, collateralValueInitial);
