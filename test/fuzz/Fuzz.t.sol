@@ -9,7 +9,7 @@ import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
 import { MainRegistry } from "../../src/MainRegistry.sol";
 import { AssetModule } from "../../src/asset-modules/AbstractAssetModule.sol";
-import { TrustedCreditorMock } from "../utils/mocks/TrustedCreditorMock.sol";
+import { CreditorMock } from "../utils/mocks/CreditorMock.sol";
 import { ERC20Mock } from "../utils/mocks/ERC20Mock.sol";
 import { ERC721Mock } from "../utils/mocks/ERC721Mock.sol";
 import { ERC1155Mock } from "../utils/mocks/ERC1155Mock.sol";
@@ -56,9 +56,9 @@ abstract contract Fuzz_Test is Base_Test {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    TrustedCreditorMock internal creditorUsd;
-    TrustedCreditorMock internal creditorStable1;
-    TrustedCreditorMock internal creditorToken1;
+    CreditorMock internal creditorUsd;
+    CreditorMock internal creditorStable1;
+    CreditorMock internal creditorToken1;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -117,17 +117,17 @@ abstract contract Fuzz_Test is Base_Test {
             sft2ToUsd: 1 * 10 ** Constants.erc1155OracleDecimals
         });
 
-        // Create a trusted creditor with each baseCurrency.
-        creditorUsd = new TrustedCreditorMock();
-        creditorStable1 = new TrustedCreditorMock();
-        creditorToken1 = new TrustedCreditorMock();
+        // Create a creditor with each baseCurrency.
+        creditorUsd = new CreditorMock();
+        creditorStable1 = new CreditorMock();
+        creditorToken1 = new CreditorMock();
         creditorStable1.setBaseCurrency(address(mockERC20.stable1));
         creditorToken1.setBaseCurrency(address(mockERC20.token1));
         creditorUsd.setRiskManager(users.riskManager);
         creditorStable1.setRiskManager(users.riskManager);
         creditorToken1.setRiskManager(users.riskManager);
 
-        // Initialize the default liquidation cost and liquidator of trusted creditor
+        // Initialize the default liquidation cost and liquidator of creditor
         // The base currency on initialization will depend on the type of test and set at a lower level
         creditorStable1.setFixedLiquidationCost(Constants.initLiquidationCost);
         creditorStable1.setLiquidator(Constants.initLiquidator);

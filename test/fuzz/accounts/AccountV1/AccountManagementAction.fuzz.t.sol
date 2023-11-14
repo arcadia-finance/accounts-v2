@@ -44,7 +44,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         mainRegistryExtension.setAllowedAction(address(action), true);
 
         accountNotInitialised = new AccountExtension();
-        accountNotInitialised.setTrustedCreditor(address(mockERC20.stable1));
+        accountNotInitialised.setCreditor(address(mockERC20.stable1));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -172,8 +172,8 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         accountNotInitialised.setOwner(users.accountOwner);
         accountNotInitialised.setRegistry(address(mainRegistryExtension));
         accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
-        accountNotInitialised.setTrustedCreditor(address(creditorStable1));
-        accountNotInitialised.setIsTrustedCreditorSet(true);
+        accountNotInitialised.setCreditor(address(creditorStable1));
+        accountNotInitialised.setIsCreditorSet(true);
         vm.stopPrank();
 
         // Set the account as initialised in the factory
@@ -280,8 +280,8 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         accountNotInitialised.setRegistry(address(mainRegistryExtension));
         vm.prank(from);
         accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
-        accountNotInitialised.setTrustedCreditor(address(creditorStable1));
-        accountNotInitialised.setIsTrustedCreditorSet(true);
+        accountNotInitialised.setCreditor(address(creditorStable1));
+        accountNotInitialised.setIsCreditorSet(true);
 
         // Set the account as initialized in the factory
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
@@ -351,8 +351,8 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         accountNotInitialised.setRegistry(address(mainRegistryExtension));
         vm.prank(users.accountOwner);
         accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
-        accountNotInitialised.setTrustedCreditor(address(creditorStable1));
-        accountNotInitialised.setIsTrustedCreditorSet(true);
+        accountNotInitialised.setCreditor(address(creditorStable1));
+        accountNotInitialised.setIsCreditorSet(true);
 
         creditorStable1.setOpenPosition(address(accountNotInitialised), debtAmount);
 
@@ -510,8 +510,8 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         accountNotInitialised.setAssetManager(assetManager, true);
         accountNotInitialised.setRegistry(address(mainRegistryExtension));
         accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
-        accountNotInitialised.setTrustedCreditor(address(creditorStable1));
-        accountNotInitialised.setIsTrustedCreditorSet(true);
+        accountNotInitialised.setCreditor(address(creditorStable1));
+        accountNotInitialised.setIsCreditorSet(true);
         vm.stopPrank();
 
         creditorStable1.setOpenPosition(address(accountNotInitialised), debtAmount);
@@ -632,8 +632,8 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         accountNotInitialised.setRegistry(address(mainRegistryExtension));
         vm.prank(from);
         accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
-        accountNotInitialised.setTrustedCreditor(address(creditorStable1));
-        accountNotInitialised.setIsTrustedCreditorSet(true);
+        accountNotInitialised.setCreditor(address(creditorStable1));
+        accountNotInitialised.setIsCreditorSet(true);
 
         // Set the account as initialised in the factory
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))

@@ -12,7 +12,7 @@ import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IOracleModule } from "./interfaces/IOracleModule.sol";
 import { IAssetModule } from "./interfaces/IAssetModule.sol";
 import { IPrimaryAssetModule } from "./interfaces/IPrimaryAssetModule.sol";
-import { ITrustedCreditor } from "./interfaces/ITrustedCreditor.sol";
+import { ICreditor } from "./interfaces/ICreditor.sol";
 import { MainRegistryGuardian } from "./guardians/MainRegistryGuardian.sol";
 import { RiskModule } from "./RiskModule.sol";
 
@@ -316,7 +316,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external {
-        require(msg.sender == ITrustedCreditor(creditor).riskManager(), "MR_SRPPA: Not Authorized");
+        require(msg.sender == ICreditor(creditor).riskManager(), "MR_SRPPA: Not Authorized");
 
         IPrimaryAssetModule(assetToAssetInformation[asset].assetModule).setRiskParameters(
             creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor
@@ -337,7 +337,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         uint128 maxUsdExposureProtocol,
         uint16 riskFactor
     ) external {
-        require(msg.sender == ITrustedCreditor(creditor).riskManager(), "MR_SRPDPM: Not Authorized");
+        require(msg.sender == ICreditor(creditor).riskManager(), "MR_SRPDPM: Not Authorized");
 
         IDerivedAssetModule(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
     }
