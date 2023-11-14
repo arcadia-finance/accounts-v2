@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.19;
 
-import { PoolAddress } from "../../../../../../src/pricing-modules/UniswapV3/libraries/PoolAddress.sol";
+import { PoolAddress } from "../../../../../../src/asset-modules/UniswapV3/libraries/PoolAddress.sol";
 
 /// @title Provides functions for deriving a pool address from the factory, tokens, and the fee
 library PoolAddressExtension {

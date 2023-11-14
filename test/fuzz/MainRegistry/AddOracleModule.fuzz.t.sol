@@ -33,7 +33,7 @@ contract AddOracleModule_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_addOracleModule_AddExistingPricingModule(address oracleModule_) public {
+    function testFuzz_Revert_addOracleModule_AddExistingOracleModule(address oracleModule_) public {
         // Given: "oracleModule" is previously added.
         vm.assume(!mainRegistryExtension.isOracleModule(oracleModule_));
         vm.prank(users.creatorAddress);

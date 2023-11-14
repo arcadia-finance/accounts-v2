@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "../../../../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
+import "../../../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
 library TickMathsExtension {
     /// @dev The minimum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MIN_TICK)

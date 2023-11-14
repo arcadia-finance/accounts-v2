@@ -95,7 +95,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(address(proxyAccount));
-        vm.expectRevert("APPM_PDD: Exposure not in limits");
+        vm.expectRevert("APAM_PDD: Exposure not in limits");
         mainRegistryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -192,7 +192,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assertEq(assetTypes[0], 0);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
-        (uint128 exposure,,,) = erc20PricingModule.riskParams(address(creditorUsd), assetKey);
+        (uint128 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
         assertEq(exposure, amount);
     }
 
@@ -217,9 +217,9 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         assertEq(assetTypes[1], 0);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
-        (uint128 exposureToken1,,,) = erc20PricingModule.riskParams(address(creditorUsd), assetKey);
+        (uint128 exposureToken1,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
         assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));
-        (uint128 exposureToken2,,,) = erc20PricingModule.riskParams(address(creditorUsd), assetKey);
+        (uint128 exposureToken2,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
 
         assertEq(exposureToken1, amountToken1);
         assertEq(exposureToken2, amountToken2);
@@ -240,7 +240,7 @@ contract BatchProcessDeposit_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         vm.stopPrank();
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));
-        (uint128 newExposure,,,) = erc20PricingModule.riskParams(address(creditorUsd), assetKey);
+        (uint128 newExposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
 
         assertEq(newExposure, amountToken2);
     }

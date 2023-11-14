@@ -12,9 +12,9 @@ import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/AccountV1.sol";
 import { MainRegistry } from "../src/MainRegistry.sol";
 import { ChainlinkOracleModule } from "../src/oracle-modules/ChainlinkOracleModule.sol";
-import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
-import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
-import { UniswapV3PricingModule } from "../src/pricing-modules/UniswapV3/UniswapV3PricingModule.sol";
+import { StandardERC20AssetModule } from "../src/asset-modules/StandardERC20AssetModule.sol";
+import { AssetModule } from "../src/asset-modules/AbstractAssetModule.sol";
+import { UniswapV3AssetModule } from "../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 
 import { ActionMultiCall } from "../src/actions/MultiCall.sol";
 
@@ -33,8 +33,8 @@ contract ArcadiaAccountDeployment is Test {
     ERC20 internal reth;
 
     MainRegistry internal mainRegistry;
-    StandardERC20PricingModule internal standardERC20PricingModule;
-    UniswapV3PricingModule internal uniswapV3PricingModule;
+    StandardERC20AssetModule internal standardERC20AssetModule;
+    UniswapV3AssetModule internal uniswapV3AssetModule;
     ChainlinkOracleModule internal chainlinkOM;
     ActionMultiCall internal actionMultiCall;
 
@@ -81,18 +81,18 @@ contract ArcadiaAccountDeployment is Test {
         usdcLendingPool = ILendingPool(0x4d39409993dBe365c9AcaAe7c7e259C06FBFFa4A); //todo: change after LP deploy
 
         mainRegistry = new MainRegistry(address(factory));
-        standardERC20PricingModule = new StandardERC20PricingModule(
+        standardERC20AssetModule = new StandardERC20AssetModule(
             address(mainRegistry));
-        uniswapV3PricingModule =
-            new UniswapV3PricingModule(address(mainRegistry), DeployAddresses.uniswapV3PositionMgr_base);
+        uniswapV3AssetModule =
+            new UniswapV3AssetModule(address(mainRegistry), DeployAddresses.uniswapV3PositionMgr_base);
 
         chainlinkOM = new ChainlinkOracleModule(address(mainRegistry));
 
         account = new AccountV1();
         actionMultiCall = new ActionMultiCall();
 
-        mainRegistry.addPricingModule(address(standardERC20PricingModule));
-        mainRegistry.addPricingModule(address(uniswapV3PricingModule));
+        mainRegistry.addAssetModule(address(standardERC20AssetModule));
+        mainRegistry.addAssetModule(address(uniswapV3AssetModule));
 
         mainRegistry.addOracleModule(address(chainlinkOM));
 
@@ -112,26 +112,26 @@ contract ArcadiaAccountDeployment is Test {
         oracleRethToEthToUsdArr[0] = oracleRethToEthId;
         oracleRethToEthToUsdArr[1] = oracleEthToUsdId;
 
-        standardERC20PricingModule.addAsset(
+        standardERC20AssetModule.addAsset(
             DeployAddresses.comp_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleCompToUsdArr)
         );
-        standardERC20PricingModule.addAsset(
+        standardERC20AssetModule.addAsset(
             DeployAddresses.dai_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleDaiToUsdArr)
         );
-        standardERC20PricingModule.addAsset(
+        standardERC20AssetModule.addAsset(
             DeployAddresses.weth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleEthToUsdArr)
         );
-        standardERC20PricingModule.addAsset(
+        standardERC20AssetModule.addAsset(
             DeployAddresses.usdc_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdcToUsdArr)
         );
-        standardERC20PricingModule.addAsset(
+        standardERC20AssetModule.addAsset(
             DeployAddresses.cbeth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleCbethToEthToUsdArr)
         );
-        standardERC20PricingModule.addAsset(
+        standardERC20AssetModule.addAsset(
             DeployAddresses.reth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleRethToEthToUsdArr)
         );
 
-        uniswapV3PricingModule.setProtocol();
+        uniswapV3AssetModule.setProtocol();
 
         factory.setNewAccountInfo(address(mainRegistry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);

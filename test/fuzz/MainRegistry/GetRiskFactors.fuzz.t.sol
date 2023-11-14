@@ -41,14 +41,14 @@ contract GetRiskFactors_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         liquidationFactors[0] = uint16(bound(liquidationFactors[0], 0, RiskConstants.RISK_FACTOR_UNIT));
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], 0, RiskConstants.RISK_FACTOR_UNIT));
 
-        // And: Underlying assets are in primaryPricingModule.
-        mainRegistryExtension.setPricingModuleForAsset(assets[0], address(primaryPricingModule));
-        mainRegistryExtension.setPricingModuleForAsset(assets[1], address(primaryPricingModule));
+        // And: Underlying assets are in primaryAssetModule.
+        mainRegistryExtension.setAssetModuleForAsset(assets[0], address(primaryAssetModule));
+        mainRegistryExtension.setAssetModuleForAsset(assets[1], address(primaryAssetModule));
         vm.startPrank(address(mainRegistryExtension));
-        primaryPricingModule.setRiskParameters(
+        primaryAssetModule.setRiskParameters(
             creditor, assets[0], assetIds[0], 0, collateralFactors[0], liquidationFactors[0]
         );
-        primaryPricingModule.setRiskParameters(
+        primaryAssetModule.setRiskParameters(
             creditor, assets[1], assetIds[1], 0, collateralFactors[1], liquidationFactors[1]
         );
         vm.stopPrank();

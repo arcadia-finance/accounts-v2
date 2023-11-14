@@ -10,7 +10,7 @@ import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../src/libraries/BitPackingLib.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { ERC20Mock } from "../../utils/mocks/ERC20Mock.sol";
-import { PricingModule } from "../../../src/pricing-modules/AbstractPricingModule.sol";
+import { AssetModule } from "../../../src/asset-modules/AbstractAssetModule.sol";
 
 /**
  * @notice Fuzz tests for the function "getTotalValue" of contract "MainRegistry".
@@ -74,7 +74,7 @@ contract GetTotalValue_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         uint80[] memory oracleAssetToUsdArr = new uint80[](1);
         oracleAssetToUsdArr[0] = oracleId;
 
-        erc20PricingModule.addAsset(address(mockERC20.token2), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
+        erc20AssetModule.addAsset(address(mockERC20.token2), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
         vm.stopPrank();
         vm.prank(users.riskManager);
         mainRegistryExtension.setRiskParametersOfPrimaryAsset(

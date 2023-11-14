@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import { INonfungiblePositionManager } from
-    "../../../../../../src/pricing-modules/UniswapV3/interfaces/INonfungiblePositionManager.sol";
+    "../../../../../../src/asset-modules/UniswapV3/interfaces/INonfungiblePositionManager.sol";
 
 interface INonfungiblePositionManagerExtension is INonfungiblePositionManager {
     struct MintParams {
