@@ -56,7 +56,7 @@ contract FloorERC721PricingModule is PrimaryPricingModule {
         external
         onlyOwner
     {
-        require(idRangeStart < idRangeEnd, "PM721_AA: Invalid Range");
+        require(idRangeStart <= idRangeEnd, "PM721_AA: Invalid Range");
         require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracleSequence), "PM721_AA: Bad Sequence");
         // Will revert in MainRegistry if asset was already added.
         IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
