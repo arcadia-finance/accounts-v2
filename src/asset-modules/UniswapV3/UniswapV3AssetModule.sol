@@ -12,7 +12,6 @@ import { INonfungiblePositionManager } from "./interfaces/INonfungiblePositionMa
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { LiquidityAmounts } from "./libraries/LiquidityAmounts.sol";
 import { PoolAddress } from "./libraries/PoolAddress.sol";
-import { SafeCastLib } from "lib/solmate/src/utils/SafeCastLib.sol";
 import { RiskModule } from "../../RiskModule.sol";
 import { TickMath } from "./libraries/TickMath.sol";
 

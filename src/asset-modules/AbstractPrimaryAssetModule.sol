@@ -245,7 +245,7 @@ abstract contract PrimaryAssetModule is AssetModule {
                 : 0;
         }
         require(exposureAsset < riskParams[creditor][assetKey].maxExposure, "APAM_PID: Exposure not in limits");
-        // Unsafe cast: "RiskParameters.maxExposure" is a uint128.
+        // unchecked cast: "RiskParameters.maxExposure" is a uint128.
         riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
 
         // Get Value in Usd
