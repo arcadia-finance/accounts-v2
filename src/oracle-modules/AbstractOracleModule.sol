@@ -10,6 +10,10 @@ import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
  * @title Abstract Oracle Module
  * @author Pragma Labs
  * @notice Abstract contract with the minimal implementation of an Oracle Module.
+ * @dev Each different oracle implementation (Chainlink, Pyth, Uniswap V3 TWAPs...) should have it's own Oracle Module.
+ * The Oracle Modules will:
+ *  - Return the oracle rate in a standardized format with 18 decimals precision.
+ *  - Decommission non functioning oracles.
  */
 abstract contract OracleModule is Owned {
     /* //////////////////////////////////////////////////////////////
@@ -36,18 +40,6 @@ abstract contract OracleModule is Owned {
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
-
-    /* //////////////////////////////////////////////////////////////
-                                MODIFIERS
-    ////////////////////////////////////////////////////////////// */
-
-    /**
-     * @dev Only the Main Registry can call functions with this modifier.
-     */
-    modifier onlyMainReg() {
-        require(msg.sender == MAIN_REGISTRY, "APM: ONLY_MAIN_REGISTRY");
-        _;
-    }
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR

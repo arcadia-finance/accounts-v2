@@ -77,7 +77,7 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
      * @param asset The contract address of the asset.
      * param assetId The Id of the asset.
      * @return key The unique identifier.
-     * @dev The assetId is hard-coded to 0, since both the assets as underlying assets for this Pricing Modules are ERC20's.
+     * @dev The assetId is hard-coded to 0, since both the assets as underlying assets for this Asset Modules are ERC20's.
      */
     function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
         assembly {
@@ -90,7 +90,7 @@ contract StandardERC4626PricingModule is DerivedPricingModule {
      * @param key The unique identifier.
      * @return asset The contract address of the asset.
      * @return assetId The Id of the asset.
-     * @dev The assetId is hard-coded to 0, since both the assets as underlying assets for this Pricing Modules are ERC20's.
+     * @dev The assetId is hard-coded to 0, since both the assets as underlying assets for this Asset Modules are ERC20's.
      */
     function _getAssetFromKey(bytes32 key) internal pure override returns (address asset, uint256) {
         assembly {

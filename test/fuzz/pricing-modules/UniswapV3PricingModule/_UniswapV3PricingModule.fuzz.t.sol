@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { UniswapV3Fixture } from "../../../utils/fixtures/uniswap-v3/UniswapV3Fixture.f.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
@@ -13,7 +13,6 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { INonfungiblePositionManagerExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { IUniswapV3PoolExtension } from

@@ -4,7 +4,6 @@
  */
 pragma solidity 0.8.19;
 
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IPricingModule } from "../interfaces/IPricingModule.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 
@@ -12,6 +11,11 @@ import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
  * @title Abstract Pricing Module
  * @author Pragma Labs
  * @notice Abstract contract with the minimal implementation of a Pricing Module.
+ * @dev Each different asset class should have it's own Oracle Module.
+ * The Asset Modules will:
+ *  - Implement the pricing logic to calculate the USD value (with 18 decimals precision).
+ *  - Process Deposits and Withdrawals.
+ *  - Manager the risk parameters.
  */
 abstract contract PricingModule is Owned, IPricingModule {
     /* //////////////////////////////////////////////////////////////

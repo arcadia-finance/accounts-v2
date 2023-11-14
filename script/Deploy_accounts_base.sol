@@ -97,7 +97,7 @@ contract ArcadiaAccountDeployment is Test {
         mainRegistry.addOracleModule(address(chainlinkOM));
 
         oracleCompToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCompToUsd_base, "COMP", "USD"));
-        oracleDaiToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "COMP", "DAI"));
+        oracleDaiToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "DAI", "USD"));
         oracleEthToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleEthToUsd_base, "ETH", "USD"));
         oracleUsdcToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleUsdcToUsd_base, "USDC", "USD"));
         oracleCbethToEthId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCbethToEth_base, "CBETH", "ETH"));
@@ -125,10 +125,10 @@ contract ArcadiaAccountDeployment is Test {
             DeployAddresses.usdc_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdcToUsdArr)
         );
         standardERC20PricingModule.addAsset(
-            DeployAddresses.cbeth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleCbethToEthToUsdArr)
+            DeployAddresses.cbeth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleCbethToEthToUsdArr)
         );
         standardERC20PricingModule.addAsset(
-            DeployAddresses.reth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleRethToEthToUsdArr)
+            DeployAddresses.reth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleRethToEthToUsdArr)
         );
 
         uniswapV3PricingModule.setProtocol();

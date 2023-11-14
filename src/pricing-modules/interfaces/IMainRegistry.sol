@@ -4,7 +4,6 @@
  */
 pragma solidity 0.8.19;
 
-import { IPricingModule } from "../../interfaces/IPricingModule.sol";
 import { RiskModule } from "../../RiskModule.sol";
 
 interface IMainRegistry {

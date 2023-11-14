@@ -29,19 +29,19 @@ contract AddOracle_MainRegistry_Fuzz_Test is MainRegistry_Fuzz_Test {
         mainRegistryExtension.addOracle();
     }
 
-    function testFuzz_Success_addOracle(address oracleModule, uint256 oracleCounterLast) public {
-        vm.assume(!mainRegistryExtension.isOracleModule(oracleModule));
+    function testFuzz_Success_addOracle(address oracleModule_, uint256 oracleCounterLast) public {
+        vm.assume(!mainRegistryExtension.isOracleModule(oracleModule_));
         vm.prank(users.creatorAddress);
-        mainRegistryExtension.addOracleModule(oracleModule);
+        mainRegistryExtension.addOracleModule(oracleModule_);
 
         oracleCounterLast = bound(oracleCounterLast, 0, type(uint80).max);
         mainRegistryExtension.setOracleCounter(oracleCounterLast);
 
-        vm.prank(oracleModule);
+        vm.prank(oracleModule_);
         uint256 oracleId = mainRegistryExtension.addOracle();
 
         assertEq(oracleId, oracleCounterLast);
-        assertEq(mainRegistryExtension.getOracleToOracleModule(oracleId), oracleModule);
+        assertEq(mainRegistryExtension.getOracleToOracleModule(oracleId), oracleModule_);
         assertEq(mainRegistryExtension.getOracleCounter(), oracleCounterLast + 1);
     }
 }
