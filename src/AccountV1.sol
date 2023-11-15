@@ -487,7 +487,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             IRegistry(registry).getValuesInBaseCurrency(baseCurrency, creditor_, assetAddresses, assetIds, assetAmounts);
 
         // Since the function is only callable by the liquidator, a liquidator and a Creditor are set.
-        openDebt = ICreditor(creditor).startLiquidation(address(this));
+        openDebt = ICreditor(creditor).startLiquidation();
         uint256 usedMargin = openDebt + fixedLiquidationCost;
 
         if (openDebt == 0 || RiskModule._calculateLiquidationValue(assetAndRiskValues) >= usedMargin) {

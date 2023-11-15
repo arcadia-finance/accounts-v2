@@ -29,9 +29,8 @@ interface ICreditor {
     function riskManager() external view returns (address riskManager);
 
     /**
-     * @notice Starts the liquidation of an account and returns the open position of the Account.
-     * @param account The account address.
+     * @notice Starts the liquidation of an account and returns the open position of the Account. The caller of this should be the account and has to have a debt in the creditor
      * @return openPosition the open position of the Account
      */
-    function startLiquidation(address account) external returns (uint256);
+    function startLiquidation() external returns (uint256);
 }
