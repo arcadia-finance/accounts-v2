@@ -335,7 +335,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /**
      * @notice Checks if the Account is healthy and still has free margin.
      * @param debtIncrease The amount with which the debt is increased.
-     * @param totalOpenDebt The total open Debt against the Account.
+     * @param openDebt The total open Debt against the Account.
      * @return success Boolean indicating if there is sufficient margin to back a certain amount of Debt.
      * @return trustedCreditor_ The contract address of the trusted creditor.
      * @return accountVersion_ The Account version.
@@ -343,15 +343,15 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Only one of the values can be non-zero, or we check on a certain increase of debt, or we check on a total amount of debt.
      * @dev If both values are zero, we check if the Account is currently healthy.
      */
-    function isAccountHealthy(uint256 debtIncrease, uint256 totalOpenDebt)
+    function isAccountHealthy(uint256 debtIncrease, uint256 openDebt)
         external
         view
         returns (bool success, address trustedCreditor_, uint256 accountVersion_)
     {
-        if (totalOpenDebt > 0) {
+        if (openDebt > 0) {
             //Check if Account is healthy for a given amount of openDebt.
             //The total Used margin equals the sum of the given amount of openDebt and the gas cost to liquidate.
-            success = getCollateralValue() >= totalOpenDebt + fixedLiquidationCost;
+            success = getCollateralValue() >= openDebt + fixedLiquidationCost;
         } else {
             //Check if Account is still healthy after an increase of debt.
             //The gas cost to liquidate is already taken into account in getUsedMargin().
@@ -464,59 +464,54 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Checks if an Account is liquidatable and in that case will initiate the liquidation flow.
+     * @notice Checks if an Account is liquidatable and continues the liquidation flow.
      * @return assetAddresses Array of the contract addresses of the assets in Account.
      * @return assetIds Array of the IDs of the assets in Account.
      * @return assetAmounts Array with the amounts of the assets in Account.
      * @return owner_ Owner of the account.
-     * @return creditor_ The trusted creditor, address 0 if no active trusted creditor.
-     * @return totalOpenDebt The total open Debt against the Account.
+     * @return creditor_ The creditor, address 0 if no active trusted creditor.
+     * @return openDebt The open Debt issued against the Account.
      * @return assetAndRiskValues Array of asset values and corresponding collateral factors.
      */
-    function checkAndStartLiquidation()
+    function startLiquidation()
         external
         nonReentrant
+        onlyLiquidator
         returns (
             address[] memory assetAddresses,
             uint256[] memory assetIds,
             uint256[] memory assetAmounts,
             address owner_,
             address creditor_,
-            uint256 totalOpenDebt,
+            uint256 openDebt,
             RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues
         )
     {
+        owner_ = owner;
         creditor_ = trustedCreditor;
+
         (assetAddresses, assetIds, assetAmounts) = generateAssetData();
         assetAndRiskValues = IMainRegistry(registry).getValuesInBaseCurrency(
             baseCurrency, creditor_, assetAddresses, assetIds, assetAmounts
         );
-        owner_ = owner;
 
-        uint256 fixedLiquidationCost_ = fixedLiquidationCost;
+        // Since the function is only callable by the liquidator, a liquidator and a Creditor are set.
+        openDebt = ITrustedCreditor(trustedCreditor).startLiquidation(address(this));
+        uint256 usedMargin = openDebt + fixedLiquidationCost;
 
-        //As the function is only callable by the liquidator, it means that a liquidator and a trustedCreditor are set.
-        totalOpenDebt = ITrustedCreditor(trustedCreditor).startLiquidation(address(this));
-
-        uint256 usedMargin = totalOpenDebt + fixedLiquidationCost_;
-
-        bool accountIsLiquidatable;
-        if (totalOpenDebt > 0) {
-            //A Account can be liquidated if the Liquidation value is smaller than the Used Margin.
-            accountIsLiquidatable = RiskModule.calculateLiquidationValue(assetAndRiskValues) < usedMargin;
+        if (openDebt == 0 || RiskModule._calculateLiquidationValue(assetAndRiskValues) >= usedMargin) {
+            revert("A_CASL: Account not liquidatable");
         }
-
-        require(accountIsLiquidatable, "A_CASL: Account not liquidatable");
     }
 
     /**
-     * @notice Will transfer the tokens bought by a bidder during a liquidation event.
+     * @notice Transfers the asset bought by a bidder during a liquidation event.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @param bidder The address of the bidder that bought the assets.
+     * @param bidder The address of the bidder.
      */
-    function auctionBuy(
+    function auctionBid(
         address[] memory assetAddresses,
         uint256[] memory assetIds,
         uint256[] memory assetAmounts,
@@ -526,10 +521,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Transfers tokens purchased by a bidder during a liquidation event.
-     * @param to The recipient's address to receive the purchased assets.
+     * @notice Transfers all assets of the Account in case the auction did not end successful (= Bought In).
+     * @param to The recipient's address to receive the assets, set by the Creditor.
+     * @dev When an auction is not successful, the assets are considered "Bought In" (auction terminology):
+     * Any remaining assets in the Account are transferred to a certain recipient address, set by the creditor.
      */
-    function auctionBuyIn(address to) external onlyLiquidator {
+    function auctionBoughtIn(address to) external onlyLiquidator {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
         _withdraw(assetAddresses, assetIds, assetAmounts, to);
