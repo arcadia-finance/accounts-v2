@@ -344,6 +344,13 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         IDerivedAssetModule(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
     }
 
+    /**
+     * @notice Sets the minimum usd value of assets that are taken into account for a given creditor.
+     * @param creditor The contract address of the creditor.
+     * @param minUsdValue The minimum usd value of assets that are taken into account for the creditor,
+     * denominated in USD with 18 decimals precision.
+     * @dev This feature is to prevent dust from being taken into account and preventing liquidations.
+     */
     function setMinUsdValueCreditor(address creditor, uint256 minUsdValue) external {
         require(msg.sender == ICreditor(creditor).riskManager(), "MR_SMUVC: Not Authorized");
 
@@ -552,6 +559,8 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule).getValue(
                 creditor, assets[i], assetIds[i], assetAmounts[i]
             );
+            // If asset value is too low, set to zero.
+            // This is done to prevent dust attacks which may make liquidations unprofitable.
             if (valuesAndRiskFactors[i].assetValue < minUsdValue) valuesAndRiskFactors[i].assetValue = 0;
 
             unchecked {
