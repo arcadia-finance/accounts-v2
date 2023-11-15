@@ -5,7 +5,7 @@ on:
       - main_paper_trading
       - main*
       - refactor/arcadia-vault
-      - dev
+      - dev*
       - fix/fixes
       - AF-*
 
