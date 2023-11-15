@@ -63,7 +63,7 @@ contract CreditorMock {
         fixedLiquidationCost = fixedLiquidationCost_;
     }
 
-    function startLiquidation(address account) external view returns (uint256 openPosition_) {
-        openPosition_ = openPosition[account];
+    function startLiquidation() external view returns (uint256 openPosition_) {
+        openPosition_ = openPosition[msg.sender];
     }
 }
