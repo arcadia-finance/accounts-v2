@@ -42,7 +42,7 @@ abstract contract Events {
 
     event AssetManagerSet(address indexed owner, address indexed assetManager, bool value);
     event BaseCurrencySet(address baseCurrency);
-    event TrustedMarginAccountChanged(address indexed protocol, address indexed liquidator);
+    event MarginAccountChanged(address indexed protocol, address indexed liquidator);
 
     /*//////////////////////////////////////////////////////////////////////////
                                 BASE GUARDIAN

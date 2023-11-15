@@ -24,7 +24,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function setUp() public override {
         AccountV1_Fuzz_Test.setUp();
 
-        // Given: Trusted Creditor is set.
+        // Given: Creditor is set.
         openMarginAccount();
     }
 

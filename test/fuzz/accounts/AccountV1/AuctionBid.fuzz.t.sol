@@ -43,10 +43,10 @@ contract AuctionBuy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 erc20WithdrawAmount,
         uint8 erc721Id,
         uint128 erc1155InitialAmount,
-        uint128 erc1155WithdrawAmount,
-        address bidder
+        uint128 erc1155WithdrawAmount
     ) public {
-        vm.assume(bidder != address(0));
+        // Cannot fuzz "bidder", since contracts, since it reverts when fuzzed to a contract that does not have "onERC1155Received" implemented.
+        address bidder = address(978_534_679);
 
         // Given: total deposit amounts are bigger as zero.
         // And: "exposure" is strictly smaller as "maxExposure".
@@ -116,12 +116,12 @@ contract AuctionBuy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(mockERC1155.sft1.balanceOf(bidder, 1), erc1155WithdrawAmount);
     }
 
-    function testFuzz_Success_AuctionBuy_buyFullAccount(
-        uint128 erc20Amount,
-        uint8 erc721Id,
-        uint128 erc1155Amount,
-        address bidder
-    ) public {
+    function testFuzz_Success_AuctionBuy_buyFullAccount(uint128 erc20Amount, uint8 erc721Id, uint128 erc1155Amount)
+        public
+    {
+        // Cannot fuzz "bidder", since contracts, since it reverts when fuzzed to a contract that does not have "onERC1155Received" implemented.
+        address bidder = address(978_534_679);
+
         // Given: "exposure" is strictly smaller as "maxExposure".
         erc20Amount = uint128(bound(erc20Amount, 0, type(uint128).max - 1));
         erc1155Amount = uint128(bound(erc1155Amount, 0, type(uint128).max - 1));

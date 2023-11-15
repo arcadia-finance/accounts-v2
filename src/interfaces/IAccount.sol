@@ -16,7 +16,7 @@ interface IAccount {
      * @param owner The sender of the 'createAccount' on the factory
      * @param registry The 'beacon' contract with the external logic.
      * @param baseCurrency The Base-currency in which the Account is denominated.
-     * @param creditor The contract address of the trusted creditor.
+     * @param creditor The contract address of the creditor.
      */
     function initialize(address owner, address registry, address baseCurrency, address creditor) external;
 

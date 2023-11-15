@@ -10,14 +10,14 @@ import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 import { IMainRegistry } from "../../../../src/interfaces/IMainRegistry.sol";
-import { ITrustedCreditor } from "../../../../src/interfaces/ITrustedCreditor.sol";
+import { ICreditor } from "../../../../src/interfaces/ICreditor.sol";
 import { RiskModule } from "../../../../src/RiskModule.sol";
 import { RiskModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
  * @notice Fuzz tests for the "startLiquidation" of contract "AccountV1".
  */
-contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
+contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
@@ -84,11 +84,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             .checked_write(true);
 
         RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues = mainRegistryExtension.getValuesInBaseCurrency(
-            accountExtension2.baseCurrency(),
-            accountExtension2.trustedCreditor(),
-            assetAddresses,
-            assetIds,
-            assetAmounts
+            accountExtension2.baseCurrency(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
         );
 
         // Given : Liquidation value is greater than or equal to used margin
@@ -163,11 +159,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             .checked_write(true);
 
         RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues = mainRegistryExtension.getValuesInBaseCurrency(
-            accountExtension2.baseCurrency(),
-            accountExtension2.trustedCreditor(),
-            assetAddresses,
-            assetIds,
-            assetAmounts
+            accountExtension2.baseCurrency(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
         );
 
         // Given : Liquidation value is smaller than used margin
@@ -200,11 +192,8 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(assetAddresses_[0], address(mockERC20.token1));
         assertEq(assetIds_[0], 0);
         assertEq(assetAmounts_[0], mockERC20.token1.balanceOf(address(accountExtension2)));
-        assertEq(creditor_, accountExtension2.trustedCreditor());
-        assertEq(
-            totalOpenDebt,
-            ITrustedCreditor(accountExtension2.trustedCreditor()).getOpenPosition(address(accountExtension2))
-        );
+        assertEq(creditor_, accountExtension2.creditor());
+        assertEq(totalOpenDebt, ICreditor(accountExtension2.creditor()).getOpenPosition(address(accountExtension2)));
         assertEq(assetAndRiskValues_[0].assetValue, assetAndRiskValues[0].assetValue);
         assertEq(assetAndRiskValues_[0].collateralFactor, assetAndRiskValues[0].collateralFactor);
         assertEq(assetAndRiskValues_[0].liquidationFactor, assetAndRiskValues[0].liquidationFactor);

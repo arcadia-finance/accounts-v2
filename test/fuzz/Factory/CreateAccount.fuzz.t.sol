@@ -61,8 +61,8 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(uint256(versionsToMake) + 1 < type(uint8).max);
         vm.assume(accountVersion <= versionsToMake + 1);
         for (uint256 i; i < versionsToMake; ++i) {
-            //create vault logic with the right version
-            //the first vault version to add is 2, so we add 2 to the index
+            //create account logic with the right version
+            //the first account version to add is 2, so we add 2 to the index
             account_.setAccountVersion(uint16(i + 2));
 
             vm.prank(users.creatorAddress);
@@ -92,7 +92,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     function testFuzz_Success_createAccount_DeployAccountWithNoCreditor(uint256 salt) public {
-        // We assume that salt > 0 as we already deployed a Account with all inputs to 0
+        // We assume that salt > 0 as we already deployed an Account with all inputs to 0
         vm.assume(salt > 0);
         uint256 amountBefore = factory.allAccountsLength();
 
@@ -101,41 +101,41 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.expectEmit(false, true, true, true);
         emit AccountUpgraded(address(0), 0, 1);
 
-        // Here we create a Account with no specific trusted creditor
+        // Here we create an Account with no specific creditor
         address actualDeployed = factory.createAccount(salt, 0, address(0), address(0));
 
         assertEq(amountBefore + 1, factory.allAccountsLength());
         assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
         assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
-        assertEq(AccountV1(actualDeployed).trustedCreditor(), address(0));
-        assertEq(AccountV1(actualDeployed).isTrustedCreditorSet(), false);
+        assertEq(AccountV1(actualDeployed).creditor(), address(0));
+        assertEq(AccountV1(actualDeployed).isCreditorSet(), false);
         assertEq(AccountV1(actualDeployed).owner(), address(this));
     }
 
     function testFuzz_Success_createAccount_DeployAccountWithCreditor(uint256 salt) public {
-        // We assume that salt > 0 as we already deployed a Account with all inputs to 0
+        // We assume that salt > 0 as we already deployed an Account with all inputs to 0
         vm.assume(salt > 0);
         uint256 amountBefore = factory.allAccountsLength();
 
         vm.expectEmit();
-        emit TrustedMarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
+        emit MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
         vm.expectEmit();
         emit Transfer(address(0), address(this), amountBefore + 1);
         vm.expectEmit(false, true, true, true);
         emit AccountUpgraded(address(0), 0, 1);
 
-        // Here we create a Account by specifying the trusted creditor address
+        // Here we create an Account by specifying the creditor address
         address actualDeployed = factory.createAccount(salt, 0, address(0), address(creditorStable1));
 
         assertEq(amountBefore + 1, factory.allAccountsLength());
         assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
         assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
-        assertEq(AccountV1(actualDeployed).trustedCreditor(), address(creditorStable1));
-        assertEq(AccountV1(actualDeployed).isTrustedCreditorSet(), true);
+        assertEq(AccountV1(actualDeployed).creditor(), address(creditorStable1));
+        assertEq(AccountV1(actualDeployed).isCreditorSet(), true);
     }
 
     function testFuzz_Success_createAccount_DeployNewProxyWithLogicOwner(uint256 salt, address sender) public {
-        // We assume that salt > 0 as we already deployed a Account with all inputs to 0
+        // We assume that salt > 0 as we already deployed an Account with all inputs to 0
         vm.assume(salt > 0);
         vm.assume(sender != address(0));
         uint256 amountBefore = factory.allAccountsLength();
@@ -150,7 +150,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         address sender0,
         address sender1
     ) public {
-        // We assume that salt > 0 as we already deployed a Account with all inputs to 0
+        // We assume that salt > 0 as we already deployed an Account with all inputs to 0
         vm.assume(salt > 0);
         vm.assume(sender0 != sender1);
         vm.assume(sender0 != address(0));
