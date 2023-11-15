@@ -5,9 +5,9 @@
 pragma solidity 0.8.19;
 
 /**
- * @title Acadia Vaults.
+ * @title Acadia Accounts Storage.
  * @author Pragma Labs
- * @notice Arcadia Vaults are smart contracts that act as onchain, decentralized and composable margin accounts.
+ * @notice Arcadia Accounts are smart contracts that act as onchain, decentralized and composable margin accounts.
  * They provide individuals, DAOs, and other protocols with a simple and flexible way to deposit and manage multiple assets as collateral.
  * The total combination of assets can be used as margin to back liabilities issued by any financial protocol (lending, leverage, futures...).
  * @dev Users can use this Account to deposit assets (ERC20, ERC721, ERC1155, ...).
@@ -18,6 +18,8 @@ pragma solidity 0.8.19;
  * @dev Integrating this Account as means of margin/collateral management for your own protocol that requires collateral is encouraged.
  * Arcadia's Account functions will guarantee you a certain value of the Account.
  * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
+ * @dev Since Accounts are proxies and can be upgraded by the user, all storage variables should be declared in this contract.
+ * New account versions must create a new account storage contract and inherit this storage contract.
  */
 contract AccountStorageV1 {
     /* //////////////////////////////////////////////////////////////
@@ -30,15 +32,15 @@ contract AccountStorageV1 {
     bool public isCreditorSet;
     // The contract address of the liquidator, address 0 if no creditor is set.
     address public liquidator;
-    // The estimated maximum cost to liquidate a Vault, will count as Used Margin when a creditor is set.
+    // The estimated maximum cost to liquidate an Account, will count as Used Margin when a creditor is set.
     uint96 public fixedLiquidationCost;
-    // The owner of the Vault.
+    // The owner of the Account.
     address public owner;
     // The contract address of the MainRegistry.
     address public registry;
     // The creditor, address 0 if no creditor is set.
     address public creditor;
-    // The baseCurrency of the Vault in which all assets and liabilities are denominated.
+    // The baseCurrency of the Account in which all assets and liabilities are denominated.
     address public baseCurrency;
 
     // Array with all the contract address of ERC20 tokens in the account.
