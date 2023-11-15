@@ -4,14 +4,14 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 
 /**
- * @notice Fuzz tests for the "auctionBuy" of contract "AccountV1".
+ * @notice Fuzz tests for the "auctionBid" of contract "AccountV1".
  */
-contract AuctionBuy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
+contract AuctionBid_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -35,7 +35,7 @@ contract AuctionBuy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.prank(nonLiquidator);
         vm.expectRevert("A: Only Liquidator");
-        accountExtension.auctionBuy(assetAddresses, assetIds, assetAmounts, bidder);
+        accountExtension.auctionBid(assetAddresses, assetIds, assetAmounts, bidder);
     }
 
     function testFuzz_Success_AuctionBuy_PartialBuy(
@@ -92,7 +92,7 @@ contract AuctionBuy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[1] = erc1155WithdrawAmount;
 
         vm.prank(accountExtension.liquidator());
-        accountExtension.auctionBuy(assetAddresses, assetIds, assetAmounts, bidder);
+        accountExtension.auctionBid(assetAddresses, assetIds, assetAmounts, bidder);
 
         // Then: Asset arrays are properly updated.
         (uint256 erc20Length, uint256 erc721Length,, uint256 erc1155Length) = accountExtension.getLengths();
@@ -150,7 +150,7 @@ contract AuctionBuy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // When: A user Fully withdraws assets.
         vm.prank(accountExtension.liquidator());
-        accountExtension.auctionBuy(assetAddresses, assetIds, assetAmounts, bidder);
+        accountExtension.auctionBid(assetAddresses, assetIds, assetAmounts, bidder);
 
         // Then: Asset arrays are properly updated.
         (uint256 erc20Length, uint256 erc721Length,, uint256 erc1155Length) = accountExtension.getLengths();
