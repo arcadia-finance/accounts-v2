@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-contract TrustedCreditorMock {
+contract CreditorMock {
     bool isCallSuccesfull = true;
 
     uint96 public fixedLiquidationCost;

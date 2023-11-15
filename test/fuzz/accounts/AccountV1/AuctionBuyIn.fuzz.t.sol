@@ -32,12 +32,12 @@ contract AuctionBuyIn_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.auctionBuyIn(protocol);
     }
 
-    function testFuzz_Success_AuctionBuyIn_buyFullAccount(
-        uint128 erc20Amount,
-        uint8 erc721Id,
-        uint128 erc1155Amount,
-        address protocol
-    ) public {
+    function testFuzz_Success_AuctionBuyIn_buyFullAccount(uint128 erc20Amount, uint8 erc721Id, uint128 erc1155Amount)
+        public
+    {
+        // Cannot fuzz "protocol", since contracts, since it reverts when fuzzed to a contract that does not have "onERC1155Received" implemented.
+        address protocol = address(978_534_679);
+
         // Given: "exposure" is strictly smaller as "maxExposure".
         erc20Amount = uint128(bound(erc20Amount, 0, type(uint128).max - 1));
         erc1155Amount = uint128(bound(erc1155Amount, 0, type(uint128).max - 1));

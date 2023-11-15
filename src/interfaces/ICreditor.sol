@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-interface ITrustedCreditor {
+interface ICreditor {
     /**
      * @notice Checks if account fulfills all requirements and returns application settings.
      * @param accountVersion The current version of the Account.
