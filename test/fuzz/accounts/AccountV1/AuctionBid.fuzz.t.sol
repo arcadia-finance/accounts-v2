@@ -78,7 +78,7 @@ contract AuctionBid_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.prank(users.accountOwner);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
 
-        // When: "accountOwner" partially withdraws assets.
+        // When: "Liquidator" partially withdraws assets.
         assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC1155.sft1);
