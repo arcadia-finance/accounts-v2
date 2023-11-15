@@ -124,6 +124,15 @@ interface IRegistry {
         uint256[] calldata assetAmounts
     ) external view returns (uint256);
 
+    /**
+     * @notice Calculates the values per asset, denominated in a given BaseCurrency.
+     * @param baseCurrency The contract address of the BaseCurrency.
+     * @param creditor The contract address of the creditor.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assetIds Array of the IDs of the assets.
+     * @param assetAmounts Array with the amounts of the assets.
+     * @return valuesAndRiskFactors The array of values per assets, denominated in BaseCurrency.
+     */
     function getValuesInBaseCurrency(
         address baseCurrency,
         address creditor,
