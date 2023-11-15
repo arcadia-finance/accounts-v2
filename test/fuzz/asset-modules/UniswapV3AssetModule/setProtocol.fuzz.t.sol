@@ -34,7 +34,7 @@ contract SetProtocol_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_setProtocol_ProtocolNotAddedToMainreg() public {
+    function testFuzz_Revert_setProtocol_ProtocolNotAddedToReg() public {
         vm.prank(users.creatorAddress);
         uniV3AssetModule =
             new UniswapV3AssetModuleExtension(address(registryExtension), address(nonfungiblePositionManager));

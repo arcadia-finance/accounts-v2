@@ -110,7 +110,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_batchProcessWithdrawal_AssetNotInMainreg(
+    function testFuzz_Revert_batchProcessWithdrawal_AssetNotInReg(
         uint128 amountDeposited,
         uint128 amountWithdrawn,
         address asset

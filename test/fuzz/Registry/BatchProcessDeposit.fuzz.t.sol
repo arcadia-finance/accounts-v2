@@ -100,7 +100,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_batchProcessDeposit_AssetNotInMainreg(address asset) public {
+    function testFuzz_Revert_batchProcessDeposit_AssetNotInReg(address asset) public {
         vm.assume(!registryExtension.inRegistry(asset));
 
         address[] memory assetAddresses = new address[](1);

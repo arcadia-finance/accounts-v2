@@ -97,14 +97,14 @@ contract GetUsdValues_Registry_Fuzz_Test is Registry_Fuzz_Test {
         liquidationFactor = uint16(bound(liquidationFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
         minUsdValue = bound(minUsdValue, uint256(usdValue) + 1, type(uint256).max);
 
-        mainRegistryExtension.setAssetModuleForAsset(asset, address(primaryAssetModule));
+        registryExtension.setAssetModuleForAsset(asset, address(primaryAssetModule));
         primaryAssetModule.setUsdValue(usdValue);
 
         vm.startPrank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
-        mainRegistryExtension.setMinUsdValueCreditor(address(creditorUsd), minUsdValue);
+        registryExtension.setMinUsdValueCreditor(address(creditorUsd), minUsdValue);
         vm.stopPrank();
 
         address[] memory assetAddresses = new address[](1);
@@ -115,7 +115,7 @@ contract GetUsdValues_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = assetAmount;
 
         RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
-            mainRegistryExtension.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+            registryExtension.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         assertEq(valuesAndRiskFactors[0].assetValue, 0);
         assertEq(valuesAndRiskFactors[0].collateralFactor, collateralFactor);
