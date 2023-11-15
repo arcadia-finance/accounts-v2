@@ -57,6 +57,8 @@ contract Registry is IRegistry, RegistryGuardian {
     mapping(address => AssetInformation) public assetToAssetInformation;
     // Map oracle identifier => oracleModule.
     mapping(uint256 => address) internal oracleToOracleModule;
+    // Map creditor to minimum usd value of assets that are taken into account.
+    mapping(address => uint256) public minUsdValueCreditor;
 
     // Struct with additional information for a specific asset.
     struct AssetInformation {
@@ -342,6 +344,19 @@ contract Registry is IRegistry, RegistryGuardian {
         IDerivedAssetModule(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
     }
 
+    /**
+     * @notice Sets the minimum usd value of assets that are taken into account for a given creditor.
+     * @param creditor The contract address of the creditor.
+     * @param minUsdValue The minimum usd value of assets that are taken into account for the creditor,
+     * denominated in USD with 18 decimals precision.
+     * @dev This feature is to prevent dust from being taken into account and preventing liquidations.
+     */
+    function setMinUsdValueCreditor(address creditor, uint256 minUsdValue) external {
+        require(msg.sender == ICreditor(creditor).riskManager(), "MR_SMUVC: Not Authorized");
+
+        minUsdValueCreditor[creditor] = minUsdValue;
+    }
+
     /*///////////////////////////////////////////////////////////////
                     WITHDRAWALS AND DEPOSITS
     ///////////////////////////////////////////////////////////////*/
@@ -535,6 +550,7 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 length = assets.length;
         valuesAndRiskFactors = new RiskModule.AssetValueAndRiskFactors[](length);
 
+        uint256 minUsdValue = minUsdValueCreditor[creditor];
         for (uint256 i; i < length;) {
             (
                 valuesAndRiskFactors[i].assetValue,
@@ -543,6 +559,9 @@ contract Registry is IRegistry, RegistryGuardian {
             ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule).getValue(
                 creditor, assets[i], assetIds[i], assetAmounts[i]
             );
+            // If asset value is too low, set to zero.
+            // This is done to prevent dust attacks which may make liquidations unprofitable.
+            if (valuesAndRiskFactors[i].assetValue < minUsdValue) valuesAndRiskFactors[i].assetValue = 0;
 
             unchecked {
                 ++i;
