@@ -57,8 +57,8 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
 
     function openMarginAccount() internal {
         vm.startPrank(users.accountOwner);
-        accountExtension.closeTrustedMarginAccount();
-        accountExtension.openTrustedMarginAccount(address(creditorStable1));
+        accountExtension.closeMarginAccount();
+        accountExtension.openMarginAccount(address(creditorStable1));
         vm.stopPrank();
     }
 

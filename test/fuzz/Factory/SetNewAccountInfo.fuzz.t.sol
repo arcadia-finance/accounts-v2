@@ -87,8 +87,8 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.startPrank(users.creatorAddress);
         //first set an actual version 2
         factory.setNewAccountInfo(address(mainRegistryExtension), address(newAccountV2), Constants.upgradeRoot1To2, "");
-        //then try to register another vault logic address which has version 2 in its bytecode
-        vm.expectRevert("FTRY_SNVI: vault version mismatch");
+        //then try to register another account logic address which has version 2 in its bytecode
+        vm.expectRevert("FTRY_SNVI: version mismatch");
         factory.setNewAccountInfo(
             address(mainRegistryExtension), address(newAccountV2_2), Constants.upgradeRoot1To2, ""
         );

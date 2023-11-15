@@ -41,12 +41,12 @@ contract AccountExtension is AccountV1 {
         return (erc20Stored.length, erc721Stored.length, erc721TokenIds.length, erc1155Stored.length);
     }
 
-    function setTrustedCreditor(address trustedCreditor_) public {
-        trustedCreditor = trustedCreditor_;
+    function setCreditor(address creditor_) public {
+        creditor = creditor_;
     }
 
-    function setIsTrustedCreditorSet(bool set) public {
-        isTrustedCreditorSet = set;
+    function setIsCreditorSet(bool set) public {
+        isCreditorSet = set;
     }
 
     function setFixedLiquidationCost(uint96 fixedLiquidationCost_) public {

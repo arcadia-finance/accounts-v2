@@ -20,13 +20,13 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     struct Checks {
-        bool isTrustedCreditorSet;
+        bool isCreditorSet;
         uint16 accountVersion;
         address baseCurrency;
         address owner;
         address liquidator;
         address registry;
-        address trustedCreditor;
+        address creditor;
         address[] assetAddresses;
         uint256[] assetIds;
         uint256[] assetAmounts;
@@ -39,12 +39,12 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function createCompareStruct() public view returns (Checks memory) {
         Checks memory checks;
 
-        checks.isTrustedCreditorSet = proxyAccount.isTrustedCreditorSet();
+        checks.isCreditorSet = proxyAccount.isCreditorSet();
         checks.baseCurrency = proxyAccount.baseCurrency();
         checks.owner = proxyAccount.owner();
         checks.liquidator = proxyAccount.liquidator();
         checks.registry = proxyAccount.registry();
-        checks.trustedCreditor = proxyAccount.trustedCreditor();
+        checks.creditor = proxyAccount.creditor();
         (checks.assetAddresses, checks.assetIds, checks.assetAmounts) = proxyAccount.generateAssetData();
 
         return checks;
@@ -105,9 +105,9 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint16 newVersion,
         bytes calldata data
     ) public {
-        // Given: Trusted Creditor is set.
+        // Given: Creditor is set.
         vm.prank(users.accountOwner);
-        proxyAccount.openTrustedMarginAccount(address(creditorStable1));
+        proxyAccount.openMarginAccount(address(creditorStable1));
         // Check in creditor if new version is allowed should fail.
         creditorStable1.setCallResult(false);
 
@@ -126,9 +126,9 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(newImplementation != address(mainRegistryExtension));
         vm.assume(newImplementation != address(proxyAccount));
 
-        // Given: Trusted Creditor is set.
+        // Given: Creditor is set.
         vm.prank(users.accountOwner);
-        proxyAccount.openTrustedMarginAccount(address(creditorStable1));
+        proxyAccount.openMarginAccount(address(creditorStable1));
 
         uint256 accountVersion = factory.latestAccountVersion() + 1;
         AccountVariableVersion accountVarVersion = new AccountVariableVersion(accountVersion);
@@ -159,7 +159,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // And: an account in a random state (with assets, a creditor and debt).
         vm.prank(users.accountOwner);
-        proxyAccount.openTrustedMarginAccount(address(creditorStable1)); // Mocked Trusted Creditor, approves all account-versions by default.
+        proxyAccount.openMarginAccount(address(creditorStable1)); // Mocked Creditor, approves all account-versions by default.
 
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.token1);
@@ -213,7 +213,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         Checks memory checkAfter = createCompareStruct();
         assertEq(keccak256(abi.encode(checkAfter)), keccak256(abi.encode(checkBefore)));
 
-        // And: The Vault version is updated.
+        // And: The Account version is updated.
         assertEq(proxyAccount.ACCOUNT_VERSION(), factory.latestAccountVersion());
     }
 }

@@ -23,20 +23,20 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function setUp() public override {
         AccountV1_Fuzz_Test.setUp();
 
-        // Given: Trusted Creditor is set.
+        // Given: Creditor is set.
         openMarginAccount();
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getFreeMargin_TrustedCreditorNotSet(
+    function testFuzz_Success_getFreeMargin_CreditorNotSet(
         uint256 openDebt,
         uint256 fixedLiquidationCost,
         uint128 collateralValue
     ) public {
-        // Test-case: trusted creditor is not set.
-        accountExtension.setIsTrustedCreditorSet(false);
+        // Test-case: creditor is not set.
+        accountExtension.setIsCreditorSet(false);
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
@@ -53,7 +53,7 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(collateralValue, accountExtension.getFreeMargin());
     }
 
-    function testFuzz_Success_getFreeMargin_TrustedCreditorIsSet_NonZeroFreeMargin(
+    function testFuzz_Success_getFreeMargin_CreditorIsSet_NonZeroFreeMargin(
         uint256 openDebt,
         uint256 fixedLiquidationCost,
         uint128 collateralValue
@@ -80,7 +80,7 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(collateralValue - openDebt - fixedLiquidationCost, accountExtension.getFreeMargin());
     }
 
-    function testFuzz_Success_getFreeMargin_TrustedCreditorIsSet_ZeroFreeMargin(
+    function testFuzz_Success_getFreeMargin_CreditorIsSet_ZeroFreeMargin(
         uint256 openDebt,
         uint256 fixedLiquidationCost,
         uint128 collateralValue
