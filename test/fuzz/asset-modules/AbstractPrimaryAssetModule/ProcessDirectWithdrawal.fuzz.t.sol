@@ -21,21 +21,21 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstrac
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processDirectWithdrawal_NonMainRegistry(
+    function testFuzz_Revert_processDirectWithdrawal_NonRegistry(
         PrimaryAssetModuleAssetState memory assetState,
         address unprivilegedAddress_,
         uint128 amount
     ) public {
         // Given "caller" is not the Main Registry.
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
+        vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is withdrawn.
-        // Then: The transaction reverts with "AAM: ONLY_MAIN_REGISTRY".
+        // Then: The transaction reverts with "AAM: ONLY_REGISTRY".
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert("AAM: ONLY_REGISTRY");
         assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }
@@ -51,7 +51,7 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstrac
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is withdrawn.
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
 
         // Then: assetExposure is updated.
@@ -73,7 +73,7 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstrac
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is withdrawn.
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
 
         // Then: assetExposure is updated.

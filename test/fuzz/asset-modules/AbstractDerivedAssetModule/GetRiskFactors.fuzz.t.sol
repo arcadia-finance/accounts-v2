@@ -46,9 +46,9 @@ contract GetRiskFactors_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], 0, RiskConstants.RISK_FACTOR_UNIT));
 
         // And: Underlying assets are in primaryAssetModule.
-        mainRegistryExtension.setAssetModuleForAsset(underlyingAssets[0], address(primaryAssetModule));
-        mainRegistryExtension.setAssetModuleForAsset(underlyingAssets[1], address(primaryAssetModule));
-        vm.startPrank(address(mainRegistryExtension));
+        registryExtension.setAssetModuleForAsset(underlyingAssets[0], address(primaryAssetModule));
+        registryExtension.setAssetModuleForAsset(underlyingAssets[1], address(primaryAssetModule));
+        vm.startPrank(address(registryExtension));
         primaryAssetModule.setRiskParameters(
             creditor, underlyingAssets[0], underlyingAssetIds[0], 0, collateralFactors[0], liquidationFactors[0]
         );
@@ -64,7 +64,7 @@ contract GetRiskFactors_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
             Utils.castArrayStaticToDynamic(underlyingAssets),
             Utils.castArrayStaticToDynamic(underlyingAssetIds)
         );
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         derivedAssetModule.setRiskParameters(creditor, 0, riskFactor);
 
         // When: "getRiskFactors" is called.

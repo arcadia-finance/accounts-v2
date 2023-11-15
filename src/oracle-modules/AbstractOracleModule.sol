@@ -20,8 +20,8 @@ abstract contract OracleModule is Owned {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
-    // The contract address of the MainRegistry.
-    address public immutable MAIN_REGISTRY;
+    // The contract address of the Registry.
+    address public immutable REGISTRY;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -46,10 +46,10 @@ abstract contract OracleModule is Owned {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The contract address of the MainRegistry.
+     * @param registry_ The contract address of the Registry.
      */
-    constructor(address mainRegistry_) Owned(msg.sender) {
-        MAIN_REGISTRY = mainRegistry_;
+    constructor(address registry_) Owned(msg.sender) {
+        REGISTRY = registry_;
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IRegistry } from "./interfaces/IRegistry.sol";
 import { IAssetModule } from "../interfaces/IAssetModule.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 
@@ -25,8 +25,8 @@ abstract contract AssetModule is Owned, IAssetModule {
 
     // Identifier for the token standard of the asset.
     uint256 public immutable ASSET_TYPE;
-    // The contract address of the MainRegistry.
-    address public immutable MAIN_REGISTRY;
+    // The contract address of the Registry.
+    address public immutable REGISTRY;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -47,7 +47,7 @@ abstract contract AssetModule is Owned, IAssetModule {
      * @dev Only the Main Registry can call functions with this modifier.
      */
     modifier onlyMainReg() {
-        require(msg.sender == MAIN_REGISTRY, "AAM: ONLY_MAIN_REGISTRY");
+        require(msg.sender == REGISTRY, "AAM: ONLY_REGISTRY");
         _;
     }
 
@@ -56,14 +56,14 @@ abstract contract AssetModule is Owned, IAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The contract address of the MainRegistry.
+     * @param registry_ The contract address of the Registry.
      * @param assetType_ Identifier for the token standard of the asset.
      * 0 = ERC20.
      * 1 = ERC721.
      * 2 = ERC1155.
      */
-    constructor(address mainRegistry_, uint256 assetType_) Owned(msg.sender) {
-        MAIN_REGISTRY = mainRegistry_;
+    constructor(address registry_, uint256 assetType_) Owned(msg.sender) {
+        REGISTRY = registry_;
         ASSET_TYPE = assetType_;
     }
 

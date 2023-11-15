@@ -21,13 +21,13 @@ contract Constructor_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fu
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address mainRegistry_) public {
+    function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.creatorAddress);
         ChainlinkOracleModuleExtension oracleModule_ = new ChainlinkOracleModuleExtension(
-            mainRegistry_
+            registry_
         );
         vm.stopPrank();
 
-        assertEq(oracleModule_.MAIN_REGISTRY(), mainRegistry_);
+        assertEq(oracleModule_.REGISTRY(), registry_);
     }
 }

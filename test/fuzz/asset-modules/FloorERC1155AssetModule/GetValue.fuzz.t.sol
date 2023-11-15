@@ -26,7 +26,7 @@ contract GetValue_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModule_F
         floorERC1155AssetModule.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
 
         vm.prank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC1155.sft2), 1, type(uint128).max, 0, 0
         );
     }

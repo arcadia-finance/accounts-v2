@@ -21,17 +21,17 @@ contract ProcessDirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDe
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processDirectDeposit_NonMainRegistry(
+    function testFuzz_Revert_processDirectDeposit_NonRegistry(
         address unprivilegedAddress_,
         address creditor,
         address asset,
         uint256 id,
         uint128 amount
     ) public {
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
+        vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert("AAM: ONLY_REGISTRY");
         derivedAssetModule.processDirectDeposit(creditor, asset, id, amount);
         vm.stopPrank();
     }
@@ -56,8 +56,8 @@ contract ProcessDirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDe
         setDerivedAssetModuleAssetState(assetState);
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
-        // When: "MainRegistry" calls "processDirectDeposit".
-        vm.prank(address(mainRegistryExtension));
+        // When: "Registry" calls "processDirectDeposit".
+        vm.prank(address(registryExtension));
         derivedAssetModule.processDirectDeposit(
             assetState.creditor, assetState.asset, assetState.assetId, uint256(amount)
         );

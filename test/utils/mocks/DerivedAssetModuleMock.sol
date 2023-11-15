@@ -11,9 +11,7 @@ contract DerivedAssetModuleMock is AbstractDerivedAssetModuleExtension {
     bool internal returnRateUnderlyingAssetToUsd;
     uint256 internal rateUnderlyingAssetToUsd;
 
-    constructor(address mainRegistry_, uint256 assetType_)
-        AbstractDerivedAssetModuleExtension(mainRegistry_, assetType_)
-    { }
+    constructor(address registry_, uint256 assetType_) AbstractDerivedAssetModuleExtension(registry_, assetType_) { }
 
     function isAllowed(address asset, uint256) public view override returns (bool) { }
 

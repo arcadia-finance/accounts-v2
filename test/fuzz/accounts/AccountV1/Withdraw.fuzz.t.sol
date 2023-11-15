@@ -108,7 +108,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_withdraw_UnknownAssetType(uint96 assetType) public {
         vm.assume(assetType >= 3);
 
-        mainRegistryExtension.setAssetType(address(mockERC20.token1), assetType);
+        registryExtension.setAssetType(address(mockERC20.token1), assetType);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -129,7 +129,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(amountWithdraw > maxExposure);
 
         vm.startPrank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC20.token1), 0, maxExposure, 0, 0
         );
 
@@ -190,7 +190,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // (otherwise processWithdrawal underflows when arrLength is 0: account didn't deposit any nfts yet).
         AccountExtension account2 = new AccountExtension();
         account2.initialize(
-            users.accountOwner, address(mainRegistryExtension), address(mockERC20.stable1), address(creditorStable1)
+            users.accountOwner, address(registryExtension), address(mockERC20.stable1), address(creditorStable1)
         );
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(account2)).checked_write(
             true

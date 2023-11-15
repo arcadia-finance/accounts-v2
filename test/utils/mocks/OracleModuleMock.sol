@@ -10,7 +10,7 @@ contract OracleModuleMock is OracleModule {
 
     mapping(uint256 => uint256) internal rate;
 
-    constructor(address mainRegistry_) OracleModule(mainRegistry_) { }
+    constructor(address registry_) OracleModule(registry_) { }
 
     function isActive(uint256 oracleId) external view override returns (bool) {
         return isActive_[oracleId];

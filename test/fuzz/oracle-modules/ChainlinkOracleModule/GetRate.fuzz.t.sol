@@ -25,8 +25,8 @@ contract GetRate_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz_T
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_getRate_NotInRegistry(uint80 oracleId) public {
-        // Given: An oracle not added to the "MainRegistry".
-        oracleId = uint80(bound(oracleId, mainRegistryExtension.getOracleCounter(), type(uint80).max));
+        // Given: An oracle not added to the "Registry".
+        oracleId = uint80(bound(oracleId, registryExtension.getOracleCounter(), type(uint80).max));
 
         vm.expectRevert("OH_GR: Inactive Oracle");
         chainlinkOM.getRate(oracleId);

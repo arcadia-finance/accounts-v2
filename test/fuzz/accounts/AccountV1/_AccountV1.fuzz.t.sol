@@ -40,7 +40,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
 
         // Initiate Account (set owner and baseCurrency).
         accountExtension.initialize(
-            users.accountOwner, address(mainRegistryExtension), address(mockERC20.stable1), address(creditorStable1)
+            users.accountOwner, address(registryExtension), address(mockERC20.stable1), address(creditorStable1)
         );
 
         // Set account in factory.

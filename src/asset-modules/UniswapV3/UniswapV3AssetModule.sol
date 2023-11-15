@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { DerivedAssetModule, FixedPointMathLib, IMainRegistry } from "../AbstractDerivedAssetModule.sol";
+import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "../AbstractDerivedAssetModule.sol";
 import { FixedPoint96 } from "./libraries/FixedPoint96.sol";
 import { FixedPoint128 } from "./libraries/FixedPoint128.sol";
 import { FullMath } from "./libraries/FullMath.sol";
@@ -53,11 +53,11 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The contract address of the MainRegistry.
+     * @param registry_ The contract address of the Registry.
      * @param nonFungiblePositionManager The contract address of the protocols NonFungiblePositionManager.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for Uniswap V3 Liquidity Positions (ERC721) is 1.
      */
-    constructor(address mainRegistry_, address nonFungiblePositionManager) DerivedAssetModule(mainRegistry_, 1) {
+    constructor(address registry_, address nonFungiblePositionManager) DerivedAssetModule(registry_, 1) {
         NON_FUNGIBLE_POSITION_MANAGER = nonFungiblePositionManager;
         UNISWAP_V3_FACTORY = INonfungiblePositionManager(nonFungiblePositionManager).factory();
     }
@@ -67,14 +67,14 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds the mapping from the NonfungiblePositionManager to this Asset Module in this MainRegistry.
-     * @dev Since all assets will have the same contract address, the NonfungiblePositionManager has to be added to the MainRegistry.
+     * @notice Adds the mapping from the NonfungiblePositionManager to this Asset Module in this Registry.
+     * @dev Since all assets will have the same contract address, the NonfungiblePositionManager has to be added to the Registry.
      */
     function setProtocol() external onlyOwner {
         inAssetModule[NON_FUNGIBLE_POSITION_MANAGER] = true;
 
-        // Will revert in MainRegistry if asset was already added.
-        IMainRegistry(MAIN_REGISTRY).addAsset(NON_FUNGIBLE_POSITION_MANAGER, ASSET_TYPE);
+        // Will revert in Registry if asset was already added.
+        IRegistry(REGISTRY).addAsset(NON_FUNGIBLE_POSITION_MANAGER, ASSET_TYPE);
     }
 
     /**
@@ -129,8 +129,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
             uint128,
             uint128
         ) {
-            return
-                IMainRegistry(MAIN_REGISTRY).isAllowed(token0, 0) && IMainRegistry(MAIN_REGISTRY).isAllowed(token1, 0);
+            return IRegistry(REGISTRY).isAllowed(token0, 0) && IRegistry(REGISTRY).isAllowed(token1, 0);
         } catch {
             return false;
         }
@@ -382,13 +381,13 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
-     * @dev super.processDirectDeposit does check that msg.sender is the MainRegistry.
+     * @dev super.processDirectDeposit does check that msg.sender is the Registry.
      */
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount) public override {
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Asset Module.
         _addAsset(assetId);
 
-        // Also checks that msg.sender == MainRegistry.
+        // Also checks that msg.sender == Registry.
         super.processDirectDeposit(creditor, asset, assetId, amount);
     }
 
@@ -401,7 +400,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
-     * @dev super.processIndirectDeposit does check that msg.sender is the MainRegistry.
+     * @dev super.processIndirectDeposit does check that msg.sender is the Registry.
      */
     function processIndirectDeposit(
         address creditor,
@@ -413,7 +412,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Asset Module.
         _addAsset(assetId);
 
-        // Also checks that msg.sender == MainRegistry.
+        // Also checks that msg.sender == Registry.
         (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );

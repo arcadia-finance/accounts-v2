@@ -71,9 +71,8 @@ contract AddAsset_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModule_F
         assertEq(assetUnit, 1);
         assertEq(oracles, oraclesSft2ToUsd);
 
-        assertTrue(mainRegistryExtension.inMainRegistry(address(mockERC1155.sft2)));
-        (uint96 assetType_, address assetModule) =
-            mainRegistryExtension.assetToAssetInformation(address(mockERC1155.sft2));
+        assertTrue(registryExtension.inRegistry(address(mockERC1155.sft2)));
+        (uint96 assetType_, address assetModule) = registryExtension.assetToAssetInformation(address(mockERC1155.sft2));
         assertEq(assetType_, 2);
         assertEq(assetModule, address(floorERC1155AssetModule));
     }

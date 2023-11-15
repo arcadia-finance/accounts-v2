@@ -66,7 +66,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
             account_.setAccountVersion(uint16(i + 2));
 
             vm.prank(users.creatorAddress);
-            factory.setNewAccountInfo(address(mainRegistryExtension), address(account_), Constants.upgradeRoot1To2, "");
+            factory.setNewAccountInfo(address(registryExtension), address(account_), Constants.upgradeRoot1To2, "");
         }
 
         for (uint256 y; y < versionsToBlock.length; ++y) {

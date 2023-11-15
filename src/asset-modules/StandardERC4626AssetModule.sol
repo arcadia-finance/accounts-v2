@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { DerivedAssetModule, IMainRegistry } from "./AbstractDerivedAssetModule.sol";
+import { DerivedAssetModule, IRegistry } from "./AbstractDerivedAssetModule.sol";
 import { IERC4626 } from "../interfaces/IERC4626.sol";
 import { RiskModule } from "../RiskModule.sol";
 
@@ -27,10 +27,10 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The address of the Main-registry.
+     * @param registry_ The address of the Main-registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_) DerivedAssetModule(mainRegistry_, 0) { }
+    constructor(address registry_) DerivedAssetModule(registry_, 0) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -43,15 +43,15 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
     function addAsset(address asset) external onlyOwner {
         address underlyingAsset = address(IERC4626(asset).asset());
 
-        require(IMainRegistry(MAIN_REGISTRY).isAllowed(underlyingAsset, 0), "AM4626_AA: Underlying Asset not allowed");
+        require(IRegistry(REGISTRY).isAllowed(underlyingAsset, 0), "AM4626_AA: Underlying Asset not allowed");
         inAssetModule[asset] = true;
 
         bytes32[] memory underlyingAssets_ = new bytes32[](1);
         underlyingAssets_[0] = _getKeyFromAsset(underlyingAsset, 0);
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
-        // Will revert in MainRegistry if asset was already added.
-        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
+        // Will revert in Registry if asset was already added.
+        IRegistry(REGISTRY).addAsset(asset, ASSET_TYPE);
     }
 
     /*///////////////////////////////////////////////////////////////

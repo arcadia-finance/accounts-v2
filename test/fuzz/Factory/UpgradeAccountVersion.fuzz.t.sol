@@ -21,9 +21,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         // Set a Mocked V2 Account Logic contract in the Factory.
         vm.prank(users.creatorAddress);
-        factory.setNewAccountInfo(
-            address(mainRegistryExtension), address(accountV2Logic), Constants.upgradeRoot1To2, ""
-        );
+        factory.setNewAccountInfo(address(registryExtension), address(accountV2Logic), Constants.upgradeRoot1To2, "");
     }
 
     /*//////////////////////////////////////////////////////////////

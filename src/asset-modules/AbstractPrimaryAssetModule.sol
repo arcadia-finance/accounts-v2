@@ -5,7 +5,7 @@
 pragma solidity 0.8.19;
 
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IRegistry } from "./interfaces/IRegistry.sol";
 import { AssetModule } from "./AbstractAssetModule.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
 
@@ -67,13 +67,13 @@ abstract contract PrimaryAssetModule is AssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The address of the Main-registry.
+     * @param registry_ The address of the Main-registry.
      * @param assetType_ Identifier for the type of asset, necessary for the deposit and withdraw logic in the Accounts.
      * 0 = ERC20
      * 1 = ERC721
      * 2 = ERC1155
      */
-    constructor(address mainRegistry_, uint256 assetType_) AssetModule(mainRegistry_, assetType_) { }
+    constructor(address registry_, uint256 assetType_) AssetModule(registry_, assetType_) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET INFORMATION
@@ -91,10 +91,10 @@ abstract contract PrimaryAssetModule is AssetModule {
 
         // Old oracles must be decommissioned before a new sequence can be set.
         bytes32 oldOracles = assetToInformation[assetKey].oracleSequence;
-        require(!IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oldOracles), "APAM_SO: Oracle still active");
+        require(!IRegistry(REGISTRY).checkOracleSequence(oldOracles), "APAM_SO: Oracle still active");
 
         // The new oracle sequence must be correct.
-        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(newOracles), "APAM_SO: Bad sequence");
+        require(IRegistry(REGISTRY).checkOracleSequence(newOracles), "APAM_SO: Bad sequence");
 
         assetToInformation[assetKey].oracleSequence = newOracles;
     }
@@ -114,7 +114,7 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
      * @dev If the asset is not added to AssetModule, this function will return value 0 without throwing an error.
      * However no check in StandardERC20AssetModule is necessary, since the check if the asset is added to the AssetModule
-     * is already done in the MainRegistry.
+     * is already done in the Registry.
      */
     function getValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
         public
@@ -125,7 +125,7 @@ abstract contract PrimaryAssetModule is AssetModule {
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-        uint256 rateInUsd = IMainRegistry(MAIN_REGISTRY).getRateInUsd(assetToInformation[assetKey].oracleSequence);
+        uint256 rateInUsd = IRegistry(REGISTRY).getRateInUsd(assetToInformation[assetKey].oracleSequence);
         valueInUsd = assetAmount.mulDivDown(rateInUsd, assetToInformation[assetKey].assetUnit);
 
         collateralFactor = riskParams[creditor][assetKey].collateralFactor;

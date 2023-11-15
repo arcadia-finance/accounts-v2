@@ -41,7 +41,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
 
         // Set allowed action contract
         vm.prank(users.creatorAddress);
-        mainRegistryExtension.setAllowedAction(address(action), true);
+        registryExtension.setAllowedAction(address(action), true);
 
         accountNotInitialised = new AccountExtension();
         accountNotInitialised.setCreditor(address(mockERC20.stable1));
@@ -170,7 +170,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
-        accountNotInitialised.setRegistry(address(mainRegistryExtension));
+        accountNotInitialised.setRegistry(address(registryExtension));
         accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
         accountNotInitialised.setIsCreditorSet(true);
@@ -277,7 +277,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         // Initialize Account params
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(from);
-        accountNotInitialised.setRegistry(address(mainRegistryExtension));
+        accountNotInitialised.setRegistry(address(registryExtension));
         vm.prank(from);
         accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
@@ -348,7 +348,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
-        accountNotInitialised.setRegistry(address(mainRegistryExtension));
+        accountNotInitialised.setRegistry(address(registryExtension));
         vm.prank(users.accountOwner);
         accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
@@ -508,7 +508,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
         accountNotInitialised.setAssetManager(assetManager, true);
-        accountNotInitialised.setRegistry(address(mainRegistryExtension));
+        accountNotInitialised.setRegistry(address(registryExtension));
         accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
         accountNotInitialised.setIsCreditorSet(true);
@@ -629,7 +629,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         // Initialize Account params
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(from);
-        accountNotInitialised.setRegistry(address(mainRegistryExtension));
+        accountNotInitialised.setRegistry(address(registryExtension));
         vm.prank(from);
         accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));

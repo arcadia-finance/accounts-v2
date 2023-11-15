@@ -14,9 +14,9 @@ import { DerivedAssetModule } from "../../src/asset-modules/AbstractDerivedAsset
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
 import { FloorERC721AssetModule } from "../../src/asset-modules/FloorERC721AssetModule.sol";
 import { FloorERC1155AssetModule } from "../../src/asset-modules/FloorERC1155AssetModule.sol";
-import { MainRegistryGuardian } from "../../src/guardians/MainRegistryGuardian.sol";
-import { MainRegistry } from "../../src/MainRegistry.sol";
-import { IMainRegistry } from "../../src/interfaces/IMainRegistry.sol";
+import { RegistryGuardian } from "../../src/guardians/RegistryGuardian.sol";
+import { Registry } from "../../src/Registry.sol";
+import { IRegistry } from "../../src/interfaces/IRegistry.sol";
 import { AssetModule } from "../../src/asset-modules/AbstractAssetModule.sol";
 import { PrimaryAssetModule } from "../../src/asset-modules/AbstractPrimaryAssetModule.sol";
 import { RiskModule } from "../../src/RiskModule.sol";
@@ -77,7 +77,7 @@ contract BitPackingLibExtension {
 }
 
 contract ChainlinkOracleModuleExtension is ChainlinkOracleModule {
-    constructor(address mainRegistry_) ChainlinkOracleModule(mainRegistry_) { }
+    constructor(address registry_) ChainlinkOracleModule(registry_) { }
 
     function getInOracleModule(address oracle) public view returns (bool) {
         return inOracleModule[oracle];
@@ -106,8 +106,8 @@ contract FactoryGuardianExtension is FactoryGuardian {
     }
 }
 
-contract MainRegistryGuardianExtension is MainRegistryGuardian {
-    constructor() MainRegistryGuardian() { }
+contract RegistryGuardianExtension is RegistryGuardian {
+    constructor() RegistryGuardian() { }
 
     function setPauseTimestamp(uint256 pauseTimestamp_) public {
         pauseTimestamp = pauseTimestamp_;
@@ -119,10 +119,10 @@ contract MainRegistryGuardianExtension is MainRegistryGuardian {
     }
 }
 
-contract MainRegistryExtension is MainRegistry {
+contract RegistryExtension is Registry {
     using FixedPointMathLib for uint256;
 
-    constructor(address factory_) MainRegistry(factory_) { }
+    constructor(address factory_) Registry(factory_) { }
 
     function getOracleCounter() public view returns (uint256 oracleCounter_) {
         oracleCounter_ = oracleCounter;
@@ -168,7 +168,7 @@ contract RiskModuleExtension {
 }
 
 abstract contract AbstractAssetModuleExtension is AssetModule {
-    constructor(address mainRegistry_, uint256 assetType_) AssetModule(mainRegistry_, assetType_) { }
+    constructor(address registry_, uint256 assetType_) AssetModule(registry_, assetType_) { }
 
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
@@ -180,7 +180,7 @@ abstract contract AbstractAssetModuleExtension is AssetModule {
 }
 
 abstract contract AbstractPrimaryAssetModuleExtension is PrimaryAssetModule {
-    constructor(address mainRegistry_, uint256 assetType_) PrimaryAssetModule(mainRegistry_, assetType_) { }
+    constructor(address registry_, uint256 assetType_) PrimaryAssetModule(registry_, assetType_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
@@ -200,7 +200,7 @@ abstract contract AbstractPrimaryAssetModuleExtension is PrimaryAssetModule {
 }
 
 abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
-    constructor(address mainRegistry_, uint256 assetType_) DerivedAssetModule(mainRegistry_, assetType_) { }
+    constructor(address registry_, uint256 assetType_) DerivedAssetModule(registry_, assetType_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
@@ -287,7 +287,7 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
 }
 
 contract StandardERC20AssetModuleExtension is StandardERC20AssetModule {
-    constructor(address mainRegistry_) StandardERC20AssetModule(mainRegistry_) { }
+    constructor(address registry_) StandardERC20AssetModule(registry_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
@@ -309,7 +309,7 @@ contract StandardERC20AssetModuleExtension is StandardERC20AssetModule {
 }
 
 contract FloorERC721AssetModuleExtension is FloorERC721AssetModule {
-    constructor(address mainRegistry_) FloorERC721AssetModule(mainRegistry_) { }
+    constructor(address registry_) FloorERC721AssetModule(registry_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
@@ -330,7 +330,7 @@ contract FloorERC721AssetModuleExtension is FloorERC721AssetModule {
 }
 
 contract FloorERC1155AssetModuleExtension is FloorERC1155AssetModule {
-    constructor(address mainRegistry_) FloorERC1155AssetModule(mainRegistry_) { }
+    constructor(address registry_) FloorERC1155AssetModule(registry_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
@@ -338,9 +338,7 @@ contract FloorERC1155AssetModuleExtension is FloorERC1155AssetModule {
 }
 
 contract UniswapV2AssetModuleExtension is UniswapV2AssetModule {
-    constructor(address mainRegistry_, address uniswapV2Factory_)
-        UniswapV2AssetModule(mainRegistry_, uniswapV2Factory_)
-    { }
+    constructor(address registry_, address uniswapV2Factory_) UniswapV2AssetModule(registry_, uniswapV2Factory_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;
@@ -436,8 +434,8 @@ contract UniswapV2AssetModuleExtension is UniswapV2AssetModule {
 }
 
 contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
-    constructor(address mainRegistry_, address nonfungiblePositionManager)
-        UniswapV3AssetModule(mainRegistry_, nonfungiblePositionManager)
+    constructor(address registry_, address nonfungiblePositionManager)
+        UniswapV3AssetModule(registry_, nonfungiblePositionManager)
     { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
@@ -509,7 +507,7 @@ contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
 }
 
 contract ERC4626AssetModuleExtension is StandardERC4626AssetModule {
-    constructor(address mainRegistry_) StandardERC4626AssetModule(mainRegistry_) { }
+    constructor(address registry_) StandardERC4626AssetModule(registry_) { }
 
     function getPrimaryFlag() public pure returns (bool primaryFlag) {
         primaryFlag = PRIMARY_FLAG;

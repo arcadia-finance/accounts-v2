@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IRegistry } from "./interfaces/IRegistry.sol";
 import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
 
 /**
@@ -20,10 +20,10 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The address of the Main-registry.
+     * @param registry_ The address of the Main-registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC1155 tokens is 2.
      */
-    constructor(address mainRegistry_) PrimaryAssetModule(mainRegistry_, 2) { }
+    constructor(address registry_) PrimaryAssetModule(registry_, 2) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -44,11 +44,11 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
             );
         } else {
             // New contract address.
-            IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
+            IRegistry(REGISTRY).addAsset(asset, ASSET_TYPE);
             inAssetModule[asset] = true;
         }
         require(assetId <= type(uint96).max, "AM1155_AA: Invalid Id");
-        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracleSequence), "AM1155_AA: Bad Sequence");
+        require(IRegistry(REGISTRY).checkOracleSequence(oracleSequence), "AM1155_AA: Bad Sequence");
 
         // Unit for ERC1155 is 1 (standard ERC1155s don't have decimals).
         assetToInformation[_getKeyFromAsset(asset, assetId)] =

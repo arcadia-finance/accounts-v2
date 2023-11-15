@@ -23,8 +23,8 @@ abstract contract ChainlinkOracleModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.creatorAddress);
-        chainlinkOM = new ChainlinkOracleModuleExtension(address(mainRegistryExtension));
-        mainRegistryExtension.addOracleModule(address(chainlinkOM));
+        chainlinkOM = new ChainlinkOracleModuleExtension(address(registryExtension));
+        registryExtension.addOracleModule(address(chainlinkOM));
         vm.stopPrank();
     }
 }

@@ -63,10 +63,10 @@ abstract contract UniswapV2AssetModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         uniswapV2AssetModule = new UniswapV2AssetModuleExtension(
-            address(mainRegistryExtension),
+            address(registryExtension),
             address(uniswapV2Factory)
         );
-        mainRegistryExtension.addAssetModule(address(uniswapV2AssetModule));
+        registryExtension.addAssetModule(address(uniswapV2AssetModule));
         vm.stopPrank();
     }
 
@@ -103,13 +103,13 @@ abstract contract UniswapV2AssetModule_Fuzz_Test is Fuzz_Test {
         vm.stopPrank();
 
         vm.startPrank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(token), 0, type(uint128).max, 0, 0
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(token), 0, type(uint128).max, 0, 0
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorToken1), address(token), 0, type(uint128).max, 0, 0
         );
         vm.stopPrank();

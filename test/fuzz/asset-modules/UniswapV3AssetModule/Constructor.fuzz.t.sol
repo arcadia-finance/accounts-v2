@@ -23,15 +23,15 @@ contract Constructor_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address mainRegistry_) public {
+    function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.creatorAddress);
         UniswapV3AssetModuleExtension uniV3AssetModule_ = new UniswapV3AssetModuleExtension(
-            mainRegistry_,
+            registry_,
             address(nonfungiblePositionManager)
         );
         vm.stopPrank();
 
-        assertEq(uniV3AssetModule_.MAIN_REGISTRY(), mainRegistry_);
+        assertEq(uniV3AssetModule_.REGISTRY(), registry_);
         assertEq(uniV3AssetModule_.ASSET_TYPE(), 1);
         assertFalse(uniV3AssetModule_.getPrimaryFlag());
         assertEq(uniV3AssetModule_.getNonFungiblePositionManager(), address(nonfungiblePositionManager));

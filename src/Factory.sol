@@ -41,7 +41,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
 
     // Struct with additional information for a specific Account version.
     struct AccountVersionInfo {
-        address registry; // The contract address of the MainRegistry.
+        address registry; // The contract address of the Registry.
         address logic; // The contract address of the Account logic.
         bytes32 versionRoot; // The Merkle root of the merkle tree of all the compatible Account versions.
         bytes data; // Arbitrary data, can contain instructions to execute when updating Account to new logic.

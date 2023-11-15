@@ -9,7 +9,7 @@ import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 import { AccountV2 } from "../../../utils/mocks/AccountV2.sol";
 import { AccountVariableVersion } from "../../../utils/mocks/AccountVariableVersion.sol";
 import { Constants } from "../../../utils/Constants.sol";
-import { MainRegistryExtension } from "../../../utils/Extensions.sol";
+import { RegistryExtension } from "../../../utils/Extensions.sol";
 
 /**
  * @notice Fuzz tests for the function "upgradeAccount" of contract "AccountV1".
@@ -59,9 +59,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Set a Mocked V2 Account Logic contract in the Factory.
         vm.prank(users.creatorAddress);
-        factory.setNewAccountInfo(
-            address(mainRegistryExtension), address(accountV2Logic), Constants.upgradeRoot1To2, ""
-        );
+        factory.setNewAccountInfo(address(registryExtension), address(accountV2Logic), Constants.upgradeRoot1To2, "");
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -117,13 +115,11 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_upgradeAccount_InvalidMainRegistry(address newImplementation, bytes calldata data)
-        public
-    {
+    function testFuzz_Revert_upgradeAccount_InvalidRegistry(address newImplementation, bytes calldata data) public {
         vm.assume(newImplementation > address(10));
         vm.assume(newImplementation != address(factory));
         vm.assume(newImplementation != address(vm));
-        vm.assume(newImplementation != address(mainRegistryExtension));
+        vm.assume(newImplementation != address(registryExtension));
         vm.assume(newImplementation != address(proxyAccount));
 
         // Given: Creditor is set.
@@ -137,13 +133,13 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         AccountVariableVersion(newImplementation).setAccountVersion(accountVersion);
 
         vm.startPrank(users.creatorAddress);
-        MainRegistryExtension mainRegistry2 = new MainRegistryExtension(address(factory));
-        factory.setNewAccountInfo(address(mainRegistry2), newImplementation, Constants.upgradeRoot1To2, data);
+        RegistryExtension registry2 = new RegistryExtension(address(factory));
+        factory.setNewAccountInfo(address(registry2), newImplementation, Constants.upgradeRoot1To2, data);
         vm.stopPrank();
 
         vm.startPrank(address(factory));
         vm.expectRevert("A_UA: Invalid Main Registry.");
-        proxyAccount.upgradeAccount(newImplementation, address(mainRegistry2), uint16(accountVersion), data);
+        proxyAccount.upgradeAccount(newImplementation, address(registry2), uint16(accountVersion), data);
         vm.stopPrank();
     }
 

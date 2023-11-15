@@ -51,7 +51,7 @@ abstract contract AbstractPrimaryAssetModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        assetModule = new PrimaryAssetModuleMock(address(mainRegistryExtension), 0);
+        assetModule = new PrimaryAssetModuleMock(address(registryExtension), 0);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@ abstract contract AbstractPrimaryAssetModule_Fuzz_Test is Fuzz_Test {
         public
     {
         oracleModule.setOracle(oracleId, baseAsset, quoteAsset, active);
-        mainRegistryExtension.setOracleToOracleModule(oracleId, address(oracleModule));
+        registryExtension.setOracleToOracleModule(oracleId, address(oracleModule));
         oracleModule.setRate(oracleId, rate);
     }
 

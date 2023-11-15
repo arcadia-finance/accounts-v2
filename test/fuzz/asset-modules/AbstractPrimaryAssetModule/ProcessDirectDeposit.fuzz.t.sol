@@ -21,21 +21,21 @@ contract ProcessDirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPr
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processDirectDeposit_NonMainRegistry(
+    function testFuzz_Revert_processDirectDeposit_NonRegistry(
         PrimaryAssetModuleAssetState memory assetState,
         address unprivilegedAddress_,
         uint256 amount
     ) public {
         // Given "caller" is not the Main Registry.
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
+        vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is deposited.
-        // Then: The transaction reverts with "AAM: ONLY_MAIN_REGISTRY".
+        // Then: The transaction reverts with "AAM: ONLY_REGISTRY".
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert("AAM: ONLY_REGISTRY");
         assetModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }
@@ -56,7 +56,7 @@ contract ProcessDirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPr
 
         // When: "amount" is deposited.
         // Then: The transaction reverts with "APAM_PDD: Exposure not in limits".
-        vm.startPrank(address(mainRegistryExtension));
+        vm.startPrank(address(registryExtension));
         vm.expectRevert("APAM_PDD: Exposure not in limits");
         assetModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
@@ -76,7 +76,7 @@ contract ProcessDirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPr
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is deposited.
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         assetModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
 
         // Then: assetExposure is updated.

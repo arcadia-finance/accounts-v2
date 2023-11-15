@@ -26,7 +26,7 @@ contract Factory_Invariant_Test is Invariant_Test {
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
         Invariant_Test.setUp();
-        factoryHandler = new FactoryHandler(factory, mainRegistryExtension, accountV1Logic, accountV2Logic);
+        factoryHandler = new FactoryHandler(factory, registryExtension, accountV1Logic, accountV2Logic);
         // We only want to target function calls inside the FactoryHandler contract
         targetContract(address(factoryHandler));
     }

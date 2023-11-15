@@ -36,7 +36,7 @@ contract GetRiskFactors_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrimaryA
         liquidationFactor = uint16(bound(liquidationFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
 
         // And: Underlying asset is in primaryAssetModule.
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         assetModule.setRiskParameters(creditor, asset, assetId, 0, collateralFactor, liquidationFactor);
 
         // When: "getRiskFactors" is called.

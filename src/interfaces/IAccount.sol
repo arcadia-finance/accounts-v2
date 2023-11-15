@@ -23,7 +23,7 @@ interface IAccount {
     /**
      * @notice Updates the Account version and stores a new address in the EIP1967 implementation slot.
      * @param newImplementation The contract with the new Account logic.
-     * @param newRegistry The MainRegistry for this specific implementation (might be identical as the old registry).
+     * @param newRegistry The Registry for this specific implementation (might be identical as the old registry).
      * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.
      * @param newVersion The new version of the Account logic.
      */

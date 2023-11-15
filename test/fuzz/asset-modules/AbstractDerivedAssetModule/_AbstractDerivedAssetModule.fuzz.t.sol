@@ -56,12 +56,12 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        derivedAssetModule = new DerivedAssetModuleMock(address(mainRegistryExtension), 0);
+        derivedAssetModule = new DerivedAssetModuleMock(address(registryExtension), 0);
 
-        primaryAssetModule = new PrimaryAssetModuleMock(address(mainRegistryExtension), 0);
+        primaryAssetModule = new PrimaryAssetModuleMock(address(registryExtension), 0);
 
-        mainRegistryExtension.addAssetModule(address(derivedAssetModule));
-        mainRegistryExtension.addAssetModule(address(primaryAssetModule));
+        registryExtension.addAssetModule(address(derivedAssetModule));
+        registryExtension.addAssetModule(address(primaryAssetModule));
 
         // We assume conversion rate and price of underlying asset both equal to 1.
         // Conversion rate and prices of underlying assets will be tested in specific asset modules.
@@ -107,7 +107,7 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
         UnderlyingAssetModuleState memory underlyingPMState
     ) internal {
         // Set mapping between underlying Asset and its asset module in the Main Registry.
-        mainRegistryExtension.setAssetModuleForAsset(assetState.underlyingAsset, address(primaryAssetModule));
+        registryExtension.setAssetModuleForAsset(assetState.underlyingAsset, address(primaryAssetModule));
 
         // Set max exposure of mocked Asset Module for Underlying assets.
         primaryAssetModule.setExposure(

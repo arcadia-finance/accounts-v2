@@ -21,17 +21,17 @@ contract ProcessDirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstrac
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processDirectWithdrawal_NonMainRegistry(
+    function testFuzz_Revert_processDirectWithdrawal_NonRegistry(
         address unprivilegedAddress_,
         address creditor,
         address asset,
         uint256 id,
         uint128 amount
     ) public {
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
+        vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert("AAM: ONLY_REGISTRY");
         derivedAssetModule.processDirectWithdrawal(creditor, asset, id, amount);
         vm.stopPrank();
     }
@@ -56,8 +56,8 @@ contract ProcessDirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstrac
         setDerivedAssetModuleAssetState(assetState);
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
-        // When: "MainRegistry" calls "processDirectWithdrawal".
-        vm.prank(address(mainRegistryExtension));
+        // When: "Registry" calls "processDirectWithdrawal".
+        vm.prank(address(registryExtension));
         derivedAssetModule.processDirectWithdrawal(
             assetState.creditor, assetState.asset, assetState.assetId, uint256(-amount)
         );

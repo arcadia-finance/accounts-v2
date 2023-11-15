@@ -45,7 +45,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processDirectDeposit_NonMainRegistry(
+    function testFuzz_Revert_processDirectDeposit_NonRegistry(
         address creditor,
         address unprivilegedAddress,
         uint128 liquidity,
@@ -54,7 +54,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         uint256 priceToken0,
         uint256 priceToken1
     ) public {
-        vm.assume(unprivilegedAddress != address(mainRegistryExtension));
+        vm.assume(unprivilegedAddress != address(registryExtension));
 
         // Check that ticks are within allowed ranges.
         vm.assume(tickLower < tickUpper);
@@ -77,7 +77,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         vm.startPrank(unprivilegedAddress);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert("AAM: ONLY_REGISTRY");
         uniV3AssetModule.processDirectDeposit(creditor, address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
@@ -104,7 +104,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
             })
         );
 
-        vm.startPrank(address(mainRegistryExtension));
+        vm.startPrank(address(registryExtension));
         vm.expectRevert("AMUV3_AA: 0 liquidity");
         uniV3AssetModule.processDirectDeposit(creditor, address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
@@ -155,7 +155,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         addUnderlyingTokenToArcadia(address(token0), int256(priceToken0), initialExposure0, maxExposure0);
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
 
-        vm.startPrank(address(mainRegistryExtension));
+        vm.startPrank(address(registryExtension));
         vm.expectRevert("APAM_PID: Exposure not in limits");
         uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
@@ -212,7 +212,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         addUnderlyingTokenToArcadia(address(token0), int256(priceToken0), 0, type(uint128).max);
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1), initialExposure1, maxExposure1);
 
-        vm.startPrank(address(mainRegistryExtension));
+        vm.startPrank(address(registryExtension));
         vm.expectRevert("APAM_PID: Exposure not in limits");
         uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
@@ -286,11 +286,11 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         }
 
         vm.prank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfDerivedAssetModule(
+        registryExtension.setRiskParametersOfDerivedAssetModule(
             address(creditorUsd), address(uniV3AssetModule), maxUsdExposureProtocol, 100
         );
 
-        vm.startPrank(address(mainRegistryExtension));
+        vm.startPrank(address(registryExtension));
         vm.expectRevert("ADAM_PD: Exposure not in limits");
         uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
@@ -364,11 +364,11 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         }
 
         vm.prank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfDerivedAssetModule(
+        registryExtension.setRiskParametersOfDerivedAssetModule(
             address(creditorUsd), address(uniV3AssetModule), maxUsdExposureProtocol, 100
         );
 
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
     }
 }

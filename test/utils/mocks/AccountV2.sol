@@ -7,11 +7,9 @@ pragma solidity 0.8.19;
 import { ERC20, SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { IERC721 } from "../../../src/interfaces/IERC721.sol";
 import { IERC1155 } from "../../../src/interfaces/IERC1155.sol";
-import { IMainRegistry } from "../../../src/interfaces/IMainRegistry.sol";
+import { IRegistry } from "../../../src/interfaces/IRegistry.sol";
 import { ICreditor } from "../../../src/interfaces/ICreditor.sol";
 import { IActionBase, ActionData } from "../../../src/interfaces/IActionBase.sol";
-import { IFactory } from "../../../src/interfaces/IFactory.sol";
-import { IAccount } from "../../../src/interfaces/IAccount.sol";
 import { ActionData } from "../../../src/actions/utils/ActionData.sol";
 import { AccountStorageV2 } from "./AccountStorageV2.sol";
 
@@ -65,7 +63,7 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Throws if called by any account other than the factory address.
      */
     modifier onlyFactory() {
-        require(msg.sender == IMainRegistry(registry).FACTORY(), "A: Only Factory");
+        require(msg.sender == IRegistry(registry).FACTORY(), "A: Only Factory");
         _;
     }
 
@@ -128,7 +126,7 @@ contract AccountV2 is AccountStorageV2 {
     /**
      * @notice Updates the Account version and stores a new address in the EIP1967 implementation slot.
      * @param newImplementation The contract with the new Account logic.
-     * @param newRegistry The MainRegistry for this specific implementation (might be identical as the old registry).
+     * @param newRegistry The Registry for this specific implementation (might be identical as the old registry).
      * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.
      * @param newVersion The new version of the Account logic.
      */
@@ -218,7 +216,7 @@ contract AccountV2 is AccountStorageV2 {
      * @param baseCurrency_ the new baseCurrency for the Account.
      */
     function _setBaseCurrency(address baseCurrency_) internal {
-        require(IMainRegistry(registry).inMainRegistry(baseCurrency_), "A_SBC: baseCurrency not found");
+        require(IRegistry(registry).inRegistry(baseCurrency_), "A_SBC: baseCurrency not found");
         baseCurrency = baseCurrency_;
 
         emit BaseCurrencySet(baseCurrency_);
@@ -337,7 +335,7 @@ contract AccountV2 is AccountStorageV2 {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
         accountValue =
-            IMainRegistry(registry).getTotalValue(baseCurrency_, creditor, assetAddresses, assetIds, assetAmounts);
+            IRegistry(registry).getTotalValue(baseCurrency_, creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
@@ -355,7 +353,7 @@ contract AccountV2 is AccountStorageV2 {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
         collateralValue =
-            IMainRegistry(registry).getCollateralValue(baseCurrency, creditor, assetAddresses, assetIds, assetAmounts);
+            IRegistry(registry).getCollateralValue(baseCurrency, creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
@@ -372,7 +370,7 @@ contract AccountV2 is AccountStorageV2 {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
         liquidationValue =
-            IMainRegistry(registry).getLiquidationValue(baseCurrency, creditor, assetAddresses, assetIds, assetAmounts);
+            IRegistry(registry).getLiquidationValue(baseCurrency, creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
@@ -444,7 +442,7 @@ contract AccountV2 is AccountStorageV2 {
         onlyAssetManager
         returns (address, uint256)
     {
-        require(IMainRegistry(registry).isActionAllowed(actionHandler), "A_AMA: Action not allowed");
+        require(IRegistry(registry).isActionAllowed(actionHandler), "A_AMA: Action not allowed");
 
         (ActionData memory outgoing,,,) = abi.decode(actionData, (ActionData, ActionData, address[], bytes[]));
 
@@ -490,7 +488,7 @@ contract AccountV2 is AccountStorageV2 {
         external
         onlyOwner
     {
-        //No need to check that all arrays have equal length, this check is already done in the MainRegistry.
+        //No need to check that all arrays have equal length, this check is already done in the Registry.
         _deposit(assetAddresses, assetIds, assetAmounts, msg.sender);
     }
 
@@ -507,9 +505,9 @@ contract AccountV2 is AccountStorageV2 {
         uint256[] memory assetAmounts,
         address from
     ) internal {
-        //Reverts in mainRegistry if input is invalid.
+        //Reverts in registry if input is invalid.
         uint256[] memory assetTypes =
-            IMainRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
+            IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {
@@ -559,7 +557,7 @@ contract AccountV2 is AccountStorageV2 {
         external
         onlyOwner
     {
-        //No need to check that all arrays have equal length, this check is already done in the MainRegistry.
+        //No need to check that all arrays have equal length, this check is already done in the Registry.
         _withdraw(assetAddresses, assetIds, assetAmounts, msg.sender);
 
         uint256 usedMargin = getUsedMargin();
@@ -584,9 +582,9 @@ contract AccountV2 is AccountStorageV2 {
         uint256[] memory assetAmounts,
         address to
     ) internal {
-        //Reverts in mainRegistry if input is invalid.
+        //Reverts in registry if input is invalid.
         uint256[] memory assetTypes =
-            IMainRegistry(registry).batchProcessWithdrawal(creditor, assetAddresses, assetIds, assetAmounts); //reverts in mainregistry if invalid input
+            IRegistry(registry).batchProcessWithdrawal(creditor, assetAddresses, assetIds, assetAmounts); //reverts in registry if invalid input
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {
@@ -940,17 +938,15 @@ contract AccountV2 is AccountStorageV2 {
     /**
      * @notice Finalizes the Upgrade to a new Account version on the new Logic Contract.
      * param oldImplementation The contract with the new old logic.
-     * @param oldRegistry The MainRegistry of the old version (might be identical as the new registry)
+     * @param oldRegistry The Registry of the old version (might be identical as the new registry)
      * param oldVersion The old version of the Account logic.
      * param data Arbitrary data, can contain instructions to execute in this function.
      * @dev If upgradeHook() is implemented, it MUST be verify that msg.sender == address(this).
      */
     function upgradeHook(address, address oldRegistry, uint16, bytes calldata) external {
         require(msg.sender == address(this), "Not the right address");
-        IMainRegistry(oldRegistry).batchProcessWithdrawal(
-            address(0), new address[](0), new uint256[](0), new uint256[](0)
-        );
-        IMainRegistry(registry).batchProcessDeposit(address(0), new address[](0), new uint256[](0), new uint256[](0));
+        IRegistry(oldRegistry).batchProcessWithdrawal(address(0), new address[](0), new uint256[](0), new uint256[](0));
+        IRegistry(registry).batchProcessDeposit(address(0), new address[](0), new uint256[](0), new uint256[](0));
 
         storageV2 = returnFive();
     }

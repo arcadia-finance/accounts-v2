@@ -171,7 +171,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_deposit_UnknownAssetType(uint96 assetType) public {
         vm.assume(assetType >= 3);
 
-        mainRegistryExtension.setAssetType(address(mockERC20.token1), assetType);
+        registryExtension.setAssetType(address(mockERC20.token1), assetType);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);

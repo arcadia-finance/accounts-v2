@@ -36,7 +36,7 @@ contract AccountStorageV1 {
     uint96 public fixedLiquidationCost;
     // The owner of the Account.
     address public owner;
-    // The contract address of the MainRegistry.
+    // The contract address of the Registry.
     address public registry;
     // The creditor, address 0 if no creditor is set.
     address public creditor;
