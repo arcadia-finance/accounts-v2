@@ -48,6 +48,12 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     }
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+    error Invalid_Account_Version();
+    error Account_Version_Blocked();
+
+    /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
@@ -83,8 +89,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     {
         accountVersion = accountVersion == 0 ? latestAccountVersion : accountVersion;
 
-        require(accountVersion <= latestAccountVersion, "FTRY_CV: Unknown Account version");
-        require(!accountVersionBlocked[accountVersion], "FTRY_CV: Account version blocked");
+        if (accountVersion > latestAccountVersion) revert Invalid_Account_Version();
+        if (accountVersionBlocked[accountVersion]) revert Account_Version_Blocked();
 
         // Hash tx.origin with the user provided salt to avoid front-running Account deployment with an identical salt.
         // We use tx.origin instead of msg.sender so that deployments through a third party contract is not vulnerable to front-running.
