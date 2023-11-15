@@ -345,7 +345,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     }
 
     function setMinUsdValueCreditor(address creditor, uint256 minUsdValue) external {
-        require(msg.sender == ITrustedCreditor(creditor).riskManager(), "MR_SMUVC: Not Authorized");
+        require(msg.sender == ICreditor(creditor).riskManager(), "MR_SMUVC: Not Authorized");
 
         minUsdValueCreditor[creditor] = minUsdValue;
     }
