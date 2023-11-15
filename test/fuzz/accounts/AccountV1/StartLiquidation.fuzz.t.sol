@@ -6,10 +6,9 @@ pragma solidity 0.8.19;
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
-import { IMainRegistry } from "../../../../src/interfaces/IMainRegistry.sol";
 import { ICreditor } from "../../../../src/interfaces/ICreditor.sol";
 import { RiskModule } from "../../../../src/RiskModule.sol";
 import { RiskModuleExtension } from "../../../utils/Extensions.sol";

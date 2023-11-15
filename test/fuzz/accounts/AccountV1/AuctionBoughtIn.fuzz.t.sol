@@ -4,14 +4,14 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 
 /**
- * @notice Fuzz tests for the "auctionBid" of contract "AccountV1".
+ * @notice Fuzz tests for the "auctionBoughtIn" of contract "AccountV1".
  */
-contract AuctionBuyIn_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
+contract AuctionBoughtIn_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
