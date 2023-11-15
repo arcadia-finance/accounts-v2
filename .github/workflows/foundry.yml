@@ -2,9 +2,7 @@ on:
   pull_request:
     branches:
       - main
-      - main_paper_trading
       - main*
-      - refactor/arcadia-vault
       - dev
       - fix/fixes
       - AF-*

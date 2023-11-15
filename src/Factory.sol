@@ -232,7 +232,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
             ++latestAccountVersion;
         }
 
-        require(IAccount(logic).ACCOUNT_VERSION() == latestAccountVersion, "FTRY_SNVI: vault version mismatch");
+        require(IAccount(logic).ACCOUNT_VERSION() == latestAccountVersion, "FTRY_SNVI: version mismatch");
 
         accountDetails[latestAccountVersion].registry = registry;
         accountDetails[latestAccountVersion].logic = logic;

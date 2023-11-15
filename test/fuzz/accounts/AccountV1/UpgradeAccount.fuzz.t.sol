@@ -213,7 +213,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         Checks memory checkAfter = createCompareStruct();
         assertEq(keccak256(abi.encode(checkAfter)), keccak256(abi.encode(checkBefore)));
 
-        // And: The Vault version is updated.
+        // And: The Account version is updated.
         assertEq(proxyAccount.ACCOUNT_VERSION(), factory.latestAccountVersion());
     }
 }

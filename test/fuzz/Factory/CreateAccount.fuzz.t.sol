@@ -61,8 +61,8 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(uint256(versionsToMake) + 1 < type(uint8).max);
         vm.assume(accountVersion <= versionsToMake + 1);
         for (uint256 i; i < versionsToMake; ++i) {
-            //create vault logic with the right version
-            //the first vault version to add is 2, so we add 2 to the index
+            //create account logic with the right version
+            //the first account version to add is 2, so we add 2 to the index
             account_.setAccountVersion(uint16(i + 2));
 
             vm.prank(users.creatorAddress);
