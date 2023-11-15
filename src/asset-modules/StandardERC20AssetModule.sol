@@ -12,7 +12,7 @@ import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
  * @title Asset Module for Standard ERC20 tokens.
  * @author Pragma Labs
  * @notice The pricing logic and basic information for ERC20 tokens for which a direct price feed exists.
- * @dev No end-user should directly interact with the StandardERC20AssetModule, only the Main-registry
+ * @dev No end-user should directly interact with the StandardERC20AssetModule, only the Registry
  * or the contract owner.
  */
 contract StandardERC20AssetModule is PrimaryAssetModule {

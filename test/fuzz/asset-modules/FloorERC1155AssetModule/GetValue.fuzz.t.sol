@@ -35,7 +35,7 @@ contract GetValue_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModule_F
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_getValue_Overflow(uint256 amountSft2, uint256 rateSft2ToUsd) public {
-        // No Overflow Main Registry.
+        // No Overflow Registry.
         rateSft2ToUsd = bound(rateSft2ToUsd, 1, type(uint256).max / 10 ** (36 - Constants.erc1155OracleDecimals));
 
         // Overflow Asset Module (test-case).
@@ -55,7 +55,7 @@ contract GetValue_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModule_F
     }
 
     function testFuzz_Success_getValue(uint256 amountSft2, uint256 rateSft2ToUsd) public {
-        // No Overflow Main Registry.
+        // No Overflow Registry.
         rateSft2ToUsd = bound(rateSft2ToUsd, 1, type(uint256).max / 10 ** (36 - Constants.erc1155OracleDecimals));
 
         // No Overflow Asset Module.

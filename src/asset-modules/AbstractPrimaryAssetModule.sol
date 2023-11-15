@@ -67,7 +67,7 @@ abstract contract PrimaryAssetModule is AssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param registry_ The address of the Main-registry.
+     * @param registry_ The address of the Registry.
      * @param assetType_ Identifier for the type of asset, necessary for the deposit and withdraw logic in the Accounts.
      * 0 = ERC20
      * 1 = ERC721
@@ -171,7 +171,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint128 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
-    ) external onlyMainReg {
+    ) external onlyRegistry {
         require(collateralFactor <= RiskConstants.RISK_FACTOR_UNIT, "APAM_SRP: Coll.Fact not in limits");
         require(liquidationFactor <= RiskConstants.RISK_FACTOR_UNIT, "APAM_SRP: Liq.Fact not in limits");
 
@@ -197,7 +197,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         public
         virtual
         override
-        onlyMainReg
+        onlyRegistry
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -229,7 +229,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public virtual override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Cache lastExposureAsset.
@@ -265,7 +265,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         public
         virtual
         override
-        onlyMainReg
+        onlyRegistry
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -293,7 +293,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public virtual override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Cache lastExposureAsset.

@@ -96,14 +96,14 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.prank(address(proxyAccount));
         registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
-        // When: Main registry is paused
+        // When: Registry is paused
         vm.prank(users.creatorAddress);
         registryExtension.changeGuardian(guardian);
         vm.warp(35 days);
         vm.prank(guardian);
         registryExtension.pause();
 
-        // Then: Withdrawal is reverted due to paused main registry
+        // Then: Withdrawal is reverted due to paused Registry
         vm.startPrank(address(proxyAccount));
         vm.expectRevert(FunctionIsPaused.selector);
         registryExtension.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);

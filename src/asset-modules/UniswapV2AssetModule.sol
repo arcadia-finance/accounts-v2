@@ -14,7 +14,7 @@ import { RiskModule } from "../RiskModule.sol";
  * @title Asset-Module for Uniswap V2 LP tokens
  * @author Pragma Labs
  * @notice The UniswapV2AssetModule stores pricing logic and basic information for Uniswap V2 LP tokens
- * @dev No end-user should directly interact with the UniswapV2AssetModule, only the Main-registry or the contract owner
+ * @dev No end-user should directly interact with the UniswapV2AssetModule, only the Registry or the contract owner
  * @dev Most logic in this contract is a modifications of
  *      https://github.com/Uniswap/v2-periphery/blob/master/contracts/libraries/UniswapV2LiquidityMathLibrary.sol#L23
  */
@@ -44,7 +44,7 @@ contract UniswapV2AssetModule is DerivedAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param registry_ The address of the Main-registry.
+     * @param registry_ The address of the Registry.
      * @param uniswapV2Factory_ The factory for Uniswap V2 pairs.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */

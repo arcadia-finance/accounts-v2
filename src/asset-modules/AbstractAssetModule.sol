@@ -44,9 +44,9 @@ abstract contract AssetModule is Owned, IAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @dev Only the Main Registry can call functions with this modifier.
+     * @dev Only the Registry can call functions with this modifier.
      */
-    modifier onlyMainReg() {
+    modifier onlyRegistry() {
         require(msg.sender == REGISTRY, "AAM: ONLY_REGISTRY");
         _;
     }

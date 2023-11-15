@@ -27,7 +27,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given "caller" is not the Main Registry.
+        // Given "caller" is not the Registry.
         vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         // And: State is persisted.

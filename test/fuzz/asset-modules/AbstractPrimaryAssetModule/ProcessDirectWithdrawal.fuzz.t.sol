@@ -26,7 +26,7 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstrac
         address unprivilegedAddress_,
         uint128 amount
     ) public {
-        // Given "caller" is not the Main Registry.
+        // Given "caller" is not the Registry.
         vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         // And: State is persisted.

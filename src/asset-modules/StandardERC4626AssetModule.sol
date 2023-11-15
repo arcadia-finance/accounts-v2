@@ -12,7 +12,7 @@ import { RiskModule } from "../RiskModule.sol";
  * @title Sub-registry for Standard ERC4626 tokens
  * @author Pragma Labs
  * @notice The StandardERC4626Registry stores pricing logic and basic information for ERC4626 tokens for which the underlying assets have direct price feed.
- * @dev No end-user should directly interact with the StandardERC4626Registry, only the Main-registry or the contract owner
+ * @dev No end-user should directly interact with the StandardERC4626Registry, only the Registry or the contract owner
  */
 contract StandardERC4626AssetModule is DerivedAssetModule {
     /* //////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param registry_ The address of the Main-registry.
+     * @param registry_ The address of the Registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
     constructor(address registry_) DerivedAssetModule(registry_, 0) { }

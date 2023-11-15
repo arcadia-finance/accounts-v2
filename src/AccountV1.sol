@@ -179,7 +179,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
         // Prevent that Account is upgraded to a new version where the baseCurrency can't be priced.
         if (newRegistry != oldRegistry) {
-            require(IRegistry(newRegistry).inRegistry(baseCurrency), "A_UA: Invalid Main Registry.");
+            require(IRegistry(newRegistry).inRegistry(baseCurrency), "A_UA: Invalid Registry.");
         }
 
         // Hook on the new logic to finalize upgrade.

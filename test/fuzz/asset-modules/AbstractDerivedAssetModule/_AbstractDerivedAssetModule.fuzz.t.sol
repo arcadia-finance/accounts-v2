@@ -106,7 +106,7 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
         DerivedAssetModuleAssetState memory assetState,
         UnderlyingAssetModuleState memory underlyingPMState
     ) internal {
-        // Set mapping between underlying Asset and its asset module in the Main Registry.
+        // Set mapping between underlying Asset and its asset module in the Registry.
         registryExtension.setAssetModuleForAsset(assetState.underlyingAsset, address(primaryAssetModule));
 
         // Set max exposure of mocked Asset Module for Underlying assets.

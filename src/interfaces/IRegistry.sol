@@ -28,7 +28,7 @@ interface IRegistry {
     function isActionAllowed(address action) external view returns (bool);
 
     /**
-     * @notice Adds a new asset to the Main Registry.
+     * @notice Adds a new asset to the Registry.
      * @param asset The contract address of the asset.
      * @param assetType Identifier for the type of the asset:
      * 0 = ERC20.

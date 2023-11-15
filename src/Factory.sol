@@ -214,7 +214,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
 
     /**
      * @notice Function to set a new Account version with the contracts to be used for new deployed Accounts.
-     * @param registry The contract address of the Main Registry.
+     * @param registry The contract address of the Registry.
      * @param logic The contract address of the Account logic.
      * @param versionRoot The Merkle root of the merkle tree of all the compatible Account versions.
      * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.

@@ -22,7 +22,7 @@ import { TickMath } from "./libraries/TickMath.sol";
  * @dev The UniswapV3AssetModule will not price the LP-tokens via direct price oracles,
  * it will break down liquidity positions in the underlying tokens (ERC20s).
  * Only LP tokens for which the underlying tokens are allowed as collateral can be priced.
- * @dev No end-user should directly interact with the UniswapV3AssetModule, only the Main-registry,
+ * @dev No end-user should directly interact with the UniswapV3AssetModule, only the Registry,
  * or the contract owner.
  */
 contract UniswapV3AssetModule is DerivedAssetModule {

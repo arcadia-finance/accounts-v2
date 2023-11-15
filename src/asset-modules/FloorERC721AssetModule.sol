@@ -12,7 +12,7 @@ import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
  * @author Pragma Labs
  * @notice The FloorERC721AssetModule stores pricing logic and basic information for ERC721 tokens for which a direct price feeds exists
  * for the floor price of the collection
- * @dev No end-user should directly interact with the FloorERC721AssetModule, only the Main-registry  or the contract owner
+ * @dev No end-user should directly interact with the FloorERC721AssetModule, only the Registry  or the contract owner
  */
 contract FloorERC721AssetModule is PrimaryAssetModule {
     /* //////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param registry_ The address of the Main-registry.
+     * @param registry_ The address of the Registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC721 tokens is 1.
      */
     constructor(address registry_) PrimaryAssetModule(registry_, 1) { }

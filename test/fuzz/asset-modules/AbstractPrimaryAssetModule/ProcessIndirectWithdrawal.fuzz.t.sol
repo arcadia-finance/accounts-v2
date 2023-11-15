@@ -27,7 +27,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given "caller" is not the Main Registry.
+        // Given "caller" is not the Registry.
         vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         // And: State is persisted.

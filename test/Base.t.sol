@@ -84,21 +84,21 @@ abstract contract Base_Test is Test, Events, Errors {
         factory.changeGuardian(users.guardian);
         registryExtension.changeGuardian(users.guardian);
 
-        // Add Asset Modules to the Main Registry.
+        // Add Asset Modules to the Registry.
         vm.startPrank(users.creatorAddress);
         registryExtension.addAssetModule(address(erc20AssetModule));
         registryExtension.addAssetModule(address(floorERC721AssetModule));
         registryExtension.addAssetModule(address(floorERC1155AssetModule));
         vm.stopPrank();
 
-        // Add Oracle Modules to the Main Registry.
+        // Add Oracle Modules to the Registry.
         vm.startPrank(users.creatorAddress);
         registryExtension.addOracleModule(address(chainlinkOM));
         vm.stopPrank();
 
         // Label the base test contracts.
         vm.label({ account: address(factory), newLabel: "Factory" });
-        vm.label({ account: address(registryExtension), newLabel: "Main Registry" });
+        vm.label({ account: address(registryExtension), newLabel: "Registry" });
         vm.label({ account: address(chainlinkOM), newLabel: "Chainlink Oracle Module" });
         vm.label({ account: address(erc20AssetModule), newLabel: "Standard ERC20 Asset Module" });
         vm.label({ account: address(floorERC721AssetModule), newLabel: "ERC721 Asset Module" });

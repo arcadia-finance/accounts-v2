@@ -26,7 +26,7 @@ contract ProcessDirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPr
         address unprivilegedAddress_,
         uint256 amount
     ) public {
-        // Given "caller" is not the Main Registry.
+        // Given "caller" is not the Registry.
         vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         // And: State is persisted.

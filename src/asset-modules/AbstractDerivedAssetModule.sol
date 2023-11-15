@@ -216,7 +216,7 @@ abstract contract DerivedAssetModule is AssetModule {
      */
     function setRiskParameters(address creditor, uint128 maxUsdExposureProtocol_, uint16 riskFactor)
         external
-        onlyMainReg
+        onlyRegistry
     {
         require(riskFactor <= RiskConstants.RISK_FACTOR_UNIT, "ADAM_SRP: Risk Fact not in limits");
 
@@ -332,7 +332,7 @@ abstract contract DerivedAssetModule is AssetModule {
         public
         virtual
         override
-        onlyMainReg
+        onlyRegistry
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -358,7 +358,7 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public virtual override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to "Asset".
@@ -387,7 +387,7 @@ abstract contract DerivedAssetModule is AssetModule {
         public
         virtual
         override
-        onlyMainReg
+        onlyRegistry
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -413,7 +413,7 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public virtual override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to "Asset".

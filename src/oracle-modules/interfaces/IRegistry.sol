@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 interface IRegistry {
     /**
-     * @notice Adds a new oracle to the Main Registry.
+     * @notice Adds a new oracle to the Registry.
      * @return oracleId Unique identifier of the oracle.
      */
     function addOracle() external returns (uint256 oracleId);

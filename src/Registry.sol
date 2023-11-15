@@ -19,7 +19,7 @@ import { RiskModule } from "./RiskModule.sol";
 /**
  * @title Main Asset registry
  * @author Pragma Labs
- * @notice The Main Registry has a number of responsibilities, all related to the management of asset and oracles:
+ * @notice The Registry has a number of responsibilities, all related to the management of asset and oracles:
  *  - It stores the mapping between assets and their respective asset-modules.
  *  - It stores the mapping between oracles and their respective oracle-modules.
  *  - It orchestrates the pricing of a basket of assets in a single unit of account.
@@ -135,7 +135,7 @@ contract Registry is IRegistry, RegistryGuardian {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Adds a new Asset Module to the Main Registry.
+     * @notice Adds a new Asset Module to the Registry.
      * @param assetModule The contract address of the Asset Module.
      */
     function addAssetModule(address assetModule) external onlyOwner {
@@ -146,7 +146,7 @@ contract Registry is IRegistry, RegistryGuardian {
     }
 
     /**
-     * @notice Adds a new Oracle Module to the Main Registry.
+     * @notice Adds a new Oracle Module to the Registry.
      * @param oracleModule The contract address of the Oracle Module.
      */
     function addOracleModule(address oracleModule) external onlyOwner {
@@ -175,7 +175,7 @@ contract Registry is IRegistry, RegistryGuardian {
     }
 
     /**
-     * @notice Adds a new asset to the Main Registry.
+     * @notice Adds a new asset to the Registry.
      * @param assetAddress The contract address of the asset.
      * @param assetType Identifier for the type of the asset:
      * 0 = ERC20.
@@ -200,7 +200,7 @@ contract Registry is IRegistry, RegistryGuardian {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Adds a new oracle to the Main Registry.
+     * @notice Adds a new oracle to the Registry.
      * @return oracleId Unique identifier of the oracle.
      */
     function addOracle() external onlyOracleModule returns (uint256 oracleId) {
