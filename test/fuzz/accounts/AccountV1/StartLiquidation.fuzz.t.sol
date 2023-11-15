@@ -6,23 +6,24 @@ pragma solidity 0.8.19;
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
-import { RiskModule } from "../../../../src/RiskModule.sol";
-import { IRegistry } from "../../../../src/interfaces/IRegistry.sol";
 import { ICreditor } from "../../../../src/interfaces/ICreditor.sol";
+import { RiskModule } from "../../../../src/RiskModule.sol";
+import { RiskModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
- * @notice Fuzz tests for the "checkAndStartLiquidation" of contract "AccountV1".
+ * @notice Fuzz tests for the "startLiquidation" of contract "AccountV1".
  */
-contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
+contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
     AccountExtension internal accountExtension2;
+    RiskModuleExtension internal riskModule;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -33,24 +34,26 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.prank(users.accountOwner);
         accountExtension2 = new AccountExtension();
+
+        riskModule = new RiskModuleExtension();
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_checkAndStartLiquidation_Reentered() public {
+    function testFuzz_Revert_startLiquidation_Reentered() public {
         // Reentrancy guard is in locked state.
         accountExtension.setLocked(2);
 
         // Should revert if the reentrancy guard is locked.
         vm.startPrank(users.accountOwner);
         vm.expectRevert("A: REENTRANCY");
-        accountExtension.checkAndStartLiquidation();
+        accountExtension.startLiquidation();
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_checkAndStartLiquidation_notLiquidatable_usedMarginSmallerThanLiquidationValue(
+    function testFuzz_Revert_startLiquidation_notLiquidatable_usedMarginSmallerThanLiquidationValue(
         uint96 fixedLiquidationCost,
         uint256 openDebt,
         uint128 depositAmountToken1
@@ -84,7 +87,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         );
 
         // Given : Liquidation value is greater than or equal to used margin
-        vm.assume(openDebt + fixedLiquidationCost <= RiskModule.calculateLiquidationValue(assetAndRiskValues));
+        vm.assume(openDebt + fixedLiquidationCost <= riskModule.calculateLiquidationValue(assetAndRiskValues));
 
         // Mint and approve token1 tokens
         vm.startPrank(users.tokenCreatorAddress);
@@ -98,13 +101,11 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Then : Account should not be liquidatable as openDebt > 0 and liquidationValue > usedMargin
         vm.startPrank(accountExtension2.liquidator());
         vm.expectRevert("A_CASL: Account not liquidatable");
-        accountExtension2.checkAndStartLiquidation();
+        accountExtension2.startLiquidation();
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_checkAndStartLiquidation_notLiquidatable_zeroOpenDebt(uint96 fixedLiquidationCost)
-        public
-    {
+    function testFuzz_Revert_startLiquidation_notLiquidatable_zeroOpenDebt(uint96 fixedLiquidationCost) public {
         // Given : openDebt = 0
         uint256 openDebt = 0;
 
@@ -123,11 +124,11 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Then : Account should not be liquidatable as openDebt == 0
         vm.startPrank(accountExtension2.liquidator());
         vm.expectRevert("A_CASL: Account not liquidatable");
-        accountExtension2.checkAndStartLiquidation();
+        accountExtension2.startLiquidation();
         vm.stopPrank();
     }
 
-    function testFuzz_Success_checkAndStartLiquidation(
+    function testFuzz_Success_startLiquidation(
         uint96 fixedLiquidationCost,
         uint256 openDebt,
         uint128 depositAmountToken1
@@ -161,7 +162,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         );
 
         // Given : Liquidation value is smaller than used margin
-        vm.assume(openDebt + fixedLiquidationCost > RiskModule.calculateLiquidationValue(assetAndRiskValues));
+        vm.assume(openDebt + fixedLiquidationCost > riskModule.calculateLiquidationValue(assetAndRiskValues));
 
         // Mint and approve stable1 tokens
         vm.startPrank(users.tokenCreatorAddress);
@@ -182,7 +183,7 @@ contract CheckAndStartLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             address creditor_,
             uint256 totalOpenDebt,
             RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues_
-        ) = accountExtension2.checkAndStartLiquidation();
+        ) = accountExtension2.startLiquidation();
         vm.stopPrank();
 
         // Then : Account should be liquidatable and return specific values
