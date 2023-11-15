@@ -230,18 +230,16 @@ contract AccountV2 is AccountStorageV2 {
 
     /**
      * @notice Opens a margin account on the Account for a Creditor.
-     * @param creditor The contract address of the Creditor.
+     * @param creditor_ The contract address of the Creditor.
      * @dev Currently only one Creditor can be set
      * (we are working towards a single account for multiple creditors tho!).
      * @dev Only open margin accounts for protocols you trust!
-     * The Creditor should be trusted by the Account Owner, but not by any of the Arcadia-Account smart contracts.
-     * TrustedProtocol and Liquidator will never be called from an Arcadia Contract with a function that can modify state.
-     * @dev The creditor has significant authorisation: use margin, trigger liquidation, and manage assets.
+     * The Creditor has significant authorisation: use margin, trigger liquidation, and manage assets.
      */
-    function openMarginAccount(address creditor) external onlyOwner {
+    function openMarginAccount(address creditor_) external onlyOwner {
         require(!isCreditorSet, "A_OMA: ALREADY SET");
 
-        _openMarginAccount(creditor);
+        _openMarginAccount(creditor_);
     }
 
     /**
