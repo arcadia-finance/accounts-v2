@@ -57,6 +57,8 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
     mapping(address => AssetInformation) public assetToAssetInformation;
     // Map oracle identifier => oracleModule.
     mapping(uint256 => address) internal oracleToOracleModule;
+    // Map creditor to minimum usd value of assets that are taken into account.
+    mapping(address => uint256) public minUsdValueCreditor;
 
     // Struct with additional information for a specific asset.
     struct AssetInformation {
@@ -342,6 +344,12 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         IDerivedAssetModule(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
     }
 
+    function setMinUsdValueCreditor(address creditor, uint256 minUsdValue) external {
+        require(msg.sender == ITrustedCreditor(creditor).riskManager(), "MR_SMUVC: Not Authorized");
+
+        minUsdValueCreditor[creditor] = minUsdValue;
+    }
+
     /*///////////////////////////////////////////////////////////////
                     WITHDRAWALS AND DEPOSITS
     ///////////////////////////////////////////////////////////////*/
@@ -535,6 +543,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
         uint256 length = assets.length;
         valuesAndRiskFactors = new RiskModule.AssetValueAndRiskFactors[](length);
 
+        uint256 minUsdValue = minUsdValueCreditor[creditor];
         for (uint256 i; i < length;) {
             (
                 valuesAndRiskFactors[i].assetValue,
@@ -543,6 +552,7 @@ contract MainRegistry is IMainRegistry, MainRegistryGuardian {
             ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule).getValue(
                 creditor, assets[i], assetIds[i], assetAmounts[i]
             );
+            if (valuesAndRiskFactors[i].assetValue < minUsdValue) valuesAndRiskFactors[i].assetValue = 0;
 
             unchecked {
                 ++i;
