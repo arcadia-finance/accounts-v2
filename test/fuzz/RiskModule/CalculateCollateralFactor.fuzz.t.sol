@@ -55,7 +55,7 @@ contract CalculateCollateralFactor_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
             }
         }
 
-        calcCollateralValue = calcCollateralValue / 100;
+        calcCollateralValue = calcCollateralValue / 10_000;
         assertEq(collateralValue, calcCollateralValue);
     }
 }

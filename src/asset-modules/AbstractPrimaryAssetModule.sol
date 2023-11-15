@@ -42,9 +42,9 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint128 lastExposureAsset;
         // The maximum exposure of a creditor to an asset.
         uint128 maxExposure;
-        // The collateral factor of the asset for the creditor, 2 decimals precision.
+        // The collateral factor of the asset for the creditor, 4 decimals precision.
         uint16 collateralFactor;
-        // The liquidation factor of the asset for the creditor, 2 decimals precision.
+        // The liquidation factor of the asset for the creditor, 4 decimals precision.
         uint16 liquidationFactor;
     }
 
@@ -110,8 +110,8 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param assetId The Id of the asset.
      * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 4 decimals precision.
      * @dev If the asset is not added to AssetModule, this function will return value 0 without throwing an error.
      * However no check in StandardERC20AssetModule is necessary, since the check if the asset is added to the AssetModule
      * is already done in the Registry.
@@ -141,8 +141,8 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @return collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for the creditor, 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the creditor, 4 decimals precision.
      */
     function getRiskFactors(address creditor, address asset, uint256 assetId)
         external
@@ -161,8 +161,8 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param maxExposure The maximum exposure of a creditor to the asset.
-     * @param collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
-     * @param liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     * @param collateralFactor The collateral factor of the asset for the creditor, 4 decimals precision.
+     * @param liquidationFactor The liquidation factor of the asset for the creditor, 4 decimals precision.
      */
     function setRiskParameters(
         address creditor,

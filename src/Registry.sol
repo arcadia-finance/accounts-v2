@@ -277,8 +277,8 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
-     * @return collateralFactors Array of the collateral factors of the assets for the creditor, 2 decimals precision.
-     * @return liquidationFactors Array of the liquidation factors of the assets for the creditor, 2 decimals precision.
+     * @return collateralFactors Array of the collateral factors of the assets for the creditor, 4 decimals precision.
+     * @return liquidationFactors Array of the liquidation factors of the assets for the creditor, 4 decimals precision.
      */
     function getRiskFactors(address creditor, address[] calldata assetAddresses, uint256[] calldata assetIds)
         external
@@ -305,8 +305,8 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param maxExposure The maximum exposure of a creditor to the asset.
-     * @param collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
-     * @param liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     * @param collateralFactor The collateral factor of the asset for the creditor, 4 decimals precision.
+     * @param liquidationFactor The liquidation factor of the asset for the creditor, 4 decimals precision.
      * @dev Any creditor can set risk parameters for any asset, does not have any influence on risk parameters
      * set by other creditors.
      */
@@ -331,7 +331,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param assetModule The contract address of the derived asset-module.
      * @param maxUsdExposureProtocol The maximum usd exposure of the protocol for each creditor,
      * denominated in USD with 18 decimals precision.
-     * @param riskFactor The risk factor of the asset for the creditor, 2 decimals precision.
+     * @param riskFactor The risk factor of the asset for the creditor, 4 decimals precision.
      */
     function setRiskParametersOfDerivedAssetModule(
         address creditor,

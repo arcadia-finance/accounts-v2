@@ -21,8 +21,8 @@ interface IAssetModule {
      * @param assetId The Id of the asset.
      * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 4 decimals precision.
      */
     function getValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
         external
@@ -34,8 +34,8 @@ interface IAssetModule {
      * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @return collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for the creditor, 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the creditor, 4 decimals precision.
      */
     function getRiskFactors(address creditor, address asset, uint256 assetId) external view returns (uint16, uint16);
 

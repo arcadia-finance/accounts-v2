@@ -78,7 +78,7 @@ contract GetLiquidationValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
             address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );
 
-        uint256 expectedLiquidationValue = token1ValueInUsd * liquidationFactor_ / 100;
+        uint256 expectedLiquidationValue = token1ValueInUsd * liquidationFactor_ / 10_000;
 
         assertEq(expectedLiquidationValue, actualLiquidationValue);
     }
