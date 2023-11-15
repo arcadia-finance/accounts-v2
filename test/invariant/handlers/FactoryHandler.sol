@@ -8,7 +8,7 @@ import { BaseHandler } from "./BaseHandler.sol";
 import { AccountV1 } from "../../../src/AccountV1.sol";
 import { AccountV2 } from "../../utils/mocks/AccountV2.sol";
 import { Factory } from "../../../src/Factory.sol";
-import { MainRegistryExtension } from "../../utils/Extensions.sol";
+import { RegistryExtension } from "../../utils/Extensions.sol";
 import { CreditorMock } from "../../utils/mocks/CreditorMock.sol";
 import "../../utils/Constants.sol";
 
@@ -27,7 +27,7 @@ contract FactoryHandler is BaseHandler {
     //////////////////////////////////////////////////////////////////////////*/
 
     Factory internal factory;
-    MainRegistryExtension internal mainRegistryExtension;
+    RegistryExtension internal registryExtension;
     AccountV1 internal account;
     AccountV2 internal accountV2;
 
@@ -35,14 +35,9 @@ contract FactoryHandler is BaseHandler {
                                     CONSTRUCTOR
     //////////////////////////////////////////////////////////////////////////*/
     // Todo: Why do I have to add "memory" to the 2 account instances in the input
-    constructor(
-        Factory factory_,
-        MainRegistryExtension mainRegistryExtension_,
-        AccountV1 account_,
-        AccountV2 accountV2_
-    ) {
+    constructor(Factory factory_, RegistryExtension registryExtension_, AccountV1 account_, AccountV2 accountV2_) {
         factory = factory_;
-        mainRegistryExtension = mainRegistryExtension_;
+        registryExtension = registryExtension_;
         account = account_;
         accountV2 = accountV2_;
     }
@@ -62,9 +57,7 @@ contract FactoryHandler is BaseHandler {
         // Objective is to only activate a V2 once
         if (callsToSetNewAccountInfo == 3) {
             vm.prank(factory.owner());
-            factory.setNewAccountInfo(
-                address(mainRegistryExtension), address(accountV2), Constants.upgradeProof1To2, ""
-            );
+            factory.setNewAccountInfo(address(registryExtension), address(accountV2), Constants.upgradeProof1To2, "");
         }
     }
 }

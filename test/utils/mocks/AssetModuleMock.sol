@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 import { AbstractAssetModuleExtension } from "../Extensions.sol";
 
 contract AssetModuleMock is AbstractAssetModuleExtension {
-    constructor(address mainRegistry_, uint256 assetType_) AbstractAssetModuleExtension(mainRegistry_, assetType_) { }
+    constructor(address registry_, uint256 assetType_) AbstractAssetModuleExtension(registry_, assetType_) { }
 
     function isAllowed(address asset, uint256) public view override returns (bool) { }
 

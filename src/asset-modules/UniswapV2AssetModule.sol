@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { DerivedAssetModule, FixedPointMathLib, IMainRegistry } from "./AbstractDerivedAssetModule.sol";
+import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "./AbstractDerivedAssetModule.sol";
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
 import { PRBMath } from "../libraries/PRBMath.sol";
@@ -14,7 +14,7 @@ import { RiskModule } from "../RiskModule.sol";
  * @title Asset-Module for Uniswap V2 LP tokens
  * @author Pragma Labs
  * @notice The UniswapV2AssetModule stores pricing logic and basic information for Uniswap V2 LP tokens
- * @dev No end-user should directly interact with the UniswapV2AssetModule, only the Main-registry or the contract owner
+ * @dev No end-user should directly interact with the UniswapV2AssetModule, only the Registry or the contract owner
  * @dev Most logic in this contract is a modifications of
  *      https://github.com/Uniswap/v2-periphery/blob/master/contracts/libraries/UniswapV2LiquidityMathLibrary.sol#L23
  */
@@ -44,11 +44,11 @@ contract UniswapV2AssetModule is DerivedAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The address of the Main-registry.
+     * @param registry_ The address of the Registry.
      * @param uniswapV2Factory_ The factory for Uniswap V2 pairs.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_, address uniswapV2Factory_) DerivedAssetModule(mainRegistry_, 0) {
+    constructor(address registry_, address uniswapV2Factory_) DerivedAssetModule(registry_, 0) {
         UNISWAP_V2_FACTORY = uniswapV2Factory_;
     }
 
@@ -76,8 +76,8 @@ contract UniswapV2AssetModule is DerivedAssetModule {
         address token1 = IUniswapV2Pair(asset).token1();
         require(IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == asset, "AMUV2_AA: Not a Pool");
 
-        require(IMainRegistry(MAIN_REGISTRY).isAllowed(token0, 0), "AMUV2_AA: Token0 not Allowed");
-        require(IMainRegistry(MAIN_REGISTRY).isAllowed(token1, 0), "AMUV2_AA: Token1 not Allowed");
+        require(IRegistry(REGISTRY).isAllowed(token0, 0), "AMUV2_AA: Token0 not Allowed");
+        require(IRegistry(REGISTRY).isAllowed(token1, 0), "AMUV2_AA: Token1 not Allowed");
 
         inAssetModule[asset] = true;
 
@@ -86,8 +86,8 @@ contract UniswapV2AssetModule is DerivedAssetModule {
         underlyingAssets_[1] = _getKeyFromAsset(token1, 0);
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
-        // Will revert in MainRegistry if asset was already added.
-        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
+        // Will revert in Registry if asset was already added.
+        IRegistry(REGISTRY).addAsset(asset, ASSET_TYPE);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -106,7 +106,7 @@ contract UniswapV2AssetModule is DerivedAssetModule {
         try IUniswapV2Pair(asset).token0() returns (address token0) {
             address token1 = IUniswapV2Pair(asset).token1();
             return (IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == asset)
-                && IMainRegistry(MAIN_REGISTRY).isAllowed(token0, 0) && IMainRegistry(MAIN_REGISTRY).isAllowed(token1, 0);
+                && IRegistry(REGISTRY).isAllowed(token0, 0) && IRegistry(REGISTRY).isAllowed(token1, 0);
         } catch {
             return false;
         }

@@ -45,7 +45,7 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processIndirectDeposit_NonMainRegistry(
+    function testFuzz_Revert_processIndirectDeposit_NonRegistry(
         address unprivilegedAddress,
         uint128 liquidity,
         int24 tickLower,
@@ -54,7 +54,7 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
         uint256 priceToken1,
         uint256 exposureUpperAssetToAsset
     ) public {
-        vm.assume(unprivilegedAddress != address(mainRegistryExtension));
+        vm.assume(unprivilegedAddress != address(registryExtension));
 
         vm.assume(tickLower < tickUpper);
         vm.assume(isWithinAllowedRange(tickLower));
@@ -76,7 +76,7 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
         uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         vm.startPrank(unprivilegedAddress);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert("AAM: ONLY_REGISTRY");
         uniV3AssetModule.processIndirectDeposit(
             address(creditorUsd), address(nonfungiblePositionManager), tokenId, exposureUpperAssetToAsset, 1
         );
@@ -151,11 +151,11 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
         }
 
         vm.prank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfDerivedAssetModule(
+        registryExtension.setRiskParametersOfDerivedAssetModule(
             address(creditorUsd), address(uniV3AssetModule), maxUsdExposureProtocol, 100
         );
 
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         uniV3AssetModule.processIndirectDeposit(
             address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0, 1
         );

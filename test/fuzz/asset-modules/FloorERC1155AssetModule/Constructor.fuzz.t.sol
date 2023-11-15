@@ -23,14 +23,14 @@ contract Constructor_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModul
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address mainRegistry_) public {
+    function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.creatorAddress);
         FloorERC1155AssetModuleExtension assetModule_ = new FloorERC1155AssetModuleExtension(
-            mainRegistry_
+            registry_
             );
         vm.stopPrank();
 
-        assertEq(assetModule_.MAIN_REGISTRY(), mainRegistry_);
+        assertEq(assetModule_.REGISTRY(), registry_);
         assertEq(assetModule_.ASSET_TYPE(), 2);
         assertTrue(assetModule_.getPrimaryFlag());
     }

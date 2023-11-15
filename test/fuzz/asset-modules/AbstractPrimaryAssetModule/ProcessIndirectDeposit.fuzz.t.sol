@@ -21,22 +21,22 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processIndirectDeposit_NonMainRegistry(
+    function testFuzz_Revert_processIndirectDeposit_NonRegistry(
         PrimaryAssetModuleAssetState memory assetState,
         address unprivilegedAddress_,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given "caller" is not the Main Registry.
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
+        // Given "caller" is not the Registry.
+        vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        // Then: The transaction reverts with "AAM: ONLY_MAIN_REGISTRY".
+        // Then: The transaction reverts with "AAM: ONLY_REGISTRY".
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert("AAM: ONLY_REGISTRY");
         assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
@@ -66,7 +66,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
 
         // When: Asset is indirectly deposited.
         // Then: The transaction reverts with "APAM_PID: Exposure not in limits".
-        vm.startPrank(address(mainRegistryExtension));
+        vm.startPrank(address(registryExtension));
         vm.expectRevert("APAM_PID: Exposure not in limits");
         assetModule.processIndirectDeposit(
             assetState.creditor,
@@ -95,7 +95,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
 
         // When: Asset is indirectly deposited.
         // Then: The transaction reverts with "APAM_PID: Exposure not in limits".
-        vm.startPrank(address(mainRegistryExtension));
+        vm.startPrank(address(registryExtension));
         vm.expectRevert("APAM_PID: Exposure not in limits");
         assetModule.processIndirectDeposit(
             assetState.creditor,
@@ -124,7 +124,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
@@ -161,7 +161,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
@@ -196,7 +196,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,

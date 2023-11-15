@@ -25,6 +25,6 @@ abstract contract AbstractAssetModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        assetModule = new AssetModuleMock(address(mainRegistryExtension), 0);
+        assetModule = new AssetModuleMock(address(registryExtension), 0);
     }
 }

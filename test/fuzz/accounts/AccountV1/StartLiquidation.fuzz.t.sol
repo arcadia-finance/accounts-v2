@@ -75,14 +75,14 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Initialize Account and set open position on creditor
         accountExtension2.initialize(
-            users.accountOwner, address(mainRegistryExtension), address(mockERC20.token1), address(creditorToken1)
+            users.accountOwner, address(registryExtension), address(mockERC20.token1), address(creditorToken1)
         );
         accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 
-        RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues = mainRegistryExtension.getValuesInBaseCurrency(
+        RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues = registryExtension.getValuesInBaseCurrency(
             accountExtension2.baseCurrency(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
         );
 
@@ -111,7 +111,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Initialize Account and set open position on creditor
         accountExtension2.initialize(
-            users.accountOwner, address(mainRegistryExtension), address(mockERC20.token1), address(creditorToken1)
+            users.accountOwner, address(registryExtension), address(mockERC20.token1), address(creditorToken1)
         );
         accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
@@ -150,14 +150,14 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Given: Account is initialized and an open position is set on creditor
         accountExtension2.initialize(
-            users.accountOwner, address(mainRegistryExtension), address(mockERC20.token1), address(creditorToken1)
+            users.accountOwner, address(registryExtension), address(mockERC20.token1), address(creditorToken1)
         );
         accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 
-        RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues = mainRegistryExtension.getValuesInBaseCurrency(
+        RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues = registryExtension.getValuesInBaseCurrency(
             accountExtension2.baseCurrency(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
         );
 

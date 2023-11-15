@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IRegistry } from "./interfaces/IRegistry.sol";
 import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
 
 /**
@@ -12,7 +12,7 @@ import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
  * @author Pragma Labs
  * @notice The FloorERC1155AssetModule stores pricing logic and basic information for ERC1155 tokens,
  *  for which a direct price feed exists per Id.
- * @dev No end-user should directly interact with the FloorERC1155AssetModule, only the Main-registry or the contract owner
+ * @dev No end-user should directly interact with the FloorERC1155AssetModule, only the Registry or the contract owner
  */
 contract FloorERC1155AssetModule is PrimaryAssetModule {
     /* //////////////////////////////////////////////////////////////
@@ -20,10 +20,10 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The address of the Main-registry.
+     * @param registry_ The address of the Registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC1155 tokens is 2.
      */
-    constructor(address mainRegistry_) PrimaryAssetModule(mainRegistry_, 2) { }
+    constructor(address registry_) PrimaryAssetModule(registry_, 2) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -44,11 +44,11 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
             );
         } else {
             // New contract address.
-            IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
+            IRegistry(REGISTRY).addAsset(asset, ASSET_TYPE);
             inAssetModule[asset] = true;
         }
         require(assetId <= type(uint96).max, "AM1155_AA: Invalid Id");
-        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracleSequence), "AM1155_AA: Bad Sequence");
+        require(IRegistry(REGISTRY).checkOracleSequence(oracleSequence), "AM1155_AA: Bad Sequence");
 
         // Unit for ERC1155 is 1 (standard ERC1155s don't have decimals).
         assetToInformation[_getKeyFromAsset(asset, assetId)] =
@@ -85,7 +85,7 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         override
-        onlyMainReg
+        onlyRegistry
     {
         require(isAllowed(asset, assetId), "AM1155_PDD: Asset not allowed");
 
@@ -108,7 +108,7 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         require(isAllowed(asset, assetId), "AM1155_PID: Asset not allowed");
 
         (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(

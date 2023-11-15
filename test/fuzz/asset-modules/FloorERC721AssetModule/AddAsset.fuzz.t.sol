@@ -60,7 +60,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
 
         vm.startPrank(users.creatorAddress);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
-        vm.expectRevert("MR_AA: Asset already in mainreg");
+        vm.expectRevert("MR_AA: Asset already in registry");
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
         vm.stopPrank();
     }
@@ -82,9 +82,8 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
         assertEq(start_, start);
         assertEq(end_, end);
 
-        assertTrue(mainRegistryExtension.inMainRegistry(address(mockERC721.nft2)));
-        (uint96 assetType_, address assetModule) =
-            mainRegistryExtension.assetToAssetInformation(address(mockERC721.nft2));
+        assertTrue(registryExtension.inRegistry(address(mockERC721.nft2)));
+        (uint96 assetType_, address assetModule) = registryExtension.assetToAssetInformation(address(mockERC721.nft2));
         assertEq(assetType_, 1);
         assertEq(assetModule, address(floorERC721AssetModule));
     }

@@ -10,7 +10,7 @@ import { DeployAddresses, DeployBytes, DeployRiskConstantsBase } from "./Constan
 import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/AccountV1.sol";
-import { MainRegistry } from "../src/MainRegistry.sol";
+import { Registry } from "../src/Registry.sol";
 import { ChainlinkOracleModule } from "../src/oracle-modules/ChainlinkOracleModule.sol";
 import { StandardERC20AssetModule } from "../src/asset-modules/StandardERC20AssetModule.sol";
 import { AssetModule } from "../src/asset-modules/AbstractAssetModule.sol";
@@ -32,7 +32,7 @@ contract ArcadiaAccountDeployment is Test {
     ERC20 internal cbeth;
     ERC20 internal reth;
 
-    MainRegistry internal mainRegistry;
+    Registry internal registry;
     StandardERC20AssetModule internal standardERC20AssetModule;
     UniswapV3AssetModule internal uniswapV3AssetModule;
     ChainlinkOracleModule internal chainlinkOM;
@@ -80,21 +80,20 @@ contract ArcadiaAccountDeployment is Test {
         wethLendingPool = ILendingPool(0xA04B08324745AEc82De30c3581c407BE63E764c8); //todo: change after LP deploy
         usdcLendingPool = ILendingPool(0x4d39409993dBe365c9AcaAe7c7e259C06FBFFa4A); //todo: change after LP deploy
 
-        mainRegistry = new MainRegistry(address(factory));
+        registry = new Registry(address(factory));
         standardERC20AssetModule = new StandardERC20AssetModule(
-            address(mainRegistry));
-        uniswapV3AssetModule =
-            new UniswapV3AssetModule(address(mainRegistry), DeployAddresses.uniswapV3PositionMgr_base);
+            address(registry));
+        uniswapV3AssetModule = new UniswapV3AssetModule(address(registry), DeployAddresses.uniswapV3PositionMgr_base);
 
-        chainlinkOM = new ChainlinkOracleModule(address(mainRegistry));
+        chainlinkOM = new ChainlinkOracleModule(address(registry));
 
         account = new AccountV1();
         actionMultiCall = new ActionMultiCall();
 
-        mainRegistry.addAssetModule(address(standardERC20AssetModule));
-        mainRegistry.addAssetModule(address(uniswapV3AssetModule));
+        registry.addAssetModule(address(standardERC20AssetModule));
+        registry.addAssetModule(address(uniswapV3AssetModule));
 
-        mainRegistry.addOracleModule(address(chainlinkOM));
+        registry.addOracleModule(address(chainlinkOM));
 
         oracleCompToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCompToUsd_base, "COMP", "USD"));
         oracleDaiToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "DAI", "USD"));
@@ -133,11 +132,11 @@ contract ArcadiaAccountDeployment is Test {
 
         uniswapV3AssetModule.setProtocol();
 
-        factory.setNewAccountInfo(address(mainRegistry), address(account), DeployBytes.upgradeRoot1To1, "");
+        factory.setNewAccountInfo(address(registry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);
 
-        mainRegistry.setAllowedAction(address(actionMultiCall), true);
-        mainRegistry.changeGuardian(deployerAddress);
+        registry.setAllowedAction(address(actionMultiCall), true);
+        registry.changeGuardian(deployerAddress);
 
         wethLendingPool.setAccountVersion(1, true);
         usdcLendingPool.setAccountVersion(1, true);
@@ -145,7 +144,7 @@ contract ArcadiaAccountDeployment is Test {
         wethLendingPool.setBorrowCap(uint128(2000 * 10 ** 18));
         usdcLendingPool.setBorrowCap(uint128(5_000_000 * 10 ** 6));
 
-        mainRegistry.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
             DeployAddresses.comp_base,
             0,
@@ -153,7 +152,7 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.comp_collFact_1,
             DeployRiskConstantsBase.comp_liqFact_1
         );
-        mainRegistry.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
             DeployAddresses.dai_base,
             0,
@@ -161,7 +160,7 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.dai_collFact_1,
             DeployRiskConstantsBase.dai_liqFact_1
         );
-        mainRegistry.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
             DeployAddresses.weth_base,
             0,
@@ -169,7 +168,7 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.eth_collFact_1,
             DeployRiskConstantsBase.eth_liqFact_1
         );
-        mainRegistry.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
             DeployAddresses.usdc_base,
             0,
@@ -177,7 +176,7 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.usdc_collFact_1,
             DeployRiskConstantsBase.usdc_liqFact_1
         );
-        mainRegistry.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
             DeployAddresses.cbeth_base,
             0,
@@ -185,7 +184,7 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.cbeth_collFact_1,
             DeployRiskConstantsBase.cbeth_liqFact_1
         );
-        mainRegistry.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
             DeployAddresses.reth_base,
             0,
@@ -194,7 +193,7 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.reth_liqFact_1
         );
 
-        mainRegistry.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
             DeployAddresses.comp_base,
             0,
@@ -202,7 +201,7 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.comp_collFact_2,
             DeployRiskConstantsBase.comp_liqFact_2
         );
-        mainRegistry.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
             DeployAddresses.dai_base,
             0,
@@ -210,7 +209,7 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.dai_collFact_2,
             DeployRiskConstantsBase.dai_liqFact_2
         );
-        mainRegistry.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
             DeployAddresses.weth_base,
             0,
@@ -218,7 +217,7 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.eth_collFact_2,
             DeployRiskConstantsBase.eth_liqFact_2
         );
-        mainRegistry.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
             DeployAddresses.usdc_base,
             0,
@@ -226,7 +225,7 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.usdc_collFact_2,
             DeployRiskConstantsBase.usdc_liqFact_2
         );
-        mainRegistry.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
             DeployAddresses.cbeth_base,
             0,
@@ -234,7 +233,7 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.cbeth_collFact_2,
             DeployRiskConstantsBase.cbeth_liqFact_2
         );
-        mainRegistry.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
             DeployAddresses.reth_base,
             0,

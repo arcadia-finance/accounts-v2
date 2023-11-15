@@ -37,9 +37,9 @@ abstract contract StandardERC4626AssetModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         erc4626AssetModule = new ERC4626AssetModuleExtension(
-            address(mainRegistryExtension)
+            address(registryExtension)
         );
-        mainRegistryExtension.addAssetModule(address(erc4626AssetModule));
+        registryExtension.addAssetModule(address(erc4626AssetModule));
         vm.stopPrank();
     }
 }

@@ -141,13 +141,13 @@ contract GetValue_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz_Te
         addUnderlyingTokenToArcadia(address(token1), 1);
 
         vm.startPrank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(token0), 0, type(uint128).max, uint16(collFactor0), uint16(liqFactor0)
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(token1), 0, type(uint128).max, uint16(collFactor1), uint16(liqFactor1)
         );
-        mainRegistryExtension.setRiskParametersOfDerivedAssetModule(
+        registryExtension.setRiskParametersOfDerivedAssetModule(
             address(creditorUsd), address(uniV3AssetModule), type(uint128).max, uint16(riskFactorUniV3)
         );
         vm.stopPrank();

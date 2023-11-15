@@ -55,7 +55,7 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
         erc20AssetModule.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
-        vm.expectRevert("MR_AA: Asset already in mainreg");
+        vm.expectRevert("MR_AA: Asset already in registry");
         erc20AssetModule.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
         vm.stopPrank();
     }
@@ -86,9 +86,8 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
         assertEq(assetUnit, 10 ** Constants.tokenDecimals);
         assertEq(oracles, oraclesToken4ToUsd);
 
-        assertTrue(mainRegistryExtension.inMainRegistry(address(mockERC20.token4)));
-        (uint96 assetType_, address assetModule) =
-            mainRegistryExtension.assetToAssetInformation(address(mockERC20.token4));
+        assertTrue(registryExtension.inRegistry(address(mockERC20.token4)));
+        (uint96 assetType_, address assetModule) = registryExtension.assetToAssetInformation(address(mockERC20.token4));
         assertEq(assetType_, 0);
         assertEq(assetModule, address(erc20AssetModule));
     }

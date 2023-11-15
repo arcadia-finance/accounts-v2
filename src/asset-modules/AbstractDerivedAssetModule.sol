@@ -5,7 +5,7 @@
 pragma solidity 0.8.19;
 
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IRegistry } from "./interfaces/IRegistry.sol";
 import { AssetModule } from "./AbstractAssetModule.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
 import { RiskModule } from "../RiskModule.sol";
@@ -67,13 +67,13 @@ abstract contract DerivedAssetModule is AssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The contract address of the MainRegistry.
+     * @param registry_ The contract address of the Registry.
      * @param assetType_ Identifier for the token standard of the asset.
      * 0 = ERC20.
      * 1 = ERC721.
      * 2 = ERC1155.
      */
-    constructor(address mainRegistry_, uint256 assetType_) AssetModule(mainRegistry_, assetType_) { }
+    constructor(address registry_, uint256 assetType_) AssetModule(registry_, assetType_) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET INFORMATION
@@ -119,7 +119,7 @@ abstract contract DerivedAssetModule is AssetModule {
         }
 
         rateUnderlyingAssetsToUsd =
-            IMainRegistry(MAIN_REGISTRY).getValuesInUsd(creditor, underlyingAssets, underlyingAssetIds, amounts);
+            IRegistry(REGISTRY).getValuesInUsd(creditor, underlyingAssets, underlyingAssetIds, amounts);
     }
 
     /**
@@ -178,7 +178,7 @@ abstract contract DerivedAssetModule is AssetModule {
         }
 
         (uint16[] memory collateralFactors, uint16[] memory liquidationFactors) =
-            IMainRegistry(MAIN_REGISTRY).getRiskFactors(creditor, assets, assetIds);
+            IRegistry(REGISTRY).getRiskFactors(creditor, assets, assetIds);
 
         // Initialize risk factors with first elements of array.
         collateralFactor = collateralFactors[0];
@@ -216,7 +216,7 @@ abstract contract DerivedAssetModule is AssetModule {
      */
     function setRiskParameters(address creditor, uint128 maxUsdExposureProtocol_, uint16 riskFactor)
         external
-        onlyMainReg
+        onlyRegistry
     {
         require(riskFactor <= RiskConstants.RISK_FACTOR_UNIT, "ADAM_SRP: Risk Fact not in limits");
 
@@ -332,7 +332,7 @@ abstract contract DerivedAssetModule is AssetModule {
         public
         virtual
         override
-        onlyMainReg
+        onlyRegistry
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -358,7 +358,7 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public virtual override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to "Asset".
@@ -387,7 +387,7 @@ abstract contract DerivedAssetModule is AssetModule {
         public
         virtual
         override
-        onlyMainReg
+        onlyRegistry
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -413,7 +413,7 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public virtual override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to "Asset".
@@ -466,7 +466,7 @@ abstract contract DerivedAssetModule is AssetModule {
             // Asset Module(s) will recursively update their respective exposures and return
             // the requested USD value to this Asset Module.
             (address underlyingAsset, uint256 underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
-            usdExposureAsset += IMainRegistry(MAIN_REGISTRY).getUsdValueExposureToUnderlyingAssetAfterDeposit(
+            usdExposureAsset += IRegistry(REGISTRY).getUsdValueExposureToUnderlyingAssetAfterDeposit(
                 creditor,
                 underlyingAsset,
                 underlyingId,
@@ -535,7 +535,7 @@ abstract contract DerivedAssetModule is AssetModule {
             // Asset Modules will recursively update their respective exposures and return
             // the requested USD value to this Asset Module.
             (address underlyingAsset, uint256 underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
-            usdExposureAsset += IMainRegistry(MAIN_REGISTRY).getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
+            usdExposureAsset += IRegistry(REGISTRY).getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
                 creditor,
                 underlyingAsset,
                 underlyingId,

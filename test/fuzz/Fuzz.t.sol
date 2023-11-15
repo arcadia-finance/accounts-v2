@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Base_Test, Constants } from "../Base.t.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
-import { MainRegistry } from "../../src/MainRegistry.sol";
+import { Registry } from "../../src/Registry.sol";
 import { AssetModule } from "../../src/asset-modules/AbstractAssetModule.sol";
 import { CreditorMock } from "../utils/mocks/CreditorMock.sol";
 import { ERC20Mock } from "../utils/mocks/ERC20Mock.sol";
@@ -160,7 +160,7 @@ abstract contract Fuzz_Test is Base_Test {
         chainlinkOM.addOracle(address(mockOracles.sft1ToToken1), "SFT1", "TOKEN1");
         vm.stopPrank();
 
-        vm.startPrank(mainRegistryExtension.owner());
+        vm.startPrank(registryExtension.owner());
         // Create the oracle-direction arrays.
         BA_TO_QA_SINGLE[0] = true;
         BA_TO_QA_DOUBLE[0] = true;
@@ -201,7 +201,7 @@ abstract contract Fuzz_Test is Base_Test {
 
         // Set Risk Variables.
         vm.startPrank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.stable1),
             0,
@@ -209,7 +209,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.stable1),
             0,
@@ -217,7 +217,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.stable1),
             0,
@@ -226,7 +226,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToStableLiqFactor
         );
 
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.stable2),
             0,
@@ -234,7 +234,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.stable2),
             0,
@@ -242,7 +242,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.stable2),
             0,
@@ -251,7 +251,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToStableLiqFactor
         );
 
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.token1),
             0,
@@ -259,7 +259,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.token1),
             0,
@@ -267,7 +267,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.token1),
             0,
@@ -276,7 +276,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToTokenLiqFactor
         );
 
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.token2),
             0,
@@ -284,7 +284,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.token2),
             0,
@@ -292,7 +292,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.token2),
             0,
@@ -301,23 +301,23 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToTokenLiqFactor
         );
 
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorToken1), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
         );
 
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorToken1), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
         );
 

@@ -8,9 +8,7 @@ contract PrimaryAssetModuleMock is AbstractPrimaryAssetModuleExtension {
     bool useRealUsdValue;
     uint256 usdExposureToUnderlyingAsset = 1;
 
-    constructor(address mainRegistry_, uint256 assetType_)
-        AbstractPrimaryAssetModuleExtension(mainRegistry_, assetType_)
-    { }
+    constructor(address registry_, uint256 assetType_) AbstractPrimaryAssetModuleExtension(registry_, assetType_) { }
 
     function isAllowed(address asset, uint256) public view override returns (bool) {
         return inAssetModule[asset];

@@ -20,7 +20,7 @@ contract CheckOracleSequence_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPri
     function setUp() public override {
         AbstractPrimaryAssetModule_Fuzz_Test.setUp();
 
-        oracleModule = new OracleModuleMock(address(mainRegistryExtension));
+        oracleModule = new OracleModuleMock(address(registryExtension));
     }
 
     /*//////////////////////////////////////////////////////////////

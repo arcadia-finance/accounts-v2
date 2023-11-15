@@ -6,10 +6,9 @@ pragma solidity 0.8.19;
 
 import { IERC721 } from "./interfaces/IERC721.sol";
 import { IERC1155 } from "./interfaces/IERC1155.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IRegistry } from "./interfaces/IRegistry.sol";
 import { ICreditor } from "./interfaces/ICreditor.sol";
 import { IActionBase, ActionData } from "./interfaces/IActionBase.sol";
-import { IFactory } from "./interfaces/IFactory.sol";
 import { IAccount } from "./interfaces/IAccount.sol";
 import { IPermit2 } from "./interfaces/IPermit2.sol";
 import { ActionData } from "./actions/utils/ActionData.sol";
@@ -83,7 +82,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Throws if called by any account other than the factory address.
      */
     modifier onlyFactory() {
-        require(msg.sender == IMainRegistry(registry).FACTORY(), "A: Only Factory");
+        require(msg.sender == IRegistry(registry).FACTORY(), "A: Only Factory");
         _;
     }
 
@@ -135,9 +134,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param owner_ The sender of the 'createAccount' on the factory
      * @param registry_ The 'beacon' contract with the external logic.
      * @param baseCurrency_ The Base-currency in which the Account is denominated.
-     * @param creditor The contract address of the creditor.
+     * @param creditor_ The contract address of the creditor.
      */
-    function initialize(address owner_, address registry_, address baseCurrency_, address creditor) external {
+    function initialize(address owner_, address registry_, address baseCurrency_, address creditor_) external {
         require(registry == address(0), "A_I: Already initialized!");
         require(registry_ != address(0), "A_I: Registry cannot be 0!");
         owner = owner_;
@@ -145,8 +144,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
         registry = registry_;
         baseCurrency = baseCurrency_;
 
-        if (creditor != address(0)) {
-            _openMarginAccount(creditor);
+        if (creditor_ != address(0)) {
+            _openMarginAccount(creditor_);
         }
 
         emit BaseCurrencySet(baseCurrency_);
@@ -155,7 +154,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /**
      * @notice Updates the Account version and stores a new address in the EIP1967 implementation slot.
      * @param newImplementation The contract with the new Account logic.
-     * @param newRegistry The MainRegistry for this specific implementation (might be identical as the old registry).
+     * @param newRegistry The Registry for this specific implementation (might be identical as the old registry).
      * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.
      * @param newVersion The new version of the Account logic.
      */
@@ -180,7 +179,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
         // Prevent that Account is upgraded to a new version where the baseCurrency can't be priced.
         if (newRegistry != oldRegistry) {
-            require(IMainRegistry(newRegistry).inMainRegistry(baseCurrency), "A_UA: Invalid Main Registry.");
+            require(IRegistry(newRegistry).inRegistry(baseCurrency), "A_UA: Invalid Registry.");
         }
 
         // Hook on the new logic to finalize upgrade.
@@ -205,7 +204,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /**
      * @notice Finalizes the Upgrade to a new Account version on the new Logic Contract.
      * @param oldImplementation The contract with the new old logic.
-     * @param oldRegistry The MainRegistry of the old version (might be identical as the new registry)
+     * @param oldRegistry The Registry of the old version (might be identical as the new registry)
      * @param oldVersion The old version of the Account logic.
      * @param data Arbitrary data, can contain instructions to execute in this function.
      * @dev If upgradeHook() is implemented, it MUST verify that msg.sender == address(this).
@@ -263,7 +262,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param baseCurrency_ the new baseCurrency for the Account.
      */
     function _setBaseCurrency(address baseCurrency_) internal {
-        require(IMainRegistry(registry).inMainRegistry(baseCurrency_), "A_SBC: baseCurrency not found");
+        require(IRegistry(registry).inRegistry(baseCurrency_), "A_SBC: baseCurrency not found");
         baseCurrency = baseCurrency_;
 
         emit BaseCurrencySet(baseCurrency_);
@@ -382,7 +381,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
         accountValue =
-            IMainRegistry(registry).getTotalValue(baseCurrency_, creditor, assetAddresses, assetIds, assetAmounts);
+            IRegistry(registry).getTotalValue(baseCurrency_, creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
@@ -400,7 +399,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
         collateralValue =
-            IMainRegistry(registry).getCollateralValue(baseCurrency, creditor, assetAddresses, assetIds, assetAmounts);
+            IRegistry(registry).getCollateralValue(baseCurrency, creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
@@ -417,7 +416,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
         liquidationValue =
-            IMainRegistry(registry).getLiquidationValue(baseCurrency, creditor, assetAddresses, assetIds, assetAmounts);
+            IRegistry(registry).getLiquidationValue(baseCurrency, creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
@@ -484,9 +483,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
         creditor_ = creditor;
 
         (assetAddresses, assetIds, assetAmounts) = generateAssetData();
-        assetAndRiskValues = IMainRegistry(registry).getValuesInBaseCurrency(
-            baseCurrency, creditor_, assetAddresses, assetIds, assetAmounts
-        );
+        assetAndRiskValues =
+            IRegistry(registry).getValuesInBaseCurrency(baseCurrency, creditor_, assetAddresses, assetIds, assetAmounts);
 
         // Since the function is only callable by the liquidator, a liquidator and a Creditor are set.
         openDebt = ICreditor(creditor).startLiquidation(address(this));
@@ -566,7 +564,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         onlyAssetManager
         returns (address, uint256)
     {
-        require(IMainRegistry(registry).isActionAllowed(actionHandler), "A_AMA: Action not allowed");
+        require(IRegistry(registry).isActionAllowed(actionHandler), "A_AMA: Action not allowed");
 
         (
             ActionData memory withdrawData,
@@ -630,7 +628,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         external
         onlyOwner
     {
-        //No need to check that all arrays have equal length, this check is already done in the MainRegistry.
+        //No need to check that all arrays have equal length, this check is already done in the Registry.
         _deposit(assetAddresses, assetIds, assetAmounts, msg.sender);
     }
 
@@ -647,9 +645,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256[] memory assetAmounts,
         address from
     ) internal {
-        //Reverts in mainRegistry if input is invalid.
+        //Reverts in registry if input is invalid.
         uint256[] memory assetTypes =
-            IMainRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
+            IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {
@@ -702,7 +700,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         external
         onlyOwner
     {
-        //No need to check that all arrays have equal length, this check is already done in the MainRegistry.
+        //No need to check that all arrays have equal length, this check is already done in the Registry.
         _withdraw(assetAddresses, assetIds, assetAmounts, msg.sender);
 
         uint256 usedMargin = getUsedMargin();
@@ -727,9 +725,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256[] memory assetAmounts,
         address to
     ) internal {
-        //Reverts in mainRegistry if input is invalid.
+        //Reverts in registry if input is invalid.
         uint256[] memory assetTypes =
-            IMainRegistry(registry).batchProcessWithdrawal(creditor, assetAddresses, assetIds, assetAmounts); //reverts in mainregistry if invalid input
+            IRegistry(registry).batchProcessWithdrawal(creditor, assetAddresses, assetIds, assetAmounts); //reverts in registry if invalid input
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {

@@ -44,7 +44,7 @@ contract AddAsset_StandardERC4626AssetModule_Fuzz_Test is StandardERC4626AssetMo
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
         erc4626AssetModule.addAsset(address(ybToken1));
-        vm.expectRevert("MR_AA: Asset already in mainreg");
+        vm.expectRevert("MR_AA: Asset already in registry");
         erc4626AssetModule.addAsset(address(ybToken1));
         vm.stopPrank();
     }
@@ -53,7 +53,7 @@ contract AddAsset_StandardERC4626AssetModule_Fuzz_Test is StandardERC4626AssetMo
         vm.prank(users.creatorAddress);
         erc4626AssetModule.addAsset(address(ybToken1));
 
-        assertTrue(mainRegistryExtension.inMainRegistry(address(ybToken1)));
+        assertTrue(registryExtension.inRegistry(address(ybToken1)));
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(ybToken1)));
         bytes32[] memory underlyingAssetKeys = erc4626AssetModule.getUnderlyingAssets(assetKey);

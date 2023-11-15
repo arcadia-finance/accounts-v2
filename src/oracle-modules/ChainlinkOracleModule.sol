@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { OracleModule } from "./AbstractOracleModule.sol";
 import { IChainLinkData } from "../interfaces/IChainLinkData.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IRegistry } from "./interfaces/IRegistry.sol";
 
 /**
  * @title Abstract Oracle Module
@@ -41,9 +41,9 @@ contract ChainlinkOracleModule is OracleModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The contract address of the MainRegistry.
+     * @param registry_ The contract address of the Registry.
      */
-    constructor(address mainRegistry_) OracleModule(mainRegistry_) { }
+    constructor(address registry_) OracleModule(registry_) { }
 
     /*///////////////////////////////////////////////////////////////
                         ORACLE INFORMATION
@@ -80,7 +80,7 @@ contract ChainlinkOracleModule is OracleModule {
         require(decimals <= 18, "CLOM_AO: Maximal 18 decimals");
 
         inOracleModule[oracle] = true;
-        oracleId = IMainRegistry(MAIN_REGISTRY).addOracle();
+        oracleId = IRegistry(REGISTRY).addOracle();
 
         oracleToOracleId[oracle] = oracleId;
         assetPair[oracleId] = AssetPair({ baseAsset: baseAsset, quoteAsset: quoteAsset });

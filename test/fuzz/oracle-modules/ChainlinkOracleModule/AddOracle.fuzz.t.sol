@@ -64,6 +64,7 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         vm.assume(oracle != address(mockERC20.token2));
         vm.assume(oracle != address(mockERC20.token3));
         vm.assume(oracle != address(mockERC20.token4));
+        vm.assume(oracle != address(vm));
 
         vm.prank(users.creatorAddress);
         vm.expectRevert(bytes(""));
@@ -89,7 +90,7 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD", address(0));
 
         oracleCounterLast = bound(oracleCounterLast, 0, type(uint80).max);
-        mainRegistryExtension.setOracleCounter(oracleCounterLast);
+        registryExtension.setOracleCounter(oracleCounterLast);
 
         vm.prank(users.creatorAddress);
         uint256 oracleId = chainlinkOM.addOracle(address(oracle), baseAsset, quoteAsset);
@@ -105,7 +106,7 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         (bytes16 baseAsset_, bytes16 quoteAsset_) = chainlinkOM.assetPair(oracleId);
         assertEq(baseAsset_, baseAsset);
         assertEq(quoteAsset_, quoteAsset);
-        assertEq(mainRegistryExtension.getOracleToOracleModule(oracleId), address(chainlinkOM));
-        assertEq(mainRegistryExtension.getOracleCounter(), oracleCounterLast + 1);
+        assertEq(registryExtension.getOracleToOracleModule(oracleId), address(chainlinkOM));
+        assertEq(registryExtension.getOracleCounter(), oracleCounterLast + 1);
     }
 }

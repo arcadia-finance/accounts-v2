@@ -47,7 +47,7 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_setBaseCurrency_BaseCurrencyNotFound(address baseCurrency_) public {
         vm.assume(baseCurrency_ != address(0));
-        vm.assume(!mainRegistryExtension.inMainRegistry(baseCurrency_));
+        vm.assume(!registryExtension.inRegistry(baseCurrency_));
 
         vm.startPrank(users.accountOwner);
         vm.expectRevert("A_SBC: baseCurrency not found");

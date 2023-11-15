@@ -47,7 +47,7 @@ contract AddAsset_UniswapV2AssetModule_Fuzz_Test is UniswapV2AssetModule_Fuzz_Te
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         uniswapV2AssetModule.addAsset(address(pairToken1Token2));
 
-        vm.expectRevert("MR_AA: Asset already in mainreg");
+        vm.expectRevert("MR_AA: Asset already in registry");
         uniswapV2AssetModule.addAsset(address(pairToken1Token2));
     }
 
@@ -55,7 +55,7 @@ contract AddAsset_UniswapV2AssetModule_Fuzz_Test is UniswapV2AssetModule_Fuzz_Te
         vm.prank(caller);
         uniswapV2AssetModule.addAsset(address(pairToken1Token2));
 
-        assertTrue(mainRegistryExtension.inMainRegistry(address(pairToken1Token2)));
+        assertTrue(registryExtension.inRegistry(address(pairToken1Token2)));
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pairToken1Token2)));
         bytes32[] memory underlyingAssetKeys = uniswapV2AssetModule.getUnderlyingAssets(assetKey);

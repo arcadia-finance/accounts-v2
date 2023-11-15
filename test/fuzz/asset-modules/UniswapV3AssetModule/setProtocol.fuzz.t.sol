@@ -34,10 +34,10 @@ contract SetProtocol_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_setProtocol_ProtocolNotAddedToMainreg() public {
+    function testFuzz_Revert_setProtocol_ProtocolNotAddedToReg() public {
         vm.prank(users.creatorAddress);
         uniV3AssetModule =
-            new UniswapV3AssetModuleExtension(address(mainRegistryExtension), address(nonfungiblePositionManager));
+            new UniswapV3AssetModuleExtension(address(registryExtension), address(nonfungiblePositionManager));
 
         vm.startPrank(users.creatorAddress);
         vm.expectRevert("MR: Only AssetMod.");
@@ -47,7 +47,7 @@ contract SetProtocol_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz
 
     function testFuzz_Revert_setProtocol_OverwriteExistingProtocol() public {
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("MR_AA: Asset already in mainreg");
+        vm.expectRevert("MR_AA: Asset already in registry");
         uniV3AssetModule.setProtocol();
         vm.stopPrank();
     }
@@ -55,14 +55,14 @@ contract SetProtocol_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz
     function testFuzz_Success_setProtocol() public {
         vm.startPrank(users.creatorAddress);
         uniV3AssetModule =
-            new UniswapV3AssetModuleExtension(address(mainRegistryExtension), address(nonfungiblePositionManagerMock));
-        mainRegistryExtension.addAssetModule(address(uniV3AssetModule));
+            new UniswapV3AssetModuleExtension(address(registryExtension), address(nonfungiblePositionManagerMock));
+        registryExtension.addAssetModule(address(uniV3AssetModule));
         vm.stopPrank();
 
         vm.prank(users.creatorAddress);
         uniV3AssetModule.setProtocol();
 
         assertTrue(uniV3AssetModule.inAssetModule(address(nonfungiblePositionManagerMock)));
-        assertTrue(mainRegistryExtension.inMainRegistry(address(nonfungiblePositionManagerMock)));
+        assertTrue(registryExtension.inRegistry(address(nonfungiblePositionManagerMock)));
     }
 }

@@ -204,7 +204,7 @@ abstract contract UniswapV3AssetModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixture 
         vm.stopPrank();
 
         vm.prank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint128).max, 80, 90);
+        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint128).max, 80, 90);
     }
 
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)

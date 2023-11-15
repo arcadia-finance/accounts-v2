@@ -25,6 +25,6 @@ abstract contract AbstractOracleModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        oracleModule = new OracleModuleMock(address(mainRegistryExtension));
+        oracleModule = new OracleModuleMock(address(registryExtension));
     }
 }

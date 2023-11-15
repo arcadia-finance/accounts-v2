@@ -21,22 +21,22 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processIndirectWithdrawal_NonMainRegistry(
+    function testFuzz_Revert_processIndirectWithdrawal_NonRegistry(
         PrimaryAssetModuleAssetState memory assetState,
         address unprivilegedAddress_,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given "caller" is not the Main Registry.
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
+        // Given "caller" is not the Registry.
+        vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly withdrawn.
-        // Then: The transaction reverts with "AAM: ONLY_MAIN_REGISTRY".
+        // Then: The transaction reverts with "AAM: ONLY_REGISTRY".
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert("AAM: ONLY_REGISTRY");
         assetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
@@ -68,7 +68,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
 
         // When: Asset is indirectly withdrawn.
         // Then: The transaction reverts with "APAM_PIW: Overflow".
-        vm.startPrank(address(mainRegistryExtension));
+        vm.startPrank(address(registryExtension));
         vm.expectRevert("APAM_PIW: Overflow");
         assetModule.processIndirectWithdrawal(
             assetState.creditor,
@@ -96,7 +96,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly withdrawn.
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
@@ -128,7 +128,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly withdrawn.
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
@@ -159,7 +159,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly withdrawn.
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,

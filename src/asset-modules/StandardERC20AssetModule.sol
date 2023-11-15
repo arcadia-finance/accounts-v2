@@ -5,14 +5,14 @@
 pragma solidity 0.8.19;
 
 import { IERC20 } from "../interfaces/IERC20.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IRegistry } from "./interfaces/IRegistry.sol";
 import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
 
 /**
  * @title Asset Module for Standard ERC20 tokens.
  * @author Pragma Labs
  * @notice The pricing logic and basic information for ERC20 tokens for which a direct price feed exists.
- * @dev No end-user should directly interact with the StandardERC20AssetModule, only the Main-registry
+ * @dev No end-user should directly interact with the StandardERC20AssetModule, only the Registry
  * or the contract owner.
  */
 contract StandardERC20AssetModule is PrimaryAssetModule {
@@ -21,10 +21,10 @@ contract StandardERC20AssetModule is PrimaryAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The contract address of the MainRegistry.
+     * @param registry_ The contract address of the Registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_) PrimaryAssetModule(mainRegistry_, 0) { }
+    constructor(address registry_) PrimaryAssetModule(registry_, 0) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -38,10 +38,10 @@ contract StandardERC20AssetModule is PrimaryAssetModule {
      * @dev Assets can't have more than 18 decimals.
      */
     function addAsset(address asset, bytes32 oracleSequence) external onlyOwner {
-        // View function, reverts in MainRegistry if sequence is not correct.
-        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracleSequence), "AM20_AA: Bad Sequence");
-        // Will revert in MainRegistry if asset was already added.
-        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
+        // View function, reverts in Registry if sequence is not correct.
+        require(IRegistry(REGISTRY).checkOracleSequence(oracleSequence), "AM20_AA: Bad Sequence");
+        // Will revert in Registry if asset was already added.
+        IRegistry(REGISTRY).addAsset(asset, ASSET_TYPE);
 
         inAssetModule[asset] = true;
 
