@@ -2,11 +2,10 @@ on:
   pull_request:
     branches:
       - main
-      - main_paper_trading
       - main*
-      - refactor/arcadia-vault
-      - dev
+      - dev*
       - fix/fixes
+      - AF-*
 
 name: Foundry Tests
 
@@ -32,11 +31,11 @@ jobs:
 
       - name: Run tests
         run: |
-             export RPC_URL=$(tenderly devnet spawn-rpc --project arcadia-finance-tenderly --template devnet-gh-actions-1 --account ${TENDERLY_ACCOUNT_ID} --access_key ${TENDERLY_ACCESS_KEY} 2>&1)
-             FOUNDRY_PROFILE=gh forge test -vvv
+          export RPC_URL=$(tenderly devnet spawn-rpc --project arcadia-finance-tenderly --template devnet-gh-actions-1 --account ${TENDERLY_ACCOUNT_ID} --access_key ${TENDERLY_ACCESS_KEY} 2>&1)
+          FOUNDRY_PROFILE=gh forge test -vvv
         env:
-            TENDERLY_ACCESS_KEY: ${{ secrets.TENDERLY_ACCESS_KEY }}
-            TENDERLY_ACCOUNT_ID: ${{ secrets.TENDERLY_ACCOUNT_ID }}
+          TENDERLY_ACCESS_KEY: ${{ secrets.TENDERLY_ACCESS_KEY }}
+          TENDERLY_ACCOUNT_ID: ${{ secrets.TENDERLY_ACCOUNT_ID }}
 
 concurrency:
   group: ${{ github.head_ref }}

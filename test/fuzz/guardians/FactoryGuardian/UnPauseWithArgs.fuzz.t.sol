@@ -21,21 +21,18 @@ contract UnPause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_unPause_OnlyOwner(address nonOwner, Flags memory flags) public {
+    function testFuzz_Revert_unPause_OnlyOwner(address nonOwner, bool flag) public {
         vm.assume(nonOwner != users.creatorAddress);
 
         vm.startPrank(nonOwner);
         vm.expectRevert("UNAUTHORIZED");
-        factoryGuardian.unPause(flags.createPaused, flags.liquidatePaused);
+        factoryGuardian.unPause(flag);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_unPause(
-        uint256 lastPauseTimestamp,
-        uint256 timePassed,
-        Flags memory initialFlags,
-        Flags memory flags
-    ) public {
+    function testFuzz_Success_unPause(uint256 lastPauseTimestamp, uint256 timePassed, bool initialFlag, bool flag)
+        public
+    {
         lastPauseTimestamp = bound(lastPauseTimestamp, 32 days + 1, type(uint32).max);
         timePassed = bound(timePassed, 0, type(uint32).max);
 
@@ -45,7 +42,7 @@ contract UnPause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test
         factoryGuardian.pause();
 
         // And: Flags are in random state.
-        setFlags(initialFlags);
+        setFlags(initialFlag);
 
         // And: Some time passed.
         vm.warp(lastPauseTimestamp + timePassed);
@@ -53,15 +50,12 @@ contract UnPause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test
         // When: A "owner" un-pauses.
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
-        emit PauseUpdate(
-            initialFlags.createPaused && flags.createPaused, initialFlags.liquidatePaused && flags.liquidatePaused
-        );
-        factoryGuardian.unPause(flags.createPaused, flags.liquidatePaused);
+        emit PauseUpdate(initialFlag && flag);
+        factoryGuardian.unPause(flag);
         vm.stopPrank();
 
         // Then: Flags can only be toggled from paused (true) to unpaused (false)
         // if initialFlag was true en new flag is false.
-        assertEq(factoryGuardian.createPaused(), initialFlags.createPaused && flags.createPaused);
-        assertEq(factoryGuardian.liquidatePaused(), initialFlags.liquidatePaused && flags.liquidatePaused);
+        assertEq(factoryGuardian.createPaused(), initialFlag && flag);
     }
 }

@@ -21,9 +21,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         // Set a Mocked V2 Account Logic contract in the Factory.
         vm.prank(users.creatorAddress);
-        factory.setNewAccountInfo(
-            address(mainRegistryExtension), address(accountV2Logic), Constants.upgradeRoot1To2, ""
-        );
+        factory.setNewAccountInfo(address(registryExtension), address(accountV2Logic), Constants.upgradeRoot1To2, "");
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -40,7 +38,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_upgradeVaultVersion_BlockedVersion(bytes32[] calldata proofs) public {
+    function testFuzz_Revert_upgradeAccountVersion_BlockedVersion(bytes32[] calldata proofs) public {
         vm.prank(users.creatorAddress);
         factory.blockAccountVersion(2);
 
@@ -50,7 +48,9 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_upgradeVaultVersion_VersionNotAllowed(uint16 version, bytes32[] calldata proofs) public {
+    function testFuzz_Revert_upgradeAccountVersion_VersionNotAllowed(uint16 version, bytes32[] calldata proofs)
+        public
+    {
         vm.assume(version != 1);
         vm.assume(version != 2);
 
@@ -60,7 +60,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Success_upgradeVaultVersion() public {
+    function testFuzz_Success_upgradeAccountVersion() public {
         bytes32[] memory proofs = new bytes32[](1);
         proofs[0] = Constants.upgradeProof1To2;
 

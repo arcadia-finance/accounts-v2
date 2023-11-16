@@ -42,7 +42,7 @@ abstract contract Events {
 
     event AssetManagerSet(address indexed owner, address indexed assetManager, bool value);
     event BaseCurrencySet(address baseCurrency);
-    event TrustedMarginAccountChanged(address indexed protocol, address indexed liquidator);
+    event MarginAccountChanged(address indexed protocol, address indexed liquidator);
 
     /*//////////////////////////////////////////////////////////////////////////
                                 BASE GUARDIAN
@@ -54,23 +54,22 @@ abstract contract Events {
                                 FACTORY GUARDIAN
     //////////////////////////////////////////////////////////////////////////*/
 
-    event PauseUpdate(bool createPauseUpdate, bool liquidatePauseUpdate);
+    event PauseUpdate(bool createPauseUpdate);
 
     /*//////////////////////////////////////////////////////////////////////////
-                                    ORACLEHUB
+                            MAIN REGISTRY GUARDIAN
     //////////////////////////////////////////////////////////////////////////*/
 
-    event OracleAdded(address indexed oracle, address indexed quoteAsset, bytes16 baseAsset);
-    event OracleDecommissioned(address indexed oracle, bool isActive);
+    event PauseUpdate(bool withdrawPauseUpdate, bool depositPauseUpdate);
 
     /*//////////////////////////////////////////////////////////////////////////
                                   MAIN REGISTRY
     //////////////////////////////////////////////////////////////////////////*/
 
     event AllowedActionSet(address indexed action, bool allowed);
-    event AssetAdded(address indexed assetAddress, address indexed pricingModule, uint8 assetType);
-    event BaseCurrencyAdded(address indexed assetAddress, uint8 indexed baseCurrencyId, bytes8 label);
-    event PricingModuleAdded(address pricingModule);
+    event AssetAdded(address indexed assetAddress, address indexed assetModule, uint8 assetType);
+    event AssetModuleAdded(address assetModule);
+    event OracleModuleAdded(address oracleModule);
 
     /*//////////////////////////////////////////////////////////////////////////
                                 PRICING MODULE

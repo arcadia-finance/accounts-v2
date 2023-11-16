@@ -19,14 +19,12 @@ abstract contract FactoryGuardian is BaseGuardian {
 
     // Flag indicating if the create() function is paused.
     bool public createPaused;
-    // Flag indicating if the liquidate() function is paused.
-    bool public liquidatePaused;
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event PauseUpdate(bool createPauseUpdate, bool liquidatePauseUpdate);
+    event PauseUpdate(bool createPauseUpdate);
 
     /*
     //////////////////////////////////////////////////////////////
@@ -51,15 +49,6 @@ abstract contract FactoryGuardian is BaseGuardian {
         _;
     }
 
-    /**
-     * @dev This modifier is used to restrict access to certain functions when the contract is paused for liquidate Account.
-     * It throws if liquidate Account is paused.
-     */
-    modifier whenLiquidateNotPaused() {
-        if (liquidatePaused) revert FunctionIsPaused();
-        _;
-    }
-
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
@@ -76,25 +65,22 @@ abstract contract FactoryGuardian is BaseGuardian {
     function pause() external override onlyGuardian {
         require(block.timestamp > pauseTimestamp + 32 days, "G_P: Cannot pause");
         createPaused = true;
-        liquidatePaused = true;
         pauseTimestamp = block.timestamp;
 
-        emit PauseUpdate(true, true);
+        emit PauseUpdate(true);
     }
 
     /**
-     * @notice This function is used to unpause one or more flags.
+     * @notice This function is used to unpause the creation of Accounts.
      * @param createPaused_ false when create functionality should be unPaused.
-     * @param liquidatePaused_ false when liquidate functionality should be unPaused.
      * @dev This function can unPause repay, withdraw, borrow, and deposit individually.
      * @dev Can only update flags from paused (true) to unPaused (false), cannot be used the other way around
      * (to set unPaused flags to paused).
      */
-    function unPause(bool createPaused_, bool liquidatePaused_) external onlyOwner {
+    function unPause(bool createPaused_) external onlyOwner {
         createPaused = createPaused && createPaused_;
-        liquidatePaused = liquidatePaused && liquidatePaused_;
 
-        emit PauseUpdate(createPaused, liquidatePaused);
+        emit PauseUpdate(createPaused);
     }
 
     /**
@@ -103,8 +89,7 @@ abstract contract FactoryGuardian is BaseGuardian {
     function unPause() external override {
         require(block.timestamp > pauseTimestamp + 30 days, "G_UP: Cannot unPause");
         createPaused = false;
-        liquidatePaused = false;
 
-        emit PauseUpdate(false, false);
+        emit PauseUpdate(false);
     }
 }

@@ -5,12 +5,11 @@
 pragma solidity 0.8.19;
 
 import { Base_Test, Constants } from "../Base.t.sol";
+import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
-import { MainRegistry } from "../../src/MainRegistry.sol";
-import { OracleHub } from "../../src/OracleHub.sol";
-import { PricingModule } from "../../src/pricing-modules/AbstractPricingModule.sol";
-import { TrustedCreditorMock } from "../utils/mocks/TrustedCreditorMock.sol";
-import { Proxy } from "../../src/Proxy.sol";
+import { Registry } from "../../src/Registry.sol";
+import { AssetModule } from "../../src/asset-modules/AbstractAssetModule.sol";
+import { CreditorMock } from "../utils/mocks/CreditorMock.sol";
 import { ERC20Mock } from "../utils/mocks/ERC20Mock.sol";
 import { ERC721Mock } from "../utils/mocks/ERC721Mock.sol";
 import { ERC1155Mock } from "../utils/mocks/ERC1155Mock.sol";
@@ -28,15 +27,6 @@ import { AccountV1 } from "../../src/AccountV1.sol";
  */
 abstract contract Fuzz_Test is Base_Test {
     /*//////////////////////////////////////////////////////////////////////////
-                                     CONSTANTS
-    //////////////////////////////////////////////////////////////////////////*/
-
-    // Basecurrency ID's in MainRegistry.sol
-    uint256 internal constant UsdBaseCurrencyID = 0;
-    uint256 internal constant Stable1BaseCurrencyID = 1;
-    uint256 internal constant Token1BaseCurrencyID = 2;
-
-    /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -46,21 +36,29 @@ abstract contract Fuzz_Test is Base_Test {
     MockERC1155 internal mockERC1155;
     Rates internal rates;
 
+    // baseToQuoteAsset arrays
+    bool[] internal BA_TO_QA_SINGLE = new bool[](1);
+    bool[] internal BA_TO_QA_DOUBLE = new bool[](2);
+
     // ERC20 oracle arrays
-    address[] public oracleStable1ToUsdArr = new address[](1);
-    address[] public oracleStable2ToUsdArr = new address[](1);
-    address[] public oracleToken1ToUsdArr = new address[](1);
-    address[] public oracleToken2ToUsdArr = new address[](1);
+    uint80[] internal oracleStable1ToUsdArr = new uint80[](1);
+    uint80[] internal oracleStable2ToUsdArr = new uint80[](1);
+    uint80[] internal oracleToken1ToUsdArr = new uint80[](1);
+    uint80[] internal oracleToken2ToUsdArr = new uint80[](1);
 
     // ERC721 oracle arrays
-    address[] public oracleNft1ToToken1ToUsd = new address[](2);
+    uint80[] internal oracleNft1ToToken1ToUsd = new uint80[](2);
 
     // ERC1155 oracle array
-    address[] public oracleSft1ToToken1ToUsd = new address[](2);
+    uint80[] internal oracleSft1ToToken1ToUsd = new uint80[](2);
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
+
+    CreditorMock internal creditorUsd;
+    CreditorMock internal creditorStable1;
+    CreditorMock internal creditorToken1;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -119,10 +117,23 @@ abstract contract Fuzz_Test is Base_Test {
             sft2ToUsd: 1 * 10 ** Constants.erc1155OracleDecimals
         });
 
-        // Set a trusted creditor with initialized params to use across tests
-        initBaseCurrency = address(mockERC20.stable1);
-        trustedCreditor.setBaseCurrency(initBaseCurrency);
-        vm.stopPrank();
+        // Create a creditor with each baseCurrency.
+        creditorUsd = new CreditorMock();
+        creditorStable1 = new CreditorMock();
+        creditorToken1 = new CreditorMock();
+        creditorStable1.setBaseCurrency(address(mockERC20.stable1));
+        creditorToken1.setBaseCurrency(address(mockERC20.token1));
+        creditorUsd.setRiskManager(users.riskManager);
+        creditorStable1.setRiskManager(users.riskManager);
+        creditorToken1.setRiskManager(users.riskManager);
+
+        // Initialize the default liquidation cost and liquidator of creditor
+        // The base currency on initialization will depend on the type of test and set at a lower level
+        creditorStable1.setFixedLiquidationCost(Constants.initLiquidationCost);
+        creditorStable1.setLiquidator(Constants.initLiquidator);
+
+        vm.label({ account: address(creditorUsd), newLabel: "USD Creditor" });
+        vm.label({ account: address(creditorStable1), newLabel: "Stable1 Creditor" });
 
         // Deploy Oracles
         mockOracles = MockOracles({
@@ -139,166 +150,175 @@ abstract contract Fuzz_Test is Base_Test {
             sft2ToUsd: initMockedOracle(uint8(Constants.erc1155OracleDecimals), "SFT2 / TOKEN1", rates.sft2ToUsd)
         });
 
-        // Add STABLE1 AND TOKEN1 as baseCurrencies in MainRegistry
-        vm.startPrank(mainRegistryExtension.owner());
-        mainRegistryExtension.addBaseCurrency(
-            MainRegistry.BaseCurrencyInformation({
-                baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.stableOracleDecimals),
-                assetAddress: address(mockERC20.stable1),
-                baseCurrencyToUsdOracle: address(mockOracles.stable1ToUsd),
-                baseCurrencyLabel: "STABLE1",
-                baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.stableDecimals))
-            })
+        // Add Chainlink Oracles to the Chainlink Oracles Module.
+        vm.startPrank(users.creatorAddress);
+        chainlinkOM.addOracle(address(mockOracles.stable1ToUsd), "STABLE1", "USD");
+        chainlinkOM.addOracle(address(mockOracles.stable2ToUsd), "STABLE2", "USD");
+        chainlinkOM.addOracle(address(mockOracles.token1ToUsd), "TOKEN1", "USD");
+        chainlinkOM.addOracle(address(mockOracles.token2ToUsd), "TOKEN2", "USD");
+        chainlinkOM.addOracle(address(mockOracles.nft1ToToken1), "NFT1", "TOKEN1");
+        chainlinkOM.addOracle(address(mockOracles.sft1ToToken1), "SFT1", "TOKEN1");
+        vm.stopPrank();
+
+        vm.startPrank(registryExtension.owner());
+        // Create the oracle-direction arrays.
+        BA_TO_QA_SINGLE[0] = true;
+        BA_TO_QA_DOUBLE[0] = true;
+        BA_TO_QA_DOUBLE[1] = true;
+
+        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20AssetModule.
+        oracleStable1ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.stable1ToUsd)));
+        oracleStable2ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.stable2ToUsd)));
+        oracleToken1ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token1ToUsd)));
+        oracleToken2ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token2ToUsd)));
+
+        erc20AssetModule.addAsset(
+            address(mockERC20.stable1), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStable1ToUsdArr)
+        );
+        erc20AssetModule.addAsset(
+            address(mockERC20.stable2), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStable2ToUsdArr)
+        );
+        erc20AssetModule.addAsset(address(mockERC20.token1), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleToken1ToUsdArr));
+        erc20AssetModule.addAsset(address(mockERC20.token2), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleToken2ToUsdArr));
+
+        // Add NFT1 to the floorERC721AssetModule.
+        oracleNft1ToToken1ToUsd[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.nft1ToToken1)));
+        oracleNft1ToToken1ToUsd[1] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token1ToUsd)));
+
+        floorERC721AssetModule.addAsset(
+            address(mockERC721.nft1), 0, 999, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleNft1ToToken1ToUsd)
         );
 
-        mainRegistryExtension.addBaseCurrency(
-            MainRegistry.BaseCurrencyInformation({
-                baseCurrencyToUsdOracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
-                assetAddress: address(mockERC20.token1),
-                baseCurrencyToUsdOracle: address(mockOracles.token1ToUsd),
-                baseCurrencyLabel: "TOKEN1",
-                baseCurrencyUnitCorrection: uint64(10 ** (18 - Constants.tokenDecimals))
-            })
+        // Add ERC1155 contract to the floorERC1155AssetModule
+        oracleSft1ToToken1ToUsd[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.sft1ToToken1)));
+        oracleSft1ToToken1ToUsd[1] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token1ToUsd)));
+
+        floorERC1155AssetModule.addAsset(
+            address(mockERC1155.sft1), 1, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleSft1ToToken1ToUsd)
         );
 
-        // Add Oracles to the OracleHub.
-        // Do not add TOKEN4/USD, TOKEN3/TOKEN4 as we are testing it on a case-by-case basis
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
-                baseAsset: "STABLE1",
-                quoteAsset: "USD",
-                oracle: address(mockOracles.stable1ToUsd),
-                baseAssetAddress: address(mockERC20.stable1),
-                isActive: true
-            })
+        vm.stopPrank();
+
+        // Set Risk Variables.
+        vm.startPrank(users.riskManager);
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd),
+            address(mockERC20.stable1),
+            0,
+            type(uint128).max,
+            Constants.stableToStableCollFactor,
+            Constants.stableToStableLiqFactor
+        );
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1),
+            address(mockERC20.stable1),
+            0,
+            type(uint128).max,
+            Constants.stableToStableCollFactor,
+            Constants.stableToStableLiqFactor
+        );
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1),
+            address(mockERC20.stable1),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
         );
 
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.stableOracleDecimals),
-                baseAsset: "STABLE2",
-                quoteAsset: "USD",
-                oracle: address(mockOracles.stable2ToUsd),
-                baseAssetAddress: address(mockERC20.stable2),
-                isActive: true
-            })
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd),
+            address(mockERC20.stable2),
+            0,
+            type(uint128).max,
+            Constants.stableToStableCollFactor,
+            Constants.stableToStableLiqFactor
+        );
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1),
+            address(mockERC20.stable2),
+            0,
+            type(uint128).max,
+            Constants.stableToStableCollFactor,
+            Constants.stableToStableLiqFactor
+        );
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1),
+            address(mockERC20.stable2),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
         );
 
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
-                baseAsset: "TOKEN1",
-                quoteAsset: "USD",
-                oracle: address(mockOracles.token1ToUsd),
-                baseAssetAddress: address(mockERC20.token1),
-                isActive: true
-            })
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd),
+            address(mockERC20.token1),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
+        );
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1),
+            address(mockERC20.token1),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
+        );
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1),
+            address(mockERC20.token1),
+            0,
+            type(uint128).max,
+            Constants.tokenToTokenCollFactor,
+            Constants.tokenToTokenLiqFactor
         );
 
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.tokenOracleDecimals),
-                baseAsset: "TOKEN2",
-                quoteAsset: "USD",
-                oracle: address(mockOracles.token2ToUsd),
-                baseAssetAddress: address(mockERC20.token2),
-                isActive: true
-            })
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd),
+            address(mockERC20.token2),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
+        );
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1),
+            address(mockERC20.token2),
+            0,
+            type(uint128).max,
+            Constants.tokenToStableCollFactor,
+            Constants.tokenToStableLiqFactor
+        );
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1),
+            address(mockERC20.token2),
+            0,
+            type(uint128).max,
+            Constants.tokenToTokenCollFactor,
+            Constants.tokenToTokenLiqFactor
         );
 
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.nftOracleDecimals),
-                baseAsset: "NFT1",
-                quoteAsset: "TOKEN1",
-                oracle: address(mockOracles.nft1ToToken1),
-                baseAssetAddress: address(mockERC721.nft1),
-                isActive: true
-            })
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
+        );
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
+        );
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
         );
 
-        oracleHub.addOracle(
-            OracleHub.OracleInformation({
-                oracleUnit: uint64(10 ** Constants.erc1155OracleDecimals),
-                baseAsset: "SFT1",
-                quoteAsset: "TOKEN1",
-                oracle: address(mockOracles.sft1ToToken1),
-                baseAssetAddress: address(mockERC1155.sft1),
-                isActive: true
-            })
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
         );
-
-        PricingModule.RiskVarInput[] memory riskVarsStable = new PricingModule.RiskVarInput[](3);
-        PricingModule.RiskVarInput[] memory riskVarsToken = new PricingModule.RiskVarInput[](3);
-
-        riskVarsStable[0] = PricingModule.RiskVarInput({
-            baseCurrency: 0,
-            asset: address(0),
-            collateralFactor: Constants.stableToStableCollFactor,
-            liquidationFactor: Constants.stableToStableLiqFactor
-        });
-        riskVarsStable[1] = PricingModule.RiskVarInput({
-            baseCurrency: 1,
-            asset: address(0),
-            collateralFactor: Constants.stableToStableCollFactor,
-            liquidationFactor: Constants.stableToStableLiqFactor
-        });
-        riskVarsStable[2] = PricingModule.RiskVarInput({
-            baseCurrency: 2,
-            asset: address(0),
-            collateralFactor: Constants.tokenToStableCollFactor,
-            liquidationFactor: Constants.tokenToStableLiqFactor
-        });
-
-        riskVarsToken[0] = PricingModule.RiskVarInput({
-            baseCurrency: 0,
-            asset: address(0),
-            collateralFactor: Constants.tokenToStableCollFactor,
-            liquidationFactor: Constants.tokenToStableLiqFactor
-        });
-        riskVarsToken[1] = PricingModule.RiskVarInput({
-            baseCurrency: 1,
-            asset: address(0),
-            collateralFactor: Constants.tokenToStableCollFactor,
-            liquidationFactor: Constants.tokenToStableLiqFactor
-        });
-        riskVarsToken[2] = PricingModule.RiskVarInput({
-            baseCurrency: 2,
-            asset: address(0),
-            collateralFactor: Constants.tokenToTokenLiqFactor,
-            liquidationFactor: Constants.tokenToTokenLiqFactor
-        });
-
-        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20PricingModule.
-        oracleStable1ToUsdArr[0] = address(mockOracles.stable1ToUsd);
-        oracleStable2ToUsdArr[0] = address(mockOracles.stable2ToUsd);
-        oracleToken1ToUsdArr[0] = address(mockOracles.token1ToUsd);
-        oracleToken2ToUsdArr[0] = address(mockOracles.token2ToUsd);
-
-        erc20PricingModule.addAsset(
-            address(mockERC20.stable1), oracleStable1ToUsdArr, riskVarsStable, type(uint128).max
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
         );
-        erc20PricingModule.addAsset(
-            address(mockERC20.stable2), oracleStable2ToUsdArr, riskVarsStable, type(uint128).max
-        );
-        erc20PricingModule.addAsset(address(mockERC20.token1), oracleToken1ToUsdArr, riskVarsToken, type(uint128).max);
-        erc20PricingModule.addAsset(address(mockERC20.token2), oracleToken2ToUsdArr, riskVarsToken, type(uint128).max);
-
-        // Add NFT1 to the floorERC721PricingModule.
-        oracleNft1ToToken1ToUsd[0] = address(mockOracles.nft1ToToken1);
-        oracleNft1ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
-
-        floorERC721PricingModule.addAsset(
-            address(mockERC721.nft1), 0, 999, oracleNft1ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
-        );
-
-        // Add ERC1155 contract to the floorERC1155PricingModule
-        oracleSft1ToToken1ToUsd[0] = address(mockOracles.sft1ToToken1);
-        oracleSft1ToToken1ToUsd[1] = address(mockOracles.token1ToUsd);
-
-        floorERC1155PricingModule.addAsset(
-            address(mockERC1155.sft1), 1, oracleSft1ToToken1ToUsd, emptyRiskVarInput, type(uint128).max
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
         );
 
         vm.stopPrank();
@@ -386,8 +406,4 @@ abstract contract Fuzz_Test is Base_Test {
         account_.deposit(assets, ids, amounts);
         vm.stopPrank();
     }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                                    CALL EXPECTS
-    //////////////////////////////////////////////////////////////////////////*/
 }

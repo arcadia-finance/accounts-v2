@@ -16,6 +16,9 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function setUp() public override {
         AccountV1_Fuzz_Test.setUp();
+
+        vm.prank(users.accountOwner);
+        accountExtension.closeMarginAccount();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -30,11 +33,12 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_setBaseCurrency_TrustedCreditorSet() public {
-        openMarginAccount();
+    function testFuzz_Revert_setBaseCurrency_CreditorSet() public {
+        vm.prank(users.accountOwner);
+        accountExtension.openMarginAccount(address(creditorStable1));
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_SBC: Trusted Creditor Set");
+        vm.expectRevert("A_SBC: Creditor Set");
         accountExtension.setBaseCurrency(address(mockERC20.token1));
         vm.stopPrank();
 
@@ -43,8 +47,7 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_setBaseCurrency_BaseCurrencyNotFound(address baseCurrency_) public {
         vm.assume(baseCurrency_ != address(0));
-        vm.assume(baseCurrency_ != address(mockERC20.token1));
-        vm.assume(baseCurrency_ != address(mockERC20.stable1));
+        vm.assume(!registryExtension.inRegistry(baseCurrency_));
 
         vm.startPrank(users.accountOwner);
         vm.expectRevert("A_SBC: baseCurrency not found");

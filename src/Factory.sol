@@ -6,7 +6,6 @@ pragma solidity 0.8.19;
 
 import { Proxy } from "./Proxy.sol";
 import { IAccount } from "./interfaces/IAccount.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { ERC721 } from "../lib/solmate/src/tokens/ERC721.sol";
 import { Strings } from "./libraries/Strings.sol";
@@ -42,7 +41,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
 
     // Struct with additional information for a specific Account version.
     struct AccountVersionInfo {
-        address registry; // The contract address of the MainRegistry.
+        address registry; // The contract address of the Registry.
         address logic; // The contract address of the Account logic.
         bytes32 versionRoot; // The Merkle root of the merkle tree of all the compatible Account versions.
         bytes data; // Arbitrary data, can contain instructions to execute when updating Account to new logic.
@@ -73,7 +72,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param salt A salt to be used to generate the hash.
      * @param accountVersion The Account version.
      * @param baseCurrency The Base-currency in which the Account is denominated.
-     * @param creditor The contract address of the trusted creditor.
+     * @param creditor The contract address of the creditor.
      * @return account The contract address of the proxy contract of the newly deployed Account.
      * @dev Safe to cast a uint256 to a bytes32 since the space of both is 2^256.
      */
@@ -103,16 +102,16 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     }
 
     /**
-     * @notice View function returning if an address is a Account.
+     * @notice View function returning if an address is an Account.
      * @param account The address to be checked.
-     * @return bool Whether the address is a Account or not.
+     * @return bool Whether the address is an Account or not.
      */
     function isAccount(address account) public view returns (bool) {
         return accountIndex[account] > 0;
     }
 
     /**
-     * @notice Returns the owner of a Account.
+     * @notice Returns the owner of an Account.
      * @param account The Account address.
      * @return owner_ The Account owner.
      * @dev Function does not revert when a non-existing Account is passed, but returns zero-address as owner.
@@ -153,18 +152,18 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @return The latest versioning root.
      * @dev The versioning root is the root of the merkle tree of all the compatible Account versions.
      * The root is updated every time a new Account version added. The root is used to verify the
-     * proofs when a Account is being upgraded.
+     * proofs when an Account is being upgraded.
      */
     function getAccountVersionRoot() public view returns (bytes32) {
         return accountDetails[latestAccountVersion].versionRoot;
     }
 
     /**
-     * @notice Function used to transfer a Account between users.
+     * @notice Function used to transfer an Account between users.
      * @param from The sender.
      * @param to The target.
      * @param account The address of the Account that is transferred.
-     * @dev This method transfers a Account not on id but on address and also transfers the Account proxy contract to the new owner.
+     * @dev This method transfers an Account not on id but on address and also transfers the Account proxy contract to the new owner.
      */
     function safeTransferFrom(address from, address to, address account) public {
         uint256 id = accountIndex[account];
@@ -173,7 +172,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     }
 
     /**
-     * @notice Function used to transfer a Account between users.
+     * @notice Function used to transfer an Account between users.
      * @param from The sender.
      * @param to The target.
      * @param id The id of the Account that is about to be transferred.
@@ -185,7 +184,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     }
 
     /**
-     * @notice Function used to transfer a Account between users.
+     * @notice Function used to transfer an Account between users.
      * @param from The sender.
      * @param to The target.
      * @param id The id of the Account that is about to be transferred.
@@ -198,7 +197,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     }
 
     /**
-     * @notice Function used to transfer a Account between users.
+     * @notice Function used to transfer an Account between users.
      * @param from The sender.
      * @param to The target.
      * @param id The id of the Account that is about to be transferred.
@@ -215,14 +214,12 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
 
     /**
      * @notice Function to set a new Account version with the contracts to be used for new deployed Accounts.
-     * @param registry The contract address of the Main Registry.
+     * @param registry The contract address of the Registry.
      * @param logic The contract address of the Account logic.
      * @param versionRoot The Merkle root of the merkle tree of all the compatible Account versions.
      * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.
      * @dev Changing any of the contracts does NOT change the contracts for existing deployed Accounts,
-     * unless the Account owner explicitly chooses to upgrade their Account to a newer version
-     * If a new Main Registry contract is set, all the BaseCurrencies currently stored in the Factory
-     * are checked against the new Main Registry contract. If they do not match, the function reverts.
+     * unless the Account owner explicitly chooses to upgrade their Account to a newer version.
      */
     function setNewAccountInfo(address registry, address logic, bytes32 versionRoot, bytes calldata data)
         external
@@ -231,28 +228,11 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         require(versionRoot != bytes32(0), "FTRY_SNVI: version root is zero");
         require(logic != address(0), "FTRY_SNVI: logic address is zero");
 
-        //If there is a new Main Registry Contract, Check that baseCurrencies in factory and main registry match.
-        if (accountDetails[latestAccountVersion].registry != registry && latestAccountVersion != 0) {
-            address oldRegistry = accountDetails[latestAccountVersion].registry;
-            uint256 oldCounter = IMainRegistry(oldRegistry).baseCurrencyCounter();
-            uint256 newCounter = IMainRegistry(registry).baseCurrencyCounter();
-            require(oldCounter <= newCounter, "FTRY_SNVI: counter mismatch");
-            for (uint256 i; i < oldCounter;) {
-                require(
-                    IMainRegistry(oldRegistry).baseCurrencies(i) == IMainRegistry(registry).baseCurrencies(i),
-                    "FTRY_SNVI: no baseCurrency match"
-                );
-                unchecked {
-                    ++i;
-                }
-            }
-        }
-
         unchecked {
             ++latestAccountVersion;
         }
 
-        require(IAccount(logic).ACCOUNT_VERSION() == latestAccountVersion, "FTRY_SNVI: vault version mismatch");
+        require(IAccount(logic).ACCOUNT_VERSION() == latestAccountVersion, "FTRY_SNVI: version mismatch");
 
         accountDetails[latestAccountVersion].registry = registry;
         accountDetails[latestAccountVersion].logic = logic;
@@ -273,31 +253,6 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         accountVersionBlocked[version] = true;
 
         emit AccountVersionBlocked(uint16(version));
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                    ACCOUNT LIQUIDATION LOGIC
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Function called by a Account at the start of a liquidation to transfer ownership to the Liquidator contract.
-     * @param liquidator The contract address of the liquidator.
-     * @dev This transfer bypasses the standard transferFrom and safeTransferFrom from the ERC-721 standard.
-     */
-    function liquidate(address liquidator) external whenLiquidateNotPaused {
-        require(isAccount(msg.sender), "FTRY: Not a Account");
-
-        uint256 id = accountIndex[msg.sender];
-        address from = _ownerOf[id];
-        unchecked {
-            _balanceOf[from]--;
-            _balanceOf[liquidator]++;
-        }
-
-        _ownerOf[id] = liquidator;
-
-        delete getApproved[id];
-        emit Transfer(from, liquidator, id);
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -5,25 +5,21 @@
 pragma solidity 0.8.19;
 
 import { Test } from "../lib/forge-std/src/Test.sol";
-import { Users, MockOracles, MockERC20, MockERC721, Rates } from "./utils/Types.sol";
+import { Users } from "./utils/Types.sol";
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/AccountV1.sol";
 import { AccountV2 } from "./utils/mocks/AccountV2.sol";
-import { MainRegistryExtension } from "./utils/Extensions.sol";
-import { PricingModule } from "../src/pricing-modules/AbstractPricingModule.sol";
-import { OracleHub } from "../src/OracleHub.sol";
-import { StandardERC20PricingModuleExtension } from "./utils/Extensions.sol";
-import { FloorERC721PricingModuleExtension } from "./utils/Extensions.sol";
-import { FloorERC1155PricingModuleExtension } from "./utils/Extensions.sol";
-import { UniswapV3PricingModuleExtension } from "./utils/Extensions.sol";
-import { TrustedCreditorMock } from "./utils/mocks/TrustedCreditorMock.sol";
+import { ChainlinkOracleModuleExtension } from "./utils/Extensions.sol";
+import { RegistryExtension } from "./utils/Extensions.sol";
+import { AssetModule } from "../src/asset-modules/AbstractAssetModule.sol";
+import { StandardERC20AssetModuleExtension } from "./utils/Extensions.sol";
+import { FloorERC721AssetModuleExtension } from "./utils/Extensions.sol";
+import { FloorERC1155AssetModuleExtension } from "./utils/Extensions.sol";
+import { UniswapV3AssetModuleExtension } from "./utils/Extensions.sol";
 import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Errors } from "./utils/Errors.sol";
 import { Utils } from "./utils/Utils.sol";
-import { ERC20Mock } from "./utils/mocks/ERC20Mock.sol";
-import { ERC721Mock } from "./utils/mocks/ERC721Mock.sol";
-import { ERC1155Mock } from "./utils/mocks/ERC1155Mock.sol";
 
 /// @notice Base test contract with common logic needed by all tests.
 abstract contract Base_Test is Test, Events, Errors {
@@ -33,26 +29,20 @@ abstract contract Base_Test is Test, Events, Errors {
 
     Users internal users;
 
-    // This will be the base currency set for the instance of "trustedCreditorWithParams"
-    address internal initBaseCurrency;
-
-    PricingModule.RiskVarInput[] emptyRiskVarInput;
-
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
     Factory internal factory;
-    MainRegistryExtension internal mainRegistryExtension;
-    OracleHub internal oracleHub;
-    StandardERC20PricingModuleExtension internal erc20PricingModule;
-    FloorERC721PricingModuleExtension internal floorERC721PricingModule;
-    FloorERC1155PricingModuleExtension internal floorERC1155PricingModule;
-    UniswapV3PricingModuleExtension internal uniV3PricingModule;
+    RegistryExtension internal registryExtension;
+    ChainlinkOracleModuleExtension internal chainlinkOM;
+    StandardERC20AssetModuleExtension internal erc20AssetModule;
+    FloorERC721AssetModuleExtension internal floorERC721AssetModule;
+    FloorERC1155AssetModuleExtension internal floorERC1155AssetModule;
+    UniswapV3AssetModuleExtension internal uniV3AssetModule;
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
     AccountV1 internal proxyAccount;
-    TrustedCreditorMock internal trustedCreditor;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -70,63 +60,57 @@ abstract contract Base_Test is Test, Events, Errors {
             defaultCreatorAddress: createUser("defaultCreatorAddress"),
             defaultTransmitter: createUser("defaultTransmitter"),
             swapper: createUser("swapper"),
-            guardian: createUser("guardian")
+            guardian: createUser("guardian"),
+            riskManager: createUser("riskManager")
         });
 
         // Deploy the base test contracts.
         vm.startPrank(users.creatorAddress);
         factory = new Factory();
-        mainRegistryExtension = new MainRegistryExtension(address(factory));
-        oracleHub = new OracleHub();
-        erc20PricingModule = new StandardERC20PricingModuleExtension(address(mainRegistryExtension), address(oracleHub));
-        floorERC721PricingModule =
-            new FloorERC721PricingModuleExtension(address(mainRegistryExtension), address(oracleHub));
-        floorERC1155PricingModule = new FloorERC1155PricingModuleExtension(
-            address(mainRegistryExtension),
-            address(oracleHub)
+        registryExtension = new RegistryExtension(address(factory));
+        chainlinkOM = new ChainlinkOracleModuleExtension(address(registryExtension));
+        erc20AssetModule = new StandardERC20AssetModuleExtension(address(registryExtension));
+        floorERC721AssetModule = new FloorERC721AssetModuleExtension(address(registryExtension));
+        floorERC1155AssetModule = new FloorERC1155AssetModuleExtension(
+            address(registryExtension)
         );
 
         accountV1Logic = new AccountV1();
         accountV2Logic = new AccountV2();
-        factory.setNewAccountInfo(
-            address(mainRegistryExtension), address(accountV1Logic), Constants.upgradeProof1To2, ""
-        );
-        trustedCreditor = new TrustedCreditorMock();
-        vm.stopPrank();
+        factory.setNewAccountInfo(address(registryExtension), address(accountV1Logic), Constants.upgradeProof1To2, "");
 
         // Set the Guardians.
         vm.startPrank(users.creatorAddress);
         factory.changeGuardian(users.guardian);
-        mainRegistryExtension.changeGuardian(users.guardian);
+        registryExtension.changeGuardian(users.guardian);
+
+        // Add Asset Modules to the Registry.
+        vm.startPrank(users.creatorAddress);
+        registryExtension.addAssetModule(address(erc20AssetModule));
+        registryExtension.addAssetModule(address(floorERC721AssetModule));
+        registryExtension.addAssetModule(address(floorERC1155AssetModule));
         vm.stopPrank();
 
-        // Add Pricing Modules to the Main Registry.
+        // Add Oracle Modules to the Registry.
         vm.startPrank(users.creatorAddress);
-        mainRegistryExtension.addPricingModule(address(erc20PricingModule));
-        mainRegistryExtension.addPricingModule(address(floorERC721PricingModule));
-        mainRegistryExtension.addPricingModule(address(floorERC1155PricingModule));
+        registryExtension.addOracleModule(address(chainlinkOM));
         vm.stopPrank();
 
         // Label the base test contracts.
         vm.label({ account: address(factory), newLabel: "Factory" });
-        vm.label({ account: address(mainRegistryExtension), newLabel: "Main Registry" });
-        vm.label({ account: address(oracleHub), newLabel: "Oracle Hub" });
-        vm.label({ account: address(erc20PricingModule), newLabel: "Standard ERC20 Pricing Module" });
-        vm.label({ account: address(floorERC721PricingModule), newLabel: "ERC721 Pricing Module" });
-        vm.label({ account: address(floorERC1155PricingModule), newLabel: "ERC1155 Pricing Module" });
+        vm.label({ account: address(registryExtension), newLabel: "Registry" });
+        vm.label({ account: address(chainlinkOM), newLabel: "Chainlink Oracle Module" });
+        vm.label({ account: address(erc20AssetModule), newLabel: "Standard ERC20 Asset Module" });
+        vm.label({ account: address(floorERC721AssetModule), newLabel: "ERC721 Asset Module" });
+        vm.label({ account: address(floorERC1155AssetModule), newLabel: "ERC1155 Asset Module" });
         vm.label({ account: address(accountV1Logic), newLabel: "Account V1 Logic" });
         vm.label({ account: address(accountV2Logic), newLabel: "Account V2 Logic" });
-        vm.label({ account: address(trustedCreditor), newLabel: "Mocked Trusted Creditor" });
-
-        // Initialize the default liquidation cost and liquidator of trusted creditor
-        // The base currency on initialization will depend on the type of test and set at a lower level
-        trustedCreditor.setFixedLiquidationCost(Constants.initLiquidationCost);
-        trustedCreditor.setLiquidator(Constants.initLiquidator);
 
         // Deploy an initial Account with all inputs to zero
-        vm.prank(users.accountOwner);
+        vm.startPrank(users.accountOwner);
         address proxyAddress = factory.createAccount(0, 0, address(0), address(0));
         proxyAccount = AccountV1(proxyAddress);
+        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -140,15 +124,15 @@ abstract contract Base_Test is Test, Events, Errors {
         return user;
     }
 
-    function deployUniswapV3PricingModule(address nonfungiblePositionManager_) internal {
+    function deployUniswapV3AssetModule(address nonfungiblePositionManager_) internal {
         // Get the bytecode of the UniswapV3PoolExtension.
         bytes memory args = abi.encode();
         bytes memory bytecode = abi.encodePacked(vm.getCode("UniswapV3PoolExtension.sol"), args);
         bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
 
-        // Get the bytecode of UniswapV3PricingModuleExtension.
-        args = abi.encode(address(mainRegistryExtension), users.creatorAddress, nonfungiblePositionManager_);
-        bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3PricingModuleExtension"), args);
+        // Get the bytecode of UniswapV3AssetModuleExtension.
+        args = abi.encode(address(registryExtension), nonfungiblePositionManager_);
+        bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3AssetModuleExtension"), args);
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.
         // -> Replace the code hash of UniswapV3Pool.sol with the code hash of UniswapV3PoolExtension.sol
@@ -157,19 +141,15 @@ abstract contract Base_Test is Test, Events, Errors {
 
         // Deploy UniswapV3PoolExtension with modified bytecode.
         vm.prank(users.creatorAddress);
-        address uniV3PricingModule_ = Utils.deployBytecode(bytecode);
-        uniV3PricingModule = UniswapV3PricingModuleExtension(uniV3PricingModule_);
+        address uniV3AssetModule_ = Utils.deployBytecode(bytecode);
+        uniV3AssetModule = UniswapV3AssetModuleExtension(uniV3AssetModule_);
 
-        vm.label({ account: address(uniV3PricingModule), newLabel: "Uniswap V3 Pricing Module" });
+        vm.label({ account: address(uniV3AssetModule), newLabel: "Uniswap V3 Asset Module" });
 
-        // Add the Pricing Module to the MainRegistry.
+        // Add the Asset Module to the Registry.
         vm.startPrank(users.creatorAddress);
-        mainRegistryExtension.addPricingModule(address(uniV3PricingModule));
-        uniV3PricingModule.setProtocol();
+        registryExtension.addAssetModule(address(uniV3AssetModule));
+        uniV3AssetModule.setProtocol();
         vm.stopPrank();
     }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                                    CALL EXPECTS
-    //////////////////////////////////////////////////////////////////////////*/
 }

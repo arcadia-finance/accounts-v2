@@ -16,14 +16,14 @@ interface IAccount {
      * @param owner The sender of the 'createAccount' on the factory
      * @param registry The 'beacon' contract with the external logic.
      * @param baseCurrency The Base-currency in which the Account is denominated.
-     * @param creditor The contract address of the trusted creditor.
+     * @param creditor The contract address of the creditor.
      */
     function initialize(address owner, address registry, address baseCurrency, address creditor) external;
 
     /**
      * @notice Updates the Account version and stores a new address in the EIP1967 implementation slot.
      * @param newImplementation The contract with the new Account logic.
-     * @param newRegistry The MainRegistry for this specific implementation (might be identical as the old registry).
+     * @param newRegistry The Registry for this specific implementation (might be identical as the old registry).
      * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.
      * @param newVersion The new version of the Account logic.
      */

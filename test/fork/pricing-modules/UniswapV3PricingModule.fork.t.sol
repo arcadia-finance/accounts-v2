@@ -9,7 +9,7 @@ import { Fork_Test } from "../Fork.t.sol";
 import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
 
-import { LiquidityAmounts } from "../../../src/pricing-modules/UniswapV3/libraries/LiquidityAmounts.sol";
+import { LiquidityAmounts } from "../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { LiquidityAmountsExtension } from
     "../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { INonfungiblePositionManagerExtension } from
@@ -18,12 +18,12 @@ import { ISwapRouter } from "../../utils/fixtures/uniswap-v3/extensions/interfac
 import { IUniswapV3Factory } from "../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3Factory.sol";
 import { IUniswapV3PoolExtension } from
     "../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
-import { TickMath } from "../../../src/pricing-modules/UniswapV3/libraries/TickMath.sol";
+import { TickMath } from "../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
- * @notice Fork tests for "UniswapV3PricingModule".
+ * @notice Fork tests for "UniswapV3AssetModule".
  */
-contract UniswapV3PricingModule_Fork_Test is Fork_Test {
+contract UniswapV3AssetModule_Fork_Test is Fork_Test {
     /*///////////////////////////////////////////////////////////////
                             CONSTANTS
     ///////////////////////////////////////////////////////////////*/
@@ -40,19 +40,20 @@ contract UniswapV3PricingModule_Fork_Test is Fork_Test {
     function setUp() public override {
         Fork_Test.setUp();
 
-        // Deploy uniV3PricingModule.
-        deployUniswapV3PricingModule(address(NONFUNGIBLE_POSITION_MANAGER));
+        // Deploy uniV3AssetModule.
+        deployUniswapV3AssetModule(address(NONFUNGIBLE_POSITION_MANAGER));
 
-        // Set max exposure to underlying tokens.
-        vm.startPrank(users.creatorAddress);
-        uniV3PricingModule.setMaxUsdExposureProtocol(type(uint256).max);
-        vm.stopPrank();
+        // Set max exposure to uniswap V3.
+        vm.prank(users.riskManager);
+        registryExtension.setRiskParametersOfDerivedAssetModule(
+            address(uniV3AssetModule), address(0), type(uint128).max, 100
+        );
     }
 
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
-    //ToDo: move to shared contract with "_UniswapV3PricingModule.fuzz.t.sol"
+    //ToDo: move to shared contract with "_UniswapV3AssetModule.fuzz.t.sol"
     function isWithinAllowedRange(int24 tick) public pure returns (bool) {
         int24 MIN_TICK = -887_272;
         int24 MAX_TICK = -MIN_TICK;
@@ -209,7 +210,8 @@ contract UniswapV3PricingModule_Fork_Test is Fork_Test {
         assetAmounts[0] = amountUsdc;
         assetAmounts[1] = amountWeth;
 
-        uint256 expectedValue = mainRegistryExtension.getTotalValue(assetAddresses, assetIds, assetAmounts, address(0));
+        uint256 expectedValue =
+            registryExtension.getTotalValue(address(0), address(0), assetAddresses, assetIds, assetAmounts);
 
         // Precision Chainlink oracles is often in the order of percentages.
         assertInRange(actualValue, expectedValue, 2);

@@ -23,7 +23,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function setUp() public override {
         AccountV1_Fuzz_Test.setUp();
 
-        // Given: Trusted Creditor is set.
+        // Given: Creditor is set.
         openMarginAccount();
     }
 
@@ -46,12 +46,14 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // test-case: Insufficient margin
         vm.assume(usedMargin > 0);
         collateralValue = uint128(bound(collateralValue, 0, usedMargin - 1));
+        // "exposure" is strictly smaller as "maxExposure".
+        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
 
         // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(accountExtension), debtInitial);
+        creditorStable1.setOpenPosition(address(accountExtension), debtInitial);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
@@ -61,7 +63,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then: The action is not successful.
         assertTrue(!success);
-        assertEq(creditor, address(trustedCreditor));
+        assertEq(creditor, address(creditorStable1));
         assertEq(version, 1);
     }
 
@@ -71,6 +73,9 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 collateralValue,
         uint256 fixedLiquidationCost
     ) public {
+        // "exposure" is strictly smaller as "maxExposure".
+        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
+
         // test-case: Sufficient margin
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, collateralValue);
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
@@ -81,7 +86,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
 
         // Mock initial debt.
-        trustedCreditor.setOpenPosition(address(accountExtension), debtInitial);
+        creditorStable1.setOpenPosition(address(accountExtension), debtInitial);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
@@ -91,7 +96,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then: The action is successful
         assertTrue(success);
-        assertEq(creditor, address(trustedCreditor));
+        assertEq(creditor, address(creditorStable1));
         assertEq(version, 1);
     }
 
@@ -108,6 +113,8 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // test-case: Insufficient margin
         vm.assume(usedMargin > 0);
         collateralValue = uint128(bound(collateralValue, 0, usedMargin - 1));
+        // "exposure" is strictly smaller as "maxExposure".
+        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
@@ -120,7 +127,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then: The action is not successful
         assertTrue(!success);
-        assertEq(creditor, address(trustedCreditor));
+        assertEq(creditor, address(creditorStable1));
         assertEq(version, 1);
     }
 
@@ -129,6 +136,8 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 collateralValue,
         uint256 fixedLiquidationCost
     ) public {
+        // "exposure" is strictly smaller as "maxExposure".
+        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
         // test-case: Sufficient margin
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, collateralValue);
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
@@ -145,7 +154,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then: The action is successful
         assertTrue(success);
-        assertEq(creditor, address(trustedCreditor));
+        assertEq(creditor, address(creditorStable1));
         assertEq(version, 1);
     }
 }

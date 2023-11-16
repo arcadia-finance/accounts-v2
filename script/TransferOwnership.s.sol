@@ -8,23 +8,23 @@ import "../lib/forge-std/src/Test.sol";
 import { ArcadiaAddresses, ArcadiaContractAddresses } from "./Constants/TransferOwnershipConstants.sol";
 
 import "../src/Factory.sol";
-import { MainRegistry } from "../src/MainRegistry.sol";
-import { StandardERC20PricingModule } from "../src/pricing-modules/StandardERC20PricingModule.sol";
+import { Registry } from "../src/Registry.sol";
+import { ChainlinkOracleModule } from "../src/oracle-modules/ChainlinkOracleModule.sol";
+import { StandardERC20AssetModule } from "../src/asset-modules/StandardERC20AssetModule.sol";
 import { ILiquidator } from "./interfaces/ILiquidator.sol";
-import "../src/OracleHub.sol";
 
 contract ArcadiaAccountTransferOwnership is Test {
-    Factory public factory;
-    OracleHub public oracleHub;
-    MainRegistry public mainRegistry;
-    StandardERC20PricingModule public standardERC20PricingModule;
-    ILiquidator public liquidator;
+    Factory internal factory;
+    Registry internal registry;
+    StandardERC20AssetModule internal standardERC20AssetModule;
+    ChainlinkOracleModule internal chainlinkOM;
+    ILiquidator internal liquidator;
 
     constructor() {
         factory = Factory(ArcadiaContractAddresses.factory);
-        oracleHub = OracleHub(ArcadiaContractAddresses.oracleHub);
-        mainRegistry = MainRegistry(ArcadiaContractAddresses.mainRegistry);
-        standardERC20PricingModule = StandardERC20PricingModule(ArcadiaContractAddresses.standardERC20PricingModule);
+        registry = Registry(ArcadiaContractAddresses.registry);
+        standardERC20AssetModule = StandardERC20AssetModule(ArcadiaContractAddresses.standardERC20AssetModule);
+        chainlinkOM = ChainlinkOracleModule(ArcadiaContractAddresses.chainlinkOM);
         liquidator = ILiquidator(ArcadiaContractAddresses.liquidator);
     }
 
@@ -32,9 +32,9 @@ contract ArcadiaAccountTransferOwnership is Test {
         uint256 ownerPrivateKey = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(ownerPrivateKey);
         factory.transferOwnership(ArcadiaAddresses.factoryOwner);
-        oracleHub.transferOwnership(ArcadiaAddresses.oracleHubOwner);
-        mainRegistry.transferOwnership(ArcadiaAddresses.mainRegistryOwner);
-        standardERC20PricingModule.transferOwnership(ArcadiaAddresses.standardERC20PricingModuleOwner);
+        registry.transferOwnership(ArcadiaAddresses.registryOwner);
+        standardERC20AssetModule.transferOwnership(ArcadiaAddresses.standardERC20AssetModuleOwner);
+        chainlinkOM.transferOwnership(ArcadiaAddresses.chainlinkOMOwner);
         liquidator.transferOwnership(ArcadiaAddresses.liquidatorOwner);
         vm.stopBroadcast();
     }
