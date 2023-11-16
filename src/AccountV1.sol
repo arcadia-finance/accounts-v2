@@ -456,7 +456,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Checks if an Account is liquidatable and continues the liquidation flow.
-     * @param liquidationInitiator The address of the liquidation initiator.
+     * @param initiator The address of the liquidation initiator.
      * @return assetAddresses Array of the contract addresses of the assets in Account.
      * @return assetIds Array of the IDs of the assets in Account.
      * @return assetAmounts Array with the amounts of the assets in Account.
@@ -465,7 +465,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @return openDebt The open Debt issued against the Account.
      * @return assetAndRiskValues Array of asset values and corresponding collateral factors.
      */
-    function startLiquidation(address liquidationInitiator)
+    function startLiquidation(address initiator)
         external
         nonReentrant
         onlyLiquidator
@@ -487,7 +487,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             IRegistry(registry).getValuesInBaseCurrency(baseCurrency, creditor_, assetAddresses, assetIds, assetAmounts);
 
         // Since the function is only callable by the liquidator, a liquidator and a Creditor are set.
-        openDebt = ICreditor(creditor).startLiquidation(liquidationInitiator);
+        openDebt = ICreditor(creditor).startLiquidation(initiator);
         uint256 usedMargin = openDebt + fixedLiquidationCost;
 
         if (openDebt == 0 || RiskModule._calculateLiquidationValue(assetAndRiskValues) >= usedMargin) {
