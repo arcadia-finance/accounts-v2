@@ -106,8 +106,10 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_startLiquidation_notLiquidatable_zeroOpenDebt(uint96 fixedLiquidationCost,
-    address liquidationInitiator) public {
+    function testFuzz_Revert_startLiquidation_notLiquidatable_zeroOpenDebt(
+        uint96 fixedLiquidationCost,
+        address liquidationInitiator
+    ) public {
         // Given : openDebt = 0
         uint256 openDebt = 0;
 
