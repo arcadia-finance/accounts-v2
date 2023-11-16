@@ -15,6 +15,7 @@ import { ActionData } from "./actions/utils/ActionData.sol";
 import { ERC20, SafeTransferLib } from "../lib/solmate/src/utils/SafeTransferLib.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
 import { RiskModule } from "./RiskModule.sol";
+import { Account } from "./libraries/Errors.sol";
 
 /**
  * @title Acadia Accounts.
@@ -62,32 +63,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
     event AssetManagerSet(address indexed owner, address indexed assetManager, bool value);
 
     /* //////////////////////////////////////////////////////////////
-                                ERRORS
-    ////////////////////////////////////////////////////////////// */
-
-    error REENTRANCY();
-    error Only_Factory();
-    error Only_Owner();
-    error Only_Liquidator();
-    error Already_Initialized();
-    error Invalid_Recipient();
-    error Invalid_Registry();
-    error Invalid_Account_Version();
-    error Creditor_Already_Set();
-    error Creditor_Not_Set();
-    error BaseCurrency_Not_Found();
-    error NonZero_Open_Position();
-    error Account_Not_Liquidatable();
-    error Action_Not_Allowed();
-    error Account_Unhealthy();
-    error Invalid_ERC20_Id();
-    error Invalid_ERC721_Amount();
-    error Unknown_Asset_Type();
-    error Too_Many_Assets();
-    error Unknown_Asset();
-    error No_Fallback();
-
-    /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
 
@@ -95,7 +70,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Throws if function is reentered.
      */
     modifier nonReentrant() {
-        if (locked != 1) revert REENTRANCY();
+        if (locked != 1) revert Account.REENTRANCY();
 
         locked = 2;
 
@@ -108,7 +83,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Throws if called by any account other than the factory address.
      */
     modifier onlyFactory() {
-        if (msg.sender != IRegistry(registry).FACTORY()) revert Only_Factory();
+        if (msg.sender != IRegistry(registry).FACTORY()) revert Account.Only_Factory();
         _;
     }
 
@@ -116,7 +91,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        if (msg.sender != owner) revert Only_Owner();
+        if (msg.sender != owner) revert Account.Only_Owner();
         _;
     }
 
@@ -135,7 +110,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Throws if called by any account other than the Liquidator address.
      */
     modifier onlyLiquidator() {
-        if (msg.sender != liquidator) revert Only_Liquidator();
+        if (msg.sender != liquidator) revert Account.Only_Liquidator();
         _;
     }
 
@@ -164,8 +139,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param creditor_ The contract address of the creditor.
      */
     function initialize(address owner_, address registry_, address baseCurrency_, address creditor_) external {
-        if (registry != address(0)) revert Already_Initialized();
-        if (registry_ == address(0)) revert Invalid_Registry();
+        if (registry != address(0)) revert Account.Already_Initialized();
+        if (registry_ == address(0)) revert Account.Invalid_Registry();
         owner = owner_;
         locked = 1;
         registry = registry_;
@@ -194,7 +169,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             // If a creditor is set, new version should be compatible.
             // openMarginAccount() is a view function, cannot modify state.
             (bool success,,,) = ICreditor(creditor).openMarginAccount(newVersion);
-            if (!success) revert Invalid_Account_Version();
+            if (!success) revert Account.Invalid_Account_Version();
         }
 
         // Cache old parameters.
@@ -205,7 +180,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
         registry = newRegistry;
 
         // Prevent that Account is upgraded to a new version where the baseCurrency can't be priced.
-        if (newRegistry != oldRegistry && !IRegistry(newRegistry).inRegistry(baseCurrency)) revert Invalid_Registry();
+        if (newRegistry != oldRegistry && !IRegistry(newRegistry).inRegistry(baseCurrency)) {
+            revert Account.Invalid_Registry();
+        }
 
         // Hook on the new logic to finalize upgrade.
         // Used to eg. Remove exposure from old Registry and Add exposure to the new Registry.
@@ -251,7 +228,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * Owner of Account NFT = owner of Account
      */
     function transferOwnership(address newOwner) external onlyFactory {
-        if (newOwner == address(0)) revert Invalid_Recipient();
+        if (newOwner == address(0)) revert Account.Invalid_Recipient();
         _transferOwnership(newOwner);
     }
 
@@ -276,7 +253,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * if there is none set, then a new baseCurrency is set.
      */
     function setBaseCurrency(address baseCurrency_) external onlyOwner {
-        if (isCreditorSet) revert Creditor_Already_Set();
+        if (isCreditorSet) revert Account.Creditor_Already_Set();
         _setBaseCurrency(baseCurrency_);
     }
 
@@ -285,7 +262,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param baseCurrency_ the new baseCurrency for the Account.
      */
     function _setBaseCurrency(address baseCurrency_) internal {
-        if (!IRegistry(registry).inRegistry(baseCurrency_)) revert BaseCurrency_Not_Found();
+        if (!IRegistry(registry).inRegistry(baseCurrency_)) revert Account.BaseCurrency_Not_Found();
         baseCurrency = baseCurrency_;
 
         emit BaseCurrencySet(baseCurrency_);
@@ -304,7 +281,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The Creditor has significant authorisation: use margin, trigger liquidation, and manage assets.
      */
     function openMarginAccount(address creditor_) external onlyOwner {
-        if (isCreditorSet) revert Creditor_Already_Set();
+        if (isCreditorSet) revert Account.Creditor_Already_Set();
 
         _openMarginAccount(creditor_);
     }
@@ -317,7 +294,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         //openMarginAccount() is a view function, cannot modify state.
         (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_) =
             ICreditor(creditor_).openMarginAccount(ACCOUNT_VERSION);
-        if (!success) revert Invalid_Account_Version();
+        if (!success) revert Account.Invalid_Account_Version();
 
         liquidator = liquidator_;
         creditor = creditor_;
@@ -335,9 +312,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Currently only one Creditor can be set.
      */
     function closeMarginAccount() external onlyOwner {
-        if (!isCreditorSet) revert Creditor_Not_Set();
+        if (!isCreditorSet) revert Account.Creditor_Not_Set();
         //getOpenPosition() is a view function, cannot modify state.
-        if (ICreditor(creditor).getOpenPosition(address(this)) != 0) revert NonZero_Open_Position();
+        if (ICreditor(creditor).getOpenPosition(address(this)) != 0) revert Account.NonZero_Open_Position();
 
         isCreditorSet = false;
         creditor = address(0);
@@ -514,7 +491,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256 usedMargin = openDebt + fixedLiquidationCost;
 
         if (openDebt == 0 || RiskModule._calculateLiquidationValue(assetAndRiskValues) >= usedMargin) {
-            revert Account_Not_Liquidatable();
+            revert Account.Account_Not_Liquidatable();
         }
     }
 
@@ -587,7 +564,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         onlyAssetManager
         returns (address, uint256)
     {
-        if (!IRegistry(registry).isActionAllowed(actionHandler)) revert Action_Not_Allowed();
+        if (!IRegistry(registry).isActionAllowed(actionHandler)) revert Account.Action_Not_Allowed();
 
         (
             ActionData memory withdrawData,
@@ -621,7 +598,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         //If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always in a healthy state.
         uint256 usedMargin = getUsedMargin();
         //Account must be healthy after actions are executed.
-        if (usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin) revert Account_Unhealthy();
+        if (usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin) revert Account.Account_Unhealthy();
 
         return (creditor, ACCOUNT_VERSION);
     }
@@ -682,22 +659,24 @@ contract AccountV1 is AccountStorageV1, IAccount {
             }
 
             if (assetTypes[i] == 0) {
-                if (assetIds[i] != 0) revert Invalid_ERC20_Id();
+                if (assetIds[i] != 0) revert Account.Invalid_ERC20_Id();
                 _depositERC20(from, assetAddresses[i], assetAmounts[i]);
             } else if (assetTypes[i] == 1) {
-                if (assetAmounts[i] != 1) revert Invalid_ERC721_Amount();
+                if (assetAmounts[i] != 1) revert Account.Invalid_ERC721_Amount();
                 _depositERC721(from, assetAddresses[i], assetIds[i]);
             } else if (assetTypes[i] == 2) {
                 _depositERC1155(from, assetAddresses[i], assetIds[i], assetAmounts[i]);
             } else {
-                revert Unknown_Asset_Type();
+                revert Account.Unknown_Asset_Type();
             }
             unchecked {
                 ++i;
             }
         }
 
-        if (erc20Stored.length + erc721Stored.length + erc1155Stored.length > ASSET_LIMIT) revert Too_Many_Assets();
+        if (erc20Stored.length + erc721Stored.length + erc1155Stored.length > ASSET_LIMIT) {
+            revert Account.Too_Many_Assets();
+        }
     }
 
     /**
@@ -727,7 +706,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256 usedMargin = getUsedMargin();
         //If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and all assets can be withdrawn.
         //Account must be healthy after assets are withdrawn.
-        if (usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin) revert Account_Unhealthy();
+        if (usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin) revert Account.Account_Unhealthy();
     }
 
     /**
@@ -759,15 +738,15 @@ contract AccountV1 is AccountStorageV1, IAccount {
             }
 
             if (assetTypes[i] == 0) {
-                if (assetIds[i] != 0) revert Invalid_ERC20_Id();
+                if (assetIds[i] != 0) revert Account.Invalid_ERC20_Id();
                 _withdrawERC20(to, assetAddresses[i], assetAmounts[i]);
             } else if (assetTypes[i] == 1) {
-                if (assetAmounts[i] != 1) revert Invalid_ERC721_Amount();
+                if (assetAmounts[i] != 1) revert Account.Invalid_ERC721_Amount();
                 _withdrawERC721(to, assetAddresses[i], assetIds[i]);
             } else if (assetTypes[i] == 2) {
                 _withdrawERC1155(to, assetAddresses[i], assetIds[i], assetAmounts[i]);
             } else {
-                revert Unknown_Asset_Type();
+                revert Account.Unknown_Asset_Type();
             }
             unchecked {
                 ++i;
@@ -803,7 +782,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
                     owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
                 );
             } else {
-                revert Unknown_Asset_Type();
+                revert Account.Unknown_Asset_Type();
             }
             unchecked {
                 ++i;
@@ -977,7 +956,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             //For loop should break, otherwise we never went into the if-branch, meaning the token being withdrawn
             //is unknown and not properly deposited.
             // i + 1 is done after loop, so i reaches tokenIdLength.
-            if (i == tokenIdLength) revert Unknown_Asset();
+            if (i == tokenIdLength) revert Account.Unknown_Asset();
         }
 
         IERC721(ERC721Address).safeTransferFrom(address(this), to, id);
@@ -1154,6 +1133,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     fallback() external {
-        revert No_Fallback();
+        revert Account.No_Fallback();
     }
 }

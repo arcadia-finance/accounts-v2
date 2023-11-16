@@ -39,6 +39,13 @@ contract ChainlinkOracleModule is OracleModule {
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
+    error Oracle_Already_Added();
+    error Max_18_Decimals();
+    error Inactive_Oracle();
+
+    /* //////////////////////////////////////////////////////////////
+                                CONSTRUCTOR
+    ////////////////////////////////////////////////////////////// */
 
     /**
      * @param registry_ The contract address of the Registry.
@@ -74,10 +81,10 @@ contract ChainlinkOracleModule is OracleModule {
         onlyOwner
         returns (uint256 oracleId)
     {
-        require(!inOracleModule[oracle], "CLOM_AO: Oracle already added");
+        if (inOracleModule[oracle]) revert Oracle_Already_Added();
 
         uint256 decimals = IChainLinkData(oracle).decimals();
-        require(decimals <= 18, "CLOM_AO: Maximal 18 decimals");
+        if (decimals > 18) revert Max_18_Decimals();
 
         inOracleModule[oracle] = true;
         oracleId = IRegistry(REGISTRY).addOracle();
@@ -140,7 +147,7 @@ contract ChainlinkOracleModule is OracleModule {
         // This implies that no new credit can be taken against assets that use the decommissioned oracle,
         // but at the same time positions with these assets cannot be liquidated.
         // A new oracleSequence for these assets must be set ASAP by the protocol owner.
-        require(oracleInformation_.isActive, "OH_GR: Inactive Oracle");
+        if (!oracleInformation_.isActive) revert Inactive_Oracle();
 
         (, int256 tempRate,,,) = IChainLinkData(oracleInformation_.oracle).latestRoundData();
 

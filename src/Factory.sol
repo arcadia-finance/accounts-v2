@@ -11,6 +11,7 @@ import { ERC721 } from "../lib/solmate/src/tokens/ERC721.sol";
 import { Strings } from "./libraries/Strings.sol";
 import { MerkleProofLib } from "./libraries/MerkleProofLib.sol";
 import { FactoryGuardian } from "./guardians/FactoryGuardian.sol";
+import { FactoryErrors } from "./libraries/Errors.sol";
 
 /**
  * @title Factory.
@@ -50,8 +51,6 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
-    error Invalid_Account_Version();
-    error Account_Version_Blocked();
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
@@ -89,8 +88,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     {
         accountVersion = accountVersion == 0 ? latestAccountVersion : accountVersion;
 
-        if (accountVersion > latestAccountVersion) revert Invalid_Account_Version();
-        if (accountVersionBlocked[accountVersion]) revert Account_Version_Blocked();
+        if (accountVersion > latestAccountVersion) revert FactoryErrors.Invalid_Account_Version();
+        if (accountVersionBlocked[accountVersion]) revert FactoryErrors.Account_Version_Blocked();
 
         // Hash tx.origin with the user provided salt to avoid front-running Account deployment with an identical salt.
         // We use tx.origin instead of msg.sender so that deployments through a third party contract is not vulnerable to front-running.
@@ -136,15 +135,15 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * Merkle proofs and their leaves can be found on https://www.github.com/arcadia-finance.
      */
     function upgradeAccountVersion(address account, uint16 version, bytes32[] calldata proofs) external {
-        require(_ownerOf[accountIndex[account]] == msg.sender, "FTRY_UVV: Only Owner");
-        require(!accountVersionBlocked[version], "FTRY_UVV: Account version blocked");
+        if (_ownerOf[accountIndex[account]] != msg.sender) revert FactoryErrors.Only_Account_Owner();
+        if (accountVersionBlocked[version]) revert FactoryErrors.Account_Version_Blocked();
         uint256 currentVersion = IAccount(account).ACCOUNT_VERSION();
 
         bool canUpgrade = MerkleProofLib.verify(
             proofs, getAccountVersionRoot(), keccak256(abi.encodePacked(currentVersion, uint256(version)))
         );
 
-        require(canUpgrade, "FTR_UVV: Version not allowed");
+        if (!canUpgrade) revert FactoryErrors.Invalid_Upgrade();
 
         IAccount(account).upgradeAccount(
             accountDetails[version].logic, accountDetails[version].registry, version, accountDetails[version].data
@@ -231,14 +230,14 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         external
         onlyOwner
     {
-        require(versionRoot != bytes32(0), "FTRY_SNVI: version root is zero");
-        require(logic != address(0), "FTRY_SNVI: logic address is zero");
+        if (versionRoot == bytes32(0)) revert FactoryErrors.Version_Root_Is_Zero();
+        if (logic == address(0)) revert FactoryErrors.Logic_Is_Zero();
 
         unchecked {
             ++latestAccountVersion;
         }
 
-        require(IAccount(logic).ACCOUNT_VERSION() == latestAccountVersion, "FTRY_SNVI: version mismatch");
+        if (IAccount(logic).ACCOUNT_VERSION() != latestAccountVersion) revert FactoryErrors.Version_Mismatch();
 
         accountDetails[latestAccountVersion].registry = registry;
         accountDetails[latestAccountVersion].logic = logic;
@@ -255,7 +254,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * this function can be used to block it from being created for new Accounts.
      */
     function blockAccountVersion(uint256 version) external onlyOwner {
-        require(version > 0 && version <= latestAccountVersion, "FTRY_BVV: Invalid version");
+        if (version == 0 && version > latestAccountVersion) revert FactoryErrors.Invalid_Account_Version();
         accountVersionBlocked[version] = true;
 
         emit AccountVersionBlocked(uint16(version));
@@ -295,7 +294,6 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @return uri The token uri.
      */
     function tokenURI(uint256 tokenId) public view override returns (string memory uri) {
-        require(_ownerOf[tokenId] != address(0), "ERC721Metadata: URI query for nonexistent token");
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 }

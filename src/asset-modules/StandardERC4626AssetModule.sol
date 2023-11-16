@@ -23,6 +23,11 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+    error Underlying_Asset_Not_Allowed();
+
+    /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
@@ -43,7 +48,7 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
     function addAsset(address asset) external onlyOwner {
         address underlyingAsset = address(IERC4626(asset).asset());
 
-        require(IRegistry(REGISTRY).isAllowed(underlyingAsset, 0), "AM4626_AA: Underlying Asset not allowed");
+        if (!IRegistry(REGISTRY).isAllowed(underlyingAsset, 0)) revert Underlying_Asset_Not_Allowed();
         inAssetModule[asset] = true;
 
         bytes32[] memory underlyingAssets_ = new bytes32[](1);
