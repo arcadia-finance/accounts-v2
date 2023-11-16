@@ -254,7 +254,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * this function can be used to block it from being created for new Accounts.
      */
     function blockAccountVersion(uint256 version) external onlyOwner {
-        if (version == 0 && version > latestAccountVersion) revert FactoryErrors.Invalid_Account_Version();
+        if (version == 0 || version > latestAccountVersion) revert FactoryErrors.Invalid_Account_Version();
         accountVersionBlocked[version] = true;
 
         emit AccountVersionBlocked(uint16(version));

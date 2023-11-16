@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountV2 } from "../../../utils/mocks/AccountV2.sol";
 import { AccountVariableVersion } from "../../../utils/mocks/AccountVariableVersion.sol";
@@ -76,7 +76,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Should revert if the reentrancy guard is locked.
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A: REENTRANCY");
+        vm.expectRevert(AccountErrors.No_Reentry.selector);
         accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
     }
@@ -92,7 +92,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Should revert if not called by the Factory.
         vm.startPrank(nonFactory);
-        vm.expectRevert("A: Only Factory");
+        vm.expectRevert(AccountErrors.Only_Factory.selector);
         proxyAccount.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
     }
@@ -110,7 +110,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         creditorStable1.setCallResult(false);
 
         vm.startPrank(address(factory));
-        vm.expectRevert("A_UA: Invalid Account version");
+        vm.expectRevert(AccountErrors.Invalid_Account_Version.selector);
         proxyAccount.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
     }
@@ -138,7 +138,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
 
         vm.startPrank(address(factory));
-        vm.expectRevert("A_UA: Invalid Registry.");
+        vm.expectRevert(AccountErrors.Invalid_Registry.selector);
         proxyAccount.upgradeAccount(newImplementation, address(registry2), uint16(accountVersion), data);
         vm.stopPrank();
     }

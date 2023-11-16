@@ -9,6 +9,7 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { OracleModuleMock } from "../../../utils/mocks/OracleModuleMock.sol";
 
 import { PrimaryAssetModuleMock } from "../../../utils/mocks/PrimaryAssetModuleMock.sol";
+import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
 
 /**
  * @notice Common logic needed by all "AbstractPrimaryAssetModule" fuzz tests.

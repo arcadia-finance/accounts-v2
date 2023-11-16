@@ -15,6 +15,7 @@ import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.s
 import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2PairMock.sol";
 import { UniswapV2AssetModuleExtension } from "../../../utils/Extensions.sol";
 import { UniswapV2FactoryMock } from "../../../utils/mocks/UniswapV2FactoryMock.sol";
+import { UniswapV2AssetModule } from "../../../../src/asset-modules/UniswapV2AssetModule.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV2AssetModule" fuzz tests.

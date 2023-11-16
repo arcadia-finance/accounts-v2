@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { UniswapV3Fixture, UniswapV3AssetModule_Fuzz_Test } from "./_UniswapV3AssetModule.fuzz.t.sol";
+import { UniswapV3AssetModule_Fuzz_Test } from "./_UniswapV3AssetModule.fuzz.t.sol";
 
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { IUniswapV3PoolExtension } from
@@ -13,7 +13,6 @@ import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/librar
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/NonfungiblePositionManager.sol";
 import { RiskModule } from "../../../../src/RiskModule.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
-import { UniswapV3AssetModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts" of contract "UniswapV3AssetModule".

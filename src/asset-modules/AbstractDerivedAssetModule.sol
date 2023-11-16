@@ -500,7 +500,7 @@ abstract contract DerivedAssetModule is AssetModule {
             }
             // If (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset), call does not revert, but usdExposureProtocol is set to 0.
         }
-        if (usdExposureProtocol > riskParams[creditor].maxUsdExposureProtocol) {
+        if (usdExposureProtocol >= riskParams[creditor].maxUsdExposureProtocol) {
             revert AssetModule.Exposure_Not_In_Limits();
         }
         riskParams[creditor].lastUsdExposureProtocol = uint128(usdExposureProtocol);

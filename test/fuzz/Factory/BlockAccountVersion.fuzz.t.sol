@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "blockAccountVersion" of contract "Factory".
@@ -39,7 +39,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(accountVersion > currentVersion || accountVersion == 0);
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("FTRY_BVV: Invalid version");
+        vm.expectRevert(FactoryErrors.Invalid_Account_Version.selector);
         factory.blockAccountVersion(accountVersion);
         vm.stopPrank();
     }

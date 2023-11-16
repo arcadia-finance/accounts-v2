@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 import { RiskConstants } from "../../../src/libraries/RiskConstants.sol";
 
@@ -34,7 +34,7 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         vm.assume(unprivilegedAddress_ != users.riskManager);
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("MR_SRPPA: Not Authorized");
+        vm.expectRevert(RegistryErrors.Unauthorized.selector);
         registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );

@@ -4,12 +4,9 @@
  */
 pragma solidity 0.8.19;
 
-import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../lib/forge-std/src/Test.sol";
-
-import { RiskConstants } from "../../../src/libraries/RiskConstants.sol";
-import { RiskModule } from "../../../src/RiskModule.sol";
 
 /**
  * @notice Fuzz tests for the function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" of contract "Registry".
@@ -37,7 +34,7 @@ contract GetUsdValueExposureToUnderlyingAssetAfterWithdrawal_Registry_Fuzz_Test 
         vm.assume(!registryExtension.isAssetModule(unprivilegedAddress_));
 
         vm.prank(unprivilegedAddress_);
-        vm.expectRevert("MR: Only AssetMod.");
+        vm.expectRevert(RegistryErrors.Only_AssetModule.selector);
         registryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
             address(creditorUsd),
             underlyingAsset,

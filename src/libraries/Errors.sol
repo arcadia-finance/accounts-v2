@@ -4,49 +4,49 @@
  */
 pragma solidity 0.8.19;
 
-library Account {
-    error REENTRANCY();
-    error Only_Factory();
-    error Only_Owner();
-    error Only_Liquidator();
+library AccountErrors {
+    error Account_Not_Liquidatable();
+    error Account_Unhealthy();
+    error Action_Not_Allowed();
     error Already_Initialized();
-    error Invalid_Recipient();
-    error Invalid_Registry();
-    error Invalid_Account_Version();
+    error BaseCurrency_Not_Found();
     error Creditor_Already_Set();
     error Creditor_Not_Set();
-    error BaseCurrency_Not_Found();
-    error NonZero_Open_Position();
-    error Account_Not_Liquidatable();
-    error Action_Not_Allowed();
-    error Account_Unhealthy();
+    error Invalid_Account_Version();
     error Invalid_ERC20_Id();
     error Invalid_ERC721_Amount();
-    error Unknown_Asset_Type();
+    error Invalid_Recipient();
+    error Invalid_Registry();
+    error No_Fallback();
+    error No_Reentry();
+    error NonZero_Open_Position();
+    error Only_Factory();
+    error Only_Liquidator();
+    error Only_Owner();
     error Too_Many_Assets();
     error Unknown_Asset();
-    error No_Fallback();
+    error Unknown_Asset_Type();
 }
 
 library FactoryErrors {
-    error Invalid_Account_Version();
     error Account_Version_Blocked();
-    error Only_Account_Owner();
+    error Invalid_Account_Version();
     error Invalid_Upgrade();
-    error Version_Root_Is_Zero();
     error Logic_Is_Zero();
+    error Only_Account_Owner();
     error Version_Mismatch();
+    error Version_Root_Is_Zero();
 }
 
 library RegistryErrors {
-    error Only_AssetModule();
-    error Only_OracleModule();
-    error Only_Account();
     error AssetMod_Not_Unique();
-    error OracleMod_Not_Unique();
     error Asset_Already_In_Registry();
     error Invalid_AssetType();
-    error Min_1_Oracle();
-    error Unauthorized();
     error Length_Mismatch();
+    error Min_1_Oracle();
+    error Only_Account();
+    error Only_AssetModule();
+    error Only_OracleModule();
+    error OracleMod_Not_Unique();
+    error Unauthorized();
 }

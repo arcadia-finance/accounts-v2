@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { UniswapV2AssetModule_Fuzz_Test } from "./_UniswapV2AssetModule.fuzz.t.sol";
+import { UniswapV2AssetModule_Fuzz_Test, UniswapV2AssetModule } from "./_UniswapV2AssetModule.fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
@@ -25,7 +25,7 @@ contract GetTrustedTokenAmounts_UniswapV2AssetModule_Fuzz_Test is UniswapV2Asset
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_getTrustedTokenAmounts_ZeroTotalSupply(uint256 priceToken0, uint256 priceToken1) public {
-        vm.expectRevert("UV2_GTTA: ZERO_SUPPLY");
+        vm.expectRevert(UniswapV2AssetModule.Zero_Supply.selector);
         uniswapV2AssetModule.getTrustedTokenAmounts(address(pairToken1Token2), priceToken0, priceToken1, 0);
     }
 

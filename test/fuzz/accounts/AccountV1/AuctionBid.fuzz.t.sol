@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 
@@ -34,7 +34,7 @@ contract AuctionBid_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(nonLiquidator != accountExtension.liquidator());
 
         vm.prank(nonLiquidator);
-        vm.expectRevert("A: Only Liquidator");
+        vm.expectRevert(AccountErrors.Only_Liquidator.selector);
         accountExtension.auctionBid(assetAddresses, assetIds, assetAmounts, bidder);
     }
 

@@ -4,13 +4,14 @@
  */
 pragma solidity 0.8.19;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { AccountExtension } from "../../../utils/Extensions.sol";
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "withdraw" of contract "AccountV1".
@@ -40,7 +41,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.prank(nonOwner);
-        vm.expectRevert("A: Only Owner");
+        vm.expectRevert(AccountErrors.Only_Owner.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
     }
 
@@ -63,7 +64,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         }
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("MR_BPW: LENGTH_MISMATCH");
+        vm.expectRevert(RegistryErrors.Length_Mismatch.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -82,7 +83,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_W: ERC20 Id");
+        vm.expectRevert(AccountErrors.Invalid_ERC20_Id.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -100,7 +101,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_W: ERC721 amount");
+        vm.expectRevert(AccountErrors.Invalid_ERC721_Amount.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -120,7 +121,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = 1;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_W: Unknown asset type");
+        vm.expectRevert(AccountErrors.Unknown_Asset_Type.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -173,10 +174,10 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         mockERC721.nft1.safeTransferFrom(users.accountOwner, address(accountExtension), 101);
 
         // When: "accountOwner" withdraws the second nft.
-        // Then: Transaction should revert with "A_W721: Unknown asset".
+        // Then: Transaction should revert with AccountErrors.Unknown_Asset.selector.
         assetIds[0] = 101;
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_W721: Unknown asset");
+        vm.expectRevert(AccountErrors.Unknown_Asset.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -226,7 +227,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         mockERC721.nft1.safeTransferFrom(users.accountOwner, address(accountExtension), 101);
 
         // When: "accountOwner" withdraws the wrongly transferred nft.
-        // Then: Transaction should revert with "A_W721: Unknown asset".
+        // Then: Transaction should revert with AccountErrors.Unknown_Asset.selector.
         assetAddresses = new address[](1);
         assetIds = new uint256[](1);
         assetAmounts = new uint256[](1);
@@ -234,7 +235,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetIds[0] = 101;
         assetAmounts[0] = 1;
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_W721: Unknown asset");
+        vm.expectRevert(AccountErrors.Unknown_Asset.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -272,7 +273,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
 
         // When: "accountOwner" withdraws assets.
-        // Then: Transaction should revert with "A_W721: Unknown asset".
+        // Then: Transaction should revert with AccountErrors.Unknown_Asset.selector.
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.stable1);
         uint256[] memory assetIds = new uint256[](1);
@@ -280,7 +281,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = collateralValueDecrease;
         vm.prank(users.accountOwner);
-        vm.expectRevert("A_W: Account Unhealthy");
+        vm.expectRevert(AccountErrors.Account_Unhealthy.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
     }
 

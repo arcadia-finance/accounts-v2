@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AbstractPrimaryAssetModule_Fuzz_Test } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
+import { AbstractPrimaryAssetModule_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processIndirectWithdrawal" of contract "AbstractPrimaryAssetModule".
@@ -34,9 +34,9 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly withdrawn.
-        // Then: The transaction reverts with "AAM: ONLY_REGISTRY".
+        // Then: The transaction reverts with AssetModule.Only_Registry.selector.
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_REGISTRY");
+        vm.expectRevert(AssetModule.Only_Registry.selector);
         assetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
@@ -67,9 +67,9 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly withdrawn.
-        // Then: The transaction reverts with "APAM_PIW: Overflow".
+        // Then: The transaction reverts with "Overflow".
         vm.startPrank(address(registryExtension));
-        vm.expectRevert("APAM_PIW: Overflow");
+        vm.expectRevert(AssetModule.Overflow.selector);
         assetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,

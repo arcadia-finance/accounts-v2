@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 import { ICreditor } from "../../../../src/interfaces/ICreditor.sol";
@@ -48,7 +48,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Should revert if the reentrancy guard is locked.
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A: REENTRANCY");
+        vm.expectRevert(AccountErrors.No_Reentry.selector);
         accountExtension.startLiquidation();
         vm.stopPrank();
     }
@@ -100,7 +100,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then : Account should not be liquidatable as openDebt > 0 and liquidationValue > usedMargin
         vm.startPrank(accountExtension2.liquidator());
-        vm.expectRevert("A_CASL: Account not liquidatable");
+        vm.expectRevert(AccountErrors.Account_Not_Liquidatable.selector);
         accountExtension2.startLiquidation();
         vm.stopPrank();
     }
@@ -123,7 +123,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then : Account should not be liquidatable as openDebt == 0
         vm.startPrank(accountExtension2.liquidator());
-        vm.expectRevert("A_CASL: Account not liquidatable");
+        vm.expectRevert(AccountErrors.Account_Not_Liquidatable.selector);
         accountExtension2.startLiquidation();
         vm.stopPrank();
     }

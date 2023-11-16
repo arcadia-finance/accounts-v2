@@ -4,10 +4,11 @@
  */
 pragma solidity 0.8.19;
 
-import { UniswapV2AssetModule_Fuzz_Test } from "./_UniswapV2AssetModule.fuzz.t.sol";
+import { UniswapV2AssetModule_Fuzz_Test, UniswapV2AssetModule } from "./_UniswapV2AssetModule.fuzz.t.sol";
 
 import { UniswapV2PairMalicious } from "../../../utils/mocks/UniswapV2PairMalicious.sol";
 import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2PairMock.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "UniswapV2AssetModule".
@@ -27,12 +28,12 @@ contract AddAsset_UniswapV2AssetModule_Fuzz_Test is UniswapV2AssetModule_Fuzz_Te
     function testFuzz_Revert_addAsset_NonPool(address token0, address token1) public {
         UniswapV2PairMalicious pool = new UniswapV2PairMalicious(token0, token1);
 
-        vm.expectRevert("AMUV2_AA: Not a Pool");
+        vm.expectRevert(UniswapV2AssetModule.Not_A_Pool.selector);
         uniswapV2AssetModule.addAsset(address(pool));
     }
 
     function testFuzz_Revert_addAsset_Token0NotAllowed() public {
-        vm.expectRevert("AMUV2_AA: Token0 not Allowed");
+        vm.expectRevert(UniswapV2AssetModule.Token0_Not_Allowed.selector);
         uniswapV2AssetModule.addAsset(address(pairToken1Token3));
     }
 
@@ -40,14 +41,14 @@ contract AddAsset_UniswapV2AssetModule_Fuzz_Test is UniswapV2AssetModule_Fuzz_Te
         UniswapV2PairMock pairToken1Token4 =
             UniswapV2PairMock(uniswapV2Factory.createPair(address(mockERC20.token1), address(mockERC20.token4)));
 
-        vm.expectRevert("AMUV2_AA: Token1 not Allowed");
+        vm.expectRevert(UniswapV2AssetModule.Token1_Not_Allowed.selector);
         uniswapV2AssetModule.addAsset(address(pairToken1Token4));
     }
 
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         uniswapV2AssetModule.addAsset(address(pairToken1Token2));
 
-        vm.expectRevert("MR_AA: Asset already in registry");
+        vm.expectRevert(RegistryErrors.Asset_Already_In_Registry.selector);
         uniswapV2AssetModule.addAsset(address(pairToken1Token2));
     }
 

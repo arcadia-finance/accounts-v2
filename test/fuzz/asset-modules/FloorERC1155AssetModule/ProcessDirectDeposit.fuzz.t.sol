@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { FloorERC1155AssetModule_Fuzz_Test } from "./_FloorERC1155AssetModule.fuzz.t.sol";
+import { FloorERC1155AssetModule_Fuzz_Test, AssetModule } from "./_FloorERC1155AssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processDirectDeposit" of contract "FloorERC1155AssetModule".
@@ -32,7 +32,7 @@ contract ProcessDirectDeposit_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155A
         vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_REGISTRY");
+        vm.expectRevert(AssetModule.Only_Registry.selector);
         floorERC1155AssetModule.processDirectDeposit(address(creditorUsd), address(mockERC1155.sft2), 1, amount);
         vm.stopPrank();
     }
@@ -48,7 +48,7 @@ contract ProcessDirectDeposit_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155A
         );
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert("APAM_PDD: Exposure not in limits");
+        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
         floorERC1155AssetModule.processDirectDeposit(address(creditorUsd), address(mockERC1155.sft2), 1, amount);
         vm.stopPrank();
     }
@@ -59,7 +59,7 @@ contract ProcessDirectDeposit_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155A
         floorERC1155AssetModule.addAsset(address(mockERC1155.sft2), 0, oraclesSft2ToUsd);
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert("AM1155_PDD: Asset not allowed");
+        vm.expectRevert(AssetModule.Asset_Not_Allowed.selector);
         floorERC1155AssetModule.processDirectDeposit(address(creditorUsd), address(mockERC1155.sft2), assetId, amount);
         vm.stopPrank();
 

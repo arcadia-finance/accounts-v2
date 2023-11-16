@@ -9,7 +9,6 @@ import { UniswapV2AssetModule_Fuzz_Test } from "./_UniswapV2AssetModule.fuzz.t.s
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
-import { IAssetModule } from "../../../../src/interfaces/IAssetModule.sol";
 import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
 import { RiskModule } from "../../../../src/RiskModule.sol";
 

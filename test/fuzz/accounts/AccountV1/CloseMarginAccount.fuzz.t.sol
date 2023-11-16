@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "closeMarginAccount" of contract "AccountV1".
@@ -29,14 +29,14 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.startPrank(nonOwner);
-        vm.expectRevert("A: Only Owner");
+        vm.expectRevert(AccountErrors.Only_Owner.selector);
         proxyAccount.closeMarginAccount();
         vm.stopPrank();
     }
 
     function testFuzz_Revert_closeMarginAccount_NonSetMarginAccount() public {
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_CMA: NOT SET");
+        vm.expectRevert(AccountErrors.Creditor_Not_Set.selector);
         proxyAccount.closeMarginAccount();
         vm.stopPrank();
     }
@@ -50,7 +50,7 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         creditorStable1.setOpenPosition(address(proxyAccount), debt_);
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_CMA: NON-ZERO OPEN POSITION");
+        vm.expectRevert(AccountErrors.NonZero_Open_Position.selector);
         proxyAccount.closeMarginAccount();
         vm.stopPrank();
     }

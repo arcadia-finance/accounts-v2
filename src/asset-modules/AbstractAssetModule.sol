@@ -37,18 +37,19 @@ abstract contract AssetModule is Owned, IAssetModule {
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
-    error Only_Registry();
-    error Risk_Factor_Not_In_Limits();
-    error Overflow();
-    error Oracle_Still_Active();
+    error Asset_Already_In_AM();
+    error Asset_Not_Allowed();
     error Bad_Oracle_Sequence();
     error Coll_Factor_Not_In_Limits();
-    error Liq_Factor_Not_In_Limits();
     error Exposure_Not_In_Limits();
-    error Invalid_Range();
     error Invalid_Id();
-    error Asset_Not_Allowed();
-    error Asset_Already_In_AM();
+    error Invalid_Range();
+    error Liq_Factor_Not_In_Limits();
+    error Oracle_Still_Active();
+    error Overflow();
+    error Only_Registry();
+    error Risk_Factor_Not_In_Limits();
+
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */

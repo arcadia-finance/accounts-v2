@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { FloorERC721AssetModule_Fuzz_Test } from "./_FloorERC721AssetModule.fuzz.t.sol";
+import { FloorERC721AssetModule_Fuzz_Test, AssetModule } from "./_FloorERC721AssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processIndirectDeposit" of contract "FloorERC721AssetModule".
@@ -32,7 +32,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_REGISTRY");
+        vm.expectRevert(AssetModule.Only_Registry.selector);
         floorERC721AssetModule.processIndirectDeposit(address(creditorUsd), address(mockERC721.nft2), assetId, 0, 0);
         vm.stopPrank();
     }
@@ -45,7 +45,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC721.nft2), 0, 1, 0, 0);
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert("AM721_PID: Asset not allowed");
+        vm.expectRevert(AssetModule.Asset_Not_Allowed.selector);
         floorERC721AssetModule.processIndirectDeposit(address(creditorUsd), address(mockERC721.nft2), assetId, 0, 0);
         vm.stopPrank();
 
@@ -63,7 +63,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         vm.startPrank(address(registryExtension));
         floorERC721AssetModule.processIndirectDeposit(address(creditorUsd), address(mockERC721.nft2), assetId, 1, 1);
 
-        vm.expectRevert("APAM_PID: Exposure not in limits");
+        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
         floorERC721AssetModule.processIndirectDeposit(address(creditorUsd), address(mockERC721.nft2), assetId, 1, 1);
         vm.stopPrank();
     }

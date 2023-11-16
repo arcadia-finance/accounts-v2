@@ -49,7 +49,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
 
         bytes memory callData = abi.encode(assetData, assetData, permit, fromOwner, to, data);
 
-        vm.expectRevert("EA: Length mismatch");
+        vm.expectRevert(Length_Mismatch.selector);
         action.executeAction(callData);
     }
 

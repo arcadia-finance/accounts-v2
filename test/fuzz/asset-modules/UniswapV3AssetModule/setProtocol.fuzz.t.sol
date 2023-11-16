@@ -4,9 +4,11 @@
  */
 pragma solidity 0.8.19;
 
-import { UniswapV3Fixture, UniswapV3AssetModule_Fuzz_Test } from "./_UniswapV3AssetModule.fuzz.t.sol";
+import { UniswapV3AssetModule_Fuzz_Test } from "./_UniswapV3AssetModule.fuzz.t.sol";
 
 import { UniswapV3AssetModuleExtension } from "../../../utils/Extensions.sol";
+
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "setProtocol" of contract "UniswapV3AssetModule".
@@ -40,14 +42,14 @@ contract SetProtocol_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz
             new UniswapV3AssetModuleExtension(address(registryExtension), address(nonfungiblePositionManager));
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("MR: Only AssetMod.");
+        vm.expectRevert(RegistryErrors.Only_AssetModule.selector);
         uniV3AssetModule.setProtocol();
         vm.stopPrank();
     }
 
     function testFuzz_Revert_setProtocol_OverwriteExistingProtocol() public {
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("MR_AA: Asset already in registry");
+        vm.expectRevert(RegistryErrors.Asset_Already_In_Registry.selector);
         uniV3AssetModule.setProtocol();
         vm.stopPrank();
     }

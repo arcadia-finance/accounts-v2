@@ -37,11 +37,8 @@ contract ChainlinkOracleModule is OracleModule {
     }
 
     /* //////////////////////////////////////////////////////////////
-                                CONSTRUCTOR
+                                ERRORS
     ////////////////////////////////////////////////////////////// */
-    error Oracle_Already_Added();
-    error Max_18_Decimals();
-    error Inactive_Oracle();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR

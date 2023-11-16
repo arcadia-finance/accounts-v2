@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension } from "../../../utils/Extensions.sol";
 
@@ -32,14 +32,14 @@ contract Initialize_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_initialize_InvalidReg() public {
-        vm.expectRevert("A_I: Registry cannot be 0!");
+        vm.expectRevert(AccountErrors.Invalid_Registry.selector);
         accountNotInitialised.initialize(users.accountOwner, address(0), address(0), address(0));
     }
 
     function testFuzz_Revert_initialize_AlreadyInitialized() public {
         accountNotInitialised.initialize(users.accountOwner, address(registryExtension), address(0), address(0));
 
-        vm.expectRevert("A_I: Already initialized!");
+        vm.expectRevert(AccountErrors.Already_Initialized.selector);
         accountNotInitialised.initialize(users.accountOwner, address(registryExtension), address(0), address(0));
     }
 
