@@ -32,8 +32,6 @@ abstract contract FactoryGuardian is BaseGuardian {
     //////////////////////////////////////////////////////////////
     */
 
-    error FunctionIsPaused();
-
     /*
     //////////////////////////////////////////////////////////////
                             MODIFIERS
@@ -45,7 +43,7 @@ abstract contract FactoryGuardian is BaseGuardian {
      * It throws if create Account is paused.
      */
     modifier whenCreateNotPaused() {
-        if (createPaused) revert FunctionIsPaused();
+        if (createPaused) revert Function_Is_Paused();
         _;
     }
 
@@ -63,7 +61,7 @@ abstract contract FactoryGuardian is BaseGuardian {
      * @inheritdoc BaseGuardian
      */
     function pause() external override onlyGuardian {
-        require(block.timestamp > pauseTimestamp + 32 days, "G_P: Cannot pause");
+        if (block.timestamp <= pauseTimestamp + 32 days) revert Cannot_Pause();
         createPaused = true;
         pauseTimestamp = block.timestamp;
 
@@ -87,7 +85,7 @@ abstract contract FactoryGuardian is BaseGuardian {
      * @inheritdoc BaseGuardian
      */
     function unPause() external override {
-        require(block.timestamp > pauseTimestamp + 30 days, "G_UP: Cannot unPause");
+        if (block.timestamp <= pauseTimestamp + 30 days) revert Cannot_UnPause();
         createPaused = false;
 
         emit PauseUpdate(false);

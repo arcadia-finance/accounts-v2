@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AbstractPrimaryAssetModule_Fuzz_Test } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
+import { AbstractPrimaryAssetModule_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
 
 import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
 
@@ -35,7 +35,7 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_REGISTRY");
+        vm.expectRevert(AssetModule.Only_Registry.selector);
         assetModule.setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
         vm.stopPrank();
     }
@@ -51,7 +51,7 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         collateralFactor = uint16(bound(collateralFactor, RiskConstants.RISK_FACTOR_UNIT + 1, type(uint16).max));
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert("APAM_SRP: Coll.Fact not in limits");
+        vm.expectRevert(AssetModule.Coll_Factor_Not_In_Limits.selector);
         assetModule.setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
         vm.stopPrank();
     }
@@ -68,7 +68,7 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         liquidationFactor = uint16(bound(liquidationFactor, RiskConstants.RISK_FACTOR_UNIT + 1, type(uint16).max));
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert("APAM_SRP: Liq.Fact not in limits");
+        vm.expectRevert(AssetModule.Liq_Factor_Not_In_Limits.selector);
         assetModule.setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
         vm.stopPrank();
     }

@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AbstractPrimaryAssetModule_Fuzz_Test } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
+import { AbstractPrimaryAssetModule_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processDirectWithdrawal" of contract "AbstractPrimaryAssetModule".
@@ -33,9 +33,9 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstrac
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is withdrawn.
-        // Then: The transaction reverts with "AAM: ONLY_REGISTRY".
+        // Then: The transaction reverts with AssetModule.Only_Registry.selector.
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_REGISTRY");
+        vm.expectRevert(AssetModule.Only_Registry.selector);
         assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }

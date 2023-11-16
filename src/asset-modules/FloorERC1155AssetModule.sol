@@ -16,6 +16,10 @@ import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
  */
 contract FloorERC1155AssetModule is PrimaryAssetModule {
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
@@ -39,16 +43,14 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
     function addAsset(address asset, uint256 assetId, bytes32 oracleSequence) external onlyOwner {
         if (inAssetModule[asset]) {
             // Contract address already added -> must be a new Id.
-            require(
-                assetToInformation[_getKeyFromAsset(asset, assetId)].assetUnit == 0, "AM1155_AA: Asset already in PM"
-            );
+            if (assetToInformation[_getKeyFromAsset(asset, assetId)].assetUnit != 0) revert Asset_Already_In_AM();
         } else {
             // New contract address.
             IRegistry(REGISTRY).addAsset(asset, ASSET_TYPE);
             inAssetModule[asset] = true;
         }
-        require(assetId <= type(uint96).max, "AM1155_AA: Invalid Id");
-        require(IRegistry(REGISTRY).checkOracleSequence(oracleSequence), "AM1155_AA: Bad Sequence");
+        if (assetId > type(uint96).max) revert Invalid_Id();
+        if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert Bad_Oracle_Sequence();
 
         // Unit for ERC1155 is 1 (standard ERC1155s don't have decimals).
         assetToInformation[_getKeyFromAsset(asset, assetId)] =
@@ -87,7 +89,7 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
         override
         onlyRegistry
     {
-        require(isAllowed(asset, assetId), "AM1155_PDD: Asset not allowed");
+        if (!isAllowed(asset, assetId)) revert Asset_Not_Allowed();
 
         super.processDirectDeposit(creditor, asset, assetId, amount);
     }
@@ -109,7 +111,7 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
-        require(isAllowed(asset, assetId), "AM1155_PID: Asset not allowed");
+        if (!isAllowed(asset, assetId)) revert Asset_Not_Allowed();
 
         (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset

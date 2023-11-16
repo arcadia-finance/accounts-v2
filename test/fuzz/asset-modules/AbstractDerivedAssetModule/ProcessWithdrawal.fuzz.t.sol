@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AbstractDerivedAssetModule_Fuzz_Test } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
+import { AbstractDerivedAssetModule_Fuzz_Test, AssetModule } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "_processWithdrawal" of contract "AbstractDerivedAssetModule".
@@ -54,9 +54,9 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // When: "_processWithdrawal" is called.
-        // Then: The transaction reverts with "ADAM_PW: Overflow".
+        // Then: The transaction reverts with "Overflow".
         bytes32 assetKey = derivedAssetModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        vm.expectRevert("ADAM_PW: Overflow");
+        vm.expectRevert(AssetModule.Overflow.selector);
         derivedAssetModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
     }
 

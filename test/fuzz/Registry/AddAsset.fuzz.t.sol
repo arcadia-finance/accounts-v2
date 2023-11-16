@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "Registry".
@@ -28,8 +28,8 @@ contract AddAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.assume(unprivilegedAddress_ != address(floorERC1155AssetModule));
         vm.startPrank(unprivilegedAddress_);
         // When: unprivilegedAddress_ calls addAsset
-        // Then: addAsset should revert with "MR: Only AssetMod."
-        vm.expectRevert("MR: Only AssetMod.");
+        // Then: addAsset should revert with RegistryErrors.Only_AssetModule.selector
+        vm.expectRevert(RegistryErrors.Only_AssetModule.selector);
         registryExtension.addAsset(asset, 0);
         vm.stopPrank();
     }
@@ -39,8 +39,8 @@ contract AddAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.startPrank(address(floorERC721AssetModule));
         // When: floorERC721AssetModule calls addAsset
-        // Then: addAsset should revert with "MR_AA: Asset already in registry"
-        vm.expectRevert("MR_AA: Asset already in registry");
+        // Then: addAsset should revert with RegistryErrors.Asset_Already_In_Registry.selector
+        vm.expectRevert(RegistryErrors.Asset_Already_In_Registry.selector);
         registryExtension.addAsset(address(mockERC20.token1), 0);
         vm.stopPrank();
     }
@@ -52,7 +52,7 @@ contract AddAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // When: erc20AssetModule calls addAsset with assetType greater than uint96.max
         // Then: addAsset should revert with "MR_AA: Invalid AssetType"
         vm.startPrank(address(erc20AssetModule));
-        vm.expectRevert("MR_AA: Invalid AssetType");
+        vm.expectRevert(RegistryErrors.Invalid_AssetType.selector);
         registryExtension.addAsset(newAsset, assetType);
         vm.stopPrank();
     }

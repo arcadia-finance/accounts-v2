@@ -4,7 +4,8 @@
  */
 pragma solidity 0.8.19;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "deposit" of contract "AccountV1".
@@ -34,7 +35,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.prank(nonOwner);
-        vm.expectRevert("A: Only Owner");
+        vm.expectRevert(AccountErrors.Only_Owner.selector);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
@@ -52,7 +53,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         approveAllAssets();
 
         vm.prank(users.accountOwner);
-        vm.expectRevert("A_D: Too many assets");
+        vm.expectRevert(AccountErrors.Too_Many_Assets.selector);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
@@ -75,7 +76,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         approveAllAssets();
 
         vm.prank(users.accountOwner);
-        vm.expectRevert("A_D: Too many assets");
+        vm.expectRevert(AccountErrors.Too_Many_Assets.selector);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
@@ -102,7 +103,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         }
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("MR_BPD: LENGTH_MISMATCH");
+        vm.expectRevert(RegistryErrors.Length_Mismatch.selector);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -122,7 +123,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_D: ERC20 Id");
+        vm.expectRevert(AccountErrors.Invalid_ERC20_Id.selector);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -140,7 +141,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_D: ERC721 amount");
+        vm.expectRevert(AccountErrors.Invalid_ERC721_Amount.selector);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -183,7 +184,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = 1;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_D: Unknown asset type");
+        vm.expectRevert(AccountErrors.Unknown_Asset_Type.selector);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }

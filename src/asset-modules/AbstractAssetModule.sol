@@ -4,7 +4,6 @@
  */
 pragma solidity 0.8.19;
 
-import { IRegistry } from "./interfaces/IRegistry.sol";
 import { IAssetModule } from "../interfaces/IAssetModule.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 
@@ -36,6 +35,22 @@ abstract contract AssetModule is Owned, IAssetModule {
     mapping(address => bool) public inAssetModule;
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+    error Asset_Already_In_AM();
+    error Asset_Not_Allowed();
+    error Bad_Oracle_Sequence();
+    error Coll_Factor_Not_In_Limits();
+    error Exposure_Not_In_Limits();
+    error Invalid_Id();
+    error Invalid_Range();
+    error Liq_Factor_Not_In_Limits();
+    error Oracle_Still_Active();
+    error Overflow();
+    error Only_Registry();
+    error Risk_Factor_Not_In_Limits();
+
+    /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
@@ -47,7 +62,7 @@ abstract contract AssetModule is Owned, IAssetModule {
      * @dev Only the Registry can call functions with this modifier.
      */
     modifier onlyRegistry() {
-        require(msg.sender == REGISTRY, "AAM: ONLY_REGISTRY");
+        if (msg.sender != REGISTRY) revert Only_Registry();
         _;
     }
 
@@ -125,8 +140,8 @@ abstract contract AssetModule is Owned, IAssetModule {
      * @param assetId The Id of the asset.
      * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 4 decimals precision.
      */
     function getValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
         public
@@ -143,8 +158,8 @@ abstract contract AssetModule is Owned, IAssetModule {
      * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @return collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for the creditor, 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the creditor, 4 decimals precision.
      */
     function getRiskFactors(address creditor, address asset, uint256 assetId)
         external

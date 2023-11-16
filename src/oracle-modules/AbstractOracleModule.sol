@@ -36,6 +36,13 @@ abstract contract OracleModule is Owned {
         // Label for the quote asset.
         bytes16 quoteAsset;
     }
+    /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    error Inactive_Oracle();
+    error Max_18_Decimals();
+    error Oracle_Already_Added();
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS

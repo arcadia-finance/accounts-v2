@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "addOracleModule" of contract "Registry".
@@ -42,7 +42,7 @@ contract AddOracleModule_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // When: users.creatorAddress calls addOracleModule for oracleModule.
         // Then: addOracleModule should revert with "MR_APM: OracleMod. not unique"
         vm.prank(users.creatorAddress);
-        vm.expectRevert("MR_AOM: OracleMod. not unique");
+        vm.expectRevert(RegistryErrors.OracleMod_Not_Unique.selector);
         registryExtension.addOracleModule(oracleModule_);
     }
 

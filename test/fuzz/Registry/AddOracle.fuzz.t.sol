@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "addOracle" of contract "Registry".
@@ -25,7 +25,7 @@ contract AddOracle_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.assume(!registryExtension.isOracleModule(unprivilegedAddress_));
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("MR: Only OracleMod.");
+        vm.expectRevert(RegistryErrors.Only_OracleModule.selector);
         registryExtension.addOracle();
     }
 

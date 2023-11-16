@@ -46,7 +46,7 @@ abstract contract DerivedAssetModule is AssetModule {
         uint128 lastUsdExposureProtocol;
         // The maximum exposure in usd of the creditor to the protocol, 18 decimals precision.
         uint128 maxUsdExposureProtocol;
-        // The risk factor of the protocol for a creditor, 2 decimals precision.
+        // The risk factor of the protocol for a creditor, 4 decimals precision.
         uint16 riskFactor;
     }
 
@@ -57,6 +57,10 @@ abstract contract DerivedAssetModule is AssetModule {
         // The exposure in usd of the creditor to the asset at the last interaction, 18 decimals precision.
         uint128 lastUsdExposureAsset;
     }
+
+    /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
@@ -154,8 +158,8 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @return collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for the creditor, 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the creditor, 4 decimals precision.
      */
     function getRiskFactors(address creditor, address asset, uint256 assetId)
         external
@@ -212,13 +216,13 @@ abstract contract DerivedAssetModule is AssetModule {
      * @notice Sets the risk parameters of the Protocol for a given creditor.
      * @param creditor The contract address of the creditor.
      * @param maxUsdExposureProtocol_ The maximum usd exposure of the protocol for each creditor, denominated in USD with 18 decimals precision.
-     * @param riskFactor The risk factor of the asset for the creditor, 2 decimals precision.
+     * @param riskFactor The risk factor of the asset for the creditor, 4 decimals precision.
      */
     function setRiskParameters(address creditor, uint128 maxUsdExposureProtocol_, uint16 riskFactor)
         external
         onlyRegistry
     {
-        require(riskFactor <= RiskConstants.RISK_FACTOR_UNIT, "ADAM_SRP: Risk Fact not in limits");
+        if (riskFactor > RiskConstants.RISK_FACTOR_UNIT) revert AssetModule.Risk_Factor_Not_In_Limits();
 
         riskParams[creditor].maxUsdExposureProtocol = maxUsdExposureProtocol_;
         riskParams[creditor].riskFactor = riskFactor;
@@ -235,8 +239,8 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param assetId The Id of the asset.
      * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 4 decimals precision.
      */
     function getValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
         public
@@ -269,8 +273,8 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @param rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 4 decimals precision.
      * @dev We take the most conservative (lowest) risk factor of all underlying assets.
      */
     function _calculateValueAndRiskFactors(
@@ -496,7 +500,9 @@ abstract contract DerivedAssetModule is AssetModule {
             }
             // If (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset), call does not revert, but usdExposureProtocol is set to 0.
         }
-        require(usdExposureProtocol < riskParams[creditor].maxUsdExposureProtocol, "ADAM_PD: Exposure not in limits");
+        if (usdExposureProtocol >= riskParams[creditor].maxUsdExposureProtocol) {
+            revert AssetModule.Exposure_Not_In_Limits();
+        }
         riskParams[creditor].lastUsdExposureProtocol = uint128(usdExposureProtocol);
     }
 
@@ -560,7 +566,7 @@ abstract contract DerivedAssetModule is AssetModule {
         unchecked {
             if (usdExposureAsset >= lastUsdExposureAsset) {
                 usdExposureProtocol = lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset);
-                require(usdExposureProtocol <= type(uint128).max, "ADAM_PW: Overflow");
+                if (usdExposureProtocol > type(uint128).max) revert Overflow();
             } else if (lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset) {
                 usdExposureProtocol = lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset);
             }

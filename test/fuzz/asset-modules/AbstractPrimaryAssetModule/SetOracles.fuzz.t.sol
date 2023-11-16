@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AbstractPrimaryAssetModule_Fuzz_Test } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
+import { AbstractPrimaryAssetModule_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { OracleModuleMock } from "../../../utils/mocks/OracleModuleMock.sol";
@@ -104,7 +104,7 @@ contract CheckOracleSequence_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPri
         assetModule.setAssetInformation(asset, assetId, 0, oracleSequenceOld);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("APAM_SO: Oracle still active");
+        vm.expectRevert(AssetModule.Oracle_Still_Active.selector);
         assetModule.setOracles(asset, assetId, oracleSequenceNew);
     }
 
@@ -172,7 +172,7 @@ contract CheckOracleSequence_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPri
         bytes32 oracleSequenceNew = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("APAM_SO: Bad sequence");
+        vm.expectRevert(AssetModule.Bad_Oracle_Sequence.selector);
         assetModule.setOracles(asset, assetId, oracleSequenceNew);
     }
 

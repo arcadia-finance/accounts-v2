@@ -11,6 +11,7 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { AccountExtension } from "../../../utils/Extensions.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { MultiActionMock } from "../../../utils/mocks/MultiActionMock.sol";
+import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Common logic needed by all "AccountV1" fuzz tests.

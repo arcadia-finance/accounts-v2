@@ -42,9 +42,9 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint128 lastExposureAsset;
         // The maximum exposure of a creditor to an asset.
         uint128 maxExposure;
-        // The collateral factor of the asset for the creditor, 2 decimals precision.
+        // The collateral factor of the asset for the creditor, 4 decimals precision.
         uint16 collateralFactor;
-        // The liquidation factor of the asset for the creditor, 2 decimals precision.
+        // The liquidation factor of the asset for the creditor, 4 decimals precision.
         uint16 liquidationFactor;
     }
 
@@ -55,6 +55,10 @@ abstract contract PrimaryAssetModule is AssetModule {
         // The sequence of the oracles to price a the asset in USD, packed in a single bytes32 object.
         bytes32 oracleSequence;
     }
+
+    /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
@@ -91,10 +95,10 @@ abstract contract PrimaryAssetModule is AssetModule {
 
         // Old oracles must be decommissioned before a new sequence can be set.
         bytes32 oldOracles = assetToInformation[assetKey].oracleSequence;
-        require(!IRegistry(REGISTRY).checkOracleSequence(oldOracles), "APAM_SO: Oracle still active");
+        if (IRegistry(REGISTRY).checkOracleSequence(oldOracles)) revert Oracle_Still_Active();
 
         // The new oracle sequence must be correct.
-        require(IRegistry(REGISTRY).checkOracleSequence(newOracles), "APAM_SO: Bad sequence");
+        if (!IRegistry(REGISTRY).checkOracleSequence(newOracles)) revert Bad_Oracle_Sequence();
 
         assetToInformation[assetKey].oracleSequence = newOracles;
     }
@@ -110,8 +114,8 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param assetId The Id of the asset.
      * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given creditor, with 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given creditor, with 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 4 decimals precision.
      * @dev If the asset is not added to AssetModule, this function will return value 0 without throwing an error.
      * However no check in StandardERC20AssetModule is necessary, since the check if the asset is added to the AssetModule
      * is already done in the Registry.
@@ -141,8 +145,8 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @return collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for the creditor, 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the creditor, 4 decimals precision.
      */
     function getRiskFactors(address creditor, address asset, uint256 assetId)
         external
@@ -161,8 +165,8 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param maxExposure The maximum exposure of a creditor to the asset.
-     * @param collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
-     * @param liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     * @param collateralFactor The collateral factor of the asset for the creditor, 4 decimals precision.
+     * @param liquidationFactor The liquidation factor of the asset for the creditor, 4 decimals precision.
      */
     function setRiskParameters(
         address creditor,
@@ -172,8 +176,8 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external onlyRegistry {
-        require(collateralFactor <= RiskConstants.RISK_FACTOR_UNIT, "APAM_SRP: Coll.Fact not in limits");
-        require(liquidationFactor <= RiskConstants.RISK_FACTOR_UNIT, "APAM_SRP: Liq.Fact not in limits");
+        if (collateralFactor > RiskConstants.RISK_FACTOR_UNIT) revert Coll_Factor_Not_In_Limits();
+        if (liquidationFactor > RiskConstants.RISK_FACTOR_UNIT) revert Liq_Factor_Not_In_Limits();
 
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -204,12 +208,10 @@ abstract contract PrimaryAssetModule is AssetModule {
         // Cache lastExposureAsset.
         uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
-        require(
-            lastExposureAsset + amount < riskParams[creditor][assetKey].maxExposure, "APAM_PDD: Exposure not in limits"
-        );
+        if (lastExposureAsset + amount >= riskParams[creditor][assetKey].maxExposure) revert Exposure_Not_In_Limits();
 
         unchecked {
-            riskParams[creditor][assetKey].lastExposureAsset = uint128(lastExposureAsset) + uint128(amount);
+            riskParams[creditor][assetKey].lastExposureAsset = uint128(lastExposureAsset + amount);
         }
     }
 
@@ -244,7 +246,7 @@ abstract contract PrimaryAssetModule is AssetModule {
                 ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
                 : 0;
         }
-        require(exposureAsset < riskParams[creditor][assetKey].maxExposure, "APAM_PID: Exposure not in limits");
+        if (exposureAsset >= riskParams[creditor][assetKey].maxExposure) revert Exposure_Not_In_Limits();
         // unchecked cast: "RiskParameters.maxExposure" is a uint128.
         riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
 
@@ -302,7 +304,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint256 exposureAsset;
         if (deltaExposureUpperAssetToAsset > 0) {
             exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
-            require(exposureAsset <= type(uint128).max, "APAM_PIW: Overflow");
+            if (exposureAsset > type(uint128).max) revert Overflow();
         } else {
             exposureAsset = lastExposureAsset > uint256(-deltaExposureUpperAssetToAsset)
                 ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)

@@ -15,6 +15,7 @@ import { IPrimaryAssetModule } from "./interfaces/IPrimaryAssetModule.sol";
 import { ICreditor } from "./interfaces/ICreditor.sol";
 import { RegistryGuardian } from "./guardians/RegistryGuardian.sol";
 import { RiskModule } from "./RiskModule.sol";
+import { RegistryErrors } from "./libraries/Errors.sol";
 
 /**
  * @title Main Asset registry
@@ -85,7 +86,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @dev Only Asset Modules can call functions with this modifier.
      */
     modifier onlyAssetModule() {
-        require(isAssetModule[msg.sender], "MR: Only AssetMod.");
+        if (!isAssetModule[msg.sender]) revert RegistryErrors.Only_AssetModule();
         _;
     }
 
@@ -93,7 +94,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @dev Only Oracle Modules can call functions with this modifier.
      */
     modifier onlyOracleModule() {
-        require(isOracleModule[msg.sender], "MR: Only OracleMod.");
+        if (!isOracleModule[msg.sender]) revert RegistryErrors.Only_OracleModule();
         _;
     }
 
@@ -101,7 +102,15 @@ contract Registry is IRegistry, RegistryGuardian {
      * @dev Only Accounts can call functions with this modifier.
      */
     modifier onlyAccount() {
-        require(IFactory(FACTORY).isAccount(msg.sender), "MR: Only Accounts.");
+        if (!IFactory(FACTORY).isAccount(msg.sender)) revert RegistryErrors.Only_Account();
+        _;
+    }
+
+    /**
+     * @dev Only the Risk Manager of a Creditor can call functions with this modifier.
+     */
+    modifier onlyRiskManager(address creditor) {
+        if (msg.sender != ICreditor(creditor).riskManager()) revert RegistryErrors.Unauthorized();
         _;
     }
 
@@ -141,7 +150,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param assetModule The contract address of the Asset Module.
      */
     function addAssetModule(address assetModule) external onlyOwner {
-        require(!isAssetModule[assetModule], "MR_APM: AssetMod. not unique");
+        if (isAssetModule[assetModule]) revert RegistryErrors.AssetMod_Not_Unique();
         isAssetModule[assetModule] = true;
 
         emit AssetModuleAdded(assetModule);
@@ -152,7 +161,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param oracleModule The contract address of the Oracle Module.
      */
     function addOracleModule(address oracleModule) external onlyOwner {
-        require(!isOracleModule[oracleModule], "MR_AOM: OracleMod. not unique");
+        if (isOracleModule[oracleModule]) revert RegistryErrors.OracleMod_Not_Unique();
         isOracleModule[oracleModule] = true;
 
         emit OracleModuleAdded(oracleModule);
@@ -187,8 +196,8 @@ contract Registry is IRegistry, RegistryGuardian {
      * as that would make it possible for devs to change the asset pricing.
      */
     function addAsset(address assetAddress, uint256 assetType) external onlyAssetModule {
-        require(!inRegistry[assetAddress], "MR_AA: Asset already in registry");
-        require(assetType <= type(uint96).max, "MR_AA: Invalid AssetType");
+        if (inRegistry[assetAddress]) revert RegistryErrors.Asset_Already_In_Registry();
+        if (assetType > type(uint96).max) revert RegistryErrors.Invalid_AssetType();
 
         inRegistry[assetAddress] = true;
         assetToAssetInformation[assetAddress] =
@@ -230,7 +239,7 @@ contract Registry is IRegistry, RegistryGuardian {
     function checkOracleSequence(bytes32 oracleSequence) external view returns (bool) {
         (bool[] memory baseToQuoteAsset, uint256[] memory oracles) = oracleSequence.unpack();
         uint256 length = oracles.length;
-        require(length > 0, "MR_COS: Min 1 Oracle");
+        if (length == 0) revert RegistryErrors.Min_1_Oracle();
         // Length can be maximally 3, but no need to explicitly check it.
         // BitPackingLib.unpack() can maximally return arrays of length 3.
 
@@ -277,8 +286,8 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
-     * @return collateralFactors Array of the collateral factors of the assets for the creditor, 2 decimals precision.
-     * @return liquidationFactors Array of the liquidation factors of the assets for the creditor, 2 decimals precision.
+     * @return collateralFactors Array of the collateral factors of the assets for the creditor, 4 decimals precision.
+     * @return liquidationFactors Array of the liquidation factors of the assets for the creditor, 4 decimals precision.
      */
     function getRiskFactors(address creditor, address[] calldata assetAddresses, uint256[] calldata assetIds)
         external
@@ -305,8 +314,8 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param maxExposure The maximum exposure of a creditor to the asset.
-     * @param collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
-     * @param liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     * @param collateralFactor The collateral factor of the asset for the creditor, 4 decimals precision.
+     * @param liquidationFactor The liquidation factor of the asset for the creditor, 4 decimals precision.
      * @dev Any creditor can set risk parameters for any asset, does not have any influence on risk parameters
      * set by other creditors.
      */
@@ -317,9 +326,7 @@ contract Registry is IRegistry, RegistryGuardian {
         uint128 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
-    ) external {
-        require(msg.sender == ICreditor(creditor).riskManager(), "MR_SRPPA: Not Authorized");
-
+    ) external onlyRiskManager(creditor) {
         IPrimaryAssetModule(assetToAssetInformation[asset].assetModule).setRiskParameters(
             creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
@@ -331,16 +338,14 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param assetModule The contract address of the derived asset-module.
      * @param maxUsdExposureProtocol The maximum usd exposure of the protocol for each creditor,
      * denominated in USD with 18 decimals precision.
-     * @param riskFactor The risk factor of the asset for the creditor, 2 decimals precision.
+     * @param riskFactor The risk factor of the asset for the creditor, 4 decimals precision.
      */
     function setRiskParametersOfDerivedAssetModule(
         address creditor,
         address assetModule,
         uint128 maxUsdExposureProtocol,
         uint16 riskFactor
-    ) external {
-        require(msg.sender == ICreditor(creditor).riskManager(), "MR_SRPDPM: Not Authorized");
-
+    ) external onlyRiskManager(creditor) {
         IDerivedAssetModule(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
     }
 
@@ -351,9 +356,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * denominated in USD with 18 decimals precision.
      * @dev This feature is to prevent dust from being taken into account and preventing liquidations.
      */
-    function setMinUsdValueCreditor(address creditor, uint256 minUsdValue) external {
-        require(msg.sender == ICreditor(creditor).riskManager(), "MR_SMUVC: Not Authorized");
-
+    function setMinUsdValueCreditor(address creditor, uint256 minUsdValue) external onlyRiskManager(creditor) {
         minUsdValueCreditor[creditor] = minUsdValue;
     }
 
@@ -379,12 +382,12 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256[] calldata assetIds,
         uint256[] calldata amounts
     ) external whenDepositNotPaused onlyAccount returns (uint256[] memory assetTypes) {
-        uint256 addressesLength = assetAddresses.length;
-        require(addressesLength == assetIds.length && addressesLength == amounts.length, "MR_BPD: LENGTH_MISMATCH");
+        uint256 addrLength = assetAddresses.length;
+        if (addrLength != assetIds.length || addrLength != amounts.length) revert RegistryErrors.Length_Mismatch();
 
         address assetAddress;
-        assetTypes = new uint256[](addressesLength);
-        for (uint256 i; i < addressesLength;) {
+        assetTypes = new uint256[](addrLength);
+        for (uint256 i; i < addrLength;) {
             assetAddress = assetAddresses[i];
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 
@@ -416,12 +419,12 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256[] calldata assetIds,
         uint256[] calldata amounts
     ) external whenWithdrawNotPaused onlyAccount returns (uint256[] memory assetTypes) {
-        uint256 addressesLength = assetAddresses.length;
-        require(addressesLength == assetIds.length && addressesLength == amounts.length, "MR_BPW: LENGTH_MISMATCH");
+        uint256 addrLength = assetAddresses.length;
+        if (addrLength != assetIds.length || addrLength != amounts.length) revert RegistryErrors.Length_Mismatch();
 
         address assetAddress;
-        assetTypes = new uint256[](addressesLength);
-        for (uint256 i; i < addressesLength;) {
+        assetTypes = new uint256[](addrLength);
+        for (uint256 i; i < addrLength;) {
             assetAddress = assetAddresses[i];
             assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
 

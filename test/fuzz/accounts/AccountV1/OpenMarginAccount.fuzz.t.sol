@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 import { Constants } from "../../../utils/Constants.sol";
@@ -26,7 +26,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_openMarginAccount_NotOwner() public {
         // Should revert if not called by the owner
-        vm.expectRevert("A: Only Owner");
+        vm.expectRevert(AccountErrors.Only_Owner.selector);
         proxyAccount.openMarginAccount(address(creditorStable1));
     }
 
@@ -36,7 +36,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         proxyAccount.openMarginAccount(address(creditorStable1));
 
         // Should revert if a creditor is already set
-        vm.expectRevert("A_OMA: ALREADY SET");
+        vm.expectRevert(AccountErrors.Creditor_Already_Set.selector);
         proxyAccount.openMarginAccount(address(creditorStable1));
     }
 
@@ -44,7 +44,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // set a different Account version on the creditor
         creditorStable1.setCallResult(false);
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_OMA: Invalid Version");
+        vm.expectRevert(AccountErrors.Invalid_Account_Version.selector);
         proxyAccount.openMarginAccount((address(creditorStable1)));
         vm.stopPrank();
     }

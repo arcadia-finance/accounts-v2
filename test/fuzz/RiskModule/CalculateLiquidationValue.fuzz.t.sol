@@ -55,7 +55,7 @@ contract CalculateLiquidationValue_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
             }
         }
 
-        calcLiquidationValue = calcLiquidationValue / 100;
+        calcLiquidationValue = calcLiquidationValue / 10_000;
         assertEq(liquidationValue, calcLiquidationValue);
     }
 }

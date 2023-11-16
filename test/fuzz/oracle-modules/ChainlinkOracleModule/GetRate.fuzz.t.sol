@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { ChainlinkOracleModule_Fuzz_Test } from "./_ChainlinkOracleModule.fuzz.t.sol";
+import { ChainlinkOracleModule_Fuzz_Test, OracleModule } from "./_ChainlinkOracleModule.fuzz.t.sol";
 
 import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
 import { RevertingOracle } from "../../../utils/mocks/RevertingOracle.sol";
@@ -28,7 +28,7 @@ contract GetRate_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz_T
         // Given: An oracle not added to the "Registry".
         oracleId = uint80(bound(oracleId, registryExtension.getOracleCounter(), type(uint80).max));
 
-        vm.expectRevert("OH_GR: Inactive Oracle");
+        vm.expectRevert(OracleModule.Inactive_Oracle.selector);
         chainlinkOM.getRate(oracleId);
     }
 
@@ -40,7 +40,7 @@ contract GetRate_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz_T
 
         chainlinkOM.decommissionOracle(oracleId);
 
-        vm.expectRevert("OH_GR: Inactive Oracle");
+        vm.expectRevert(OracleModule.Inactive_Oracle.selector);
         chainlinkOM.getRate(oracleId);
     }
 

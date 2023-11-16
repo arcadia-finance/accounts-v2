@@ -8,6 +8,7 @@ import { FloorERC721AssetModule_Fuzz_Test } from "./_FloorERC721AssetModule.fuzz
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "FloorERC721AssetModule".
@@ -37,7 +38,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
         end = bound(end, 0, start - 1);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("AM721_AA: Invalid Range");
+        vm.expectRevert(AssetModule.Invalid_Range.selector);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
     }
 
@@ -51,7 +52,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
         bytes32 badSequence = BitPackingLib.pack(badDirection, oracleNft2ToUsdArr);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("AM721_AA: Bad Sequence");
+        vm.expectRevert(AssetModule.Bad_Oracle_Sequence.selector);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, badSequence);
     }
 
@@ -60,7 +61,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
 
         vm.startPrank(users.creatorAddress);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
-        vm.expectRevert("MR_AA: Asset already in registry");
+        vm.expectRevert(RegistryErrors.Asset_Already_In_Registry.selector);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
         vm.stopPrank();
     }

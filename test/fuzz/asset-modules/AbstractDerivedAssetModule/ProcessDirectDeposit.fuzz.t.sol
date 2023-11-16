@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AbstractDerivedAssetModule_Fuzz_Test } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
+import { AbstractDerivedAssetModule_Fuzz_Test, AssetModule } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processDirectDeposit" of contract "AbstractDerivedAssetModule".
@@ -31,7 +31,7 @@ contract ProcessDirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDe
         vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_REGISTRY");
+        vm.expectRevert(AssetModule.Only_Registry.selector);
         derivedAssetModule.processDirectDeposit(creditor, asset, id, amount);
         vm.stopPrank();
     }

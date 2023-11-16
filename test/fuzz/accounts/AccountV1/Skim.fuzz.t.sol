@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "skim" of contract "AccountV1".
@@ -29,7 +29,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.startPrank(nonOwner);
-        vm.expectRevert("A_S: Only owner can skim");
+        vm.expectRevert(AccountErrors.Only_Owner.selector);
         accountExtension.skim(asset, id, type_);
         vm.stopPrank();
     }

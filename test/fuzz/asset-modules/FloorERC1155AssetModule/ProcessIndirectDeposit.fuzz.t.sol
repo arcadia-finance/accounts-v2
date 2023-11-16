@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { FloorERC1155AssetModule_Fuzz_Test } from "./_FloorERC1155AssetModule.fuzz.t.sol";
+import { FloorERC1155AssetModule_Fuzz_Test, AssetModule } from "./_FloorERC1155AssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processIndirectDeposit" of contract "FloorERC1155AssetModule".
@@ -31,7 +31,7 @@ contract ProcessIndirectDeposit_FloorERC1155AssetModule_Fuzz_Test is FloorERC115
         vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_REGISTRY");
+        vm.expectRevert(AssetModule.Only_Registry.selector);
         floorERC1155AssetModule.processIndirectDeposit(
             address(creditorUsd), asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
@@ -49,10 +49,12 @@ contract ProcessIndirectDeposit_FloorERC1155AssetModule_Fuzz_Test is FloorERC115
         floorERC1155AssetModule.addAsset(address(mockERC1155.sft2), 0, oraclesSft2ToUsd);
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert("AM1155_PID: Asset not allowed");
+        vm.expectRevert(AssetModule.Asset_Not_Allowed.selector);
         floorERC1155AssetModule.processIndirectDeposit(
             address(creditorUsd), asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
         vm.stopPrank();
     }
+
+    //todo: add success tests
 }

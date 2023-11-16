@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { FactoryGuardian_Fuzz_Test } from "./_FactoryGuardian.fuzz.t.sol";
+import { FactoryGuardian_Fuzz_Test, BaseGuardian } from "./_FactoryGuardian.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "unPause" of contract "FactoryGuardian".
@@ -39,7 +39,7 @@ contract UnPause_WithoutArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_T
         // When: A sender un-pauses within 30 days passed from the last pause.
         // Then: The transaction reverts with "G_UP: Cannot unPaus".
         vm.startPrank(sender);
-        vm.expectRevert("G_UP: Cannot unPause");
+        vm.expectRevert(BaseGuardian.Cannot_UnPause.selector);
         factoryGuardian.unPause();
         vm.stopPrank();
     }

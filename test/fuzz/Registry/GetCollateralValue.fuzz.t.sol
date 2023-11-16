@@ -76,7 +76,7 @@ contract GetCollateralValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
             address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );
 
-        uint256 expectedCollateralValue = token1ValueInUsd * collateralFactor_ / 100;
+        uint256 expectedCollateralValue = token1ValueInUsd * collateralFactor_ / 10_000;
 
         assertEq(expectedCollateralValue, actualCollateralValue);
     }

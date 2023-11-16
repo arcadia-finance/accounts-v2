@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
 import { Constants } from "../../utils/Constants.sol";
 
@@ -33,7 +33,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.startPrank(nonOwner);
-        vm.expectRevert("FTRY_UVV: Only Owner");
+        vm.expectRevert(FactoryErrors.Only_Account_Owner.selector);
         factory.upgradeAccountVersion(address(proxyAccount), version, proofs);
         vm.stopPrank();
     }
@@ -43,7 +43,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         factory.blockAccountVersion(2);
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("FTRY_UVV: Account version blocked");
+        vm.expectRevert(FactoryErrors.Account_Version_Blocked.selector);
         factory.upgradeAccountVersion(address(proxyAccount), 2, proofs);
         vm.stopPrank();
     }
@@ -55,7 +55,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(version != 2);
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("FTR_UVV: Version not allowed");
+        vm.expectRevert(FactoryErrors.Invalid_Upgrade.selector);
         factory.upgradeAccountVersion(address(proxyAccount), version, proofs);
         vm.stopPrank();
     }

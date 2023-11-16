@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../src/libraries/BitPackingLib.sol";
 import { OracleModuleMock } from "../../utils/mocks/OracleModuleMock.sol";
@@ -55,7 +55,7 @@ contract CheckOracleSequence_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // Given length of oracles is zero (two rightmost bits are zero)
         oracleSequence = oracleSequence << 2;
 
-        vm.expectRevert("MR_COS: Min 1 Oracle");
+        vm.expectRevert(RegistryErrors.Min_1_Oracle.selector);
         registryExtension.checkOracleSequence(oracleSequence);
     }
 

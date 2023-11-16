@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AbstractPrimaryAssetModule_Fuzz_Test } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
+import { AbstractPrimaryAssetModule_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processDirectDeposit" of contract "AbstractPrimaryAssetModule".
@@ -33,9 +33,9 @@ contract ProcessDirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPr
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is deposited.
-        // Then: The transaction reverts with "AAM: ONLY_REGISTRY".
+        // Then: The transaction reverts with AssetModule.Only_Registry.selector.
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_REGISTRY");
+        vm.expectRevert(AssetModule.Only_Registry.selector);
         assetModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }
@@ -55,9 +55,9 @@ contract ProcessDirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPr
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is deposited.
-        // Then: The transaction reverts with "APAM_PDD: Exposure not in limits".
+        // Then: The transaction reverts with AssetModule.Exposure_Not_In_Limits.selector.
         vm.startPrank(address(registryExtension));
-        vm.expectRevert("APAM_PDD: Exposure not in limits");
+        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
         assetModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }

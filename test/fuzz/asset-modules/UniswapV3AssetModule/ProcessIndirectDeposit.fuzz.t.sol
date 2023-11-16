@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { UniswapV3AssetModule_Fuzz_Test } from "./_UniswapV3AssetModule.fuzz.t.sol";
+import { UniswapV3AssetModule_Fuzz_Test, AssetModule } from "./_UniswapV3AssetModule.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
@@ -76,7 +76,7 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
         uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         vm.startPrank(unprivilegedAddress);
-        vm.expectRevert("AAM: ONLY_REGISTRY");
+        vm.expectRevert(AssetModule.Only_Registry.selector);
         uniV3AssetModule.processIndirectDeposit(
             address(creditorUsd), address(nonfungiblePositionManager), tokenId, exposureUpperAssetToAsset, 1
         );

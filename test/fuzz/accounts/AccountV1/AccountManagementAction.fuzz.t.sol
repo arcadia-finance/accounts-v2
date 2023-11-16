@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Constants, AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { Constants, AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 import { ActionData } from "../../../../src/actions/utils/ActionData.sol";
@@ -61,7 +61,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
 
         // Should revert if the reentrancy guard is locked.
         vm.startPrank(sender);
-        vm.expectRevert("A: REENTRANCY");
+        vm.expectRevert(AccountErrors.No_Reentry.selector);
         accountExtension.accountManagementAction(actionHandler, actionData, signature);
         vm.stopPrank();
     }
@@ -107,7 +107,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         vm.assume(action_ != address(action));
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_AMA: Action not allowed");
+        vm.expectRevert(AccountErrors.Action_Not_Allowed.selector);
         accountExtension.accountManagementAction(action_, new bytes(0), new bytes(0));
         vm.stopPrank();
     }
@@ -155,7 +155,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         mockERC721.nft1.setApprovalForAll(address(accountExtension), true);
 
         vm.prank(users.accountOwner);
-        vm.expectRevert("A_D: Too many assets");
+        vm.expectRevert(AccountErrors.Too_Many_Assets.selector);
         accountExtension.accountManagementAction(address(action), callData, signatureStack);
     }
 
@@ -251,7 +251,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         );
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_AMA: Account Unhealthy");
+        vm.expectRevert(AccountErrors.Account_Unhealthy.selector);
         accountNotInitialised.accountManagementAction(address(action), callData, new bytes(0));
         vm.stopPrank();
     }

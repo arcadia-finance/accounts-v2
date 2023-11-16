@@ -35,7 +35,7 @@ contract AddAsset_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModule_F
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
         floorERC1155AssetModule.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
-        vm.expectRevert("AM1155_AA: Asset already in PM");
+        vm.expectRevert(AssetModule.Asset_Already_In_AM.selector);
         floorERC1155AssetModule.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
         vm.stopPrank();
     }
@@ -44,7 +44,7 @@ contract AddAsset_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModule_F
         id = bound(id, uint256(type(uint96).max) + 1, type(uint256).max);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("AM1155_AA: Invalid Id");
+        vm.expectRevert(AssetModule.Invalid_Id.selector);
         floorERC1155AssetModule.addAsset(address(mockERC1155.sft2), id, oraclesSft2ToUsd);
     }
 
@@ -56,7 +56,7 @@ contract AddAsset_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModule_F
         bytes32 badSequence = BitPackingLib.pack(badDirection, oracleSft2ToUsdArr);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("AM1155_AA: Bad Sequence");
+        vm.expectRevert(AssetModule.Bad_Oracle_Sequence.selector);
         floorERC1155AssetModule.addAsset(address(mockERC1155.sft2), 1, badSequence);
     }
 
