@@ -42,21 +42,22 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_startLiquidation_Reentered() public {
+    function testFuzz_Revert_startLiquidation_Reentered(address liquidationInitiator) public {
         // Reentrancy guard is in locked state.
         accountExtension.setLocked(2);
 
         // Should revert if the reentrancy guard is locked.
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.No_Reentry.selector);
-        accountExtension.startLiquidation();
+        accountExtension.startLiquidation(liquidationInitiator);
         vm.stopPrank();
     }
 
     function testFuzz_Revert_startLiquidation_notLiquidatable_usedMarginSmallerThanLiquidationValue(
         uint96 fixedLiquidationCost,
         uint256 openDebt,
-        uint128 depositAmountToken1
+        uint128 depositAmountToken1,
+        address liquidationInitiator
     ) public {
         // "exposure" is strictly smaller as "maxExposure".
         depositAmountToken1 = uint128(bound(depositAmountToken1, 1, type(uint128).max - 1));
@@ -101,11 +102,14 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Then : Account should not be liquidatable as openDebt > 0 and liquidationValue > usedMargin
         vm.startPrank(accountExtension2.liquidator());
         vm.expectRevert(AccountErrors.Account_Not_Liquidatable.selector);
-        accountExtension2.startLiquidation();
+        accountExtension2.startLiquidation(liquidationInitiator);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_startLiquidation_notLiquidatable_zeroOpenDebt(uint96 fixedLiquidationCost) public {
+    function testFuzz_Revert_startLiquidation_notLiquidatable_zeroOpenDebt(
+        uint96 fixedLiquidationCost,
+        address liquidationInitiator
+    ) public {
         // Given : openDebt = 0
         uint256 openDebt = 0;
 
@@ -124,14 +128,15 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Then : Account should not be liquidatable as openDebt == 0
         vm.startPrank(accountExtension2.liquidator());
         vm.expectRevert(AccountErrors.Account_Not_Liquidatable.selector);
-        accountExtension2.startLiquidation();
+        accountExtension2.startLiquidation(liquidationInitiator);
         vm.stopPrank();
     }
 
     function testFuzz_Success_startLiquidation(
         uint96 fixedLiquidationCost,
         uint256 openDebt,
-        uint128 depositAmountToken1
+        uint128 depositAmountToken1,
+        address liquidationInitiator
     ) public {
         // "exposure" is strictly smaller as "maxExposure".
         depositAmountToken1 = uint128(bound(depositAmountToken1, 1, type(uint128).max - 1));
@@ -183,7 +188,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             address creditor_,
             uint256 totalOpenDebt,
             RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues_
-        ) = accountExtension2.startLiquidation();
+        ) = accountExtension2.startLiquidation(liquidationInitiator);
         vm.stopPrank();
 
         // Then : Account should be liquidatable and return specific values
