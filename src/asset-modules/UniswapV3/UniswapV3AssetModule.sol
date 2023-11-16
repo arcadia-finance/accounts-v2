@@ -49,6 +49,11 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+    error Zero_Liquidity();
+
+    /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
@@ -84,14 +89,14 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * but a different id.
      */
     function _addAsset(uint256 assetId) internal {
-        require(assetId <= type(uint96).max, "AMUV3_AA: Id too large");
+        if (assetId > type(uint96).max) revert Invalid_Id();
 
         (,, address token0, address token1,,,, uint128 liquidity,,,,) =
             INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
 
         // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
         // deposit functions and there any deposit of non-allowed underlying assets will revert.
-        require(liquidity > 0, "AMUV3_AA: 0 liquidity");
+        if (liquidity == 0) revert Zero_Liquidity();
 
         assetToLiquidity[assetId] = liquidity;
 

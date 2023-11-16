@@ -24,6 +24,7 @@ import { NonfungiblePositionManagerMock } from "../../../utils/mocks/Nonfungible
 import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 import { Utils } from "../../../utils/Utils.sol";
+import { UniswapV3AssetModule } from "../../../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV3AssetModule" fuzz tests.

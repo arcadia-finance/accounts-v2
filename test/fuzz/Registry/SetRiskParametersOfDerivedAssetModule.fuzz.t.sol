@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 import { RiskConstants } from "../../../src/libraries/RiskConstants.sol";
 
@@ -31,7 +31,7 @@ contract SetRiskParametersOfDerivedAssetModule_Registry_Fuzz_Test is Registry_Fu
         vm.assume(unprivilegedAddress_ != users.riskManager);
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("MR_SRPDPM: Not Authorized");
+        vm.expectRevert(RegistryErrors.Unauthorized.selector);
         registryExtension.setRiskParametersOfDerivedAssetModule(
             address(creditorUsd), address(derivedAssetModule), maxUsdExposureProtocol, riskFactor
         );

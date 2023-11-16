@@ -15,6 +15,7 @@ import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.s
 import {
     PrimaryAssetModule, StandardERC20AssetModule
 } from "../../../../src/asset-modules/StandardERC20AssetModule.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "StandardERC20AssetModule".
@@ -47,7 +48,7 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
         bytes32 badSequence = BitPackingLib.pack(badDirection, oracleToken4ToUsdArr);
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("AM20_AA: Bad Sequence");
+        vm.expectRevert(AssetModule.Bad_Oracle_Sequence.selector);
         erc20AssetModule.addAsset(address(mockERC20.token4), badSequence);
         vm.stopPrank();
     }
@@ -55,7 +56,7 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
         erc20AssetModule.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
-        vm.expectRevert("MR_AA: Asset already in registry");
+        vm.expectRevert(RegistryErrors.Asset_Already_In_Registry.selector);
         erc20AssetModule.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
         vm.stopPrank();
     }
@@ -71,7 +72,7 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
         oracleAssetToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(oracle)));
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("AM20_AA: Maximal 18 decimals");
+        vm.expectRevert(StandardERC20AssetModule.Max_18_Decimals.selector);
         erc20AssetModule.addAsset(address(asset), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
     }
 

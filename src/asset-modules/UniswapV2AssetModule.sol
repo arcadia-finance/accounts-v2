@@ -40,6 +40,14 @@ contract UniswapV2AssetModule is DerivedAssetModule {
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+    error Not_A_Pool();
+    error Token0_Not_Allowed();
+    error Token1_Not_Allowed();
+    error Zero_Supply();
+    error Zero_Reserves();
+    /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
@@ -74,10 +82,10 @@ contract UniswapV2AssetModule is DerivedAssetModule {
     function addAsset(address asset) external {
         address token0 = IUniswapV2Pair(asset).token0();
         address token1 = IUniswapV2Pair(asset).token1();
-        require(IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) == asset, "AMUV2_AA: Not a Pool");
+        if (IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(token0, token1) != asset) revert Not_A_Pool();
 
-        require(IRegistry(REGISTRY).isAllowed(token0, 0), "AMUV2_AA: Token0 not Allowed");
-        require(IRegistry(REGISTRY).isAllowed(token1, 0), "AMUV2_AA: Token1 not Allowed");
+        if (!IRegistry(REGISTRY).isAllowed(token0, 0)) revert Token0_Not_Allowed();
+        if (!IRegistry(REGISTRY).isAllowed(token1, 0)) revert Token1_Not_Allowed();
 
         inAssetModule[asset] = true;
 
@@ -227,7 +235,7 @@ contract UniswapV2AssetModule is DerivedAssetModule {
         uint256 totalSupply = IUniswapV2Pair(pair).totalSupply();
 
         // this also checks that totalSupply > 0
-        require(totalSupply > 0, "UV2_GTTA: ZERO_SUPPLY");
+        if (totalSupply == 0) revert Zero_Supply();
 
         (uint256 reserve0, uint256 reserve1) = _getTrustedReserves(pair, trustedPriceToken0, trustedPriceToken1);
 
@@ -255,7 +263,7 @@ contract UniswapV2AssetModule is DerivedAssetModule {
         // The untrusted reserves from the pair, these can be manipulated!!!
         (reserve0, reserve1,) = IUniswapV2Pair(pair).getReserves();
 
-        require(reserve0 > 0 && reserve1 > 0, "UV2_GTR: ZERO_PAIR_RESERVES");
+        if (reserve0 == 0 || reserve1 == 0) revert Zero_Reserves();
 
         // Compute how much to swap to balance the pool with externally observed trusted prices
         (bool token0ToToken1, uint256 amountIn) =

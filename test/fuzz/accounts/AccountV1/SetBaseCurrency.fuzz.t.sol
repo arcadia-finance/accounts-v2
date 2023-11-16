@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "setBaseCurrency" of contract "AccountV1".
@@ -28,7 +28,7 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(unprivilegedAddress_ != users.accountOwner);
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("A: Only Owner");
+        vm.expectRevert(AccountErrors.Only_Owner.selector);
         accountExtension.setBaseCurrency(address(mockERC20.token1));
         vm.stopPrank();
     }
@@ -38,7 +38,7 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.openMarginAccount(address(creditorStable1));
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_SBC: Creditor Set");
+        vm.expectRevert(AccountErrors.Creditor_Already_Set.selector);
         accountExtension.setBaseCurrency(address(mockERC20.token1));
         vm.stopPrank();
 
@@ -50,7 +50,7 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(!registryExtension.inRegistry(baseCurrency_));
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert("A_SBC: baseCurrency not found");
+        vm.expectRevert(AccountErrors.BaseCurrency_Not_Found.selector);
         accountExtension.setBaseCurrency(baseCurrency_);
         vm.stopPrank();
     }

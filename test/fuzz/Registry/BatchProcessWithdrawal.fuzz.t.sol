@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../lib/forge-std/src/Test.sol";
 
@@ -39,7 +39,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = 1;
 
         vm.startPrank(sender);
-        vm.expectRevert(FunctionIsPaused.selector);
+        vm.expectRevert(Function_Is_Paused.selector);
         registryExtension.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -57,7 +57,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = 1;
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("MR: Only Accounts.");
+        vm.expectRevert(RegistryErrors.Only_Account.selector);
         registryExtension.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -74,7 +74,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = 1000;
 
         vm.startPrank(address(proxyAccount));
-        vm.expectRevert("MR_BPW: LENGTH_MISMATCH");
+        vm.expectRevert(RegistryErrors.Length_Mismatch.selector);
         registryExtension.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -105,7 +105,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         // Then: Withdrawal is reverted due to paused Registry
         vm.startPrank(address(proxyAccount));
-        vm.expectRevert(FunctionIsPaused.selector);
+        vm.expectRevert(Function_Is_Paused.selector);
         registryExtension.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -138,31 +138,6 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.prank(address(proxyAccount));
         vm.expectRevert();
         registryExtension.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
-    }
-
-    function testFuzz_Revert_batchProcessWithdrawal_delegateCall(uint128 amountToken2) public {
-        address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = address(mockERC20.token2);
-
-        uint256[] memory assetIds = new uint256[](1);
-        assetIds[0] = 0;
-
-        uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = amountToken2;
-
-        vm.startPrank(address(proxyAccount));
-        vm.expectRevert("MR: No delegate.");
-        (bool success,) = address(registryExtension).delegatecall(
-            abi.encodeWithSignature(
-                "batchProcessWithdrawal(address[] calldata,uint256[] calldata,uint256[] calldata)",
-                assetAddresses,
-                assetIds,
-                assetAmounts
-            )
-        );
-        vm.stopPrank();
-
-        success; //avoid warning
     }
 
     function testFuzz_Success_batchProcessWithdrawal(uint128 amountDeposited, uint128 amountWithdrawn) public {

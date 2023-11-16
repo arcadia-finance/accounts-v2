@@ -17,6 +17,11 @@ import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
  */
 contract StandardERC20AssetModule is PrimaryAssetModule {
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+    error Max_18_Decimals();
+
+    /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
@@ -39,14 +44,14 @@ contract StandardERC20AssetModule is PrimaryAssetModule {
      */
     function addAsset(address asset, bytes32 oracleSequence) external onlyOwner {
         // View function, reverts in Registry if sequence is not correct.
-        require(IRegistry(REGISTRY).checkOracleSequence(oracleSequence), "AM20_AA: Bad Sequence");
+        if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert Bad_Oracle_Sequence();
         // Will revert in Registry if asset was already added.
         IRegistry(REGISTRY).addAsset(asset, ASSET_TYPE);
 
         inAssetModule[asset] = true;
 
         uint256 assetUnit = 10 ** IERC20(asset).decimals();
-        require(assetUnit <= 1e18, "AM20_AA: Maximal 18 decimals");
+        if (assetUnit > 1e18) revert Max_18_Decimals();
 
         // Can safely cast to uint64, we previously checked it is smaller than 10e18.
         assetToInformation[_getKeyFromAsset(asset, 0)] =

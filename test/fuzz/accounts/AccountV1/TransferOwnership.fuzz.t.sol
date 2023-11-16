@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "transferOwnership" of contract "AccountV1".
@@ -27,7 +27,7 @@ contract TransferOwnership_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(users.accountOwner, accountExtension.owner());
 
         vm.startPrank(sender);
-        vm.expectRevert("A: Only Factory");
+        vm.expectRevert(AccountErrors.Only_Factory.selector);
         accountExtension.transferOwnership(to);
         vm.stopPrank();
 
@@ -38,7 +38,7 @@ contract TransferOwnership_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(users.accountOwner, accountExtension.owner());
 
         vm.startPrank(address(factory));
-        vm.expectRevert("A_TO: INVALID_RECIPIENT");
+        vm.expectRevert(AccountErrors.Invalid_Recipient.selector);
         accountExtension.transferOwnership(address(0));
         vm.stopPrank();
 

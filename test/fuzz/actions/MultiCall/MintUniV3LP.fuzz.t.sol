@@ -48,11 +48,13 @@ contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         public
     {
         vm.assume(notV3Contract != address(univ3PosMgr));
+        vm.prank(address(action));
         vm.expectRevert(bytes(""));
         action.mintUniV3LP(notV3Contract, abi.encodeWithSelector(randomSelector, randomBytes));
     }
 
     function testFuzz_Revert_mintUniV3LP_WrongSelector(bytes4 randomSelector, bytes memory randomBytes) public {
+        vm.prank(address(action));
         vm.expectRevert(bytes(""));
         action.mintUniV3LP(address(univ3PosMgr), abi.encodeWithSelector(randomSelector, randomBytes));
     }
@@ -89,6 +91,7 @@ contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
 
         assertEq(action.assets(), new address[](0));
         assertEq(action.ids(), new uint256[](0));
+        vm.prank(address(action));
         action.mintUniV3LP(address(univ3PosMgr), data);
 
         uint256 tokenId = univ3PosMgr.id();

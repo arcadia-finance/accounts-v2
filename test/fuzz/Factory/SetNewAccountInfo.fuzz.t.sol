@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
 import { AccountV2 } from "../../utils/mocks/AccountV2.sol";
 import { AccountVariableVersion } from "../../utils/mocks/AccountVariableVersion.sol";
@@ -50,7 +50,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(registryExtension));
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("FTRY_SNVI: version root is zero");
+        vm.expectRevert(FactoryErrors.Version_Root_Is_Zero.selector);
         factory.setNewAccountInfo(registry_, logic, bytes32(0), "");
         vm.stopPrank();
     }
@@ -59,7 +59,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(versionRoot != bytes32(0));
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("FTRY_SNVI: logic address is zero");
+        vm.expectRevert(FactoryErrors.Logic_Is_Zero.selector);
         factory.setNewAccountInfo(registry_, address(0), versionRoot, "");
         vm.stopPrank();
     }
@@ -88,7 +88,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         //first set an actual version 2
         factory.setNewAccountInfo(address(registryExtension), address(newAccountV2), Constants.upgradeRoot1To2, "");
         //then try to register another account logic address which has version 2 in its bytecode
-        vm.expectRevert("FTRY_SNVI: version mismatch");
+        vm.expectRevert(FactoryErrors.Version_Mismatch.selector);
         factory.setNewAccountInfo(address(registryExtension), address(newAccountV2_2), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
     }

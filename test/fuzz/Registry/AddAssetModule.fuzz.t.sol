@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "addAssetModule" of contract "Registry".
@@ -37,9 +37,9 @@ contract AddAssetModule_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // Given: All necessary contracts deployed on setup
 
         // When: users.creatorAddress calls addAssetModule for address(erc20AssetModule)
-        // Then: addAssetModule should revert with "MR_APM: AssetMod. not unique"
+        // Then: addAssetModule should revert with AssetMod_Not_Unique
         vm.prank(users.creatorAddress);
-        vm.expectRevert("MR_APM: AssetMod. not unique");
+        vm.expectRevert(RegistryErrors.AssetMod_Not_Unique.selector);
         registryExtension.addAssetModule(address(erc20AssetModule));
     }
 

@@ -4,10 +4,9 @@
  */
 pragma solidity 0.8.19;
 
-import { UniswapV3Fixture, UniswapV3AssetModule_Fuzz_Test } from "./_UniswapV3AssetModule.fuzz.t.sol";
+import { UniswapV3AssetModule_Fuzz_Test, AssetModule, UniswapV3AssetModule } from "./_UniswapV3AssetModule.fuzz.t.sol";
 
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/NonfungiblePositionManager.sol";
-import { UniswapV3AssetModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "UniswapV3AssetModule".
@@ -27,7 +26,7 @@ contract AddAsset_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz_Te
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_addAsset_IdToLarge(
+    function testFuzz_Revert_addAsset_IdTooLarge(
         uint256 tokenId,
         NonfungiblePositionManagerMock.Position memory position
     ) public {
@@ -36,7 +35,7 @@ contract AddAsset_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz_Te
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), tokenId, position);
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("AMUV3_AA: Id too large");
+        vm.expectRevert(AssetModule.Invalid_Id.selector);
         uniV3AssetModule.addAsset(tokenId);
         vm.stopPrank();
     }
@@ -54,7 +53,7 @@ contract AddAsset_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz_Te
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), tokenId, position);
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("AMUV3_AA: 0 liquidity");
+        vm.expectRevert(UniswapV3AssetModule.Zero_Liquidity.selector);
         uniV3AssetModule.addAsset(tokenId);
         vm.stopPrank();
     }

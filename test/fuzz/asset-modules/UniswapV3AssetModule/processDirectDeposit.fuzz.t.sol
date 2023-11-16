@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { UniswapV3AssetModule_Fuzz_Test } from "./_UniswapV3AssetModule.fuzz.t.sol";
+import { UniswapV3AssetModule_Fuzz_Test, UniswapV3AssetModule } from "./_UniswapV3AssetModule.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
@@ -15,6 +15,8 @@ import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
+
+import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
 
 /**
  * @notice Fuzz tests for the function "processDirectDeposit" of contract "UniswapV3AssetModule".
@@ -77,7 +79,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         vm.startPrank(unprivilegedAddress);
-        vm.expectRevert("AAM: ONLY_REGISTRY");
+        vm.expectRevert(AssetModule.Only_Registry.selector);
         uniV3AssetModule.processDirectDeposit(creditor, address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
@@ -105,7 +107,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         );
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert("AMUV3_AA: 0 liquidity");
+        vm.expectRevert(UniswapV3AssetModule.Zero_Liquidity.selector);
         uniV3AssetModule.processDirectDeposit(creditor, address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
@@ -156,7 +158,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert("APAM_PID: Exposure not in limits");
+        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
         uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
@@ -213,7 +215,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1), initialExposure1, maxExposure1);
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert("APAM_PID: Exposure not in limits");
+        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
         uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
@@ -291,7 +293,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         );
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert("ADAM_PD: Exposure not in limits");
+        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
         uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }

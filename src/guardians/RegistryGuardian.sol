@@ -33,7 +33,6 @@ abstract contract RegistryGuardian is BaseGuardian {
                             ERRORS
     //////////////////////////////////////////////////////////////
     */
-    error FunctionIsPaused();
 
     /*
     //////////////////////////////////////////////////////////////
@@ -46,7 +45,7 @@ abstract contract RegistryGuardian is BaseGuardian {
      * It throws if withdraw is paused.
      */
     modifier whenWithdrawNotPaused() {
-        if (withdrawPaused) revert FunctionIsPaused();
+        if (withdrawPaused) revert Function_Is_Paused();
         _;
     }
 
@@ -55,7 +54,7 @@ abstract contract RegistryGuardian is BaseGuardian {
      * It throws if deposit assets is paused.
      */
     modifier whenDepositNotPaused() {
-        if (depositPaused) revert FunctionIsPaused();
+        if (depositPaused) revert Function_Is_Paused();
         _;
     }
 
@@ -73,7 +72,7 @@ abstract contract RegistryGuardian is BaseGuardian {
      * @inheritdoc BaseGuardian
      */
     function pause() external override onlyGuardian {
-        require(block.timestamp > pauseTimestamp + 32 days, "G_P: Cannot pause");
+        if (block.timestamp <= pauseTimestamp + 32 days) revert Cannot_Pause();
         withdrawPaused = true;
         depositPaused = true;
         pauseTimestamp = block.timestamp;
@@ -100,7 +99,7 @@ abstract contract RegistryGuardian is BaseGuardian {
      * @inheritdoc BaseGuardian
      */
     function unPause() external override {
-        require(block.timestamp > pauseTimestamp + 30 days, "G_UP: Cannot unPause");
+        if (block.timestamp <= pauseTimestamp + 30 days) revert Cannot_UnPause();
         withdrawPaused = false;
         depositPaused = false;
 

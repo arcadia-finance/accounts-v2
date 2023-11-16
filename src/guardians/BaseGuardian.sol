@@ -23,6 +23,14 @@ abstract contract BaseGuardian is Owned {
     uint256 public pauseTimestamp;
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+    error Only_Guardian();
+    error Cannot_Pause();
+    error Cannot_UnPause();
+    error Function_Is_Paused();
+
+    /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
@@ -36,7 +44,7 @@ abstract contract BaseGuardian is Owned {
      * @dev Throws if called by any account other than the guardian.
      */
     modifier onlyGuardian() {
-        require(msg.sender == guardian, "Guardian: Only guardian");
+        if (msg.sender != guardian) revert Only_Guardian();
         _;
     }
 

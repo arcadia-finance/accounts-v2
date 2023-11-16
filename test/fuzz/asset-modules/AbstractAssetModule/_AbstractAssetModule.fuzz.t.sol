@@ -17,6 +17,22 @@ abstract contract AbstractAssetModule_Fuzz_Test is Fuzz_Test {
 
     AssetModuleMock internal assetModule;
 
+    /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+    error Only_Registry();
+    error Risk_Factor_Not_In_Limits();
+    error Overflow();
+    error Oracle_Still_Active();
+    error Bad_Oracle_Sequence();
+    error Coll_Factor_Not_In_Limits();
+    error Liq_Factor_Not_In_Limits();
+    error Exposure_Not_In_Limits();
+    error Invalid_Range();
+    error Invalid_Id();
+    error Asset_Not_Allowed();
+    error Asset_Already_In_AM();
+
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

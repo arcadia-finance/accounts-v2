@@ -10,6 +10,7 @@ import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
 import { DerivedAssetModuleMock } from "../../utils/mocks/DerivedAssetModuleMock.sol";
 import { OracleModuleMock } from "../../utils/mocks/OracleModuleMock.sol";
 import { PrimaryAssetModuleMock } from "../../utils/mocks/PrimaryAssetModuleMock.sol";
+import { RegistryErrors } from "../../../src/Registry.sol";
 
 /**
  * @notice Common logic needed by all "Registry" fuzz tests.

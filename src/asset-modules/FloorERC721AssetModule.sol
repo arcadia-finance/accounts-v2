@@ -31,6 +31,10 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
     }
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
@@ -56,8 +60,8 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
         external
         onlyOwner
     {
-        require(idRangeStart <= idRangeEnd, "AM721_AA: Invalid Range");
-        require(IRegistry(REGISTRY).checkOracleSequence(oracleSequence), "AM721_AA: Bad Sequence");
+        if (idRangeStart > idRangeEnd) revert Invalid_Range();
+        if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert Bad_Oracle_Sequence();
         // Will revert in Registry if asset was already added.
         IRegistry(REGISTRY).addAsset(asset, ASSET_TYPE);
 
@@ -149,7 +153,7 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
      * @dev super.processDirectDeposit does check that msg.sender is the Registry.
      */
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256) public override {
-        require(isAllowed(asset, assetId), "AM721_PDD: Asset not allowed");
+        if (!isAllowed(asset, assetId)) revert Asset_Not_Allowed();
 
         // Also checks that msg.sender == Registry.
         super.processDirectDeposit(creditor, asset, assetId, 1);
@@ -173,7 +177,7 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public override returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
-        require(isAllowed(asset, assetId), "AM721_PID: Asset not allowed");
+        if (!isAllowed(asset, assetId)) revert Asset_Not_Allowed();
 
         // Also checks that msg.sender == Registry.
         return super.processIndirectDeposit(

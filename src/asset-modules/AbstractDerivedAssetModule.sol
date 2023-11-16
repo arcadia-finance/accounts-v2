@@ -59,6 +59,10 @@ abstract contract DerivedAssetModule is AssetModule {
     }
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
@@ -218,7 +222,7 @@ abstract contract DerivedAssetModule is AssetModule {
         external
         onlyRegistry
     {
-        require(riskFactor <= RiskConstants.RISK_FACTOR_UNIT, "ADAM_SRP: Risk Fact not in limits");
+        if (riskFactor > RiskConstants.RISK_FACTOR_UNIT) revert AssetModule.Risk_Factor_Not_In_Limits();
 
         riskParams[creditor].maxUsdExposureProtocol = maxUsdExposureProtocol_;
         riskParams[creditor].riskFactor = riskFactor;
@@ -496,7 +500,9 @@ abstract contract DerivedAssetModule is AssetModule {
             }
             // If (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset), call does not revert, but usdExposureProtocol is set to 0.
         }
-        require(usdExposureProtocol < riskParams[creditor].maxUsdExposureProtocol, "ADAM_PD: Exposure not in limits");
+        if (usdExposureProtocol >= riskParams[creditor].maxUsdExposureProtocol) {
+            revert AssetModule.Exposure_Not_In_Limits();
+        }
         riskParams[creditor].lastUsdExposureProtocol = uint128(usdExposureProtocol);
     }
 
@@ -560,7 +566,7 @@ abstract contract DerivedAssetModule is AssetModule {
         unchecked {
             if (usdExposureAsset >= lastUsdExposureAsset) {
                 usdExposureProtocol = lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset);
-                require(usdExposureProtocol <= type(uint128).max, "ADAM_PW: Overflow");
+                if (usdExposureProtocol > type(uint128).max) revert Overflow();
             } else if (lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset) {
                 usdExposureProtocol = lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset);
             }

@@ -28,6 +28,13 @@ contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
     constructor() { }
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+    error Length_Mismatch();
+    error Insufficient_Amount_Out();
+    error Only_Internal();
+
+    /* //////////////////////////////////////////////////////////////
                             ACTION LOGIC
     ////////////////////////////////////////////////////////////// */
 
@@ -43,8 +50,7 @@ contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
         );
 
         uint256 callLength = to.length;
-
-        require(data.length == callLength, "EA: Length mismatch");
+        if (callLength != data.length) revert Length_Mismatch();
 
         for (uint256 i; i < callLength;) {
             (bool success, bytes memory result) = to[i].call(data[i]);
@@ -115,7 +121,7 @@ contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
      * @dev Can be called as one of the calls in executeAction.
      */
     function checkAmountOut(address asset, uint256 minAmountOut) external view {
-        require(IERC20(asset).balanceOf(address(this)) >= minAmountOut, "CS: amountOut too low");
+        if (IERC20(asset).balanceOf(address(this)) < minAmountOut) revert Insufficient_Amount_Out();
     }
 
     /**
@@ -125,6 +131,7 @@ contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
      * @dev Asset address and ID is temporarily stored in this contract.
      */
     function mintUniV3LP(address to, bytes memory data) external {
+        if (msg.sender != address(this)) revert Only_Internal();
         (bool success, bytes memory result) = to.call(data);
         require(success, string(result));
 

@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { AbstractDerivedAssetModule_Fuzz_Test } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
+import { AbstractDerivedAssetModule_Fuzz_Test, AssetModule } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "_processDeposit" of contract "AbstractDerivedAssetModule".
@@ -60,9 +60,9 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // When: "_processDeposit" is called.
-        // Then: The transaction reverts with "ADAM_PD: Exposure not in limits".
+        // Then: The transaction reverts with AssetModule.Exposure_Not_In_Limits.selector.
         bytes32 assetKey = derivedAssetModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        vm.expectRevert("ADAM_PD: Exposure not in limits");
+        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
         derivedAssetModule.processDeposit(assetState.creditor, assetKey, exposureAsset);
     }
 
@@ -97,9 +97,9 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // When: "_processDeposit" is called.
-        // Then: The transaction reverts with "ADAM_PD: Exposure not in limits".
+        // Then: The transaction reverts with AssetModule.Exposure_Not_In_Limits.selector.
         bytes32 assetKey = derivedAssetModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        vm.expectRevert("ADAM_PD: Exposure not in limits");
+        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
         derivedAssetModule.processDeposit(assetState.creditor, assetKey, exposureAsset);
     }
 

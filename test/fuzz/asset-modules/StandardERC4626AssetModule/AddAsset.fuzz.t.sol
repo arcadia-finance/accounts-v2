@@ -4,9 +4,14 @@
  */
 pragma solidity 0.8.19;
 
-import { StandardERC4626AssetModule_Fuzz_Test } from "./_StandardERC4626AssetModule.fuzz.t.sol";
+import {
+    StandardERC4626AssetModule_Fuzz_Test,
+    AssetModule,
+    StandardERC4626AssetModule
+} from "./_StandardERC4626AssetModule.fuzz.t.sol";
 
 import { ERC4626Mock } from "../../../utils/mocks/ERC4626Mock.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "StandardERC4626AssetModule".
@@ -36,7 +41,7 @@ contract AddAsset_StandardERC4626AssetModule_Fuzz_Test is StandardERC4626AssetMo
         ERC4626Mock ybToken3 = new ERC4626Mock(mockERC20.token3, "Mocked Yield Bearing Token 3", "mybTOKEN1");
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("AM4626_AA: Underlying Asset not allowed");
+        vm.expectRevert(StandardERC4626AssetModule.Underlying_Asset_Not_Allowed.selector);
         erc4626AssetModule.addAsset(address(ybToken3));
         vm.stopPrank();
     }
@@ -44,7 +49,7 @@ contract AddAsset_StandardERC4626AssetModule_Fuzz_Test is StandardERC4626AssetMo
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
         erc4626AssetModule.addAsset(address(ybToken1));
-        vm.expectRevert("MR_AA: Asset already in registry");
+        vm.expectRevert(RegistryErrors.Asset_Already_In_Registry.selector);
         erc4626AssetModule.addAsset(address(ybToken1));
         vm.stopPrank();
     }

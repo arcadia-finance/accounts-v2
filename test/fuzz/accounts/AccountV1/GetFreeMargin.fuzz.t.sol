@@ -6,8 +6,6 @@ pragma solidity 0.8.19;
 
 import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
-import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
-
 /**
  * @notice Fuzz tests for the function "getFreeMargin" of contract "AccountV1".
  */

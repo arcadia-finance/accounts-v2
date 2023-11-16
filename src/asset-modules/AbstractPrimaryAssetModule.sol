@@ -57,6 +57,10 @@ abstract contract PrimaryAssetModule is AssetModule {
     }
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
@@ -91,10 +95,10 @@ abstract contract PrimaryAssetModule is AssetModule {
 
         // Old oracles must be decommissioned before a new sequence can be set.
         bytes32 oldOracles = assetToInformation[assetKey].oracleSequence;
-        require(!IRegistry(REGISTRY).checkOracleSequence(oldOracles), "APAM_SO: Oracle still active");
+        if (IRegistry(REGISTRY).checkOracleSequence(oldOracles)) revert Oracle_Still_Active();
 
         // The new oracle sequence must be correct.
-        require(IRegistry(REGISTRY).checkOracleSequence(newOracles), "APAM_SO: Bad sequence");
+        if (!IRegistry(REGISTRY).checkOracleSequence(newOracles)) revert Bad_Oracle_Sequence();
 
         assetToInformation[assetKey].oracleSequence = newOracles;
     }
@@ -172,8 +176,8 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external onlyRegistry {
-        require(collateralFactor <= RiskConstants.RISK_FACTOR_UNIT, "APAM_SRP: Coll.Fact not in limits");
-        require(liquidationFactor <= RiskConstants.RISK_FACTOR_UNIT, "APAM_SRP: Liq.Fact not in limits");
+        if (collateralFactor > RiskConstants.RISK_FACTOR_UNIT) revert Coll_Factor_Not_In_Limits();
+        if (liquidationFactor > RiskConstants.RISK_FACTOR_UNIT) revert Liq_Factor_Not_In_Limits();
 
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -204,12 +208,10 @@ abstract contract PrimaryAssetModule is AssetModule {
         // Cache lastExposureAsset.
         uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
-        require(
-            lastExposureAsset + amount < riskParams[creditor][assetKey].maxExposure, "APAM_PDD: Exposure not in limits"
-        );
+        if (lastExposureAsset + amount >= riskParams[creditor][assetKey].maxExposure) revert Exposure_Not_In_Limits();
 
         unchecked {
-            riskParams[creditor][assetKey].lastExposureAsset = uint128(lastExposureAsset) + uint128(amount);
+            riskParams[creditor][assetKey].lastExposureAsset = uint128(lastExposureAsset + amount);
         }
     }
 
@@ -244,7 +246,7 @@ abstract contract PrimaryAssetModule is AssetModule {
                 ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
                 : 0;
         }
-        require(exposureAsset < riskParams[creditor][assetKey].maxExposure, "APAM_PID: Exposure not in limits");
+        if (exposureAsset >= riskParams[creditor][assetKey].maxExposure) revert Exposure_Not_In_Limits();
         // unchecked cast: "RiskParameters.maxExposure" is a uint128.
         riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
 
@@ -302,7 +304,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint256 exposureAsset;
         if (deltaExposureUpperAssetToAsset > 0) {
             exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
-            require(exposureAsset <= type(uint128).max, "APAM_PIW: Overflow");
+            if (exposureAsset > type(uint128).max) revert Overflow();
         } else {
             exposureAsset = lastExposureAsset > uint256(-deltaExposureUpperAssetToAsset)
                 ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
