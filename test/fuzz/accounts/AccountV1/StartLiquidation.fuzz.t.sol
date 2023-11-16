@@ -184,7 +184,6 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             address[] memory assetAddresses_,
             uint256[] memory assetIds_,
             uint256[] memory assetAmounts_,
-            address owner_,
             address creditor_,
             uint256 totalOpenDebt,
             RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues_
@@ -192,7 +191,6 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
 
         // Then : Account should be liquidatable and return specific values
-        assertEq(owner_, accountExtension2.owner());
         assertEq(assetAddresses_[0], address(mockERC20.token1));
         assertEq(assetIds_[0], 0);
         assertEq(assetAmounts_[0], mockERC20.token1.balanceOf(address(accountExtension2)));

@@ -460,7 +460,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @return assetAddresses Array of the contract addresses of the assets in Account.
      * @return assetIds Array of the IDs of the assets in Account.
      * @return assetAmounts Array with the amounts of the assets in Account.
-     * @return owner_ Owner of the account.
      * @return creditor_ The creditor, address 0 if no active Creditor.
      * @return openDebt The open Debt issued against the Account.
      * @return assetAndRiskValues Array of asset values and corresponding collateral factors.
@@ -473,13 +472,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
             address[] memory assetAddresses,
             uint256[] memory assetIds,
             uint256[] memory assetAmounts,
-            address owner_,
             address creditor_,
             uint256 openDebt,
             RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues
         )
     {
-        owner_ = owner;
         creditor_ = creditor;
 
         (assetAddresses, assetIds, assetAmounts) = generateAssetData();
