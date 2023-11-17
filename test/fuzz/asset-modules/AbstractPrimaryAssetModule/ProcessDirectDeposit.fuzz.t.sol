@@ -65,7 +65,7 @@ contract ProcessDirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPr
     function testFuzz_Success_processDirectDeposit(PrimaryAssetModuleAssetState memory assetState, uint256 amount)
         public
     {
-        // Given: "exposureAsset" is strictly smaller as "exposureAssetMax" (test-case).
+        // Given: "exposureAsset" is strictly smaller than "exposureAssetMax" (test-case).
         assetState.exposureAssetLast = uint128(bound(assetState.exposureAssetLast, 0, type(uint128).max - 1));
         amount = bound(amount, 0, type(uint128).max - assetState.exposureAssetLast - 1);
         uint256 expectedExposure = assetState.exposureAssetLast + amount;

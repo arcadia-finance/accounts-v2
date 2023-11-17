@@ -149,7 +149,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
             sqrtPriceX96, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity_
         );
 
-        // Condition on which the call should revert: exposure to token0 becomes bigger as maxExposure0.
+        // Condition on which the call should revert: exposure to token0 becomes bigger than maxExposure0.
         vm.assume(amount0 > 0);
         vm.assume(amount0 + initialExposure0 >= maxExposure0);
 
@@ -203,7 +203,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         // And: exposure0 does not exceed maximum.
         vm.assume(amount0 < type(uint128).max);
 
-        // Condition on which the call should revert: exposure to token1 becomes bigger as maxExposure1.
+        // Condition on which the call should revert: exposure to token1 becomes bigger than maxExposure1.
         vm.assume(amount1 > 0);
         vm.assume(amount1 + initialExposure1 >= maxExposure1);
 

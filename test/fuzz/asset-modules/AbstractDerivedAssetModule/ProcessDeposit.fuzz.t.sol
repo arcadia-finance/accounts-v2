@@ -30,7 +30,7 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         // Given: valid initial state.
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
-        // And: "exposure" of underlyingAsset is strictly smaller as its "maxExposure".
+        // And: "exposure" of underlyingAsset is strictly smaller than its "maxExposure".
         assetState.exposureAssetToUnderlyingAsset =
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max - 1);
 
@@ -75,14 +75,14 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         // Given: valid initial state.
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
-        // And: "exposure" of underlyingAsset is strictly smaller as its "maxExposure".
+        // And: "exposure" of underlyingAsset is strictly smaller than its "maxExposure".
         assetState.exposureAssetToUnderlyingAsset =
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max - 1);
 
         // And: delta "usdExposureAsset" is negative (test-case).
         underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.lastUsdExposureAsset);
 
-        // And: "exposure" is equal or bigger as "maxExposure".
+        // And: "exposure" is equal or bigger than "maxExposure".
         uint256 usdExposureProtocolExpected;
         if (protocolState.lastUsdExposureProtocol > assetState.lastUsdExposureAsset - underlyingPMState.usdValue) {
             usdExposureProtocolExpected =
@@ -112,7 +112,7 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         // Given: valid initial state.
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
-        // And: "exposure" of underlyingAsset is strictly smaller as its "maxExposure".
+        // And: "exposure" of underlyingAsset is strictly smaller than its "maxExposure".
         assetState.exposureAssetToUnderlyingAsset =
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max - 1);
 
@@ -131,7 +131,7 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         uint256 usdExposureProtocolExpected =
             protocolState.lastUsdExposureProtocol + (underlyingPMState.usdValue - assetState.lastUsdExposureAsset);
 
-        // And: "exposure" is strictly smaller as "maxExposure" (test-case).
+        // And: "exposure" is strictly smaller than "maxExposure" (test-case).
         vm.assume(usdExposureProtocolExpected < type(uint128).max);
         protocolState.maxUsdExposureProtocol =
             uint128(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected + 1, type(uint128).max));
@@ -190,7 +190,7 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         // Given: valid initial state.
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
-        // And: "exposure" of underlyingAsset is strictly smaller as its "maxExposure".
+        // And: "exposure" of underlyingAsset is strictly smaller than its "maxExposure".
         assetState.exposureAssetToUnderlyingAsset =
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max - 1);
 
@@ -209,7 +209,7 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         uint256 usdExposureProtocolExpected =
             protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - underlyingPMState.usdValue);
 
-        // And: "exposure" is strictly smaller as "maxExposure" (test-case).
+        // And: "exposure" is strictly smaller than "maxExposure" (test-case).
         vm.assume(usdExposureProtocolExpected < type(uint128).max);
         protocolState.maxUsdExposureProtocol =
             uint128(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected + 1, type(uint128).max));
@@ -268,7 +268,7 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         // Given: valid initial state.
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
-        // And: "exposure" of underlyingAsset is strictly smaller as its "maxExposure".
+        // And: "exposure" of underlyingAsset is strictly smaller than its "maxExposure".
         assetState.exposureAssetToUnderlyingAsset =
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max - 1);
 
@@ -283,7 +283,7 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
             )
         );
 
-        // And: "exposure" is strictly smaller as "maxExposure" (test-case).
+        // And: "exposure" is strictly smaller than "maxExposure" (test-case).
         protocolState.maxUsdExposureProtocol =
             uint128(bound(protocolState.maxUsdExposureProtocol, 1, type(uint128).max));
 

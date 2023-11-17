@@ -32,7 +32,7 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626AssetModule_Fuzz_Test is Stan
     function testFuzz_Success_getUnderlyingAssetsAmounts(uint256 shares, uint256 totalSupply, uint256 totalAssets)
         public
     {
-        // Given: userBalance is smaller as total amount of shares (invariant ERC20).
+        // Given: userBalance is smaller than total amount of shares (invariant ERC20).
         shares = bound(shares, 0, totalSupply);
 
         // And: "convertToAssets()" does not overflow.

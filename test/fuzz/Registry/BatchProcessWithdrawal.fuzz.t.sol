@@ -80,7 +80,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
     }
 
     function testFuzz_Revert_batchProcessWithdrawal_Paused(uint128 amountToken2, address guardian) public {
-        // Given: "exposure" is strictly smaller as "maxExposure".
+        // Given: "exposure" is strictly smaller than "maxExposure".
         amountToken2 = uint128(bound(amountToken2, 0, type(uint128).max - 1));
 
         // And: Assets are deposited
@@ -141,7 +141,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
     }
 
     function testFuzz_Success_batchProcessWithdrawal(uint128 amountDeposited, uint128 amountWithdrawn) public {
-        // Given: "exposure" is strictly smaller as "maxExposure".
+        // Given: "exposure" is strictly smaller than "maxExposure".
         amountDeposited = uint128(bound(amountDeposited, 0, type(uint128).max - 1));
         amountWithdrawn = uint128(bound(amountWithdrawn, 0, amountDeposited));
 
@@ -176,7 +176,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
     }
 
     function testFuzz_Success_batchProcessWithdrawal_directCall(uint128 amountToken2) public {
-        // Given: "exposure" is strictly smaller as "maxExposure".
+        // Given: "exposure" is strictly smaller than "maxExposure".
         amountToken2 = uint128(bound(amountToken2, 0, type(uint128).max - 1));
 
         address[] memory assetAddresses = new address[](1);

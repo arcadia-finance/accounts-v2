@@ -190,7 +190,7 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
             }
         }
 
-        // And: "exposure" of underlyingAsset is strictly smaller as its "maxExposure".
+        // And: "exposure" of underlyingAsset is strictly smaller than its "maxExposure".
         assetState.exposureAssetToUnderlyingAsset =
             bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max - 1);
 
@@ -231,7 +231,7 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
             protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 
-        // And: "exposure" is strictly smaller as "maxExposure".
+        // And: "exposure" is strictly smaller than "maxExposure".
         uint256 usdExposureProtocolExpected;
         if (underlyingPMState.usdValue >= assetState.lastUsdExposureAsset) {
             usdExposureProtocolExpected =
