@@ -109,7 +109,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Revert_deposit_ERC20WithId(uint256 id, uint128 amount) public {
-        // Given: "exposure" is strictly smaller as "maxExposure".
+        // Given: "exposure" is strictly smaller than "maxExposure".
         amount = uint128(bound(amount, 1, type(uint128).max - 1));
         id = bound(id, 1, type(uint256).max);
 
@@ -241,13 +241,13 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 erc1155InitialAmount,
         uint128 erc1155DepositAmount
     ) public {
-        // Given: "exposure" is strictly smaller as "maxExposure".
+        // Given: "exposure" is strictly smaller than "maxExposure".
         erc20InitialAmount = uint128(bound(erc20InitialAmount, 0, type(uint128).max - 1));
         erc20DepositAmount = uint128(bound(erc20DepositAmount, 0, type(uint128).max - erc20InitialAmount - 1));
         vm.assume(erc721Id1 != erc721Id2);
         erc1155InitialAmount = uint128(bound(erc1155InitialAmount, 0, type(uint128).max - 1));
         erc1155DepositAmount = uint128(bound(erc1155DepositAmount, 0, type(uint128).max - erc1155InitialAmount - 1));
-        // And: total deposit amounts are bigger as zero.
+        // And: total deposit amounts are bigger than zero.
         vm.assume(erc20InitialAmount + erc20DepositAmount > 0);
         vm.assume(erc1155InitialAmount + erc1155DepositAmount > 0);
 

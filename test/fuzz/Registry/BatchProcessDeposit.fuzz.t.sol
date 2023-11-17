@@ -152,7 +152,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
     }
 
     function testFuzz_Success_batchProcessDeposit_SingleAsset(uint128 amount) public {
-        // Given: "exposure" is strictly smaller as "maxExposure".
+        // Given: "exposure" is strictly smaller than "maxExposure".
         amount = uint128(bound(amount, 0, type(uint128).max - 1));
 
         address[] memory assetAddresses = new address[](1);
@@ -176,7 +176,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
     }
 
     function testFuzz_Success_batchProcessDeposit_MultipleAssets(uint128 amountToken1, uint128 amountToken2) public {
-        // Given: "exposure" is strictly smaller as "maxExposure".
+        // Given: "exposure" is strictly smaller than "maxExposure".
         amountToken1 = uint128(bound(amountToken1, 0, type(uint128).max - 1));
         amountToken2 = uint128(bound(amountToken2, 0, type(uint128).max - 1));
 
@@ -209,7 +209,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
     }
 
     function testFuzz_Success_batchProcessDeposit_directCall(uint128 amountToken2) public {
-        // Given: "exposure" is strictly smaller as "maxExposure".
+        // Given: "exposure" is strictly smaller than "maxExposure".
         amountToken2 = uint128(bound(amountToken2, 0, type(uint128).max - 1));
 
         address[] memory assetAddresses = new address[](1);

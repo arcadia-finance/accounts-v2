@@ -59,7 +59,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 depositAmountToken1,
         address liquidationInitiator
     ) public {
-        // "exposure" is strictly smaller as "maxExposure".
+        // "exposure" is strictly smaller than "maxExposure".
         depositAmountToken1 = uint128(bound(depositAmountToken1, 1, type(uint128).max - 1));
 
         // Given: openDebt > 0
@@ -138,7 +138,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 depositAmountToken1,
         address liquidationInitiator
     ) public {
-        // "exposure" is strictly smaller as "maxExposure".
+        // "exposure" is strictly smaller than "maxExposure".
         depositAmountToken1 = uint128(bound(depositAmountToken1, 1, type(uint128).max - 1));
 
         // Given: openDebt > 0

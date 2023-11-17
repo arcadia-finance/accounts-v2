@@ -149,7 +149,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 erc1155Amount,
         uint256 debt
     ) public {
-        // Given: "exposure" is strictly smaller as "maxExposure".
+        // Given: "exposure" is strictly smaller than "maxExposure".
         erc20Amount = uint128(bound(erc20Amount, 0, type(uint128).max - 1));
         erc1155Amount = uint128(bound(erc1155Amount, 0, type(uint128).max - 1));
 

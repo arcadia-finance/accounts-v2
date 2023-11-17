@@ -254,7 +254,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
         uint256 usedMargin = debt + fixedLiquidationCost;
 
-        // "exposure" is strictly smaller as "maxExposure".
+        // "exposure" is strictly smaller than "maxExposure".
         collateralValueInitial = uint128(bound(collateralValueInitial, 0, type(uint128).max - 1));
 
         // No underflow Withdrawal.
@@ -288,7 +288,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_withdraw_NoDebt_FullWithdrawal(uint128 erc20Amount, uint8 erc721Id, uint128 erc1155Amount)
         public
     {
-        // Given: "exposure" is strictly smaller as "maxExposure".
+        // Given: "exposure" is strictly smaller than "maxExposure".
         erc20Amount = uint128(bound(erc20Amount, 0, type(uint128).max - 1));
         erc1155Amount = uint128(bound(erc1155Amount, 0, type(uint128).max - 1));
 
@@ -347,11 +347,11 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint128 erc1155InitialAmount,
         uint128 erc1155WithdrawAmount
     ) public {
-        // Given: "exposure" is strictly smaller as "maxExposure".
+        // Given: "exposure" is strictly smaller than "maxExposure".
         erc20InitialAmount = uint128(bound(erc20InitialAmount, 0, type(uint128).max - 1));
         erc1155InitialAmount = uint128(bound(erc1155InitialAmount, 0, type(uint128).max - 1));
 
-        // And: total deposit amounts are bigger as zero.
+        // And: total deposit amounts are bigger than zero.
         vm.assume(erc20InitialAmount > 0);
         vm.assume(erc1155InitialAmount > 0);
         // And: Assets don't underflow.
@@ -438,7 +438,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
         uint256 usedMargin = debt + fixedLiquidationCost;
 
-        // "exposure" is strictly smaller as "maxExposure".
+        // "exposure" is strictly smaller than "maxExposure".
         collateralValueInitial = uint128(bound(collateralValueInitial, 0, type(uint128).max - 1));
 
         // No underflow Withdrawal.

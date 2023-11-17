@@ -26,7 +26,7 @@ contract GetAccountValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_getAccountValue(uint128 spotValue) public {
-        // Given: "exposure" is strictly smaller as "maxExposure".
+        // Given: "exposure" is strictly smaller than "maxExposure".
         spotValue = uint128(bound(spotValue, 0, type(uint128).max - 1));
 
         // Set Spot Value of assets (value of stable1 is 1:1 the amount of stable1 tokens).
