@@ -41,7 +41,7 @@ contract AccountV2 is AccountStorageV2 {
 
     // Storage slot with the address of the current implementation.
     // This is the hardcoded keccak-256 hash of: "eip1967.proxy.implementation" subtracted by 1.
-    bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+    bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
     // The maximum amount of different assets that can be used as collateral within an Arcadia Account.
     uint256 public constant ASSET_LIMIT = 15;
     // The current Account Version.
@@ -171,10 +171,10 @@ contract AccountV2 is AccountStorageV2 {
         }
 
         //Cache old parameters
-        address oldImplementation = _getAddressSlot(_IMPLEMENTATION_SLOT).value;
+        address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
         uint16 oldVersion = ACCOUNT_VERSION;
-        _getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;
+        _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
 
         //Hook on the new logic to finalize upgrade.
