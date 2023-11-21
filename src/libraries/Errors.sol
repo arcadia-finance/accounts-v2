@@ -12,7 +12,7 @@ library AccountErrors {
     error BaseCurrency_Not_Found();
     error Creditor_Already_Set();
     error Creditor_Not_Set();
-    error Invalid_Account_Version();
+    error InvalidAccountVersion();
     error Invalid_ERC20_Id();
     error Invalid_ERC721_Amount();
     error Invalid_Recipient();
@@ -29,8 +29,8 @@ library AccountErrors {
 }
 
 library FactoryErrors {
-    error Account_Version_Blocked();
-    error Invalid_Account_Version();
+    error AccountVersionBlocked();
+    error InvalidAccountVersion();
     error Invalid_Upgrade();
     error Logic_Is_Zero();
     error Only_Account_Owner();

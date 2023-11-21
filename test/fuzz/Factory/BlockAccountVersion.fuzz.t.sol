@@ -39,7 +39,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(accountVersion > currentVersion || accountVersion == 0);
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert(FactoryErrors.Invalid_Account_Version.selector);
+        vm.expectRevert(FactoryErrors.InvalidAccountVersion.selector);
         factory.blockAccountVersion(accountVersion);
         vm.stopPrank();
     }

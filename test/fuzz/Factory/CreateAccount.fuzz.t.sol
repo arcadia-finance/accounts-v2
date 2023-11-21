@@ -41,7 +41,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint256 currentVersion = factory.latestAccountVersion();
         vm.assume(accountVersion > currentVersion);
 
-        vm.expectRevert(FactoryErrors.Invalid_Account_Version.selector);
+        vm.expectRevert(FactoryErrors.InvalidAccountVersion.selector);
         factory.createAccount(
             uint256(keccak256(abi.encodePacked(accountVersion, block.timestamp))),
             accountVersion,
@@ -81,7 +81,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
             if (versionsToBlock[z] == 0 || versionsToBlock[z] > factory.latestAccountVersion()) {
                 continue;
             }
-            vm.expectRevert(FactoryErrors.Account_Version_Blocked.selector);
+            vm.expectRevert(FactoryErrors.AccountVersionBlocked.selector);
             factory.createAccount(
                 uint256(keccak256(abi.encodePacked(versionsToBlock[z], block.timestamp))),
                 versionsToBlock[z],

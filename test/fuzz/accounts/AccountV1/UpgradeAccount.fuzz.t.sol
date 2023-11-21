@@ -110,7 +110,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         creditorStable1.setCallResult(false);
 
         vm.startPrank(address(factory));
-        vm.expectRevert(AccountErrors.Invalid_Account_Version.selector);
+        vm.expectRevert(AccountErrors.InvalidAccountVersion.selector);
         proxyAccount.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
     }

@@ -43,7 +43,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         factory.blockAccountVersion(2);
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(FactoryErrors.Account_Version_Blocked.selector);
+        vm.expectRevert(FactoryErrors.AccountVersionBlocked.selector);
         factory.upgradeAccountVersion(address(proxyAccount), 2, proofs);
         vm.stopPrank();
     }
