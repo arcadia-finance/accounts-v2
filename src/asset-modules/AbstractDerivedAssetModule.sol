@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
+import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
 import { AssetModule } from "./AbstractAssetModule.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
