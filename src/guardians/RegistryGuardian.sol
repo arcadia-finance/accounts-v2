@@ -10,7 +10,8 @@ import { BaseGuardian } from "./BaseGuardian.sol";
 /**
  * @title Registry Guardian
  * @author Pragma Labs
- * @notice This module provides the logic for the Registry that allows authorized accounts to trigger an emergency stop.
+ * @notice Logic inherited by the Registry that allows an authorized guardian to trigger an emergency stop.
+ * It also enables public or authorized guardian to unpause in certain cases.
  */
 abstract contract RegistryGuardian is BaseGuardian {
     /* //////////////////////////////////////////////////////////////
@@ -26,13 +27,7 @@ abstract contract RegistryGuardian is BaseGuardian {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event PauseUpdate(bool withdrawPauseUpdate, bool depositPauseUpdate);
-
-    /*
-    //////////////////////////////////////////////////////////////
-                            ERRORS
-    //////////////////////////////////////////////////////////////
-    */
+    event PauseFlagsUpdated(bool withdrawPauseUpdate, bool depositPauseUpdate);
 
     /*
     //////////////////////////////////////////////////////////////
@@ -41,8 +36,7 @@ abstract contract RegistryGuardian is BaseGuardian {
     */
 
     /**
-     * @dev This modifier is used to restrict access to certain functions when the contract is paused for withdraw assets.
-     * It throws if withdraw is paused.
+     * @dev Throws if the withdraw functionality is paused.
      */
     modifier whenWithdrawNotPaused() {
         if (withdrawPaused) revert FunctionIsPaused();
@@ -50,19 +44,12 @@ abstract contract RegistryGuardian is BaseGuardian {
     }
 
     /**
-     * @dev This modifier is used to restrict access to certain functions when the contract is paused for deposit assets.
-     * It throws if deposit assets is paused.
+     * @dev Throws if the deposit functionality is paused.
      */
     modifier whenDepositNotPaused() {
         if (depositPaused) revert FunctionIsPaused();
         _;
     }
-
-    /* //////////////////////////////////////////////////////////////
-                                CONSTRUCTOR
-    ////////////////////////////////////////////////////////////// */
-
-    constructor() { }
 
     /* //////////////////////////////////////////////////////////////
                             PAUSING LOGIC
@@ -77,16 +64,16 @@ abstract contract RegistryGuardian is BaseGuardian {
         depositPaused = true;
         pauseTimestamp = block.timestamp;
 
-        emit PauseUpdate(true, true);
+        emit PauseFlagsUpdated(withdrawPaused = true, depositPaused = true);
     }
 
     /**
      * @notice This function is used to unpause one or more flags.
-     * @param withdrawPaused_ false when withdraw functionality should be unpaused.
-     * @param depositPaused_ false when deposit functionality should be unpaused.
-     * @dev This function can unpause repay, withdraw, borrow, and deposit individually.
-     * @dev Can only update flags from paused (true) to unpaused (false), cannot be used the other way around
-     * (to set unpaused flags to paused).
+     * @param withdrawPaused_ false when withdraw functionality should be unPaused.
+     * @param depositPaused_ false when deposit functionality should be unPaused.
+     * @dev This function can unpause all functionalities
+     * @dev Can only update flags from paused (true) to unPaused (false), cannot be used the other way around
+     * (to set unPaused flags to paused).
      */
     function unpause(bool withdrawPaused_, bool depositPaused_) external onlyOwner {
         withdrawPaused = withdrawPaused && withdrawPaused_;
@@ -97,6 +84,7 @@ abstract contract RegistryGuardian is BaseGuardian {
 
     /**
      * @inheritdoc BaseGuardian
+     * @dev This function is used to unpause withdraw and deposit at the same time.
      */
     function unpause() external override {
         if (block.timestamp <= pauseTimestamp + 30 days) revert CannotUnpause();

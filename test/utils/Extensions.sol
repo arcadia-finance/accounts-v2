@@ -60,6 +60,34 @@ contract AccountExtension is AccountV1 {
     function setRegistry(address registry_) public {
         registry = registry_;
     }
+
+    function getERC20Stored(uint256 index) public view returns (address) {
+        return erc20Stored[index];
+    }
+
+    function getERC20Balances(address asset) public view returns (uint256) {
+        return erc20Balances[asset];
+    }
+
+    function getERC721Stored(uint256 index) public view returns (address) {
+        return erc721Stored[index];
+    }
+
+    function getERC721TokenIds(uint256 index) public view returns (uint256) {
+        return erc721TokenIds[index];
+    }
+
+    function getERC1155Stored(uint256 index) public view returns (address) {
+        return erc1155Stored[index];
+    }
+
+    function getERC1155TokenIds(uint256 index) public view returns (uint256) {
+        return erc1155TokenIds[index];
+    }
+
+    function getERC1155Balances(address asset, uint256 assetId) public view returns (uint256) {
+        return erc1155Balances[asset][assetId];
+    }
 }
 
 contract BaseGuardianExtension is BaseGuardian {

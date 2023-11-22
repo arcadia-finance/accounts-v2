@@ -67,7 +67,7 @@ contract UnPause_WithoutArgs_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz
         // When: A "sender" un-pauses.
         vm.startPrank(sender);
         vm.expectEmit(true, true, true, true);
-        emit PauseUpdate(false, false);
+        emit PauseFlagsUpdated(false, false);
         registryGuardian.unpause();
         vm.stopPrank();
 

@@ -30,10 +30,8 @@ abstract contract Events {
                                      FACTORY
     //////////////////////////////////////////////////////////////////////////*/
 
-    event AccountUpgraded(address indexed accountAddress, uint16 oldVersion, uint16 indexed newVersion);
-    event AccountVersionAdded(
-        uint16 indexed version, address indexed registry, address indexed logic, bytes32 versionRoot
-    );
+    event AccountUpgraded(address indexed accountAddress, uint16 indexed newVersion);
+    event AccountVersionAdded(uint16 indexed version, address indexed registry, address indexed logic);
     event AccountVersionBlocked(uint16 version);
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -60,7 +58,7 @@ abstract contract Events {
                             MAIN REGISTRY GUARDIAN
     //////////////////////////////////////////////////////////////////////////*/
 
-    event PauseUpdate(bool withdrawPauseUpdate, bool depositPauseUpdate);
+    event PauseFlagsUpdated(bool withdrawPauseUpdate, bool depositPauseUpdate);
 
     /*//////////////////////////////////////////////////////////////////////////
                                   MAIN REGISTRY
