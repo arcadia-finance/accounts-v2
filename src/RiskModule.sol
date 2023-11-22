@@ -56,8 +56,7 @@ library RiskModule {
         pure
         returns (uint256 liquidationValue)
     {
-        uint256 valuesAndRiskFactorsLength = valuesAndRiskFactors.length;
-        for (uint256 i; i < valuesAndRiskFactorsLength;) {
+        for (uint256 i; i < valuesAndRiskFactors.length;) {
             liquidationValue += valuesAndRiskFactors[i].assetValue * valuesAndRiskFactors[i].liquidationFactor;
             unchecked {
                 ++i;
