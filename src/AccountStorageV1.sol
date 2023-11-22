@@ -7,17 +7,10 @@ pragma solidity 0.8.19;
 /**
  * @title Arcadia Accounts Storage
  * @author Pragma Labs
- * @notice Arcadia Accounts are smart contracts that act as onchain, decentralized and composable margin accounts.
+ * @notice This contract is the storage contract for the Accounts.
+ * Arcadia Accounts are smart contracts that act as onchain, decentralized and composable margin accounts.
  * They provide individuals, DAOs, and other protocols with a simple and flexible way to deposit and manage multiple assets as collateral.
- * The total combination of assets can be used as margin to back liabilities issued by any financial protocol (lending, leverage, futures...).
- * @dev Users can use this Account to deposit assets (ERC20, ERC721, ERC1155, ...).
- * The Account will denominate all the pooled assets into one baseCurrency (one unit of account, like usd or eth).
- * An increase of value of one asset will offset a decrease in value of another asset.
- * Users can use the single denominated value of all their assets to take margin (take credit line, financing for leverage...).
- * Ensure your total value denomination remains above the liquidation threshold, or risk being liquidated!
- * @dev Integrating this Account as means of margin/collateral management for your own protocol that requires collateral is encouraged.
- * Arcadia's Account functions will guarantee you a certain value of the Account.
- * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
+ * More detail about the Accounts can be found in the AccountsV1.sol contract.
  * @dev Since Accounts are proxies and can be upgraded by the user, all storage variables should be declared in this contract.
  * New account versions must create a new account storage contract and inherit this storage contract.
  */
