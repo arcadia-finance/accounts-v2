@@ -16,9 +16,10 @@ abstract contract MultiCall_Fuzz_Test is Fuzz_Test {
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
-    error Length_Mismatch();
-    error Insufficient_Amount_Out();
-    error Only_Internal();
+    error LengthMismatch();
+    error InsufficientAmountOut();
+    error OnlyInternal();
+    error LeftoverNfts();
 
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
