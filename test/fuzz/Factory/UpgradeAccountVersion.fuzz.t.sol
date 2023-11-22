@@ -33,7 +33,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.startPrank(nonOwner);
-        vm.expectRevert(FactoryErrors.Only_Account_Owner.selector);
+        vm.expectRevert(FactoryErrors.OnlyAccountOwner.selector);
         factory.upgradeAccountVersion(address(proxyAccount), version, proofs);
         vm.stopPrank();
     }
@@ -55,7 +55,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(version != 2);
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(FactoryErrors.Invalid_Upgrade.selector);
+        vm.expectRevert(FactoryErrors.InvalidUpgrade.selector);
         factory.upgradeAccountVersion(address(proxyAccount), version, proofs);
         vm.stopPrank();
     }

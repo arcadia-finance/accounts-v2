@@ -31,11 +31,11 @@ library AccountErrors {
 library FactoryErrors {
     error AccountVersionBlocked();
     error InvalidAccountVersion();
-    error Invalid_Upgrade();
-    error Logic_Is_Zero();
-    error Only_Account_Owner();
-    error Version_Mismatch();
-    error Version_Root_Is_Zero();
+    error InvalidUpgrade();
+    error LogicIsZero();
+    error OnlyAccountOwner();
+    error VersionMismatch();
+    error VersionRootIsZero();
 }
 
 library RegistryErrors {

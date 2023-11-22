@@ -136,14 +136,14 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * Merkle proofs and their leaves can be found on https://www.github.com/arcadia-finance.
      */
     function upgradeAccountVersion(address account, uint16 version, bytes32[] calldata proofs) external {
-        if (_ownerOf[accountIndex[account]] != msg.sender) revert FactoryErrors.Only_Account_Owner();
+        if (_ownerOf[accountIndex[account]] != msg.sender) revert FactoryErrors.OnlyAccountOwner();
         if (accountVersionBlocked[version]) revert FactoryErrors.AccountVersionBlocked();
 
         uint256 currentVersion = IAccount(account).ACCOUNT_VERSION();
         bool canUpgrade =
             MerkleProofLib.verify(proofs, versionRoot, keccak256(abi.encodePacked(currentVersion, uint256(version))));
 
-        if (!canUpgrade) revert FactoryErrors.Invalid_Upgrade();
+        if (!canUpgrade) revert FactoryErrors.InvalidUpgrade();
 
         IAccount(account).upgradeAccount(
             versionInformation[version].logic,
@@ -222,19 +222,21 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         external
         onlyOwner
     {
-        if (versionRoot_ == bytes32(0)) revert FactoryErrors.Version_Root_Is_Zero();
-        if (logic == address(0)) revert FactoryErrors.Logic_Is_Zero();
+        if (versionRoot_ == bytes32(0)) revert FactoryErrors.VersionRootIsZero();
+        if (logic == address(0)) revert FactoryErrors.LogicIsZero();
 
+        uint256 latestAccountVersion_;
         unchecked {
-            ++latestAccountVersion;
+            // Update and cache the new latestAccountVersion.
+            latestAccountVersion_ = ++latestAccountVersion;
         }
 
-        if (IAccount(logic).ACCOUNT_VERSION() != latestAccountVersion) revert FactoryErrors.Version_Mismatch();
+        if (IAccount(logic).ACCOUNT_VERSION() != latestAccountVersion) revert FactoryErrors.VersionMismatch();
 
         versionRoot = versionRoot_;
-        versionInformation[latestAccountVersion] = VersionInformation({ registry: registry, logic: logic, data: data });
+        versionInformation[latestAccountVersion_] = VersionInformation({ registry: registry, logic: logic, data: data });
 
-        emit AccountVersionAdded(latestAccountVersion, registry, logic);
+        emit AccountVersionAdded(uint16(latestAccountVersion_), registry, logic);
     }
 
     /**
