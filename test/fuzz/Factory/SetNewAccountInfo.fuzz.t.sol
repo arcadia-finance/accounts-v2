@@ -50,7 +50,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(registryExtension));
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert(FactoryErrors.Version_Root_Is_Zero.selector);
+        vm.expectRevert(FactoryErrors.VersionRootIsZero.selector);
         factory.setNewAccountInfo(registry_, logic, bytes32(0), "");
         vm.stopPrank();
     }
@@ -59,7 +59,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(versionRoot != bytes32(0));
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert(FactoryErrors.Logic_Is_Zero.selector);
+        vm.expectRevert(FactoryErrors.LogicIsZero.selector);
         factory.setNewAccountInfo(registry_, address(0), versionRoot, "");
         vm.stopPrank();
     }
@@ -88,7 +88,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         //first set an actual version 2
         factory.setNewAccountInfo(address(registryExtension), address(newAccountV2), Constants.upgradeRoot1To2, "");
         //then try to register another account logic address which has version 2 in its bytecode
-        vm.expectRevert(FactoryErrors.Version_Mismatch.selector);
+        vm.expectRevert(FactoryErrors.VersionMismatch.selector);
         factory.setNewAccountInfo(address(registryExtension), address(newAccountV2_2), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
     }
@@ -109,17 +109,15 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
-        emit AccountVersionAdded(
-            uint16(latestAccountVersionPre + 1), address(registry2), logic, Constants.upgradeRoot1To2
-        );
+        emit AccountVersionAdded(uint16(latestAccountVersionPre + 1), address(registry2), logic);
         factory.setNewAccountInfo(address(registry2), logic, Constants.upgradeRoot1To2, data);
         vm.stopPrank();
 
-        (address registry_, address addresslogic_, bytes32 root, bytes memory data_) =
-            factory.accountDetails(latestAccountVersionPre + 1);
+        assertEq(factory.versionRoot(), Constants.upgradeRoot1To2);
+        (address registry_, address addresslogic_, bytes memory data_) =
+            factory.versionInformation(latestAccountVersionPre + 1);
         assertEq(registry_, address(registry2));
         assertEq(addresslogic_, logic);
-        assertEq(root, Constants.upgradeRoot1To2);
         assertEq(data_, data);
         assertEq(factory.latestAccountVersion(), latestAccountVersionPre + 1);
     }
