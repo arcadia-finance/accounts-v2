@@ -195,7 +195,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // When: "users.accountOwner" Upgrade the account to AccountV2Logic.
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
-        emit AccountUpgraded(address(proxyAccount), 1, 2);
+        emit AccountUpgraded(address(proxyAccount), 2);
         factory.upgradeAccountVersion(address(proxyAccount), factory.latestAccountVersion(), proofs);
         vm.stopPrank();
 
