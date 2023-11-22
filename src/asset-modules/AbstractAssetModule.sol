@@ -84,11 +84,11 @@ abstract contract AssetModule is Owned, IAssetModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Checks for a token address and the corresponding Id if it is allowed.
+     * @notice Checks for a token address and the corresponding id if it is allowed.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @return A boolean, indicating if the asset is allowed.
-     * @dev For assets without Id (ERC20, ERC4626...), the Id should be set to 0.
+     * @dev For assets without id (ERC20, ERC4626...), the id should be set to 0.
      */
     function isAllowed(address asset, uint256 assetId) public view virtual returns (bool);
 
