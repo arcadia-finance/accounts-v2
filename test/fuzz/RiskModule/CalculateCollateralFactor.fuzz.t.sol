@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { RiskModule_Fuzz_Test } from "./_RiskModule.fuzz.t.sol";
 
 import { RiskModule } from "../../../src/RiskModule.sol";
-import { RiskConstants } from "../../../src/libraries/RiskConstants.sol";
+import { RiskModule } from "../../../src/RiskModule.sol";
 
 /**
  * @notice Fuzz tests for the function "calculateCollateralFactor" of contract "RiskModule".
@@ -37,8 +37,8 @@ contract CalculateCollateralFactor_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
         values[1].assetValue = secondValue;
 
         // And: collateral factors are within allowed ranges
-        vm.assume(firstCollFactor <= RiskConstants.RISK_FACTOR_UNIT);
-        vm.assume(secondCollFactor <= RiskConstants.RISK_FACTOR_UNIT);
+        vm.assume(firstCollFactor <= RiskModule.RISK_FACTOR_UNIT);
+        vm.assume(secondCollFactor <= RiskModule.RISK_FACTOR_UNIT);
 
         values[0].collateralFactor = firstCollFactor;
         values[1].collateralFactor = secondCollFactor;

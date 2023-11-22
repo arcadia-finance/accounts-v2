@@ -4,14 +4,18 @@
  */
 pragma solidity 0.8.19;
 
-import { RiskConstants } from "./libraries/RiskConstants.sol";
-
 /**
  * @title Risk Module
  * @author Pragma Labs
  * @notice The Risk Module is responsible for calculating the risk weighted values of combinations of assets.
  */
 library RiskModule {
+    /*///////////////////////////////////////////////////////////////
+                        CONSTANTS
+    ///////////////////////////////////////////////////////////////*/
+
+    uint256 internal constant RISK_FACTOR_UNIT = 10_000;
+
     // Struct with risk and valuation related information for a certain asset.
     struct AssetValueAndRiskFactors {
         // The value of the asset.
@@ -42,7 +46,7 @@ library RiskModule {
                 ++i;
             }
         }
-        collateralValue = collateralValue / RiskConstants.RISK_FACTOR_UNIT;
+        collateralValue = collateralValue / RISK_FACTOR_UNIT;
     }
 
     /**
@@ -61,6 +65,6 @@ library RiskModule {
                 ++i;
             }
         }
-        liquidationValue = liquidationValue / RiskConstants.RISK_FACTOR_UNIT;
+        liquidationValue = liquidationValue / RISK_FACTOR_UNIT;
     }
 }

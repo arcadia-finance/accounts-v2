@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { AbstractDerivedAssetModule_Fuzz_Test } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
 
-import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
+import { RiskModule } from "../../../../src/RiskModule.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
 /**
@@ -39,11 +39,11 @@ contract GetRiskFactors_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         underlyingAssetIds[1] = bound(underlyingAssetIds[1], 0, type(uint96).max);
 
         // And: Risk factors are below max risk factor.
-        riskFactor = uint16(bound(riskFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
-        collateralFactors[0] = uint16(bound(collateralFactors[0], 0, RiskConstants.RISK_FACTOR_UNIT));
-        collateralFactors[1] = uint16(bound(collateralFactors[1], 0, RiskConstants.RISK_FACTOR_UNIT));
-        liquidationFactors[0] = uint16(bound(liquidationFactors[0], 0, RiskConstants.RISK_FACTOR_UNIT));
-        liquidationFactors[1] = uint16(bound(liquidationFactors[1], 0, RiskConstants.RISK_FACTOR_UNIT));
+        riskFactor = uint16(bound(riskFactor, 0, RiskModule.RISK_FACTOR_UNIT));
+        collateralFactors[0] = uint16(bound(collateralFactors[0], 0, RiskModule.RISK_FACTOR_UNIT));
+        collateralFactors[1] = uint16(bound(collateralFactors[1], 0, RiskModule.RISK_FACTOR_UNIT));
+        liquidationFactors[0] = uint16(bound(liquidationFactors[0], 0, RiskModule.RISK_FACTOR_UNIT));
+        liquidationFactors[1] = uint16(bound(liquidationFactors[1], 0, RiskModule.RISK_FACTOR_UNIT));
 
         // And: Underlying assets are in primaryAssetModule.
         registryExtension.setAssetModuleForAsset(underlyingAssets[0], address(primaryAssetModule));
@@ -74,12 +74,12 @@ contract GetRiskFactors_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         // Then: Transaction returns correct risk factors.
         uint256 expectedCollateralFactor =
             collateralFactors[0] < collateralFactors[1] ? collateralFactors[0] : collateralFactors[1];
-        expectedCollateralFactor = expectedCollateralFactor * riskFactor / RiskConstants.RISK_FACTOR_UNIT;
+        expectedCollateralFactor = expectedCollateralFactor * riskFactor / RiskModule.RISK_FACTOR_UNIT;
         assertEq(actualCollateralFactor, expectedCollateralFactor);
 
         uint256 expectedLiquidationFactor =
             liquidationFactors[0] < liquidationFactors[1] ? liquidationFactors[0] : liquidationFactors[1];
-        expectedLiquidationFactor = expectedLiquidationFactor * riskFactor / RiskConstants.RISK_FACTOR_UNIT;
+        expectedLiquidationFactor = expectedLiquidationFactor * riskFactor / RiskModule.RISK_FACTOR_UNIT;
         assertEq(actualLiquidationFactor, expectedLiquidationFactor);
     }
 }

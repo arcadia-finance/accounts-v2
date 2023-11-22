@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
-import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
+import { RiskModule } from "../../../../src/RiskModule.sol";
 
 /**
  * @notice Fuzz tests for the function "getCollateralValue" of contract "AccountV1".
@@ -36,7 +36,7 @@ contract GetCollateralValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         depositTokenInAccount(accountExtension, mockERC20.stable1, spotValue);
 
         // Invariant: "collateralFactor" cannot exceed 100%.
-        collateralFactor = uint8(bound(collateralFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
+        collateralFactor = uint8(bound(collateralFactor, 0, RiskModule.RISK_FACTOR_UNIT));
 
         // Set Collateral factor of "stable1" for "stable1" to "collateralFactor".
         vm.prank(users.riskManager);
@@ -44,7 +44,7 @@ contract GetCollateralValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             address(creditorStable1), address(mockERC20.stable1), 0, type(uint128).max, collateralFactor, 0
         );
 
-        uint256 expectedValue = uint256(spotValue) * collateralFactor / RiskConstants.RISK_FACTOR_UNIT;
+        uint256 expectedValue = uint256(spotValue) * collateralFactor / RiskModule.RISK_FACTOR_UNIT;
 
         uint256 actualValue = accountExtension.getCollateralValue();
 

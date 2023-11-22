@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
-import { RiskConstants } from "../../../src/libraries/RiskConstants.sol";
+import { RiskModule } from "../../../src/RiskModule.sol";
 
 /**
  * @notice Fuzz tests for the function "setRiskParametersOfPrimaryAsset" of contract "Registry".
@@ -48,8 +48,8 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
-        collateralFactor = uint16(bound(collateralFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
-        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
+        collateralFactor = uint16(bound(collateralFactor, 0, RiskModule.RISK_FACTOR_UNIT));
+        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskModule.RISK_FACTOR_UNIT));
 
         registryExtension.setAssetModuleForAsset(asset, address(primaryAssetModule));
 

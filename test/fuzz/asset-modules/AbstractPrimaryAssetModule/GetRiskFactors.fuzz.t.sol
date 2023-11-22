@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { AbstractPrimaryAssetModule_Fuzz_Test } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
 
-import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
+import { RiskModule } from "../../../../src/RiskModule.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
 /**
@@ -32,8 +32,8 @@ contract GetRiskFactors_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrimaryA
         uint16 liquidationFactor
     ) public {
         // And: Risk factors are below max risk factor.
-        collateralFactor = uint16(bound(collateralFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
-        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
+        collateralFactor = uint16(bound(collateralFactor, 0, RiskModule.RISK_FACTOR_UNIT));
+        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskModule.RISK_FACTOR_UNIT));
 
         // And: Underlying asset is in primaryAssetModule.
         vm.prank(address(registryExtension));
