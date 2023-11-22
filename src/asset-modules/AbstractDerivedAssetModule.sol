@@ -335,7 +335,7 @@ abstract contract DerivedAssetModule is AssetModule {
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-        // Calculate and update the new exposure to "Asset".
+        // Calculate and update the new exposure to Asset.
         uint256 exposureAsset = _getAndUpdateExposureAsset(creditor, assetKey, int256(amount));
 
         _processDeposit(creditor, assetKey, exposureAsset);
