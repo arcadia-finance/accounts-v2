@@ -68,6 +68,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * 0 = ERC20.
      * 1 = ERC721.
      * 2 = ERC1155.
+     * ...
      */
     constructor(address registry_, uint256 assetType_) AssetModule(registry_, assetType_) { }
 
