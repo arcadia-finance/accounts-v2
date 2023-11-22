@@ -44,7 +44,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // set a different Account version on the creditor
         creditorStable1.setCallResult(false);
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Invalid_Account_Version.selector);
+        vm.expectRevert(AccountErrors.InvalidAccountVersion.selector);
         proxyAccount.openMarginAccount((address(creditorStable1)));
         vm.stopPrank();
     }

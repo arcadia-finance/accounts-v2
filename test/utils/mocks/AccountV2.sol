@@ -167,7 +167,7 @@ contract AccountV2 is AccountStorageV2 {
             //If a creditor is set, new version should be compatible.
             //openMarginAccount() is a view function, cannot modify state.
             (bool success,,,) = ICreditor(creditor).openMarginAccount(newVersion);
-            if (!success) revert AccountErrors.Invalid_Account_Version();
+            if (!success) revert AccountErrors.InvalidAccountVersion();
         }
 
         //Cache old parameters
@@ -274,7 +274,7 @@ contract AccountV2 is AccountStorageV2 {
         //openMarginAccount() is a view function, cannot modify state.
         (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_) =
             ICreditor(creditor_).openMarginAccount(ACCOUNT_VERSION);
-        if (!success) revert AccountErrors.Invalid_Account_Version();
+        if (!success) revert AccountErrors.InvalidAccountVersion();
 
         liquidator = liquidator_;
         creditor = creditor_;

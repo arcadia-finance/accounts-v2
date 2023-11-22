@@ -33,7 +33,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.startPrank(nonOwner);
-        vm.expectRevert(FactoryErrors.Only_Account_Owner.selector);
+        vm.expectRevert(FactoryErrors.OnlyAccountOwner.selector);
         factory.upgradeAccountVersion(address(proxyAccount), version, proofs);
         vm.stopPrank();
     }
@@ -43,7 +43,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         factory.blockAccountVersion(2);
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(FactoryErrors.Account_Version_Blocked.selector);
+        vm.expectRevert(FactoryErrors.AccountVersionBlocked.selector);
         factory.upgradeAccountVersion(address(proxyAccount), 2, proofs);
         vm.stopPrank();
     }
@@ -55,7 +55,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(version != 2);
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(FactoryErrors.Invalid_Upgrade.selector);
+        vm.expectRevert(FactoryErrors.InvalidUpgrade.selector);
         factory.upgradeAccountVersion(address(proxyAccount), version, proofs);
         vm.stopPrank();
     }
@@ -67,7 +67,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         // When: "users.accountOwner" Upgrade the account to AccountV2Logic.
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
-        emit AccountUpgraded(address(proxyAccount), 1, 2);
+        emit AccountUpgraded(address(proxyAccount), 2);
         factory.upgradeAccountVersion(address(proxyAccount), factory.latestAccountVersion(), proofs);
         vm.stopPrank();
     }
