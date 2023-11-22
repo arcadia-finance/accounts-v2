@@ -92,7 +92,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param creditor The contract address of the creditor.
      * @param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return rateUnderlyingAssetsToUsd The USD rates of 10**18 tokens of underlying asset, with 18 decimals precision.
-     * @dev The USD price per 10^18 tokens is used (instead of the USD price per token) to guarantee sufficient precision.
+     * @dev The USD price per 10**18 tokens is used (instead of the USD price per token) to guarantee sufficient precision.
      */
     function _getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys)
         internal
@@ -107,7 +107,7 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256[] memory amounts = new uint256[](length);
         for (uint256 i; i < length;) {
             (underlyingAssets[i], underlyingAssetIds[i]) = _getAssetFromKey(underlyingAssetKeys[i]);
-            // We use the USD price per 10^18 tokens instead of the USD price per token to guarantee
+            // We use the USD price per 10**18 tokens instead of the USD price per token to guarantee
             // sufficient precision.
             amounts[i] = 1e18;
 
@@ -128,7 +128,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The USD rates of 10**18 tokens of underlying asset, with 18 decimals precision.
-     * @dev The USD price per 10^18 tokens is used (instead of the USD price per token) to guarantee sufficient precision.
+     * @dev The USD price per 10**18 tokens is used (instead of the USD price per token) to guarantee sufficient precision.
      */
     function _getUnderlyingAssetsAmounts(
         address creditor,
@@ -278,7 +278,7 @@ abstract contract DerivedAssetModule is AssetModule {
         RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
     ) internal view virtual returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
         // Initialize variables with first elements of array.
-        // "rateUnderlyingAssetsToUsd" is the usd value with 18 decimals precision for 10 ** 18 tokens of Underlying Asset.
+        // "rateUnderlyingAssetsToUsd" is the usd value with 18 decimals precision for 10**18 tokens of Underlying Asset.
         // To get the usd value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
         // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
         valueInUsd =
