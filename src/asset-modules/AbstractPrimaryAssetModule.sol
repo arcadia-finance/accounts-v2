@@ -4,13 +4,13 @@
  */
 pragma solidity 0.8.19;
 
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
+import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
 import { AssetModule } from "./AbstractAssetModule.sol";
 import { RiskConstants } from "../libraries/RiskConstants.sol";
 
 /**
- * @title Primary Asset Module.
+ * @title Primary Asset Module
  * @author Pragma Labs
  * @notice Abstract contract with the minimal implementation of a Primary Asset Module.
  * @dev Primary assets are assets with no underlying assets, that can be priced using external oracles.
@@ -30,21 +30,21 @@ abstract contract PrimaryAssetModule is AssetModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Map with the risk parameters of each asset for each creditor.
+    // Map with the risk parameters of each asset for each Credit.
     mapping(address creditor => mapping(bytes32 assetKey => RiskParameters riskParameters)) public riskParams;
 
     // Map asset => assetInformation.
     mapping(bytes32 assetKey => AssetInformation) public assetToInformation;
 
-    // Struct with the risk parameters of a specific asset for a specific creditor.
+    // Struct with the risk parameters of a specific asset for a specific Creditor.
     struct RiskParameters {
-        // The exposure of a creditor to an asset at its last interaction.
+        // The exposure of a Creditor to an asset at its last interaction.
         uint128 lastExposureAsset;
-        // The maximum exposure of a creditor to an asset.
+        // The maximum exposure of a Creditor to an asset.
         uint128 maxExposure;
-        // The collateral factor of the asset for the creditor, 4 decimals precision.
+        // The collateral factor of the asset for the Creditor, 4 decimals precision.
         uint16 collateralFactor;
-        // The liquidation factor of the asset for the creditor, 4 decimals precision.
+        // The liquidation factor of the asset for the Creditor, 4 decimals precision.
         uint16 liquidationFactor;
     }
 
@@ -52,13 +52,9 @@ abstract contract PrimaryAssetModule is AssetModule {
     struct AssetInformation {
         // The unit of the asset, equal to 10^decimals.
         uint64 assetUnit;
-        // The sequence of the oracles to price a the asset in USD, packed in a single bytes32 object.
+        // The sequence of the oracles to price the asset in USD, packed in a single bytes32 object.
         bytes32 oracleSequence;
     }
-
-    /* //////////////////////////////////////////////////////////////
-                                ERRORS
-    ////////////////////////////////////////////////////////////// */
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
@@ -76,6 +72,7 @@ abstract contract PrimaryAssetModule is AssetModule {
      * 0 = ERC20
      * 1 = ERC721
      * 2 = ERC1155
+     * ...
      */
     constructor(address registry_, uint256 assetType_) AssetModule(registry_, assetType_) { }
 
@@ -86,7 +83,7 @@ abstract contract PrimaryAssetModule is AssetModule {
     /**
      * @notice Sets a new oracle sequence in the case one of the current oracles is decommissioned.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @param newOracles The new sequence of the oracles, to price the asset in USD,
      * packed in a single bytes32 object.
      */
@@ -108,17 +105,17 @@ abstract contract PrimaryAssetModule is AssetModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the usd value of an asset.
-     * @param creditor The contract address of the creditor.
+     * @notice Returns the USD value of an asset.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @param assetAmount The amount of assets.
-     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given creditor, with 4 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 4 decimals precision.
+     * @return valueInUsd The value of the asset denominated in USD, with 18 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given Creditor, with 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given Creditor, with 4 decimals precision.x
      * @dev If the asset is not added to AssetModule, this function will return value 0 without throwing an error.
-     * However no check in StandardERC20AssetModule is necessary, since the check if the asset is added to the AssetModule
-     * is already done in the Registry.
+     * However check in here is not necessary,
+     * since the check if the asset is added to the AssetModule is already done in the Registry.
      */
     function getValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
         public
@@ -141,12 +138,12 @@ abstract contract PrimaryAssetModule is AssetModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the risk factors of an asset for a creditor.
-     * @param creditor The contract address of the creditor.
+     * @notice Returns the risk factors of an asset for a Creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
-     * @return collateralFactor The collateral factor of the asset for the creditor, 4 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for the creditor, 4 decimals precision.
+     * @param assetId The id of the asset.
+     * @return collateralFactor The collateral factor of the asset for the Creditor, 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the Creditor, 4 decimals precision.
      */
     function getRiskFactors(address creditor, address asset, uint256 assetId)
         external
@@ -160,13 +157,13 @@ abstract contract PrimaryAssetModule is AssetModule {
     }
 
     /**
-     * @notice Sets the risk parameters for an asset for a given creditor.
-     * @param creditor The contract address of the creditor.
+     * @notice Sets the risk parameters for an asset for a given Creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
-     * @param maxExposure The maximum exposure of a creditor to the asset.
-     * @param collateralFactor The collateral factor of the asset for the creditor, 4 decimals precision.
-     * @param liquidationFactor The liquidation factor of the asset for the creditor, 4 decimals precision.
+     * @param assetId The id of the asset.
+     * @param maxExposure The maximum exposure of a Creditor to the asset.
+     * @param collateralFactor The collateral factor of the asset for the Creditor, 4 decimals precision.
+     * @param liquidationFactor The liquidation factor of the asset for the Creditor, 4 decimals precision.
      */
     function setRiskParameters(
         address creditor,
@@ -192,9 +189,9 @@ abstract contract PrimaryAssetModule is AssetModule {
 
     /**
      * @notice Increases the exposure to an asset on a direct deposit.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @param amount The amount of tokens.
      */
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
@@ -217,13 +214,13 @@ abstract contract PrimaryAssetModule is AssetModule {
 
     /**
      * @notice Increases the exposure to an asset on an indirect deposit.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
-     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      */
     function processIndirectDeposit(
         address creditor,
@@ -250,7 +247,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         // unchecked cast: "RiskParameters.maxExposure" is a uint128.
         riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
 
-        // Get Value in Usd
+        // Get Value in USD.
         (usdExposureUpperAssetToAsset,,) = getValue(creditor, asset, assetId, exposureUpperAssetToAsset);
 
         return (PRIMARY_FLAG, usdExposureUpperAssetToAsset);
@@ -258,9 +255,9 @@ abstract contract PrimaryAssetModule is AssetModule {
 
     /**
      * @notice Decreases the exposure to an asset on a direct withdrawal.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @param amount The amount of tokens.
      */
     function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
@@ -274,20 +271,22 @@ abstract contract PrimaryAssetModule is AssetModule {
         // Cache lastExposureAsset.
         uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
-        lastExposureAsset >= amount
-            ? riskParams[creditor][assetKey].lastExposureAsset = uint128(lastExposureAsset) - uint128(amount)
-            : riskParams[creditor][assetKey].lastExposureAsset = 0;
+        unchecked {
+            lastExposureAsset >= amount
+                ? riskParams[creditor][assetKey].lastExposureAsset = uint128(lastExposureAsset - amount)
+                : riskParams[creditor][assetKey].lastExposureAsset = 0;
+        }
     }
 
     /**
      * @notice Decreases the exposure to an asset on an indirect withdrawal.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
-     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      */
     function processIndirectWithdrawal(
         address creditor,
@@ -302,17 +301,19 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
         uint256 exposureAsset;
-        if (deltaExposureUpperAssetToAsset > 0) {
-            exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
-            if (exposureAsset > type(uint128).max) revert Overflow();
-        } else {
-            exposureAsset = lastExposureAsset > uint256(-deltaExposureUpperAssetToAsset)
-                ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
-                : 0;
+        unchecked {
+            if (deltaExposureUpperAssetToAsset > 0) {
+                exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
+                if (exposureAsset > type(uint128).max) revert Overflow();
+            } else {
+                exposureAsset = lastExposureAsset > uint256(-deltaExposureUpperAssetToAsset)
+                    ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
+                    : 0;
+            }
         }
         riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
 
-        // Get Value in Usd
+        // Get Value in USD.
         (usdExposureUpperAssetToAsset,,) = getValue(creditor, asset, assetId, exposureUpperAssetToAsset);
 
         return (PRIMARY_FLAG, usdExposureUpperAssetToAsset);
