@@ -93,9 +93,9 @@ abstract contract OracleModule is Owned {
      *  - The BaseAsset is Wrapped Bitcoin (WBTC), which has 8 decimals.
      *  - The QuoteAsset is USDC, which has 6 decimals.
      *  - Assume an exchange rate from Bitcoin to USD of $30 000.
-     *  -> You need $30 000 (or 30 000 * 10^6 USDC) to buy 1 Bitcoin (or 1 * 10^8 WBTC).
+     *  -> You need $30 000 (or 30 000 * 10**6 USDC) to buy 1 Bitcoin (or 1 * 10**8 WBTC).
      *  -> You need 300 units of USDC to buy one unit of WBT.
-     * Since we use 18 decimals precision, the oracleRate will be 300 * 10^18.
+     * Since we use 18 decimals precision, the oracleRate will be 300 * 10**18.
      */
     function getRate(uint256 oracleId) external view virtual returns (uint256);
 }
