@@ -91,7 +91,8 @@ abstract contract DerivedAssetModule is AssetModule {
      * @notice Calculates the usd-rate of 10**18 underlying assets.
      * @param creditor The contract address of the creditor.
      * @param underlyingAssetKeys The unique identifiers of the underlying assets.
-     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     * @return rateUnderlyingAssetsToUsd The USD rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     * @dev The USD price per 10^18 tokens is used (instead of the USD price per token) to guarantee sufficient precision.
      */
     function _getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys)
         internal
@@ -126,7 +127,8 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
      * @param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
-     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     * @return rateUnderlyingAssetsToUsd The USD rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     * @dev The USD price per 10^18 tokens is used (instead of the USD price per token) to guarantee sufficient precision.
      */
     function _getUnderlyingAssetsAmounts(
         address creditor,
