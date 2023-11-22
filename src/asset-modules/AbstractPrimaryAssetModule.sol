@@ -178,7 +178,9 @@ abstract contract PrimaryAssetModule is AssetModule {
 
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-        riskParams[creditor][assetKey] = RiskParameters(0, maxExposure, collateralFactor, liquidationFactor);
+        riskParams[creditor][assetKey].maxExposure = maxExposure;
+        riskParams[creditor][assetKey].collateralFactor = collateralFactor;
+        riskParams[creditor][assetKey].liquidationFactor = liquidationFactor;
     }
 
     /*///////////////////////////////////////////////////////////////
