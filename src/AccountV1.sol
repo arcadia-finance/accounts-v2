@@ -41,7 +41,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     // Storage slot with the address of the current implementation.
     // This is the hardcoded keccak-256 hash of: "eip1967.proxy.implementation" subtracted by 1.
-    bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+    bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
     // The maximum amount of different assets that can be used as collateral within an Arcadia Account.
     uint256 public constant ASSET_LIMIT = 15;
     // The current Account Version.
@@ -155,7 +155,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Updates the Account version and stores a new address in the EIP1967 implementation slot.
-     * @param newImplementation The contract with the new Account logic.
+     * @param newImplementation The new contract address of the Account logic.
      * @param newRegistry The Registry for this specific implementation (might be identical as the old registry).
      * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.
      * @param newVersion The new version of the Account logic.
@@ -173,10 +173,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
         }
 
         // Cache old parameters.
-        address oldImplementation = _getAddressSlot(_IMPLEMENTATION_SLOT).value;
+        address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
         uint16 oldVersion = ACCOUNT_VERSION;
-        _getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;
+        _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
 
         // Prevent that Account is upgraded to a new version where the baseCurrency can't be priced.
@@ -193,7 +193,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Returns an `AddressSlot` with member `value` located at `slot`.
+     * @notice Returns the "AddressSlot" with member "value" located at "slot".
      * @param slot The slot where the address of the Logic contract is stored.
      * @return r The address stored in slot.
      */
@@ -204,8 +204,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Finalizes the Upgrade to a new Account version on the new Logic Contract.
-     * @param oldImplementation The contract with the new old logic.
+     * @notice Finalizes the Upgrade to a new Account version on the new logic Contract.
+     * @param oldImplementation The old contract address of the Account logic.
      * @param oldRegistry The Registry of the old version (might be identical as the new registry)
      * @param oldVersion The old version of the Account logic.
      * @param data Arbitrary data, can contain instructions to execute in this function.
