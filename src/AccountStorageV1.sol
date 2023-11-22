@@ -38,7 +38,7 @@ contract AccountStorageV1 {
     address public owner;
     // The contract address of the Registry.
     address public registry;
-    // The creditor, address 0 if no creditor is set.
+    // The contract address of the Creditor.
     address public creditor;
     // The baseCurrency of the Account in which all assets and liabilities are denominated.
     address public baseCurrency;
