@@ -97,7 +97,7 @@ abstract contract AssetModule is Owned, IAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @return key The unique identifier.
-     * @dev Unsafe cast from uint256 to uint96, use only when the ids of the assets cannot exceed type(uint96).max.
+     * @dev Unsafe bitshift from uint256 to uint96, use only when the ids of the assets cannot exceed type(uint96).max.
      * For asset where the id can be bigger than a uint96, use a mapping of asset and assetId to storage.
      * These assets can however NOT be used as underlying assets (processIndirectDeposit() must revert).
      */
