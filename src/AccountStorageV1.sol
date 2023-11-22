@@ -5,7 +5,7 @@
 pragma solidity 0.8.19;
 
 /**
- * @title Acadia Accounts Storage.
+ * @title Arcadia Accounts Storage
  * @author Pragma Labs
  * @notice Arcadia Accounts are smart contracts that act as onchain, decentralized and composable margin accounts.
  * They provide individuals, DAOs, and other protocols with a simple and flexible way to deposit and manage multiple assets as collateral.
@@ -43,16 +43,16 @@ contract AccountStorageV1 {
     // The baseCurrency of the Account in which all assets and liabilities are denominated.
     address public baseCurrency;
 
-    // Array with all the contract address of ERC20 tokens in the account.
-    address[] public erc20Stored;
-    // Array with all the contract address of ERC721 tokens in the account.
-    address[] public erc721Stored;
-    // Array with all the contract address of ERC1155 tokens in the account.
-    address[] public erc1155Stored;
-    // Array with all the corresponding id's for each ERC721 token in the account.
-    uint256[] public erc721TokenIds;
-    // Array with all the corresponding id's for each ERC1155 token in the account.
-    uint256[] public erc1155TokenIds;
+    // Array with all the contract addresses of ERC20 tokens in the account.
+    address[] internal erc20Stored;
+    // Array with all the contract addresses of ERC721 tokens in the account.
+    address[] internal erc721Stored;
+    // Array with all the contract addresses of ERC1155 tokens in the account.
+    address[] internal erc1155Stored;
+    // Array with all the corresponding ids for each ERC721 token in the account.
+    uint256[] internal erc721TokenIds;
+    // Array with all the corresponding ids for each ERC1155 token in the account.
+    uint256[] internal erc1155TokenIds;
 
     // Map asset => balance.
     mapping(address => uint256) public erc20Balances;
