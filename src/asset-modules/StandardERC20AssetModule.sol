@@ -21,7 +21,7 @@ contract StandardERC20AssetModule is PrimaryAssetModule {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
-    error Max_18_Decimals();
+    error Max18Decimals();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -80,7 +80,7 @@ contract StandardERC20AssetModule is PrimaryAssetModule {
      * @param asset The contract address of the asset.
      * param assetId The id of the asset.
      * @return key The unique identifier.
-     * @dev The assetId is hard-coded to 0, since the assets for this Asset Modules are ERC20s.
+     * @dev The assetId is hard-coded to 0, since the assets for this Asset Module are ERC20s.
      */
     function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
         assembly {
@@ -93,7 +93,7 @@ contract StandardERC20AssetModule is PrimaryAssetModule {
      * @param key The unique identifier.
      * @return asset The contract address of the asset.
      * @return assetId The id of the asset.
-     * @dev The assetId is hard-coded to 0, since the assets for this Asset Modules are ERC20s.
+     * @dev The assetId is hard-coded to 0, since the assets for this Asset Module are ERC20s.
      */
     function _getAssetFromKey(bytes32 key) internal pure override returns (address asset, uint256) {
         assembly {
