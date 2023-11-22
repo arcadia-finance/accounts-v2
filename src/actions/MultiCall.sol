@@ -30,9 +30,10 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
-    error Length_Mismatch();
-    error Insufficient_Amount_Out();
-    error Only_Internal();
+    error LengthMismatch();
+    error InsufficientAmountOut();
+    error OnlyInternal();
+    error LeftoverNfts();
 
     /* //////////////////////////////////////////////////////////////
                             ACTION LOGIC
@@ -58,7 +59,7 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
         );
 
         uint256 callLength = to.length;
-        if (callLength != data.length) revert Length_Mismatch();
+        if (callLength != data.length) revert LengthMismatch();
 
         for (uint256 i; i < callLength;) {
             (bool success, bytes memory result) = to[i].call(data[i]);
@@ -73,7 +74,7 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
             if (depositData.assetTypes[i] == 0) {
                 depositData.assetAmounts[i] = IERC20(depositData.assets[i]).balanceOf(address(this));
             } else if (depositData.assetTypes[i] == 1) {
-                // If the amount is 0, we minted a new NFT
+                // If the amount is 0, we minted a new NFT.
                 if (depositData.assetAmounts[i] == 0) {
                     depositData.assetAmounts[i] = 1;
 
@@ -95,7 +96,7 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
         }
 
         // If any assets were minted and are left in this contract, revert.
-        if (mintedIds.length > 0 || mintedAssets.length > 0) revert MultiCallErrors.LEFTOVER_NFTS();
+        if (mintedIds.length > 0 || mintedAssets.length > 0) revert LeftoverNfts();
 
         return depositData;
     }
@@ -127,7 +128,7 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
      * @dev Can be called as one of the calls in executeAction.
      */
     function checkAmountOut(address asset, uint256 minAmountOut) external view {
-        if (IERC20(asset).balanceOf(address(this)) < minAmountOut) revert Insufficient_Amount_Out();
+        if (IERC20(asset).balanceOf(address(this)) < minAmountOut) revert InsufficientAmountOut();
     }
 
     /**
@@ -137,7 +138,7 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
      * @dev Asset address and ID is temporarily stored in this contract.
      */
     function mintUniV3LP(address to, bytes memory data) external {
-        if (msg.sender != address(this)) revert Only_Internal();
+        if (msg.sender != address(this)) revert OnlyInternal();
         (bool success, bytes memory result) = to.call(data);
         require(success, string(result));
 
