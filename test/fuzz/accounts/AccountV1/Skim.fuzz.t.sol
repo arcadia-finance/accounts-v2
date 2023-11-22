@@ -52,10 +52,10 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
 
         assertEq(
-            accountExtension.erc20Balances(address(mockERC20.token1)),
+            accountExtension.getERC20Balances(address(mockERC20.token1)),
             mockERC20.token1.balanceOf(address(accountExtension))
         );
-        assertEq(accountExtension.erc20Balances(address(mockERC20.token1)), depositAmount);
+        assertEq(accountExtension.getERC20Balances(address(mockERC20.token1)), depositAmount);
         assertEq(mockERC20.token1.balanceOf(address(users.accountOwner)), transferAmount);
     }
 
@@ -69,10 +69,10 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.skim(address(mockERC20.token1), 0, 0);
 
         assertEq(
-            accountExtension.erc20Balances(address(mockERC20.token1)),
+            accountExtension.getERC20Balances(address(mockERC20.token1)),
             mockERC20.token1.balanceOf(address(accountExtension))
         );
-        assertEq(accountExtension.erc20Balances(address(mockERC20.token1)), depositAmount);
+        assertEq(accountExtension.getERC20Balances(address(mockERC20.token1)), depositAmount);
         assertEq(mockERC20.token1.balanceOf(address(users.accountOwner)), 0);
     }
 
@@ -157,10 +157,10 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         (,,, uint256 erc1155Length) = accountExtension.getLengths();
         assertEq(erc1155Length, 1);
         assertEq(
-            accountExtension.erc1155Balances(address(mockERC1155.sft1), 1),
+            accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1),
             mockERC1155.sft1.balanceOf(address(accountExtension), 1)
         );
-        assertEq(accountExtension.erc1155Balances(address(mockERC1155.sft1), 1), depositAmount);
+        assertEq(accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1), depositAmount);
         assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), transferAmount);
     }
 
@@ -189,10 +189,10 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         (,,, uint256 erc1155Length) = accountExtension.getLengths();
         assertEq(erc1155Length, 1);
         assertEq(
-            accountExtension.erc1155Balances(address(mockERC1155.sft1), 1),
+            accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1),
             mockERC1155.sft1.balanceOf(address(accountExtension), 1)
         );
-        assertEq(accountExtension.erc1155Balances(address(mockERC1155.sft1), 1), depositAmount);
+        assertEq(accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1), depositAmount);
         assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), 0);
     }
 

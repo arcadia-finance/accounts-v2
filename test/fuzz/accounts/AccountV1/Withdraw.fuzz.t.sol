@@ -323,20 +323,20 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         assertEq(erc20Length, 0);
         assertEq(
-            accountExtension.erc20Balances(address(mockERC20.token1)),
+            accountExtension.getERC20Balances(address(mockERC20.token1)),
             mockERC20.token1.balanceOf(address(accountExtension))
         );
-        assertEq(accountExtension.erc20Balances(address(mockERC20.token1)), 0);
+        assertEq(accountExtension.getERC20Balances(address(mockERC20.token1)), 0);
         assertEq(mockERC20.token1.balanceOf(address(users.accountOwner)), erc20Amount);
 
         assertEq(erc721Length, 0);
 
         assertEq(erc1155Length, 0);
         assertEq(
-            accountExtension.erc1155Balances(address(mockERC1155.sft1), 1),
+            accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1),
             mockERC1155.sft1.balanceOf(address(accountExtension), 1)
         );
-        assertEq(accountExtension.erc1155Balances(address(mockERC1155.sft1), 1), 0);
+        assertEq(accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1), 0);
         assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), erc1155Amount);
     }
 
@@ -401,25 +401,26 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         assertEq(erc20Length, 1);
         assertEq(
-            accountExtension.erc20Balances(address(mockERC20.token1)),
+            accountExtension.getERC20Balances(address(mockERC20.token1)),
             mockERC20.token1.balanceOf(address(accountExtension))
         );
-        assertEq(accountExtension.erc20Balances(address(mockERC20.token1)), erc20InitialAmount - erc20WithdrawAmount);
+        assertEq(accountExtension.getERC20Balances(address(mockERC20.token1)), erc20InitialAmount - erc20WithdrawAmount);
         assertEq(mockERC20.token1.balanceOf(address(users.accountOwner)), erc20WithdrawAmount);
 
         assertEq(erc721Length, 1);
-        assertEq(accountExtension.erc721Stored(0), address(mockERC721.nft1));
-        assertEq(accountExtension.erc721TokenIds(0), erc721Id);
+        assertEq(accountExtension.getERC721Stored(0), address(mockERC721.nft1));
+        assertEq(accountExtension.getERC721TokenIds(0), erc721Id);
 
         assertEq(erc1155Length, 1);
-        assertEq(accountExtension.erc1155Stored(0), address(mockERC1155.sft1));
-        assertEq(accountExtension.erc1155TokenIds(0), 1);
+        assertEq(accountExtension.getERC1155Stored(0), address(mockERC1155.sft1));
+        assertEq(accountExtension.getERC1155TokenIds(0), 1);
         assertEq(
-            accountExtension.erc1155Balances(address(mockERC1155.sft1), 1),
+            accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1),
             mockERC1155.sft1.balanceOf(address(accountExtension), 1)
         );
         assertEq(
-            accountExtension.erc1155Balances(address(mockERC1155.sft1), 1), erc1155InitialAmount - erc1155WithdrawAmount
+            accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1),
+            erc1155InitialAmount - erc1155WithdrawAmount
         );
         assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), erc1155WithdrawAmount);
     }
@@ -471,11 +472,12 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         assertEq(erc20Length, 1);
         assertEq(
-            accountExtension.erc20Balances(address(mockERC20.stable1)),
+            accountExtension.getERC20Balances(address(mockERC20.stable1)),
             mockERC20.stable1.balanceOf(address(accountExtension))
         );
         assertEq(
-            accountExtension.erc20Balances(address(mockERC20.stable1)), collateralValueInitial - collateralValueDecrease
+            accountExtension.getERC20Balances(address(mockERC20.stable1)),
+            collateralValueInitial - collateralValueDecrease
         );
         assertEq(mockERC20.stable1.balanceOf(address(users.accountOwner)), collateralValueDecrease);
     }
