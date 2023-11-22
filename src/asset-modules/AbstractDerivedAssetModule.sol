@@ -32,29 +32,29 @@ abstract contract DerivedAssetModule is AssetModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Map with the risk parameters of the protocol for each creditor.
+    // Map with the risk parameters of the protocol for each Creditor.
     mapping(address creditor => RiskParameters riskParameters) public riskParams;
-    // Map with the last exposures of each asset for each creditor.
+    // Map with the last exposures of each asset for each Creditor.
     mapping(address creditor => mapping(bytes32 assetKey => ExposuresPerAsset)) internal lastExposuresAsset;
-    // Map with the last amount of exposure of each underlying asset for each asset for each creditor.
+    // Map with the last amount of exposure of each underlying asset for each asset for each Creditor.
     mapping(address creditor => mapping(bytes32 assetKey => mapping(bytes32 underlyingAssetKey => uint256 exposure)))
         internal lastExposureAssetToUnderlyingAsset;
 
-    // Struct with the risk parameters of the protocol for a specific creditor.
+    // Struct with the risk parameters of the protocol for a specific Creditor.
     struct RiskParameters {
-        // The exposure in USD of the creditor to the protocol at the last interaction, 18 decimals precision.
+        // The exposure in USD of the Creditor to the protocol at the last interaction, 18 decimals precision.
         uint128 lastUsdExposureProtocol;
-        // The maximum exposure in USD of the creditor to the protocol, 18 decimals precision.
+        // The maximum exposure in USD of the Creditor to the protocol, 18 decimals precision.
         uint128 maxUsdExposureProtocol;
-        // The risk factor of the protocol for a creditor, 4 decimals precision.
+        // The risk factor of the protocol for a Creditor, 4 decimals precision.
         uint16 riskFactor;
     }
 
-    // Struct with the exposures of a specific asset for a specific creditor.
+    // Struct with the exposures of a specific asset for a specific Creditor.
     struct ExposuresPerAsset {
-        // The amount of exposure of the creditor to the asset at the last interaction.
+        // The amount of exposure of the Creditor to the asset at the last interaction.
         uint128 lastExposureAsset;
-        // The exposure in USD of the creditor to the asset at the last interaction, 18 decimals precision.
+        // The exposure in USD of the Creditor to the asset at the last interaction, 18 decimals precision.
         uint128 lastUsdExposureAsset;
     }
 
@@ -89,7 +89,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
     /**
      * @notice Calculates the USD rate of 10**18 underlying assets.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return rateUnderlyingAssetsToUsd The USD rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      * @dev The USD price per 10**18 tokens is used (instead of the USD price per token) to guarantee sufficient precision.
@@ -122,7 +122,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
     /**
      * @notice Calculates for a given amount of an Asset the corresponding amount(s) of underlying asset(s).
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param assetKey The unique identifier of the asset.
      * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
      * @param underlyingAssetKeys The unique identifiers of the underlying assets.
@@ -149,12 +149,12 @@ abstract contract DerivedAssetModule is AssetModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the risk factors of an asset for a creditor.
-     * @param creditor The contract address of the creditor.
+     * @notice Returns the risk factors of an asset for a Creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
-     * @return collateralFactor The collateral factor of the asset for the creditor, 4 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for the creditor, 4 decimals precision.
+     * @param assetId The id of the asset.
+     * @return collateralFactor The collateral factor of the asset for the Creditor, 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the Creditor, 4 decimals precision.
      */
     function getRiskFactors(address creditor, address asset, uint256 assetId)
         external
@@ -208,10 +208,10 @@ abstract contract DerivedAssetModule is AssetModule {
     }
 
     /**
-     * @notice Sets the risk parameters of the Protocol for a given creditor.
-     * @param creditor The contract address of the creditor.
-     * @param maxUsdExposureProtocol_ The maximum USD exposure of the protocol for each creditor, denominated in USD with 18 decimals precision.
-     * @param riskFactor The risk factor of the asset for the creditor, 4 decimals precision.
+     * @notice Sets the risk parameters of the Protocol for a given Creditor.
+     * @param creditor The contract address of the Creditor.
+     * @param maxUsdExposureProtocol_ The maximum USD exposure of the protocol for each Creditor, denominated in USD with 18 decimals precision.
+     * @param riskFactor The risk factor of the asset for the Creditor, 4 decimals precision.
      */
     function setRiskParameters(address creditor, uint128 maxUsdExposureProtocol_, uint16 riskFactor)
         external
@@ -229,13 +229,13 @@ abstract contract DerivedAssetModule is AssetModule {
 
     /**
      * @notice Returns the USD value of an asset.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given creditor, with 4 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 4 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given Creditor, with 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given Creditor, with 4 decimals precision.
      */
     function getValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
         public
@@ -264,12 +264,12 @@ abstract contract DerivedAssetModule is AssetModule {
 
     /**
      * @notice Returns the USD value of an asset.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @param rateUnderlyingAssetsToUsd The USD rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
-     * @return collateralFactor The collateral factor of the asset for a given creditor, with 4 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 4 decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given Creditor, with 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given Creditor, with 4 decimals precision.
      * @dev We take the most conservative (lowest) risk factor of all underlying assets.
      */
     function _calculateValueAndRiskFactors(
@@ -322,9 +322,9 @@ abstract contract DerivedAssetModule is AssetModule {
 
     /**
      * @notice Increases the exposure to an asset on a direct deposit.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @param amount The amount of tokens.
      */
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
@@ -343,9 +343,9 @@ abstract contract DerivedAssetModule is AssetModule {
 
     /**
      * @notice Increases the exposure to an asset on an indirect deposit.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
@@ -377,9 +377,9 @@ abstract contract DerivedAssetModule is AssetModule {
 
     /**
      * @notice Decreases the exposure to an asset on a direct withdrawal.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @param amount The amount of tokens.
      */
     function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
@@ -398,9 +398,9 @@ abstract contract DerivedAssetModule is AssetModule {
 
     /**
      * @notice Decreases the exposure to an asset on an indirect withdrawal.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
@@ -432,7 +432,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
     /**
      * @notice Update the exposure to an asset and its underlying asset(s) on deposit.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param assetKey The unique identifier of the asset.
      * @param exposureAsset The updated exposure to the asset.
      * @return usdExposureAsset The USD value of the exposure of the asset, 18 decimals precision.
@@ -503,7 +503,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
     /**
      * @notice Update the exposure to an asset and its underlying asset(s) on withdrawal.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param assetKey The unique identifier of the asset.
      * @param exposureAsset The updated exposure to the asset.
      * @return usdExposureAsset The USD value of the exposure of the asset, 18 decimals precision.
@@ -572,7 +572,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
     /**
      * @notice Updates the exposure to the asset.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param assetKey The unique identifier of the asset.
      * @param deltaAsset The increase or decrease in asset.
      * @return exposureAsset The updated exposure to the asset.
