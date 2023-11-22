@@ -431,7 +431,7 @@ abstract contract DerivedAssetModule is AssetModule {
     }
 
     /**
-     * @notice Update the exposure to an asset and it's underlying asset(s) on deposit.
+     * @notice Update the exposure to an asset and its underlying asset(s) on deposit.
      * @param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
      * @param exposureAsset The updated exposure to the asset.
@@ -502,7 +502,7 @@ abstract contract DerivedAssetModule is AssetModule {
     }
 
     /**
-     * @notice Update the exposure to an asset and it's underlying asset(s) on withdrawal.
+     * @notice Update the exposure to an asset and its underlying asset(s) on withdrawal.
      * @param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
      * @param exposureAsset The updated exposure to the asset.
