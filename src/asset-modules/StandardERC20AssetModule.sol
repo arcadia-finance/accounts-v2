@@ -16,7 +16,6 @@ import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
  * or the contract owner.
  */
 contract StandardERC20AssetModule is PrimaryAssetModule {
-
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
