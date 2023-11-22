@@ -29,7 +29,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.startPrank(nonOwner);
-        vm.expectRevert(AccountErrors.Only_Owner.selector);
+        vm.expectRevert(AccountErrors.OnlyOwner.selector);
         accountExtension.skim(asset, id, type_);
         vm.stopPrank();
     }
