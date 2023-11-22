@@ -15,7 +15,7 @@ import { RiskModule } from "../RiskModule.sol";
  * @author Pragma Labs
  * @notice Abstract contract with the minimal implementation of a Derived Asset Module.
  * @dev Derived assets are assets with underlying assets, the underlying assets can be Primary Assets or also Derived Assets.
- * For Derived assets there are are no direct external oracles.
+ * For Derived assets there are no direct external oracles.
  * USD-values of assets must be calculated in a recursive manner via the pricing logic of the Underlying Assets.
  */
 abstract contract DerivedAssetModule is AssetModule {
