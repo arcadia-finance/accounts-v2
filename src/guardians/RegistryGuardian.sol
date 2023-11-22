@@ -35,11 +35,17 @@ abstract contract RegistryGuardian is BaseGuardian {
     //////////////////////////////////////////////////////////////
     */
 
+    /**
+     * @dev Throws if the withdraw functionality is paused.
+     */
     modifier whenWithdrawNotPaused() {
         if (withdrawPaused) revert Function_Is_Paused();
         _;
     }
 
+    /**
+     * @dev Throws if the deposit functionality is paused.
+     */
     modifier whenDepositNotPaused() {
         if (depositPaused) revert Function_Is_Paused();
         _;
