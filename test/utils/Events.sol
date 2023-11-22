@@ -58,7 +58,7 @@ abstract contract Events {
                             MAIN REGISTRY GUARDIAN
     //////////////////////////////////////////////////////////////////////////*/
 
-    event PauseUpdate(bool withdrawPauseUpdate, bool depositPauseUpdate);
+    event PauseFlagsUpdated(bool withdrawPauseUpdate, bool depositPauseUpdate);
 
     /*//////////////////////////////////////////////////////////////////////////
                                   MAIN REGISTRY
