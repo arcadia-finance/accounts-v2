@@ -4,9 +4,11 @@
  */
 pragma solidity 0.8.19;
 
-import { ChainlinkOracleModule_Fuzz_Test, OracleModule } from "./_ChainlinkOracleModule.fuzz.t.sol";
+import { ChainlinkOracleModule_Fuzz_Test } from "./_ChainlinkOracleModule.fuzz.t.sol";
 
 import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
+import { ChainlinkOracleModule } from "../../../../src/oracle-modules/ChainlinkOracleModule.sol";
+import { OracleModule } from "../../../../src/oracle-modules/AbstractOracleModule.sol";
 
 /**
  * @notice Fuzz tests for the function "addOracle" of contract "ChainlinkOracleModule".
@@ -41,7 +43,7 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         vm.startPrank(users.creatorAddress);
         chainlinkOM.addOracle(address(mockOracles.token4ToUsd), baseAsset, quoteAsset);
 
-        vm.expectRevert(OracleModule.Oracle_Already_Added.selector);
+        vm.expectRevert(OracleModule.OracleAlreadyAdded.selector);
         chainlinkOM.addOracle(address(mockOracles.token4ToUsd), baseAsset, quoteAsset);
         vm.stopPrank();
     }
@@ -76,7 +78,7 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD", address(0));
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert(OracleModule.Max_18_Decimals.selector);
+        vm.expectRevert(ChainlinkOracleModule.Max18Decimals.selector);
         chainlinkOM.addOracle(address(oracle), baseAsset, quoteAsset);
     }
 
