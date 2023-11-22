@@ -73,20 +73,20 @@ contract AuctionBoughtIn_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         assertEq(erc20Length, 0);
         assertEq(
-            accountExtension.erc20Balances(address(mockERC20.token1)),
+            accountExtension.getERC20Balances(address(mockERC20.token1)),
             mockERC20.token1.balanceOf(address(accountExtension))
         );
-        assertEq(accountExtension.erc20Balances(address(mockERC20.token1)), 0);
+        assertEq(accountExtension.getERC20Balances(address(mockERC20.token1)), 0);
         assertEq(mockERC20.token1.balanceOf(protocol), erc20Amount);
 
         assertEq(erc721Length, 0);
 
         assertEq(erc1155Length, 0);
         assertEq(
-            accountExtension.erc1155Balances(address(mockERC1155.sft1), 1),
+            accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1),
             mockERC1155.sft1.balanceOf(address(accountExtension), 1)
         );
-        assertEq(accountExtension.erc1155Balances(address(mockERC1155.sft1), 1), 0);
+        assertEq(accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1), 0);
         assertEq(mockERC1155.sft1.balanceOf(protocol, 1), erc1155Amount);
     }
 }
