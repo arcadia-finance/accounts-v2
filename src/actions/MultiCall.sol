@@ -9,7 +9,6 @@ import { IERC1155 } from "../interfaces/IERC1155.sol";
 import { ERC721TokenReceiver } from "../../lib/solmate/src/tokens/ERC721.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
 import { IActionBase } from "../interfaces/IActionBase.sol";
-import { MultiCallErrors } from "../libraries/Errors.sol";
 
 /**
  * @title Generic Multicall action
@@ -42,7 +41,6 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
     /**
      * @notice Calls a series of addresses with arbitrary calldata.
      * @param actionData A bytes object containing three actionData structs, an address array and a bytes array.
-     * @return resultData An actionData struct with the balances and ids of this contract address of the given depositData.
      * @return depositData The modified `IActionBase.ActionData` struct representing the final state of the `depositData` after executing the action.
      * @dev It is important to note that the `actionData` must be correctly encoded with the expected argument types.
      * Otherwise, the execution may fail or produce unexpected results.
