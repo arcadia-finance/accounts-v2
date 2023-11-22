@@ -10,7 +10,7 @@ import { BaseGuardian } from "./BaseGuardian.sol";
 /**
  * @title Factory Guardian
  * @author Pragma Labs
- * @notice This module provides the logic for the Factory that allows authorized accounts to trigger an emergency stop.
+ * @notice This module holds the logic that allows authorized accounts to trigger an emergency stop in the Factory.
  */
 abstract contract FactoryGuardian is BaseGuardian {
     /* //////////////////////////////////////////////////////////////
@@ -24,13 +24,7 @@ abstract contract FactoryGuardian is BaseGuardian {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event PauseUpdate(bool createPauseUpdate);
-
-    /*
-    //////////////////////////////////////////////////////////////
-                            ERRORS
-    //////////////////////////////////////////////////////////////
-    */
+    event PauseFlagUpdated(bool createPauseUpdate);
 
     /*
     //////////////////////////////////////////////////////////////
@@ -39,8 +33,8 @@ abstract contract FactoryGuardian is BaseGuardian {
     */
 
     /**
-     * @dev This modifier is used to restrict access to certain functions when the contract is paused for create Accounts.
-     * It throws if create Account is paused.
+     * @dev This modifier is used to restrict access to the creation of new Accounts when this functionality is paused.
+     * It throws if createAccount() is paused.
      */
     modifier whenCreateNotPaused() {
         if (createPaused) revert FunctionIsPaused();
@@ -48,46 +42,32 @@ abstract contract FactoryGuardian is BaseGuardian {
     }
 
     /* //////////////////////////////////////////////////////////////
-                                CONSTRUCTOR
-    ////////////////////////////////////////////////////////////// */
-
-    constructor() { }
-
-    /* //////////////////////////////////////////////////////////////
                             PAUSING LOGIC
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @inheritdoc BaseGuardian
+     * @notice This function will pause the functionality to create new Accounts.
      */
     function pause() external override onlyGuardian {
         if (block.timestamp <= pauseTimestamp + 32 days) revert CannotPause();
         createPaused = true;
         pauseTimestamp = block.timestamp;
 
-        emit PauseUpdate(true);
+        emit PauseFlagUpdated(true);
     }
 
     /**
      * @notice This function is used to unpause the creation of Accounts.
-     * @param createPaused_ false when create functionality should be unPaused.
-     * @dev This function can unPause repay, withdraw, borrow, and deposit individually.
-     * @dev Can only update flags from paused (true) to unPaused (false), cannot be used the other way around
-     * (to set unPaused flags to paused).
+     * @param createPaused_ "False" when create functionality should be unpaused.
+     * @dev This function can unpause the creation of new Accounts.
      */
     function unpause(bool createPaused_) external onlyOwner {
-        createPaused = createPaused && createPaused_;
-
-        emit PauseUpdate(createPaused);
+        emit PauseFlagUpdated(createPaused = createPaused && createPaused_);
     }
 
     /**
-     * @inheritdoc BaseGuardian
+     * @notice This function is not implemented. If someone would ever need to call this function, it means
+     * that the protocol can't be trusted anymore. No reason to create be able to create an Account.
      */
-    function unpause() external override {
-        if (block.timestamp <= pauseTimestamp + 30 days) revert CannotUnpause();
-        createPaused = false;
-
-        emit PauseUpdate(false);
-    }
+    function unpause() external override onlyOwner { }
 }

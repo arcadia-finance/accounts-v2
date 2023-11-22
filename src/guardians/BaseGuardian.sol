@@ -65,7 +65,6 @@ abstract contract BaseGuardian is Owned {
      */
     function changeGuardian(address guardian_) external onlyOwner {
         emit GuardianChanged(msg.sender, guardian = guardian_);
-
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -84,7 +83,7 @@ abstract contract BaseGuardian is Owned {
      * All users have now at least a two-day window to withdraw assets and close positions before
      * the protocol can again be paused (after 32 days).
      */
-    function pause() external virtual onlyGuardian {}
+    function pause() external virtual onlyGuardian { }
 
     /**
      * @notice This function is used to unpause all flags.

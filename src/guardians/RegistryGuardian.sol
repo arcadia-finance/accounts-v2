@@ -79,7 +79,7 @@ abstract contract RegistryGuardian is BaseGuardian {
         withdrawPaused = withdrawPaused && withdrawPaused_;
         depositPaused = depositPaused && depositPaused_;
 
-        emit PauseUpdate(withdrawPaused, depositPaused);
+        emit PauseFlagsUpdated(withdrawPaused, depositPaused);
     }
 
     /**
@@ -91,6 +91,6 @@ abstract contract RegistryGuardian is BaseGuardian {
         withdrawPaused = false;
         depositPaused = false;
 
-        emit PauseUpdate(false, false);
+        emit PauseFlagsUpdated(false, false);
     }
 }

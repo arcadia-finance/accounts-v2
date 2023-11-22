@@ -68,7 +68,7 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         // When: the Guardian pauses.
         vm.startPrank(users.guardian);
         vm.expectEmit();
-        emit PauseUpdate(true);
+        emit PauseFlagUpdated(true);
         factoryGuardian.pause();
         vm.stopPrank();
 

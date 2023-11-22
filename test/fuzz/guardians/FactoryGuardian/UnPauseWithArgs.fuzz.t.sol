@@ -50,7 +50,7 @@ contract Unpause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test
         // When: A "owner" un-pauses.
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
-        emit PauseUpdate(initialFlag && flag);
+        emit PauseFlagUpdated(initialFlag && flag);
         factoryGuardian.unpause(flag);
         vm.stopPrank();
 
