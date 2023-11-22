@@ -16,7 +16,7 @@ import { RiskModule } from "../RiskModule.sol";
  * @notice Abstract contract with the minimal implementation of a Derived Asset Module.
  * @dev Derived assets are assets with underlying assets, the underlying assets can be Primary Assets or also Derived Assets.
  * For Derived assets there are no direct external oracles.
- * USD-values of assets must be calculated in a recursive manner via the pricing logic of the Underlying Assets.
+ * USD values of assets must be calculated in a recursive manner via the pricing logic of the Underlying Assets.
  */
 abstract contract DerivedAssetModule is AssetModule {
     using FixedPointMathLib for uint256;
@@ -42,9 +42,9 @@ abstract contract DerivedAssetModule is AssetModule {
 
     // Struct with the risk parameters of the protocol for a specific creditor.
     struct RiskParameters {
-        // The exposure in usd of the creditor to the protocol at the last interaction, 18 decimals precision.
+        // The exposure in USD of the creditor to the protocol at the last interaction, 18 decimals precision.
         uint128 lastUsdExposureProtocol;
-        // The maximum exposure in usd of the creditor to the protocol, 18 decimals precision.
+        // The maximum exposure in USD of the creditor to the protocol, 18 decimals precision.
         uint128 maxUsdExposureProtocol;
         // The risk factor of the protocol for a creditor, 4 decimals precision.
         uint16 riskFactor;
@@ -54,7 +54,7 @@ abstract contract DerivedAssetModule is AssetModule {
     struct ExposuresPerAsset {
         // The amount of exposure of the creditor to the asset at the last interaction.
         uint128 lastExposureAsset;
-        // The exposure in usd of the creditor to the asset at the last interaction, 18 decimals precision.
+        // The exposure in USD of the creditor to the asset at the last interaction, 18 decimals precision.
         uint128 lastUsdExposureAsset;
     }
 
@@ -88,7 +88,7 @@ abstract contract DerivedAssetModule is AssetModule {
         returns (bytes32[] memory underlyingAssetKeys);
 
     /**
-     * @notice Calculates the usd-rate of 10**18 underlying assets.
+     * @notice Calculates the USD rate of 10**18 underlying assets.
      * @param creditor The contract address of the creditor.
      * @param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return rateUnderlyingAssetsToUsd The USD rates of 10**18 tokens of underlying asset, with 18 decimals precision.
@@ -210,7 +210,7 @@ abstract contract DerivedAssetModule is AssetModule {
     /**
      * @notice Sets the risk parameters of the Protocol for a given creditor.
      * @param creditor The contract address of the creditor.
-     * @param maxUsdExposureProtocol_ The maximum usd exposure of the protocol for each creditor, denominated in USD with 18 decimals precision.
+     * @param maxUsdExposureProtocol_ The maximum USD exposure of the protocol for each creditor, denominated in USD with 18 decimals precision.
      * @param riskFactor The risk factor of the asset for the creditor, 4 decimals precision.
      */
     function setRiskParameters(address creditor, uint128 maxUsdExposureProtocol_, uint16 riskFactor)
@@ -228,7 +228,7 @@ abstract contract DerivedAssetModule is AssetModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns the usd value of an asset.
+     * @notice Returns the USD value of an asset.
      * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
@@ -254,7 +254,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
         // Check if rateToUsd for the underlying assets was already calculated in _getUnderlyingAssetsAmounts().
         if (rateUnderlyingAssetsToUsd.length == 0) {
-            // If not, get the usd value of the underlying assets recursively.
+            // If not, get the USD value of the underlying assets recursively.
             rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
         }
 
@@ -263,10 +263,10 @@ abstract contract DerivedAssetModule is AssetModule {
     }
 
     /**
-     * @notice Returns the usd value of an asset.
+     * @notice Returns the USD value of an asset.
      * @param creditor The contract address of the creditor.
      * @param underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
-     * @param rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     * @param rateUnderlyingAssetsToUsd The USD rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given creditor, with 4 decimals precision.
      * @return liquidationFactor The liquidation factor of the asset for a given creditor, with 4 decimals precision.
@@ -278,8 +278,8 @@ abstract contract DerivedAssetModule is AssetModule {
         RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
     ) internal view virtual returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
         // Initialize variables with first elements of array.
-        // "rateUnderlyingAssetsToUsd" is the usd value with 18 decimals precision for 10**18 tokens of Underlying Asset.
-        // To get the usd value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
+        // "rateUnderlyingAssetsToUsd" is the USD value with 18 decimals precision for 10**18 tokens of Underlying Asset.
+        // To get the USD value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
         // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
         valueInUsd =
             FixedPointMathLib.mulDivDown(underlyingAssetsAmounts[0], rateUnderlyingAssetsToUsd[0].assetValue, 1e18);
@@ -287,7 +287,7 @@ abstract contract DerivedAssetModule is AssetModule {
         liquidationFactor = rateUnderlyingAssetsToUsd[0].liquidationFactor;
 
         // Update variables with elements from index 1 until end of arrays:
-        //  - Add Usd value of all underlying assets together.
+        //  - Add USD value of all underlying assets together.
         //  - Keep the lowest risk factor of all underlying assets.
         uint256 length = underlyingAssetsAmounts.length;
         for (uint256 i = 1; i < length;) {
@@ -349,7 +349,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
-     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      */
     function processIndirectDeposit(
         address creditor,
@@ -404,7 +404,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
-     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      */
     function processIndirectWithdrawal(
         address creditor,
@@ -435,7 +435,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
      * @param exposureAsset The updated exposure to the asset.
-     * @return usdExposureAsset The Usd value of the exposure of the asset, 18 decimals precision.
+     * @return usdExposureAsset The USD value of the exposure of the asset, 18 decimals precision.
      */
     function _processDeposit(address creditor, bytes32 assetKey, uint256 exposureAsset)
         internal
@@ -506,7 +506,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
      * @param exposureAsset The updated exposure to the asset.
-     * @return usdExposureAsset The Usd value of the exposure of the asset, 18 decimals precision.
+     * @return usdExposureAsset The USD value of the exposure of the asset, 18 decimals precision.
      */
     function _processWithdrawal(address creditor, bytes32 assetKey, uint256 exposureAsset)
         internal
