@@ -43,7 +43,10 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
      * @notice Calls a series of addresses with arbitrary calldata.
      * @param actionData A bytes object containing three actionData structs, an address array and a bytes array.
      * @return resultData An actionData struct with the balances and ids of this contract address of the given depositData.
-     * @dev Input address is not used in this generic action.
+     * @return depositData The modified `IActionBase.ActionData` struct representing the final state of the `depositData` after executing the action.
+     * @dev It is important to note that the `actionData` must be correctly encoded with the expected argument types.
+     * Otherwise, the execution may fail or produce unexpected results.
+     * Input address is not used in this generic action.
      */
     function executeAction(bytes calldata actionData) external override returns (IActionBase.ActionData memory) {
         (,,, IActionBase.ActionData memory depositData, address[] memory to, bytes[] memory data) = abi.decode(

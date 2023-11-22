@@ -21,5 +21,6 @@ interface IActionBase {
      * @param actionData A bytes object containing two actionAssetData structs, an address array and a bytes array.
      * @return resultData An actionAssetData struct with the balances of this ActionMultiCall address.
      */
+
     function executeAction(bytes calldata actionData) external returns (ActionData memory);
 }
