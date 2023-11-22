@@ -8,10 +8,9 @@ import { IERC721 } from "./interfaces/IERC721.sol";
 import { IERC1155 } from "./interfaces/IERC1155.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
 import { ICreditor } from "./interfaces/ICreditor.sol";
-import { IActionBase, ActionData } from "./interfaces/IActionBase.sol";
+import { IActionBase } from "./interfaces/IActionBase.sol";
 import { IAccount } from "./interfaces/IAccount.sol";
 import { IPermit2 } from "./interfaces/IPermit2.sol";
-import { ActionData } from "./actions/utils/ActionData.sol";
 import { ERC20, SafeTransferLib } from "../lib/solmate/src/utils/SafeTransferLib.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
 import { RiskModule } from "./RiskModule.sol";
@@ -564,13 +563,21 @@ contract AccountV1 is AccountStorageV1, IAccount {
         if (!IRegistry(registry).isActionAllowed(actionHandler)) revert AccountErrors.Action_Not_Allowed();
 
         (
-            ActionData memory withdrawData,
-            ActionData memory transferFromOwnerData,
+            IActionBase.ActionData memory withdrawData,
+            IActionBase.ActionData memory transferFromOwnerData,
             IPermit2.PermitBatchTransferFrom memory permit,
             ,
             ,
         ) = abi.decode(
-            actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, ActionData, address[], bytes[])
+            actionData,
+            (
+                IActionBase.ActionData,
+                IActionBase.ActionData,
+                IPermit2.PermitBatchTransferFrom,
+                IActionBase.ActionData,
+                address[],
+                bytes[]
+            )
         );
 
         // Withdraw assets to actionHandler.
@@ -587,7 +594,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         }
 
         // Execute Action(s).
-        ActionData memory depositData = IActionBase(actionHandler).executeAction(actionData);
+        IActionBase.ActionData memory depositData = IActionBase(actionHandler).executeAction(actionData);
 
         // Deposit assets from actionHandler into Account.
         _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionHandler);
@@ -760,7 +767,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param transferFromOwnerData A struct containing the info of all assets transferred from the owner that are not in this account.
      * @param to The address to withdraw to.
      */
-    function _transferFromOwner(ActionData memory transferFromOwnerData, address to) internal {
+    function _transferFromOwner(IActionBase.ActionData memory transferFromOwnerData, address to) internal {
         uint256 assetAddressesLength = transferFromOwnerData.assets.length;
         address owner_ = owner;
         for (uint256 i; i < assetAddressesLength;) {

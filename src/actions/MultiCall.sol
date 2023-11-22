@@ -1,35 +1,35 @@
 /**
  * Created by Pragma Labs
- * SPDX-License-Identifier: BUSL-1.1
+ * SPDX-License-Identifier: MIT
  */
 pragma solidity 0.8.19;
 
-import { ActionBase, ActionData } from "./ActionBase.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
 import { ERC721TokenReceiver } from "../../lib/solmate/src/tokens/ERC721.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
+import { IActionBase } from "../interfaces/IActionBase.sol";
+import { MultiCallErrors } from "../libraries/Errors.sol";
 
 /**
- * @title Generic multicall action
+ * @title Generic Multicall action
  * @author Pragma Labs
  * @notice Calls any external contract with arbitrary data.
  * @dev Only calls are used, no delegatecalls.
  * @dev This address will approve random addresses. Do not store any funds on this address!
  */
-contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
+contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
+    /* //////////////////////////////////////////////////////////////
+                                STORAGE
+    ////////////////////////////////////////////////////////////// */
+
     address[] internal mintedAssets;
     uint256[] internal mintedIds;
 
     /* //////////////////////////////////////////////////////////////
-                                CONSTRUCTOR
-    ////////////////////////////////////////////////////////////// */
-
-    constructor() { }
-
-    /* //////////////////////////////////////////////////////////////
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
+
     error Length_Mismatch();
     error Insufficient_Amount_Out();
     error Only_Internal();
@@ -40,13 +40,21 @@ contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
 
     /**
      * @notice Calls a series of addresses with arbitrary calldata.
-     * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
-     * @return resultData An actionAssetData struct with the balances of this ActionMultiCall address.
-     * @dev input address is not used in this generic action.
+     * @param actionData A bytes object containing three actionData structs, an address array and a bytes array.
+     * @return resultData An actionData struct with the balances and ids of this contract address of the given depositData.
+     * @dev Input address is not used in this generic action.
      */
-    function executeAction(bytes calldata actionData) external override returns (ActionData memory) {
-        (,,, ActionData memory depositData, address[] memory to, bytes[] memory data) = abi.decode(
-            actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, ActionData, address[], bytes[])
+    function executeAction(bytes calldata actionData) external override returns (IActionBase.ActionData memory) {
+        (,,, IActionBase.ActionData memory depositData, address[] memory to, bytes[] memory data) = abi.decode(
+            actionData,
+            (
+                IActionBase.ActionData,
+                IActionBase.ActionData,
+                IPermit2.PermitBatchTransferFrom,
+                IActionBase.ActionData,
+                address[],
+                bytes[]
+            )
         );
 
         uint256 callLength = to.length;
@@ -65,13 +73,13 @@ contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
             if (depositData.assetTypes[i] == 0) {
                 depositData.assetAmounts[i] = IERC20(depositData.assets[i]).balanceOf(address(this));
             } else if (depositData.assetTypes[i] == 1) {
-                // if the amount is 0, we minted a new NFT
+                // If the amount is 0, we minted a new NFT
                 if (depositData.assetAmounts[i] == 0) {
                     depositData.assetAmounts[i] = 1;
 
-                    // start taking data from the minted arrays
-                    // we can overwrite address and ID from depositData
-                    // all assets with type == 1 and amount == 0 are stored in the minted arrays
+                    // Start taking data from the minted arrays.
+                    // We can overwrite address and ID from depositData.
+                    // All assets with type == 1 and amount == 0 are stored in the minted arrays.
                     depositData.assetIds[i] = mintedIds[mintedIds.length - 1];
                     depositData.assets[i] = mintedAssets[mintedAssets.length - 1];
                     mintedIds.pop();
@@ -86,8 +94,8 @@ contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
             }
         }
 
-        // if any assets were minted and are left in this contract, revert
-        require(mintedIds.length == 0 && mintedAssets.length == 0, "AH: leftover NFTs");
+        // If any assets were minted and are left in this contract, revert.
+        if (mintedIds.length > 0 || mintedAssets.length > 0) revert MultiCallErrors.LEFTOVER_NFTS();
 
         return depositData;
     }
@@ -97,17 +105,15 @@ contract ActionMultiCall is ActionBase, ERC721TokenReceiver {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Repays an exact amount to a creditor.
-     * @param creditor The contract address of the creditor.
+     * @notice Repays an exact amount to a Creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset that is being repaid.
      * @param account The contract address of the Account for which the debt is being repaid.
-     * @param amount The amount of debt to.
+     * @param amount The amount of debt to repay.
      * @dev Can be called as one of the calls in executeAction, but fetches the actual contract balance after other DeFi interactions.
      */
     function executeRepay(address creditor, address asset, address account, uint256 amount) external {
-        if (amount < 1) {
-            amount = IERC20(asset).balanceOf(address(this));
-        }
+        if (amount < 1) amount = IERC20(asset).balanceOf(address(this));
 
         (bool success, bytes memory data) =
             creditor.call(abi.encodeWithSignature("repay(uint256,address)", amount, account));

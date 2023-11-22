@@ -50,3 +50,7 @@ library RegistryErrors {
     error OracleMod_Not_Unique();
     error Unauthorized();
 }
+
+library MultiCallErrors {
+    error LEFTOVER_NFTS();
+}
