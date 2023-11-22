@@ -64,6 +64,8 @@ contract AccountExtension is AccountV1 {
 
 contract BaseGuardianExtension is BaseGuardian {
     constructor() BaseGuardian() { }
+
+    function unpause() external override {}
 }
 
 contract BitPackingLibExtension {

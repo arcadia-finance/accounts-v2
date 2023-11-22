@@ -7,9 +7,9 @@ pragma solidity 0.8.19;
 import { FactoryGuardian_Fuzz_Test, BaseGuardian } from "./_FactoryGuardian.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "unPause" of contract "FactoryGuardian".
+ * @notice Fuzz tests for the function "unpause" of contract "FactoryGuardian".
  */
-contract UnPause_WithoutArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
+contract Unpause_WithoutArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -22,7 +22,7 @@ contract UnPause_WithoutArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_T
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_unPause_TimeNotExpired(uint256 lastPauseTimestamp, uint256 timePassed, address sender)
+    function testFuzz_Revert_unpause_TimeNotExpired(uint256 lastPauseTimestamp, uint256 timePassed, address sender)
         public
     {
         lastPauseTimestamp = bound(lastPauseTimestamp, 32 days + 1, type(uint32).max);
@@ -37,14 +37,14 @@ contract UnPause_WithoutArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_T
         vm.warp(lastPauseTimestamp + timePassed);
 
         // When: A sender un-pauses within 30 days passed from the last pause.
-        // Then: The transaction reverts with "G_UP: Cannot unPaus".
+        // Then: The transaction reverts.
         vm.startPrank(sender);
-        vm.expectRevert(BaseGuardian.Cannot_UnPause.selector);
-        factoryGuardian.unPause();
+        vm.expectRevert(BaseGuardian.CannotUnpause.selector);
+        factoryGuardian.unpause();
         vm.stopPrank();
     }
 
-    function testFuzz_Success_unPause(uint256 lastPauseTimestamp, uint256 timePassed, address sender, bool initialFlag)
+    function testFuzz_Success_unpause(uint256 lastPauseTimestamp, uint256 timePassed, address sender, bool initialFlag)
         public
     {
         lastPauseTimestamp = bound(lastPauseTimestamp, 32 days + 1, type(uint32).max - 30 days - 1);
@@ -65,7 +65,7 @@ contract UnPause_WithoutArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_T
         vm.startPrank(sender);
         vm.expectEmit();
         emit PauseUpdate(false);
-        factoryGuardian.unPause();
+        factoryGuardian.unpause();
         vm.stopPrank();
 
         // Then: All flags are set to False.

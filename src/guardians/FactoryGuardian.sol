@@ -43,7 +43,7 @@ abstract contract FactoryGuardian is BaseGuardian {
      * It throws if create Account is paused.
      */
     modifier whenCreateNotPaused() {
-        if (createPaused) revert Function_Is_Paused();
+        if (createPaused) revert FunctionIsPaused();
         _;
     }
 
@@ -61,7 +61,7 @@ abstract contract FactoryGuardian is BaseGuardian {
      * @inheritdoc BaseGuardian
      */
     function pause() external override onlyGuardian {
-        if (block.timestamp <= pauseTimestamp + 32 days) revert Cannot_Pause();
+        if (block.timestamp <= pauseTimestamp + 32 days) revert CannotPause();
         createPaused = true;
         pauseTimestamp = block.timestamp;
 
@@ -75,7 +75,7 @@ abstract contract FactoryGuardian is BaseGuardian {
      * @dev Can only update flags from paused (true) to unPaused (false), cannot be used the other way around
      * (to set unPaused flags to paused).
      */
-    function unPause(bool createPaused_) external onlyOwner {
+    function unpause(bool createPaused_) external onlyOwner {
         createPaused = createPaused && createPaused_;
 
         emit PauseUpdate(createPaused);
@@ -84,8 +84,8 @@ abstract contract FactoryGuardian is BaseGuardian {
     /**
      * @inheritdoc BaseGuardian
      */
-    function unPause() external override {
-        if (block.timestamp <= pauseTimestamp + 30 days) revert Cannot_UnPause();
+    function unpause() external override {
+        if (block.timestamp <= pauseTimestamp + 30 days) revert CannotUnpause();
         createPaused = false;
 
         emit PauseUpdate(false);
