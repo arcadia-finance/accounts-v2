@@ -121,7 +121,7 @@ abstract contract DerivedAssetModule is AssetModule {
     }
 
     /**
-     * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
+     * @notice Calculates for a given amount of an Asset the corresponding amount(s) of underlying asset(s).
      * @param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
      * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
