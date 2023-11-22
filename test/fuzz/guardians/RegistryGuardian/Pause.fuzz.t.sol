@@ -68,7 +68,7 @@ contract Pause_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz_Test {
         // When: the Guardian pauses.
         vm.startPrank(users.guardian);
         vm.expectEmit();
-        emit PauseUpdate(true, true);
+        emit PauseFlagsUpdated(true, true);
         registryGuardian.pause();
         vm.stopPrank();
 
