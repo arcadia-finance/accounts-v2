@@ -36,8 +36,7 @@ library RiskModule {
         pure
         returns (uint256 collateralValue)
     {
-        uint256 valuesAndRiskFactorsLength = valuesAndRiskFactors.length;
-        for (uint256 i; i < valuesAndRiskFactorsLength;) {
+        for (uint256 i; i < valuesAndRiskFactors.length;) {
             collateralValue += valuesAndRiskFactors[i].assetValue * valuesAndRiskFactors[i].collateralFactor;
             unchecked {
                 ++i;
