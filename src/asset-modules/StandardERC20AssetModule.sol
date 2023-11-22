@@ -52,7 +52,7 @@ contract StandardERC20AssetModule is PrimaryAssetModule {
         inAssetModule[asset] = true;
 
         uint256 assetUnit = 10 ** IERC20(asset).decimals();
-        if (assetUnit > 1e18) revert Max_18_Decimals();
+        if (assetUnit > 1e18) revert Max18Decimals();
 
         // Can safely cast to uint64, we previously checked it is smaller than 1e18.
         assetToInformation[_getKeyFromAsset(asset, 0)] =
