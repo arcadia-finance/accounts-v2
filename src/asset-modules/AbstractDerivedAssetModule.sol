@@ -305,7 +305,6 @@ abstract contract DerivedAssetModule is AssetModule {
         // Lower risk factors with the protocol wide risk factor.
         liquidationFactor = riskFactor.mulDivDown(liquidationFactor, RiskConstants.RISK_FACTOR_UNIT);
         collateralFactor = riskFactor.mulDivDown(collateralFactor, RiskConstants.RISK_FACTOR_UNIT);
-
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -582,9 +581,7 @@ abstract contract DerivedAssetModule is AssetModule {
             exposureAsset = lastExposuresAsset[creditor][assetKey].lastExposureAsset + uint256(deltaAsset);
         } else {
             uint256 exposureAssetLast = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
-            exposureAsset = exposureAssetLast > uint256(-deltaAsset)
-                ? exposureAssetLast - uint256(-deltaAsset)
-                : 0;
+            exposureAsset = exposureAssetLast > uint256(-deltaAsset) ? exposureAssetLast - uint256(-deltaAsset) : 0;
         }
         lastExposuresAsset[creditor][assetKey].lastExposureAsset = uint128(exposureAsset); // ToDo: safecast?
     }
