@@ -57,7 +57,7 @@ abstract contract FactoryGuardian is BaseGuardian {
     function pause() external override onlyGuardian {
         if (block.timestamp <= pauseTimestamp + 32 days) revert CannotPause();
         createPaused = true;
-        pauseTimestamp = block.timestamp;
+        pauseTimestamp = uint96(block.timestamp);
 
         emit PauseUpdated(true);
     }

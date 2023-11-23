@@ -44,7 +44,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Success_blockAccountVersion(uint16 accountVersion) public {
+    function testFuzz_Success_blockAccountVersion(uint88 accountVersion) public {
         uint256 currentVersion = factory.latestAccountVersion();
         vm.assume(accountVersion <= currentVersion);
         vm.assume(accountVersion != 0);

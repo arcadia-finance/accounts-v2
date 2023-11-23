@@ -60,7 +60,7 @@ abstract contract RegistryGuardian is BaseGuardian {
      */
     function pause() external override onlyGuardian {
         if (block.timestamp <= pauseTimestamp + 32 days) revert CannotPause();
-        pauseTimestamp = block.timestamp;
+        pauseTimestamp = uint96(block.timestamp);
 
         emit PauseFlagsUpdated(withdrawPaused = true, depositPaused = true);
     }
