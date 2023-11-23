@@ -198,16 +198,8 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 riskFactor = riskParams[creditor].riskFactor;
 
         // Lower risk factors with the protocol wide risk factor.
-        collateralFactor = uint16(
-            FixedPointMathLib.mulDivDown(
-                collateralFactor, riskFactor, RiskConstants.RISK_FACTOR_UNIT
-            )
-        );
-        liquidationFactor = uint16(
-            FixedPointMathLib.mulDivDown(
-                liquidationFactor, riskFactor, RiskConstants.RISK_FACTOR_UNIT
-            )
-        );
+        collateralFactor = uint16(riskFactor.mulDivDown(collateralFactor, RiskConstants.RISK_FACTOR_UNIT));
+        liquidationFactor = uint16(riskFactor.mulDivDown(liquidationFactor, RiskConstants.RISK_FACTOR_UNIT));
     }
 
     /**
@@ -284,8 +276,8 @@ abstract contract DerivedAssetModule is AssetModule {
         // "rateUnderlyingAssetsToUsd" is the USD value with 18 decimals precision for 10**18 tokens of Underlying Asset.
         // To get the USD value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
         // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
-        valueInUsd =
-            FixedPointMathLib.mulDivDown(underlyingAssetsAmounts[0], rateUnderlyingAssetsToUsd[0].assetValue, 1e18);
+        valueInUsd = underlyingAssetsAmounts[0].mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, 1e18);
+
         collateralFactor = rateUnderlyingAssetsToUsd[0].collateralFactor;
         liquidationFactor = rateUnderlyingAssetsToUsd[0].liquidationFactor;
 
@@ -294,8 +286,7 @@ abstract contract DerivedAssetModule is AssetModule {
         //  - Keep the lowest risk factor of all underlying assets.
         uint256 length = underlyingAssetsAmounts.length;
         for (uint256 i = 1; i < length;) {
-            valueInUsd +=
-                FixedPointMathLib.mulDivDown(underlyingAssetsAmounts[i], rateUnderlyingAssetsToUsd[i].assetValue, 1e18);
+            valueInUsd += underlyingAssetsAmounts[i].mulDivDown(rateUnderlyingAssetsToUsd[i].assetValue, 1e18);
 
             if (collateralFactor > rateUnderlyingAssetsToUsd[i].collateralFactor) {
                 collateralFactor = rateUnderlyingAssetsToUsd[i].collateralFactor;
@@ -310,13 +301,11 @@ abstract contract DerivedAssetModule is AssetModule {
             }
         }
 
+        uint256 riskFactor = riskParams[creditor].riskFactor;
+
         // Lower risk factors with the protocol wide risk factor.
-        collateralFactor = FixedPointMathLib.mulDivDown(
-            collateralFactor, riskParams[creditor].riskFactor, RiskConstants.RISK_FACTOR_UNIT
-        );
-        liquidationFactor = FixedPointMathLib.mulDivDown(
-            liquidationFactor, riskParams[creditor].riskFactor, RiskConstants.RISK_FACTOR_UNIT
-        );
+        liquidationFactor = riskFactor.mulDivDown(liquidationFactor, RiskConstants.RISK_FACTOR_UNIT);
+        collateralFactor = riskFactor.mulDivDown(collateralFactor, RiskConstants.RISK_FACTOR_UNIT);
     }
 
     /*///////////////////////////////////////////////////////////////
