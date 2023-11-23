@@ -13,6 +13,8 @@ contract CreditorMock {
     address public riskManager;
     address public liquidator;
 
+    error OpenPositionNonZero();
+
     mapping(address => uint256) openPosition;
 
     constructor() { }
@@ -33,6 +35,10 @@ contract CreditorMock {
             liquidator_ = address(0);
             fixedLiquidationCost_ = 0;
         }
+    }
+
+    function closeMarginAccount(address account) external view {
+        if (openPosition[account] != 0) revert OpenPositionNonZero();
     }
 
     function getOpenPosition(address account) external view returns (uint256 openPosition_) {

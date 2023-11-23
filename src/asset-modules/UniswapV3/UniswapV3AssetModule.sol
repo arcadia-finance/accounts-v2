@@ -33,7 +33,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     // The contract address of the NonfungiblePositionManager.
-    address internal immutable NON_FUNGIBLE_POSITION_MANAGER;
+    INonfungiblePositionManager internal immutable NON_FUNGIBLE_POSITION_MANAGER;
 
     // The contract address of the Uniswap V3 (or exact clone) Factory.
     address internal immutable UNISWAP_V3_FACTORY;
@@ -64,7 +64,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for Uniswap V3 Liquidity Positions (ERC721) is 1.
      */
     constructor(address registry_, address nonFungiblePositionManager) DerivedAssetModule(registry_, 1) {
-        NON_FUNGIBLE_POSITION_MANAGER = nonFungiblePositionManager;
+        NON_FUNGIBLE_POSITION_MANAGER = INonfungiblePositionManager(nonFungiblePositionManager);
         UNISWAP_V3_FACTORY = INonfungiblePositionManager(nonFungiblePositionManager).factory();
     }
 
@@ -77,10 +77,10 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @dev Since all assets will have the same contract address, only the NonfungiblePositionManager has to be added to the Registry.
      */
     function setProtocol() external onlyOwner {
-        inAssetModule[NON_FUNGIBLE_POSITION_MANAGER] = true;
+        inAssetModule[address(NON_FUNGIBLE_POSITION_MANAGER)] = true;
 
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(NON_FUNGIBLE_POSITION_MANAGER);
+        IRegistry(REGISTRY).addAsset(address(NON_FUNGIBLE_POSITION_MANAGER));
     }
 
     /**
@@ -92,16 +92,19 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     function _addAsset(uint256 assetId) internal {
         if (assetId > type(uint96).max) revert Invalid_Id();
 
-        (,, address token0, address token1,,,, uint128 liquidity,,,,) =
-            INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
+        (,, address token0, address token1,,,, uint128 liquidity,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
 
         // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
         // deposit functions and there any deposit of non-allowed Underlying Assets will revert.
         if (liquidity == 0) revert ZeroLiquidity();
 
+        // The liquidity of the Liquidity Position is stored in the Asset Module,
+        // not fetched from the NonfungiblePositionManager.
+        // Since liquidity of a position can be increased by a non-owner,
+        // the max exposure checks could otherwise be circumvented.
         assetToLiquidity[assetId] = liquidity;
 
-        bytes32 assetKey = _getKeyFromAsset(NON_FUNGIBLE_POSITION_MANAGER, assetId);
+        bytes32 assetKey = _getKeyFromAsset(address(NON_FUNGIBLE_POSITION_MANAGER), assetId);
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
         underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
@@ -119,9 +122,9 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @return A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
-        if (asset != NON_FUNGIBLE_POSITION_MANAGER) return false;
+        if (asset != address(NON_FUNGIBLE_POSITION_MANAGER)) return false;
 
-        try INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId) returns (
+        try NON_FUNGIBLE_POSITION_MANAGER.positions(assetId) returns (
             uint96,
             address,
             address token0,
@@ -157,8 +160,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         if (underlyingAssetKeys.length == 0) {
             // Only used as an off-chain view function by getValue() to return the value of a non deposited Liquidity Position.
             (, uint256 assetId) = _getAssetFromKey(assetKey);
-            (,, address token0, address token1,,,,,,,,) =
-                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
+            (,, address token0, address token1,,,,,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
 
             underlyingAssetKeys = new bytes32[](2);
             underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
@@ -174,8 +176,9 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * param underlyingAssetKeys The unique identifiers of the Underlying Assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 1e18 tokens of Underlying Asset, with 18 decimals precision.
-     * @dev Uniswap Pools can be manipulated, we can't rely on the current price (or tick) stored in slot0.
-     * We use Chainlink oracles of the Underlying Assets to calculate the flashloan resistant amounts.
+     * @dev External price feeds of the Underlying Assets are used to calculate the flashloan resistant amounts.
+     * This approach accommodates scenarios where an underlying asset could be
+     * a derived asset itself (e.g., USDC/aUSDC pool), ensuring more versatile and accurate price calculations.
      */
     function _getUnderlyingAssetsAmounts(address creditor, bytes32 assetKey, uint256, bytes32[] memory)
         internal
@@ -208,7 +211,12 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         // Calculate amount0 and amount1 of the accumulated fees.
         (uint256 fee0, uint256 fee1) = _getFeeAmounts(assetId);
 
-        // ToDo: fee should be capped to a max compared to principal to avoid circumventing caps via fees on new pools.
+        // As the sole liquidity provider in a new pool,
+        // a malicious actor could bypass the max exposure by
+        // continiously swapping large amounts and increasing the fee portion
+        // of the liquidity position.
+        fee0 = fee0 > principal0 ? principal0 : fee0;
+        fee1 = fee1 > principal1 ? principal1 : fee1;
 
         underlyingAssetsAmounts = new uint256[](2);
         unchecked {
@@ -237,12 +245,10 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         liquidity = uint128(assetToLiquidity[assetId]);
 
         if (liquidity > 0) {
-            (,, token0, token1,, tickLower, tickUpper,,,,,) =
-                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
+            (,, token0, token1,, tickLower, tickUpper,,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
         } else {
             // Only used as an off-chain view function by getValue() to return the value of a non deposited Liquidity Position.
-            (,, token0, token1,, tickLower, tickUpper, liquidity,,,,) =
-                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
+            (,, token0, token1,, tickLower, tickUpper, liquidity,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
         }
     }
 
@@ -318,7 +324,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
             uint256 feeGrowthInside1LastX128,
             uint256 tokensOwed0, // gas: cheaper to use uint256 instead of uint128.
             uint256 tokensOwed1 // gas: cheaper to use uint256 instead of uint128.
-        ) = INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(id);
+        ) = NON_FUNGIBLE_POSITION_MANAGER.positions(id);
 
         (uint256 feeGrowthInside0CurrentX128, uint256 feeGrowthInside1CurrentX128) =
             _getFeeGrowthInside(token0, token1, fee, tickLower, tickUpper);
@@ -433,5 +439,58 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
+    }
+
+    /**
+     * @notice Decreases the exposure to an asset on a direct withdrawal.
+     * @param creditor The contract address of the Creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @param amount The amount of tokens.
+     * @dev The stored liquidity on this contract is removed, otherwise _getUnderlyingAssets
+     * would keep using the liquidity of the asset at the time of deposit even if its liquidity
+     * gets updated outside an Account.
+     */
+    function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
+        public
+        override
+        returns (uint256 assetType)
+    {
+        assetType = super.processDirectWithdrawal(creditor, asset, assetId, amount);
+
+        // If the asset is withdrawn, remove its from the mapping.
+        // If we keep the liquidity of the asset in storage,
+        // an offchain getValue of the asset will be calculated with the stored liquidity.
+        delete assetToLiquidity[assetId];
+    }
+
+    /**
+     * @notice Decreases the exposure to an asset on an indirect withdrawal.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
+     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
+     * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     * @dev The stored liquidity on this contract is removed, otherwise _getUnderlyingAssets
+     * would keep using the liquidity of the asset at the time of deposit even if its liquidity
+     * gets updated outside an Account.
+     */
+    function processIndirectWithdrawal(
+        address creditor,
+        address asset,
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public override returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+        (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectWithdrawal(
+            creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
+
+        // If the asset is withdrawn, remove its from the mapping.
+        // If we keep the liquidity of the asset in storage,
+        // an offchain getValue of the asset will be calculated with the stored liquidity.
+        delete assetToLiquidity[assetId];
     }
 }

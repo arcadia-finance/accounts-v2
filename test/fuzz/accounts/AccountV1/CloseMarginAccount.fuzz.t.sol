@@ -50,7 +50,7 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         creditorStable1.setOpenPosition(address(proxyAccount), debt_);
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.NonZeroOpenPosition.selector);
+        vm.expectRevert(OpenPositionNonZero.selector);
         proxyAccount.closeMarginAccount();
         vm.stopPrank();
     }
