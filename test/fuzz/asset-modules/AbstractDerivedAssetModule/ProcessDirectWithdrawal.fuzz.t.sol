@@ -58,10 +58,10 @@ contract ProcessDirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstrac
 
         // When: "Registry" calls "processDirectWithdrawal".
         vm.prank(address(registryExtension));
-        derivedAssetModule.processDirectWithdrawal(
+        uint256 assetType = derivedAssetModule.processDirectWithdrawal(
             assetState.creditor, assetState.asset, assetState.assetId, uint256(-amount)
         );
 
-        // Then: Transaction does not revert.
+        assertEq(assetType, 0);
     }
 }

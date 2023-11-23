@@ -371,6 +371,9 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         );
 
         vm.prank(address(registryExtension));
-        uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+        uint256 assetType =
+            uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+
+        assertEq(assetType, 1);
     }
 }

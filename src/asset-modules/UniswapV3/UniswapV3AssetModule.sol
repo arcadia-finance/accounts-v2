@@ -80,7 +80,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         inAssetModule[NON_FUNGIBLE_POSITION_MANAGER] = true;
 
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(NON_FUNGIBLE_POSITION_MANAGER, ASSET_TYPE);
+        IRegistry(REGISTRY).addAsset(NON_FUNGIBLE_POSITION_MANAGER);
     }
 
     /**
@@ -389,14 +389,23 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
+     * @return assetType Identifier for the type of the asset:
+     * 0 = ERC20.
+     * 1 = ERC721.
+     * 2 = ERC1155
+     * ...
      * @dev super.processDirectDeposit does check that msg.sender is the Registry.
      */
-    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount) public override {
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
+        public
+        override
+        returns (uint256 assetType)
+    {
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Asset Module.
         _addAsset(assetId);
 
         // Also checks that msg.sender == Registry.
-        super.processDirectDeposit(creditor, asset, assetId, amount);
+        return super.processDirectDeposit(creditor, asset, assetId, amount);
     }
 
     /**

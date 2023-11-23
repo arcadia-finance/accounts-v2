@@ -42,8 +42,8 @@ contract GetRiskFactors_Registry_Fuzz_Test is Registry_Fuzz_Test {
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], RiskModule.ONE_4));
 
         // And: Underlying assets are in primaryAssetModule.
-        registryExtension.setAssetModuleForAsset(assets[0], address(primaryAssetModule));
-        registryExtension.setAssetModuleForAsset(assets[1], address(primaryAssetModule));
+        registryExtension.setAssetToAssetModule(assets[0], address(primaryAssetModule));
+        registryExtension.setAssetToAssetModule(assets[1], address(primaryAssetModule));
         vm.startPrank(address(registryExtension));
         primaryAssetModule.setRiskParameters(
             creditor, assets[0], assetIds[0], 0, collateralFactors[0], liquidationFactors[0]
