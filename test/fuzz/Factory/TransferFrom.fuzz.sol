@@ -23,6 +23,23 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         _;
     }
 
+    modifier notTestContracts(address nonOwner) {
+        vm.assume(nonOwner != address(0));
+        vm.assume(nonOwner != address(factory));
+        vm.assume(nonOwner != address(registryExtension));
+        vm.assume(nonOwner != address(vm));
+        vm.assume(nonOwner != address(this));
+        vm.assume(nonOwner != address(chainlinkOM));
+        vm.assume(nonOwner != address(erc20AssetModule));
+        vm.assume(nonOwner != address(floorERC1155AssetModule));
+        vm.assume(nonOwner != address(floorERC721AssetModule));
+        vm.assume(nonOwner != address(uniV3AssetModule));
+        vm.assume(nonOwner != address(creditorUsd));
+        vm.assume(nonOwner != address(creditorStable1));
+        vm.assume(nonOwner != address(creditorToken1));
+        _;
+    }
+
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
@@ -131,6 +148,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_STF1(address newAccountOwner, address nonOwner, uint256 salt)
         public
         notAccountOwner(newAccountOwner)
+        notTestContracts(nonOwner)
     {
         vm.broadcast(newAccountOwner);
         address newAccount = factory.createAccount(salt, 0, address(0), address(0));
@@ -142,6 +160,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_SFT2(address newAccountOwner, address nonOwner, uint256 salt)
         public
         notAccountOwner(newAccountOwner)
+        notTestContracts(nonOwner)
     {
         vm.broadcast(newAccountOwner);
         address newAccount = factory.createAccount(salt, 0, address(0), address(0));
@@ -153,6 +172,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_SFT3(address newAccountOwner, address nonOwner, uint256 salt)
         public
         notAccountOwner(newAccountOwner)
+        notTestContracts(nonOwner)
     {
         vm.broadcast(newAccountOwner);
         factory.createAccount(salt, 0, address(0), address(0));
@@ -165,6 +185,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_TransferFrom(address newAccountOwner, address nonOwner, uint256 salt)
         public
         notAccountOwner(newAccountOwner)
+        notTestContracts(nonOwner)
     {
         vm.broadcast(newAccountOwner);
         factory.createAccount(salt, 0, address(0), address(0));
