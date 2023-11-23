@@ -28,7 +28,7 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(unprivilegedAddress_ != users.accountOwner);
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert(AccountErrors.Only_Owner.selector);
+        vm.expectRevert(AccountErrors.OnlyOwner.selector);
         accountExtension.setBaseCurrency(address(mockERC20.token1));
         vm.stopPrank();
     }
@@ -38,7 +38,7 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.openMarginAccount(address(creditorStable1));
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Creditor_Already_Set.selector);
+        vm.expectRevert(AccountErrors.CreditorAlreadySet.selector);
         accountExtension.setBaseCurrency(address(mockERC20.token1));
         vm.stopPrank();
 
@@ -50,7 +50,7 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(!registryExtension.inRegistry(baseCurrency_));
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.BaseCurrency_Not_Found.selector);
+        vm.expectRevert(AccountErrors.BaseCurrencyNotFound.selector);
         accountExtension.setBaseCurrency(baseCurrency_);
         vm.stopPrank();
     }

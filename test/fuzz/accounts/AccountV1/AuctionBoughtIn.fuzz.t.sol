@@ -28,7 +28,7 @@ contract AuctionBoughtIn_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(nonLiquidator != accountExtension.liquidator());
 
         vm.prank(nonLiquidator);
-        vm.expectRevert(AccountErrors.Only_Liquidator.selector);
+        vm.expectRevert(AccountErrors.OnlyLiquidator.selector);
         accountExtension.auctionBoughtIn(protocol);
     }
 

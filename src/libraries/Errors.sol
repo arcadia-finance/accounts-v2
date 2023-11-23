@@ -5,27 +5,27 @@
 pragma solidity 0.8.19;
 
 library AccountErrors {
-    error Account_Not_Liquidatable();
-    error Account_Unhealthy();
-    error Action_Not_Allowed();
-    error Already_Initialized();
-    error BaseCurrency_Not_Found();
-    error Creditor_Already_Set();
-    error Creditor_Not_Set();
+    error AccountNotLiquidatable();
+    error AccountUnhealthy();
+    error ActionNotAllowed();
+    error AlreadyInitialized();
+    error BaseCurrencyNotFound();
+    error CreditorAlreadySet();
+    error CreditorNotSet();
     error InvalidAccountVersion();
-    error Invalid_ERC20_Id();
-    error Invalid_ERC721_Amount();
-    error Invalid_Recipient();
-    error Invalid_Registry();
-    error No_Fallback();
-    error No_Reentry();
-    error NonZero_Open_Position();
-    error Only_Factory();
-    error Only_Liquidator();
-    error Only_Owner();
-    error Too_Many_Assets();
-    error Unknown_Asset();
-    error Unknown_Asset_Type();
+    error InvalidERC20Id();
+    error InvalidERC721Amount();
+    error InvalidRecipient();
+    error InvalidRegistry();
+    error NoFallback();
+    error NoReentry();
+    error NonZeroOpenPosition();
+    error OnlyFactory();
+    error OnlyLiquidator();
+    error OnlyOwner();
+    error TooManyAssets();
+    error UnknownAsset();
+    error UnknownAssetType();
 }
 
 library FactoryErrors {

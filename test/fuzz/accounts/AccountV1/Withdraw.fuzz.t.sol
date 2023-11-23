@@ -40,7 +40,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.prank(nonOwner);
-        vm.expectRevert(AccountErrors.Only_Owner.selector);
+        vm.expectRevert(AccountErrors.OnlyOwner.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
     }
 
@@ -82,7 +82,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Invalid_ERC20_Id.selector);
+        vm.expectRevert(AccountErrors.InvalidERC20Id.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -100,7 +100,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Invalid_ERC721_Amount.selector);
+        vm.expectRevert(AccountErrors.InvalidERC721Amount.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -120,7 +120,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = 1;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Unknown_Asset_Type.selector);
+        vm.expectRevert(AccountErrors.UnknownAssetType.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -173,10 +173,10 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         mockERC721.nft1.safeTransferFrom(users.accountOwner, address(accountExtension), 101);
 
         // When: "accountOwner" withdraws the second nft.
-        // Then: Transaction should revert with AccountErrors.Unknown_Asset.selector.
+        // Then: Transaction should revert with AccountErrors.UnknownAsset.selector.
         assetIds[0] = 101;
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Unknown_Asset.selector);
+        vm.expectRevert(AccountErrors.UnknownAsset.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -226,7 +226,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         mockERC721.nft1.safeTransferFrom(users.accountOwner, address(accountExtension), 101);
 
         // When: "accountOwner" withdraws the wrongly transferred nft.
-        // Then: Transaction should revert with AccountErrors.Unknown_Asset.selector.
+        // Then: Transaction should revert with AccountErrors.UnknownAsset.selector.
         assetAddresses = new address[](1);
         assetIds = new uint256[](1);
         assetAmounts = new uint256[](1);
@@ -234,7 +234,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetIds[0] = 101;
         assetAmounts[0] = 1;
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Unknown_Asset.selector);
+        vm.expectRevert(AccountErrors.UnknownAsset.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -272,7 +272,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
 
         // When: "accountOwner" withdraws assets.
-        // Then: Transaction should revert with AccountErrors.Unknown_Asset.selector.
+        // Then: Transaction should revert with AccountErrors.UnknownAsset.selector.
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.stable1);
         uint256[] memory assetIds = new uint256[](1);
@@ -280,7 +280,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = collateralValueDecrease;
         vm.prank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Account_Unhealthy.selector);
+        vm.expectRevert(AccountErrors.AccountUnhealthy.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
     }
 

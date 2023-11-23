@@ -76,7 +76,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Should revert if the reentrancy guard is locked.
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.No_Reentry.selector);
+        vm.expectRevert(AccountErrors.NoReentry.selector);
         accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
     }
@@ -92,7 +92,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Should revert if not called by the Factory.
         vm.startPrank(nonFactory);
-        vm.expectRevert(AccountErrors.Only_Factory.selector);
+        vm.expectRevert(AccountErrors.OnlyFactory.selector);
         proxyAccount.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
     }
@@ -138,7 +138,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
 
         vm.startPrank(address(factory));
-        vm.expectRevert(AccountErrors.Invalid_Registry.selector);
+        vm.expectRevert(AccountErrors.InvalidRegistry.selector);
         proxyAccount.upgradeAccount(newImplementation, address(registry2), uint16(accountVersion), data);
         vm.stopPrank();
     }
