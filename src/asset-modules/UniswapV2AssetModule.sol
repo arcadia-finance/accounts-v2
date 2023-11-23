@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "./AbstractDerivedAssetModule.sol";
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
-import { PRBMath } from "../libraries/PRBMath.sol";
+import { FullMath } from "./UniswapV3/libraries/FullMath.sol";
 import { RiskModule } from "../RiskModule.sol";
 
 /**
@@ -20,7 +20,6 @@ import { RiskModule } from "../RiskModule.sol";
  */
 contract UniswapV2AssetModule is DerivedAssetModule {
     using FixedPointMathLib for uint256;
-    using PRBMath for uint256;
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
@@ -326,7 +325,7 @@ contract UniswapV2AssetModule is DerivedAssetModule {
         }
 
         uint256 leftSide = FixedPointMathLib.sqrt(
-            PRBMath.mulDiv(
+            FullMath.mulDiv(
                 invariant,
                 (token0ToToken1 ? trustedPriceToken1 : trustedPriceToken0),
                 uint256(token0ToToken1 ? trustedPriceToken0 : trustedPriceToken1) * 997

@@ -4,15 +4,19 @@
  */
 pragma solidity 0.8.19;
 
-import { RiskConstants } from "./libraries/RiskConstants.sol";
-
 /**
  * @title Risk Module
  * @author Pragma Labs
  * @notice The Risk Module is responsible for calculating the risk weighted values of combinations of assets.
  */
 library RiskModule {
-    // Struct with risk related information for a certain asset.
+    /*///////////////////////////////////////////////////////////////
+                        CONSTANTS
+    ///////////////////////////////////////////////////////////////*/
+
+    uint256 internal constant ONE_4 = 10_000;
+
+    // Struct with risk and valuation related information for a certain asset.
     struct AssetValueAndRiskFactors {
         // The value of the asset.
         uint256 assetValue;
@@ -27,7 +31,7 @@ library RiskModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Calculates the weighted collateral value given a combination of asset values and corresponding collateral factors.
+     * @notice Calculates the collateral value given a combination of asset values and corresponding collateral factors.
      * @param valuesAndRiskFactors Array of asset values and corresponding collateral factors.
      * @return collateralValue The collateral value of the given assets.
      */
@@ -36,18 +40,17 @@ library RiskModule {
         pure
         returns (uint256 collateralValue)
     {
-        uint256 valuesAndRiskFactorsLength = valuesAndRiskFactors.length;
-        for (uint256 i; i < valuesAndRiskFactorsLength;) {
+        for (uint256 i; i < valuesAndRiskFactors.length;) {
             collateralValue += valuesAndRiskFactors[i].assetValue * valuesAndRiskFactors[i].collateralFactor;
             unchecked {
                 ++i;
             }
         }
-        collateralValue = collateralValue / RiskConstants.RISK_FACTOR_UNIT;
+        collateralValue = collateralValue / ONE_4;
     }
 
     /**
-     * @notice Calculates the weighted liquidation value given a combination of asset values and corresponding liquidation factors.
+     * @notice Calculates the liquidation value given a combination of asset values and corresponding liquidation factors.
      * @param valuesAndRiskFactors List of asset values and corresponding liquidation factors.
      * @return liquidationValue The liquidation value of the given assets.
      */
@@ -56,13 +59,12 @@ library RiskModule {
         pure
         returns (uint256 liquidationValue)
     {
-        uint256 valuesAndRiskFactorsLength = valuesAndRiskFactors.length;
-        for (uint256 i; i < valuesAndRiskFactorsLength;) {
+        for (uint256 i; i < valuesAndRiskFactors.length;) {
             liquidationValue += valuesAndRiskFactors[i].assetValue * valuesAndRiskFactors[i].liquidationFactor;
             unchecked {
                 ++i;
             }
         }
-        liquidationValue = liquidationValue / RiskConstants.RISK_FACTOR_UNIT;
+        liquidationValue = liquidationValue / ONE_4;
     }
 }

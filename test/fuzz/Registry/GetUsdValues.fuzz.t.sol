@@ -6,7 +6,6 @@ pragma solidity 0.8.19;
 
 import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
 
-import { RiskConstants } from "../../../src/libraries/RiskConstants.sol";
 import { RiskModule } from "../../../src/RiskModule.sol";
 
 /**
@@ -57,8 +56,8 @@ contract GetUsdValues_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
-        collateralFactor = uint16(bound(collateralFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
-        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
+        collateralFactor = uint16(bound(collateralFactor, 0, RiskModule.ONE_4));
+        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskModule.ONE_4));
 
         registryExtension.setAssetModuleForAsset(asset, address(primaryAssetModule));
         primaryAssetModule.setUsdValue(usdValue);
@@ -93,8 +92,8 @@ contract GetUsdValues_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
-        collateralFactor = uint16(bound(collateralFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
-        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
+        collateralFactor = uint16(bound(collateralFactor, 0, RiskModule.ONE_4));
+        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskModule.ONE_4));
         minUsdValue = bound(minUsdValue, uint256(usdValue) + 1, type(uint256).max);
 
         registryExtension.setAssetModuleForAsset(asset, address(primaryAssetModule));

@@ -10,7 +10,6 @@ import { IERC1155 } from "../../../src/interfaces/IERC1155.sol";
 import { IRegistry } from "../../../src/interfaces/IRegistry.sol";
 import { ICreditor } from "../../../src/interfaces/ICreditor.sol";
 import { IActionBase, ActionData } from "../../../src/interfaces/IActionBase.sol";
-import { ActionData } from "../../../src/actions/utils/ActionData.sol";
 import { AccountStorageV2 } from "./AccountStorageV2.sol";
 import { IPermit2 } from "../../../src/interfaces/IPermit2.sol";
 
