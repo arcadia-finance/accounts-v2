@@ -373,7 +373,7 @@ contract AccountV2 is AccountStorageV2 {
      * collateralized assets can fluctuate, the haircut guarantees that the Account
      * remains over-collateralized with a high confidence level (99,9%+). The size of the
      * haircut depends on the underlying risk of the assets in the Account, the bigger the volatility
-     * or the smaller the on-chain liquidity, the bigger the haircut will be.
+     * or the smaller the onchain liquidity, the bigger the haircut will be.
      */
     function getCollateralValue() public view returns (uint256 collateralValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =

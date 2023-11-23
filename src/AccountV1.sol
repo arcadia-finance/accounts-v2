@@ -19,7 +19,7 @@ import { AccountErrors } from "./libraries/Errors.sol";
 /**
  * @title Arcadia Accounts
  * @author Pragma Labs
- * @notice Arcadia Accounts are smart contracts that act as on-chain, decentralized and composable margin accounts.
+ * @notice Arcadia Accounts are smart contracts that act as onchain, decentralized and composable margin accounts.
  * They provide individuals, DAOs, and other protocols with a simple and flexible way to deposit and manage multiple assets as collateral.
  * The total combination of assets can be used as margin to back liabilities issued by any financial protocol (lending, leverage, futures...).
  * @dev Users can use this Account to deposit assets (fungible, non-fungible, LP positions, yiel bearing assets...).
@@ -314,7 +314,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * collateralized assets can fluctuate, the haircut guarantees that the Account
      * remains over-collateralized with a high confidence level.
      * The size of the haircut depends on the underlying risk of the assets in the Account.
-     * The bigger the volatility or the smaller the on-chain liquidity, the bigger the haircut will be.
+     * The bigger the volatility or the smaller the onchain liquidity, the bigger the haircut will be.
      */
     function getCollateralValue() public view returns (uint256 collateralValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
@@ -600,7 +600,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @param from The address to deposit the assets from.
+     * @param from The assets deposited into the Account will come from this address.
      */
     function _deposit(
         address[] memory assetAddresses,
@@ -1063,7 +1063,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
         for (; i < erc20StoredLength;) {
             cacheAddr = erc20Stored[i];
             assetAddresses[i] = cacheAddr;
-            // assetIds[i] = 0; // gas: no need to store 0, index will continue anyway.
+            // Gas: no need to store 0, index will continue anyway.
+            // assetIds[i] = 0;
             assetAmounts[i] = erc20Balances[cacheAddr];
             unchecked {
                 ++i;
