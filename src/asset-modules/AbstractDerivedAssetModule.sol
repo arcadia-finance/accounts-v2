@@ -121,7 +121,7 @@ abstract contract DerivedAssetModule is AssetModule {
     }
 
     /**
-     * @notice Calculates for a given amount of an Asset the corresponding amount(s) of underlying asset(s).
+     * @notice Calculates for a given amount of an Asset the corresponding amount(s) of Underlying Asset(s).
      * @param creditor The contract address of the Creditor.
      * @param assetKey The unique identifier of the asset.
      * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
@@ -570,7 +570,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * @notice Updates the exposure to the asset.
      * @param creditor The contract address of the Creditor.
      * @param assetKey The unique identifier of the asset.
-     * @param deltaAsset The increase or decrease in asset amount.
+     * @param deltaAsset The increase or decrease in asset amount since the last interaction.
      * @return exposureAsset The updated exposure to the asset.
      */
     function _getAndUpdateExposureAsset(address creditor, bytes32 assetKey, int256 deltaAsset)
@@ -581,8 +581,9 @@ abstract contract DerivedAssetModule is AssetModule {
         if (deltaAsset > 0) {
             exposureAsset = lastExposuresAsset[creditor][assetKey].lastExposureAsset + uint256(deltaAsset);
         } else {
-            exposureAsset = lastExposuresAsset[creditor][assetKey].lastExposureAsset > uint256(-deltaAsset)
-                ? lastExposuresAsset[creditor][assetKey].lastExposureAsset - uint256(-deltaAsset)
+            uint256 exposureAssetLast = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
+            exposureAsset = exposureAssetLast > uint256(-deltaAsset)
+                ? exposureAssetLast - uint256(-deltaAsset)
                 : 0;
         }
         lastExposuresAsset[creditor][assetKey].lastExposureAsset = uint128(exposureAsset); // ToDo: safecast?
