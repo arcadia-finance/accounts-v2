@@ -451,6 +451,9 @@ abstract contract DerivedAssetModule is AssetModule {
 
         int256 deltaExposureAssetToUnderlyingAsset;
         uint256 length = underlyingAssetKeys.length;
+        address underlyingAsset;
+        uint256 underlyingId;
+
         for (uint256 i; i < length;) {
             // Calculate the change in exposure to the underlying assets since last interaction.
             deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
@@ -464,7 +467,7 @@ abstract contract DerivedAssetModule is AssetModule {
             // If the "underlyingAsset" has one or more underlying assets itself, the lower level
             // Asset Module(s) will recursively update their respective exposures and return
             // the requested USD value to this Asset Module.
-            (address underlyingAsset, uint256 underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
+            (underlyingAsset, underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
             usdExposureAsset += IRegistry(REGISTRY).getUsdValueExposureToUnderlyingAssetAfterDeposit(
                 creditor,
                 underlyingAsset,
@@ -522,6 +525,9 @@ abstract contract DerivedAssetModule is AssetModule {
 
         int256 deltaExposureAssetToUnderlyingAsset;
         uint256 length = underlyingAssetKeys.length;
+        address underlyingAsset;
+        uint256 underlyingId;
+
         for (uint256 i; i < length;) {
             // Calculate the change in exposure to the underlying assets since last interaction.
             deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
@@ -535,7 +541,7 @@ abstract contract DerivedAssetModule is AssetModule {
             // If an "underlyingAsset" has one or more underlying assets itself, the lower level
             // Asset Modules will recursively update their respective exposures and return
             // the requested USD value to this Asset Module.
-            (address underlyingAsset, uint256 underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
+            (underlyingAsset, underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
             usdExposureAsset += IRegistry(REGISTRY).getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
                 creditor,
                 underlyingAsset,
