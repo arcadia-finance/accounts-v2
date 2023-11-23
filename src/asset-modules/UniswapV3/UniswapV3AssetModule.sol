@@ -176,7 +176,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @dev Uniswap Pools can be manipulated, we can't rely on the current price (or tick) stored in slot0.
      * We use a variety of oracles, not limited to Chainlink, to determine asset prices.
      * This approach accommodates scenarios where an underlying asset could be
-     * a derived asset itself (e.g., USDCS aUSDC pool), ensuring more versatile and accurate price calculations.
+     * a derived asset itself (e.g., USDC/aUSDC pool), ensuring more versatile and accurate price calculations.
      */
     function _getUnderlyingAssetsAmounts(address creditor, bytes32 assetKey, uint256, bytes32[] memory)
         internal
@@ -209,7 +209,6 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         // Calculate amount0 and amount1 of the accumulated fees.
         (uint256 fee0, uint256 fee1) = _getFeeAmounts(assetId);
 
-        // ToDo: fee should be capped to a max compared to principal to avoid circumventing caps via fees on new pools.
         fee0 = fee0 > principal0 ? principal0 : fee0;
         fee1 = fee1 > principal1 ? principal1 : fee1;
 
@@ -441,9 +440,10 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     {
         super.processDirectWithdrawal(creditor, asset, assetId, amount);
 
-        // If the asset is fully withdrawn, remove it from the mapping.
+        // If the asset is withdrawn, remove its from the mapping.
+        // If we keep the liquidity of the asset in storage,
+        // an offchain getValue of the asset will be calculated with the stored liquidity.
         delete assetToLiquidity[assetId];
-        delete assetToUnderlyingAssets[_getKeyFromAsset(asset, assetId)];
     }
 
     /**
@@ -468,8 +468,9 @@ contract UniswapV3AssetModule is DerivedAssetModule {
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 
-        // If the asset is withdrawn, remove it from the mapping.
+        // If the asset is withdrawn, remove its from the mapping.
+        // If we keep the liquidity of the asset in storage,
+        // an offchain getValue of the asset will be calculated with the stored liquidity.
         delete assetToLiquidity[assetId];
-        delete assetToUnderlyingAssets[_getKeyFromAsset(asset, assetId)];
     }
 }

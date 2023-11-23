@@ -66,7 +66,10 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_accountManagementAction_NonAssetManager(address sender, address assetManager) public {
+    function testFuzz_Revert_accountManagementAction_NonAssetManager(address sender, address assetManager)
+        public
+        notTestContracts(sender)
+    {
         vm.assume(sender != users.accountOwner);
         vm.assume(sender != assetManager);
         vm.assume(sender != address(0));
