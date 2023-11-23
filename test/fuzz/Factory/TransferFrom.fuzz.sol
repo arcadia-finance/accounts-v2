@@ -19,6 +19,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     modifier notAccountOwner(address accountOwner) {
+        vm.assume(accountOwner != address(0));
         vm.assume(accountOwner != users.accountOwner);
         _;
     }
@@ -37,6 +38,28 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(nonOwner != address(creditorUsd));
         vm.assume(nonOwner != address(creditorStable1));
         vm.assume(nonOwner != address(creditorToken1));
+        vm.assume(nonOwner != address(mockERC20.stable1));
+        vm.assume(nonOwner != address(mockERC20.stable2));
+        vm.assume(nonOwner != address(mockERC20.token1));
+        vm.assume(nonOwner != address(mockERC20.token2));
+        vm.assume(nonOwner != address(mockERC20.token3));
+        vm.assume(nonOwner != address(mockERC20.token4));
+        vm.assume(nonOwner != address(mockERC721.nft1));
+        vm.assume(nonOwner != address(mockERC721.nft2));
+        vm.assume(nonOwner != address(mockERC721.nft3));
+        vm.assume(nonOwner != address(mockERC1155.sft1));
+        vm.assume(nonOwner != address(mockERC1155.sft2));
+        vm.assume(nonOwner != address(mockOracles.stable1ToUsd));
+        vm.assume(nonOwner != address(mockOracles.stable2ToUsd));
+        vm.assume(nonOwner != address(mockOracles.token1ToUsd));
+        vm.assume(nonOwner != address(mockOracles.token2ToUsd));
+        vm.assume(nonOwner != address(mockOracles.token3ToToken4));
+        vm.assume(nonOwner != address(mockOracles.token4ToUsd));
+        vm.assume(nonOwner != address(mockOracles.nft1ToToken1));
+        vm.assume(nonOwner != address(mockOracles.nft2ToUsd));
+        vm.assume(nonOwner != address(mockOracles.nft3ToToken1));
+        vm.assume(nonOwner != address(mockOracles.sft1ToToken1));
+        vm.assume(nonOwner != address(mockOracles.sft2ToUsd));
         _;
     }
 

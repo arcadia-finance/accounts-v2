@@ -5,7 +5,7 @@
 pragma solidity 0.8.19;
 
 import { BaseHandler } from "./BaseHandler.sol";
-import { AccountV1 } from "../../../src/AccountV1.sol";
+import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
 import { AccountV2 } from "../../utils/mocks/AccountV2.sol";
 import { Factory } from "../../../src/Factory.sol";
 import { RegistryExtension } from "../../utils/Extensions.sol";
