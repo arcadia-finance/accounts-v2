@@ -98,7 +98,10 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         // deposit functions and there any deposit of non-allowed Underlying Assets will revert.
         if (liquidity == 0) revert ZeroLiquidity();
 
-        // Liquidity stored at deposit time to ensure consistent valuation.
+        // The liquidity of the Liquidity Position is stored in the Asset Module,
+        // not fetched from the NonfungiblePositionManager.
+        // Since liquidity of a position can be increased by a non-owner,
+        // the max exposure checks could otherwise be circumvented.
         assetToLiquidity[assetId] = liquidity;
 
         bytes32 assetKey = _getKeyFromAsset(address(NON_FUNGIBLE_POSITION_MANAGER), assetId);
@@ -173,8 +176,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * param underlyingAssetKeys The unique identifiers of the Underlying Assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 1e18 tokens of Underlying Asset, with 18 decimals precision.
-     * @dev Uniswap Pools can be manipulated, we can't rely on the current price (or tick) stored in slot0.
-     * We use a variety of oracles, not limited to Chainlink, to determine asset prices.
+     * @dev External price feeds of the Underlying Assets are used to calculate the flashloan resistant amounts.
      * This approach accommodates scenarios where an underlying asset could be
      * a derived asset itself (e.g., USDC/aUSDC pool), ensuring more versatile and accurate price calculations.
      */
@@ -209,6 +211,10 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         // Calculate amount0 and amount1 of the accumulated fees.
         (uint256 fee0, uint256 fee1) = _getFeeAmounts(assetId);
 
+        // As the sole liquidity provider in a new pool,
+        // a malicious actor could bypass the max exposure by
+        // continiously swapping large amounts and increasing the fee portion
+        // of the liquidity position.
         fee0 = fee0 > principal0 ? principal0 : fee0;
         fee1 = fee1 > principal1 ? principal1 : fee1;
 
