@@ -21,6 +21,8 @@ contract AccountStorageV1 {
 
     // Flag Indicating if a function is locked to protect against reentrancy.
     uint256 internal locked;
+    // Flag indicating if the Account is in an auction (in liquidation).
+    bool public inAuction;
     // Flag that indicates if a creditor is set.
     bool public isCreditorSet;
     // The contract address of the liquidator, address 0 if no creditor is set.

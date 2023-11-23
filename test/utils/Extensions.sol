@@ -37,6 +37,10 @@ contract AccountExtension is AccountV1 {
         locked = locked_;
     }
 
+    function setInAuction() external {
+        inAuction = true;
+    }
+
     function getLengths() external view returns (uint256, uint256, uint256, uint256) {
         return (erc20Stored.length, erc721Stored.length, erc721TokenIds.length, erc1155Stored.length);
     }
@@ -469,7 +473,7 @@ contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
     }
 
     function getNonFungiblePositionManager() public view returns (address nonFungiblePositionManager) {
-        nonFungiblePositionManager = NON_FUNGIBLE_POSITION_MANAGER;
+        nonFungiblePositionManager = address(NON_FUNGIBLE_POSITION_MANAGER);
     }
 
     function getUniswapV3Factory() public view returns (address uniswapV3Factory) {

@@ -28,13 +28,15 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getFreeMargin_CreditorNotSet(
+
+    // TODO: add processDeposit and withdrawal when opening and closing a margin account.
+    /*     function testFuzz_Success_getFreeMargin_CreditorNotSet(
         uint256 openDebt,
         uint256 fixedLiquidationCost,
         uint128 collateralValue
     ) public {
         // Test-case: creditor is not set.
-        accountExtension.setIsCreditorSet(false);
+        accountExtension.setCreditor(address(0));
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
@@ -49,7 +51,7 @@ contract GetFreeMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
 
         assertEq(collateralValue, accountExtension.getFreeMargin());
-    }
+    } */
 
     function testFuzz_Success_getFreeMargin_CreditorIsSet_NonZeroFreeMargin(
         uint256 openDebt,

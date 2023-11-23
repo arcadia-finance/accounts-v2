@@ -66,7 +66,25 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_accountManagementAction_NonAssetManager(address sender, address assetManager) public {
+    function testFuzz_Revert_accountManagementAction_InAuction(
+        address actionHandler,
+        bytes calldata actionData,
+        bytes calldata signature
+    ) public {
+        // Will set "inAuction" to true.
+        accountExtension.setInAuction();
+
+        // Should revert if the Account is in an auction.
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.AccountInAuction.selector);
+        accountExtension.accountManagementAction(actionHandler, actionData, signature);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_accountManagementAction_NonAssetManager(address sender, address assetManager)
+        public
+        notTestContracts(sender)
+    {
         vm.assume(sender != users.accountOwner);
         vm.assume(sender != assetManager);
         vm.assume(sender != address(0));

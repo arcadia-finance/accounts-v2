@@ -8,4 +8,5 @@ pragma solidity 0.8.19;
 abstract contract Errors {
     error FunctionIsPaused();
     error FunctionNotImplemented();
+    error OpenPositionNonZero();
 }

@@ -26,7 +26,7 @@ import { RegistryErrors } from "./libraries/Errors.sol";
  *  - It orchestrates the pricing of a basket of assets in a single unit of account.
  *  - It orchestrates deposits and withdrawals of an Account per Creditor.
  *  - It manages the risk parameters of all assets per Creditor.
- *  - It manages the action handlers.
+ *  - It manages the Action Multicall.
  */
 contract Registry is IRegistry, RegistryGuardian {
     using BitPackingLib for bytes32;
@@ -54,7 +54,7 @@ contract Registry is IRegistry, RegistryGuardian {
     mapping(address => bool) public isOracleModule;
     // Map action => flag.
     mapping(address => bool) public isActionAllowed;
-    // Map asset => assetInformation.
+    // Map asset => Asset Module.
     mapping(address => address) public assetToAssetModule;
     // Map oracle identifier => oracleModule.
     mapping(uint256 => address) internal oracleToOracleModule;
@@ -123,8 +123,8 @@ contract Registry is IRegistry, RegistryGuardian {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Sets an allowance of an action handler.
-     * @param action The contract address of the action handler.
+     * @notice Sets an allowance of an Action Multicall
+     * @param action The contract address of the Action Multicall.
      * @param allowed Bool to indicate its status.
      * @dev Can only be called by owner.
      */
@@ -186,9 +186,8 @@ contract Registry is IRegistry, RegistryGuardian {
         if (inRegistry[assetAddress]) revert RegistryErrors.Asset_Already_In_Registry();
 
         inRegistry[assetAddress] = true;
-        assetToAssetModule[assetAddress] = msg.sender;
 
-        emit AssetAdded(assetAddress, msg.sender);
+        emit AssetAdded(assetAddress, assetToAssetModule[assetAddress] = msg.sender);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -203,13 +202,11 @@ contract Registry is IRegistry, RegistryGuardian {
         // Get next id.
         oracleId = oracleCounter;
 
-        oracleToOracleModule[oracleId] = msg.sender;
-
         unchecked {
             ++oracleCounter;
         }
 
-        emit OracleAdded(oracleId, msg.sender);
+        emit OracleAdded(oracleId, oracleToOracleModule[oracleId] = msg.sender);
     }
 
     /**
