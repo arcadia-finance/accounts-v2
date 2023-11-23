@@ -135,8 +135,6 @@ contract ProcessIndirectWithdrawal_UniswapV3AssetModule_Fuzz_Test is UniswapV3As
             address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0, 1
         );
 
-        // Check if it can be deposited again.
-
         (,,,,,,, liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
         assertEq(uniV3AssetModule.getAssetToLiquidity(tokenId), liquidity_);
     }
