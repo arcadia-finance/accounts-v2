@@ -328,7 +328,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         unchecked {
             if (deltaExposureUpperAssetToAsset > 0) {
                 exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
-                if (exposureAsset > type(uint128).max) revert Overflow();
+                if (exposureAsset > type(uint112).max) revert Overflow();
             } else {
                 exposureAsset = lastExposureAsset > uint256(-deltaExposureUpperAssetToAsset)
                     ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)

@@ -39,22 +39,22 @@ contract AuctionBid_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Success_AuctionBuy_PartialBuy(
-        uint128 erc20InitialAmount,
-        uint128 erc20WithdrawAmount,
+        uint112 erc20InitialAmount,
+        uint112 erc20WithdrawAmount,
         uint8 erc721Id,
-        uint128 erc1155InitialAmount,
-        uint128 erc1155WithdrawAmount
+        uint112 erc1155InitialAmount,
+        uint112 erc1155WithdrawAmount
     ) public {
         // Cannot fuzz "bidder", since contracts, since it reverts when fuzzed to a contract that does not have "onERC1155Received" implemented.
         address bidder = address(978_534_679);
 
         // Given: total deposit amounts are bigger than zero.
         // And: "exposure" is strictly smaller than "maxExposure".
-        erc20InitialAmount = uint128(bound(erc20InitialAmount, 1, type(uint128).max - 1));
-        erc1155InitialAmount = uint128(bound(erc1155InitialAmount, 1, type(uint128).max - 1));
+        erc20InitialAmount = uint112(bound(erc20InitialAmount, 1, type(uint112).max - 1));
+        erc1155InitialAmount = uint112(bound(erc1155InitialAmount, 1, type(uint112).max - 1));
         // And: Assets don't underflow.
-        erc20WithdrawAmount = uint128(bound(erc20WithdrawAmount, 0, erc20InitialAmount - 1));
-        erc1155WithdrawAmount = uint128(bound(erc1155WithdrawAmount, 0, erc1155InitialAmount - 1));
+        erc20WithdrawAmount = uint112(bound(erc20WithdrawAmount, 0, erc20InitialAmount - 1));
+        erc1155WithdrawAmount = uint112(bound(erc1155WithdrawAmount, 0, erc1155InitialAmount - 1));
 
         // Given: An initial state of the account with assets.
         address[] memory assetAddresses = new address[](3);
@@ -117,15 +117,15 @@ contract AuctionBid_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(mockERC1155.sft1.balanceOf(bidder, 1), erc1155WithdrawAmount);
     }
 
-    function testFuzz_Success_AuctionBuy_buyFullAccount(uint128 erc20Amount, uint8 erc721Id, uint128 erc1155Amount)
+    function testFuzz_Success_AuctionBuy_buyFullAccount(uint112 erc20Amount, uint8 erc721Id, uint112 erc1155Amount)
         public
     {
         // Cannot fuzz "bidder", since contracts, since it reverts when fuzzed to a contract that does not have "onERC1155Received" implemented.
         address bidder = address(978_534_679);
 
         // Given: "exposure" is strictly smaller than "maxExposure".
-        erc20Amount = uint128(bound(erc20Amount, 0, type(uint128).max - 1));
-        erc1155Amount = uint128(bound(erc1155Amount, 0, type(uint128).max - 1));
+        erc20Amount = uint112(bound(erc20Amount, 0, type(uint112).max - 1));
+        erc1155Amount = uint112(bound(erc1155Amount, 0, type(uint112).max - 1));
 
         // And: An initial state of the account with assets.
         address[] memory assetAddresses = new address[](3);

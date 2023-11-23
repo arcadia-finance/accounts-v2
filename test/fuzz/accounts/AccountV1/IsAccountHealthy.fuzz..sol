@@ -32,7 +32,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_isAccountHealthy_debtIncrease_InsufficientMargin(
         uint256 debtInitial,
         uint256 debtIncrease,
-        uint128 collateralValue,
+        uint112 collateralValue,
         uint256 fixedLiquidationCost
     ) public {
         // No overflow of Used Margin.
@@ -43,9 +43,9 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // test-case: Insufficient margin
         vm.assume(usedMargin > 0);
-        collateralValue = uint128(bound(collateralValue, 0, usedMargin - 1));
+        collateralValue = uint112(bound(collateralValue, 0, usedMargin - 1));
         // "exposure" is strictly smaller than "maxExposure".
-        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
+        collateralValue = uint112(bound(collateralValue, 0, type(uint112).max - 1));
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
@@ -68,11 +68,11 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_isAccountHealthy_debtIncrease_SufficientMargin(
         uint256 debtInitial,
         uint256 debtIncrease,
-        uint128 collateralValue,
+        uint112 collateralValue,
         uint256 fixedLiquidationCost
     ) public {
         // "exposure" is strictly smaller than "maxExposure".
-        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
+        collateralValue = uint112(bound(collateralValue, 0, type(uint112).max - 1));
 
         // test-case: Sufficient margin
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, collateralValue);
@@ -100,7 +100,7 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_isAccountHealthy_totalOpenDebt_InsufficientMargin(
         uint256 debt,
-        uint128 collateralValue,
+        uint112 collateralValue,
         uint256 fixedLiquidationCost
     ) public {
         // No overflow of Used Margin.
@@ -110,9 +110,9 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // test-case: Insufficient margin
         vm.assume(usedMargin > 0);
-        collateralValue = uint128(bound(collateralValue, 0, usedMargin - 1));
+        collateralValue = uint112(bound(collateralValue, 0, usedMargin - 1));
         // "exposure" is strictly smaller than "maxExposure".
-        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
+        collateralValue = uint112(bound(collateralValue, 0, type(uint112).max - 1));
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
@@ -131,11 +131,11 @@ contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_isAccountHealthy_totalOpenDebt_SufficientMargin(
         uint256 debt,
-        uint128 collateralValue,
+        uint112 collateralValue,
         uint256 fixedLiquidationCost
     ) public {
         // "exposure" is strictly smaller than "maxExposure".
-        collateralValue = uint128(bound(collateralValue, 0, type(uint128).max - 1));
+        collateralValue = uint112(bound(collateralValue, 0, type(uint112).max - 1));
         // test-case: Sufficient margin
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, collateralValue);
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);

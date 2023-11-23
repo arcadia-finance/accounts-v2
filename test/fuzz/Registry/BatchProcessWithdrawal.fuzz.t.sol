@@ -79,9 +79,9 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_batchProcessWithdrawal_Paused(uint128 amountToken2, address guardian) public {
+    function testFuzz_Revert_batchProcessWithdrawal_Paused(uint112 amountToken2, address guardian) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
-        amountToken2 = uint128(bound(amountToken2, 0, type(uint128).max - 1));
+        amountToken2 = uint112(bound(amountToken2, 0, type(uint112).max - 1));
 
         // And: Assets are deposited
         address[] memory assetAddresses = new address[](1);
@@ -111,8 +111,8 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
     }
 
     function testFuzz_Revert_batchProcessWithdrawal_AssetNotInReg(
-        uint128 amountDeposited,
-        uint128 amountWithdrawn,
+        uint112 amountDeposited,
+        uint112 amountWithdrawn,
         address asset
     ) public {
         vm.assume(!registryExtension.inRegistry(asset));
@@ -140,10 +140,10 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         registryExtension.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
-    function testFuzz_Success_batchProcessWithdrawal(uint128 amountDeposited, uint128 amountWithdrawn) public {
+    function testFuzz_Success_batchProcessWithdrawal(uint112 amountDeposited, uint112 amountWithdrawn) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
-        amountDeposited = uint128(bound(amountDeposited, 0, type(uint128).max - 1));
-        amountWithdrawn = uint128(bound(amountWithdrawn, 0, amountDeposited));
+        amountDeposited = uint112(bound(amountDeposited, 0, type(uint112).max - 1));
+        amountWithdrawn = uint112(bound(amountWithdrawn, 0, amountDeposited));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -175,9 +175,9 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assertEq(exposure, amountDeposited - amountWithdrawn);
     }
 
-    function testFuzz_Success_batchProcessWithdrawal_directCall(uint128 amountToken2) public {
+    function testFuzz_Success_batchProcessWithdrawal_directCall(uint112 amountToken2) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
-        amountToken2 = uint128(bound(amountToken2, 0, type(uint128).max - 1));
+        amountToken2 = uint112(bound(amountToken2, 0, type(uint112).max - 1));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token2);

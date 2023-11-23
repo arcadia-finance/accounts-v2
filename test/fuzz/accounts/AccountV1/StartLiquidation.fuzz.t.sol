@@ -56,14 +56,14 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_startLiquidation_notLiquidatable_usedMarginSmallerThanLiquidationValue(
         uint96 fixedLiquidationCost,
         uint256 openDebt,
-        uint128 depositAmountToken1,
+        uint112 depositAmountToken1,
         address liquidationInitiator
     ) public {
         // "exposure" is strictly smaller than "maxExposure".
-        depositAmountToken1 = uint128(bound(depositAmountToken1, 1, type(uint128).max - 1));
+        depositAmountToken1 = uint112(bound(depositAmountToken1, 1, type(uint112).max - 1));
 
         // Given: openDebt > 0
-        openDebt = bound(openDebt, 1, type(uint128).max - fixedLiquidationCost);
+        openDebt = bound(openDebt, 1, type(uint112).max - fixedLiquidationCost);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -135,14 +135,14 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_startLiquidation(
         uint96 fixedLiquidationCost,
         uint256 openDebt,
-        uint128 depositAmountToken1,
+        uint112 depositAmountToken1,
         address liquidationInitiator
     ) public {
         // "exposure" is strictly smaller than "maxExposure".
-        depositAmountToken1 = uint128(bound(depositAmountToken1, 1, type(uint128).max - 1));
+        depositAmountToken1 = uint112(bound(depositAmountToken1, 1, type(uint112).max - 1));
 
         // Given: openDebt > 0
-        openDebt = bound(openDebt, 1, type(uint128).max - fixedLiquidationCost);
+        openDebt = bound(openDebt, 1, type(uint112).max - fixedLiquidationCost);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);

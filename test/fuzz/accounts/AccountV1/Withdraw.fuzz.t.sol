@@ -84,8 +84,8 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_withdraw_ERC20WithId(uint256 id, uint128 amount) public {
-        amount = uint128(bound(amount, 1, type(uint128).max - 1));
+    function testFuzz_Revert_withdraw_ERC20WithId(uint256 id, uint112 amount) public {
+        amount = uint112(bound(amount, 1, type(uint112).max - 1));
         id = bound(id, 1, type(uint256).max);
 
         address[] memory assetAddresses = new address[](1);
@@ -103,8 +103,8 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_withdraw_ERC721WithAmount(uint8 id, uint128 amount) public {
-        amount = uint128(bound(amount, 2, type(uint128).max - 1));
+    function testFuzz_Revert_withdraw_ERC721WithAmount(uint8 id, uint112 amount) public {
+        amount = uint112(bound(amount, 2, type(uint112).max - 1));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC721.nft1);
@@ -261,7 +261,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_withdraw_WithDebt_UnsufficientCollateral(
         uint256 debt,
-        uint128 collateralValueInitial,
+        uint112 collateralValueInitial,
         uint256 collateralValueDecrease,
         uint256 fixedLiquidationCost
     ) public {
@@ -274,7 +274,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256 usedMargin = debt + fixedLiquidationCost;
 
         // "exposure" is strictly smaller than "maxExposure".
-        collateralValueInitial = uint128(bound(collateralValueInitial, 0, type(uint128).max - 1));
+        collateralValueInitial = uint112(bound(collateralValueInitial, 0, type(uint112).max - 1));
 
         // No underflow Withdrawal.
         collateralValueDecrease = bound(collateralValueDecrease, 0, collateralValueInitial);
@@ -304,12 +304,12 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
     }
 
-    function testFuzz_Success_withdraw_NoDebt_FullWithdrawal(uint128 erc20Amount, uint8 erc721Id, uint128 erc1155Amount)
+    function testFuzz_Success_withdraw_NoDebt_FullWithdrawal(uint112 erc20Amount, uint8 erc721Id, uint112 erc1155Amount)
         public
     {
         // Given: "exposure" is strictly smaller than "maxExposure".
-        erc20Amount = uint128(bound(erc20Amount, 0, type(uint128).max - 1));
-        erc1155Amount = uint128(bound(erc1155Amount, 0, type(uint128).max - 1));
+        erc20Amount = uint112(bound(erc20Amount, 0, type(uint112).max - 1));
+        erc1155Amount = uint112(bound(erc1155Amount, 0, type(uint112).max - 1));
 
         // And: An initial state of the account with assets.
         address[] memory assetAddresses = new address[](3);
@@ -360,22 +360,22 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Success_withdraw_NoDebt_PartialWithdrawal(
-        uint128 erc20InitialAmount,
-        uint128 erc20WithdrawAmount,
+        uint112 erc20InitialAmount,
+        uint112 erc20WithdrawAmount,
         uint8 erc721Id,
-        uint128 erc1155InitialAmount,
-        uint128 erc1155WithdrawAmount
+        uint112 erc1155InitialAmount,
+        uint112 erc1155WithdrawAmount
     ) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
-        erc20InitialAmount = uint128(bound(erc20InitialAmount, 0, type(uint128).max - 1));
-        erc1155InitialAmount = uint128(bound(erc1155InitialAmount, 0, type(uint128).max - 1));
+        erc20InitialAmount = uint112(bound(erc20InitialAmount, 0, type(uint112).max - 1));
+        erc1155InitialAmount = uint112(bound(erc1155InitialAmount, 0, type(uint112).max - 1));
 
         // And: total deposit amounts are bigger than zero.
         vm.assume(erc20InitialAmount > 0);
         vm.assume(erc1155InitialAmount > 0);
         // And: Assets don't underflow.
-        erc20WithdrawAmount = uint128(bound(erc20WithdrawAmount, 0, erc20InitialAmount - 1));
-        erc1155WithdrawAmount = uint128(bound(erc1155WithdrawAmount, 0, erc1155InitialAmount - 1));
+        erc20WithdrawAmount = uint112(bound(erc20WithdrawAmount, 0, erc20InitialAmount - 1));
+        erc1155WithdrawAmount = uint112(bound(erc1155WithdrawAmount, 0, erc1155InitialAmount - 1));
 
         // Given: An initial state of the account with assets.
         address[] memory assetAddresses = new address[](3);
@@ -446,7 +446,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_withdraw_WithDebt(
         uint256 debt,
-        uint128 collateralValueInitial,
+        uint112 collateralValueInitial,
         uint256 collateralValueDecrease,
         uint256 fixedLiquidationCost
     ) public {
@@ -459,7 +459,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256 usedMargin = debt + fixedLiquidationCost;
 
         // "exposure" is strictly smaller than "maxExposure".
-        collateralValueInitial = uint128(bound(collateralValueInitial, 0, type(uint128).max - 1));
+        collateralValueInitial = uint112(bound(collateralValueInitial, 0, type(uint112).max - 1));
 
         // No underflow Withdrawal.
         collateralValueDecrease = bound(collateralValueDecrease, 0, collateralValueInitial);

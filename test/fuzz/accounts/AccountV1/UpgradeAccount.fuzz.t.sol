@@ -144,14 +144,14 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Success_upgradeAccountVersion(
-        uint128 erc20Amount,
+        uint112 erc20Amount,
         uint8 erc721Id,
-        uint128 erc1155Amount,
+        uint112 erc1155Amount,
         uint256 debt
     ) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
-        erc20Amount = uint128(bound(erc20Amount, 0, type(uint128).max - 1));
-        erc1155Amount = uint128(bound(erc1155Amount, 0, type(uint128).max - 1));
+        erc20Amount = uint112(bound(erc20Amount, 0, type(uint112).max - 1));
+        erc1155Amount = uint112(bound(erc1155Amount, 0, type(uint112).max - 1));
 
         // And: an account in a random state (with assets, a creditor and debt).
         vm.prank(users.accountOwner);
