@@ -25,7 +25,7 @@ abstract contract PrimaryAssetModule is AssetModule {
     // the assets being priced have no underlying assets.
     bool internal constant PRIMARY_FLAG = true;
     // The unit of the liquidation and collateral factors, 4 decimals precision.
-    uint256 internal constant RISK_FACTOR_UNIT = 10_000;
+    uint256 internal constant ONE_4 = 10_000;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -177,8 +177,8 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external onlyRegistry {
-        if (collateralFactor > RISK_FACTOR_UNIT) revert Coll_Factor_Not_In_Limits();
-        if (liquidationFactor > RISK_FACTOR_UNIT) revert Liq_Factor_Not_In_Limits();
+        if (collateralFactor > ONE_4) revert Coll_Factor_Not_In_Limits();
+        if (liquidationFactor > ONE_4) revert Liq_Factor_Not_In_Limits();
 
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 

@@ -50,7 +50,7 @@ contract GetLiquidationValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
     function testFuzz_Success_getLiquidationValue(int64 rateToken1ToUsd, uint64 amountToken1, uint16 liquidationFactor_)
         public
     {
-        vm.assume(liquidationFactor_ <= RiskModule.RISK_FACTOR_UNIT);
+        vm.assume(liquidationFactor_ <= RiskModule.ONE_4);
         vm.assume(rateToken1ToUsd > 0);
 
         vm.prank(users.defaultTransmitter);

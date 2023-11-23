@@ -14,7 +14,7 @@ library RiskModule {
                         CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
-    uint256 internal constant RISK_FACTOR_UNIT = 10_000;
+    uint256 internal constant ONE_4 = 10_000;
 
     // Struct with risk and valuation related information for a certain asset.
     struct AssetValueAndRiskFactors {
@@ -46,7 +46,7 @@ library RiskModule {
                 ++i;
             }
         }
-        collateralValue = collateralValue / RISK_FACTOR_UNIT;
+        collateralValue = collateralValue / ONE_4;
     }
 
     /**
@@ -65,6 +65,6 @@ library RiskModule {
                 ++i;
             }
         }
-        liquidationValue = liquidationValue / RISK_FACTOR_UNIT;
+        liquidationValue = liquidationValue / ONE_4;
     }
 }

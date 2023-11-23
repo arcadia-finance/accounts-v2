@@ -114,11 +114,11 @@ contract GetValue_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz_Te
         uint256 liqFactor1,
         uint256 riskFactorUniV3
     ) public {
-        liqFactor0 = bound(liqFactor0, 0, RiskModule.RISK_FACTOR_UNIT);
+        liqFactor0 = bound(liqFactor0, 0, RiskModule.ONE_4);
         collFactor0 = bound(collFactor0, 0, liqFactor0);
-        liqFactor1 = bound(liqFactor1, 0, RiskModule.RISK_FACTOR_UNIT);
+        liqFactor1 = bound(liqFactor1, 0, RiskModule.ONE_4);
         collFactor1 = bound(collFactor1, 0, liqFactor1);
-        riskFactorUniV3 = bound(riskFactorUniV3, 0, RiskModule.RISK_FACTOR_UNIT);
+        riskFactorUniV3 = bound(riskFactorUniV3, 0, RiskModule.ONE_4);
 
         // Deploy and sort tokens.
         decimals0 = bound(decimals0, 6, 18);
@@ -156,8 +156,8 @@ contract GetValue_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz_Te
         uint256 expectedLiqFactor = liqFactor0 < liqFactor1 ? liqFactor0 : liqFactor1;
 
         // Next apply risk factor for uniswap V3.
-        expectedCollFactor = expectedCollFactor * riskFactorUniV3 / RiskModule.RISK_FACTOR_UNIT;
-        expectedLiqFactor = expectedLiqFactor * riskFactorUniV3 / RiskModule.RISK_FACTOR_UNIT;
+        expectedCollFactor = expectedCollFactor * riskFactorUniV3 / RiskModule.ONE_4;
+        expectedLiqFactor = expectedLiqFactor * riskFactorUniV3 / RiskModule.ONE_4;
 
         (, uint256 actualCollFactor, uint256 actualLiqFactor) =
             uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);

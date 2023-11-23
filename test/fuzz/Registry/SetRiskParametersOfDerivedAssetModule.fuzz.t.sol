@@ -41,7 +41,7 @@ contract SetRiskParametersOfDerivedAssetModule_Registry_Fuzz_Test is Registry_Fu
     function testFuzz_Success_setRiskParametersOfDerivedAssetModule(uint128 maxUsdExposureProtocol, uint16 riskFactor)
         public
     {
-        riskFactor = uint16(bound(riskFactor, 0, RiskModule.RISK_FACTOR_UNIT));
+        riskFactor = uint16(bound(riskFactor, 0, RiskModule.ONE_4));
 
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfDerivedAssetModule(

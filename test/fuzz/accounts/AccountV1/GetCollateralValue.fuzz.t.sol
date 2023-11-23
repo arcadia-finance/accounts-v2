@@ -36,7 +36,7 @@ contract GetCollateralValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         depositTokenInAccount(accountExtension, mockERC20.stable1, spotValue);
 
         // Invariant: "collateralFactor" cannot exceed 100%.
-        collateralFactor = uint8(bound(collateralFactor, 0, RiskModule.RISK_FACTOR_UNIT));
+        collateralFactor = uint8(bound(collateralFactor, 0, RiskModule.ONE_4));
 
         // Set Collateral factor of "stable1" for "stable1" to "collateralFactor".
         vm.prank(users.riskManager);
@@ -44,7 +44,7 @@ contract GetCollateralValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             address(creditorStable1), address(mockERC20.stable1), 0, type(uint128).max, collateralFactor, 0
         );
 
-        uint256 expectedValue = uint256(spotValue) * collateralFactor / RiskModule.RISK_FACTOR_UNIT;
+        uint256 expectedValue = uint256(spotValue) * collateralFactor / RiskModule.ONE_4;
 
         uint256 actualValue = accountExtension.getCollateralValue();
 

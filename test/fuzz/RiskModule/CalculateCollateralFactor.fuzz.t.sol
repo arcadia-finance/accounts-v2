@@ -37,8 +37,8 @@ contract CalculateCollateralFactor_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
         values[1].assetValue = secondValue;
 
         // And: collateral factors are within allowed ranges
-        vm.assume(firstCollFactor <= RiskModule.RISK_FACTOR_UNIT);
-        vm.assume(secondCollFactor <= RiskModule.RISK_FACTOR_UNIT);
+        vm.assume(firstCollFactor <= RiskModule.ONE_4);
+        vm.assume(secondCollFactor <= RiskModule.ONE_4);
 
         values[0].collateralFactor = firstCollFactor;
         values[1].collateralFactor = secondCollFactor;

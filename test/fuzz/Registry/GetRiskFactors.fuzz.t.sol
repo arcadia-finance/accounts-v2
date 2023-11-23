@@ -36,10 +36,10 @@ contract GetRiskFactors_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetIds[1] = bound(assetIds[1], 0, type(uint96).max);
 
         // And: Risk factors are below max risk factor.
-        collateralFactors[0] = uint16(bound(collateralFactors[0], 0, RiskModule.RISK_FACTOR_UNIT));
-        collateralFactors[1] = uint16(bound(collateralFactors[1], 0, RiskModule.RISK_FACTOR_UNIT));
-        liquidationFactors[0] = uint16(bound(liquidationFactors[0], 0, RiskModule.RISK_FACTOR_UNIT));
-        liquidationFactors[1] = uint16(bound(liquidationFactors[1], 0, RiskModule.RISK_FACTOR_UNIT));
+        collateralFactors[0] = uint16(bound(collateralFactors[0], 0, RiskModule.ONE_4));
+        collateralFactors[1] = uint16(bound(collateralFactors[1], 0, RiskModule.ONE_4));
+        liquidationFactors[0] = uint16(bound(liquidationFactors[0], 0, RiskModule.ONE_4));
+        liquidationFactors[1] = uint16(bound(liquidationFactors[1], 0, RiskModule.ONE_4));
 
         // And: Underlying assets are in primaryAssetModule.
         registryExtension.setAssetModuleForAsset(assets[0], address(primaryAssetModule));

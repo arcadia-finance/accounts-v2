@@ -58,9 +58,9 @@ library BitPackingLib {
      * @return uintValues Array with the unique identifier of each oracle.
      * @dev Both arrays always have equal length and length is smaller than or equal to 3.
      * @dev There are three ways the object can be packed, depending on the value of the rightmost two bits:
-     * uint80, bool, uint2 or
-     * uint80, bool uint80, bool, uint2 or
-     * uint80, bool, uint80, bool uint80, bool, uint2.
+     * uint80, bool, uint2 (=01) or
+     * uint80, bool uint80, bool, uint2 (=10) or
+     * uint80, bool, uint80, bool uint80, bool, uint2 (=11).
      */
     function unpack(bytes32 packedData) internal pure returns (bool[] memory boolValues, uint256[] memory uintValues) {
         assembly {

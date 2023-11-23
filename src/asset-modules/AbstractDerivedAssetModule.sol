@@ -199,14 +199,10 @@ abstract contract DerivedAssetModule is AssetModule {
         }
 
         // Lower risk factors with the protocol wide risk factor.
-        collateralFactor = uint16(
-            FixedPointMathLib.mulDivDown(collateralFactor, riskParams[creditor].riskFactor, RiskModule.RISK_FACTOR_UNIT)
-        );
-        liquidationFactor = uint16(
-            FixedPointMathLib.mulDivDown(
-                liquidationFactor, riskParams[creditor].riskFactor, RiskModule.RISK_FACTOR_UNIT
-            )
-        );
+        collateralFactor =
+            uint16(FixedPointMathLib.mulDivDown(collateralFactor, riskParams[creditor].riskFactor, RiskModule.ONE_4));
+        liquidationFactor =
+            uint16(FixedPointMathLib.mulDivDown(liquidationFactor, riskParams[creditor].riskFactor, RiskModule.ONE_4));
     }
 
     /**
@@ -219,7 +215,7 @@ abstract contract DerivedAssetModule is AssetModule {
         external
         onlyRegistry
     {
-        if (riskFactor > RiskModule.RISK_FACTOR_UNIT) revert AssetModule.Risk_Factor_Not_In_Limits();
+        if (riskFactor > RiskModule.ONE_4) revert AssetModule.Risk_Factor_Not_In_Limits();
 
         riskParams[creditor].maxUsdExposureProtocol = maxUsdExposureProtocol_;
         riskParams[creditor].riskFactor = riskFactor;
@@ -311,10 +307,9 @@ abstract contract DerivedAssetModule is AssetModule {
 
         // Lower risk factors with the protocol wide risk factor.
         collateralFactor =
-            FixedPointMathLib.mulDivDown(collateralFactor, riskParams[creditor].riskFactor, RiskModule.RISK_FACTOR_UNIT);
-        liquidationFactor = FixedPointMathLib.mulDivDown(
-            liquidationFactor, riskParams[creditor].riskFactor, RiskModule.RISK_FACTOR_UNIT
-        );
+            FixedPointMathLib.mulDivDown(collateralFactor, riskParams[creditor].riskFactor, RiskModule.ONE_4);
+        liquidationFactor =
+            FixedPointMathLib.mulDivDown(liquidationFactor, riskParams[creditor].riskFactor, RiskModule.ONE_4);
     }
 
     /*///////////////////////////////////////////////////////////////

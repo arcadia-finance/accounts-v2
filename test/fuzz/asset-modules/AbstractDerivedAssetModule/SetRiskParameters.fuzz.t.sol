@@ -42,7 +42,7 @@ contract SetRiskParameters_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         uint128 maxExposureInUsd,
         uint16 riskFactor
     ) public {
-        riskFactor = uint16(bound(riskFactor, RiskModule.RISK_FACTOR_UNIT + 1, type(uint16).max));
+        riskFactor = uint16(bound(riskFactor, RiskModule.ONE_4 + 1, type(uint16).max));
 
         vm.startPrank(address(registryExtension));
         vm.expectRevert(AssetModule.Risk_Factor_Not_In_Limits.selector);
@@ -51,7 +51,7 @@ contract SetRiskParameters_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
     }
 
     function testFuzz_Success_setRiskParameters(address creditor, uint128 maxExposureInUsd, uint16 riskFactor) public {
-        riskFactor = uint16(bound(riskFactor, 0, RiskModule.RISK_FACTOR_UNIT));
+        riskFactor = uint16(bound(riskFactor, 0, RiskModule.ONE_4));
 
         vm.prank(address(registryExtension));
         derivedAssetModule.setRiskParameters(creditor, maxExposureInUsd, riskFactor);
