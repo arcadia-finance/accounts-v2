@@ -98,6 +98,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         // deposit functions and there any deposit of non-allowed Underlying Assets will revert.
         if (liquidity == 0) revert ZeroLiquidity();
 
+        // Liquidity stored at deposit time to ensure consistent valuation.
         assetToLiquidity[assetId] = liquidity;
 
         bytes32 assetKey = _getKeyFromAsset(address(NON_FUNGIBLE_POSITION_MANAGER), assetId);
@@ -173,7 +174,9 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 1e18 tokens of Underlying Asset, with 18 decimals precision.
      * @dev Uniswap Pools can be manipulated, we can't rely on the current price (or tick) stored in slot0.
-     * We use Chainlink oracles of the Underlying Assets to calculate the flashloan resistant amounts.
+     * We use a variety of oracles, not limited to Chainlink, to determine asset prices.
+     * This approach accommodates scenarios where an underlying asset could be
+     * a derived asset itself (e.g., USDCS aUSDC pool), ensuring more versatile and accurate price calculations.
      */
     function _getUnderlyingAssetsAmounts(address creditor, bytes32 assetKey, uint256, bytes32[] memory)
         internal
