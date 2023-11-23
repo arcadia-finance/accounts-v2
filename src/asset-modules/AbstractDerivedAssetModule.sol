@@ -577,14 +577,11 @@ abstract contract DerivedAssetModule is AssetModule {
         internal
         returns (uint256 exposureAsset)
     {
-        // Cache exposureAssetLast.
-        uint256 exposureAssetLast = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
-
         // Update exposureAssetLast.
         if (deltaAsset > 0) {
-            exposureAsset = exposureAssetLast + uint256(deltaAsset);
+            exposureAsset = lastExposuresAsset[creditor][assetKey].lastExposureAsset + uint256(deltaAsset);
         } else {
-            exposureAsset = exposureAssetLast > uint256(-deltaAsset) ? exposureAssetLast - uint256(-deltaAsset) : 0;
+            exposureAsset = lastExposuresAsset[creditor][assetKey].lastExposureAsset > uint256(-deltaAsset) ? lastExposuresAsset[creditor][assetKey].lastExposureAsset - uint256(-deltaAsset) : 0;
         }
         lastExposuresAsset[creditor][assetKey].lastExposureAsset = uint128(exposureAsset); // ToDo: safecast?
     }
