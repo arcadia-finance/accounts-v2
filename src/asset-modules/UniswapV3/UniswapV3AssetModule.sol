@@ -442,12 +442,8 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         super.processDirectWithdrawal(creditor, asset, assetId, amount);
 
         // If the asset is fully withdrawn, remove it from the mapping.
-        (,,,,,,, uint128 liquidity,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
-
-        if (liquidity == 0) {
-            delete assetToLiquidity[assetId];
-            delete assetToUnderlyingAssets[_getKeyFromAsset(asset, assetId)];
-        }
+        delete assetToLiquidity[assetId];
+        delete assetToUnderlyingAssets[_getKeyFromAsset(asset, assetId)];
     }
 
     /**
@@ -472,12 +468,8 @@ contract UniswapV3AssetModule is DerivedAssetModule {
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 
-        // If the asset is fully withdrawn, remove it from the mapping.
-        (,,,,,,, uint128 liquidity,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
-
-        if (liquidity == 0) {
-            delete assetToLiquidity[assetId];
-            delete assetToUnderlyingAssets[_getKeyFromAsset(asset, assetId)];
-        }
+        // If the asset is withdrawn, remove it from the mapping.
+        delete assetToLiquidity[assetId];
+        delete assetToUnderlyingAssets[_getKeyFromAsset(asset, assetId)];
     }
 }
