@@ -11,7 +11,6 @@ import { ICreditor } from "./interfaces/ICreditor.sol";
 import { IActionBase, ActionData } from "./interfaces/IActionBase.sol";
 import { IAccount } from "./interfaces/IAccount.sol";
 import { IPermit2 } from "./interfaces/IPermit2.sol";
-import { ActionData } from "./actions/utils/ActionData.sol";
 import { ERC20, SafeTransferLib } from "../lib/solmate/src/utils/SafeTransferLib.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
 import { RiskModule } from "./RiskModule.sol";
