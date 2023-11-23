@@ -220,7 +220,7 @@ contract Registry is IRegistry, RegistryGuardian {
         oracleToOracleModule[oracleId] = msg.sender;
 
         unchecked {
-            oracleCounter++;
+            ++oracleCounter;
         }
     }
 
