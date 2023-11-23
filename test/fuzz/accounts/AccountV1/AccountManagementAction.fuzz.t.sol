@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Constants, AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
-import { IActionBase } from "../../../../src/interfaces/IActionBase.sol";
+import { IActionBase, ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { MultiActionMock } from "../../.././utils/mocks/MultiActionMock.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
@@ -125,11 +125,11 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         bytes[] memory data = new bytes[](0);
         address[] memory to = new address[](0);
 
-        IActionBase.ActionData memory assetDataOut;
+        ActionData memory assetDataOut;
 
-        IActionBase.ActionData memory transferFromOwner;
+        ActionData memory transferFromOwner;
 
-        IActionBase.ActionData memory assetDataIn = IActionBase.ActionData({
+        ActionData memory assetDataIn = ActionData({
             assets: assetAddresses,
             assetIds: assetIds,
             assetAmounts: assetAmounts,
@@ -217,7 +217,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         to[1] = address(multiActionMock);
         to[2] = address(mockERC20.token2);
 
-        IActionBase.ActionData memory assetDataOut = IActionBase.ActionData({
+        ActionData memory assetDataOut = ActionData({
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
@@ -229,7 +229,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         assetDataOut.assetIds[0] = 0;
         assetDataOut.assetAmounts[0] = token1AmountForAction;
 
-        IActionBase.ActionData memory assetDataIn = IActionBase.ActionData({
+        ActionData memory assetDataIn = ActionData({
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
@@ -240,7 +240,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         assetDataIn.assetTypes[0] = 0;
         assetDataOut.assetIds[0] = 0;
 
-        IActionBase.ActionData memory transferFromOwner;
+        ActionData memory transferFromOwner;
         IPermit2.TokenPermissions[] memory tokenPermissions;
 
         bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, assetDataIn, to, data);
@@ -411,7 +411,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         to[3] = address(mockERC20.stable1);
         to[4] = address(mockERC721.nft1);
 
-        IActionBase.ActionData memory assetDataOut = IActionBase.ActionData({
+        ActionData memory assetDataOut = ActionData({
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
@@ -423,7 +423,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         assetDataOut.assetIds[0] = 0;
         assetDataOut.assetAmounts[0] = token1AmountForAction;
 
-        IActionBase.ActionData memory assetDataIn = IActionBase.ActionData({
+        ActionData memory assetDataIn = ActionData({
             assets: new address[](3),
             assetIds: new uint256[](3),
             assetAmounts: new uint256[](3),
@@ -446,7 +446,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         assetDataIn.assetIds[2] = 1;
         assetDataIn.assetAmounts[2] = 1;
 
-        IActionBase.ActionData memory transferFromOwner = IActionBase.ActionData({
+        ActionData memory transferFromOwner = ActionData({
             assets: new address[](2),
             assetIds: new uint256[](2),
             assetAmounts: new uint256[](2),
@@ -565,7 +565,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         to[1] = address(multiActionMock);
         to[2] = address(mockERC20.token2);
 
-        IActionBase.ActionData memory assetDataOut = IActionBase.ActionData({
+        ActionData memory assetDataOut = ActionData({
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
@@ -577,7 +577,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         assetDataOut.assetIds[0] = 0;
         assetDataOut.assetAmounts[0] = token1AmountForAction;
 
-        IActionBase.ActionData memory assetDataIn = IActionBase.ActionData({
+        ActionData memory assetDataIn = ActionData({
             assets: new address[](1),
             assetIds: new uint256[](1),
             assetAmounts: new uint256[](1),
@@ -588,7 +588,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         assetDataIn.assetTypes[0] = 0;
         assetDataIn.assetIds[0] = 0;
 
-        IActionBase.ActionData memory transferFromOwner;
+        ActionData memory transferFromOwner;
         IPermit2.TokenPermissions[] memory tokenPermissions;
 
         bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, assetDataIn, to, data);
@@ -678,9 +678,9 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             permit, fromPrivateKeyStack, DOMAIN_SEPARATOR, address(accountNotInitialised)
         );
 
-        IActionBase.ActionData memory assetDataOut;
-        IActionBase.ActionData memory transferFromOwner;
-        IActionBase.ActionData memory assetDataIn;
+        ActionData memory assetDataOut;
+        ActionData memory transferFromOwner;
+        ActionData memory assetDataIn;
         address[] memory to;
         bytes[] memory data;
 

@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { MultiCall_Fuzz_Test } from "./_MultiCall.fuzz.t.sol";
 
-import { IActionBase } from "../../../../src/interfaces/IActionBase.sol";
+import { IActionBase, ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import "../../../../src/interfaces/IPermit2.sol";
 
 /**
@@ -28,14 +28,14 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_executeAction_lengthMismatch() public {
-        IActionBase.ActionData memory assetData = IActionBase.ActionData({
+        ActionData memory assetData = ActionData({
             assets: new address[](1),
             assetIds: new uint256[](0),
             assetAmounts: new uint256[](1),
             assetTypes: new uint256[](1)
         });
 
-        IActionBase.ActionData memory fromOwner;
+        ActionData memory fromOwner;
         IPermit2.PermitBatchTransferFrom memory permit;
 
         assetData.assets[0] = address(mockERC20.token1);
@@ -54,14 +54,14 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
     }
 
     function testFuzz_Success_executeAction_storeNumber(uint256 number) public {
-        IActionBase.ActionData memory assetData = IActionBase.ActionData({
+        ActionData memory assetData = ActionData({
             assets: new address[](1),
             assetIds: new uint256[](0),
             assetAmounts: new uint256[](1),
             assetTypes: new uint256[](1)
         });
 
-        IActionBase.ActionData memory fromOwner;
+        ActionData memory fromOwner;
         IPermit2.PermitBatchTransferFrom memory permit;
 
         assetData.assets[0] = address(mockERC20.token1);
@@ -81,7 +81,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
 
     function createRandomDepositData(address[15] memory assets)
         public
-        returns (IActionBase.ActionData memory, address[] memory, uint256[] memory)
+        returns (ActionData memory, address[] memory, uint256[] memory)
     {
         uint256[] memory types = new uint256[](assets.length);
         uint256[] memory ids = new uint256[](assets.length);
@@ -105,8 +105,8 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
             }
         }
 
-        IActionBase.ActionData memory depositData =
-            IActionBase.ActionData({ assets: assets_, assetIds: ids, assetAmounts: amounts, assetTypes: types });
+        ActionData memory depositData =
+            ActionData({ assets: assets_, assetIds: ids, assetAmounts: amounts, assetTypes: types });
 
         address[] memory mintedAssets_ = mintedAssets;
         uint256[] memory mintedIds_ = mintedIds;
@@ -115,19 +115,19 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
     }
 
     function testFuzz_Success_executeAction_storeMintedLPs(address[15] memory assets) public {
-        (IActionBase.ActionData memory depositData, address[] memory mintedAssets_, uint256[] memory mintedIds_) =
+        (ActionData memory depositData, address[] memory mintedAssets_, uint256[] memory mintedIds_) =
             createRandomDepositData(assets);
 
         action.setMintedAssets(mintedAssets_);
         action.setMintedIds(mintedIds_);
 
-        IActionBase.ActionData memory emptyData;
+        ActionData memory emptyData;
         IPermit2.PermitBatchTransferFrom memory emptyPermit;
 
         bytes memory actionData =
             abi.encode(emptyData, emptyData, emptyPermit, depositData, new address[](0), new bytes[](0));
 
-        IActionBase.ActionData memory returnData = action.executeAction(actionData);
+        ActionData memory returnData = action.executeAction(actionData);
 
         assertEq(returnData.assets.length, depositData.assets.length);
 
