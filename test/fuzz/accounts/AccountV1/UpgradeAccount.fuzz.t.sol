@@ -115,11 +115,11 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_upgradeAccount_InvalidRegistry(address newImplementation, bytes calldata data) public {
+    function testFuzz_Revert_upgradeAccount_InvalidRegistry(address newImplementation, bytes calldata data)
+        public
+        notTestContracts(newImplementation)
+    {
         vm.assume(newImplementation > address(10));
-        vm.assume(newImplementation != address(factory));
-        vm.assume(newImplementation != address(vm));
-        vm.assume(newImplementation != address(registryExtension));
         vm.assume(newImplementation != address(proxyAccount));
 
         // Given: Creditor is set.
