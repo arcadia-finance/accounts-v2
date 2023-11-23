@@ -7,7 +7,6 @@ pragma solidity 0.8.19;
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
 import { AssetModule } from "./AbstractAssetModule.sol";
-import { RiskConstants } from "../libraries/RiskConstants.sol";
 import { RiskModule } from "../RiskModule.sol";
 
 /**
@@ -200,16 +199,10 @@ abstract contract DerivedAssetModule is AssetModule {
         }
 
         // Lower risk factors with the protocol wide risk factor.
-        collateralFactor = uint16(
-            FixedPointMathLib.mulDivDown(
-                collateralFactor, riskParams[creditor].riskFactor, RiskConstants.RISK_FACTOR_UNIT
-            )
-        );
-        liquidationFactor = uint16(
-            FixedPointMathLib.mulDivDown(
-                liquidationFactor, riskParams[creditor].riskFactor, RiskConstants.RISK_FACTOR_UNIT
-            )
-        );
+        collateralFactor =
+            uint16(FixedPointMathLib.mulDivDown(collateralFactor, riskParams[creditor].riskFactor, RiskModule.ONE_4));
+        liquidationFactor =
+            uint16(FixedPointMathLib.mulDivDown(liquidationFactor, riskParams[creditor].riskFactor, RiskModule.ONE_4));
     }
 
     /**
@@ -222,7 +215,7 @@ abstract contract DerivedAssetModule is AssetModule {
         external
         onlyRegistry
     {
-        if (riskFactor > RiskConstants.RISK_FACTOR_UNIT) revert AssetModule.Risk_Factor_Not_In_Limits();
+        if (riskFactor > RiskModule.ONE_4) revert AssetModule.Risk_Factor_Not_In_Limits();
 
         riskParams[creditor].maxUsdExposureProtocol = maxUsdExposureProtocol_;
         riskParams[creditor].riskFactor = riskFactor;
@@ -313,12 +306,10 @@ abstract contract DerivedAssetModule is AssetModule {
         }
 
         // Lower risk factors with the protocol wide risk factor.
-        collateralFactor = FixedPointMathLib.mulDivDown(
-            collateralFactor, riskParams[creditor].riskFactor, RiskConstants.RISK_FACTOR_UNIT
-        );
-        liquidationFactor = FixedPointMathLib.mulDivDown(
-            liquidationFactor, riskParams[creditor].riskFactor, RiskConstants.RISK_FACTOR_UNIT
-        );
+        collateralFactor =
+            FixedPointMathLib.mulDivDown(collateralFactor, riskParams[creditor].riskFactor, RiskModule.ONE_4);
+        liquidationFactor =
+            FixedPointMathLib.mulDivDown(liquidationFactor, riskParams[creditor].riskFactor, RiskModule.ONE_4);
     }
 
     /*///////////////////////////////////////////////////////////////

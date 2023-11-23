@@ -8,7 +8,6 @@ import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
 
 import { Constants } from "../../utils/Constants.sol";
 import { AssetModule } from "../../../src/asset-modules/AbstractAssetModule.sol";
-import { RiskConstants } from "../../../src/libraries/RiskConstants.sol";
 import { RiskModule } from "../../../src/RiskModule.sol";
 
 /**
@@ -49,7 +48,7 @@ contract GetCollateralValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
     function testFuzz_Success_getCollateralValue(int64 rateToken1ToUsd, uint64 amountToken1, uint16 collateralFactor_)
         public
     {
-        vm.assume(collateralFactor_ <= RiskConstants.RISK_FACTOR_UNIT);
+        vm.assume(collateralFactor_ <= RiskModule.ONE_4);
         vm.assume(rateToken1ToUsd > 0);
 
         vm.prank(users.defaultTransmitter);
