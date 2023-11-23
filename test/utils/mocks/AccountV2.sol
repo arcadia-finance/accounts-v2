@@ -22,7 +22,7 @@ import { AccountErrors } from "../../../src/libraries/Errors.sol";
  * @title An Arcadia Account used to deposit a combination of all kinds of assets
  * @author Pragma Labs
  * @notice Users can use this Account to deposit assets (ERC20, ERC721, ERC1155, ...).
- * The Account will denominate all the pooled assets into one baseCurrency (one unit of account, like usd or eth).
+ * The Account will denominate all the pooled assets into one baseCurrency (one unit of account, like USD or ETH).
  * An increase of value of one asset will offset a decrease in value of another asset.
  * Users can take out a credit line against the single denominated value.
  * Ensure your total value denomination remains above the liquidation threshold, or risk being liquidated!

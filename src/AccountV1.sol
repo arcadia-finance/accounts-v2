@@ -23,7 +23,7 @@ import { AccountErrors } from "./libraries/Errors.sol";
  * They provide individuals, DAOs, and other protocols with a simple and flexible way to deposit and manage multiple assets as collateral.
  * The total combination of assets can be used as margin to back liabilities issued by any financial protocol (lending, leverage, futures...).
  * @dev Users can use this Account to deposit assets (fungible, non-fungible, LP positions, yiel bearing assets...).
- * The Account will denominate all the deposited assets into one baseCurrency (one unit of account, like usd or eth).
+ * The Account will denominate all the deposited assets into one baseCurrency (one unit of account, like USD or ETH).
  * Users can use the single denominated value of all their assets to take margin (take credit line, financing for leverage...).
  * An increase of value of one asset will offset a decrease in value of another asset.
  * Ensure your total value denomination remains above the liquidation threshold, or risk being liquidated!
