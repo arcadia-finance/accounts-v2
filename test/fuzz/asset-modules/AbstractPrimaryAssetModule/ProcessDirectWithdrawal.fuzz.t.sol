@@ -52,7 +52,10 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstrac
 
         // When: "amount" is withdrawn.
         vm.prank(address(registryExtension));
-        assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
+        uint256 assetType =
+            assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
+
+        assertEq(assetType, 0);
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
@@ -74,7 +77,10 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstrac
 
         // When: "amount" is withdrawn.
         vm.prank(address(registryExtension));
-        assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
+        uint256 assetType =
+            assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
+
+        assertEq(assetType, 0);
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));

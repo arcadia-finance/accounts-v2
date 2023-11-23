@@ -10,6 +10,7 @@ import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { AccountExtension } from "../../../utils/Extensions.sol";
+import { AssetModuleMock } from "../../../utils/mocks/AssetModuleMock.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
@@ -42,6 +43,21 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.prank(nonOwner);
         vm.expectRevert(AccountErrors.OnlyOwner.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
+    }
+
+    function testFuzz_Revert_withdraw_InAuction(
+        address[] calldata assetAddresses,
+        uint256[] calldata assetIds,
+        uint256[] calldata assetAmounts
+    ) public {
+        // Will set "inAuction" to true.
+        accountExtension.setInAuction();
+
+        // Should revert if the Account is in an auction.
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.AccountInAuction.selector);
+        accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
     }
 
     function testFuzz_Revert_withdraw_LengthOfListDoesNotMatch(uint8 addrLen, uint8 idLen, uint8 amountLen) public {
@@ -108,7 +124,11 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_withdraw_UnknownAssetType(uint96 assetType) public {
         vm.assume(assetType >= 3);
 
-        registryExtension.setAssetType(address(mockERC20.token1), assetType);
+        vm.startPrank(users.creatorAddress);
+        AssetModuleMock assetModule = new AssetModuleMock(address(registryExtension), assetType);
+        registryExtension.addAssetModule(address(assetModule));
+        vm.stopPrank();
+        registryExtension.setAssetToAssetModule(address(mockERC20.token1), address(assetModule));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);

@@ -47,7 +47,7 @@ contract StandardERC20AssetModule is PrimaryAssetModule {
         // View function, reverts in Registry if sequence is not correct.
         if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert Bad_Oracle_Sequence();
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(asset, ASSET_TYPE);
+        IRegistry(REGISTRY).addAsset(asset);
 
         inAssetModule[asset] = true;
 

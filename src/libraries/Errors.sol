@@ -26,6 +26,7 @@ library AccountErrors {
     error TooManyAssets();
     error UnknownAsset();
     error UnknownAssetType();
+    error AccountInAuction();
 }
 
 library FactoryErrors {
@@ -41,7 +42,6 @@ library FactoryErrors {
 library RegistryErrors {
     error AssetMod_Not_Unique();
     error Asset_Already_In_Registry();
-    error Invalid_AssetType();
     error Length_Mismatch();
     error Min_1_Oracle();
     error Only_Account();

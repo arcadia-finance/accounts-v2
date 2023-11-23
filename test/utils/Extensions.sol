@@ -37,6 +37,10 @@ contract AccountExtension is AccountV1 {
         locked = locked_;
     }
 
+    function setInAuction() external {
+        inAuction = true;
+    }
+
     function getLengths() external view returns (uint256, uint256, uint256, uint256) {
         return (erc20Stored.length, erc721Stored.length, erc721TokenIds.length, erc1155Stored.length);
     }
@@ -170,12 +174,8 @@ contract RegistryExtension is Registry {
         oracleToOracleModule[oracleId] = oracleModule;
     }
 
-    function setAssetType(address asset, uint96 assetType) public {
-        assetToAssetInformation[asset].assetType = assetType;
-    }
-
-    function setAssetModuleForAsset(address asset, address assetModule) public {
-        assetToAssetInformation[asset].assetModule = assetModule;
+    function setAssetToAssetModule(address asset, address assetModule) public {
+        assetToAssetModule[asset] = assetModule;
     }
 }
 
