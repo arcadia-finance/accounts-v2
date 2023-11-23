@@ -471,7 +471,7 @@ contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
     }
 
     function getNonFungiblePositionManager() public view returns (address nonFungiblePositionManager) {
-        nonFungiblePositionManager = NON_FUNGIBLE_POSITION_MANAGER;
+        nonFungiblePositionManager = address(NON_FUNGIBLE_POSITION_MANAGER);
     }
 
     function getUniswapV3Factory() public view returns (address uniswapV3Factory) {

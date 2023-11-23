@@ -33,7 +33,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     // The contract address of the NonfungiblePositionManager.
-    address internal immutable NON_FUNGIBLE_POSITION_MANAGER;
+    INonfungiblePositionManager internal immutable NON_FUNGIBLE_POSITION_MANAGER;
 
     // The contract address of the Uniswap V3 (or exact clone) Factory.
     address internal immutable UNISWAP_V3_FACTORY;
@@ -64,7 +64,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for Uniswap V3 Liquidity Positions (ERC721) is 1.
      */
     constructor(address registry_, address nonFungiblePositionManager) DerivedAssetModule(registry_, 1) {
-        NON_FUNGIBLE_POSITION_MANAGER = nonFungiblePositionManager;
+        NON_FUNGIBLE_POSITION_MANAGER = INonfungiblePositionManager(nonFungiblePositionManager);
         UNISWAP_V3_FACTORY = INonfungiblePositionManager(nonFungiblePositionManager).factory();
     }
 
@@ -77,10 +77,10 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @dev Since all assets will have the same contract address, only the NonfungiblePositionManager has to be added to the Registry.
      */
     function setProtocol() external onlyOwner {
-        inAssetModule[NON_FUNGIBLE_POSITION_MANAGER] = true;
+        inAssetModule[address(NON_FUNGIBLE_POSITION_MANAGER)] = true;
 
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(NON_FUNGIBLE_POSITION_MANAGER, ASSET_TYPE);
+        IRegistry(REGISTRY).addAsset(address(NON_FUNGIBLE_POSITION_MANAGER), ASSET_TYPE);
     }
 
     /**
@@ -92,8 +92,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     function _addAsset(uint256 assetId) internal {
         if (assetId > type(uint96).max) revert Invalid_Id();
 
-        (,, address token0, address token1,,,, uint128 liquidity,,,,) =
-            INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
+        (,, address token0, address token1,,,, uint128 liquidity,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
 
         // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
         // deposit functions and there any deposit of non-allowed Underlying Assets will revert.
@@ -101,7 +100,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
 
         assetToLiquidity[assetId] = liquidity;
 
-        bytes32 assetKey = _getKeyFromAsset(NON_FUNGIBLE_POSITION_MANAGER, assetId);
+        bytes32 assetKey = _getKeyFromAsset(address(NON_FUNGIBLE_POSITION_MANAGER), assetId);
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
         underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
@@ -119,9 +118,9 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @return A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
-        if (asset != NON_FUNGIBLE_POSITION_MANAGER) return false;
+        if (asset != address(NON_FUNGIBLE_POSITION_MANAGER)) return false;
 
-        try INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId) returns (
+        try NON_FUNGIBLE_POSITION_MANAGER.positions(assetId) returns (
             uint96,
             address,
             address token0,
@@ -157,8 +156,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         if (underlyingAssetKeys.length == 0) {
             // Only used as an off-chain view function by getValue() to return the value of a non deposited Liquidity Position.
             (, uint256 assetId) = _getAssetFromKey(assetKey);
-            (,, address token0, address token1,,,,,,,,) =
-                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
+            (,, address token0, address token1,,,,,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
 
             underlyingAssetKeys = new bytes32[](2);
             underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
@@ -237,12 +235,10 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         liquidity = uint128(assetToLiquidity[assetId]);
 
         if (liquidity > 0) {
-            (,, token0, token1,, tickLower, tickUpper,,,,,) =
-                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
+            (,, token0, token1,, tickLower, tickUpper,,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
         } else {
             // Only used as an off-chain view function by getValue() to return the value of a non deposited Liquidity Position.
-            (,, token0, token1,, tickLower, tickUpper, liquidity,,,,) =
-                INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
+            (,, token0, token1,, tickLower, tickUpper, liquidity,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
         }
     }
 
@@ -318,7 +314,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
             uint256 feeGrowthInside1LastX128,
             uint256 tokensOwed0, // gas: cheaper to use uint256 instead of uint128.
             uint256 tokensOwed1 // gas: cheaper to use uint256 instead of uint128.
-        ) = INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(id);
+        ) = NON_FUNGIBLE_POSITION_MANAGER.positions(id);
 
         (uint256 feeGrowthInside0CurrentX128, uint256 feeGrowthInside1CurrentX128) =
             _getFeeGrowthInside(token0, token1, fee, tickLower, tickUpper);
