@@ -72,7 +72,7 @@ contract ComputeProfitMaximizingTrade_UniswapV2AssetModule_Fuzz_Test is UniswapV
             prod0 := mul(invariant, prod)
             prod1 := sub(sub(mm, prod0), lt(mm, prod0))
         }
-        vm.expectRevert(abi.encodeWithSignature("PRBMath__MulDivOverflow(uint256,uint256)", prod1, denominator));
+        vm.expectRevert(bytes(""));
         uniswapV2AssetModule.computeProfitMaximizingTrade(priceToken0, priceToken1, reserve0, reserve1);
     }
 

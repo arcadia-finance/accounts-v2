@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
-import { RiskConstants } from "../../../src/libraries/RiskConstants.sol";
+import { RiskModule } from "../../../src/RiskModule.sol";
 
 /**
  * @notice Fuzz tests for the function "setRiskParametersOfDerivedAssetModule" of contract "Registry".
@@ -41,7 +41,7 @@ contract SetRiskParametersOfDerivedAssetModule_Registry_Fuzz_Test is Registry_Fu
     function testFuzz_Success_setRiskParametersOfDerivedAssetModule(uint128 maxUsdExposureProtocol, uint16 riskFactor)
         public
     {
-        riskFactor = uint16(bound(riskFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
+        riskFactor = uint16(bound(riskFactor, 0, RiskModule.ONE_4));
 
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfDerivedAssetModule(

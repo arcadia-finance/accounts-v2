@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Constants, AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
-import { ActionData } from "../../../../src/actions/utils/ActionData.sol";
+import { IActionBase, ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { MultiActionMock } from "../../.././utils/mocks/MultiActionMock.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
@@ -61,7 +61,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
 
         // Should revert if the reentrancy guard is locked.
         vm.startPrank(sender);
-        vm.expectRevert(AccountErrors.No_Reentry.selector);
+        vm.expectRevert(AccountErrors.NoReentry.selector);
         accountExtension.accountManagementAction(actionHandler, actionData, signature);
         vm.stopPrank();
     }
@@ -107,7 +107,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         vm.assume(action_ != address(action));
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Action_Not_Allowed.selector);
+        vm.expectRevert(AccountErrors.ActionNotAllowed.selector);
         accountExtension.accountManagementAction(action_, new bytes(0), new bytes(0));
         vm.stopPrank();
     }
@@ -155,7 +155,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         mockERC721.nft1.setApprovalForAll(address(accountExtension), true);
 
         vm.prank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Too_Many_Assets.selector);
+        vm.expectRevert(AccountErrors.TooManyAssets.selector);
         accountExtension.accountManagementAction(address(action), callData, signatureStack);
     }
 
@@ -251,7 +251,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         );
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Account_Unhealthy.selector);
+        vm.expectRevert(AccountErrors.AccountUnhealthy.selector);
         accountNotInitialised.accountManagementAction(address(action), callData, new bytes(0));
         vm.stopPrank();
     }

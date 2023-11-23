@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { MultiCall_Fuzz_Test } from "./_MultiCall.fuzz.t.sol";
 
-import "../../../../src/actions/utils/ActionData.sol";
+import { IActionBase, ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import "../../../../src/interfaces/IPermit2.sol";
 
 /**
@@ -49,7 +49,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
 
         bytes memory callData = abi.encode(assetData, assetData, permit, fromOwner, to, data);
 
-        vm.expectRevert(Length_Mismatch.selector);
+        vm.expectRevert(LengthMismatch.selector);
         action.executeAction(callData);
     }
 

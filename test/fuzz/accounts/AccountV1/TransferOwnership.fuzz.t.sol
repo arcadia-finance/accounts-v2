@@ -27,19 +27,8 @@ contract TransferOwnership_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(users.accountOwner, accountExtension.owner());
 
         vm.startPrank(sender);
-        vm.expectRevert(AccountErrors.Only_Factory.selector);
+        vm.expectRevert(AccountErrors.OnlyFactory.selector);
         accountExtension.transferOwnership(to);
-        vm.stopPrank();
-
-        assertEq(users.accountOwner, accountExtension.owner());
-    }
-
-    function testFuzz_Revert_transferOwnership_InvalidRecipient() public {
-        assertEq(users.accountOwner, accountExtension.owner());
-
-        vm.startPrank(address(factory));
-        vm.expectRevert(AccountErrors.Invalid_Recipient.selector);
-        accountExtension.transferOwnership(address(0));
         vm.stopPrank();
 
         assertEq(users.accountOwner, accountExtension.owner());

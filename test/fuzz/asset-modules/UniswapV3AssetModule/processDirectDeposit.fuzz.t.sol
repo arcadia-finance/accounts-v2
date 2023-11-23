@@ -107,7 +107,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         );
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert(UniswapV3AssetModule.Zero_Liquidity.selector);
+        vm.expectRevert(UniswapV3AssetModule.ZeroLiquidity.selector);
         uniV3AssetModule.processDirectDeposit(creditor, address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }

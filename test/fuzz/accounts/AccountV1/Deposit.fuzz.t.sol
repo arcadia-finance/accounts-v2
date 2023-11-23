@@ -35,7 +35,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.prank(nonOwner);
-        vm.expectRevert(AccountErrors.Only_Owner.selector);
+        vm.expectRevert(AccountErrors.OnlyOwner.selector);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
@@ -53,7 +53,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         approveAllAssets();
 
         vm.prank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Too_Many_Assets.selector);
+        vm.expectRevert(AccountErrors.TooManyAssets.selector);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
@@ -76,7 +76,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         approveAllAssets();
 
         vm.prank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Too_Many_Assets.selector);
+        vm.expectRevert(AccountErrors.TooManyAssets.selector);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
@@ -123,7 +123,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Invalid_ERC20_Id.selector);
+        vm.expectRevert(AccountErrors.InvalidERC20Id.selector);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -141,7 +141,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Invalid_ERC721_Amount.selector);
+        vm.expectRevert(AccountErrors.InvalidERC721Amount.selector);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -184,7 +184,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = 1;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Unknown_Asset_Type.selector);
+        vm.expectRevert(AccountErrors.UnknownAssetType.selector);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }

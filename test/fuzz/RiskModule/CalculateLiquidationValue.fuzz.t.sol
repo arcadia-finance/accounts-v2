@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { RiskModule_Fuzz_Test } from "./_RiskModule.fuzz.t.sol";
 
 import { RiskModule } from "../../../src/RiskModule.sol";
-import { RiskConstants } from "../../../src/libraries/RiskConstants.sol";
+import { RiskModule } from "../../../src/RiskModule.sol";
 
 /**
  * @notice Fuzz tests for the function "calculateLiquidationValue" of contract "RiskModule".
@@ -37,8 +37,8 @@ contract CalculateLiquidationValue_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
         values[1].assetValue = secondValue;
 
         // And: Liquidation factors are within allowed ranges
-        vm.assume(firstLiqFactor <= RiskConstants.RISK_FACTOR_UNIT);
-        vm.assume(secondLiqFactor <= RiskConstants.RISK_FACTOR_UNIT);
+        vm.assume(firstLiqFactor <= RiskModule.ONE_4);
+        vm.assume(secondLiqFactor <= RiskModule.ONE_4);
 
         values[0].liquidationFactor = firstLiqFactor;
         values[1].liquidationFactor = secondLiqFactor;

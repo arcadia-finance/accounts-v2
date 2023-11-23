@@ -48,7 +48,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Should revert if the reentrancy guard is locked.
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.No_Reentry.selector);
+        vm.expectRevert(AccountErrors.NoReentry.selector);
         accountExtension.startLiquidation(liquidationInitiator);
         vm.stopPrank();
     }
@@ -101,7 +101,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then : Account should not be liquidatable as openDebt > 0 and liquidationValue > usedMargin
         vm.startPrank(accountExtension2.liquidator());
-        vm.expectRevert(AccountErrors.Account_Not_Liquidatable.selector);
+        vm.expectRevert(AccountErrors.AccountNotLiquidatable.selector);
         accountExtension2.startLiquidation(liquidationInitiator);
         vm.stopPrank();
     }
@@ -127,7 +127,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Then : Account should not be liquidatable as openDebt == 0
         vm.startPrank(accountExtension2.liquidator());
-        vm.expectRevert(AccountErrors.Account_Not_Liquidatable.selector);
+        vm.expectRevert(AccountErrors.AccountNotLiquidatable.selector);
         accountExtension2.startLiquidation(liquidationInitiator);
         vm.stopPrank();
     }
