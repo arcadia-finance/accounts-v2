@@ -843,7 +843,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             erc721TokenIds.pop();
             erc721Stored.pop();
         } else {
-            for (i; i < tokenIdLength;) {
+            for (; i < tokenIdLength;) {
                 if (erc721TokenIds[i] == id && erc721Stored[i] == ERC721Address) {
                     erc721TokenIds[i] = erc721TokenIds[tokenIdLength - 1];
                     erc721TokenIds.pop();

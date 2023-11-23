@@ -2,8 +2,6 @@
 pragma solidity 0.8.19;
 
 library Strings {
-    bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
-
     /**
      * @dev Converts a `uint256` to its ASCII `string` decimal representation.
      */
