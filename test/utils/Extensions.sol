@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
-import { AccountV1 } from "../../src/AccountV1.sol";
+import { AccountV1 } from "../../src/accounts/AccountV1.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
 import { ChainlinkOracleModule } from "../../src/oracle-modules/ChainlinkOracleModule.sol";
@@ -92,6 +92,8 @@ contract AccountExtension is AccountV1 {
 
 contract BaseGuardianExtension is BaseGuardian {
     constructor() BaseGuardian() { }
+
+    function unpause() external override { }
 }
 
 contract BitPackingLibExtension {

@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Invariant_Test } from "./Invariant.t.sol";
 import { FactoryHandler } from "./handlers/FactoryHandler.sol";
 import { Factory } from "../../src/Factory.sol";
-import { AccountV1 } from "../../src/AccountV1.sol";
+import { AccountV1 } from "../../src/accounts/AccountV1.sol";
 
 /// @dev Invariant tests for { Factory }.
 contract Factory_Invariant_Test is Invariant_Test {

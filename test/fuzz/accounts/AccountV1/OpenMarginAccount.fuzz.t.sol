@@ -26,7 +26,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_openMarginAccount_NotOwner() public {
         // Should revert if not called by the owner
-        vm.expectRevert(AccountErrors.Only_Owner.selector);
+        vm.expectRevert(AccountErrors.OnlyOwner.selector);
         proxyAccount.openMarginAccount(address(creditorStable1));
     }
 
@@ -36,7 +36,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         proxyAccount.openMarginAccount(address(creditorStable1));
 
         // Should revert if a creditor is already set
-        vm.expectRevert(AccountErrors.Creditor_Already_Set.selector);
+        vm.expectRevert(AccountErrors.CreditorAlreadySet.selector);
         proxyAccount.openMarginAccount(address(creditorStable1));
     }
 

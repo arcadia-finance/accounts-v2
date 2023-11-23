@@ -6,7 +6,8 @@ pragma solidity 0.8.19;
 
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
-import { RiskConstants } from "../../../src/libraries/RiskConstants.sol";
+import { RiskModule } from "../../../src/RiskModule.sol";
+import { PrimaryAssetModule } from "../../../src/asset-modules/AbstractPrimaryAssetModule.sol";
 
 /**
  * @notice Fuzz tests for the function "setRiskParametersOfPrimaryAsset" of contract "Registry".
@@ -41,6 +42,25 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_setRiskParametersOfPrimaryAsset_CollFactorExceedsLiqFactor(
+        address asset,
+        uint96 assetId,
+        uint128 maxExposure,
+        uint16 collateralFactor,
+        uint16 liquidationFactor
+    ) public {
+        collateralFactor = uint16(bound(collateralFactor, 1, RiskModule.ONE_4));
+        liquidationFactor = uint16(bound(liquidationFactor, 0, collateralFactor - 1));
+
+        registryExtension.setAssetModuleForAsset(asset, address(primaryAssetModule));
+
+        vm.prank(users.riskManager);
+        vm.expectRevert(PrimaryAssetModule.CollFactorExceedsLiqFactor.selector);
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), asset, assetId, maxExposure, collateralFactor, liquidationFactor
+        );
+    }
+
     function testFuzz_Success_setRiskParametersOfPrimaryAsset(
         address asset,
         uint96 assetId,
@@ -48,8 +68,8 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
-        collateralFactor = uint16(bound(collateralFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
-        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
+        collateralFactor = uint16(bound(collateralFactor, 0, RiskModule.ONE_4));
+        liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, RiskModule.ONE_4));
 
         registryExtension.setAssetModuleForAsset(asset, address(primaryAssetModule));
 

@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
-import { AccountV1 } from "../../../src/AccountV1.sol";
+import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
 import { AccountVariableVersion } from "../../utils/mocks/AccountVariableVersion.sol";
 import { Constants } from "../../utils/Constants.sol";
 
@@ -33,7 +33,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         // Then: Reverted
         vm.prank(sender);
-        vm.expectRevert(Function_Is_Paused.selector);
+        vm.expectRevert(FunctionIsPaused.selector);
         factory.createAccount(salt, 0, address(0), address(0));
     }
 

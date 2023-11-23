@@ -25,7 +25,7 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         vm.assume(nonGuard != users.guardian);
 
         vm.startPrank(nonGuard);
-        vm.expectRevert(BaseGuardian.Only_Guardian.selector);
+        vm.expectRevert(BaseGuardian.OnlyGuardian.selector);
         factoryGuardian.pause();
         vm.stopPrank();
     }
@@ -45,7 +45,7 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         // When: Guardian pauses again within 32 days passed from the last pause.
         // Then: The transaction reverts with "Cannot_Pause".
         vm.startPrank(users.guardian);
-        vm.expectRevert(BaseGuardian.Cannot_Pause.selector);
+        vm.expectRevert(BaseGuardian.CannotPause.selector);
         factoryGuardian.pause();
         vm.stopPrank();
     }
@@ -68,7 +68,7 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         // When: the Guardian pauses.
         vm.startPrank(users.guardian);
         vm.expectEmit();
-        emit PauseUpdate(true);
+        emit PauseUpdated(true);
         factoryGuardian.pause();
         vm.stopPrank();
 

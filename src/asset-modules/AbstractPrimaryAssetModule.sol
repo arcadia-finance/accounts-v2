@@ -7,7 +7,6 @@ pragma solidity 0.8.19;
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
 import { AssetModule } from "./AbstractAssetModule.sol";
-import { RiskConstants } from "../libraries/RiskConstants.sol";
 
 /**
  * @title Primary Asset Module
@@ -25,6 +24,8 @@ abstract contract PrimaryAssetModule is AssetModule {
     // Identifier indicating that it is a Primary Asset Module:
     // the assets being priced have no underlying assets.
     bool internal constant PRIMARY_FLAG = true;
+    // The unit of the liquidation and collateral factors, 4 decimals precision.
+    uint256 internal constant ONE_4 = 10_000;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -61,6 +62,12 @@ abstract contract PrimaryAssetModule is AssetModule {
     ////////////////////////////////////////////////////////////// */
 
     event MaxExposureSet(address indexed asset, uint128 maxExposure);
+
+    /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    error CollFactorExceedsLiqFactor();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -173,8 +180,9 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external onlyRegistry {
-        if (collateralFactor > RiskConstants.RISK_FACTOR_UNIT) revert Coll_Factor_Not_In_Limits();
-        if (liquidationFactor > RiskConstants.RISK_FACTOR_UNIT) revert Liq_Factor_Not_In_Limits();
+        if (collateralFactor > ONE_4) revert Coll_Factor_Not_In_Limits();
+        if (liquidationFactor > ONE_4) revert Liq_Factor_Not_In_Limits();
+        if (collateralFactor > liquidationFactor) revert CollFactorExceedsLiqFactor();
 
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 

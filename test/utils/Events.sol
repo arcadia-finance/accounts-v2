@@ -39,8 +39,8 @@ abstract contract Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     event AssetManagerSet(address indexed owner, address indexed assetManager, bool value);
-    event BaseCurrencySet(address baseCurrency);
-    event MarginAccountChanged(address indexed protocol, address indexed liquidator);
+    event BaseCurrencySet(address indexed baseCurrency);
+    event MarginAccountChanged(address indexed creditor, address indexed liquidator);
 
     /*//////////////////////////////////////////////////////////////////////////
                                 BASE GUARDIAN
@@ -52,7 +52,7 @@ abstract contract Events {
                                 FACTORY GUARDIAN
     //////////////////////////////////////////////////////////////////////////*/
 
-    event PauseUpdate(bool createPauseUpdate);
+    event PauseUpdated(bool createPauseUpdate);
 
     /*//////////////////////////////////////////////////////////////////////////
                             MAIN REGISTRY GUARDIAN
@@ -61,12 +61,13 @@ abstract contract Events {
     event PauseFlagsUpdated(bool withdrawPauseUpdate, bool depositPauseUpdate);
 
     /*//////////////////////////////////////////////////////////////////////////
-                                  MAIN REGISTRY
+                                   REGISTRY
     //////////////////////////////////////////////////////////////////////////*/
 
     event AllowedActionSet(address indexed action, bool allowed);
-    event AssetAdded(address indexed assetAddress, address indexed assetModule, uint8 assetType);
+    event AssetAdded(address indexed assetAddress, address indexed assetModule, uint96 indexed assetType);
     event AssetModuleAdded(address assetModule);
+    event OracleAdded(uint256 indexed oracleId, address indexed oracleModule);
     event OracleModuleAdded(address oracleModule);
 
     /*//////////////////////////////////////////////////////////////////////////

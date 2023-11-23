@@ -26,7 +26,7 @@ contract UnPause_WithArgs_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz_Te
 
         vm.startPrank(nonOwner);
         vm.expectRevert("UNAUTHORIZED");
-        registryGuardian.unPause(flags.withdrawPaused, flags.depositPaused);
+        registryGuardian.unpause(flags.withdrawPaused, flags.depositPaused);
         vm.stopPrank();
     }
 
@@ -56,7 +56,7 @@ contract UnPause_WithArgs_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz_Te
         emit PauseFlagsUpdated(
             initialFlags.withdrawPaused && flags.withdrawPaused, initialFlags.depositPaused && flags.depositPaused
         );
-        registryGuardian.unPause(flags.withdrawPaused, flags.depositPaused);
+        registryGuardian.unpause(flags.withdrawPaused, flags.depositPaused);
         vm.stopPrank();
 
         // Then: Flags can only be toggled from paused (true) to unpaused (false)

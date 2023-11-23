@@ -29,14 +29,14 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.startPrank(nonOwner);
-        vm.expectRevert(AccountErrors.Only_Owner.selector);
+        vm.expectRevert(AccountErrors.OnlyOwner.selector);
         proxyAccount.closeMarginAccount();
         vm.stopPrank();
     }
 
     function testFuzz_Revert_closeMarginAccount_NonSetMarginAccount() public {
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.Creditor_Not_Set.selector);
+        vm.expectRevert(AccountErrors.CreditorNotSet.selector);
         proxyAccount.closeMarginAccount();
         vm.stopPrank();
     }
@@ -50,7 +50,7 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         creditorStable1.setOpenPosition(address(proxyAccount), debt_);
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.NonZero_Open_Position.selector);
+        vm.expectRevert(AccountErrors.NonZeroOpenPosition.selector);
         proxyAccount.closeMarginAccount();
         vm.stopPrank();
     }

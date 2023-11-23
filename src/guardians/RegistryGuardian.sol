@@ -39,7 +39,7 @@ abstract contract RegistryGuardian is BaseGuardian {
      * @dev Throws if the withdraw functionality is paused.
      */
     modifier whenWithdrawNotPaused() {
-        if (withdrawPaused) revert Function_Is_Paused();
+        if (withdrawPaused) revert FunctionIsPaused();
         _;
     }
 
@@ -47,7 +47,7 @@ abstract contract RegistryGuardian is BaseGuardian {
      * @dev Throws if the deposit functionality is paused.
      */
     modifier whenDepositNotPaused() {
-        if (depositPaused) revert Function_Is_Paused();
+        if (depositPaused) revert FunctionIsPaused();
         _;
     }
 
@@ -59,7 +59,7 @@ abstract contract RegistryGuardian is BaseGuardian {
      * @inheritdoc BaseGuardian
      */
     function pause() external override onlyGuardian {
-        if (block.timestamp <= pauseTimestamp + 32 days) revert Cannot_Pause();
+        if (block.timestamp <= pauseTimestamp + 32 days) revert CannotPause();
         pauseTimestamp = block.timestamp;
 
         emit PauseFlagsUpdated(withdrawPaused = true, depositPaused = true);
@@ -67,13 +67,13 @@ abstract contract RegistryGuardian is BaseGuardian {
 
     /**
      * @notice This function is used to unpause one or more flags.
-     * @param withdrawPaused_ False when withdraw functionality should be unPaused.
-     * @param depositPaused_ False when deposit functionality should be unPaused.
+     * @param withdrawPaused_ It is false when withdraw functionality should be unPaused.
+     * @param depositPaused_ It is false when deposit functionality should be unPaused.
      * @dev This function can unPause withdraw and deposit individually.
-     * @dev Can only update flags from paused (true) to unPaused (false), cannot be used the other way around
-     * (to set unPaused flags to paused).
+     * @dev Can only update flags from paused (true) to unpaused (false), cannot be used the other way around
+     * (to set unpaused flags to paused).
      */
-    function unPause(bool withdrawPaused_, bool depositPaused_) external onlyOwner {
+    function unpause(bool withdrawPaused_, bool depositPaused_) external onlyOwner {
         emit PauseFlagsUpdated(
             withdrawPaused = withdrawPaused && withdrawPaused_, depositPaused = depositPaused && depositPaused_
         );
@@ -83,8 +83,8 @@ abstract contract RegistryGuardian is BaseGuardian {
      * @inheritdoc BaseGuardian
      * @dev This function is used to unpause withdraw and deposit at the same time.
      */
-    function unPause() external override {
-        if (block.timestamp <= pauseTimestamp + 30 days) revert Cannot_UnPause();
+    function unpause() external override {
+        if (block.timestamp <= pauseTimestamp + 30 days) revert CannotUnpause();
         emit PauseFlagsUpdated(withdrawPaused = false, depositPaused = false);
     }
 }

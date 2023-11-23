@@ -7,9 +7,9 @@ pragma solidity 0.8.19;
 import { FactoryGuardian_Fuzz_Test } from "./_FactoryGuardian.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "unPause" of contract "FactoryGuardian".
+ * @notice Fuzz tests for the function "unpause" of contract "FactoryGuardian".
  */
-contract UnPause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
+contract Unpause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -21,16 +21,16 @@ contract UnPause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_unPause_OnlyOwner(address nonOwner, bool flag) public {
+    function testFuzz_Revert_unpause_OnlyOwner(address nonOwner, bool flag) public {
         vm.assume(nonOwner != users.creatorAddress);
 
         vm.startPrank(nonOwner);
         vm.expectRevert("UNAUTHORIZED");
-        factoryGuardian.unPause(flag);
+        factoryGuardian.unpause(flag);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_unPause(uint256 lastPauseTimestamp, uint256 timePassed, bool initialFlag, bool flag)
+    function testFuzz_Success_unpause(uint256 lastPauseTimestamp, uint256 timePassed, bool initialFlag, bool flag)
         public
     {
         lastPauseTimestamp = bound(lastPauseTimestamp, 32 days + 1, type(uint32).max);
@@ -50,8 +50,8 @@ contract UnPause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test
         // When: A "owner" un-pauses.
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
-        emit PauseUpdate(initialFlag && flag);
-        factoryGuardian.unPause(flag);
+        emit PauseUpdated(initialFlag && flag);
+        factoryGuardian.unpause(flag);
         vm.stopPrank();
 
         // Then: Flags can only be toggled from paused (true) to unpaused (false)
