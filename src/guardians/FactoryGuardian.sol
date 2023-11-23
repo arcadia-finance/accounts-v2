@@ -10,7 +10,7 @@ import { BaseGuardian } from "./BaseGuardian.sol";
 /**
  * @title Factory Guardian
  * @author Pragma Labs
- * @notice This module holds the logic that allows authorized accounts to trigger an emergency stop in the Factory.
+ * @notice Logic inherited by the Factory that allows an authorized guardian to trigger an emergency stop.
  */
 abstract contract FactoryGuardian is BaseGuardian {
     /* //////////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@ abstract contract FactoryGuardian is BaseGuardian {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event PauseFlagUpdated(bool createPauseUpdate);
+    event PauseUpdated(bool createPauseUpdate);
 
     /*
     //////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ abstract contract FactoryGuardian is BaseGuardian {
         createPaused = true;
         pauseTimestamp = block.timestamp;
 
-        emit PauseFlagUpdated(true);
+        emit PauseUpdated(true);
     }
 
     /**
@@ -62,7 +62,7 @@ abstract contract FactoryGuardian is BaseGuardian {
      * @dev This function can unpause the creation of new Accounts.
      */
     function unpause(bool createPaused_) external onlyOwner {
-        emit PauseFlagUpdated(createPaused = createPaused && createPaused_);
+        emit PauseUpdated(createPaused = createPaused && createPaused_);
     }
 
     /**

@@ -60,8 +60,6 @@ abstract contract RegistryGuardian is BaseGuardian {
      */
     function pause() external override onlyGuardian {
         if (block.timestamp <= pauseTimestamp + 32 days) revert CannotPause();
-        withdrawPaused = true;
-        depositPaused = true;
         pauseTimestamp = block.timestamp;
 
         emit PauseFlagsUpdated(withdrawPaused = true, depositPaused = true);
@@ -71,15 +69,14 @@ abstract contract RegistryGuardian is BaseGuardian {
      * @notice This function is used to unpause one or more flags.
      * @param withdrawPaused_ false when withdraw functionality should be unPaused.
      * @param depositPaused_ false when deposit functionality should be unPaused.
-     * @dev This function can unpause all functionalities
-     * @dev Can only update flags from paused (true) to unPaused (false), cannot be used the other way around
-     * (to set unPaused flags to paused).
+     * @dev This function can unPause withdraw and deposit individually.
+     * @dev Can only update flags from paused (true) to unpaused (false), cannot be used the other way around
+     * (to set unpaused flags to paused).
      */
     function unpause(bool withdrawPaused_, bool depositPaused_) external onlyOwner {
-        withdrawPaused = withdrawPaused && withdrawPaused_;
-        depositPaused = depositPaused && depositPaused_;
-
-        emit PauseFlagsUpdated(withdrawPaused, depositPaused);
+        emit PauseFlagsUpdated(
+            withdrawPaused = withdrawPaused && withdrawPaused_, depositPaused = depositPaused && depositPaused_
+        );
     }
 
     /**
@@ -88,9 +85,6 @@ abstract contract RegistryGuardian is BaseGuardian {
      */
     function unpause() external override {
         if (block.timestamp <= pauseTimestamp + 30 days) revert CannotUnpause();
-        withdrawPaused = false;
-        depositPaused = false;
-
-        emit PauseFlagsUpdated(false, false);
+        emit PauseFlagsUpdated(withdrawPaused = false, depositPaused = false);
     }
 }
