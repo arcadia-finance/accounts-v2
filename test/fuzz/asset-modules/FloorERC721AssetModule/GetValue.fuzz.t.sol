@@ -25,7 +25,7 @@ contract GetValue_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
 
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC721.nft2), 0, type(uint128).max, 0, 0
+            address(creditorUsd), address(mockERC721.nft2), 0, type(uint112).max, 0, 0
         );
     }
 

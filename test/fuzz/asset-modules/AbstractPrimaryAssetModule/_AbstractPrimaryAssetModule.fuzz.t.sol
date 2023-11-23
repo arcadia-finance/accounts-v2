@@ -32,8 +32,8 @@ abstract contract AbstractPrimaryAssetModule_Fuzz_Test is Fuzz_Test {
         address creditor;
         address asset;
         uint96 assetId;
-        uint128 exposureAssetLast;
-        uint128 exposureAssetMax;
+        uint112 exposureAssetLast;
+        uint112 exposureAssetMax;
         uint256 usdExposureUpperAssetToAsset;
     }
 

@@ -130,7 +130,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_withdraw_MoreThanMaxExposure(uint256 amountWithdraw, uint128 maxExposure) public {
+    function testFuzz_Revert_withdraw_MoreThanMaxExposure(uint256 amountWithdraw, uint112 maxExposure) public {
         vm.assume(amountWithdraw > maxExposure);
 
         vm.startPrank(users.riskManager);

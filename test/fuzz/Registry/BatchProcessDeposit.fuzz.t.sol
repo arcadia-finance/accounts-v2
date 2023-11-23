@@ -78,7 +78,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_batchProcessDeposit_exposureNotSufficient(uint128 newMaxExposure, uint128 amount) public {
+    function testFuzz_Revert_batchProcessDeposit_exposureNotSufficient(uint112 newMaxExposure, uint112 amount) public {
         vm.assume(newMaxExposure <= amount);
 
         vm.prank(users.riskManager);
@@ -121,8 +121,8 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
     function testFuzz_Revert_batchProcessDeposit_Paused(
         address creditor,
-        uint128 amountToken1,
-        uint128 amountToken2,
+        uint112 amountToken1,
+        uint112 amountToken2,
         address guardian
     ) public {
         // Given: Assets
@@ -151,9 +151,9 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         registryExtension.batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
     }
 
-    function testFuzz_Success_batchProcessDeposit_SingleAsset(uint128 amount) public {
+    function testFuzz_Success_batchProcessDeposit_SingleAsset(uint112 amount) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
-        amount = uint128(bound(amount, 0, type(uint128).max - 1));
+        amount = uint112(bound(amount, 0, type(uint112).max - 1));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -171,14 +171,14 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assertEq(assetTypes[0], 0);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
-        (uint128 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
+        (uint112 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
         assertEq(exposure, amount);
     }
 
-    function testFuzz_Success_batchProcessDeposit_MultipleAssets(uint128 amountToken1, uint128 amountToken2) public {
+    function testFuzz_Success_batchProcessDeposit_MultipleAssets(uint112 amountToken1, uint112 amountToken2) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
-        amountToken1 = uint128(bound(amountToken1, 0, type(uint128).max - 1));
-        amountToken2 = uint128(bound(amountToken2, 0, type(uint128).max - 1));
+        amountToken1 = uint112(bound(amountToken1, 0, type(uint112).max - 1));
+        amountToken2 = uint112(bound(amountToken2, 0, type(uint112).max - 1));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
@@ -200,17 +200,17 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assertEq(assetTypes[1], 0);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
-        (uint128 exposureToken1,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
+        (uint112 exposureToken1,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
         assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));
-        (uint128 exposureToken2,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
+        (uint112 exposureToken2,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
 
         assertEq(exposureToken1, amountToken1);
         assertEq(exposureToken2, amountToken2);
     }
 
-    function testFuzz_Success_batchProcessDeposit_directCall(uint128 amountToken2) public {
+    function testFuzz_Success_batchProcessDeposit_directCall(uint112 amountToken2) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
-        amountToken2 = uint128(bound(amountToken2, 0, type(uint128).max - 1));
+        amountToken2 = uint112(bound(amountToken2, 0, type(uint112).max - 1));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token2);
@@ -226,7 +226,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.stopPrank();
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));
-        (uint128 newExposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
+        (uint112 newExposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
 
         assertEq(newExposure, amountToken2);
     }

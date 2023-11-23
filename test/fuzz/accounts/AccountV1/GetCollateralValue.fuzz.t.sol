@@ -28,9 +28,9 @@ contract GetCollateralValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getCollateralValue(uint128 spotValue, uint8 collateralFactor) public {
+    function testFuzz_Success_getCollateralValue(uint112 spotValue, uint8 collateralFactor) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
-        spotValue = uint128(bound(spotValue, 0, type(uint128).max - 1));
+        spotValue = uint112(bound(spotValue, 0, type(uint112).max - 1));
 
         // Set Spot Value of assets (value of "stable1" is 1:1 the amount of "stable1" tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, spotValue);
@@ -44,7 +44,7 @@ contract GetCollateralValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             address(creditorStable1),
             address(mockERC20.stable1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             collateralFactor,
             uint16(RiskModule.ONE_4)
         );

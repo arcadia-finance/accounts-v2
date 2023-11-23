@@ -26,7 +26,7 @@ contract GetAndUpdateExposureAsset_AbstractDerivedAssetModule_Fuzz_Test is Abstr
         uint256 deltaAsset
     ) public {
         // Given: No overflow on exposureAsset.
-        deltaAsset = bound(deltaAsset, 0, type(uint128).max - assetState.exposureAssetLast);
+        deltaAsset = bound(deltaAsset, 0, type(uint112).max - assetState.exposureAssetLast);
 
         // And: delta is positive (test-case).
         int256 deltaAsset_ = int256(deltaAsset);

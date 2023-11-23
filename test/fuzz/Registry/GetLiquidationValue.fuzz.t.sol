@@ -61,7 +61,7 @@ contract GetLiquidationValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC20.token1), 0, type(uint128).max, 0, liquidationFactor_
+            address(creditorUsd), address(mockERC20.token1), 0, type(uint112).max, 0, liquidationFactor_
         );
 
         address[] memory assetAddresses = new address[](1);

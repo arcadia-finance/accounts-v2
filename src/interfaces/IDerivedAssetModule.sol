@@ -11,5 +11,5 @@ interface IDerivedAssetModule {
      * @param maxUsdExposureProtocol_ The maximum usd exposure of the protocol for each creditor, denominated in USD with 18 decimals precision.
      * @param riskFactor The risk factor of the asset for the creditor, 4 decimals precision.
      */
-    function setRiskParameters(address creditor, uint128 maxUsdExposureProtocol_, uint16 riskFactor) external;
+    function setRiskParameters(address creditor, uint112 maxUsdExposureProtocol_, uint16 riskFactor) external;
 }

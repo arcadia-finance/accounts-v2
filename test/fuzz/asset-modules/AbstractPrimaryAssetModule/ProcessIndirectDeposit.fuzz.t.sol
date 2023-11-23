@@ -53,13 +53,13 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         uint256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: "exposureAssetLast" does not overflow.
-        assetState.exposureAssetLast = uint128(bound(assetState.exposureAssetLast, 0, type(uint128).max - 1));
+        assetState.exposureAssetLast = uint112(bound(assetState.exposureAssetLast, 0, type(uint112).max - 1));
         deltaExposureUpperAssetToAsset =
             bound(deltaExposureUpperAssetToAsset, 1, INT256_MAX - assetState.exposureAssetLast);
         uint256 expectedExposure = assetState.exposureAssetLast + deltaExposureUpperAssetToAsset;
 
         // And: "exposureAsset" is bigger or equal as "exposureAssetMax" (test-case).
-        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, 0, expectedExposure));
+        assetState.exposureAssetMax = uint112(bound(assetState.exposureAssetMax, 0, expectedExposure));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
@@ -88,7 +88,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         if (assetState.exposureAssetLast > deltaExposureUpperAssetToAsset) {
             expectedExposure = assetState.exposureAssetLast - deltaExposureUpperAssetToAsset;
         }
-        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, 0, expectedExposure));
+        assetState.exposureAssetMax = uint112(bound(assetState.exposureAssetMax, 0, expectedExposure));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
@@ -113,12 +113,12 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         uint256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: "exposureAsset" is strictly smaller than "exposureAssetMax" (test-case).
-        assetState.exposureAssetLast = uint128(bound(assetState.exposureAssetLast, 0, type(uint128).max - 2));
+        assetState.exposureAssetLast = uint112(bound(assetState.exposureAssetLast, 0, type(uint112).max - 2));
         deltaExposureUpperAssetToAsset =
-            bound(deltaExposureUpperAssetToAsset, 1, type(uint128).max - assetState.exposureAssetLast - 1);
+            bound(deltaExposureUpperAssetToAsset, 1, type(uint112).max - assetState.exposureAssetLast - 1);
         uint256 expectedExposure = assetState.exposureAssetLast + deltaExposureUpperAssetToAsset;
         assetState.exposureAssetMax =
-            uint128(bound(assetState.exposureAssetMax, expectedExposure + 1, type(uint128).max));
+            uint112(bound(assetState.exposureAssetMax, expectedExposure + 1, type(uint112).max));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
@@ -149,13 +149,13 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         uint256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: deltaExposure is smaller or equal as assetState.exposureAssetLast.
-        assetState.exposureAssetLast = uint128(bound(assetState.exposureAssetLast, 0, type(uint128).max - 1));
+        assetState.exposureAssetLast = uint112(bound(assetState.exposureAssetLast, 0, type(uint112).max - 1));
         deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, 0, assetState.exposureAssetLast);
         uint256 expectedExposure = assetState.exposureAssetLast - deltaExposureUpperAssetToAsset;
 
         // And: "exposureAsset" is strictly smaller than "exposureAssetMax" (test-case).
         assetState.exposureAssetMax =
-            uint128(bound(assetState.exposureAssetMax, expectedExposure + 1, type(uint128).max));
+            uint112(bound(assetState.exposureAssetMax, expectedExposure + 1, type(uint112).max));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
@@ -190,7 +190,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, assetState.exposureAssetLast, INT256_MIN);
 
         // And: "exposureAsset" is strictly smaller than "exposureAssetMax" (test-case).
-        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, 1, type(uint128).max));
+        assetState.exposureAssetMax = uint112(bound(assetState.exposureAssetMax, 1, type(uint112).max));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);

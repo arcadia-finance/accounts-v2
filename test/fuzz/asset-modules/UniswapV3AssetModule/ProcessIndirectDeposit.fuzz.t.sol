@@ -87,13 +87,13 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
-        uint128 maxUsdExposureProtocol,
+        uint112 maxUsdExposureProtocol,
         uint256 priceToken0,
         uint256 priceToken1,
-        uint128 initialExposure0,
-        uint128 initialExposure1,
-        uint128 maxExposure0,
-        uint128 maxExposure1
+        uint112 initialExposure0,
+        uint112 initialExposure1,
+        uint112 maxExposure0,
+        uint112 maxExposure1
     ) public {
         vm.assume(tickLower < tickUpper);
         vm.assume(isWithinAllowedRange(tickLower));
@@ -146,8 +146,8 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
                 uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
-            vm.assume(usdExposureProtocol < type(uint128).max);
-            maxUsdExposureProtocol = uint128(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint128).max));
+            vm.assume(usdExposureProtocol < type(uint112).max);
+            maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
 
         vm.prank(users.riskManager);
