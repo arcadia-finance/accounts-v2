@@ -101,6 +101,7 @@ abstract contract Fuzz_Test is Base_Test {
         vm.assume(fuzzedAddress != address(mockOracles.nft3ToToken1));
         vm.assume(fuzzedAddress != address(mockOracles.sft1ToToken1));
         vm.assume(fuzzedAddress != address(mockOracles.sft2ToUsd));
+        assumeNotForgeAddress(fuzzedAddress);
         _;
     }
 
