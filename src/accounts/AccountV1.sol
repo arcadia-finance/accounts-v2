@@ -507,8 +507,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Calls external action handler to execute and interact with external logic.
-     * @param actionHandler The address of the action handler.
+     * @notice Calls external Action Multicall to execute and interact with external logic.
+     * @param actionHandler The address of the Action Multicall.
      * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
      * The first struct contains the info about the assets to withdraw from this Account to the actionHandler.
      * The second struct contains the info about the owner's assets that are not in this Account and need to be transferred to the actionHandler.

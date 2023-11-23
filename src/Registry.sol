@@ -26,7 +26,7 @@ import { RegistryErrors } from "./libraries/Errors.sol";
  *  - It orchestrates the pricing of a basket of assets in a single unit of account.
  *  - It orchestrates deposits and withdrawals of an Account per Creditor.
  *  - It manages the risk parameters of all assets per Creditor.
- *  - It manages the action handlers.
+ *  - It manages the Action Multicall.
  */
 contract Registry is IRegistry, RegistryGuardian {
     using BitPackingLib for bytes32;
@@ -131,8 +131,8 @@ contract Registry is IRegistry, RegistryGuardian {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Sets an allowance of an action handler.
-     * @param action The contract address of the action handler.
+     * @notice Sets an allowance of an Action Multicall
+     * @param action The contract address of the Action Multicall.
      * @param allowed Bool to indicate its status.
      * @dev Can only be called by owner.
      */
