@@ -210,6 +210,8 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         (uint256 fee0, uint256 fee1) = _getFeeAmounts(assetId);
 
         // ToDo: fee should be capped to a max compared to principal to avoid circumventing caps via fees on new pools.
+        fee0 = fee0 > principal0 ? principal0 : fee0;
+        fee1 = fee1 > principal1 ? principal1 : fee1;
 
         underlyingAssetsAmounts = new uint256[](2);
         unchecked {
@@ -423,5 +425,59 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
+    }
+
+    /**
+     * @notice Decreases the exposure to an asset on a direct withdrawal.
+     * @param creditor The contract address of the Creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @param amount The amount of tokens.
+     * @dev super.processDirectWithdrawal
+     */
+    function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
+        public
+        override
+    {
+        super.processDirectWithdrawal(creditor, asset, assetId, amount);
+
+        // If the asset is fully withdrawn, remove it from the mapping.
+        (,,,,,,, uint128 liquidity,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
+
+        if (liquidity == 0) {
+            delete assetToLiquidity[assetId];
+            delete assetToUnderlyingAssets[_getKeyFromAsset(asset, assetId)];
+        }
+    }
+
+    /**
+     * @notice Decreases the exposure to an asset on an indirect withdrawal.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
+     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
+     * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     * @dev super.processIndirectWithdrawal
+     */
+    function processIndirectWithdrawal(
+        address creditor,
+        address asset,
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public override returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+        (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectWithdrawal(
+            creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
+
+        // If the asset is fully withdrawn, remove it from the mapping.
+        (,,,,,,, uint128 liquidity,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
+
+        if (liquidity == 0) {
+            delete assetToLiquidity[assetId];
+            delete assetToUnderlyingAssets[_getKeyFromAsset(asset, assetId)];
+        }
     }
 }
