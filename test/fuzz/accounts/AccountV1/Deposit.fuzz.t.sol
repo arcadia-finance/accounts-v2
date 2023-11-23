@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+import { AssetModuleMock } from "../../../utils/mocks/AssetModuleMock.sol";
 
 /**
  * @notice Fuzz tests for the function "deposit" of contract "AccountV1".
@@ -172,7 +173,11 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_deposit_UnknownAssetType(uint96 assetType) public {
         vm.assume(assetType >= 3);
 
-        registryExtension.setAssetType(address(mockERC20.token1), assetType);
+        vm.startPrank(users.creatorAddress);
+        AssetModuleMock assetModule = new AssetModuleMock(address(registryExtension), assetType);
+        registryExtension.addAssetModule(address(assetModule));
+        vm.stopPrank();
+        registryExtension.setAssetToAssetModule(address(mockERC20.token1), address(assetModule));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);

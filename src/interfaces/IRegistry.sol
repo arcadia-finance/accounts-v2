@@ -28,16 +28,6 @@ interface IRegistry {
     function isActionAllowed(address action) external view returns (bool);
 
     /**
-     * @notice Adds a new asset to the Registry.
-     * @param asset The contract address of the asset.
-     * @param assetType Identifier for the type of the asset:
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155.
-     */
-    function addAsset(address asset, uint256 assetType) external;
-
-    /**
      * @notice Batch deposit multiple assets.
      * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.

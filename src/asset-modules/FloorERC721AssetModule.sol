@@ -63,7 +63,7 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
         if (idRangeStart > idRangeEnd) revert Invalid_Range();
         if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert Bad_Oracle_Sequence();
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(asset, ASSET_TYPE);
+        IRegistry(REGISTRY).addAsset(asset);
 
         inAssetModule[asset] = true;
 

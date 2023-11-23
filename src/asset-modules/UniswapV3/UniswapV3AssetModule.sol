@@ -80,7 +80,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         inAssetModule[NON_FUNGIBLE_POSITION_MANAGER] = true;
 
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(NON_FUNGIBLE_POSITION_MANAGER, ASSET_TYPE);
+        IRegistry(REGISTRY).addAsset(NON_FUNGIBLE_POSITION_MANAGER);
     }
 
     /**

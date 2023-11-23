@@ -46,7 +46,7 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
             if (assetToInformation[_getKeyFromAsset(asset, assetId)].assetUnit != 0) revert Asset_Already_In_AM();
         } else {
             // New contract address.
-            IRegistry(REGISTRY).addAsset(asset, ASSET_TYPE);
+            IRegistry(REGISTRY).addAsset(asset);
             inAssetModule[asset] = true;
         }
         if (assetId > type(uint96).max) revert Invalid_Id();

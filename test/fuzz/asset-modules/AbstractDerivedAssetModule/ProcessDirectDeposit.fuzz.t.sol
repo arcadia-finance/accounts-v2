@@ -58,10 +58,10 @@ contract ProcessDirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDe
 
         // When: "Registry" calls "processDirectDeposit".
         vm.prank(address(registryExtension));
-        derivedAssetModule.processDirectDeposit(
+        uint256 assetType = derivedAssetModule.processDirectDeposit(
             assetState.creditor, assetState.asset, assetState.assetId, uint256(amount)
         );
 
-        // Then: Transaction does not revert.
+        assertEq(assetType, 0);
     }
 }

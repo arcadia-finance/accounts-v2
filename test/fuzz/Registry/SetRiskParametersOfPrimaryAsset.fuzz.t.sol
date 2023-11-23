@@ -52,7 +52,7 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         collateralFactor = uint16(bound(collateralFactor, 1, RiskModule.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, 0, collateralFactor - 1));
 
-        registryExtension.setAssetModuleForAsset(asset, address(primaryAssetModule));
+        registryExtension.setAssetToAssetModule(asset, address(primaryAssetModule));
 
         vm.prank(users.riskManager);
         vm.expectRevert(PrimaryAssetModule.CollFactorExceedsLiqFactor.selector);
@@ -71,7 +71,7 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         collateralFactor = uint16(bound(collateralFactor, 0, RiskModule.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, RiskModule.ONE_4));
 
-        registryExtension.setAssetModuleForAsset(asset, address(primaryAssetModule));
+        registryExtension.setAssetToAssetModule(asset, address(primaryAssetModule));
 
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(

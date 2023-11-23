@@ -84,8 +84,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
         assertEq(end_, end);
 
         assertTrue(registryExtension.inRegistry(address(mockERC721.nft2)));
-        (uint96 assetType_, address assetModule) = registryExtension.assetToAssetInformation(address(mockERC721.nft2));
-        assertEq(assetType_, 1);
+        address assetModule = registryExtension.assetToAssetModule(address(mockERC721.nft2));
         assertEq(assetModule, address(floorERC721AssetModule));
     }
 }

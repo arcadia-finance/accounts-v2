@@ -94,7 +94,7 @@ contract UniswapV2AssetModule is DerivedAssetModule {
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(asset, ASSET_TYPE);
+        IRegistry(REGISTRY).addAsset(asset);
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -88,8 +88,7 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
         assertEq(oracles, oraclesToken4ToUsd);
 
         assertTrue(registryExtension.inRegistry(address(mockERC20.token4)));
-        (uint96 assetType_, address assetModule) = registryExtension.assetToAssetInformation(address(mockERC20.token4));
-        assertEq(assetType_, 0);
+        address assetModule = registryExtension.assetToAssetModule(address(mockERC20.token4));
         assertEq(assetModule, address(erc20AssetModule));
     }
 }

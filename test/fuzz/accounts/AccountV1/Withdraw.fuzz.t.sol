@@ -10,6 +10,7 @@ import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { AccountExtension } from "../../../utils/Extensions.sol";
+import { AssetModuleMock } from "../../../utils/mocks/AssetModuleMock.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
@@ -108,7 +109,11 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_withdraw_UnknownAssetType(uint96 assetType) public {
         vm.assume(assetType >= 3);
 
-        registryExtension.setAssetType(address(mockERC20.token1), assetType);
+        vm.startPrank(users.creatorAddress);
+        AssetModuleMock assetModule = new AssetModuleMock(address(registryExtension), assetType);
+        registryExtension.addAssetModule(address(assetModule));
+        vm.stopPrank();
+        registryExtension.setAssetToAssetModule(address(mockERC20.token1), address(assetModule));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
