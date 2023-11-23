@@ -290,8 +290,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      */
     function closeMarginAccount() external onlyOwner {
         if (!isCreditorSet) revert AccountErrors.CreditorNotSet();
-        // getOpenPosition() is a view function, cannot modify state.
-        if (ICreditor(creditor).getOpenPosition(address(this)) != 0) revert AccountErrors.NonZeroOpenPosition();
+        // closeMarginAccount() checks if there is still open position. If so, reverts.
+        ICreditor(creditor).closeMarginAccount(address(this));
 
         isCreditorSet = false;
         creditor = address(0);
