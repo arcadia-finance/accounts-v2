@@ -390,9 +390,7 @@ contract Registry is IRegistry, RegistryGuardian {
         assetTypes = new uint256[](addrLength);
         for (uint256 i; i < addrLength;) {
             assetAddress = assetAddresses[i];
-            assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
-
-            IAssetModule(assetToAssetInformation[assetAddress].assetModule).processDirectDeposit(
+            assetTypes[i] = IAssetModule(assetToAssetInformation[assetAddress].assetModule).processDirectDeposit(
                 creditor, assetAddress, assetIds[i], amounts[i]
             );
 
@@ -428,9 +426,7 @@ contract Registry is IRegistry, RegistryGuardian {
         assetTypes = new uint256[](addrLength);
         for (uint256 i; i < addrLength;) {
             assetAddress = assetAddresses[i];
-            assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
-
-            IAssetModule(assetToAssetInformation[assetAddress].assetModule).processDirectWithdrawal(
+            assetTypes[i] = IAssetModule(assetToAssetInformation[assetAddress].assetModule).processDirectWithdrawal(
                 creditor, assetAddress, assetIds[i], amounts[i]
             );
 

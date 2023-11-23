@@ -322,12 +322,18 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
+     * @return assetType Identifier for the type of the asset:
+     * 0 = ERC20.
+     * 1 = ERC721.
+     * 2 = ERC1155
+     * ...
      */
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         virtual
         override
         onlyRegistry
+        returns (uint256 assetType)
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -335,6 +341,8 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 exposureAsset = _getAndUpdateExposureAsset(creditor, assetKey, int256(amount));
 
         _processDeposit(creditor, assetKey, exposureAsset);
+
+        assetType = ASSET_TYPE;
     }
 
     /**
@@ -377,12 +385,18 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
+     * @return assetType Identifier for the type of the asset:
+     * 0 = ERC20.
+     * 1 = ERC721.
+     * 2 = ERC1155
+     * ...
      */
     function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         virtual
         override
         onlyRegistry
+        returns (uint256 assetType)
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -390,6 +404,8 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 exposureAsset = _getAndUpdateExposureAsset(creditor, assetKey, -int256(amount));
 
         _processWithdrawal(creditor, assetKey, exposureAsset);
+
+        assetType = ASSET_TYPE;
     }
 
     /**

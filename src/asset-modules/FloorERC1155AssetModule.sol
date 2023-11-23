@@ -83,15 +83,21 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
+     * @return assetType Identifier for the type of the asset:
+     * 0 = ERC20.
+     * 1 = ERC721.
+     * 2 = ERC1155
+     * ...
      */
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         override
         onlyRegistry
+        returns (uint256 assetType)
     {
         if (!isAllowed(asset, assetId)) revert Asset_Not_Allowed();
 
-        super.processDirectDeposit(creditor, asset, assetId, amount);
+        return super.processDirectDeposit(creditor, asset, assetId, amount);
     }
 
     /**
