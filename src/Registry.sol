@@ -20,17 +20,17 @@ import { RegistryErrors } from "./libraries/Errors.sol";
 /**
  * @title Registry
  * @author Pragma Labs
- * @notice The Registry has a number of responsibilities, all related to the management of assets and oracles:
+ * @notice The Registry has a number of responsibilities, all related to the management of Assets and Oracles:
  *  - It stores the mapping between assets and their respective Asset Modules.
  *  - It stores the mapping between oracles and their respective Oracle Modules.
  *  - It orchestrates the pricing of a basket of assets in a single unit of account.
- *  - It orchestrates deposits and withdrawals of an Account per certain Creditor.
+ *  - It orchestrates deposits and withdrawals of an Account per Creditor.
  *  - It manages the risk parameters of all assets per Creditor.
  *  - It manages the action handlers.
  */
 contract Registry is IRegistry, RegistryGuardian {
-    using FixedPointMathLib for uint256;
     using BitPackingLib for bytes32;
+    using FixedPointMathLib for uint256;
 
     /* //////////////////////////////////////////////////////////////
                                CONSTANTS
@@ -74,13 +74,22 @@ contract Registry is IRegistry, RegistryGuardian {
     ////////////////////////////////////////////////////////////// */
 
     event AllowedActionSet(address indexed action, bool allowed);
-    event AssetModuleAdded(address assetModule);
-    event OracleModuleAdded(address oracleModule);
     event AssetAdded(address indexed assetAddress, address indexed assetModule, uint96 indexed assetType);
+    event AssetModuleAdded(address assetModule);
+    event OracleAdded(uint256 indexed oracleId, address indexed oracleModule);
+    event OracleModuleAdded(address oracleModule);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
+
+    /**
+     * @dev Only Accounts can call functions with this modifier.
+     */
+    modifier onlyAccount() {
+        if (!IFactory(FACTORY).isAccount(msg.sender)) revert RegistryErrors.Only_Account();
+        _;
+    }
 
     /**
      * @dev Only Asset Modules can call functions with this modifier.
@@ -95,14 +104,6 @@ contract Registry is IRegistry, RegistryGuardian {
      */
     modifier onlyOracleModule() {
         if (!isOracleModule[msg.sender]) revert RegistryErrors.Only_OracleModule();
-        _;
-    }
-
-    /**
-     * @dev Only Accounts can call functions with this modifier.
-     */
-    modifier onlyAccount() {
-        if (!IFactory(FACTORY).isAccount(msg.sender)) revert RegistryErrors.Only_Account();
         _;
     }
 
@@ -214,7 +215,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @return oracleId Unique identifier of the oracle.
      */
     function addOracle() external onlyOracleModule returns (uint256 oracleId) {
-        // Get latest id.
+        // Get next id.
         oracleId = oracleCounter;
 
         oracleToOracleModule[oracleId] = msg.sender;
@@ -222,6 +223,8 @@ contract Registry is IRegistry, RegistryGuardian {
         unchecked {
             ++oracleCounter;
         }
+
+        emit OracleAdded(oracleId, msg.sender);
     }
 
     /**
@@ -231,7 +234,6 @@ contract Registry is IRegistry, RegistryGuardian {
      * @return A boolean, indicating if the sequence complies with the set of criteria.
      * @dev The following checks are performed:
      * - The oracle must be previously added to the Registry and must still be active.
-     * - ToDo The first asset of the first oracle must be the asset being priced.
      * - The last asset of oracles (except for the last oracle) must be equal to the first asset of the next oracle.
      * - The last asset of the last oracle must be USD.
      */
@@ -253,7 +255,6 @@ contract Registry is IRegistry, RegistryGuardian {
             (baseAsset, quoteAsset) = IOracleModule(oracleModule).assetPair(oracles[i]);
 
             if (i == 0) {
-                // ToDo: check if first asset matches the asset to be priced?
                 lastAsset = baseToQuoteAsset[i] ? quoteAsset : baseAsset;
             } else {
                 // Last asset of an oracle must match with the first asset of the next oracle.
@@ -541,7 +542,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param assets Array of the contract addresses of the assets.
      * @param assetIds Array of the ids of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @return valuesAndRiskFactors The values of the assets denominated in USD () with 18 Decimals precision)
+     * @return valuesAndRiskFactors The values of the assets, denominated in USD with 18 Decimals precision
      * and the corresponding risk factors for each asset for the given Creditor.
      */
     function getValuesInUsd(

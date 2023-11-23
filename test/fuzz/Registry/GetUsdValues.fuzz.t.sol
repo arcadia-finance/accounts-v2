@@ -57,7 +57,7 @@ contract GetUsdValues_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint16 liquidationFactor
     ) public {
         collateralFactor = uint16(bound(collateralFactor, 0, RiskModule.ONE_4));
-        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskModule.ONE_4));
+        liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, RiskModule.ONE_4));
 
         registryExtension.setAssetModuleForAsset(asset, address(primaryAssetModule));
         primaryAssetModule.setUsdValue(usdValue);
@@ -93,7 +93,7 @@ contract GetUsdValues_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint16 liquidationFactor
     ) public {
         collateralFactor = uint16(bound(collateralFactor, 0, RiskModule.ONE_4));
-        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskModule.ONE_4));
+        liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, RiskModule.ONE_4));
         minUsdValue = bound(minUsdValue, uint256(usdValue) + 1, type(uint256).max);
 
         registryExtension.setAssetModuleForAsset(asset, address(primaryAssetModule));

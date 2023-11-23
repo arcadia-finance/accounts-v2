@@ -42,8 +42,8 @@ contract GetRiskFactors_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         riskFactor = uint16(bound(riskFactor, 0, RiskModule.ONE_4));
         collateralFactors[0] = uint16(bound(collateralFactors[0], 0, RiskModule.ONE_4));
         collateralFactors[1] = uint16(bound(collateralFactors[1], 0, RiskModule.ONE_4));
-        liquidationFactors[0] = uint16(bound(liquidationFactors[0], 0, RiskModule.ONE_4));
-        liquidationFactors[1] = uint16(bound(liquidationFactors[1], 0, RiskModule.ONE_4));
+        liquidationFactors[0] = uint16(bound(liquidationFactors[0], collateralFactors[0], RiskModule.ONE_4));
+        liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], RiskModule.ONE_4));
 
         // And: Underlying assets are in primaryAssetModule.
         registryExtension.setAssetModuleForAsset(underlyingAssets[0], address(primaryAssetModule));
