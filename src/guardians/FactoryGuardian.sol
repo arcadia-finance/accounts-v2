@@ -21,6 +21,12 @@ abstract contract FactoryGuardian is BaseGuardian {
     bool public createPaused;
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    error FunctionNotImplemented();
+
+    /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
@@ -66,8 +72,9 @@ abstract contract FactoryGuardian is BaseGuardian {
     }
 
     /**
-     * @notice This function is not implemented. If someone would ever need to call this function, it means
-     * that the protocol can't be trusted anymore. No reason to create be able to create an Account.
+     * @notice This function is not implemented. No reason to be able to create an Account if the owner of the Factory is not able to unpause createAccount().
      */
-    function unpause() external override onlyOwner { }
+    function unpause() external pure override {
+        revert FunctionNotImplemented();
+    }
 }
