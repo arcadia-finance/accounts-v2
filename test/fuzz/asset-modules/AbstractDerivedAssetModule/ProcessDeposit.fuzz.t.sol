@@ -60,9 +60,9 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // When: "_processDeposit" is called.
-        // Then: The transaction reverts with AssetModule.Exposure_Not_In_Limits.selector.
+        // Then: The transaction reverts with AssetModule.ExposureNotInLimits.selector.
         bytes32 assetKey = derivedAssetModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
+        vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         derivedAssetModule.processDeposit(assetState.creditor, assetKey, exposureAsset);
     }
 
@@ -97,9 +97,9 @@ contract ProcessDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // When: "_processDeposit" is called.
-        // Then: The transaction reverts with AssetModule.Exposure_Not_In_Limits.selector.
+        // Then: The transaction reverts with AssetModule.ExposureNotInLimits.selector.
         bytes32 assetKey = derivedAssetModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
+        vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         derivedAssetModule.processDeposit(assetState.creditor, assetKey, exposureAsset);
     }
 

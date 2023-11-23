@@ -35,7 +35,7 @@ contract AddAsset_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz_Te
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), tokenId, position);
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert(AssetModule.Invalid_Id.selector);
+        vm.expectRevert(UniswapV3AssetModule.InvalidId.selector);
         uniV3AssetModule.addAsset(tokenId);
         vm.stopPrank();
     }

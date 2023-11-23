@@ -33,9 +33,9 @@ contract ProcessDirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPr
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is deposited.
-        // Then: The transaction reverts with AssetModule.Only_Registry.selector.
+        // Then: The transaction reverts with AssetModule.OnlyRegistry.selector.
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert(AssetModule.Only_Registry.selector);
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         assetModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }
@@ -55,9 +55,9 @@ contract ProcessDirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPr
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is deposited.
-        // Then: The transaction reverts with AssetModule.Exposure_Not_In_Limits.selector.
+        // Then: The transaction reverts with AssetModule.ExposureNotInLimits.selector.
         vm.startPrank(address(registryExtension));
-        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
+        vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         assetModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }

@@ -33,9 +33,9 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstrac
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is withdrawn.
-        // Then: The transaction reverts with AssetModule.Only_Registry.selector.
+        // Then: The transaction reverts with AssetModule.OnlyRegistry.selector.
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert(AssetModule.Only_Registry.selector);
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }

@@ -4,9 +4,9 @@
  */
 pragma solidity 0.8.19;
 
+import { AssetModule } from "./AbstractAssetModule.sol";
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
-import { AssetModule } from "./AbstractAssetModule.sol";
 import { RiskModule } from "../RiskModule.sol";
 
 /**
@@ -56,6 +56,12 @@ abstract contract DerivedAssetModule is AssetModule {
         // The exposure in USD of the Creditor to the asset at the last interaction, 18 decimals precision.
         uint112 lastUsdExposureAsset;
     }
+
+    /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    error RiskFactorNotInLimits();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -211,7 +217,7 @@ abstract contract DerivedAssetModule is AssetModule {
         external
         onlyRegistry
     {
-        if (riskFactor > RiskModule.ONE_4) revert AssetModule.Risk_Factor_Not_In_Limits();
+        if (riskFactor > RiskModule.ONE_4) revert RiskFactorNotInLimits();
 
         riskParams[creditor].maxUsdExposureProtocol = maxUsdExposureProtocol_;
         riskParams[creditor].riskFactor = riskFactor;
@@ -349,6 +355,8 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     * @dev An indirect deposit, is initiated by a deposit of another derived asset (the upper asset),
+     * from which the asset of this Asset Module is an underlying asset.
      */
     function processIndirectDeposit(
         address creditor,
@@ -412,6 +420,8 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     * @dev An indirect withdrawal, is initiated by a withdrawal of another derived asset (the upper asset),
+     * from which the asset of this Asset Module is an underlying asset.
      */
     function processIndirectWithdrawal(
         address creditor,
@@ -443,6 +453,8 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param assetKey The unique identifier of the asset.
      * @param exposureAsset The updated exposure to the asset.
      * @return usdExposureAsset The USD value of the exposure of the asset, 18 decimals precision.
+     * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
+     * Underflows (due to rounding errors or bugs) should not revert, but the exposure is instead set to 0.
      */
     function _processDeposit(address creditor, bytes32 assetKey, uint256 exposureAsset)
         internal
@@ -489,7 +501,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
         // Cache and update lastUsdExposureAsset.
         uint256 lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
-        lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint112(usdExposureAsset);
+        lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint112(usdExposureAsset); // ToDo safecast.
 
         // Cache lastUsdExposureProtocol.
         uint256 lastUsdExposureProtocol = riskParams[creditor].lastUsdExposureProtocol;
@@ -505,8 +517,10 @@ abstract contract DerivedAssetModule is AssetModule {
             // For the else case: (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset),
             // usdExposureProtocol is set to 0, but usdExposureProtocol is already 0.
         }
+        // The exposure must be strictly smaller as the maxExposure, not equal or smaller than.
+        // This is to ensure that all deposits revert when maxExposure is set to 0, also deposits with 0 amounts.
         if (usdExposureProtocol >= riskParams[creditor].maxUsdExposureProtocol) {
-            revert AssetModule.Exposure_Not_In_Limits();
+            revert AssetModule.ExposureNotInLimits();
         }
         riskParams[creditor].lastUsdExposureProtocol = uint112(usdExposureProtocol);
     }
@@ -517,6 +531,8 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param assetKey The unique identifier of the asset.
      * @param exposureAsset The updated exposure to the asset.
      * @return usdExposureAsset The USD value of the exposure of the asset, 18 decimals precision.
+     * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
+     * Underflows (due to rounding errors or bugs) should not revert, but the exposure is instead set to 0.
      */
     function _processWithdrawal(address creditor, bytes32 assetKey, uint256 exposureAsset)
         internal
@@ -589,6 +605,8 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param assetKey The unique identifier of the asset.
      * @param deltaAsset The increase or decrease in asset amount since the last interaction.
      * @return exposureAsset The updated exposure to the asset.
+     * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
+     * Underflows (due to rounding errors or bugs) should not revert, but the exposure is instead set to 0.
      */
     function _getAndUpdateExposureAsset(address creditor, bytes32 assetKey, int256 deltaAsset)
         internal
@@ -601,6 +619,6 @@ abstract contract DerivedAssetModule is AssetModule {
             uint256 exposureAssetLast = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
             exposureAsset = exposureAssetLast > uint256(-deltaAsset) ? exposureAssetLast - uint256(-deltaAsset) : 0;
         }
-        lastExposuresAsset[creditor][assetKey].lastExposureAsset = uint112(exposureAsset);
+        lastExposuresAsset[creditor][assetKey].lastExposureAsset = uint112(exposureAsset); // ToDo safecast.
     }
 }

@@ -79,7 +79,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         vm.startPrank(unprivilegedAddress);
-        vm.expectRevert(AssetModule.Only_Registry.selector);
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         uniV3AssetModule.processDirectDeposit(creditor, address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
@@ -158,7 +158,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
+        vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
@@ -215,7 +215,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1), initialExposure1, maxExposure1);
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
+        vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
@@ -293,7 +293,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         );
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
+        vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }

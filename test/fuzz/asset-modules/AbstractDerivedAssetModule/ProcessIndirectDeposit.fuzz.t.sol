@@ -32,7 +32,7 @@ contract ProcessIndirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is Abstract
         vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert(AssetModule.Only_Registry.selector);
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         derivedAssetModule.processIndirectDeposit(
             creditor, asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );

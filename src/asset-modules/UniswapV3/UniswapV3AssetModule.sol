@@ -52,6 +52,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
+    error InvalidId();
     error ZeroLiquidity();
 
     /* //////////////////////////////////////////////////////////////
@@ -90,7 +91,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * but a different id.
      */
     function _addAsset(uint256 assetId) internal {
-        if (assetId > type(uint96).max) revert Invalid_Id();
+        if (assetId > type(uint96).max) revert InvalidId();
 
         (,, address token0, address token1,,,, uint128 liquidity,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
 
