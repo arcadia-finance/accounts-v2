@@ -6,5 +6,6 @@ pragma solidity 0.8.19;
 
 /// @notice Abstract contract containing all the errors emitted by the protocol.
 abstract contract Errors {
-    error Function_Is_Paused();
+    error FunctionIsPaused();
+    error FunctionNotImplemented();
 }
