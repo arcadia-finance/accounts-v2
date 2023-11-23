@@ -448,8 +448,9 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         override
+        returns (uint256 assetType)
     {
-        super.processDirectWithdrawal(creditor, asset, assetId, amount);
+        assetType = super.processDirectWithdrawal(creditor, asset, assetId, amount);
 
         // If the asset is withdrawn, remove its from the mapping.
         // If we keep the liquidity of the asset in storage,
