@@ -442,11 +442,10 @@ abstract contract DerivedAssetModule is AssetModule {
             _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
 
         int256 deltaExposureAssetToUnderlyingAsset;
-        uint256 length = underlyingAssetKeys.length;
         address underlyingAsset;
         uint256 underlyingId;
 
-        for (uint256 i; i < length;) {
+        for (uint256 i; i < underlyingAssetKeys.length;) {
             // Calculate the change in exposure to the underlying assets since last interaction.
             deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
                 - int256(uint256(lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]]));
@@ -516,11 +515,10 @@ abstract contract DerivedAssetModule is AssetModule {
             _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
 
         int256 deltaExposureAssetToUnderlyingAsset;
-        uint256 length = underlyingAssetKeys.length;
         address underlyingAsset;
         uint256 underlyingId;
 
-        for (uint256 i; i < length;) {
+        for (uint256 i; i < underlyingAssetKeys.length;) {
             // Calculate the change in exposure to the underlying assets since last interaction.
             deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
                 - int256(uint256(lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]]));
