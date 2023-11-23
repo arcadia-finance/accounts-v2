@@ -64,6 +64,12 @@ abstract contract PrimaryAssetModule is AssetModule {
     event MaxExposureSet(address indexed asset, uint128 maxExposure);
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    error CollFactorExceedsLiqFactor();
+
+    /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
@@ -176,6 +182,7 @@ abstract contract PrimaryAssetModule is AssetModule {
     ) external onlyRegistry {
         if (collateralFactor > ONE_4) revert Coll_Factor_Not_In_Limits();
         if (liquidationFactor > ONE_4) revert Liq_Factor_Not_In_Limits();
+        if (collateralFactor > liquidationFactor) revert CollFactorExceedsLiqFactor();
 
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 

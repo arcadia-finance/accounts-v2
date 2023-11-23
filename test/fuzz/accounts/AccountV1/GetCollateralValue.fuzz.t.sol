@@ -41,7 +41,12 @@ contract GetCollateralValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Set Collateral factor of "stable1" for "stable1" to "collateralFactor".
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorStable1), address(mockERC20.stable1), 0, type(uint128).max, collateralFactor, 0
+            address(creditorStable1),
+            address(mockERC20.stable1),
+            0,
+            type(uint128).max,
+            collateralFactor,
+            uint16(RiskModule.ONE_4)
         );
 
         uint256 expectedValue = uint256(spotValue) * collateralFactor / RiskModule.ONE_4;

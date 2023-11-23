@@ -61,12 +61,13 @@ abstract contract Events {
     event PauseFlagsUpdated(bool withdrawPauseUpdate, bool depositPauseUpdate);
 
     /*//////////////////////////////////////////////////////////////////////////
-                                  MAIN REGISTRY
+                                   REGISTRY
     //////////////////////////////////////////////////////////////////////////*/
 
     event AllowedActionSet(address indexed action, bool allowed);
     event AssetAdded(address indexed assetAddress, address indexed assetModule, uint96 indexed assetType);
     event AssetModuleAdded(address assetModule);
+    event OracleAdded(uint256 indexed oracleId, address indexed oracleModule);
     event OracleModuleAdded(address oracleModule);
 
     /*//////////////////////////////////////////////////////////////////////////

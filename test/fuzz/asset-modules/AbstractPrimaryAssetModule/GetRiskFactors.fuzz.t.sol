@@ -33,7 +33,7 @@ contract GetRiskFactors_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrimaryA
     ) public {
         // And: Risk factors are below max risk factor.
         collateralFactor = uint16(bound(collateralFactor, 0, RiskModule.ONE_4));
-        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskModule.ONE_4));
+        liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, RiskModule.ONE_4));
 
         // And: Underlying asset is in primaryAssetModule.
         vm.prank(address(registryExtension));
