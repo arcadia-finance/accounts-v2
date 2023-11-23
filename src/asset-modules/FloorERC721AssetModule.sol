@@ -63,7 +63,7 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
         if (idRangeStart > idRangeEnd) revert Invalid_Range();
         if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert Bad_Oracle_Sequence();
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(asset, ASSET_TYPE);
+        IRegistry(REGISTRY).addAsset(asset);
 
         inAssetModule[asset] = true;
 
@@ -149,14 +149,23 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * param amount The amount of tokens.
+     * @return assetType Identifier for the type of the asset:
+     * 0 = ERC20.
+     * 1 = ERC721.
+     * 2 = ERC1155
+     * ...
      * @dev amount of a deposit in ERC721 asset module must be 1.
      * @dev super.processDirectDeposit does check that msg.sender is the Registry.
      */
-    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256) public override {
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256)
+        public
+        override
+        returns (uint256 assetType)
+    {
         if (!isAllowed(asset, assetId)) revert Asset_Not_Allowed();
 
         // Also checks that msg.sender == Registry.
-        super.processDirectDeposit(creditor, asset, assetId, 1);
+        return super.processDirectDeposit(creditor, asset, assetId, 1);
     }
 
     /**

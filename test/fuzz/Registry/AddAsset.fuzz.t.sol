@@ -30,7 +30,7 @@ contract AddAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // When: unprivilegedAddress_ calls addAsset
         // Then: addAsset should revert with RegistryErrors.Only_AssetModule.selector
         vm.expectRevert(RegistryErrors.Only_AssetModule.selector);
-        registryExtension.addAsset(asset, 0);
+        registryExtension.addAsset(asset);
         vm.stopPrank();
     }
 
@@ -41,35 +41,22 @@ contract AddAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // When: floorERC721AssetModule calls addAsset
         // Then: addAsset should revert with RegistryErrors.Asset_Already_In_Registry.selector
         vm.expectRevert(RegistryErrors.Asset_Already_In_Registry.selector);
-        registryExtension.addAsset(address(mockERC20.token1), 0);
+        registryExtension.addAsset(address(mockERC20.token1));
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_addAsset_InvalidAssetType(address newAsset, uint256 assetType) public {
-        vm.assume(registryExtension.inRegistry(newAsset) == false);
-        vm.assume(assetType > type(uint96).max);
-
-        // When: erc20AssetModule calls addAsset with assetType greater than uint96.max
-        // Then: addAsset should revert with "MR_AA: Invalid AssetType"
-        vm.startPrank(address(erc20AssetModule));
-        vm.expectRevert(RegistryErrors.Invalid_AssetType.selector);
-        registryExtension.addAsset(newAsset, assetType);
-        vm.stopPrank();
-    }
-
-    function testFuzz_Success_addAsset(address newAsset, uint96 assetType) public {
+    function testFuzz_Success_addAsset(address newAsset) public {
         vm.assume(registryExtension.inRegistry(newAsset) == false);
         // When: erc20AssetModule calls addAsset with input of address(eth)
         vm.startPrank(address(erc20AssetModule));
         vm.expectEmit();
-        emit AssetAdded(newAsset, address(erc20AssetModule), assetType);
-        registryExtension.addAsset(newAsset, assetType);
+        emit AssetAdded(newAsset, address(erc20AssetModule));
+        registryExtension.addAsset(newAsset);
         vm.stopPrank();
 
         // Then: inRegistry for address(eth) should return true
         assertTrue(registryExtension.inRegistry(newAsset));
-        (uint96 assetType_, address assetModule) = registryExtension.assetToAssetInformation(newAsset);
-        assertEq(assetType_, assetType);
+        address assetModule = registryExtension.assetToAssetModule(newAsset);
         assertEq(assetModule, address(erc20AssetModule));
     }
 }

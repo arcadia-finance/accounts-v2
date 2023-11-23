@@ -80,7 +80,10 @@ contract ProcessDirectDeposit_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155A
         );
 
         vm.prank(address(registryExtension));
-        floorERC1155AssetModule.processDirectDeposit(address(creditorUsd), address(mockERC1155.sft2), 1, amount);
+        uint256 assetType =
+            floorERC1155AssetModule.processDirectDeposit(address(creditorUsd), address(mockERC1155.sft2), 1, amount);
+
+        assertEq(assetType, 2);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft2)));
         (uint128 actualExposure,,,) = floorERC1155AssetModule.riskParams(address(creditorUsd), assetKey);

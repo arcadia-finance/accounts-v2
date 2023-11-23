@@ -45,8 +45,15 @@ interface IAssetModule {
      * @param asset The contract address of the asset.
      * @param id The Id of the asset.
      * @param amount The amount of tokens.
+     * @return assetType Identifier for the type of the asset:
+     * 0 = ERC20.
+     * 1 = ERC721.
+     * 2 = ERC1155
+     * ...
      */
-    function processDirectDeposit(address creditor, address asset, uint256 id, uint256 amount) external;
+    function processDirectDeposit(address creditor, address asset, uint256 id, uint256 amount)
+        external
+        returns (uint256);
 
     /**
      * @notice Increases the exposure to an asset on an indirect deposit.
@@ -72,8 +79,15 @@ interface IAssetModule {
      * @param asset The contract address of the asset.
      * @param id The Id of the asset.
      * @param amount The amount of tokens.
+     * @return assetType Identifier for the type of the asset:
+     * 0 = ERC20.
+     * 1 = ERC721.
+     * 2 = ERC1155
+     * ...
      */
-    function processDirectWithdrawal(address creditor, address asset, uint256 id, uint256 amount) external;
+    function processDirectWithdrawal(address creditor, address asset, uint256 id, uint256 amount)
+        external
+        returns (uint256);
 
     /**
      * @notice Decreases the exposure to an asset on an indirect withdrawal.

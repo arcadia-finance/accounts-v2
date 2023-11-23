@@ -23,7 +23,14 @@ contract AssetModuleMock is AbstractAssetModuleExtension {
         returns (uint256, uint256, uint256)
     { }
 
-    function processDirectDeposit(address creditor, address asset, uint256 id, uint256 amount) public override { }
+    function processDirectDeposit(address, address, uint256, uint256)
+        public
+        view
+        override
+        returns (uint256 assetType)
+    {
+        assetType = ASSET_TYPE;
+    }
 
     function processIndirectDeposit(
         address creditor,
@@ -33,7 +40,14 @@ contract AssetModuleMock is AbstractAssetModuleExtension {
         int256 deltaExposureUpperAssetToAsset
     ) public override returns (bool, uint256) { }
 
-    function processDirectWithdrawal(address creditor, address asset, uint256 id, uint256 amount) public override { }
+    function processDirectWithdrawal(address, address, uint256, uint256)
+        public
+        view
+        override
+        returns (uint256 assetType)
+    {
+        assetType = ASSET_TYPE;
+    }
 
     function processIndirectWithdrawal(
         address creditor,
