@@ -14,7 +14,7 @@ import { ERC20Mock } from "../utils/mocks/ERC20Mock.sol";
 import { ERC721Mock } from "../utils/mocks/ERC721Mock.sol";
 import { ERC1155Mock } from "../utils/mocks/ERC1155Mock.sol";
 import { ArcadiaOracle } from "../utils/mocks/ArcadiaOracle.sol";
-import { AccountV1 } from "../../src/AccountV1.sol";
+import { AccountV1 } from "../../src/accounts/AccountV1.sol";
 
 /**
  * @notice Common logic needed by all fuzz tests.

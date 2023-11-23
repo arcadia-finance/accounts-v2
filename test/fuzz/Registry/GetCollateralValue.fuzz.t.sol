@@ -59,7 +59,12 @@ contract GetCollateralValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC20.token1), 0, type(uint128).max, collateralFactor_, 0
+            address(creditorUsd),
+            address(mockERC20.token1),
+            0,
+            type(uint128).max,
+            collateralFactor_,
+            uint16(RiskModule.ONE_4)
         );
 
         address[] memory assetAddresses = new address[](1);

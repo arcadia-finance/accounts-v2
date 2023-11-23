@@ -38,6 +38,8 @@ contract AddOracle_Registry_Fuzz_Test is Registry_Fuzz_Test {
         registryExtension.setOracleCounter(oracleCounterLast);
 
         vm.prank(oracleModule_);
+        vm.expectEmit();
+        emit OracleAdded(oracleCounterLast, oracleModule_);
         uint256 oracleId = registryExtension.addOracle();
 
         assertEq(oracleId, oracleCounterLast);

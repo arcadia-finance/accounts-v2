@@ -9,7 +9,7 @@ import { DeployAddresses, DeployBytes, DeployRiskConstantsBase } from "./Constan
 
 import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
 import { Factory } from "../src/Factory.sol";
-import { AccountV1 } from "../src/AccountV1.sol";
+import { AccountV1 } from "../src/accounts/AccountV1.sol";
 import { Registry } from "../src/Registry.sol";
 import { ChainlinkOracleModule } from "../src/oracle-modules/ChainlinkOracleModule.sol";
 import { StandardERC20AssetModule } from "../src/asset-modules/StandardERC20AssetModule.sol";
