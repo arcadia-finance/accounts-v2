@@ -61,6 +61,50 @@ abstract contract Fuzz_Test is Base_Test {
     CreditorMock internal creditorToken1;
 
     /*//////////////////////////////////////////////////////////////////////////
+                                   MODIFIERS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    modifier notTestContracts(address fuzzedAddress) {
+        vm.assume(fuzzedAddress != address(factory));
+        vm.assume(fuzzedAddress != address(accountV1Logic));
+        vm.assume(fuzzedAddress != address(accountV2Logic));
+        vm.assume(fuzzedAddress != address(registryExtension));
+        vm.assume(fuzzedAddress != address(vm));
+        vm.assume(fuzzedAddress != address(this));
+        vm.assume(fuzzedAddress != address(chainlinkOM));
+        vm.assume(fuzzedAddress != address(erc20AssetModule));
+        vm.assume(fuzzedAddress != address(floorERC1155AssetModule));
+        vm.assume(fuzzedAddress != address(floorERC721AssetModule));
+        vm.assume(fuzzedAddress != address(uniV3AssetModule));
+        vm.assume(fuzzedAddress != address(creditorUsd));
+        vm.assume(fuzzedAddress != address(creditorStable1));
+        vm.assume(fuzzedAddress != address(creditorToken1));
+        vm.assume(fuzzedAddress != address(mockERC20.stable1));
+        vm.assume(fuzzedAddress != address(mockERC20.stable2));
+        vm.assume(fuzzedAddress != address(mockERC20.token1));
+        vm.assume(fuzzedAddress != address(mockERC20.token2));
+        vm.assume(fuzzedAddress != address(mockERC20.token3));
+        vm.assume(fuzzedAddress != address(mockERC20.token4));
+        vm.assume(fuzzedAddress != address(mockERC721.nft1));
+        vm.assume(fuzzedAddress != address(mockERC721.nft2));
+        vm.assume(fuzzedAddress != address(mockERC721.nft3));
+        vm.assume(fuzzedAddress != address(mockERC1155.sft1));
+        vm.assume(fuzzedAddress != address(mockERC1155.sft2));
+        vm.assume(fuzzedAddress != address(mockOracles.stable1ToUsd));
+        vm.assume(fuzzedAddress != address(mockOracles.stable2ToUsd));
+        vm.assume(fuzzedAddress != address(mockOracles.token1ToUsd));
+        vm.assume(fuzzedAddress != address(mockOracles.token2ToUsd));
+        vm.assume(fuzzedAddress != address(mockOracles.token3ToToken4));
+        vm.assume(fuzzedAddress != address(mockOracles.token4ToUsd));
+        vm.assume(fuzzedAddress != address(mockOracles.nft1ToToken1));
+        vm.assume(fuzzedAddress != address(mockOracles.nft2ToUsd));
+        vm.assume(fuzzedAddress != address(mockOracles.nft3ToToken1));
+        vm.assume(fuzzedAddress != address(mockOracles.sft1ToToken1));
+        vm.assume(fuzzedAddress != address(mockOracles.sft2ToUsd));
+        _;
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
 
