@@ -33,7 +33,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         // Then: Reverted
         vm.prank(sender);
-        vm.expectRevert(Function_Is_Paused.selector);
+        vm.expectRevert(FunctionIsPaused.selector);
         factory.createAccount(salt, 0, address(0), address(0));
     }
 

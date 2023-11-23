@@ -37,7 +37,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = 1;
 
         vm.startPrank(sender);
-        vm.expectRevert(Function_Is_Paused.selector);
+        vm.expectRevert(FunctionIsPaused.selector);
         registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -147,7 +147,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         // Then: batchProcessDeposit should reverted
         vm.prank(address(proxyAccount));
-        vm.expectRevert(Function_Is_Paused.selector);
+        vm.expectRevert(FunctionIsPaused.selector);
         registryExtension.batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
     }
 

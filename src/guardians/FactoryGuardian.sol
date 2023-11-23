@@ -10,7 +10,7 @@ import { BaseGuardian } from "./BaseGuardian.sol";
 /**
  * @title Factory Guardian
  * @author Pragma Labs
- * @notice This module provides the logic for the Factory that allows authorized accounts to trigger an emergency stop.
+ * @notice Logic inherited by the Factory that allows an authorized guardian to trigger an emergency stop.
  */
 abstract contract FactoryGuardian is BaseGuardian {
     /* //////////////////////////////////////////////////////////////
@@ -21,16 +21,16 @@ abstract contract FactoryGuardian is BaseGuardian {
     bool public createPaused;
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    error FunctionNotImplemented();
+
+    /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event PauseUpdate(bool createPauseUpdate);
-
-    /*
-    //////////////////////////////////////////////////////////////
-                            ERRORS
-    //////////////////////////////////////////////////////////////
-    */
+    event PauseUpdated(bool createPauseUpdate);
 
     /*
     //////////////////////////////////////////////////////////////
@@ -39,55 +39,42 @@ abstract contract FactoryGuardian is BaseGuardian {
     */
 
     /**
-     * @dev This modifier is used to restrict access to certain functions when the contract is paused for create Accounts.
-     * It throws if create Account is paused.
+     * @dev This modifier is used to restrict access to the creation of new Accounts when this functionality is paused.
+     * It throws if createAccount() is paused.
      */
     modifier whenCreateNotPaused() {
-        if (createPaused) revert Function_Is_Paused();
+        if (createPaused) revert FunctionIsPaused();
         _;
     }
-
-    /* //////////////////////////////////////////////////////////////
-                                CONSTRUCTOR
-    ////////////////////////////////////////////////////////////// */
-
-    constructor() { }
 
     /* //////////////////////////////////////////////////////////////
                             PAUSING LOGIC
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @inheritdoc BaseGuardian
+     * @notice This function will pause the functionality to create new Accounts.
      */
     function pause() external override onlyGuardian {
-        if (block.timestamp <= pauseTimestamp + 32 days) revert Cannot_Pause();
+        if (block.timestamp <= pauseTimestamp + 32 days) revert CannotPause();
         createPaused = true;
         pauseTimestamp = block.timestamp;
 
-        emit PauseUpdate(true);
+        emit PauseUpdated(true);
     }
 
     /**
      * @notice This function is used to unpause the creation of Accounts.
-     * @param createPaused_ false when create functionality should be unPaused.
-     * @dev This function can unPause repay, withdraw, borrow, and deposit individually.
-     * @dev Can only update flags from paused (true) to unPaused (false), cannot be used the other way around
-     * (to set unPaused flags to paused).
+     * @param createPaused_ "False" when create functionality should be unpaused.
+     * @dev This function can unpause the creation of new Accounts.
      */
-    function unPause(bool createPaused_) external onlyOwner {
-        createPaused = createPaused && createPaused_;
-
-        emit PauseUpdate(createPaused);
+    function unpause(bool createPaused_) external onlyOwner {
+        emit PauseUpdated(createPaused = createPaused && createPaused_);
     }
 
     /**
-     * @inheritdoc BaseGuardian
+     * @notice This function is not implemented. No reason to be able to create an Account if the owner of the Factory did not unpause createAccount().
      */
-    function unPause() external override {
-        if (block.timestamp <= pauseTimestamp + 30 days) revert Cannot_UnPause();
-        createPaused = false;
-
-        emit PauseUpdate(false);
+    function unpause() external pure override {
+        revert FunctionNotImplemented();
     }
 }
