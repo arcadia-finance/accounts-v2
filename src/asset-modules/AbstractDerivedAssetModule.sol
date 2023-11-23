@@ -194,15 +194,18 @@ abstract contract DerivedAssetModule is AssetModule {
             }
         }
 
+        // Cache riskFactor
+        uint256 riskFactor = riskParams[creditor].riskFactor;
+
         // Lower risk factors with the protocol wide risk factor.
         collateralFactor = uint16(
             FixedPointMathLib.mulDivDown(
-                collateralFactor, riskParams[creditor].riskFactor, RiskConstants.RISK_FACTOR_UNIT
+                collateralFactor, riskFactor, RiskConstants.RISK_FACTOR_UNIT
             )
         );
         liquidationFactor = uint16(
             FixedPointMathLib.mulDivDown(
-                liquidationFactor, riskParams[creditor].riskFactor, RiskConstants.RISK_FACTOR_UNIT
+                liquidationFactor, riskFactor, RiskConstants.RISK_FACTOR_UNIT
             )
         );
     }
