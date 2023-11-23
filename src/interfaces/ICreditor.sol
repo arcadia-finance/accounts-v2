@@ -12,7 +12,7 @@ pragma solidity 0.8.19;
  */
 interface ICreditor {
     /**
-     * @notice Checks if Account fulfils all requirements and returns Creditor parameters.
+     * @notice Checks if Account fulfills all requirements and returns Creditor parameters.
      * @param accountVersion The version of the Arcadia Account.
      * @return success Bool indicating if all requirements are met.
      * @return baseCurrency The base currency of the Creditor.
