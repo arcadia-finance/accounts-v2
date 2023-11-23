@@ -45,6 +45,21 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
     }
 
+    function testFuzz_Revert_withdraw_InAuction(
+        address[] calldata assetAddresses,
+        uint256[] calldata assetIds,
+        uint256[] calldata assetAmounts
+    ) public {
+        // Will set "inAuction" to true.
+        accountExtension.setInAuction();
+
+        // Should revert if the Account is in an auction.
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.AccountInAuction.selector);
+        accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_withdraw_LengthOfListDoesNotMatch(uint8 addrLen, uint8 idLen, uint8 amountLen) public {
         vm.assume((addrLen != idLen && addrLen != amountLen));
 
