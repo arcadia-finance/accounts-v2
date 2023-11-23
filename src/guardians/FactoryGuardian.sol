@@ -72,7 +72,7 @@ abstract contract FactoryGuardian is BaseGuardian {
     }
 
     /**
-     * @notice This function is not implemented. No reason to be able to create an Account if the owner of the Factory is not able to unpause createAccount().
+     * @notice This function is not implemented. No reason to be able to create an Account if the owner of the Factory did not unpause createAccount().
      */
     function unpause() external pure override {
         revert FunctionNotImplemented();
