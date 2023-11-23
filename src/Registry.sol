@@ -54,7 +54,7 @@ contract Registry is IRegistry, RegistryGuardian {
     mapping(address => bool) public isOracleModule;
     // Map action => flag.
     mapping(address => bool) public isActionAllowed;
-    // Map asset => assetInformation.
+    // Map asset => Asset Module.
     mapping(address => address) public assetToAssetModule;
     // Map oracle identifier => oracleModule.
     mapping(uint256 => address) internal oracleToOracleModule;
@@ -186,9 +186,8 @@ contract Registry is IRegistry, RegistryGuardian {
         if (inRegistry[assetAddress]) revert RegistryErrors.Asset_Already_In_Registry();
 
         inRegistry[assetAddress] = true;
-        assetToAssetModule[assetAddress] = msg.sender;
 
-        emit AssetAdded(assetAddress, msg.sender);
+        emit AssetAdded(assetAddress, assetToAssetModule[assetAddress] = msg.sender);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -203,13 +202,11 @@ contract Registry is IRegistry, RegistryGuardian {
         // Get next id.
         oracleId = oracleCounter;
 
-        oracleToOracleModule[oracleId] = msg.sender;
-
         unchecked {
             ++oracleCounter;
         }
 
-        emit OracleAdded(oracleId, msg.sender);
+        emit OracleAdded(oracleId, oracleToOracleModule[oracleId] = msg.sender);
     }
 
     /**
