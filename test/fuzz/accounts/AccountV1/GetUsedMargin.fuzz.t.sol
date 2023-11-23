@@ -26,7 +26,7 @@ contract GetUsedMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_getUsedMargin_CreditorNotSet(uint256 openDebt, uint96 fixedLiquidationCost) public {
         // Test-case: creditor is not set.
-        accountExtension.setIsCreditorSet(false);
+        accountExtension.setCreditor(address(0));
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));

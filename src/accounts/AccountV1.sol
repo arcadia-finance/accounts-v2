@@ -110,6 +110,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
         _;
     }
 
+    /**
+     * @dev Throws if called when the Account is in an auction.
+     */
+    modifier notDuringAuction() {
+        if (inAuction == true) revert AccountErrors.AccountInAuction();
+        _;
+    }
+
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
@@ -289,9 +297,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Currently only one Creditor can be set.
      */
     function closeMarginAccount() external onlyOwner {
-        if (!isCreditorSet) revert AccountErrors.CreditorNotSet();
+        // Cache creditor
+        address creditor_ = creditor;
+        if (creditor_ == address(0)) revert AccountErrors.CreditorNotSet();
         // getOpenPosition() is a view function, cannot modify state.
-        if (ICreditor(creditor).getOpenPosition(address(this)) != 0) revert AccountErrors.NonZeroOpenPosition();
+        if (ICreditor(creditor_).getOpenPosition(address(this)) != 0) revert AccountErrors.NonZeroOpenPosition();
 
         isCreditorSet = false;
         creditor = address(0);
@@ -396,10 +406,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The open liability is fetched at the contract of the Creditor -> only allow trusted audited Creditors!!!
      */
     function getUsedMargin() public view returns (uint256 usedMargin) {
-        if (!isCreditorSet) return 0;
+        // Cache creditor
+        address creditor_ = creditor;
+        if (creditor_ == address(0)) return 0;
 
         // getOpenPosition() is a view function, cannot modify state.
-        usedMargin = ICreditor(creditor).getOpenPosition(address(this)) + fixedLiquidationCost;
+        usedMargin = ICreditor(creditor_).getOpenPosition(address(this)) + fixedLiquidationCost;
     }
 
     /**
@@ -444,6 +456,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues
         )
     {
+        inAuction = true;
         creditor_ = creditor;
 
         (assetAddresses, assetIds, assetAmounts) = generateAssetData();
@@ -525,6 +538,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         external
         nonReentrant
         onlyAssetManager
+        notDuringAuction
         returns (address, uint256)
     {
         if (!IRegistry(registry).isActionAllowed(actionHandler)) revert AccountErrors.ActionNotAllowed();
@@ -662,6 +676,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function withdraw(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
         onlyOwner
+        notDuringAuction
     {
         // No need to check that all arrays have equal length, this check is will be done in the Registry.
         _withdraw(assetAddresses, assetIds, assetAmounts, msg.sender);

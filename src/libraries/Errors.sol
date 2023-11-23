@@ -26,6 +26,7 @@ library AccountErrors {
     error TooManyAssets();
     error UnknownAsset();
     error UnknownAssetType();
+    error AccountInAuction();
 }
 
 library FactoryErrors {
