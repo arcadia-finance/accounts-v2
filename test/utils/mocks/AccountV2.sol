@@ -10,7 +10,6 @@ import { IERC1155 } from "../../../src/interfaces/IERC1155.sol";
 import { IRegistry } from "../../../src/interfaces/IRegistry.sol";
 import { ICreditor } from "../../../src/interfaces/ICreditor.sol";
 import { IActionBase, ActionData } from "../../../src/interfaces/IActionBase.sol";
-import { ActionData } from "../../../src/actions/utils/ActionData.sol";
 import { AccountStorageV2 } from "./AccountStorageV2.sol";
 import { IPermit2 } from "../../../src/interfaces/IPermit2.sol";
 
@@ -22,7 +21,7 @@ import { AccountErrors } from "../../../src/libraries/Errors.sol";
  * @title An Arcadia Account used to deposit a combination of all kinds of assets
  * @author Pragma Labs
  * @notice Users can use this Account to deposit assets (ERC20, ERC721, ERC1155, ...).
- * The Account will denominate all the pooled assets into one baseCurrency (one unit of account, like usd or eth).
+ * The Account will denominate all the pooled assets into one baseCurrency (one unit of account, like USD or ETH).
  * An increase of value of one asset will offset a decrease in value of another asset.
  * Users can take out a credit line against the single denominated value.
  * Ensure your total value denomination remains above the liquidation threshold, or risk being liquidated!
@@ -58,9 +57,9 @@ contract AccountV2 is AccountStorageV2 {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event BaseCurrencySet(address baseCurrency);
-    event MarginAccountChanged(address indexed protocol, address indexed liquidator);
     event AssetManagerSet(address indexed owner, address indexed assetManager, bool value);
+    event BaseCurrencySet(address indexed baseCurrency);
+    event MarginAccountChanged(address indexed creditor, address indexed liquidator);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -70,7 +69,7 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Throws if function is reentered.
      */
     modifier nonReentrant() {
-        if (locked != 1) revert AccountErrors.No_Reentry();
+        if (locked != 1) revert AccountErrors.NoReentry();
 
         locked = 2;
 
@@ -83,7 +82,7 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Throws if called by any account other than the factory address.
      */
     modifier onlyFactory() {
-        if (msg.sender != IRegistry(registry).FACTORY()) revert AccountErrors.Only_Factory();
+        if (msg.sender != IRegistry(registry).FACTORY()) revert AccountErrors.OnlyFactory();
         _;
     }
 
@@ -91,12 +90,12 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        if (msg.sender != owner) revert AccountErrors.Only_Owner();
+        if (msg.sender != owner) revert AccountErrors.OnlyOwner();
         _;
     }
 
     /**
-     * @dev Throws if called by any account other than an asset manager or the owner.
+     * @dev Throws if called by any account other than an Asset Manager or the owner.
      */
     modifier onlyAssetManager() {
         // A custom error would need to read out owner + creditor + isAssetManager storage
@@ -110,7 +109,7 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Throws if called by any account other than the Liquidator address.
      */
     modifier onlyLiquidator() {
-        if (msg.sender != liquidator) revert AccountErrors.Only_Liquidator();
+        if (msg.sender != liquidator) revert AccountErrors.OnlyLiquidator();
         _;
     }
 
@@ -139,8 +138,8 @@ contract AccountV2 is AccountStorageV2 {
      * @param creditor_ The contract address of the creditor.
      */
     function initialize(address owner_, address registry_, address baseCurrency_, address creditor_) external {
-        if (registry != address(0)) revert AccountErrors.Already_Initialized();
-        if (registry_ == address(0)) revert AccountErrors.Invalid_Registry();
+        if (registry != address(0)) revert AccountErrors.AlreadyInitialized();
+        if (registry_ == address(0)) revert AccountErrors.InvalidRegistry();
         owner = owner_;
         registry = registry_;
         baseCurrency = baseCurrency_;
@@ -164,25 +163,25 @@ contract AccountV2 is AccountStorageV2 {
         onlyFactory
     {
         if (isCreditorSet) {
-            //If a creditor is set, new version should be compatible.
-            //openMarginAccount() is a view function, cannot modify state.
+            // If a creditor is set, new version should be compatible.
+            // openMarginAccount() is a view function, cannot modify state.
             (bool success,,,) = ICreditor(creditor).openMarginAccount(newVersion);
             if (!success) revert AccountErrors.InvalidAccountVersion();
         }
 
-        //Cache old parameters
+        // Cache old parameters
         address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
         uint16 oldVersion = ACCOUNT_VERSION;
         _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
 
-        //Hook on the new logic to finalize upgrade.
-        //Used to eg. Remove exposure from old Registry and Add exposure to the new Registry.
-        //Extra data can be added by the factory for complex instructions.
+        // Hook on the new logic to finalize upgrade.
+        // Used to eg. Remove exposure from old Registry and Add exposure to the new Registry.
+        // Extra data can be added by the factory for complex instructions.
         this.upgradeHook(oldImplementation, oldRegistry, oldVersion, data);
 
-        //Event emitted by Factory.
+        // Event emitted by Factory.
     }
 
     /**
@@ -209,7 +208,7 @@ contract AccountV2 is AccountStorageV2 {
      * Owner of Account NFT = owner of Account
      */
     function transferOwnership(address newOwner) external onlyFactory {
-        if (newOwner == address(0)) revert AccountErrors.Invalid_Recipient();
+        if (newOwner == address(0)) revert AccountErrors.InvalidRecipient();
         _transferOwnership(newOwner);
     }
 
@@ -220,7 +219,7 @@ contract AccountV2 is AccountStorageV2 {
     function _transferOwnership(address newOwner) internal {
         owner = newOwner;
 
-        //Event emitted by Factory.
+        // Event emitted by Factory.
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -234,7 +233,7 @@ contract AccountV2 is AccountStorageV2 {
      * if there is none set, then a new baseCurrency is set.
      */
     function setBaseCurrency(address baseCurrency_) external onlyOwner {
-        if (isCreditorSet) revert AccountErrors.Creditor_Already_Set();
+        if (isCreditorSet) revert AccountErrors.CreditorAlreadySet();
         _setBaseCurrency(baseCurrency_);
     }
 
@@ -243,7 +242,7 @@ contract AccountV2 is AccountStorageV2 {
      * @param baseCurrency_ the new baseCurrency for the Account.
      */
     function _setBaseCurrency(address baseCurrency_) internal {
-        if (!IRegistry(registry).inRegistry(baseCurrency_)) revert AccountErrors.BaseCurrency_Not_Found();
+        if (!IRegistry(registry).inRegistry(baseCurrency_)) revert AccountErrors.BaseCurrencyNotFound();
         baseCurrency = baseCurrency_;
 
         emit BaseCurrencySet(baseCurrency_);
@@ -262,7 +261,7 @@ contract AccountV2 is AccountStorageV2 {
      * The Creditor has significant authorisation: use margin, trigger liquidation, and manage assets.
      */
     function openMarginAccount(address creditor_) external onlyOwner {
-        if (isCreditorSet) revert AccountErrors.Creditor_Already_Set();
+        if (isCreditorSet) revert AccountErrors.CreditorAlreadySet();
         _openMarginAccount(creditor_);
     }
 
@@ -271,7 +270,7 @@ contract AccountV2 is AccountStorageV2 {
      * @param creditor_ The contract address of the Creditor.
      */
     function _openMarginAccount(address creditor_) internal {
-        //openMarginAccount() is a view function, cannot modify state.
+        // openMarginAccount() is a view function, cannot modify state.
         (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_) =
             ICreditor(creditor_).openMarginAccount(ACCOUNT_VERSION);
         if (!success) revert AccountErrors.InvalidAccountVersion();
@@ -292,9 +291,9 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Currently only one creditor can be set.
      */
     function closeMarginAccount() external onlyOwner {
-        if (!isCreditorSet) revert AccountErrors.Creditor_Not_Set();
-        //getOpenPosition() is a view function, cannot modify state.
-        if (ICreditor(creditor).getOpenPosition(address(this)) != 0) revert AccountErrors.NonZero_Open_Position();
+        if (!isCreditorSet) revert AccountErrors.CreditorNotSet();
+        // getOpenPosition() is a view function, cannot modify state.
+        if (ICreditor(creditor).getOpenPosition(address(this)) != 0) revert AccountErrors.NonZeroOpenPosition();
 
         isCreditorSet = false;
         creditor = address(0);
@@ -325,12 +324,12 @@ contract AccountV2 is AccountStorageV2 {
         returns (bool success, address creditor_, uint256 accountVersion_)
     {
         if (totalOpenDebt > 0) {
-            //Check if Account is healthy for a given amount of openDebt.
-            //The total Used margin equals the sum of the given amount of openDebt and the gas cost to liquidate.
+            // Check if Account is healthy for a given amount of openDebt.
+            // The total Used margin equals the sum of the given amount of openDebt and the gas cost to liquidate.
             success = getCollateralValue() >= totalOpenDebt + fixedLiquidationCost;
         } else {
-            //Check if Account is still healthy after an increase of debt.
-            //The gas cost to liquidate is already taken into account in getUsedMargin().
+            // Check if Account is still healthy after an increase of debt.
+            // The gas cost to liquidate is already taken into account in getUsedMargin().
             success = getCollateralValue() >= getUsedMargin() + debtIncrease;
         }
 
@@ -342,10 +341,10 @@ contract AccountV2 is AccountStorageV2 {
      * @return success Boolean indicating if the Account can be liquidated.
      */
     function isAccountLiquidatable() external view returns (bool success) {
-        //If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is never liquidatable.
+        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is never liquidatable.
         uint256 usedMargin = getUsedMargin();
         if (usedMargin > fixedLiquidationCost) {
-            //An Account can be liquidated if the Liquidation value is smaller than the Used Margin.
+            // An Account can be liquidated if the Liquidation value is smaller than the Used Margin.
             success = getLiquidationValue() < usedMargin;
         }
     }
@@ -370,10 +369,10 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Returns the value denominated in the baseCurrency of the Account.
      * @dev The collateral value of the Account is equal to the spot value of the underlying assets,
      * discounted by a haircut (the collateral factor). Since the value of
-     * collateralised assets can fluctuate, the haircut guarantees that the Account
-     * remains over-collateralised with a high confidence level (99,9%+). The size of the
+     * collateralized assets can fluctuate, the haircut guarantees that the Account
+     * remains over-collateralized with a high confidence level (99,9%+). The size of the
      * haircut depends on the underlying risk of the assets in the Account, the bigger the volatility
-     * or the smaller the on-chain liquidity, the bigger the haircut will be.
+     * or the smaller the onchain liquidity, the bigger the haircut will be.
      */
     function getCollateralValue() public view returns (uint256 collateralValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
@@ -412,7 +411,7 @@ contract AccountV2 is AccountStorageV2 {
     function getUsedMargin() public view returns (uint256 usedMargin) {
         if (!isCreditorSet) return 0;
 
-        //getOpenPosition() is a view function, cannot modify state.
+        // getOpenPosition() is a view function, cannot modify state.
         usedMargin = ICreditor(creditor).getOpenPosition(address(this)) + fixedLiquidationCost;
     }
 
@@ -426,7 +425,7 @@ contract AccountV2 is AccountStorageV2 {
         uint256 collateralValue = getCollateralValue();
         uint256 usedMargin = getUsedMargin();
 
-        //gas: explicit check is done to prevent underflow.
+        // gas: explicit check is done to prevent underflow.
         unchecked {
             freeMargin = collateralValue > usedMargin ? collateralValue - usedMargin : 0;
         }
@@ -472,7 +471,7 @@ contract AccountV2 is AccountStorageV2 {
         uint256 usedMargin = openDebt + fixedLiquidationCost;
 
         if (openDebt == 0 || RiskModule._calculateLiquidationValue(assetAndRiskValues) >= usedMargin) {
-            revert AccountErrors.Account_Not_Liquidatable();
+            revert AccountErrors.AccountNotLiquidatable();
         }
     }
 
@@ -511,17 +510,15 @@ contract AccountV2 is AccountStorageV2 {
     /**
      * @notice Add or remove an Asset Manager.
      * @param assetManager the address of the Asset Manager
-     * @param value A boolean giving permissions to or taking permissions from an Asset manager
-     * @dev Only set trusted addresses as Asset manager, Asset managers can potentially steal assets (as long as the Account position remains healthy).
-     * @dev No need to set the Owner as Asset manager, owner will automatically have all permissions of an asset manager.
-     * @dev Potential use-cases of the asset manager might be to:
+     * @param value A boolean giving permissions to or taking permissions from an Asset Manager
+     * @dev Only set trusted addresses as Asset Manager, Asset Managers can potentially steal assets (as long as the Account position remains healthy).
+     * @dev No need to set the Owner as Asset Manager, owner will automatically have all permissions of an Asset Manager.
+     * @dev Potential use-cases of the Asset Manager might be to:
      * - Automate actions by keeper networks,
      * - Chain interactions with the Creditor together with Account actions (eg. borrow deposit and trade in one transaction).
      */
     function setAssetManager(address assetManager, bool value) external onlyOwner {
-        isAssetManager[msg.sender][assetManager] = value;
-
-        emit AssetManagerSet(msg.sender, assetManager, value);
+        emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = value);
     }
 
     /**
@@ -541,7 +538,7 @@ contract AccountV2 is AccountStorageV2 {
         onlyAssetManager
         returns (address, uint256)
     {
-        if (!IRegistry(registry).isActionAllowed(actionHandler)) revert AccountErrors.Action_Not_Allowed();
+        if (!IRegistry(registry).isActionAllowed(actionHandler)) revert AccountErrors.ActionNotAllowed();
 
         (
             ActionData memory withdrawData,
@@ -572,11 +569,11 @@ contract AccountV2 is AccountStorageV2 {
         // Deposit assets from actionHandler into Account.
         _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionHandler);
 
-        //If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always in a healthy state.
+        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always in a healthy state.
         uint256 usedMargin = getUsedMargin();
-        //Account must be healthy after actions are executed.
+        // Account must be healthy after actions are executed.
         if (usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin) {
-            revert AccountErrors.Account_Unhealthy();
+            revert AccountErrors.AccountUnhealthy();
         }
 
         return (creditor, ACCOUNT_VERSION);
@@ -605,7 +602,7 @@ contract AccountV2 is AccountStorageV2 {
         external
         onlyOwner
     {
-        //No need to check that all arrays have equal length, this check is already done in the Registry.
+        // No need to check that all arrays have equal length, this check is already done in the Registry.
         _deposit(assetAddresses, assetIds, assetAmounts, msg.sender);
     }
 
@@ -623,15 +620,15 @@ contract AccountV2 is AccountStorageV2 {
         uint256[] memory assetAmounts,
         address from
     ) internal {
-        //Reverts in registry if input is invalid.
+        // Reverts in registry if input is invalid.
         uint256[] memory assetTypes =
             IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {
             if (assetAmounts[i] == 0) {
-                //Skip if amount is 0 to prevent storing addresses that have 0 balance.
-                //ToDo silent fail or should we revert here?
+                // Skip if amount is 0 to prevent storing addresses that have 0 balance.
+                // ToDo silent fail or should we revert here?
                 unchecked {
                     ++i;
                 }
@@ -639,15 +636,15 @@ contract AccountV2 is AccountStorageV2 {
             }
 
             if (assetTypes[i] == 0) {
-                if (assetIds[i] != 0) revert AccountErrors.Invalid_ERC20_Id();
+                if (assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
                 _depositERC20(from, assetAddresses[i], assetAmounts[i]);
             } else if (assetTypes[i] == 1) {
-                if (assetAmounts[i] != 1) revert AccountErrors.Invalid_ERC721_Amount();
+                if (assetAmounts[i] != 1) revert AccountErrors.InvalidERC721Amount();
                 _depositERC721(from, assetAddresses[i], assetIds[i]);
             } else if (assetTypes[i] == 2) {
                 _depositERC1155(from, assetAddresses[i], assetIds[i], assetAmounts[i]);
             } else {
-                revert AccountErrors.Unknown_Asset_Type();
+                revert AccountErrors.UnknownAssetType();
             }
             unchecked {
                 ++i;
@@ -655,7 +652,7 @@ contract AccountV2 is AccountStorageV2 {
         }
 
         if (erc20Stored.length + erc721Stored.length + erc1155Stored.length > ASSET_LIMIT) {
-            revert AccountErrors.Too_Many_Assets();
+            revert AccountErrors.TooManyAssets();
         }
     }
 
@@ -680,13 +677,13 @@ contract AccountV2 is AccountStorageV2 {
         external
         onlyOwner
     {
-        //No need to check that all arrays have equal length, this check is already done in the Registry.
+        // No need to check that all arrays have equal length, this check is already done in the Registry.
         _withdraw(assetAddresses, assetIds, assetAmounts, msg.sender);
 
         uint256 usedMargin = getUsedMargin();
-        //If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and all assets can be withdrawn.
+        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and all assets can be withdrawn.
         if (usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin) {
-            revert AccountErrors.Account_Unhealthy();
+            revert AccountErrors.AccountUnhealthy();
         }
     }
 
@@ -704,14 +701,14 @@ contract AccountV2 is AccountStorageV2 {
         uint256[] memory assetAmounts,
         address to
     ) internal {
-        //Reverts in registry if input is invalid.
+        // Reverts in registry if input is invalid.
         uint256[] memory assetTypes =
-            IRegistry(registry).batchProcessWithdrawal(creditor, assetAddresses, assetIds, assetAmounts); //reverts in registry if invalid input
+            IRegistry(registry).batchProcessWithdrawal(creditor, assetAddresses, assetIds, assetAmounts); // reverts in registry if invalid input
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {
             if (assetAmounts[i] == 0) {
-                //Skip if amount is 0 to prevent transferring 0 balances.
+                // Skip if amount is 0 to prevent transferring 0 balances.
                 unchecked {
                     ++i;
                 }
@@ -719,15 +716,15 @@ contract AccountV2 is AccountStorageV2 {
             }
 
             if (assetTypes[i] == 0) {
-                if (assetIds[i] != 0) revert AccountErrors.Invalid_ERC20_Id();
+                if (assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
                 _withdrawERC20(to, assetAddresses[i], assetAmounts[i]);
             } else if (assetTypes[i] == 1) {
-                if (assetAmounts[i] != 1) revert AccountErrors.Invalid_ERC721_Amount();
+                if (assetAmounts[i] != 1) revert AccountErrors.InvalidERC721Amount();
                 _withdrawERC721(to, assetAddresses[i], assetIds[i]);
             } else if (assetTypes[i] == 2) {
                 _withdrawERC1155(to, assetAddresses[i], assetIds[i], assetAmounts[i]);
             } else {
-                revert AccountErrors.Unknown_Asset_Type();
+                revert AccountErrors.UnknownAssetType();
             }
             unchecked {
                 ++i;
@@ -745,7 +742,7 @@ contract AccountV2 is AccountStorageV2 {
         address owner_ = owner;
         for (uint256 i; i < assetAddressesLength;) {
             if (transferFromOwnerData.assetAmounts[i] == 0) {
-                //Skip if amount is 0 to prevent transferring 0 balances.
+                // Skip if amount is 0 to prevent transferring 0 balances.
                 unchecked {
                     ++i;
                 }
@@ -763,7 +760,7 @@ contract AccountV2 is AccountStorageV2 {
                     owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
                 );
             } else {
-                revert AccountErrors.Unknown_Asset_Type();
+                revert AccountErrors.UnknownAssetType();
             }
             unchecked {
                 ++i;
@@ -917,8 +914,8 @@ contract AccountV2 is AccountStorageV2 {
 
         uint256 i;
         if (tokenIdLength == 1) {
-            //There was only one ERC721 stored on the contract, safe to remove both lists.
-            if (erc721TokenIds[0] != id || erc721Stored[0] != ERC721Address) revert AccountErrors.Unknown_Asset();
+            // There was only one ERC721 stored on the contract, safe to remove both lists.
+            if (erc721TokenIds[0] != id || erc721Stored[0] != ERC721Address) revert AccountErrors.UnknownAsset();
             erc721TokenIds.pop();
             erc721Stored.pop();
         } else {
@@ -934,9 +931,9 @@ contract AccountV2 is AccountStorageV2 {
                     ++i;
                 }
             }
-            //For loop should break, otherwise we never went into the if-branch, meaning the token being withdrawn
-            //is unknown and not properly deposited.
-            if (i == tokenIdLength) revert AccountErrors.Unknown_Asset();
+            // For loop should break, otherwise we never went into the if-branch, meaning the token being withdrawn
+            // is unknown and not properly deposited.
+            if (i == tokenIdLength) revert AccountErrors.UnknownAsset();
         }
 
         IERC721(ERC721Address).safeTransferFrom(address(this), to, id);
@@ -1053,7 +1050,7 @@ contract AccountV2 is AccountStorageV2 {
         uint256 totalLength;
         unchecked {
             totalLength = erc20Stored.length + erc721Stored.length + erc1155Stored.length;
-        } //Cannot realistically overflow. No max(uint256) contracts deployed.
+        } // Cannot realistically overflow. No max(uint256) contracts deployed.
         assetAddresses = new address[](totalLength);
         assetIds = new uint256[](totalLength);
         assetAmounts = new uint256[](totalLength);
@@ -1064,7 +1061,7 @@ contract AccountV2 is AccountStorageV2 {
         for (; i < erc20StoredLength;) {
             cacheAddr = erc20Stored[i];
             assetAddresses[i] = cacheAddr;
-            //assetIds[i] = 0; //gas: no need to store 0, index will continue anyway.
+            // assetIds[i] = 0; // gas: no need to store 0, index will continue anyway.
             assetAmounts[i] = erc20Balances[cacheAddr];
             unchecked {
                 ++i;
@@ -1113,7 +1110,7 @@ contract AccountV2 is AccountStorageV2 {
     }
 
     fallback() external {
-        revert AccountErrors.No_Fallback();
+        revert AccountErrors.NoFallback();
     }
 
     function returnFive() public pure returns (uint256) {

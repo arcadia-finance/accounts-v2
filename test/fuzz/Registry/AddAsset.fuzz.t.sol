@@ -57,11 +57,11 @@ contract AddAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Success_addAsset(address newAsset, uint8 assetType) public {
+    function testFuzz_Success_addAsset(address newAsset, uint96 assetType) public {
         vm.assume(registryExtension.inRegistry(newAsset) == false);
         // When: erc20AssetModule calls addAsset with input of address(eth)
         vm.startPrank(address(erc20AssetModule));
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit();
         emit AssetAdded(newAsset, address(erc20AssetModule), assetType);
         registryExtension.addAsset(newAsset, assetType);
         vm.stopPrank();

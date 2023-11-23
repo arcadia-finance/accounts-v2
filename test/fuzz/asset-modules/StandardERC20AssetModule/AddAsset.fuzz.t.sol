@@ -72,7 +72,7 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
         oracleAssetToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(oracle)));
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert(StandardERC20AssetModule.Max_18_Decimals.selector);
+        vm.expectRevert(StandardERC20AssetModule.Max18Decimals.selector);
         erc20AssetModule.addAsset(address(asset), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
     }
 

@@ -16,10 +16,10 @@ import { RiskModule } from "../../RiskModule.sol";
 import { TickMath } from "./libraries/TickMath.sol";
 
 /**
- * @title Asset Module for Uniswap V3 Liquidity Positions.
+ * @title Asset Module for Uniswap V3 Liquidity Positions
  * @author Pragma Labs
  * @notice The pricing logic and basic information for Uniswap V3 Liquidity Positions.
- * @dev The UniswapV3AssetModule will not price the LP-tokens via direct price oracles,
+ * @dev The UniswapV3AssetModule will not price the LP tokens via direct price oracles,
  * it will break down liquidity positions in the underlying tokens (ERC20s).
  * Only LP tokens for which the underlying tokens are allowed as collateral can be priced.
  * @dev No end-user should directly interact with the UniswapV3AssetModule, only the Registry,
@@ -45,13 +45,14 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     // The liquidity of the Liquidity Position when it was deposited.
     mapping(uint256 assetId => uint256 liquidity) internal assetToLiquidity;
 
-    // The Unique identifiers of the underlying assets of a Liquidity Position.
+    // The Unique identifiers of the Underlying Assets of a Liquidity Position.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
-    error Zero_Liquidity();
+
+    error ZeroLiquidity();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -73,7 +74,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
 
     /**
      * @notice Adds the mapping from the NonfungiblePositionManager to this Asset Module in this Registry.
-     * @dev Since all assets will have the same contract address, the NonfungiblePositionManager has to be added to the Registry.
+     * @dev Since all assets will have the same contract address, only the NonfungiblePositionManager has to be added to the Registry.
      */
     function setProtocol() external onlyOwner {
         inAssetModule[NON_FUNGIBLE_POSITION_MANAGER] = true;
@@ -84,7 +85,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
 
     /**
      * @notice Adds a new asset (Liquidity Position) to the UniswapV3AssetModule.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @dev All assets (Liquidity Positions) will have the same contract address (the NonfungiblePositionManager),
      * but a different id.
      */
@@ -95,8 +96,8 @@ contract UniswapV3AssetModule is DerivedAssetModule {
             INonfungiblePositionManager(NON_FUNGIBLE_POSITION_MANAGER).positions(assetId);
 
         // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
-        // deposit functions and there any deposit of non-allowed underlying assets will revert.
-        if (liquidity == 0) revert Zero_Liquidity();
+        // deposit functions and there any deposit of non-allowed Underlying Assets will revert.
+        if (liquidity == 0) revert ZeroLiquidity();
 
         assetToLiquidity[assetId] = liquidity;
 
@@ -112,9 +113,9 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Checks for a token address and the corresponding Id if it is allowed.
+     * @notice Checks for a token address and the corresponding id if it is allowed.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @return A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
@@ -141,9 +142,9 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     }
 
     /**
-     * @notice Returns the unique identifiers of the underlying assets.
+     * @notice Returns the unique identifiers of the Underlying Assets.
      * @param assetKey The unique identifier of the asset.
-     * @return underlyingAssetKeys The unique identifiers of the underlying assets.
+     * @return underlyingAssetKeys The unique identifiers of the Underlying Assets.
      */
     function _getUnderlyingAssets(bytes32 assetKey)
         internal
@@ -166,15 +167,15 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     }
 
     /**
-     * @notice Calculates for a given asset id the corresponding amount(s) of underlying asset(s).
+     * @notice Calculates for a given asset the corresponding amount(s) of Underlying Asset(s).
      * @param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
      * param assetAmount The amount of the asset, in the decimal precision of the Asset.
-     * param underlyingAssetKeys The unique identifiers of the underlying assets.
+     * param underlyingAssetKeys The unique identifiers of the Underlying Assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
-     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     * @return rateUnderlyingAssetsToUsd The usd rates of 1e18 tokens of Underlying Asset, with 18 decimals precision.
      * @dev Uniswap Pools can be manipulated, we can't rely on the current price (or tick) stored in slot0.
-     * We use Chainlink oracles of the underlying assets to calculate the flashloan resistant amounts.
+     * We use Chainlink oracles of the Underlying Assets to calculate the flashloan resistant amounts.
      */
     function _getUnderlyingAssetsAmounts(address creditor, bytes32 assetKey, uint256, bytes32[] memory)
         internal
@@ -189,7 +190,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
 
         (address token0, address token1, int24 tickLower, int24 tickUpper, uint128 liquidity) = _getPosition(assetId);
 
-        // Get the trusted rates to USD of the underlying assets.
+        // Get the trusted rates to USD of the Underlying Assets.
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
         underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
@@ -210,13 +211,15 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         // ToDo: fee should be capped to a max compared to principal to avoid circumventing caps via fees on new pools.
 
         underlyingAssetsAmounts = new uint256[](2);
-        underlyingAssetsAmounts[0] = principal0 + fee0;
-        underlyingAssetsAmounts[1] = principal1 + fee1;
+        unchecked {
+            underlyingAssetsAmounts[0] = principal0 + fee0;
+            underlyingAssetsAmounts[1] = principal1 + fee1;
+        }
     }
 
     /**
      * @notice Returns the position information.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @return token0 Token0 of the Liquidity Pool.
      * @return token1 Token1 of the Liquidity Pool.
      * @return tickLower The lower tick of the liquidity position.
@@ -247,8 +250,8 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @notice Calculates the underlying token amounts of a liquidity position, given external trusted prices.
      * @param tickLower The lower tick of the liquidity position.
      * @param tickUpper The upper tick of the liquidity position.
-     * @param priceToken0 The price of 10^18 tokens of token0 in USD, with 18 decimals precision.
-     * @param priceToken1 The price of 10^18 tokens of token1 in USD, with 18 decimals precision.
+     * @param priceToken0 The price of 1e18 tokens of token0 in USD, with 18 decimals precision.
+     * @param priceToken1 The price of 1e18 tokens of token1 in USD, with 18 decimals precision.
      * @return amount0 The amount of underlying token0 tokens.
      * @return amount1 The amount of underlying token1 tokens.
      */
@@ -259,7 +262,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         uint256 priceToken0,
         uint256 priceToken1
     ) internal pure returns (uint256 amount0, uint256 amount1) {
-        // Calculate the square root of the relative rate sqrt(token1/token0) from the trusted USD-price of both tokens.
+        // Calculate the square root of the relative rate sqrt(token1/token0) from the trusted USD price of both tokens.
         // sqrtPriceX96 is a binary fixed point number with 96 digits precision.
         uint160 sqrtPriceX96 = _getSqrtPriceX96(priceToken0, priceToken1);
 
@@ -271,8 +274,8 @@ contract UniswapV3AssetModule is DerivedAssetModule {
 
     /**
      * @notice Calculates the sqrtPriceX96 (token1/token0) from trusted USD prices of both tokens.
-     * @param priceToken0 The price of 10^18 tokens of token0 in USD, with 18 decimals precision.
-     * @param priceToken1 The price of 10^18 tokens of token1 in USD, with 18 decimals precision.
+     * @param priceToken0 The price of 1e18 tokens of token0 in USD, with 18 decimals precision.
+     * @param priceToken1 The price of 1e18 tokens of token1 in USD, with 18 decimals precision.
      * @return sqrtPriceX96 The square root of the price (token1/token0), with 96 binary precision.
      * @dev The price in Uniswap V3 is defined as:
      * price = amountToken1/amountToken0.
@@ -285,7 +288,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         if (priceToken1 == 0) return TickMath.MAX_SQRT_RATIO;
 
         // Both priceTokens have 18 decimals precision and result of division should also have 18 decimals precision.
-        // -> multiply by 10**18
+        // -> multiply by 1e18
         uint256 priceXd18 = priceToken0.mulDivDown(1e18, priceToken1);
         // Square root of a number with 18 decimals precision has 9 decimals precision.
         uint256 sqrtPriceXd9 = FixedPointMathLib.sqrt(priceXd18);
@@ -296,10 +299,10 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     }
 
     /**
-     * @notice Calculates the underlying token amounts of accrued fees, both collected as uncollected.
-     * @param id The Id of the Liquidity Position.
-     * @return amount0 The amount fees of underlying token0 tokens.
-     * @return amount1 The amount of fees underlying token1 tokens.
+     * @notice Calculates the underlying token amounts of accrued fees, both collected and uncollected.
+     * @param id The id of the Liquidity Position.
+     * @return amount0 The amount of fees in underlying token0 tokens.
+     * @return amount1 The amount of fees in underlying token1 tokens.
      */
     function _getFeeAmounts(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
         (
@@ -343,8 +346,8 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param fee The fee of the Liquidity Pool.
      * @param tickLower The lower tick of the liquidity position.
      * @param tickUpper The upper tick of the liquidity position.
-     * @return feeGrowthInside0X128 The amount fees of underlying token0 tokens.
-     * @return feeGrowthInside1X128 The amount of fees underlying token1 tokens.
+     * @return feeGrowthInside0X128 The amount of fees in underlying token0 tokens.
+     * @return feeGrowthInside1X128 The amount of fees in underlying token1 tokens.
      */
     function _getFeeGrowthInside(address token0, address token1, uint24 fee, int24 tickLower, int24 tickUpper)
         internal
@@ -382,9 +385,9 @@ contract UniswapV3AssetModule is DerivedAssetModule {
 
     /**
      * @notice Increases the exposure to an asset on a direct deposit.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @param amount The amount of tokens.
      * @dev super.processDirectDeposit does check that msg.sender is the Registry.
      */
@@ -398,13 +401,13 @@ contract UniswapV3AssetModule is DerivedAssetModule {
 
     /**
      * @notice Increases the exposure to an asset on an indirect deposit.
-     * @param creditor The contract address of the creditor.
+     * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
-     * @param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
-     * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      * @dev super.processIndirectDeposit does check that msg.sender is the Registry.
      */
     function processIndirectDeposit(

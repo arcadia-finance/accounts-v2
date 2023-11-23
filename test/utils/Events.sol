@@ -39,8 +39,8 @@ abstract contract Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     event AssetManagerSet(address indexed owner, address indexed assetManager, bool value);
-    event BaseCurrencySet(address baseCurrency);
-    event MarginAccountChanged(address indexed protocol, address indexed liquidator);
+    event BaseCurrencySet(address indexed baseCurrency);
+    event MarginAccountChanged(address indexed creditor, address indexed liquidator);
 
     /*//////////////////////////////////////////////////////////////////////////
                                 BASE GUARDIAN
@@ -65,7 +65,7 @@ abstract contract Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     event AllowedActionSet(address indexed action, bool allowed);
-    event AssetAdded(address indexed assetAddress, address indexed assetModule, uint8 assetType);
+    event AssetAdded(address indexed assetAddress, address indexed assetModule, uint96 indexed assetType);
     event AssetModuleAdded(address assetModule);
     event OracleModuleAdded(address oracleModule);
 
