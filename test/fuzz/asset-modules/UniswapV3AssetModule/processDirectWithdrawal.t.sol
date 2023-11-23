@@ -85,11 +85,12 @@ contract ProcessDirectWithdrawal_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asse
         ticks[1] = tickLower;
         ticks[2] = tickUpper;
 
+        uint128 liquidity_;
         {
             // Calculate amounts of underlying tokens.
             // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
             // This is because there might be some small differences due to rounding errors.
-            (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+            (,,,,,,, liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
             (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
             );
@@ -132,7 +133,7 @@ contract ProcessDirectWithdrawal_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asse
         vm.prank(address(registryExtension));
         uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
 
-        (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+        (,,,,,,, liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
 
         assertEq(uniV3AssetModule.getAssetToLiquidity(tokenId), liquidity_);
     }

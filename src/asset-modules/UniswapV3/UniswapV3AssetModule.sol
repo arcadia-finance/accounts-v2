@@ -432,7 +432,9 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
-     * @dev super.processDirectWithdrawal
+     * @dev The stored liquidity on this contract is removed, otherwise _getUnderlyingAssets
+     * would keep using the liquidity of the asset at the time of deposit even if its liquidity
+     * gets updated outside an Account.
      */
     function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
         public
@@ -455,7 +457,9 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
-     * @dev super.processIndirectWithdrawal
+     * @dev The stored liquidity on this contract is removed, otherwise _getUnderlyingAssets
+     * would keep using the liquidity of the asset at the time of deposit even if its liquidity
+     * gets updated outside an Account.
      */
     function processIndirectWithdrawal(
         address creditor,
