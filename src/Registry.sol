@@ -20,7 +20,7 @@ import { RegistryErrors } from "./libraries/Errors.sol";
 /**
  * @title Registry
  * @author Pragma Labs
- * @notice The Registry has a number of responsibilities to the management of assets and oracles:
+ * @notice The Registry has a number of responsibilities, all related to the management of assets and oracles:
  *  - It stores the mapping between assets and their respective Asset Modules.
  *  - It stores the mapping between oracles and their respective Oracle Modules.
  *  - It orchestrates the pricing of a basket of assets in a single unit of account.
