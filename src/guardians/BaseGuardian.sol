@@ -81,7 +81,7 @@ abstract contract BaseGuardian is Owned {
      * find a solution and unpause the protocol. If the protocol is not unpaused after 30 days,
      * an emergency procedure can be started by any user to unpause the protocol.
      * All users have now at least a two-day window to withdraw assets and close positions before
-     * the protocol can again be paused (after 32 days).
+     * the protocol can again be paused 32 days after the contract was previously paused.
      */
     function pause() external virtual onlyGuardian { }
 

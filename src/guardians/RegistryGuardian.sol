@@ -67,8 +67,8 @@ abstract contract RegistryGuardian is BaseGuardian {
 
     /**
      * @notice This function is used to unpause one or more flags.
-     * @param withdrawPaused_ false when withdraw functionality should be unPaused.
-     * @param depositPaused_ false when deposit functionality should be unPaused.
+     * @param withdrawPaused_ It is false when withdraw functionality should be unPaused.
+     * @param depositPaused_ It is false when deposit functionality should be unPaused.
      * @dev This function can unPause withdraw and deposit individually.
      * @dev Can only update flags from paused (true) to unpaused (false), cannot be used the other way around
      * (to set unpaused flags to paused).
