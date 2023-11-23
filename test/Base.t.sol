@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { Test } from "../lib/forge-std/src/Test.sol";
 import { Users } from "./utils/Types.sol";
 import { Factory } from "../src/Factory.sol";
-import { AccountV1 } from "../src/AccountV1.sol";
+import { AccountV1 } from "../src/accounts/AccountV1.sol";
 import { AccountV2 } from "./utils/mocks/AccountV2.sol";
 import { ChainlinkOracleModuleExtension } from "./utils/Extensions.sol";
 import { RegistryExtension } from "./utils/Extensions.sol";

@@ -4,17 +4,17 @@
  */
 pragma solidity 0.8.19;
 
-import { IERC721 } from "./interfaces/IERC721.sol";
-import { IERC1155 } from "./interfaces/IERC1155.sol";
-import { IRegistry } from "./interfaces/IRegistry.sol";
-import { ICreditor } from "./interfaces/ICreditor.sol";
-import { IActionBase, ActionData } from "./interfaces/IActionBase.sol";
-import { IAccount } from "./interfaces/IAccount.sol";
-import { IPermit2 } from "./interfaces/IPermit2.sol";
-import { ERC20, SafeTransferLib } from "../lib/solmate/src/utils/SafeTransferLib.sol";
+import { IERC721 } from "../interfaces/IERC721.sol";
+import { IERC1155 } from "../interfaces/IERC1155.sol";
+import { IRegistry } from "../interfaces/IRegistry.sol";
+import { ICreditor } from "../interfaces/ICreditor.sol";
+import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
+import { IAccount } from "../interfaces/IAccount.sol";
+import { IPermit2 } from "../interfaces/IPermit2.sol";
+import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
-import { RiskModule } from "./RiskModule.sol";
-import { AccountErrors } from "./libraries/Errors.sol";
+import { RiskModule } from "../RiskModule.sol";
+import { AccountErrors } from "../libraries/Errors.sol";
 
 /**
  * @title Arcadia Accounts
