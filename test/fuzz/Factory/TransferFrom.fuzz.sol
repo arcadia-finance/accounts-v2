@@ -19,24 +19,8 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     modifier notAccountOwner(address accountOwner) {
+        vm.assume(accountOwner != address(0));
         vm.assume(accountOwner != users.accountOwner);
-        _;
-    }
-
-    modifier notTestContracts(address nonOwner) {
-        vm.assume(nonOwner != address(0));
-        vm.assume(nonOwner != address(factory));
-        vm.assume(nonOwner != address(registryExtension));
-        vm.assume(nonOwner != address(vm));
-        vm.assume(nonOwner != address(this));
-        vm.assume(nonOwner != address(chainlinkOM));
-        vm.assume(nonOwner != address(erc20AssetModule));
-        vm.assume(nonOwner != address(floorERC1155AssetModule));
-        vm.assume(nonOwner != address(floorERC721AssetModule));
-        vm.assume(nonOwner != address(uniV3AssetModule));
-        vm.assume(nonOwner != address(creditorUsd));
-        vm.assume(nonOwner != address(creditorStable1));
-        vm.assume(nonOwner != address(creditorToken1));
         _;
     }
 

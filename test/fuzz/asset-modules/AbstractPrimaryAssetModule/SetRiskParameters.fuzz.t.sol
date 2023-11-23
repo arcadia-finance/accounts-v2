@@ -7,6 +7,7 @@ pragma solidity 0.8.19;
 import { AbstractPrimaryAssetModule_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
 
 import { RiskModule } from "../../../../src/RiskModule.sol";
+import { PrimaryAssetModule } from "../../../../src/asset-modules/AbstractPrimaryAssetModule.sol";
 
 /**
  * @notice Fuzz tests for the function "setRiskParameters" of contract "AbstractPrimaryAssetModule".
@@ -73,6 +74,23 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_setRiskParameters_CollFactorExceedsLiqFactor(
+        address creditor,
+        address asset,
+        uint96 assetId,
+        uint128 maxExposure,
+        uint16 collateralFactor,
+        uint16 liquidationFactor
+    ) public {
+        collateralFactor = uint16(bound(collateralFactor, 1, RiskModule.ONE_4));
+        liquidationFactor = uint16(bound(liquidationFactor, 0, collateralFactor - 1));
+
+        vm.startPrank(address(registryExtension));
+        vm.expectRevert(PrimaryAssetModule.CollFactorExceedsLiqFactor.selector);
+        assetModule.setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
+        vm.stopPrank();
+    }
+
     function testFuzz_Success_setRiskParameters(
         address creditor,
         address asset,
@@ -82,7 +100,7 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         uint16 liquidationFactor
     ) public {
         collateralFactor = uint16(bound(collateralFactor, 0, RiskModule.ONE_4));
-        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskModule.ONE_4));
+        liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, RiskModule.ONE_4));
 
         vm.prank(address(registryExtension));
         assetModule.setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
