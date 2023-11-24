@@ -37,8 +37,8 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
 
         deployUniswapV3AssetModule(address(nonfungiblePositionManager));
 
-        token0 = new ERC20Mock('Token 0', 'TOK0', 18);
-        token1 = new ERC20Mock('Token 1', 'TOK1', 18);
+        token0 = new ERC20Mock("Token 0", "TOK0", 18);
+        token1 = new ERC20Mock("Token 1", "TOK1", 18);
         (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
     }
 

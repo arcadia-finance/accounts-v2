@@ -378,11 +378,7 @@ abstract contract Fuzz_Test is Base_Test {
         returns (ArcadiaOracle)
     {
         vm.startPrank(users.defaultCreatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(
-            uint8(decimals),
-            description,
-            address(73)
-        );
+        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
         oracle.setOffchainTransmitter(users.defaultTransmitter);
         vm.stopPrank();
         vm.startPrank(users.defaultTransmitter);
@@ -394,11 +390,7 @@ abstract contract Fuzz_Test is Base_Test {
 
     function initMockedOracle(uint8 decimals, string memory description) public returns (ArcadiaOracle) {
         vm.startPrank(users.defaultCreatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(
-            uint8(decimals),
-            description,
-            address(73)
-        );
+        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
         oracle.setOffchainTransmitter(users.defaultTransmitter);
         vm.stopPrank();
         return oracle;
@@ -409,11 +401,7 @@ abstract contract Fuzz_Test is Base_Test {
         returns (ArcadiaOracle)
     {
         vm.startPrank(users.defaultCreatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(
-            uint8(decimals),
-            description,
-            address(73)
-        );
+        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
         oracle.setOffchainTransmitter(users.defaultTransmitter);
         vm.stopPrank();
 

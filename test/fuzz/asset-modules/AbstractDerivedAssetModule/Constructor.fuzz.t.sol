@@ -25,10 +25,7 @@ contract Constructor_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedAsse
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_, uint256 assetType_) public {
         vm.startPrank(users.creatorAddress);
-        DerivedAssetModuleMock assetModule_ = new DerivedAssetModuleMock(
-            registry_,
-            assetType_
-        );
+        DerivedAssetModuleMock assetModule_ = new DerivedAssetModuleMock(registry_, assetType_);
         vm.stopPrank();
 
         assertEq(assetModule_.REGISTRY(), registry_);
