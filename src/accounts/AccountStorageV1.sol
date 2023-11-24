@@ -23,16 +23,16 @@ contract AccountStorageV1 {
     uint256 internal locked;
     // Flag indicating if the Account is in an auction (in liquidation).
     bool public inAuction;
-    // Flag that indicates if a creditor is set.
-    bool public isCreditorSet;
     // The contract address of the liquidator, address 0 if no creditor is set.
     address public liquidator;
+
     // The estimated maximum cost to liquidate an Account, will count as Used Margin when a creditor is set.
     uint96 public fixedLiquidationCost;
-    // The owner of the Account.
-    address public owner;
     // The contract address of the Registry.
     address public registry;
+
+    // The owner of the Account.
+    address public owner;
     // The contract address of the Creditor.
     address public creditor;
     // The baseCurrency of the Account in which all assets and liabilities are denominated.

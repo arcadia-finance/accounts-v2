@@ -52,7 +52,6 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_openMarginAccount() public {
         // Assert no creditor has been set on deployment
         assertEq(proxyAccount.creditor(), address(0));
-        assertEq(proxyAccount.isCreditorSet(), false);
         // Assert no liquidator, baseCurrency and liquidation costs have been defined on deployment
         assertEq(proxyAccount.liquidator(), address(0));
         assertEq(proxyAccount.fixedLiquidationCost(), 0);
@@ -67,7 +66,6 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Assert a creditor has been set and other variables updated
         assertEq(proxyAccount.creditor(), address(creditorStable1));
-        assertEq(proxyAccount.isCreditorSet(), true);
         assertEq(proxyAccount.liquidator(), Constants.initLiquidator);
         assertEq(proxyAccount.fixedLiquidationCost(), Constants.initLiquidationCost);
         assertEq(proxyAccount.baseCurrency(), address(mockERC20.stable1));
@@ -95,7 +93,6 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
 
         assertEq(proxyAccount.creditor(), address(creditorStable1));
-        assertEq(proxyAccount.isCreditorSet(), true);
         assertEq(proxyAccount.liquidator(), liquidator);
         assertEq(proxyAccount.baseCurrency(), address(mockERC20.token1));
         assertEq(proxyAccount.fixedLiquidationCost(), fixedLiquidationCost);
@@ -115,6 +112,5 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(AccountV1(deployedAccount).creditor(), address(creditorStable1));
         assertEq(AccountV1(deployedAccount).baseCurrency(), address(mockERC20.stable1));
         assertEq(AccountV1(deployedAccount).fixedLiquidationCost(), Constants.initLiquidationCost);
-        assertTrue(AccountV1(deployedAccount).isCreditorSet());
     }
 }

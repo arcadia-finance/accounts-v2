@@ -65,7 +65,6 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         proxyAccount.closeMarginAccount();
         vm.stopPrank();
 
-        assertTrue(!proxyAccount.isCreditorSet());
         assertTrue(proxyAccount.creditor() == address(0));
         assertTrue(proxyAccount.liquidator() == address(0));
     }

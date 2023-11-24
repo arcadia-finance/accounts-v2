@@ -108,7 +108,6 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
         assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
         assertEq(AccountV1(actualDeployed).creditor(), address(0));
-        assertEq(AccountV1(actualDeployed).isCreditorSet(), false);
         assertEq(AccountV1(actualDeployed).owner(), address(this));
     }
 
@@ -131,7 +130,6 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
         assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
         assertEq(AccountV1(actualDeployed).creditor(), address(creditorStable1));
-        assertEq(AccountV1(actualDeployed).isCreditorSet(), true);
     }
 
     function testFuzz_Success_createAccount_DeployNewProxyWithLogicOwner(uint256 salt, address sender) public {

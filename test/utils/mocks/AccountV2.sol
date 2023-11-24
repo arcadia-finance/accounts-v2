@@ -162,7 +162,7 @@ contract AccountV2 is AccountStorageV2 {
         external
         onlyFactory
     {
-        if (isCreditorSet) {
+        if (creditor != address(0)) {
             // If a creditor is set, new version should be compatible.
             // openMarginAccount() is a view function, cannot modify state.
             (bool success,,,) = ICreditor(creditor).openMarginAccount(newVersion);
@@ -233,7 +233,7 @@ contract AccountV2 is AccountStorageV2 {
      * if there is none set, then a new baseCurrency is set.
      */
     function setBaseCurrency(address baseCurrency_) external onlyOwner {
-        if (isCreditorSet) revert AccountErrors.CreditorAlreadySet();
+        if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
         _setBaseCurrency(baseCurrency_);
     }
 
@@ -261,7 +261,7 @@ contract AccountV2 is AccountStorageV2 {
      * The Creditor has significant authorisation: use margin, trigger liquidation, and manage assets.
      */
     function openMarginAccount(address creditor_) external onlyOwner {
-        if (isCreditorSet) revert AccountErrors.CreditorAlreadySet();
+        if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
         _openMarginAccount(creditor_);
     }
 
@@ -281,7 +281,6 @@ contract AccountV2 is AccountStorageV2 {
         if (baseCurrency != baseCurrency_) {
             _setBaseCurrency(baseCurrency_);
         }
-        isCreditorSet = true;
 
         emit MarginAccountChanged(creditor_, liquidator_);
     }
@@ -291,11 +290,12 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Currently only one creditor can be set.
      */
     function closeMarginAccount() external onlyOwner {
-        if (!isCreditorSet) revert AccountErrors.CreditorNotSet();
-        // getOpenPosition() is a view function, cannot modify state.
-        if (ICreditor(creditor).getOpenPosition(address(this)) != 0) revert AccountErrors.NonZeroOpenPosition();
+        // Cache creditor
+        address creditor_ = creditor;
+        if (creditor_ == address(0)) revert AccountErrors.CreditorNotSet();
+        // closeMarginAccount() checks if there is still open position. If so, reverts.
+        ICreditor(creditor_).closeMarginAccount(address(this));
 
-        isCreditorSet = false;
         creditor = address(0);
         liquidator = address(0);
         fixedLiquidationCost = 0;
@@ -409,10 +409,12 @@ contract AccountV2 is AccountStorageV2 {
      * The open liability is fetched at the contract of the application -> only allow trusted audited creditors!!!
      */
     function getUsedMargin() public view returns (uint256 usedMargin) {
-        if (!isCreditorSet) return 0;
+        // Cache creditor
+        address creditor_ = creditor;
+        if (creditor_ == address(0)) return 0;
 
         // getOpenPosition() is a view function, cannot modify state.
-        usedMargin = ICreditor(creditor).getOpenPosition(address(this)) + fixedLiquidationCost;
+        usedMargin = ICreditor(creditor_).getOpenPosition(address(this)) + fixedLiquidationCost;
     }
 
     /**
