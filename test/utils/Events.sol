@@ -30,9 +30,9 @@ abstract contract Events {
                                      FACTORY
     //////////////////////////////////////////////////////////////////////////*/
 
-    event AccountUpgraded(address indexed accountAddress, uint16 indexed newVersion);
-    event AccountVersionAdded(uint16 indexed version, address indexed registry, address indexed logic);
-    event AccountVersionBlocked(uint16 version);
+    event AccountUpgraded(address indexed accountAddress, uint88 indexed newVersion);
+    event AccountVersionAdded(uint88 indexed version, address indexed registry, address indexed logic);
+    event AccountVersionBlocked(uint88 version);
 
     /*//////////////////////////////////////////////////////////////////////////
                                       ACCOUNT

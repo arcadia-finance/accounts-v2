@@ -17,10 +17,10 @@ abstract contract BaseGuardian is Owned {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
+    // Last timestamp an emergency stop was triggered.
+    uint96 public pauseTimestamp;
     // Address of the Guardian.
     address public guardian;
-    // Last timestamp an emergency stop was triggered.
-    uint256 public pauseTimestamp;
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS

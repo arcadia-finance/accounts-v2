@@ -27,7 +27,7 @@ interface IAccount {
      * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.
      * @param newVersion The new version of the Account logic.
      */
-    function upgradeAccount(address newImplementation, address newRegistry, uint16 newVersion, bytes calldata data)
+    function upgradeAccount(address newImplementation, address newRegistry, uint88 newVersion, bytes calldata data)
         external;
 
     /**

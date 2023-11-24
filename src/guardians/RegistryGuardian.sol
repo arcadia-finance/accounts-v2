@@ -59,7 +59,7 @@ abstract contract RegistryGuardian is BaseGuardian {
      * @inheritdoc BaseGuardian
      */
     function pause() external override onlyGuardian only32daysAfterPause {
-        pauseTimestamp = block.timestamp;
+        pauseTimestamp = uint96(block.timestamp);
         emit PauseFlagsUpdated(withdrawPaused = true, depositPaused = true);
     }
 
