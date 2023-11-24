@@ -59,7 +59,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(versionRoot != bytes32(0));
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert(FactoryErrors.LogicIsZero.selector);
+        vm.expectRevert(FactoryErrors.ImplIsZero.selector);
         factory.setNewAccountInfo(registry_, address(0), versionRoot, "");
         vm.stopPrank();
     }

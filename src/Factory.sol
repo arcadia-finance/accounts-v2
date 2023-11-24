@@ -27,7 +27,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     ////////////////////////////////////////////////////////////// */
 
     // The latest Account version, newly deployed Account use the latest version by default.
-    uint16 public latestAccountVersion;
+    uint88 public latestAccountVersion;
     // The baseURI of the ERC721 tokens.
     string public baseURI;
 
@@ -48,9 +48,9 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     struct VersionInformation {
         // The contract address of the Registry.
         address registry;
-        // The contract address of the Account logic.
-        address logic;
-        // Arbitrary data, can contain instructions to execute when updating Account to new logic.
+        // The contract address of the Account implementation.
+        address implementation;
+        // Arbitrary data, can contain instructions to execute when updating Account to new implementation.
         bytes data;
     }
 
@@ -58,9 +58,9 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event AccountUpgraded(address indexed accountAddress, uint16 indexed newVersion);
-    event AccountVersionAdded(uint16 indexed version, address indexed registry, address indexed logic);
-    event AccountVersionBlocked(uint16 version);
+    event AccountUpgraded(address indexed accountAddress, uint88 indexed newVersion);
+    event AccountVersionAdded(uint88 indexed version, address indexed registry, address indexed implementation);
+    event AccountVersionBlocked(uint88 version);
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -81,7 +81,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @return account The contract address of the proxy contract of the newly deployed Account.
      * @dev If accountVersion == 0, the newest version will be used.
      */
-    function createAccount(uint256 salt, uint16 accountVersion, address baseCurrency, address creditor)
+    function createAccount(uint256 salt, uint88 accountVersion, address baseCurrency, address creditor)
         external
         whenCreateNotPaused
         returns (address account)
@@ -94,7 +94,9 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         // Hash tx.origin with the user provided salt to avoid front-running Account deployment with an identical salt.
         // We use tx.origin instead of msg.sender so that deployments through a third party contract are not vulnerable to front-running.
         account = address(
-            new Proxy{ salt: keccak256(abi.encodePacked(salt, tx.origin)) }(versionInformation[accountVersion].logic)
+            new Proxy{ salt: keccak256(abi.encodePacked(salt, tx.origin)) }(
+                versionInformation[accountVersion].implementation
+            )
         );
 
         IAccount(account).initialize(msg.sender, versionInformation[accountVersion].registry, baseCurrency, creditor);
@@ -127,7 +129,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     }
 
     /**
-     * @notice This function allows Account owners to upgrade the logic of the Account.
+     * @notice This function allows Account owners to upgrade the implementation of the Account.
      * @param account Account that needs to be upgraded.
      * @param version The accountVersion to upgrade to.
      * @param proofs The Merkle proofs that prove the compatibility of the upgrade from current to new account version.
@@ -135,7 +137,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * Checks are done such that only compatible versions can be upgraded to.
      * Merkle proofs and their leaves can be found on https://www.github.com/arcadia-finance.
      */
-    function upgradeAccountVersion(address account, uint16 version, bytes32[] calldata proofs) external {
+    function upgradeAccountVersion(address account, uint88 version, bytes32[] calldata proofs) external {
         if (_ownerOf[accountIndex[account]] != msg.sender) revert FactoryErrors.OnlyAccountOwner();
         if (accountVersionBlocked[version]) revert FactoryErrors.AccountVersionBlocked();
 
@@ -146,7 +148,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         if (!canUpgrade) revert FactoryErrors.InvalidUpgrade();
 
         IAccount(account).upgradeAccount(
-            versionInformation[version].logic,
+            versionInformation[version].implementation,
             versionInformation[version].registry,
             version,
             versionInformation[version].data
@@ -156,11 +158,12 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     }
 
     /**
-     * @notice Function used to transfer an Account between users.
+     * @notice Function used to transfer an Account between users based on Account address.
      * @param from The sender.
      * @param to The target.
      * @param account The address of the Account that is transferred.
-     * @dev This method transfers an Account not on id but on address and also transfers the Account proxy contract to the new owner.
+     * @dev This method transfers an Account on Account address instead of id and
+     * also transfers the Account proxy contract to the new owner.
      */
     function safeTransferFrom(address from, address to, address account) public {
         uint256 id = accountIndex[account];
@@ -169,11 +172,12 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     }
 
     /**
-     * @notice Function used to transfer an Account between users.
+     * @notice Function used to transfer an Account between users based on Account id.
      * @param from The sender.
      * @param to The target.
      * @param id The id of the Account that is about to be transferred.
-     * @dev This method overwrites the safeTransferFrom function in ERC721.sol to also transfer the Account proxy contract to the new owner.
+     * @dev This method overwrites the safeTransferFrom function in ERC721.sol to
+     * also transfer the Account proxy contract to the new owner.
      */
     function safeTransferFrom(address from, address to, uint256 id) public override {
         IAccount(allAccounts[id - 1]).transferOwnership(to);
@@ -181,12 +185,13 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     }
 
     /**
-     * @notice Function used to transfer an Account between users.
+     * @notice Function used to transfer an Account between users based on Account id.
      * @param from The sender.
      * @param to The target.
      * @param id The id of the Account that is about to be transferred.
      * @param data additional data, only used for onERC721Received.
-     * @dev This method overwrites the safeTransferFrom function in ERC721.sol to also transfer the Account proxy contract to the new owner.
+     * @dev This method overwrites the safeTransferFrom function in ERC721.sol to
+     * also transfer the Account proxy contract to the new owner.
      */
     function safeTransferFrom(address from, address to, uint256 id, bytes calldata data) public override {
         IAccount(allAccounts[id - 1]).transferOwnership(to);
@@ -194,11 +199,12 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     }
 
     /**
-     * @notice Function used to transfer an Account between users.
+     * @notice Function used to transfer an Account between users based on Account id.
      * @param from The sender.
      * @param to The target.
      * @param id The id of the Account that is about to be transferred.
-     * @dev This method overwrites the transferFrom function in ERC721.sol to also transfer the Account proxy contract to the new owner.
+     * @dev This method overwrites the transferFrom function in ERC721.sol to
+     * also transfer the Account proxy contract to the new owner.
      */
     function transferFrom(address from, address to, uint256 id) public override {
         IAccount(allAccounts[id - 1]).transferOwnership(to);
@@ -212,18 +218,18 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     /**
      * @notice Function to set a new Account version with the contracts to be used for new deployed Accounts.
      * @param registry The contract address of the Registry.
-     * @param logic The contract address of the Account logic.
+     * @param implementation The contract address of the Account implementation.
      * @param versionRoot_ The Merkle root of the Merkle tree of all the compatible Account versions.
-     * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.
+     * @param data Arbitrary data, can contain instructions to execute when updating Account to new implementation.
      * @dev Changing any of the contracts does NOT change the contracts for existing deployed Accounts,
      * unless the Account owner explicitly chooses to upgrade their Account to a newer version.
      */
-    function setNewAccountInfo(address registry, address logic, bytes32 versionRoot_, bytes calldata data)
+    function setNewAccountInfo(address registry, address implementation, bytes32 versionRoot_, bytes calldata data)
         external
         onlyOwner
     {
         if (versionRoot_ == bytes32(0)) revert FactoryErrors.VersionRootIsZero();
-        if (logic == address(0)) revert FactoryErrors.LogicIsZero();
+        if (implementation == address(0)) revert FactoryErrors.ImplIsZero();
 
         uint256 latestAccountVersion_;
         unchecked {
@@ -231,25 +237,28 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
             latestAccountVersion_ = ++latestAccountVersion;
         }
 
-        if (IAccount(logic).ACCOUNT_VERSION() != latestAccountVersion) revert FactoryErrors.VersionMismatch();
+        if (IAccount(implementation).ACCOUNT_VERSION() != latestAccountVersion) revert FactoryErrors.VersionMismatch();
 
         versionRoot = versionRoot_;
-        versionInformation[latestAccountVersion_] = VersionInformation({ registry: registry, logic: logic, data: data });
+        versionInformation[latestAccountVersion_] =
+            VersionInformation({ registry: registry, implementation: implementation, data: data });
 
-        emit AccountVersionAdded(uint16(latestAccountVersion_), registry, logic);
+        emit AccountVersionAdded(uint88(latestAccountVersion_), registry, implementation);
     }
 
     /**
-     * @notice Function to block a certain Account logic version from being created as a new Account.
+     * @notice Function to block a certain Account implementation version from being created as a new Account.
      * @param version The Account version to be phased out.
-     * @dev Should any Account logic version be phased out,
+     * @dev Should any Account implementation version be phased out,
      * this function can be used to block it from being created for new Accounts.
+     * @dev Although possible to block an Account version through the versionRoot,
+     * that would require verifying the Merkle tree on account creation, which is expensive.
      */
     function blockAccountVersion(uint256 version) external onlyOwner {
         if (version == 0 || version > latestAccountVersion) revert FactoryErrors.InvalidAccountVersion();
         accountVersionBlocked[version] = true;
 
-        emit AccountVersionBlocked(uint16(version));
+        emit AccountVersionBlocked(uint88(version));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -271,7 +280,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     /**
      * @notice Function that stores a new base URI.
      * @param newBaseURI The new base URI to store.
-     * @dev tokenURI's of Arcadia Accounts are not meant to be immutable
+     * @dev tokenURIs of Arcadia Accounts are not meant to be immutable
      * and might be updated later to allow users to choose/create their own Account art,
      * as such no URI freeze is added.
      */

@@ -97,6 +97,8 @@ contract AccountExtension is AccountV1 {
 contract BaseGuardianExtension is BaseGuardian {
     constructor() BaseGuardian() { }
 
+    function pause() external override { }
+
     function unpause() external override { }
 }
 
@@ -131,7 +133,7 @@ contract ChainlinkOracleModuleExtension is ChainlinkOracleModule {
 contract FactoryGuardianExtension is FactoryGuardian {
     constructor() FactoryGuardian() { }
 
-    function setPauseTimestamp(uint256 pauseTimestamp_) public {
+    function setPauseTimestamp(uint96 pauseTimestamp_) public {
         pauseTimestamp = pauseTimestamp_;
     }
 
@@ -143,7 +145,7 @@ contract FactoryGuardianExtension is FactoryGuardian {
 contract RegistryGuardianExtension is RegistryGuardian {
     constructor() RegistryGuardian() { }
 
-    function setPauseTimestamp(uint256 pauseTimestamp_) public {
+    function setPauseTimestamp(uint96 pauseTimestamp_) public {
         pauseTimestamp = pauseTimestamp_;
     }
 

@@ -163,7 +163,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param newVersion The new version of the Account implementation.
      * @dev This function MUST be added to new Account implementations.
      */
-    function upgradeAccount(address newImplementation, address newRegistry, uint16 newVersion, bytes calldata data)
+    function upgradeAccount(address newImplementation, address newRegistry, uint88 newVersion, bytes calldata data)
         external
         nonReentrant
         onlyFactory

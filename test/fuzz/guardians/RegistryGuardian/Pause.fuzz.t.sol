@@ -45,7 +45,7 @@ contract Pause_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz_Test {
         // When: Guardian pauses again within 32 days passed from the last pause.
         // Then: The transaction reverts with "Cannot_Pause".
         vm.startPrank(users.guardian);
-        vm.expectRevert(BaseGuardian.CannotPause.selector);
+        vm.expectRevert(BaseGuardian.CoolDownPeriodNotPassed.selector);
         registryGuardian.pause();
         vm.stopPrank();
     }
