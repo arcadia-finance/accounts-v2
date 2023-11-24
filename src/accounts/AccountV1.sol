@@ -541,7 +541,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The only requirements are that the recipient tokens of the interactions are allowlisted, deposited back into the Account and
      * that the Account is in a healthy state at the end of the transaction.
      */
-    function accountManagementAction(address actionHandler, bytes calldata actionData, bytes calldata signature)
+    function accountManagementAction(bytes calldata actionData, bytes calldata signature, address actionHandler)
         external
         nonReentrant
         onlyAssetManager
@@ -549,8 +549,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
         returns (address, uint256)
     {
         if (!IRegistry(registry).isActionAllowed(actionHandler)) revert AccountErrors.ActionNotAllowed();
-
-        address actionHandler_ = actionHandler;
 
         (
             ActionData memory withdrawData,
@@ -564,23 +562,23 @@ contract AccountV1 is AccountStorageV1, IAccount {
         );
 
         // Withdraw assets to actionHandler.
-        _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionHandler_);
+        _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionHandler);
 
         // Transfer assets from owner (that are not assets in this account) to actionHandler.
         if (transferFromOwnerData.assets.length > 0) {
-            _transferFromOwner(transferFromOwnerData, actionHandler_);
+            _transferFromOwner(transferFromOwnerData, actionHandler);
         }
 
         // If the function input includes a signature and non-empty token permissions, initiate a transfer via Permit2.
         if (signature.length > 0 && permit.permitted.length > 0) {
-            _transferFromOwnerWithPermit(permit, signature, actionHandler_);
+            _transferFromOwnerWithPermit(permit, signature, actionHandler);
         }
 
         // Execute Action(s).
-        ActionData memory depositData = IActionBase(actionHandler_).executeAction(actionHandlerData, to, data);
+        ActionData memory depositData = IActionBase(actionHandler).executeAction(actionHandlerData, to, data);
 
         // Deposit assets from actionHandler into Account.
-        _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionHandler_);
+        _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionHandler);
 
         // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always in a healthy state.
         uint256 usedMargin = getUsedMargin();
