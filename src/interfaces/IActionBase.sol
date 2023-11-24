@@ -19,9 +19,9 @@ struct ActionData {
 interface IActionBase {
     /**
      * @notice Calls a series of addresses with arbitrary calldata.
-     * @param actionHandlerData A bytes object containing one actionAssetData struct, an address array and a bytes array.
+     * @param actionHandlerData A bytes object containing one actionData struct, an address array and a bytes array.
      * @return resultData An actionAssetData struct with the balances of this ActionMultiCall address.
      */
 
-    function executeAction(bytes memory actionHandlerData) external returns (ActionData memory);
+    function executeAction(bytes calldata actionHandlerData) external returns (ActionData memory);
 }

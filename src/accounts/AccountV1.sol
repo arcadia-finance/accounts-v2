@@ -539,12 +539,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Calls external Action Multicall to execute and interact with external logic.
-     * @param actionHandler The address of the Action Multicall.
-     * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
+     * @param actionData A bytes object containing three actionAssetData structs, and a bytes object.
      * The first struct contains the info about the assets to withdraw from this Account to the actionHandler.
      * The second struct contains the info about the owner's assets that are not in this Account and need to be transferred to the actionHandler.
-     * The third struct contains the info about the assets that needs to be deposited from the actionHandler back into the Account.
+     * The third struct contains the permit for the Permit2 transfer.
      * @param signature The signature to verify.
+     * @param actionHandler The address of the Action Multicall.
      * @return creditor_ The contract address of the Creditor.
      * @return accountVersion_ The Account version.
      * @dev Similar to flash loans, this function optimistically calls external logic and checks for the Account state at the very end.

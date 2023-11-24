@@ -522,13 +522,17 @@ contract AccountV2 is AccountStorageV2 {
     }
 
     /**
-     * @notice Calls external action handler to execute and interact with external logic.
-     * @param actionHandler The address of the action handler.
-     * @param actionData A bytes object containing two actionAssetData structs, an address array and a bytes array.
-     * @return creditor_ The contract address of the creditor.
+     * @notice Calls external Action Multicall to execute and interact with external logic.
+     * @param actionData A bytes object containing three actionAssetData structs, and a bytes object.
+     * The first struct contains the info about the assets to withdraw from this Account to the actionHandler.
+     * The second struct contains the info about the owner's assets that are not in this Account and need to be transferred to the actionHandler.
+     * The third struct contains the permit for the Permit2 transfer.
+     * @param signature The signature to verify.
+     * @param actionHandler The address of the Action Multicall.
+     * @return creditor_ The contract address of the Creditor.
      * @return accountVersion_ The Account version.
      * @dev Similar to flash loans, this function optimistically calls external logic and checks for the Account state at the very end.
-     * @dev accountManagementAction can interact with and chain together any DeFi protocol to swap, stake, claim...
+     * This allows users to interact with and chain together any DeFi protocol to swap, stake, claim...
      * The only requirements are that the recipient tokens of the interactions are allowlisted, deposited back into the Account and
      * that the Account is in a healthy state at the end of the transaction.
      */
