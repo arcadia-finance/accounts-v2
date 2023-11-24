@@ -4,7 +4,9 @@
  */
 pragma solidity 0.8.19;
 
-import { RegistryGuardian_Fuzz_Test, BaseGuardian } from "./_RegistryGuardian.fuzz.t.sol";
+import { RegistryGuardian_Fuzz_Test } from "./_RegistryGuardian.fuzz.t.sol";
+
+import { GuardianErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "unPause" of contract "RegistryGuardian".
@@ -39,7 +41,7 @@ contract UnPause_WithoutArgs_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz
         // When: A sender un-pauses within 30 days passed from the last pause.
         // Then: The transaction reverts with "G_UP: Cannot unPaus".
         vm.startPrank(sender);
-        vm.expectRevert(BaseGuardian.CoolDownPeriodNotPassed.selector);
+        vm.expectRevert(GuardianErrors.CoolDownPeriodNotPassed.selector);
         registryGuardian.unpause();
         vm.stopPrank();
     }

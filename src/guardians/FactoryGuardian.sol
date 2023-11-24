@@ -5,12 +5,15 @@
 
 pragma solidity 0.8.19;
 
-import { BaseGuardian } from "./BaseGuardian.sol";
+import { BaseGuardian, GuardianErrors } from "./BaseGuardian.sol";
 
 /**
  * @title Factory Guardian
  * @author Pragma Labs
- * @notice Logic inherited by the Factory that allows an authorized guardian to trigger an emergency stop.
+ * @notice Logic inherited by the Factory that allows:
+ * - An authorized guardian to trigger an emergency stop.
+ * - The protocol owner to unpause functionalities.
+ * - Anyone to unpause all functionalities after a fixed cool-down period.
  */
 abstract contract FactoryGuardian is BaseGuardian {
     /* //////////////////////////////////////////////////////////////
@@ -30,20 +33,17 @@ abstract contract FactoryGuardian is BaseGuardian {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event PauseUpdated(bool createPauseUpdate);
+    event PauseFlagsUpdated(bool createPauseUpdate);
 
-    /*
-    //////////////////////////////////////////////////////////////
-                            MODIFIERS
-    //////////////////////////////////////////////////////////////
-    */
+    /* //////////////////////////////////////////////////////////////
+                                MODIFIERS
+    ////////////////////////////////////////////////////////////// */
 
     /**
-     * @dev This modifier is used to restrict access to the creation of new Accounts when this functionality is paused.
-     * It throws if createAccount() is paused.
+     * @dev Throws if the createAccount functionality is paused.
      */
     modifier whenCreateNotPaused() {
-        if (createPaused) revert FunctionIsPaused();
+        if (createPaused) revert GuardianErrors.FunctionIsPaused();
         _;
     }
 
@@ -52,26 +52,29 @@ abstract contract FactoryGuardian is BaseGuardian {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice This function will pause the functionality to create new Accounts.
+     * @inheritdoc BaseGuardian
+     * @dev This function will pause the functionality to create new Accounts.
      */
     function pause() external override onlyGuardian afterCoolDownOf(32 days) {
-        createPaused = true;
         pauseTimestamp = uint96(block.timestamp);
 
-        emit PauseUpdated(true);
+        emit PauseFlagsUpdated(createPaused = true);
     }
 
     /**
      * @notice This function is used to unpause the creation of Accounts.
      * @param createPaused_ "False" when create functionality should be unpaused.
      * @dev This function can unpause the creation of new Accounts.
+     * @dev Can only update flags from paused (true) to unpaused (false), cannot be used the other way around
+     * (to set unpaused flags to paused).
      */
     function unpause(bool createPaused_) external onlyOwner {
-        emit PauseUpdated(createPaused = createPaused && createPaused_);
+        emit PauseFlagsUpdated(createPaused = createPaused && createPaused_);
     }
 
     /**
-     * @notice This function is not implemented. No reason to be able to create an Account if the owner of the Factory did not unpause createAccount().
+     * @notice This function is not implemented.
+     * @dev No reason to be able to create an Account if the owner of the Factory did not unpause createAccount().
      */
     function unpause() external pure override {
         revert FunctionNotImplemented();

@@ -4,7 +4,9 @@
  */
 pragma solidity 0.8.19;
 
-import { FactoryGuardian_Fuzz_Test, BaseGuardian } from "./_FactoryGuardian.fuzz.t.sol";
+import { FactoryGuardian_Fuzz_Test } from "./_FactoryGuardian.fuzz.t.sol";
+
+import { GuardianErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "pause" of contract "FactoryGuardian".
@@ -25,7 +27,7 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         vm.assume(nonGuard != users.guardian);
 
         vm.startPrank(nonGuard);
-        vm.expectRevert(BaseGuardian.OnlyGuardian.selector);
+        vm.expectRevert(GuardianErrors.OnlyGuardian.selector);
         factoryGuardian.pause();
         vm.stopPrank();
     }
@@ -45,7 +47,7 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         // When: Guardian pauses again within 32 days passed from the last pause.
         // Then: The transaction reverts with "Cannot_Pause".
         vm.startPrank(users.guardian);
-        vm.expectRevert(BaseGuardian.CoolDownPeriodNotPassed.selector);
+        vm.expectRevert(GuardianErrors.CoolDownPeriodNotPassed.selector);
         factoryGuardian.pause();
         vm.stopPrank();
     }
@@ -68,7 +70,7 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         // When: the Guardian pauses.
         vm.startPrank(users.guardian);
         vm.expectEmit();
-        emit PauseUpdated(true);
+        emit PauseFlagsUpdated(true);
         factoryGuardian.pause();
         vm.stopPrank();
 
