@@ -635,7 +635,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) == 0);
 
         // Call accountManagementAction() on Account
-        accountNotInitialised.accountManagementAction(address(action), callData, signatureStack);
+        accountNotInitialised.accountManagementAction(callData, signatureStack, address(action));
 
         // Assert that the Account now has a balance of TOKEN2
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) > 0);
