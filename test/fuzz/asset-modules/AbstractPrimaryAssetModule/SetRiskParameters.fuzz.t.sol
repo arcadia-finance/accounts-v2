@@ -36,7 +36,7 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert(AssetModule.Only_Registry.selector);
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         assetModule.setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
         vm.stopPrank();
     }
@@ -52,7 +52,7 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         collateralFactor = uint16(bound(collateralFactor, RiskModule.ONE_4 + 1, type(uint16).max));
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert(AssetModule.Coll_Factor_Not_In_Limits.selector);
+        vm.expectRevert(PrimaryAssetModule.CollFactorNotInLimits.selector);
         assetModule.setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
         vm.stopPrank();
     }
@@ -69,7 +69,7 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         liquidationFactor = uint16(bound(liquidationFactor, RiskModule.ONE_4 + 1, type(uint16).max));
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert(AssetModule.Liq_Factor_Not_In_Limits.selector);
+        vm.expectRevert(PrimaryAssetModule.LiqFactorNotInLimits.selector);
         assetModule.setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
         vm.stopPrank();
     }

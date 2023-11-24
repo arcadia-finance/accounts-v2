@@ -96,7 +96,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(address(proxyAccount));
-        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
+        vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }

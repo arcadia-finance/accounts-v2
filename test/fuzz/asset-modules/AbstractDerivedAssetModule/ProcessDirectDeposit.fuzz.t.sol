@@ -31,7 +31,7 @@ contract ProcessDirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is AbstractDe
         vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert(AssetModule.Only_Registry.selector);
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         derivedAssetModule.processDirectDeposit(creditor, asset, id, amount);
         vm.stopPrank();
     }
