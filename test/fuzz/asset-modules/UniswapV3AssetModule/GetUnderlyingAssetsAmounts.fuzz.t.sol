@@ -42,8 +42,8 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AssetModule_Fuzz_Test is UniswapV3A
         asset0.decimals = bound(asset0.decimals, 0, 18);
         asset1.decimals = bound(asset1.decimals, 0, 18);
 
-        ERC20Mock token0 = new ERC20Mock('Token 0', 'TOK0', uint8(asset0.decimals));
-        ERC20Mock token1 = new ERC20Mock('Token 1', 'TOK1', uint8(asset1.decimals));
+        ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
+        ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
         if (token0 > token1) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
@@ -87,8 +87,8 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AssetModule_Fuzz_Test is UniswapV3A
         asset0.decimals = bound(asset0.decimals, 0, 18);
         asset1.decimals = bound(asset1.decimals, 0, 18);
 
-        ERC20Mock token0 = new ERC20Mock('Token 0', 'TOK0', uint8(asset0.decimals));
-        ERC20Mock token1 = new ERC20Mock('Token 1', 'TOK1', uint8(asset1.decimals));
+        ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
+        ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
         if (token0 > token1) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
@@ -127,8 +127,8 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AssetModule_Fuzz_Test is UniswapV3A
         asset0.decimals = bound(asset0.decimals, 0, 18);
         asset1.decimals = bound(asset1.decimals, 0, 18);
 
-        ERC20Mock token0 = new ERC20Mock('Token 0', 'TOK0', uint8(asset0.decimals));
-        ERC20Mock token1 = new ERC20Mock('Token 1', 'TOK1', uint8(asset1.decimals));
+        ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
+        ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
         if (token0 > token1) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);

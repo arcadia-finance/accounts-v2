@@ -23,9 +23,7 @@ contract Constructor_AbstractOracleModule_Fuzz_Test is AbstractOracleModule_Fuzz
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.creatorAddress);
-        OracleModuleMock oracleModule_ = new OracleModuleMock(
-            registry_
-        );
+        OracleModuleMock oracleModule_ = new OracleModuleMock(registry_);
         vm.stopPrank();
 
         assertEq(oracleModule_.REGISTRY(), registry_);

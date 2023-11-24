@@ -71,9 +71,7 @@ abstract contract Base_Test is Test, Events, Errors {
         chainlinkOM = new ChainlinkOracleModuleExtension(address(registryExtension));
         erc20AssetModule = new StandardERC20AssetModuleExtension(address(registryExtension));
         floorERC721AssetModule = new FloorERC721AssetModuleExtension(address(registryExtension));
-        floorERC1155AssetModule = new FloorERC1155AssetModuleExtension(
-            address(registryExtension)
-        );
+        floorERC1155AssetModule = new FloorERC1155AssetModuleExtension(address(registryExtension));
 
         accountV1Logic = new AccountV1();
         accountV2Logic = new AccountV2();

@@ -18,7 +18,7 @@ contract UniswapV3PoolDeployerExtension is UniswapV3PoolDeployer {
     {
         parameters =
             Parameters({ factory: factory, token0: token0, token1: token1, fee: fee, tickSpacing: tickSpacing });
-        pool = address(new UniswapV3PoolExtension{salt: keccak256(abi.encode(token0, token1, fee))}());
+        pool = address(new UniswapV3PoolExtension{ salt: keccak256(abi.encode(token0, token1, fee)) }());
         delete parameters;
     }
 }
