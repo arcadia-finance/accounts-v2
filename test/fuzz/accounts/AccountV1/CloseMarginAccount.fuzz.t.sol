@@ -34,6 +34,16 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_closeMarginAccount_NotDuringAuction() public {
+        // Set "inAuction" to true.
+        accountExtension.setInAuction();
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.AccountInAuction.selector);
+        proxyAccount.closeMarginAccount();
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_closeMarginAccount_NonSetMarginAccount() public {
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.CreditorNotSet.selector);

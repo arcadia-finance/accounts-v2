@@ -167,6 +167,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function upgradeAccount(address newImplementation, address newRegistry, uint88 newVersion, bytes calldata data)
         external
         nonReentrant
+        notDuringAuction
         onlyFactory
     {
         if (creditor != address(0)) {
@@ -296,7 +297,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @notice Closes the margin account of the Creditor.
      * @dev Currently only one Creditor can be set.
      */
-    function closeMarginAccount() external onlyOwner {
+    function closeMarginAccount() external onlyOwner notDuringAuction {
         // Cache creditor
         address creditor_ = creditor;
         if (creditor_ == address(0)) revert AccountErrors.CreditorNotSet();
