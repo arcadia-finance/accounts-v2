@@ -48,8 +48,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     struct VersionInformation {
         // The contract address of the Registry.
         address registry;
-        // The contract address of the Account logic.
-        address logic;
+        // The contract address of the Account implementation.
+        address implementation;
         // Arbitrary data, can contain instructions to execute when updating Account to new implementation.
         bytes data;
     }
@@ -59,7 +59,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     ////////////////////////////////////////////////////////////// */
 
     event AccountUpgraded(address indexed accountAddress, uint88 indexed newVersion);
-    event AccountVersionAdded(uint88 indexed version, address indexed registry, address indexed logic);
+    event AccountVersionAdded(uint88 indexed version, address indexed registry, address indexed implementation);
     event AccountVersionBlocked(uint88 version);
 
     /* //////////////////////////////////////////////////////////////
@@ -94,7 +94,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         // Hash tx.origin with the user provided salt to avoid front-running Account deployment with an identical salt.
         // We use tx.origin instead of msg.sender so that deployments through a third party contract are not vulnerable to front-running.
         account = address(
-            new Proxy{salt: keccak256(abi.encodePacked(salt, tx.origin))}(versionInformation[accountVersion].logic)
+            new Proxy{salt: keccak256(abi.encodePacked(salt, tx.origin))}(versionInformation[accountVersion].implementation)
         );
 
         IAccount(account).initialize(msg.sender, versionInformation[accountVersion].registry, baseCurrency, creditor);
@@ -127,7 +127,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     }
 
     /**
-     * @notice This function allows Account owners to upgrade the logic of the Account.
+     * @notice This function allows Account owners to upgrade the implementation of the Account.
      * @param account Account that needs to be upgraded.
      * @param version The accountVersion to upgrade to.
      * @param proofs The Merkle proofs that prove the compatibility of the upgrade from current to new account version.
@@ -146,7 +146,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         if (!canUpgrade) revert FactoryErrors.InvalidUpgrade();
 
         IAccount(account).upgradeAccount(
-            versionInformation[version].logic,
+            versionInformation[version].implementation,
             versionInformation[version].registry,
             version,
             versionInformation[version].data
@@ -216,18 +216,18 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     /**
      * @notice Function to set a new Account version with the contracts to be used for new deployed Accounts.
      * @param registry The contract address of the Registry.
-     * @param logic The contract address of the Account logic.
+     * @param implementation The contract address of the Account implementation.
      * @param versionRoot_ The Merkle root of the Merkle tree of all the compatible Account versions.
-     * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.
+     * @param data Arbitrary data, can contain instructions to execute when updating Account to new implementation.
      * @dev Changing any of the contracts does NOT change the contracts for existing deployed Accounts,
      * unless the Account owner explicitly chooses to upgrade their Account to a newer version.
      */
-    function setNewAccountInfo(address registry, address logic, bytes32 versionRoot_, bytes calldata data)
+    function setNewAccountInfo(address registry, address implementation, bytes32 versionRoot_, bytes calldata data)
         external
         onlyOwner
     {
         if (versionRoot_ == bytes32(0)) revert FactoryErrors.VersionRootIsZero();
-        if (logic == address(0)) revert FactoryErrors.LogicIsZero();
+        if (implementation == address(0)) revert FactoryErrors.ImplIsZero();
 
         uint256 latestAccountVersion_;
         unchecked {
@@ -235,18 +235,19 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
             latestAccountVersion_ = ++latestAccountVersion;
         }
 
-        if (IAccount(logic).ACCOUNT_VERSION() != latestAccountVersion) revert FactoryErrors.VersionMismatch();
+        if (IAccount(implementation).ACCOUNT_VERSION() != latestAccountVersion) revert FactoryErrors.VersionMismatch();
 
         versionRoot = versionRoot_;
-        versionInformation[latestAccountVersion_] = VersionInformation({ registry: registry, logic: logic, data: data });
+        versionInformation[latestAccountVersion_] =
+            VersionInformation({ registry: registry, implementation: implementation, data: data });
 
-        emit AccountVersionAdded(uint88(latestAccountVersion_), registry, logic);
+        emit AccountVersionAdded(uint88(latestAccountVersion_), registry, implementation);
     }
 
     /**
-     * @notice Function to block a certain Account logic version from being created as a new Account.
+     * @notice Function to block a certain Account implementation version from being created as a new Account.
      * @param version The Account version to be phased out.
-     * @dev Should any Account logic version be phased out,
+     * @dev Should any Account implementation version be phased out,
      * this function can be used to block it from being created for new Accounts.
      * @dev Although possible to block an Account version through the versionRoot,
      * that would require verifying the Merkle tree on account creation, which is expensive.

@@ -33,7 +33,7 @@ library FactoryErrors {
     error AccountVersionBlocked();
     error InvalidAccountVersion();
     error InvalidUpgrade();
-    error LogicIsZero();
+    error ImplIsZero();
     error OnlyAccountOwner();
     error VersionMismatch();
     error VersionRootIsZero();
