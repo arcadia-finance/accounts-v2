@@ -4,27 +4,27 @@
  */
 pragma solidity 0.8.19;
 
+// Struct with risk and valuation related information for a certain asset.
+struct AssetValueAndRiskFactors {
+    // The value of the asset.
+    uint256 assetValue;
+    // The collateral factor of the asset, for a given creditor.
+    uint256 collateralFactor;
+    // The liquidation factor of the asset, for a given creditor.
+    uint256 liquidationFactor;
+}
+
 /**
- * @title Risk Module
+ * @title Asset Valuation Library
  * @author Pragma Labs
- * @notice The Risk Module is responsible for calculating the risk weighted values of combinations of assets.
+ * @notice The Asset Valuation Library is responsible for calculating the risk weighted values of combinations of assets.
  */
-library RiskModule {
+library AssetValuationLib {
     /*///////////////////////////////////////////////////////////////
                         CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
     uint256 internal constant ONE_4 = 10_000;
-
-    // Struct with risk and valuation related information for a certain asset.
-    struct AssetValueAndRiskFactors {
-        // The value of the asset.
-        uint256 assetValue;
-        // The collateral factor of the asset, for a given creditor.
-        uint256 collateralFactor;
-        // The liquidation factor of the asset, for a given creditor.
-        uint256 liquidationFactor;
-    }
 
     /*///////////////////////////////////////////////////////////////
                         RISK FACTORS

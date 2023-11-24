@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
 import { AssetModule } from "./AbstractAssetModule.sol";
-import { RiskModule } from "../RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
 
 /**
  * @title Derived Asset Module
@@ -97,7 +97,7 @@ abstract contract DerivedAssetModule is AssetModule {
         internal
         view
         virtual
-        returns (RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+        returns (AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
         uint256 length = underlyingAssetKeys.length;
 
@@ -138,10 +138,7 @@ abstract contract DerivedAssetModule is AssetModule {
         internal
         view
         virtual
-        returns (
-            uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
-        );
+        returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd);
 
     /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT
@@ -197,8 +194,8 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 riskFactor = riskParams[creditor].riskFactor;
 
         // Lower risk factors with the protocol wide risk factor.
-        collateralFactor = uint16(riskFactor.mulDivDown(collateralFactor, RiskModule.ONE_4));
-        liquidationFactor = uint16(riskFactor.mulDivDown(liquidationFactor, RiskModule.ONE_4));
+        collateralFactor = uint16(riskFactor.mulDivDown(collateralFactor, AssetValuationLib.ONE_4));
+        liquidationFactor = uint16(riskFactor.mulDivDown(liquidationFactor, AssetValuationLib.ONE_4));
     }
 
     /**
@@ -211,7 +208,7 @@ abstract contract DerivedAssetModule is AssetModule {
         external
         onlyRegistry
     {
-        if (riskFactor > RiskModule.ONE_4) revert AssetModule.Risk_Factor_Not_In_Limits();
+        if (riskFactor > AssetValuationLib.ONE_4) revert AssetModule.Risk_Factor_Not_In_Limits();
 
         riskParams[creditor].maxUsdExposureProtocol = maxUsdExposureProtocol_;
         riskParams[creditor].riskFactor = riskFactor;
@@ -241,10 +238,8 @@ abstract contract DerivedAssetModule is AssetModule {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
         bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
 
-        (
-            uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
-        ) = _getUnderlyingAssetsAmounts(creditor, assetKey, assetAmount, underlyingAssetKeys);
+        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(creditor, assetKey, assetAmount, underlyingAssetKeys);
 
         // Check if rateToUsd for the underlying assets was already calculated in _getUnderlyingAssetsAmounts().
         if (rateUnderlyingAssetsToUsd.length == 0) {
@@ -269,7 +264,7 @@ abstract contract DerivedAssetModule is AssetModule {
     function _calculateValueAndRiskFactors(
         address creditor,
         uint256[] memory underlyingAssetsAmounts,
-        RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
     ) internal view virtual returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
         // Initialize variables with first elements of array.
         // "rateUnderlyingAssetsToUsd" is the USD value with 18 decimals precision for 10**18 tokens of Underlying Asset.
@@ -303,8 +298,8 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 riskFactor = riskParams[creditor].riskFactor;
 
         // Lower risk factors with the protocol wide risk factor.
-        liquidationFactor = riskFactor.mulDivDown(liquidationFactor, RiskModule.ONE_4);
-        collateralFactor = riskFactor.mulDivDown(collateralFactor, RiskModule.ONE_4);
+        liquidationFactor = riskFactor.mulDivDown(liquidationFactor, AssetValuationLib.ONE_4);
+        collateralFactor = riskFactor.mulDivDown(collateralFactor, AssetValuationLib.ONE_4);
     }
 
     /*///////////////////////////////////////////////////////////////

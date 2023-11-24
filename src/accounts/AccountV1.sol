@@ -13,7 +13,7 @@ import { IAccount } from "../interfaces/IAccount.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
 import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
-import { RiskModule } from "../RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
 import { AccountErrors } from "../libraries/Errors.sol";
 
 /**
@@ -453,7 +453,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             uint256[] memory assetAmounts,
             address creditor_,
             uint256 openDebt,
-            RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues
+            AssetValueAndRiskFactors[] memory assetAndRiskValues
         )
     {
         inAuction = true;
@@ -467,7 +467,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         openDebt = ICreditor(creditor_).startLiquidation(initiator);
         uint256 usedMargin = openDebt + fixedLiquidationCost;
 
-        if (openDebt == 0 || RiskModule._calculateLiquidationValue(assetAndRiskValues) >= usedMargin) {
+        if (openDebt == 0 || AssetValuationLib._calculateLiquidationValue(assetAndRiskValues) >= usedMargin) {
             revert AccountErrors.AccountNotLiquidatable();
         }
     }

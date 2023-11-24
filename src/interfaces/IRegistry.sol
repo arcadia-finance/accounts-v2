@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.19;
 
-import { RiskModule } from "../RiskModule.sol";
+import { AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
 
 interface IRegistry {
     /**
@@ -129,5 +129,5 @@ interface IRegistry {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors);
+    ) external view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors);
 }

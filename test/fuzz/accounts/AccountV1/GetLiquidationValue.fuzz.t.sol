@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
-import { RiskModule } from "../../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "getLiquidationValue" of contract "AccountV1".
@@ -36,7 +36,7 @@ contract GetLiquidationValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         depositTokenInAccount(accountExtension, mockERC20.stable1, spotValue);
 
         // Invariant: "liquidationFactor" cannot exceed 100%.
-        liquidationFactor = uint8(bound(liquidationFactor, 0, RiskModule.ONE_4));
+        liquidationFactor = uint8(bound(liquidationFactor, 0, AssetValuationLib.ONE_4));
 
         // Set Liquidation factor of "stable1" for "stable1" to "liquidationFactor".
         vm.prank(users.riskManager);
@@ -44,7 +44,7 @@ contract GetLiquidationValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             address(creditorStable1), address(mockERC20.stable1), 0, type(uint112).max, 0, liquidationFactor
         );
 
-        uint256 expectedValue = uint256(spotValue) * liquidationFactor / RiskModule.ONE_4;
+        uint256 expectedValue = uint256(spotValue) * liquidationFactor / AssetValuationLib.ONE_4;
 
         uint256 actualValue = accountExtension.getLiquidationValue();
 

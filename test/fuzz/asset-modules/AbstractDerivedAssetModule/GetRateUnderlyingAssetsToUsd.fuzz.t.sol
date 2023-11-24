@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { AbstractDerivedAssetModule_Fuzz_Test } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
 
-import { RiskModule } from "../../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "_getRateUnderlyingAssetsToUsd" of contract "AbstractDerivedAssetModule".
@@ -53,7 +53,7 @@ contract GetRateUnderlyingAssetsToUsd_AbstractDerivedAssetModule_Fuzz_Test is Ab
         // When: "_getRateUnderlyingAssetsToUsd" is called.
         // Then: The Function "getUsdValue" on "Registry" is called with correct parameters.
         vm.expectCall(address(registryExtension), data);
-        RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd =
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd =
             derivedAssetModule.getRateUnderlyingAssetsToUsd(assetState.creditor, underlyingAssetKeys);
 
         // And: Transaction returns correct "rateUnderlyingAssetsToUsd".

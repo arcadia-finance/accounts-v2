@@ -14,7 +14,7 @@ import { IAssetModule } from "./interfaces/IAssetModule.sol";
 import { IPrimaryAssetModule } from "./interfaces/IPrimaryAssetModule.sol";
 import { ICreditor } from "./interfaces/ICreditor.sol";
 import { RegistryGuardian } from "./guardians/RegistryGuardian.sol";
-import { RiskModule } from "./RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "./libraries/AssetValuationLib.sol";
 import { RegistryErrors } from "./libraries/Errors.sol";
 
 /**
@@ -526,9 +526,9 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assets,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) public view returns (RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+    ) public view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
         uint256 length = assets.length;
-        valuesAndRiskFactors = new RiskModule.AssetValueAndRiskFactors[](length);
+        valuesAndRiskFactors = new AssetValueAndRiskFactors[](length);
 
         uint256 minUsdValue = minUsdValueCreditor[creditor];
         for (uint256 i; i < length;) {
@@ -565,7 +565,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+    ) external view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
         valuesAndRiskFactors = getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
         // Convert the USD-values to values in BaseCurrency if the BaseCurrency is different from USD (0-address).
@@ -609,7 +609,7 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
     ) external view returns (uint256 assetValue) {
-        RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
+        AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
         uint256 length = assetAddresses.length;
@@ -645,11 +645,11 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
     ) external view returns (uint256 collateralValue) {
-        RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
+        AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
         // Calculate the "collateralValue" in USD with 18 decimals precision.
-        collateralValue = RiskModule._calculateCollateralValue(valuesAndRiskFactors);
+        collateralValue = AssetValuationLib._calculateCollateralValue(valuesAndRiskFactors);
 
         // Convert the USD-value to the value in BaseCurrency if the BaseCurrency is different from USD (0-address).
         if (baseCurrency != address(0)) {
@@ -678,11 +678,11 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
     ) external view returns (uint256 liquidationValue) {
-        RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
+        AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
         // Calculate the "liquidationValue" in USD with 18 decimals precision.
-        liquidationValue = RiskModule._calculateLiquidationValue(valuesAndRiskFactors);
+        liquidationValue = AssetValuationLib._calculateLiquidationValue(valuesAndRiskFactors);
 
         // Convert the USD-value to the value in BaseCurrency if the BaseCurrency is different from USD (0-address).
         if (baseCurrency != address(0)) {

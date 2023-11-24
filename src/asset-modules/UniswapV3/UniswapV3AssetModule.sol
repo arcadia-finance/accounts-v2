@@ -12,7 +12,7 @@ import { INonfungiblePositionManager } from "./interfaces/INonfungiblePositionMa
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { LiquidityAmounts } from "./libraries/LiquidityAmounts.sol";
 import { PoolAddress } from "./libraries/PoolAddress.sol";
-import { RiskModule } from "../../RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { TickMath } from "./libraries/TickMath.sol";
 
 /**
@@ -184,10 +184,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         internal
         view
         override
-        returns (
-            uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
-        )
+        returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
         (, uint256 assetId) = _getAssetFromKey(assetKey);
 

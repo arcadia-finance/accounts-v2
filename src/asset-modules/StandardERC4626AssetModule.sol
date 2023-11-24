@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { DerivedAssetModule, IRegistry } from "./AbstractDerivedAssetModule.sol";
 import { IERC4626 } from "../interfaces/IERC4626.sol";
-import { RiskModule } from "../RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
 
 /**
  * @title Sub-registry for Standard ERC4626 tokens
@@ -141,10 +141,7 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
         internal
         view
         override
-        returns (
-            uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
-        )
+        returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
         (address asset,) = _getAssetFromKey(assetKey);
         underlyingAssetsAmounts = new uint256[](1);
