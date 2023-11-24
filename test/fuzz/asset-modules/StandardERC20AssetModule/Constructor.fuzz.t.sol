@@ -25,9 +25,7 @@ contract Constructor_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetMod
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.creatorAddress);
-        StandardERC20AssetModuleExtension erc20AssetModule_ = new StandardERC20AssetModuleExtension(
-            registry_
-            );
+        StandardERC20AssetModuleExtension erc20AssetModule_ = new StandardERC20AssetModuleExtension(registry_);
         vm.stopPrank();
 
         assertEq(erc20AssetModule_.REGISTRY(), registry_);

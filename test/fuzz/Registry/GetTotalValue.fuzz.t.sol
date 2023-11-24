@@ -63,10 +63,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         ArcadiaOracle oracle = initMockedOracle(0, "LINK / USD");
         vm.startPrank(users.creatorAddress);
-        mockERC20.token2 = new ERC20Mock(
-            "TOKEN2",
-            "T2",
-            token2Decimals);
+        mockERC20.token2 = new ERC20Mock("TOKEN2", "T2", token2Decimals);
 
         uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "TOKEN2", "USD"));
         uint80[] memory oracleAssetToUsdArr = new uint80[](1);
@@ -76,7 +73,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.stopPrank();
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorToken1), address(mockERC20.token2), 0, type(uint128).max, 0, 0
+            address(creditorToken1), address(mockERC20.token2), 0, type(uint112).max, 0, 0
         );
 
         vm.startPrank(users.defaultTransmitter);

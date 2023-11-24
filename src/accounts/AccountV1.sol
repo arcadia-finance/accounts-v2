@@ -500,6 +500,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
         _withdraw(assetAddresses, assetIds, assetAmounts, recipient);
     }
 
+    /**
+     * @notice Sets the "inAuction" flag to false when an auction ends.
+     */
+    function endAuction() external onlyLiquidator {
+        inAuction = false;
+    }
+
     /*///////////////////////////////////////////////////////////////
                     ASSET MANAGEMENT LOGIC
     ///////////////////////////////////////////////////////////////*/

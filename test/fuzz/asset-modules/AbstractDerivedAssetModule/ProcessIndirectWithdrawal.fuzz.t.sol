@@ -125,7 +125,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstr
         int256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: "usdExposureToUnderlyingAsset" is not zero (test-case).
-        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint128).max);
+        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint112).max);
 
         // And: Withdrawal does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =

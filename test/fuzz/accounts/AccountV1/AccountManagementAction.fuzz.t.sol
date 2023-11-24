@@ -416,7 +416,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         data[4] = abi.encodeWithSignature("approve(address,uint256)", address(accountNotInitialised), 1);
 
         // exposure token 2 does not exceed maxExposure.
-        vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint128).max);
+        vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint112).max);
         vm.prank(users.tokenCreatorAddress);
         mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
 
@@ -572,7 +572,7 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         );
 
         // exposure token 2 does not exceed maxExposure.
-        vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint128).max);
+        vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint112).max);
         vm.prank(users.tokenCreatorAddress);
         mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
 

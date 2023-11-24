@@ -26,7 +26,7 @@ contract ProcessDirectDeposit_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155A
         floorERC1155AssetModule.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC1155.sft2), 1, type(uint128).max, 0, 0
+            address(creditorUsd), address(mockERC1155.sft2), 1, type(uint112).max, 0, 0
         );
 
         vm.assume(unprivilegedAddress_ != address(registryExtension));
@@ -37,7 +37,7 @@ contract ProcessDirectDeposit_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155A
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_processDirectDeposit_OverExposure(uint128 amount, uint128 maxExposure) public {
+    function testFuzz_Revert_processDirectDeposit_OverExposure(uint128 amount, uint112 maxExposure) public {
         vm.assume(maxExposure > 0); //Asset is allowed
         vm.assume(amount >= maxExposure);
         vm.prank(users.creatorAddress);
@@ -64,19 +64,19 @@ contract ProcessDirectDeposit_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155A
         vm.stopPrank();
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(assetId), address(mockERC1155.sft2)));
-        (uint128 actualExposure,,,) = floorERC1155AssetModule.riskParams(address(creditorUsd), assetKey);
+        (uint112 actualExposure,,,) = floorERC1155AssetModule.riskParams(address(creditorUsd), assetKey);
         assertEq(actualExposure, 0);
     }
 
-    function testFuzz_Success_processDirectDeposit(uint128 amount) public {
+    function testFuzz_Success_processDirectDeposit(uint112 amount) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
-        amount = uint128(bound(amount, 0, type(uint128).max - 1));
+        amount = uint112(bound(amount, 0, type(uint112).max - 1));
 
         vm.prank(users.creatorAddress);
         floorERC1155AssetModule.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC1155.sft2), 1, type(uint128).max, 0, 0
+            address(creditorUsd), address(mockERC1155.sft2), 1, type(uint112).max, 0, 0
         );
 
         vm.prank(address(registryExtension));
@@ -86,7 +86,7 @@ contract ProcessDirectDeposit_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155A
         assertEq(assetType, 2);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft2)));
-        (uint128 actualExposure,,,) = floorERC1155AssetModule.riskParams(address(creditorUsd), assetKey);
+        (uint112 actualExposure,,,) = floorERC1155AssetModule.riskParams(address(creditorUsd), assetKey);
         assertEq(actualExposure, amount);
     }
 }

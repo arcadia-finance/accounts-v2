@@ -52,7 +52,7 @@ contract GetUsdValues_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint96 assetId,
         uint256 assetAmount,
         uint256 usdValue,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
@@ -88,7 +88,7 @@ contract GetUsdValues_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint256 assetAmount,
         uint248 usdValue,
         uint256 minUsdValue,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {

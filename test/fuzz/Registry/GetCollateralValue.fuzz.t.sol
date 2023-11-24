@@ -62,7 +62,7 @@ contract GetCollateralValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
             address(creditorUsd),
             address(mockERC20.token1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             collateralFactor_,
             uint16(RiskModule.ONE_4)
         );

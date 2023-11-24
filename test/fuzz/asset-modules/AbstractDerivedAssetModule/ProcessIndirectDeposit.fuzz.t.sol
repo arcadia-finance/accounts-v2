@@ -125,7 +125,7 @@ contract ProcessIndirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is Abstract
         int256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: "usdExposureToUnderlyingAsset" is not zero (test-case).
-        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint128).max);
+        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint112).max);
 
         // And: Deposit does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =

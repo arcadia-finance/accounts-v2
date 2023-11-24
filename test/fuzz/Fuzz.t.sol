@@ -250,7 +250,7 @@ abstract contract Fuzz_Test is Base_Test {
             address(creditorUsd),
             address(mockERC20.stable1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
@@ -258,7 +258,7 @@ abstract contract Fuzz_Test is Base_Test {
             address(creditorStable1),
             address(mockERC20.stable1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
@@ -266,7 +266,7 @@ abstract contract Fuzz_Test is Base_Test {
             address(creditorToken1),
             address(mockERC20.stable1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
@@ -275,7 +275,7 @@ abstract contract Fuzz_Test is Base_Test {
             address(creditorUsd),
             address(mockERC20.stable2),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
@@ -283,7 +283,7 @@ abstract contract Fuzz_Test is Base_Test {
             address(creditorStable1),
             address(mockERC20.stable2),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
@@ -291,7 +291,7 @@ abstract contract Fuzz_Test is Base_Test {
             address(creditorToken1),
             address(mockERC20.stable2),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
@@ -300,7 +300,7 @@ abstract contract Fuzz_Test is Base_Test {
             address(creditorUsd),
             address(mockERC20.token1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
@@ -308,7 +308,7 @@ abstract contract Fuzz_Test is Base_Test {
             address(creditorStable1),
             address(mockERC20.token1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
@@ -316,7 +316,7 @@ abstract contract Fuzz_Test is Base_Test {
             address(creditorToken1),
             address(mockERC20.token1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToTokenCollFactor,
             Constants.tokenToTokenLiqFactor
         );
@@ -325,7 +325,7 @@ abstract contract Fuzz_Test is Base_Test {
             address(creditorUsd),
             address(mockERC20.token2),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
@@ -333,7 +333,7 @@ abstract contract Fuzz_Test is Base_Test {
             address(creditorStable1),
             address(mockERC20.token2),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
@@ -341,29 +341,29 @@ abstract contract Fuzz_Test is Base_Test {
             address(creditorToken1),
             address(mockERC20.token2),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToTokenCollFactor,
             Constants.tokenToTokenLiqFactor
         );
 
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
+            address(creditorUsd), address(mockERC721.nft1), 0, type(uint112).max, 0, 0
         );
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorStable1), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
+            address(creditorStable1), address(mockERC721.nft1), 0, type(uint112).max, 0, 0
         );
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorToken1), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
+            address(creditorToken1), address(mockERC721.nft1), 0, type(uint112).max, 0, 0
         );
 
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
+            address(creditorUsd), address(mockERC1155.sft1), 1, type(uint112).max, 0, 0
         );
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorStable1), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
+            address(creditorStable1), address(mockERC1155.sft1), 1, type(uint112).max, 0, 0
         );
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorToken1), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
+            address(creditorToken1), address(mockERC1155.sft1), 1, type(uint112).max, 0, 0
         );
 
         vm.stopPrank();
@@ -378,11 +378,7 @@ abstract contract Fuzz_Test is Base_Test {
         returns (ArcadiaOracle)
     {
         vm.startPrank(users.defaultCreatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(
-            uint8(decimals),
-            description,
-            address(73)
-        );
+        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
         oracle.setOffchainTransmitter(users.defaultTransmitter);
         vm.stopPrank();
         vm.startPrank(users.defaultTransmitter);
@@ -394,11 +390,7 @@ abstract contract Fuzz_Test is Base_Test {
 
     function initMockedOracle(uint8 decimals, string memory description) public returns (ArcadiaOracle) {
         vm.startPrank(users.defaultCreatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(
-            uint8(decimals),
-            description,
-            address(73)
-        );
+        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
         oracle.setOffchainTransmitter(users.defaultTransmitter);
         vm.stopPrank();
         return oracle;
@@ -409,11 +401,7 @@ abstract contract Fuzz_Test is Base_Test {
         returns (ArcadiaOracle)
     {
         vm.startPrank(users.defaultCreatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(
-            uint8(decimals),
-            description,
-            address(73)
-        );
+        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
         oracle.setOffchainTransmitter(users.defaultTransmitter);
         vm.stopPrank();
 

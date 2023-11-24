@@ -25,7 +25,7 @@ contract SetRiskParametersOfDerivedAssetModule_Registry_Fuzz_Test is Registry_Fu
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_setRiskParametersOfDerivedAssetModule_NonRiskManager(
         address unprivilegedAddress_,
-        uint128 maxUsdExposureProtocol,
+        uint112 maxUsdExposureProtocol,
         uint16 riskFactor
     ) public {
         vm.assume(unprivilegedAddress_ != users.riskManager);
@@ -38,7 +38,7 @@ contract SetRiskParametersOfDerivedAssetModule_Registry_Fuzz_Test is Registry_Fu
         vm.stopPrank();
     }
 
-    function testFuzz_Success_setRiskParametersOfDerivedAssetModule(uint128 maxUsdExposureProtocol, uint16 riskFactor)
+    function testFuzz_Success_setRiskParametersOfDerivedAssetModule(uint112 maxUsdExposureProtocol, uint16 riskFactor)
         public
     {
         riskFactor = uint16(bound(riskFactor, 0, RiskModule.ONE_4));
@@ -48,7 +48,7 @@ contract SetRiskParametersOfDerivedAssetModule_Registry_Fuzz_Test is Registry_Fu
             address(creditorUsd), address(derivedAssetModule), maxUsdExposureProtocol, riskFactor
         );
 
-        (, uint128 actualMaxUsdExposureProtocol, uint16 actualRiskFactor) =
+        (, uint112 actualMaxUsdExposureProtocol, uint16 actualRiskFactor) =
             derivedAssetModule.riskParams(address(creditorUsd));
         assertEq(actualMaxUsdExposureProtocol, maxUsdExposureProtocol);
         assertEq(actualRiskFactor, riskFactor);

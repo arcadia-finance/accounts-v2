@@ -46,7 +46,7 @@ contract UniswapV3AssetModule_Fork_Test is Fork_Test {
         // Set max exposure to uniswap V3.
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfDerivedAssetModule(
-            address(uniV3AssetModule), address(0), type(uint128).max, 100
+            address(uniV3AssetModule), address(0), type(uint112).max, 100
         );
     }
 

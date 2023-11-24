@@ -304,7 +304,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address creditor,
         address asset,
         uint256 assetId,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external onlyRiskManager(creditor) {
@@ -324,7 +324,7 @@ contract Registry is IRegistry, RegistryGuardian {
     function setRiskParametersOfDerivedAssetModule(
         address creditor,
         address assetModule,
-        uint128 maxUsdExposureProtocol,
+        uint112 maxUsdExposureProtocol,
         uint16 riskFactor
     ) external onlyRiskManager(creditor) {
         IDerivedAssetModule(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
