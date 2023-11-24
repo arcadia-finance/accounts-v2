@@ -1,0 +1,3 @@
+CreateAccount_Factory_Gas_Test:testGas_CreateAccount() (gas: 355993)
+Deposits_Accounts_Gas_Test:testGas_Deposit_Single_Asset() (gas: 164)
+GenerateAssetData_Accounts_Gas_Test:testGas_GenerateAssetData_Single_ERC20() (gas: 8666)
