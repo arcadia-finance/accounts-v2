@@ -19,7 +19,7 @@ import { Registry } from "../../src/Registry.sol";
 import { IRegistry } from "../../src/interfaces/IRegistry.sol";
 import { AssetModule } from "../../src/asset-modules/AbstractAssetModule.sol";
 import { PrimaryAssetModule } from "../../src/asset-modules/AbstractPrimaryAssetModule.sol";
-import { RiskModule } from "../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../src/libraries/AssetValuationLib.sol";
 import { StandardERC20AssetModule } from "../../src/asset-modules/StandardERC20AssetModule.sol";
 import { StandardERC4626AssetModule } from "../../src/asset-modules/StandardERC4626AssetModule.sol";
 import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModule.sol";
@@ -181,21 +181,21 @@ contract RegistryExtension is Registry {
     }
 }
 
-contract RiskModuleExtension {
-    function calculateCollateralValue(RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors)
+contract AssetValuationLibExtension {
+    function calculateCollateralValue(AssetValueAndRiskFactors[] memory valuesAndRiskFactors)
         external
         pure
         returns (uint256 collateralValue)
     {
-        collateralValue = RiskModule._calculateCollateralValue(valuesAndRiskFactors);
+        collateralValue = AssetValuationLib._calculateCollateralValue(valuesAndRiskFactors);
     }
 
-    function calculateLiquidationValue(RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors)
+    function calculateLiquidationValue(AssetValueAndRiskFactors[] memory valuesAndRiskFactors)
         external
         pure
         returns (uint256 liquidationValue)
     {
-        liquidationValue = RiskModule._calculateLiquidationValue(valuesAndRiskFactors);
+        liquidationValue = AssetValuationLib._calculateLiquidationValue(valuesAndRiskFactors);
     }
 }
 
@@ -283,7 +283,7 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
     function getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys)
         public
         view
-        returns (RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+        returns (AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
     }
@@ -411,7 +411,7 @@ contract UniswapV2AssetModuleExtension is UniswapV2AssetModule {
         view
         returns (
             uint256[] memory exposureAssetToUnderlyingAssets,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+            AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
         (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
@@ -504,7 +504,7 @@ contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
         view
         returns (
             uint256[] memory exposureAssetToUnderlyingAssets,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+            AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
         (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
@@ -563,7 +563,7 @@ contract ERC4626AssetModuleExtension is StandardERC4626AssetModule {
         view
         returns (
             uint256[] memory exposureAssetToUnderlyingAssets,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+            AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
         (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =

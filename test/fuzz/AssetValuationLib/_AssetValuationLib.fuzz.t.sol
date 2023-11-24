@@ -6,12 +6,12 @@ pragma solidity 0.8.19;
 
 import { Fuzz_Test, Constants } from "../Fuzz.t.sol";
 
-import { RiskModuleExtension } from "../../utils/Extensions.sol";
+import { AssetValuationLibExtension } from "../../utils/Extensions.sol";
 
 /**
- * @notice Common logic needed by all "RiskModule" fuzz tests.
+ * @notice Common logic needed by all "AssetValuationLib" fuzz tests.
  */
-abstract contract RiskModule_Fuzz_Test is Fuzz_Test {
+abstract contract AssetValuationLib_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -20,13 +20,13 @@ abstract contract RiskModule_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    RiskModuleExtension internal riskModule;
+    AssetValuationLibExtension internal assetValuationLib;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override(Fuzz_Test) {
-        riskModule = new RiskModuleExtension();
+        assetValuationLib = new AssetValuationLibExtension();
     }
 }

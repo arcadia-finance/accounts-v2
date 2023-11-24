@@ -11,7 +11,7 @@ import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/NonfungiblePositionManager.sol";
-import { RiskModule } from "../../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
@@ -163,7 +163,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AssetModule_Fuzz_Test is UniswapV3A
 
         // When: "getUnderlyingAssetsAmounts" is called.
         uint256[] memory underlyingAssetsAmounts;
-        RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
         {
             bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
             (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =

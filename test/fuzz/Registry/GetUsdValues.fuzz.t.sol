@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
 
-import { RiskModule } from "../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "getValuesInUsd" of contract "Registry".
@@ -56,8 +56,8 @@ contract GetUsdValues_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
-        collateralFactor = uint16(bound(collateralFactor, 0, RiskModule.ONE_4));
-        liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, RiskModule.ONE_4));
+        collateralFactor = uint16(bound(collateralFactor, 0, AssetValuationLib.ONE_4));
+        liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, AssetValuationLib.ONE_4));
 
         registryExtension.setAssetToAssetModule(asset, address(primaryAssetModule));
         primaryAssetModule.setUsdValue(usdValue);
@@ -74,7 +74,7 @@ contract GetUsdValues_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = assetAmount;
 
-        RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
+        AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             registryExtension.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         assertEq(valuesAndRiskFactors[0].assetValue, usdValue);
@@ -92,8 +92,8 @@ contract GetUsdValues_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
-        collateralFactor = uint16(bound(collateralFactor, 0, RiskModule.ONE_4));
-        liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, RiskModule.ONE_4));
+        collateralFactor = uint16(bound(collateralFactor, 0, AssetValuationLib.ONE_4));
+        liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, AssetValuationLib.ONE_4));
         minUsdValue = bound(minUsdValue, uint256(usdValue) + 1, type(uint256).max);
 
         registryExtension.setAssetToAssetModule(asset, address(primaryAssetModule));
@@ -113,7 +113,7 @@ contract GetUsdValues_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = assetAmount;
 
-        RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
+        AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             registryExtension.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         assertEq(valuesAndRiskFactors[0].assetValue, 0);

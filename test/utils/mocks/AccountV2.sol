@@ -13,7 +13,7 @@ import { IActionBase, ActionData } from "../../../src/interfaces/IActionBase.sol
 import { AccountStorageV2 } from "./AccountStorageV2.sol";
 import { IPermit2 } from "../../../src/interfaces/IPermit2.sol";
 
-import { RiskModule } from "../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 
 import { AccountErrors } from "../../../src/libraries/Errors.sol";
 
@@ -456,7 +456,7 @@ contract AccountV2 is AccountStorageV2 {
             address owner_,
             address creditor_,
             uint256 openDebt,
-            RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues
+            AssetValueAndRiskFactors[] memory assetAndRiskValues
         )
     {
         owner_ = owner;
@@ -470,7 +470,7 @@ contract AccountV2 is AccountStorageV2 {
         openDebt = ICreditor(creditor).startLiquidation(liquidationInitiator);
         uint256 usedMargin = openDebt + fixedLiquidationCost;
 
-        if (openDebt == 0 || RiskModule._calculateLiquidationValue(assetAndRiskValues) >= usedMargin) {
+        if (openDebt == 0 || AssetValuationLib._calculateLiquidationValue(assetAndRiskValues) >= usedMargin) {
             revert AccountErrors.AccountNotLiquidatable();
         }
     }

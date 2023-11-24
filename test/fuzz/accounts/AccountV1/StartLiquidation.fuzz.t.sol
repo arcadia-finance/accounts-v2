@@ -10,8 +10,8 @@ import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 import { ICreditor } from "../../../../src/interfaces/ICreditor.sol";
-import { RiskModule } from "../../../../src/RiskModule.sol";
-import { RiskModuleExtension } from "../../../utils/Extensions.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { AssetValuationLibExtension } from "../../../utils/Extensions.sol";
 
 /**
  * @notice Fuzz tests for the "startLiquidation" of contract "AccountV1".
@@ -23,7 +23,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     AccountExtension internal accountExtension2;
-    RiskModuleExtension internal riskModule;
+    AssetValuationLibExtension internal assetValuationLib;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -35,7 +35,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.prank(users.accountOwner);
         accountExtension2 = new AccountExtension();
 
-        riskModule = new RiskModuleExtension();
+        assetValuationLib = new AssetValuationLibExtension();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -83,12 +83,12 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 
-        RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues = registryExtension.getValuesInBaseCurrency(
+        AssetValueAndRiskFactors[] memory assetAndRiskValues = registryExtension.getValuesInBaseCurrency(
             accountExtension2.baseCurrency(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
         );
 
         // Given : Liquidation value is greater than or equal to used margin
-        vm.assume(openDebt + fixedLiquidationCost <= riskModule.calculateLiquidationValue(assetAndRiskValues));
+        vm.assume(openDebt + fixedLiquidationCost <= assetValuationLib.calculateLiquidationValue(assetAndRiskValues));
 
         // Mint and approve token1 tokens
         vm.startPrank(users.tokenCreatorAddress);
@@ -162,12 +162,12 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 
-        RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues = registryExtension.getValuesInBaseCurrency(
+        AssetValueAndRiskFactors[] memory assetAndRiskValues = registryExtension.getValuesInBaseCurrency(
             accountExtension2.baseCurrency(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
         );
 
         // Given : Liquidation value is smaller than used margin
-        vm.assume(openDebt + fixedLiquidationCost > riskModule.calculateLiquidationValue(assetAndRiskValues));
+        vm.assume(openDebt + fixedLiquidationCost > assetValuationLib.calculateLiquidationValue(assetAndRiskValues));
 
         // Mint and approve stable1 tokens
         vm.startPrank(users.tokenCreatorAddress);
@@ -186,7 +186,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             uint256[] memory assetAmounts_,
             address creditor_,
             uint256 totalOpenDebt,
-            RiskModule.AssetValueAndRiskFactors[] memory assetAndRiskValues_
+            AssetValueAndRiskFactors[] memory assetAndRiskValues_
         ) = accountExtension2.startLiquidation(liquidationInitiator);
         vm.stopPrank();
 
