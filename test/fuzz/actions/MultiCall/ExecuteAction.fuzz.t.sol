@@ -28,16 +28,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_executeAction_lengthMismatch() public {
-        ActionData memory assetData = ActionData({
-            assets: new address[](1),
-            assetIds: new uint256[](0),
-            assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1)
-        });
-
         ActionData memory fromOwner;
-        assetData.assets[0] = address(mockERC20.token1);
-        assetData.assetTypes[0] = 0;
 
         address[] memory to = new address[](2);
         bytes[] memory data = new bytes[](1);
@@ -45,28 +36,23 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         to[1] = address(this);
         data[0] = abi.encodeWithSignature("returnFive()");
 
+        bytes memory actionHandlerData = abi.encode(fromOwner, to, data);
+
         vm.expectRevert(LengthMismatch.selector);
-        action.executeAction(fromOwner, to, data);
+        action.executeAction(actionHandlerData);
     }
 
     function testFuzz_Success_executeAction_storeNumber(uint256 number) public {
-        ActionData memory assetData = ActionData({
-            assets: new address[](1),
-            assetIds: new uint256[](0),
-            assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1)
-        });
-
         ActionData memory fromOwner;
-        assetData.assets[0] = address(mockERC20.token1);
-        assetData.assetTypes[0] = 0;
 
         address[] memory to = new address[](1);
         bytes[] memory data = new bytes[](1);
         to[0] = address(this);
         data[0] = abi.encodeWithSignature("setNumberStored(uint256)", number);
 
-        action.executeAction(fromOwner, to, data);
+        bytes memory actionHandlerData = abi.encode(fromOwner, to, data);
+
+        action.executeAction(actionHandlerData);
 
         assertEq(numberStored, number);
     }
@@ -113,7 +99,9 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         action.setMintedAssets(mintedAssets_);
         action.setMintedIds(mintedIds_);
 
-        ActionData memory returnData = action.executeAction(depositData, new address[](0), new bytes[](0));
+        bytes memory actionHandlerData = abi.encode(depositData, new address[](0), new bytes[](0));
+
+        ActionData memory returnData = action.executeAction(actionHandlerData);
 
         assertEq(returnData.assets.length, depositData.assets.length);
 

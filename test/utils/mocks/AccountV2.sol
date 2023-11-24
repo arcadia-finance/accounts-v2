@@ -544,12 +544,8 @@ contract AccountV2 is AccountStorageV2 {
             ActionData memory withdrawData,
             ActionData memory transferFromOwnerData,
             IPermit2.PermitBatchTransferFrom memory permit,
-            ActionData memory actionHandlerData,
-            address[] memory to,
-            bytes[] memory data
-        ) = abi.decode(
-            actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, ActionData, address[], bytes[])
-        );
+            bytes memory actionHandlerData
+        ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes));
 
         // Withdraw assets to actionHandler.
         _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionHandler);
@@ -565,7 +561,7 @@ contract AccountV2 is AccountStorageV2 {
         }
 
         // Execute Action(s).
-        ActionData memory depositData = IActionBase(actionHandler).executeAction(actionHandlerData, to, data);
+        ActionData memory depositData = IActionBase(actionHandler).executeAction(actionHandlerData);
 
         // Deposit assets from actionHandler into Account.
         _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionHandler);
