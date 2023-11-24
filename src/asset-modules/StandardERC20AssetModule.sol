@@ -45,7 +45,7 @@ contract StandardERC20AssetModule is PrimaryAssetModule {
      */
     function addAsset(address asset, bytes32 oracleSequence) external onlyOwner {
         // View function, reverts in Registry if sequence is not correct.
-        if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert Bad_Oracle_Sequence();
+        if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert BadOracleSequence();
         // Will revert in Registry if asset was already added.
         IRegistry(REGISTRY).addAsset(asset);
 

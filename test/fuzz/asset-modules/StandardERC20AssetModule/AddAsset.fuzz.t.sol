@@ -48,7 +48,7 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
         bytes32 badSequence = BitPackingLib.pack(badDirection, oracleToken4ToUsdArr);
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert(AssetModule.Bad_Oracle_Sequence.selector);
+        vm.expectRevert(PrimaryAssetModule.BadOracleSequence.selector);
         erc20AssetModule.addAsset(address(mockERC20.token4), badSequence);
         vm.stopPrank();
     }

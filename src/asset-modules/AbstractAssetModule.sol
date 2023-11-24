@@ -38,18 +38,9 @@ abstract contract AssetModule is Owned, IAssetModule {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
-    error Asset_Already_In_AM();
-    error Asset_Not_Allowed();
-    error Bad_Oracle_Sequence();
-    error Coll_Factor_Not_In_Limits();
-    error Exposure_Not_In_Limits();
-    error Invalid_Id();
-    error Invalid_Range();
-    error Liq_Factor_Not_In_Limits();
-    error Oracle_Still_Active();
+    error ExposureNotInLimits();
+    error OnlyRegistry();
     error Overflow();
-    error Only_Registry();
-    error Risk_Factor_Not_In_Limits();
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -59,7 +50,7 @@ abstract contract AssetModule is Owned, IAssetModule {
      * @dev Only the Registry can call functions with this modifier.
      */
     modifier onlyRegistry() {
-        if (msg.sender != REGISTRY) revert Only_Registry();
+        if (msg.sender != REGISTRY) revert OnlyRegistry();
         _;
     }
 

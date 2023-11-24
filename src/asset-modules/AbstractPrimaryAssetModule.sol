@@ -67,7 +67,11 @@ abstract contract PrimaryAssetModule is AssetModule {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
+    error BadOracleSequence();
     error CollFactorExceedsLiqFactor();
+    error CollFactorNotInLimits();
+    error LiqFactorNotInLimits();
+    error OracleStillActive();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -99,10 +103,10 @@ abstract contract PrimaryAssetModule is AssetModule {
 
         // Old oracles must be decommissioned before a new sequence can be set.
         bytes32 oldOracles = assetToInformation[assetKey].oracleSequence;
-        if (IRegistry(REGISTRY).checkOracleSequence(oldOracles)) revert Oracle_Still_Active();
+        if (IRegistry(REGISTRY).checkOracleSequence(oldOracles)) revert OracleStillActive();
 
         // The new oracle sequence must be correct.
-        if (!IRegistry(REGISTRY).checkOracleSequence(newOracles)) revert Bad_Oracle_Sequence();
+        if (!IRegistry(REGISTRY).checkOracleSequence(newOracles)) revert BadOracleSequence();
 
         assetToInformation[assetKey].oracleSequence = newOracles;
     }
@@ -180,8 +184,8 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external onlyRegistry {
-        if (collateralFactor > ONE_4) revert Coll_Factor_Not_In_Limits();
-        if (liquidationFactor > ONE_4) revert Liq_Factor_Not_In_Limits();
+        if (collateralFactor > ONE_4) revert CollFactorNotInLimits();
+        if (liquidationFactor > ONE_4) revert LiqFactorNotInLimits();
         if (collateralFactor > liquidationFactor) revert CollFactorExceedsLiqFactor();
 
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
@@ -219,7 +223,9 @@ abstract contract PrimaryAssetModule is AssetModule {
         // Cache lastExposureAsset.
         uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
-        if (lastExposureAsset + amount >= riskParams[creditor][assetKey].maxExposure) revert Exposure_Not_In_Limits();
+        // The exposure must be strictly smaller than the maxExposure, not equal to or smaller than.
+        // This is to ensure that all deposits revert when maxExposure is set to 0, also deposits with 0 amounts.
+        if (lastExposureAsset + amount >= riskParams[creditor][assetKey].maxExposure) revert ExposureNotInLimits();
 
         unchecked {
             riskParams[creditor][assetKey].lastExposureAsset = uint112(lastExposureAsset + amount);
@@ -237,6 +243,8 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     * @dev An indirect deposit is initiated by a deposit of a Derived Asset (the upper asset),
+     * from which the asset of this Asset Module is an Underlying Asset.
      */
     function processIndirectDeposit(
         address creditor,
@@ -252,14 +260,18 @@ abstract contract PrimaryAssetModule is AssetModule {
 
         // Update lastExposureAsset.
         uint256 exposureAsset;
-        if (deltaExposureUpperAssetToAsset > 0) {
-            exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
-        } else {
-            exposureAsset = lastExposureAsset > uint256(-deltaExposureUpperAssetToAsset)
-                ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
-                : 0;
+        unchecked {
+            if (deltaExposureUpperAssetToAsset > 0) {
+                exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
+            } else {
+                exposureAsset = lastExposureAsset > uint256(-deltaExposureUpperAssetToAsset)
+                    ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
+                    : 0;
+            }
         }
-        if (exposureAsset >= riskParams[creditor][assetKey].maxExposure) revert Exposure_Not_In_Limits();
+        // The exposure must be strictly smaller than the maxExposure, not equal to or smaller than.
+        // This is to ensure that all deposits revert when maxExposure is set to 0, also deposits with 0 amounts.
+        if (exposureAsset >= riskParams[creditor][assetKey].maxExposure) revert ExposureNotInLimits();
         // unchecked cast: "RiskParameters.maxExposure" is a uint112.
         riskParams[creditor][assetKey].lastExposureAsset = uint112(exposureAsset);
 
@@ -280,6 +292,8 @@ abstract contract PrimaryAssetModule is AssetModule {
      * 1 = ERC721.
      * 2 = ERC1155
      * ...
+     * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
+     * Underflows will not revert, but the exposure is instead set to 0.
      */
     function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
         public
@@ -311,6 +325,10 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     * @dev An indirect withdrawal is initiated by a withdrawal of a Derived Asset (the upper asset),
+     * from which the asset of this Asset Module is an Underlying Asset.
+     * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
+     * Underflows will not revert, but the exposure is instead set to 0.
      */
     function processIndirectWithdrawal(
         address creditor,

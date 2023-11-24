@@ -34,9 +34,9 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        // Then: The transaction reverts with AssetModule.Only_Registry.selector.
+        // Then: The transaction reverts with AssetModule.OnlyRegistry.selector.
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert(AssetModule.Only_Registry.selector);
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
@@ -65,9 +65,9 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        // Then: The transaction reverts with AssetModule.Exposure_Not_In_Limits.
+        // Then: The transaction reverts with AssetModule.ExposureNotInLimits.
         vm.startPrank(address(registryExtension));
-        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
+        vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
@@ -94,9 +94,9 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        // Then: The transaction reverts with AssetModule.Exposure_Not_In_Limits.
+        // Then: The transaction reverts with AssetModule.ExposureNotInLimits.
         vm.startPrank(address(registryExtension));
-        vm.expectRevert(AssetModule.Exposure_Not_In_Limits.selector);
+        vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,

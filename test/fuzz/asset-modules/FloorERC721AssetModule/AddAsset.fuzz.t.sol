@@ -7,7 +7,8 @@ pragma solidity 0.8.19;
 import { FloorERC721AssetModule_Fuzz_Test } from "./_FloorERC721AssetModule.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { FloorERC721AssetModule } from "../../../../src/asset-modules/FloorERC721AssetModule.sol";
+import { PrimaryAssetModule } from "../../../../src/asset-modules/AbstractPrimaryAssetModule.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
@@ -38,7 +39,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
         end = bound(end, 0, start - 1);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert(AssetModule.Invalid_Range.selector);
+        vm.expectRevert(FloorERC721AssetModule.InvalidRange.selector);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
     }
 
@@ -52,7 +53,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
         bytes32 badSequence = BitPackingLib.pack(badDirection, oracleNft2ToUsdArr);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert(AssetModule.Bad_Oracle_Sequence.selector);
+        vm.expectRevert(PrimaryAssetModule.BadOracleSequence.selector);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, badSequence);
     }
 

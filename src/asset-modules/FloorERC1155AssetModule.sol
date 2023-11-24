@@ -19,6 +19,10 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
+    error AssetAlreadyInAM();
+    error AssetNotAllowed();
+    error InvalidId();
+
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
@@ -43,14 +47,14 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
     function addAsset(address asset, uint256 assetId, bytes32 oracleSequence) external onlyOwner {
         if (inAssetModule[asset]) {
             // Contract address already added -> must be a new Id.
-            if (assetToInformation[_getKeyFromAsset(asset, assetId)].assetUnit != 0) revert Asset_Already_In_AM();
+            if (assetToInformation[_getKeyFromAsset(asset, assetId)].assetUnit != 0) revert AssetAlreadyInAM();
         } else {
             // New contract address.
             IRegistry(REGISTRY).addAsset(asset);
             inAssetModule[asset] = true;
         }
-        if (assetId > type(uint96).max) revert Invalid_Id();
-        if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert Bad_Oracle_Sequence();
+        if (assetId > type(uint96).max) revert InvalidId();
+        if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert BadOracleSequence();
 
         // Unit for ERC1155 is 1 (standard ERC1155s don't have decimals).
         assetToInformation[_getKeyFromAsset(asset, assetId)] =
@@ -95,7 +99,7 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
         onlyRegistry
         returns (uint256 assetType)
     {
-        if (!isAllowed(asset, assetId)) revert Asset_Not_Allowed();
+        if (!isAllowed(asset, assetId)) revert AssetNotAllowed();
 
         return super.processDirectDeposit(creditor, asset, assetId, amount);
     }
@@ -117,7 +121,7 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
-        if (!isAllowed(asset, assetId)) revert Asset_Not_Allowed();
+        if (!isAllowed(asset, assetId)) revert AssetNotAllowed();
 
         (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset

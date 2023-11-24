@@ -34,6 +34,9 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
+    error AssetNotAllowed();
+    error InvalidRange();
+
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
@@ -60,8 +63,8 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
         external
         onlyOwner
     {
-        if (idRangeStart > idRangeEnd) revert Invalid_Range();
-        if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert Bad_Oracle_Sequence();
+        if (idRangeStart > idRangeEnd) revert InvalidRange();
+        if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert BadOracleSequence();
         // Will revert in Registry if asset was already added.
         IRegistry(REGISTRY).addAsset(asset);
 
@@ -162,7 +165,7 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
         override
         returns (uint256 assetType)
     {
-        if (!isAllowed(asset, assetId)) revert Asset_Not_Allowed();
+        if (!isAllowed(asset, assetId)) revert AssetNotAllowed();
 
         // Also checks that msg.sender == Registry.
         return super.processDirectDeposit(creditor, asset, assetId, 1);
@@ -186,7 +189,7 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public override returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
-        if (!isAllowed(asset, assetId)) revert Asset_Not_Allowed();
+        if (!isAllowed(asset, assetId)) revert AssetNotAllowed();
 
         // Also checks that msg.sender == Registry.
         return super.processIndirectDeposit(

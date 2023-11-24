@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 
 import { AbstractDerivedAssetModule_Fuzz_Test, AssetModule } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
 
+import { DerivedAssetModule } from "../../../../src/asset-modules/AbstractDerivedAssetModule.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
@@ -32,7 +33,7 @@ contract SetRiskParameters_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert(AssetModule.Only_Registry.selector);
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         derivedAssetModule.setRiskParameters(creditor, maxExposureInUsd, riskFactor);
         vm.stopPrank();
     }
@@ -45,7 +46,7 @@ contract SetRiskParameters_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         riskFactor = uint16(bound(riskFactor, AssetValuationLib.ONE_4 + 1, type(uint16).max));
 
         vm.startPrank(address(registryExtension));
-        vm.expectRevert(AssetModule.Risk_Factor_Not_In_Limits.selector);
+        vm.expectRevert(DerivedAssetModule.RiskFactorNotInLimits.selector);
         derivedAssetModule.setRiskParameters(creditor, maxExposureInUsd, riskFactor);
         vm.stopPrank();
     }
