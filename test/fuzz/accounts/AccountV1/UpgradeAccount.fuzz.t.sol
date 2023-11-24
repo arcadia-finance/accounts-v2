@@ -79,6 +79,22 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_upgradeAccount_NotDuringAuction(
+        address newImplementation,
+        address newRegistry,
+        uint88 newVersion,
+        bytes calldata data
+    ) public {
+        // Set "inAuction" to true.
+        accountExtension.setInAuction();
+
+        // Should revert if Account is being auctioned.
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.AccountInAuction.selector);
+        accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_upgradeAccount_NonFactory(
         address newImplementation,
         address newRegistry,
