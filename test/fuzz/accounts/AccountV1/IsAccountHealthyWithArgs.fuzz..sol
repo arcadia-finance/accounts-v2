@@ -7,9 +7,9 @@ pragma solidity 0.8.19;
 import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "isAccountHealthy" of contract "AccountV1".
+ * @notice Fuzz tests for the function "isAccountHealthy(uint256,uint256)" of contract "AccountV1".
  */
-contract IsAccountHealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
+contract IsAccountHealthyWithArgs_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */

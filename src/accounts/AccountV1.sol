@@ -365,7 +365,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * If both values are zero, we check if the Account is currently healthy.
      */
     function isAccountHealthy(uint256 debtIncrease, uint256 openDebt)
-        external
+        public
         view
         returns (bool success, address creditor_, uint256 accountVersion_)
     {
@@ -380,6 +380,17 @@ contract AccountV1 is AccountStorageV1, IAccount {
         }
 
         return (success, creditor, ACCOUNT_VERSION);
+    }
+
+    /**
+     * @notice Checks if the Account is healthy and still has free margin.
+     * @return success Boolean indicating if there is sufficient margin to back the debt of the Account.
+     * @return creditor_ The contract address of the Creditor.
+     * @return accountVersion_ The Account version.
+     * @dev An Account is healthy if the collateral value is bigger than or equal to the used margin.
+     */
+    function isAccountHealthy() external view returns (bool success, address creditor_, uint256 accountVersion_) {
+        (success, creditor_, accountVersion_) = isAccountHealthy(0, 0);
     }
 
     /**
