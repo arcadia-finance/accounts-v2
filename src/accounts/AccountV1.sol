@@ -168,7 +168,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         nonReentrant
         onlyFactory
     {
-        if (isCreditorSet) {
+        if (creditor != address(0)) {
             // If a Creditor is set, new version should be compatible.
             // openMarginAccount() is a view function, cannot modify state.
             (bool success,,,) = ICreditor(creditor).openMarginAccount(newVersion);
@@ -244,7 +244,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param baseCurrency_ The new baseCurrency for the Account.
      */
     function setBaseCurrency(address baseCurrency_) external onlyOwner {
-        if (isCreditorSet) revert AccountErrors.CreditorAlreadySet();
+        if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
         _setBaseCurrency(baseCurrency_);
     }
 
@@ -271,7 +271,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The Creditor has significant authorization: use margin, trigger liquidation, and manage assets.
      */
     function openMarginAccount(address creditor_) external onlyOwner {
-        if (isCreditorSet) revert AccountErrors.CreditorAlreadySet();
+        if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
         _openMarginAccount(creditor_);
     }
 
@@ -287,7 +287,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
         fixedLiquidationCost = uint96(fixedLiquidationCost_);
         if (baseCurrency != baseCurrency_) _setBaseCurrency(baseCurrency_);
-        isCreditorSet = true;
 
         emit MarginAccountChanged(creditor = creditor_, liquidator = liquidator_);
     }
@@ -303,7 +302,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
         // closeMarginAccount() checks if there is still open position. If so, reverts.
         ICreditor(creditor_).closeMarginAccount(address(this));
 
-        isCreditorSet = false;
         creditor = address(0);
         liquidator = address(0);
         fixedLiquidationCost = 0;

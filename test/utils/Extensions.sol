@@ -49,10 +49,6 @@ contract AccountExtension is AccountV1 {
         creditor = creditor_;
     }
 
-    function setIsCreditorSet(bool set) public {
-        isCreditorSet = set;
-    }
-
     function setFixedLiquidationCost(uint96 fixedLiquidationCost_) public {
         fixedLiquidationCost = fixedLiquidationCost_;
     }

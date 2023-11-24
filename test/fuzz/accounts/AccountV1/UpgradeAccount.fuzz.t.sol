@@ -20,7 +20,6 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     struct Checks {
-        bool isCreditorSet;
         uint88 accountVersion;
         address baseCurrency;
         address owner;
@@ -39,7 +38,6 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function createCompareStruct() public view returns (Checks memory) {
         Checks memory checks;
 
-        checks.isCreditorSet = proxyAccount.isCreditorSet();
         checks.baseCurrency = proxyAccount.baseCurrency();
         checks.owner = proxyAccount.owner();
         checks.liquidator = proxyAccount.liquidator();
