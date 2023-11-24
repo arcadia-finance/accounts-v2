@@ -39,7 +39,7 @@ contract IsAccountHealthyWithoutArgs_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test 
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
         uint256 usedMargin = debtInitial + fixedLiquidationCost;
 
-        // test-case: Insufficient margin
+        // Given: Insufficient margin
         vm.assume(usedMargin > 0);
         collateralValue = uint112(bound(collateralValue, 0, usedMargin - 1));
         // "exposure" is strictly smaller than "maxExposure".
@@ -54,10 +54,10 @@ contract IsAccountHealthyWithoutArgs_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
 
-        // When: An Authorised protocol tries to take more margin against the Account.
+        // When: Calling isAccountHealthy()
         (bool success, address creditor, uint256 version) = accountExtension.isAccountHealthy();
 
-        // Then: The action is not successful.
+        // Then: The Account should not be healthy.
         assertTrue(!success);
         assertEq(creditor, address(creditorStable1));
         assertEq(version, 1);
@@ -71,7 +71,7 @@ contract IsAccountHealthyWithoutArgs_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test 
         // "exposure" is strictly smaller than "maxExposure".
         collateralValue = uint112(bound(collateralValue, 0, type(uint112).max - 1));
 
-        // test-case: Sufficient margin
+        // Given: Sufficient margin
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, collateralValue);
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
         debtInitial = bound(debtInitial, 0, collateralValue - fixedLiquidationCost);
@@ -85,10 +85,10 @@ contract IsAccountHealthyWithoutArgs_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
 
-        // When: An Authorised protocol tries to take more margin against the Account
+        // When: Calling isAccountHealthy()
         (bool success, address creditor, uint256 version) = accountExtension.isAccountHealthy();
 
-        // Then: The action is successful
+        // Then: Account should be healthy.
         assertTrue(success);
         assertEq(creditor, address(creditorStable1));
         assertEq(version, 1);
