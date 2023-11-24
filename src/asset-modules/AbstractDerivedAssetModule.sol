@@ -420,8 +420,8 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
-     * @dev An indirect withdrawal, is initiated by a withdrawal of another derived asset (the upper asset),
-     * from which the asset of this Asset Module is an underlying asset.
+     * @dev An indirect withdrawal is initiated by a withdrawal of another Derived Asset (the upper asset),
+     * from which the asset of this Asset Module is an Underlying Asset.
      */
     function processIndirectWithdrawal(
         address creditor,
@@ -454,7 +454,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param exposureAsset The updated exposure to the asset.
      * @return usdExposureAsset The USD value of the exposure of the asset, 18 decimals precision.
      * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
-     * Underflows (due to rounding errors or bugs) should not revert, but the exposure is instead set to 0.
+     * Underflows will not revert, but the exposure is instead set to 0.
      */
     function _processDeposit(address creditor, bytes32 assetKey, uint256 exposureAsset)
         internal
@@ -517,7 +517,7 @@ abstract contract DerivedAssetModule is AssetModule {
             // For the else case: (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset),
             // usdExposureProtocol is set to 0, but usdExposureProtocol is already 0.
         }
-        // The exposure must be strictly smaller as the maxExposure, not equal or smaller than.
+        // The exposure must be strictly smaller than the maxExposure, not equal to or smaller than.
         // This is to ensure that all deposits revert when maxExposure is set to 0, also deposits with 0 amounts.
         if (usdExposureProtocol >= riskParams[creditor].maxUsdExposureProtocol) {
             revert AssetModule.ExposureNotInLimits();
@@ -532,7 +532,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param exposureAsset The updated exposure to the asset.
      * @return usdExposureAsset The USD value of the exposure of the asset, 18 decimals precision.
      * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
-     * Underflows (due to rounding errors or bugs) should not revert, but the exposure is instead set to 0.
+     * Underflows will not revert, but the exposure is instead set to 0.
      */
     function _processWithdrawal(address creditor, bytes32 assetKey, uint256 exposureAsset)
         internal
@@ -606,7 +606,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param deltaAsset The increase or decrease in asset amount since the last interaction.
      * @return exposureAsset The updated exposure to the asset.
      * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
-     * Underflows (due to rounding errors or bugs) should not revert, but the exposure is instead set to 0.
+     * Underflows will not revert, but the exposure is instead set to 0.
      */
     function _getAndUpdateExposureAsset(address creditor, bytes32 assetKey, int256 deltaAsset)
         internal

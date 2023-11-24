@@ -223,7 +223,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         // Cache lastExposureAsset.
         uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
-        // The exposure must be strictly smaller as the maxExposure, not equal or smaller than.
+        // The exposure must be strictly smaller than the maxExposure, not equal to or smaller than.
         // This is to ensure that all deposits revert when maxExposure is set to 0, also deposits with 0 amounts.
         if (lastExposureAsset + amount >= riskParams[creditor][assetKey].maxExposure) revert ExposureNotInLimits();
 
@@ -243,8 +243,8 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
-     * @dev An indirect deposit, is initiated by a deposit of a derived asset (the upper asset),
-     * from which the asset of this Asset Module is an underlying asset.
+     * @dev An indirect deposit is initiated by a deposit of a Derived Asset (the upper asset),
+     * from which the asset of this Asset Module is an Underlying Asset.
      */
     function processIndirectDeposit(
         address creditor,
@@ -269,7 +269,7 @@ abstract contract PrimaryAssetModule is AssetModule {
                     : 0;
             }
         }
-        // The exposure must be strictly smaller as the maxExposure, not equal or smaller than.
+        // The exposure must be strictly smaller than the maxExposure, not equal to or smaller than.
         // This is to ensure that all deposits revert when maxExposure is set to 0, also deposits with 0 amounts.
         if (exposureAsset >= riskParams[creditor][assetKey].maxExposure) revert ExposureNotInLimits();
         // unchecked cast: "RiskParameters.maxExposure" is a uint112.
@@ -293,7 +293,7 @@ abstract contract PrimaryAssetModule is AssetModule {
      * 2 = ERC1155
      * ...
      * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
-     * Underflows (due to rounding errors or bugs) should not revert, but the exposure is instead set to 0.
+     * Underflows will not revert, but the exposure is instead set to 0.
      */
     function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
         public
@@ -325,10 +325,10 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
-     * @dev An indirect withdrawal, is initiated by a withdrawal of a derived asset (the upper asset),
-     * from which the asset of this Asset Module is an underlying asset.
+     * @dev An indirect withdrawal is initiated by a withdrawal of a Derived Asset (the upper asset),
+     * from which the asset of this Asset Module is an Underlying Asset.
      * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
-     * Underflows (due to rounding errors or bugs) should not revert, but the exposure is instead set to 0.
+     * Underflows will not revert, but the exposure is instead set to 0.
      */
     function processIndirectWithdrawal(
         address creditor,
