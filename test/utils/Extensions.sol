@@ -97,6 +97,8 @@ contract AccountExtension is AccountV1 {
 contract BaseGuardianExtension is BaseGuardian {
     constructor() BaseGuardian() { }
 
+    function pause() external override { }
+
     function unpause() external override { }
 }
 

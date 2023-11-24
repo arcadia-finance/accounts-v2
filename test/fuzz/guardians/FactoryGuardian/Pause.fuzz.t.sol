@@ -45,7 +45,7 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         // When: Guardian pauses again within 32 days passed from the last pause.
         // Then: The transaction reverts with "Cannot_Pause".
         vm.startPrank(users.guardian);
-        vm.expectRevert(BaseGuardian.CannotPause.selector);
+        vm.expectRevert(BaseGuardian.CoolDownPeriodNotPassed.selector);
         factoryGuardian.pause();
         vm.stopPrank();
     }
