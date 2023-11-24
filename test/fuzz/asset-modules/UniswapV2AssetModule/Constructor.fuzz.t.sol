@@ -25,10 +25,8 @@ contract Constructor_UniswapV2AssetModule_Fuzz_Test is UniswapV2AssetModule_Fuzz
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.creatorAddress);
-        UniswapV2AssetModuleExtension uniswapV2AssetModule_ = new UniswapV2AssetModuleExtension(
-            registry_,
-            address(uniswapV2Factory)
-        );
+        UniswapV2AssetModuleExtension uniswapV2AssetModule_ =
+            new UniswapV2AssetModuleExtension(registry_, address(uniswapV2Factory));
         vm.stopPrank();
         assertEq(uniswapV2AssetModule_.REGISTRY(), registry_);
         assertEq(uniswapV2AssetModule_.ASSET_TYPE(), 0);

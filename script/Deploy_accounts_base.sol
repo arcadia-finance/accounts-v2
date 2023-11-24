@@ -81,8 +81,7 @@ contract ArcadiaAccountDeployment is Test {
         usdcLendingPool = ILendingPool(0x4d39409993dBe365c9AcaAe7c7e259C06FBFFa4A); //todo: change after LP deploy
 
         registry = new Registry(address(factory));
-        standardERC20AssetModule = new StandardERC20AssetModule(
-            address(registry));
+        standardERC20AssetModule = new StandardERC20AssetModule(address(registry));
         uniswapV3AssetModule = new UniswapV3AssetModule(address(registry), DeployAddresses.uniswapV3PositionMgr_base);
 
         chainlinkOM = new ChainlinkOracleModule(address(registry));

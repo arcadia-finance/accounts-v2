@@ -151,20 +151,22 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
             assetTypes: assetTypes
         });
 
+        // Avoid stack too deep
+        uint8 lengthStack = arrLength;
+        bytes calldata signatureStack = signature;
+
         IPermit2.TokenPermissions[] memory tokenPermissions;
 
-        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, assetDataIn, to, data);
+        bytes memory actionHandlerData = abi.encode(assetDataIn, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, actionHandlerData);
 
         //Already sent asset to action contract
         uint256 id = 10;
-        for (uint256 i; i < arrLength; ++i) {
+        for (uint256 i; i < lengthStack; ++i) {
             vm.prank(users.accountOwner);
             mockERC721.nft1.transferFrom(users.accountOwner, address(action), id);
             ++id;
         }
-
-        // Bring signature back to stack to avoid stack too deep below.
-        bytes calldata signatureStack = signature;
 
         vm.prank(address(action));
         mockERC721.nft1.setApprovalForAll(address(accountExtension), true);
@@ -258,7 +260,8 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         ActionData memory transferFromOwner;
         IPermit2.TokenPermissions[] memory tokenPermissions;
 
-        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, assetDataIn, to, data);
+        bytes memory actionHandlerData = abi.encode(assetDataIn, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, actionHandlerData);
 
         // Deposit token1 in account first
         depositERC20InAccount(
@@ -479,7 +482,8 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
 
         IPermit2.TokenPermissions[] memory tokenPermissions;
 
-        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, assetDataIn, to, data);
+        bytes memory actionHandlerData = abi.encode(assetDataIn, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, actionHandlerData);
 
         // Deposit token1 in account first
         depositERC20InAccount(
@@ -606,20 +610,25 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         ActionData memory transferFromOwner;
         IPermit2.TokenPermissions[] memory tokenPermissions;
 
-        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, assetDataIn, to, data);
+        // Avoid stack too deep
+        bytes memory signatureStack = signature;
+        address assetManagerStack = assetManager;
+
+        bytes memory actionHandlerData = abi.encode(assetDataIn, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, actionHandlerData);
 
         // Deposit token1 in account first
         depositERC20InAccount(
             mockERC20.token1, token1AmountForAction, users.accountOwner, address(accountNotInitialised)
         );
 
-        vm.startPrank(assetManager);
+        vm.startPrank(assetManagerStack);
 
         // Assert the account has no TOKEN2 balance initially
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) == 0);
 
         // Call accountManagementAction() on Account
-        accountNotInitialised.accountManagementAction(address(action), callData, signature);
+        accountNotInitialised.accountManagementAction(address(action), callData, signatureStack);
 
         // Assert that the Account now has a balance of TOKEN2
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) > 0);
@@ -699,7 +708,8 @@ contract AccountManagementAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Per
         address[] memory to;
         bytes[] memory data;
 
-        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, permit, assetDataIn, to, data);
+        bytes memory actionHandlerData = abi.encode(assetDataIn, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, permit, actionHandlerData);
 
         // Check state pre function call
         assertEq(mockERC20.token1.balanceOf(fromStack), token1AmountStack);
