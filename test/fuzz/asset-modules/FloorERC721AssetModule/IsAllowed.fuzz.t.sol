@@ -33,6 +33,9 @@ contract IsAllowed_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fu
     }
 
     function testFuzz_Success_isAllowed_Negative_WrongAddress(address randomAsset) public {
+        vm.assume(randomAsset != address(mockERC721.nft1));
+        vm.assume(randomAsset != address(mockERC721.nft2));
+        vm.assume(randomAsset != address(mockERC721.nft3));
         assertFalse(floorERC721AssetModule.isAllowed(randomAsset, 0));
     }
 
