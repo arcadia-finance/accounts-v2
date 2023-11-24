@@ -39,7 +39,7 @@ contract UnPause_WithoutArgs_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz
         // When: A sender un-pauses within 30 days passed from the last pause.
         // Then: The transaction reverts with "G_UP: Cannot unPaus".
         vm.startPrank(sender);
-        vm.expectRevert(BaseGuardian.CannotUnpause.selector);
+        vm.expectRevert(BaseGuardian.CoolDownPeriodNotPassed.selector);
         registryGuardian.unpause();
         vm.stopPrank();
     }

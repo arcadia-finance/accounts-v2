@@ -54,7 +54,7 @@ abstract contract FactoryGuardian is BaseGuardian {
     /**
      * @notice This function will pause the functionality to create new Accounts.
      */
-    function pause() external override onlyGuardian only32daysAfterPause {
+    function pause() external override onlyGuardian afterCoolDownOf(32 days) {
         createPaused = true;
         pauseTimestamp = uint96(block.timestamp);
 
