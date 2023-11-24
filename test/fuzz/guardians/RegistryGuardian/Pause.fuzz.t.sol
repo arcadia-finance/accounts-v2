@@ -4,7 +4,9 @@
  */
 pragma solidity 0.8.19;
 
-import { RegistryGuardian_Fuzz_Test, BaseGuardian } from "./_RegistryGuardian.fuzz.t.sol";
+import { RegistryGuardian_Fuzz_Test } from "./_RegistryGuardian.fuzz.t.sol";
+
+import { GuardianErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "pause" of contract "RegistryGuardian".
@@ -25,7 +27,7 @@ contract Pause_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz_Test {
         vm.assume(nonGuard != users.guardian);
 
         vm.startPrank(nonGuard);
-        vm.expectRevert(BaseGuardian.OnlyGuardian.selector);
+        vm.expectRevert(GuardianErrors.OnlyGuardian.selector);
         registryGuardian.pause();
         vm.stopPrank();
     }
@@ -45,7 +47,7 @@ contract Pause_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz_Test {
         // When: Guardian pauses again within 32 days passed from the last pause.
         // Then: The transaction reverts with "Cannot_Pause".
         vm.startPrank(users.guardian);
-        vm.expectRevert(BaseGuardian.CoolDownPeriodNotPassed.selector);
+        vm.expectRevert(GuardianErrors.CoolDownPeriodNotPassed.selector);
         registryGuardian.pause();
         vm.stopPrank();
     }

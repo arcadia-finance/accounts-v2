@@ -39,6 +39,15 @@ library FactoryErrors {
     error VersionRootIsZero();
 }
 
+library GuardianErrors {
+    // Thrown when the cool-down period has not yet passed.
+    error CoolDownPeriodNotPassed();
+    // Thrown when the functionality is paused.
+    error FunctionIsPaused();
+    // Thrown when the caller is not the Guardian.
+    error OnlyGuardian();
+}
+
 library RegistryErrors {
     error AssetMod_Not_Unique();
     error Asset_Already_In_Registry();

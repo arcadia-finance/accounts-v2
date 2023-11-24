@@ -5,12 +5,17 @@
 
 pragma solidity 0.8.19;
 
+import { GuardianErrors } from "../libraries/Errors.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 
 /**
  * @title Guardian
  * @author Pragma Labs
- * @notice This module provides the base logic that allows authorized accounts to trigger an emergency stop.
+ * @notice Abstract contract with the minimal implementation of a Guardian contract.
+ * It implements the following logic:
+ * - An authorized guardian can trigger an emergency stop.
+ * - The protocol owner can unpause functionalities one-by-one.
+ * - Anyone can unpause all functionalities after a fixed cool-down period.
  */
 abstract contract BaseGuardian is Owned {
     /* //////////////////////////////////////////////////////////////
@@ -21,14 +26,6 @@ abstract contract BaseGuardian is Owned {
     uint96 public pauseTimestamp;
     // Address of the Guardian.
     address public guardian;
-
-    /* //////////////////////////////////////////////////////////////
-                                ERRORS
-    ////////////////////////////////////////////////////////////// */
-
-    error CoolDownPeriodNotPassed();
-    error FunctionIsPaused();
-    error OnlyGuardian();
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
@@ -44,7 +41,7 @@ abstract contract BaseGuardian is Owned {
      * @dev Only guardians can call functions with this modifier.
      */
     modifier onlyGuardian() {
-        if (msg.sender != guardian) revert OnlyGuardian();
+        if (msg.sender != guardian) revert GuardianErrors.OnlyGuardian();
         _;
     }
 
@@ -54,7 +51,7 @@ abstract contract BaseGuardian is Owned {
      * but ensures that no rogue owner or guardian can lock user funds for an indefinite amount of time.
      */
     modifier afterCoolDownOf(uint256 coolDownPeriod) {
-        if (block.timestamp <= pauseTimestamp + coolDownPeriod) revert CoolDownPeriodNotPassed();
+        if (block.timestamp <= pauseTimestamp + coolDownPeriod) revert GuardianErrors.CoolDownPeriodNotPassed();
         _;
     }
 

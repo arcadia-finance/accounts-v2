@@ -5,13 +5,15 @@
 
 pragma solidity 0.8.19;
 
-import { BaseGuardian } from "./BaseGuardian.sol";
+import { BaseGuardian, GuardianErrors } from "./BaseGuardian.sol";
 
 /**
  * @title Registry Guardian
  * @author Pragma Labs
- * @notice Logic inherited by the Registry that allows an authorized guardian to trigger an emergency stop.
- * It also enables public or authorized guardian to unpause in certain cases.
+ * @notice Logic inherited by the Registry that allows:
+ * - An authorized guardian to trigger an emergency stop.
+ * - The protocol owner to unpause functionalities one-by-one.
+ * - Anyone to unpause all functionalities after a fixed cool-down period.
  */
 abstract contract RegistryGuardian is BaseGuardian {
     /* //////////////////////////////////////////////////////////////
@@ -29,17 +31,15 @@ abstract contract RegistryGuardian is BaseGuardian {
 
     event PauseFlagsUpdated(bool withdrawPauseUpdate, bool depositPauseUpdate);
 
-    /*
-    //////////////////////////////////////////////////////////////
-                            MODIFIERS
-    //////////////////////////////////////////////////////////////
-    */
+    /* //////////////////////////////////////////////////////////////
+                                MODIFIERS
+    ////////////////////////////////////////////////////////////// */
 
     /**
      * @dev Throws if the withdraw functionality is paused.
      */
     modifier whenWithdrawNotPaused() {
-        if (withdrawPaused) revert FunctionIsPaused();
+        if (withdrawPaused) revert GuardianErrors.FunctionIsPaused();
         _;
     }
 
@@ -47,7 +47,7 @@ abstract contract RegistryGuardian is BaseGuardian {
      * @dev Throws if the deposit functionality is paused.
      */
     modifier whenDepositNotPaused() {
-        if (depositPaused) revert FunctionIsPaused();
+        if (depositPaused) revert GuardianErrors.FunctionIsPaused();
         _;
     }
 
@@ -57,6 +57,9 @@ abstract contract RegistryGuardian is BaseGuardian {
 
     /**
      * @inheritdoc BaseGuardian
+     * @dev This function will pause the functionality to:
+     * - Withdraw assets.
+     * - Deposit assets.
      */
     function pause() external override onlyGuardian afterCoolDownOf(32 days) {
         pauseTimestamp = uint96(block.timestamp);
@@ -79,7 +82,9 @@ abstract contract RegistryGuardian is BaseGuardian {
 
     /**
      * @inheritdoc BaseGuardian
-     * @dev This function is used to unpause withdraw and deposit at the same time.
+     * @dev This function will unpause the functionality to:
+     * - Withdraw assets.
+     * - Deposit assets.
      */
     function unpause() external override afterCoolDownOf(30 days) {
         emit PauseFlagsUpdated(withdrawPaused = false, depositPaused = false);

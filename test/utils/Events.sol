@@ -52,7 +52,7 @@ abstract contract Events {
                                 FACTORY GUARDIAN
     //////////////////////////////////////////////////////////////////////////*/
 
-    event PauseUpdated(bool createPauseUpdate);
+    event PauseFlagsUpdated(bool createPauseUpdate);
 
     /*//////////////////////////////////////////////////////////////////////////
                             MAIN REGISTRY GUARDIAN
