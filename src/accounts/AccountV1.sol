@@ -266,15 +266,36 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Opens a margin account on the Account for a Creditor.
-     * @param creditor_ The contract address of the Creditor.
+     * @param newCreditor The contract address of the Creditor.
      * @dev Currently only one Creditor can be set
      * (we are working towards a single account for multiple Creditors tho!).
      * @dev Only open margin accounts for protocols you trust!
      * The Creditor has significant authorization: use margin, trigger liquidation, and manage assets.
      */
-    function openMarginAccount(address creditor_) external onlyOwner {
-        if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
-        _openMarginAccount(creditor_);
+    function openMarginAccount(address newCreditor) external onlyOwner notDuringAuction {
+        (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
+            generateAssetData();
+
+        // Cache old creditor.
+        address oldCreditor = creditor;
+        if (oldCreditor == newCreditor) revert AccountErrors.CreditorAlreadySet();
+
+        // A margin account can only be opened for one Creditor at a time,
+        // first close the active margin account for the old Creditor.
+        if (oldCreditor != address(0)) {
+            // Remove the exposures of the Account for the old Creditor.
+            IRegistry(registry).batchProcessWithdrawal(oldCreditor, assetAddresses, assetIds, assetAmounts);
+
+            // closeMarginAccount() checks if there is still an open position (open liabilities) for the Account.
+            // If so, the function reverts.
+            ICreditor(oldCreditor).closeMarginAccount(address(this));
+        }
+
+        // Check if all assets in the Account are allowed by the new Creditor
+        // and add the exposure of the account for the new Creditor.
+        IRegistry(registry).batchProcessDeposit(newCreditor, assetAddresses, assetIds, assetAmounts);
+
+        _openMarginAccount(newCreditor);
     }
 
     /**
@@ -282,7 +303,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param creditor_ The contract address of the Creditor.
      */
     function _openMarginAccount(address creditor_) internal {
-        // openMarginAccount() is a view function, cannot modify state.
         (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_) =
             ICreditor(creditor_).openMarginAccount(ACCOUNT_VERSION);
         if (!success) revert AccountErrors.InvalidAccountVersion();
@@ -298,15 +318,22 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Currently only one Creditor can be set.
      */
     function closeMarginAccount() external onlyOwner notDuringAuction {
-        // Cache creditor
+        // Cache creditor.
         address creditor_ = creditor;
         if (creditor_ == address(0)) revert AccountErrors.CreditorNotSet();
-        // closeMarginAccount() checks if there is still open position. If so, reverts.
-        ICreditor(creditor_).closeMarginAccount(address(this));
 
         creditor = address(0);
         liquidator = address(0);
         fixedLiquidationCost = 0;
+
+        // Remove the exposures of the Account for the old Creditor.
+        (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
+            generateAssetData();
+        IRegistry(registry).batchProcessWithdrawal(creditor_, assetAddresses, assetIds, assetAmounts);
+
+        // closeMarginAccount() checks if there is still an open position (open liabilities) for the Account.
+        // If so, the function reverts.
+        ICreditor(creditor_).closeMarginAccount(address(this));
 
         emit MarginAccountChanged(address(0), address(0));
     }
