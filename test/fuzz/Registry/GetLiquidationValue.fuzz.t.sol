@@ -8,7 +8,7 @@ import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
 
 import { Constants } from "../../utils/Constants.sol";
 import { AssetModule } from "../../../src/asset-modules/AbstractAssetModule.sol";
-import { RiskModule } from "../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "getLiquidationValue" of contract "Registry".
@@ -50,7 +50,7 @@ contract GetLiquidationValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
     function testFuzz_Success_getLiquidationValue(int64 rateToken1ToUsd, uint64 amountToken1, uint16 liquidationFactor_)
         public
     {
-        vm.assume(liquidationFactor_ <= RiskModule.ONE_4);
+        vm.assume(liquidationFactor_ <= AssetValuationLib.ONE_4);
         vm.assume(rateToken1ToUsd > 0);
 
         vm.prank(users.defaultTransmitter);

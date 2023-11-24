@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
-import { RiskModule } from "../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { PrimaryAssetModule } from "../../../src/asset-modules/AbstractPrimaryAssetModule.sol";
 
 /**
@@ -49,7 +49,7 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
-        collateralFactor = uint16(bound(collateralFactor, 1, RiskModule.ONE_4));
+        collateralFactor = uint16(bound(collateralFactor, 1, AssetValuationLib.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, 0, collateralFactor - 1));
 
         registryExtension.setAssetToAssetModule(asset, address(primaryAssetModule));
@@ -68,8 +68,8 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
-        collateralFactor = uint16(bound(collateralFactor, 0, RiskModule.ONE_4));
-        liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, RiskModule.ONE_4));
+        collateralFactor = uint16(bound(collateralFactor, 0, AssetValuationLib.ONE_4));
+        liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, AssetValuationLib.ONE_4));
 
         registryExtension.setAssetToAssetModule(asset, address(primaryAssetModule));
 

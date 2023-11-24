@@ -10,7 +10,7 @@ import { stdError } from "../../../lib/forge-std/src/StdError.sol";
 
 import { CompareArrays } from "../../utils/CompareArrays.sol";
 import { Constants } from "../../utils/Constants.sol";
-import { RiskModule } from "../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "getValuesInBaseCurrency" of contract "Registry".
@@ -85,7 +85,7 @@ contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10 ** Constants.tokenDecimals;
         assetAmounts[2] = 1;
 
-        RiskModule.AssetValueAndRiskFactors[] memory actualValuesPerAsset = registryExtension.getValuesInBaseCurrency(
+        AssetValueAndRiskFactors[] memory actualValuesPerAsset = registryExtension.getValuesInBaseCurrency(
             address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );
 
@@ -122,7 +122,7 @@ contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10 ** Constants.tokenDecimals;
         assetAmounts[2] = 1;
 
-        RiskModule.AssetValueAndRiskFactors[] memory actualValuesPerAsset = registryExtension.getValuesInBaseCurrency(
+        AssetValueAndRiskFactors[] memory actualValuesPerAsset = registryExtension.getValuesInBaseCurrency(
             address(mockERC20.token1), address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );
 

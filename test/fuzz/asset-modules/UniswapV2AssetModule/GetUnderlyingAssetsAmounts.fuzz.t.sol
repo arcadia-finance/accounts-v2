@@ -10,7 +10,7 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
 import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
-import { RiskModule } from "../../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts()" of contract "UniswapV2AssetModule".
@@ -73,10 +73,8 @@ contract GetUnderlyingAssetsAmounts_UniswapV2AssetModule_Fuzz_Test is UniswapV2A
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
-        (
-            uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
-        ) = uniswapV2AssetModule.getUnderlyingAssetsAmounts(
+        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
+        uniswapV2AssetModule.getUnderlyingAssetsAmounts(
             address(creditorUsd), assetKey, assetAmount, underlyingAssetKeys
         );
 

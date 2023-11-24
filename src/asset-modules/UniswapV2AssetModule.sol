@@ -8,7 +8,7 @@ import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "./AbstractDeri
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
 import { FullMath } from "./UniswapV3/libraries/FullMath.sol";
-import { RiskModule } from "../RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
 
 /**
  * @title Asset-Module for Uniswap V2 LP tokens
@@ -190,10 +190,7 @@ contract UniswapV2AssetModule is DerivedAssetModule {
         internal
         view
         override
-        returns (
-            uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
-        )
+        returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
 

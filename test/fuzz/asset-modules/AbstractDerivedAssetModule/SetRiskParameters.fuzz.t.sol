@@ -7,7 +7,7 @@ pragma solidity 0.8.19;
 import { AbstractDerivedAssetModule_Fuzz_Test, AssetModule } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
 
 import { DerivedAssetModule } from "../../../../src/asset-modules/AbstractDerivedAssetModule.sol";
-import { RiskModule } from "../../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "setRiskParameters" of contract "AbstractDerivedAssetModule".
@@ -43,7 +43,7 @@ contract SetRiskParameters_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         uint112 maxExposureInUsd,
         uint16 riskFactor
     ) public {
-        riskFactor = uint16(bound(riskFactor, RiskModule.ONE_4 + 1, type(uint16).max));
+        riskFactor = uint16(bound(riskFactor, AssetValuationLib.ONE_4 + 1, type(uint16).max));
 
         vm.startPrank(address(registryExtension));
         vm.expectRevert(DerivedAssetModule.RiskFactorNotInLimits.selector);
@@ -52,7 +52,7 @@ contract SetRiskParameters_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
     }
 
     function testFuzz_Success_setRiskParameters(address creditor, uint112 maxExposureInUsd, uint16 riskFactor) public {
-        riskFactor = uint16(bound(riskFactor, 0, RiskModule.ONE_4));
+        riskFactor = uint16(bound(riskFactor, 0, AssetValuationLib.ONE_4));
 
         vm.prank(address(registryExtension));
         derivedAssetModule.setRiskParameters(creditor, maxExposureInUsd, riskFactor);

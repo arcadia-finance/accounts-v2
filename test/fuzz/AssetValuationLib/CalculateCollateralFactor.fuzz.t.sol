@@ -4,21 +4,20 @@
  */
 pragma solidity 0.8.19;
 
-import { RiskModule_Fuzz_Test } from "./_RiskModule.fuzz.t.sol";
+import { AssetValuationLib_Fuzz_Test } from "./_AssetValuationLib.fuzz.t.sol";
 
-import { RiskModule } from "../../../src/RiskModule.sol";
-import { RiskModule } from "../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 
 /**
- * @notice Fuzz tests for the function "calculateCollateralFactor" of contract "RiskModule".
+ * @notice Fuzz tests for the function "calculateCollateralFactor" of contract "AssetValuationLib".
  */
-contract CalculateCollateralFactor_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test {
+contract CalculateCollateralFactor_AssetValuationLib_Fuzz_Test is AssetValuationLib_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        RiskModule_Fuzz_Test.setUp();
+        AssetValuationLib_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -32,19 +31,19 @@ contract CalculateCollateralFactor_RiskModule_Fuzz_Test is RiskModule_Fuzz_Test 
     ) public {
         // Given: 2 Assets with value bigger than zero
         // Values are uint128 to prevent overflow in multiplication
-        RiskModule.AssetValueAndRiskFactors[] memory values = new RiskModule.AssetValueAndRiskFactors[](2);
+        AssetValueAndRiskFactors[] memory values = new AssetValueAndRiskFactors[](2);
         values[0].assetValue = firstValue;
         values[1].assetValue = secondValue;
 
         // And: collateral factors are within allowed ranges
-        vm.assume(firstCollFactor <= RiskModule.ONE_4);
-        vm.assume(secondCollFactor <= RiskModule.ONE_4);
+        vm.assume(firstCollFactor <= AssetValuationLib.ONE_4);
+        vm.assume(secondCollFactor <= AssetValuationLib.ONE_4);
 
         values[0].collateralFactor = firstCollFactor;
         values[1].collateralFactor = secondCollFactor;
 
         // When: The collateral factor is calculated with given values
-        uint256 collateralValue = riskModule.calculateCollateralValue(values);
+        uint256 collateralValue = assetValuationLib.calculateCollateralValue(values);
 
         // Then: It should be equal to calculated collateral factor
         uint256 calcCollateralValue;
