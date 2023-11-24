@@ -540,34 +540,37 @@ contract AccountV2 is AccountStorageV2 {
     {
         if (!IRegistry(registry).isActionAllowed(actionHandler)) revert AccountErrors.ActionNotAllowed();
 
+        address actionHandler_ = actionHandler;
+
         (
             ActionData memory withdrawData,
             ActionData memory transferFromOwnerData,
             IPermit2.PermitBatchTransferFrom memory permit,
-            ,
-            ,
+            ActionData memory actionHandlerData,
+            address[] memory to,
+            bytes[] memory data
         ) = abi.decode(
             actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, ActionData, address[], bytes[])
         );
 
         // Withdraw assets to actionHandler.
-        _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionHandler);
+        _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionHandler_);
 
         // Transfer assets from owner (that are not assets in this account) to actionHandler.
         if (transferFromOwnerData.assets.length > 0) {
-            _transferFromOwner(transferFromOwnerData, actionHandler);
+            _transferFromOwner(transferFromOwnerData, actionHandler_);
         }
 
         // If the function input includes a signature and non-empty token permissions, initiate a transfer via Permit2.
         if (signature.length > 0 && permit.permitted.length > 0) {
-            _transferFromOwnerWithPermit(permit, signature, actionHandler);
+            _transferFromOwnerWithPermit(permit, signature, actionHandler_);
         }
 
         // Execute Action(s).
-        ActionData memory depositData = IActionBase(actionHandler).executeAction(actionData);
+        ActionData memory depositData = IActionBase(actionHandler_).executeAction(actionHandlerData, to, data);
 
         // Deposit assets from actionHandler into Account.
-        _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionHandler);
+        _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionHandler_);
 
         // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always in a healthy state.
         uint256 usedMargin = getUsedMargin();

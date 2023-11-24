@@ -50,7 +50,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         bytes memory callData = abi.encode(assetData, assetData, permit, fromOwner, to, data);
 
         vm.expectRevert(LengthMismatch.selector);
-        action.executeAction(callData);
+        action.executeAction(fromOwner, to, data);
     }
 
     function testFuzz_Success_executeAction_storeNumber(uint256 number) public {
@@ -74,7 +74,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
 
         bytes memory callData = abi.encode(assetData, assetData, permit, fromOwner, to, data);
 
-        action.executeAction(callData);
+        action.executeAction(fromOwner, to, data);
 
         assertEq(numberStored, number);
     }
@@ -121,13 +121,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         action.setMintedAssets(mintedAssets_);
         action.setMintedIds(mintedIds_);
 
-        ActionData memory emptyData;
-        IPermit2.PermitBatchTransferFrom memory emptyPermit;
-
-        bytes memory actionData =
-            abi.encode(emptyData, emptyData, emptyPermit, depositData, new address[](0), new bytes[](0));
-
-        ActionData memory returnData = action.executeAction(actionData);
+        ActionData memory returnData = action.executeAction(depositData, new address[](0), new bytes[](0));
 
         assertEq(returnData.assets.length, depositData.assets.length);
 

@@ -4,6 +4,7 @@
  */
 pragma solidity 0.8.19;
 
+// Struct with information to pass to and from actionHandlers.
 struct ActionData {
     // Array of the contract addresses of the assets.
     address[] assets;
@@ -16,13 +17,15 @@ struct ActionData {
 }
 
 interface IActionBase {
-    // Struct with information to pass to and from actionHandlers.
-
     /**
      * @notice Calls a series of addresses with arbitrary calldata.
-     * @param actionData A bytes object containing two actionAssetData structs, an address array and a bytes array.
+     * @param depositData Struct with information to pass to the actionHandler.
+     * @param to An array of contracts to call in the actionHandler.
+     * @param data The calldata for the "to" contracts.
      * @return resultData An actionAssetData struct with the balances of this ActionMultiCall address.
      */
 
-    function executeAction(bytes calldata actionData) external returns (ActionData memory);
+    function executeAction(ActionData memory depositData, address[] memory to, bytes[] memory data)
+        external
+        returns (ActionData memory);
 }
