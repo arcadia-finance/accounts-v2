@@ -88,7 +88,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Set "inAuction" to true.
         accountExtension.setInAuction();
 
-        // Should revert if the reentrancy guard is locked.
+        // Should revert if Account is being auctioned.
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.AccountInAuction.selector);
         accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);

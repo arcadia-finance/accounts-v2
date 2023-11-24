@@ -40,7 +40,7 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.AccountInAuction.selector);
-        proxyAccount.closeMarginAccount();
+        accountExtension.closeMarginAccount();
         vm.stopPrank();
     }
 
