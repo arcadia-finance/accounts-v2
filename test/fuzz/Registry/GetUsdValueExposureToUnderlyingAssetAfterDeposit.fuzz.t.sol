@@ -52,7 +52,7 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_Registry_Fuzz_Test is 
         int256 deltaExposureAssetToUnderlyingAsset,
         uint256 usdValue
     ) public {
-        vm.assume(deltaExposureAssetToUnderlyingAsset <= type(int128).max); // MaxExposure.
+        vm.assume(deltaExposureAssetToUnderlyingAsset <= type(int112).max); // MaxExposure.
         vm.assume(deltaExposureAssetToUnderlyingAsset > type(int256).min); // Overflows on inversion.
 
         registryExtension.setAssetToAssetModule(underlyingAsset, address(primaryAssetModule));
@@ -60,7 +60,7 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_Registry_Fuzz_Test is 
 
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), underlyingAsset, underlyingAssetId, type(uint128).max, 100, 100
+            address(creditorUsd), underlyingAsset, underlyingAssetId, type(uint112).max, 100, 100
         );
 
         stdstore.target(address(registryExtension)).sig(registryExtension.isAssetModule.selector).with_key(

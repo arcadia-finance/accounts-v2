@@ -18,7 +18,7 @@ interface IPrimaryAssetModule {
         address creditor,
         address asset,
         uint256 assetId,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external;

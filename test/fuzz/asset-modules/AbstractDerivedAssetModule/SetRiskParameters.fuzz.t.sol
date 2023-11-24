@@ -26,7 +26,7 @@ contract SetRiskParameters_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
     function testFuzz_Revert_setRiskParameters_NonRegistry(
         address unprivilegedAddress_,
         address creditor,
-        uint128 maxExposureInUsd,
+        uint112 maxExposureInUsd,
         uint16 riskFactor
     ) public {
         vm.assume(unprivilegedAddress_ != address(registryExtension));
@@ -39,7 +39,7 @@ contract SetRiskParameters_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
 
     function testFuzz_Revert_setRiskParameters_RiskFactorNotInLimits(
         address creditor,
-        uint128 maxExposureInUsd,
+        uint112 maxExposureInUsd,
         uint16 riskFactor
     ) public {
         riskFactor = uint16(bound(riskFactor, RiskModule.ONE_4 + 1, type(uint16).max));
@@ -50,7 +50,7 @@ contract SetRiskParameters_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         vm.stopPrank();
     }
 
-    function testFuzz_Success_setRiskParameters(address creditor, uint128 maxExposureInUsd, uint16 riskFactor) public {
+    function testFuzz_Success_setRiskParameters(address creditor, uint112 maxExposureInUsd, uint16 riskFactor) public {
         riskFactor = uint16(bound(riskFactor, 0, RiskModule.ONE_4));
 
         vm.prank(address(registryExtension));

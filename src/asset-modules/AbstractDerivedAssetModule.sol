@@ -42,9 +42,9 @@ abstract contract DerivedAssetModule is AssetModule {
     // Struct with the risk parameters of the protocol for a specific Creditor.
     struct RiskParameters {
         // The exposure in USD of the Creditor to the protocol at the last interaction, 18 decimals precision.
-        uint128 lastUsdExposureProtocol;
+        uint112 lastUsdExposureProtocol;
         // The maximum exposure in USD of the Creditor to the protocol, 18 decimals precision.
-        uint128 maxUsdExposureProtocol;
+        uint112 maxUsdExposureProtocol;
         // The risk factor of the protocol for a Creditor, 4 decimals precision.
         uint16 riskFactor;
     }
@@ -52,9 +52,9 @@ abstract contract DerivedAssetModule is AssetModule {
     // Struct with the exposures of a specific asset for a specific Creditor.
     struct ExposuresPerAsset {
         // The amount of exposure of the Creditor to the asset at the last interaction.
-        uint128 lastExposureAsset;
+        uint112 lastExposureAsset;
         // The exposure in USD of the Creditor to the asset at the last interaction, 18 decimals precision.
-        uint128 lastUsdExposureAsset;
+        uint112 lastUsdExposureAsset;
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -207,7 +207,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param maxUsdExposureProtocol_ The maximum USD exposure of the protocol for each Creditor, denominated in USD with 18 decimals precision.
      * @param riskFactor The risk factor of the asset for the Creditor, 4 decimals precision.
      */
-    function setRiskParameters(address creditor, uint128 maxUsdExposureProtocol_, uint16 riskFactor)
+    function setRiskParameters(address creditor, uint112 maxUsdExposureProtocol_, uint16 riskFactor)
         external
         onlyRegistry
     {
@@ -489,7 +489,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
         // Cache and update lastUsdExposureAsset.
         uint256 lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
-        lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint128(usdExposureAsset);
+        lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint112(usdExposureAsset);
 
         // Cache lastUsdExposureProtocol.
         uint256 lastUsdExposureProtocol = riskParams[creditor].lastUsdExposureProtocol;
@@ -502,12 +502,13 @@ abstract contract DerivedAssetModule is AssetModule {
             } else if (lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset) {
                 usdExposureProtocol = lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset);
             }
-            // If (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset), call does not revert, but usdExposureProtocol is set to 0.
+            // For the else case: (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset),
+            // usdExposureProtocol is set to 0, but usdExposureProtocol is already 0.
         }
         if (usdExposureProtocol >= riskParams[creditor].maxUsdExposureProtocol) {
             revert AssetModule.Exposure_Not_In_Limits();
         }
-        riskParams[creditor].lastUsdExposureProtocol = uint128(usdExposureProtocol);
+        riskParams[creditor].lastUsdExposureProtocol = uint112(usdExposureProtocol);
     }
 
     /**
@@ -562,7 +563,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
         // Cache and update lastUsdExposureAsset.
         uint256 lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
-        lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint128(usdExposureAsset);
+        lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint112(usdExposureAsset);
 
         // Cache lastUsdExposureProtocol.
         uint256 lastUsdExposureProtocol = riskParams[creditor].lastUsdExposureProtocol;
@@ -572,13 +573,14 @@ abstract contract DerivedAssetModule is AssetModule {
         unchecked {
             if (usdExposureAsset >= lastUsdExposureAsset) {
                 usdExposureProtocol = lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset);
-                if (usdExposureProtocol > type(uint128).max) revert Overflow();
+                if (usdExposureProtocol > type(uint112).max) revert Overflow();
             } else if (lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset) {
                 usdExposureProtocol = lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset);
             }
+            // For the else case: (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset),
+            // usdExposureProtocol is set to 0, but usdExposureProtocol is already 0.
         }
-        // If (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset), call does not revert, but usdExposureProtocol is set to 0.
-        riskParams[creditor].lastUsdExposureProtocol = uint128(usdExposureProtocol);
+        riskParams[creditor].lastUsdExposureProtocol = uint112(usdExposureProtocol);
     }
 
     /**
@@ -599,6 +601,6 @@ abstract contract DerivedAssetModule is AssetModule {
             uint256 exposureAssetLast = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
             exposureAsset = exposureAssetLast > uint256(-deltaAsset) ? exposureAssetLast - uint256(-deltaAsset) : 0;
         }
-        lastExposuresAsset[creditor][assetKey].lastExposureAsset = uint128(exposureAsset); // ToDo: safecast?
+        lastExposuresAsset[creditor][assetKey].lastExposureAsset = uint112(exposureAsset);
     }
 }

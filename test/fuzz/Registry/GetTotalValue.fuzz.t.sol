@@ -76,7 +76,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.stopPrank();
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorToken1), address(mockERC20.token2), 0, type(uint128).max, 0, 0
+            address(creditorToken1), address(mockERC20.token2), 0, type(uint112).max, 0, 0
         );
 
         vm.startPrank(users.defaultTransmitter);

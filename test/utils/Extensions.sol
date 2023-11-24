@@ -220,8 +220,8 @@ abstract contract AbstractPrimaryAssetModuleExtension is PrimaryAssetModule {
         address creditor,
         address asset,
         uint256 assetId,
-        uint128 lastExposureAsset,
-        uint128 maxExposure
+        uint112 lastExposureAsset,
+        uint112 maxExposure
     ) public {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
         riskParams[creditor][assetKey].lastExposureAsset = lastExposureAsset;
@@ -254,7 +254,7 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
             lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKey];
     }
 
-    function setUsdExposureProtocol(address creditor, uint128 maxUsdExposureProtocol_, uint128 usdExposureProtocol_)
+    function setUsdExposureProtocol(address creditor, uint112 maxUsdExposureProtocol_, uint112 usdExposureProtocol_)
         public
     {
         riskParams[creditor].maxUsdExposureProtocol = maxUsdExposureProtocol_;
@@ -267,8 +267,8 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
         uint256 assetId,
         address underLyingAsset,
         uint256 underlyingAssetId,
-        uint128 exposureAssetLast,
-        uint128 lastUsdExposureAsset,
+        uint112 exposureAssetLast,
+        uint112 lastUsdExposureAsset,
         uint128 exposureAssetToUnderlyingAssetLast
     ) public {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
@@ -331,7 +331,7 @@ contract StandardERC20AssetModuleExtension is StandardERC20AssetModule {
         (key) = _getKeyFromAsset(asset, assetId);
     }
 
-    function setExposure(address creditor, address asset, uint128 lastExposureAsset, uint128 maxExposure) public {
+    function setExposure(address creditor, address asset, uint112 lastExposureAsset, uint112 maxExposure) public {
         bytes32 assetKey = _getKeyFromAsset(asset, 0);
         riskParams[creditor][assetKey].lastExposureAsset = lastExposureAsset;
         riskParams[creditor][assetKey].maxExposure = maxExposure;

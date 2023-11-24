@@ -182,7 +182,7 @@ abstract contract UniswapV3AssetModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixture 
         return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
     }
 
-    function addUnderlyingTokenToArcadia(address token, int256 price, uint128 initialExposure, uint128 maxExposure)
+    function addUnderlyingTokenToArcadia(address token, int256 price, uint112 initialExposure, uint112 maxExposure)
         internal
     {
         addUnderlyingTokenToArcadia(token, price);
@@ -205,7 +205,7 @@ abstract contract UniswapV3AssetModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixture 
         vm.stopPrank();
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint128).max, 80, 90);
+        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
     }
 
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)

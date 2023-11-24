@@ -40,9 +40,9 @@ abstract contract PrimaryAssetModule is AssetModule {
     // Struct with the risk parameters of a specific asset for a specific Creditor.
     struct RiskParameters {
         // The exposure of a Creditor to an asset at its last interaction.
-        uint128 lastExposureAsset;
+        uint112 lastExposureAsset;
         // The maximum exposure of a Creditor to an asset.
-        uint128 maxExposure;
+        uint112 maxExposure;
         // The collateral factor of the asset for the Creditor, 4 decimals precision.
         uint16 collateralFactor;
         // The liquidation factor of the asset for the Creditor, 4 decimals precision.
@@ -61,7 +61,7 @@ abstract contract PrimaryAssetModule is AssetModule {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event MaxExposureSet(address indexed asset, uint128 maxExposure);
+    event MaxExposureSet(address indexed asset, uint112 maxExposure);
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -176,7 +176,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         address creditor,
         address asset,
         uint256 assetId,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external onlyRegistry {
@@ -222,7 +222,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         if (lastExposureAsset + amount >= riskParams[creditor][assetKey].maxExposure) revert Exposure_Not_In_Limits();
 
         unchecked {
-            riskParams[creditor][assetKey].lastExposureAsset = uint128(lastExposureAsset + amount);
+            riskParams[creditor][assetKey].lastExposureAsset = uint112(lastExposureAsset + amount);
         }
 
         assetType = ASSET_TYPE;
@@ -260,8 +260,8 @@ abstract contract PrimaryAssetModule is AssetModule {
                 : 0;
         }
         if (exposureAsset >= riskParams[creditor][assetKey].maxExposure) revert Exposure_Not_In_Limits();
-        // unchecked cast: "RiskParameters.maxExposure" is a uint128.
-        riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
+        // unchecked cast: "RiskParameters.maxExposure" is a uint112.
+        riskParams[creditor][assetKey].lastExposureAsset = uint112(exposureAsset);
 
         // Get Value in USD.
         (usdExposureUpperAssetToAsset,,) = getValue(creditor, asset, assetId, exposureUpperAssetToAsset);
@@ -295,7 +295,7 @@ abstract contract PrimaryAssetModule is AssetModule {
 
         unchecked {
             lastExposureAsset >= amount
-                ? riskParams[creditor][assetKey].lastExposureAsset = uint128(lastExposureAsset - amount)
+                ? riskParams[creditor][assetKey].lastExposureAsset = uint112(lastExposureAsset - amount)
                 : riskParams[creditor][assetKey].lastExposureAsset = 0;
         }
 
@@ -328,14 +328,14 @@ abstract contract PrimaryAssetModule is AssetModule {
         unchecked {
             if (deltaExposureUpperAssetToAsset > 0) {
                 exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
-                if (exposureAsset > type(uint128).max) revert Overflow();
+                if (exposureAsset > type(uint112).max) revert Overflow();
             } else {
                 exposureAsset = lastExposureAsset > uint256(-deltaExposureUpperAssetToAsset)
                     ? lastExposureAsset - uint256(-deltaExposureUpperAssetToAsset)
                     : 0;
             }
         }
-        riskParams[creditor][assetKey].lastExposureAsset = uint128(exposureAsset);
+        riskParams[creditor][assetKey].lastExposureAsset = uint112(exposureAsset);
 
         // Get Value in USD.
         (usdExposureUpperAssetToAsset,,) = getValue(creditor, asset, assetId, exposureUpperAssetToAsset);

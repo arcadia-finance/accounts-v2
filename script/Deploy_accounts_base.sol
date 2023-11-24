@@ -148,7 +148,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.comp_base,
             0,
-            type(uint128).max,
+            type(uint112).max,
             DeployRiskConstantsBase.comp_collFact_1,
             DeployRiskConstantsBase.comp_liqFact_1
         );
@@ -156,7 +156,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.dai_base,
             0,
-            type(uint128).max,
+            type(uint112).max,
             DeployRiskConstantsBase.dai_collFact_1,
             DeployRiskConstantsBase.dai_liqFact_1
         );
@@ -164,7 +164,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.weth_base,
             0,
-            type(uint128).max,
+            type(uint112).max,
             DeployRiskConstantsBase.eth_collFact_1,
             DeployRiskConstantsBase.eth_liqFact_1
         );
@@ -172,7 +172,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.usdc_base,
             0,
-            type(uint128).max,
+            type(uint112).max,
             DeployRiskConstantsBase.usdc_collFact_1,
             DeployRiskConstantsBase.usdc_liqFact_1
         );
@@ -180,7 +180,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.cbeth_base,
             0,
-            type(uint128).max,
+            type(uint112).max,
             DeployRiskConstantsBase.cbeth_collFact_1,
             DeployRiskConstantsBase.cbeth_liqFact_1
         );
@@ -188,7 +188,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.reth_base,
             0,
-            type(uint128).max,
+            type(uint112).max,
             DeployRiskConstantsBase.reth_collFact_1,
             DeployRiskConstantsBase.reth_liqFact_1
         );
@@ -197,7 +197,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.comp_base,
             0,
-            type(uint128).max,
+            type(uint112).max,
             DeployRiskConstantsBase.comp_collFact_2,
             DeployRiskConstantsBase.comp_liqFact_2
         );
@@ -205,7 +205,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.dai_base,
             0,
-            type(uint128).max,
+            type(uint112).max,
             DeployRiskConstantsBase.dai_collFact_2,
             DeployRiskConstantsBase.dai_liqFact_2
         );
@@ -213,7 +213,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.weth_base,
             0,
-            type(uint128).max,
+            type(uint112).max,
             DeployRiskConstantsBase.eth_collFact_2,
             DeployRiskConstantsBase.eth_liqFact_2
         );
@@ -221,7 +221,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.usdc_base,
             0,
-            type(uint128).max,
+            type(uint112).max,
             DeployRiskConstantsBase.usdc_collFact_2,
             DeployRiskConstantsBase.usdc_liqFact_2
         );
@@ -229,7 +229,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.cbeth_base,
             0,
-            type(uint128).max,
+            type(uint112).max,
             DeployRiskConstantsBase.cbeth_collFact_2,
             DeployRiskConstantsBase.cbeth_liqFact_2
         );
@@ -237,7 +237,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.reth_base,
             0,
-            type(uint128).max,
+            type(uint112).max,
             DeployRiskConstantsBase.reth_collFact_2,
             DeployRiskConstantsBase.reth_liqFact_2
         );

@@ -26,7 +26,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC721.nft2), 0, type(uint128).max, 0, 0
+            address(creditorUsd), address(mockERC721.nft2), 0, type(uint112).max, 0, 0
         );
 
         vm.assume(unprivilegedAddress_ != address(registryExtension));
@@ -72,12 +72,12 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset,
-        uint128 maxExposure
+        uint112 maxExposure
     ) public {
         vm.assume(deltaExposureUpperAssetToAsset > 0);
         vm.assume(uint256(deltaExposureUpperAssetToAsset) < maxExposure);
         // To avoid overflow when calculating "usdExposureUpperAssetToAsset"
-        vm.assume(exposureUpperAssetToAsset < type(uint128).max);
+        vm.assume(exposureUpperAssetToAsset < type(uint112).max);
 
         vm.prank(users.creatorAddress);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
@@ -120,7 +120,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, 1, 3);
 
         // To avoid overflow when calculating "usdExposureUpperAssetToAsset"
-        exposureUpperAssetToAsset = bound(exposureUpperAssetToAsset, 0, type(uint128).max);
+        exposureUpperAssetToAsset = bound(exposureUpperAssetToAsset, 0, type(uint112).max);
 
         vm.prank(users.creatorAddress);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
@@ -165,7 +165,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, 4, type(uint96).max);
 
         // To avoid overflow when calculating "usdExposureUpperAssetToAsset"
-        exposureUpperAssetToAsset = bound(exposureUpperAssetToAsset, 0, type(uint128).max);
+        exposureUpperAssetToAsset = bound(exposureUpperAssetToAsset, 0, type(uint112).max);
 
         vm.prank(users.creatorAddress);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);

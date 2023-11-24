@@ -105,13 +105,13 @@ abstract contract UniswapV2AssetModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(token), 0, type(uint128).max, 0, 0
+            address(creditorUsd), address(token), 0, type(uint112).max, 0, 0
         );
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorStable1), address(token), 0, type(uint128).max, 0, 0
+            address(creditorStable1), address(token), 0, type(uint112).max, 0, 0
         );
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorToken1), address(token), 0, type(uint128).max, 0, 0
+            address(creditorToken1), address(token), 0, type(uint112).max, 0, 0
         );
         vm.stopPrank();
     }

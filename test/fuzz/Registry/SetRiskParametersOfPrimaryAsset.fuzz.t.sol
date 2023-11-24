@@ -28,7 +28,7 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         address unprivilegedAddress_,
         address asset,
         uint96 assetId,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
@@ -45,7 +45,7 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
     function testFuzz_Revert_setRiskParametersOfPrimaryAsset_CollFactorExceedsLiqFactor(
         address asset,
         uint96 assetId,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
@@ -64,7 +64,7 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
     function testFuzz_Success_setRiskParametersOfPrimaryAsset(
         address asset,
         uint96 assetId,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
@@ -79,7 +79,7 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         );
 
         bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
-        (, uint128 actualMaxExposure, uint16 actualCollateralFactor, uint16 actualLiquidationFactor) =
+        (, uint112 actualMaxExposure, uint16 actualCollateralFactor, uint16 actualLiquidationFactor) =
             primaryAssetModule.riskParams(address(creditorUsd), assetKey);
         assertEq(actualMaxExposure, maxExposure);
         assertEq(actualCollateralFactor, collateralFactor);

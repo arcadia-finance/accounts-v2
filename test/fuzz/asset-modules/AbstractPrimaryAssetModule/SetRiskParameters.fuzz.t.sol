@@ -29,7 +29,7 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         address creditor,
         address asset,
         uint96 assetId,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
@@ -45,7 +45,7 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         address creditor,
         address asset,
         uint96 assetId,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
@@ -61,7 +61,7 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         address creditor,
         address asset,
         uint96 assetId,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
@@ -78,7 +78,7 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         address creditor,
         address asset,
         uint96 assetId,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
@@ -95,7 +95,7 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         address creditor,
         address asset,
         uint96 assetId,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
@@ -106,7 +106,7 @@ contract SetRiskParameters_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrima
         assetModule.setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
 
         bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
-        (, uint128 actualMaxExposure, uint16 actualCollateralFactor, uint16 actualLiquidationFactor) =
+        (, uint112 actualMaxExposure, uint16 actualCollateralFactor, uint16 actualLiquidationFactor) =
             assetModule.riskParams(creditor, assetKey);
         assertEq(actualMaxExposure, maxExposure);
         assertEq(actualCollateralFactor, collateralFactor);

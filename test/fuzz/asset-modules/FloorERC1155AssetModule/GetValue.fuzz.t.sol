@@ -27,7 +27,7 @@ contract GetValue_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModule_F
 
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC1155.sft2), 1, type(uint128).max, 0, 0
+            address(creditorUsd), address(mockERC1155.sft2), 1, type(uint112).max, 0, 0
         );
     }
 

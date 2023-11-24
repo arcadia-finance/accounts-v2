@@ -109,9 +109,9 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_deposit_ERC20WithId(uint256 id, uint128 amount) public {
+    function testFuzz_Revert_deposit_ERC20WithId(uint256 id, uint112 amount) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
-        amount = uint128(bound(amount, 1, type(uint128).max - 1));
+        amount = uint112(bound(amount, 1, type(uint112).max - 1));
         id = bound(id, 1, type(uint256).max);
 
         address[] memory assetAddresses = new address[](1);
@@ -129,8 +129,8 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_deposit_ERC721WithAmount(uint8 id, uint128 amount) public {
-        amount = uint128(bound(amount, 2, type(uint128).max));
+    function testFuzz_Revert_deposit_ERC721WithAmount(uint8 id, uint112 amount) public {
+        amount = uint112(bound(amount, 2, type(uint112).max));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC721.nft1);
@@ -239,19 +239,19 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Success_deposit_NonZeroAmounts(
-        uint128 erc20InitialAmount,
-        uint128 erc20DepositAmount,
+        uint112 erc20InitialAmount,
+        uint112 erc20DepositAmount,
         uint8 erc721Id1,
         uint8 erc721Id2,
-        uint128 erc1155InitialAmount,
-        uint128 erc1155DepositAmount
+        uint112 erc1155InitialAmount,
+        uint112 erc1155DepositAmount
     ) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
-        erc20InitialAmount = uint128(bound(erc20InitialAmount, 0, type(uint128).max - 1));
-        erc20DepositAmount = uint128(bound(erc20DepositAmount, 0, type(uint128).max - erc20InitialAmount - 1));
+        erc20InitialAmount = uint112(bound(erc20InitialAmount, 0, type(uint112).max - 1));
+        erc20DepositAmount = uint112(bound(erc20DepositAmount, 0, type(uint112).max - erc20InitialAmount - 1));
         vm.assume(erc721Id1 != erc721Id2);
-        erc1155InitialAmount = uint128(bound(erc1155InitialAmount, 0, type(uint128).max - 1));
-        erc1155DepositAmount = uint128(bound(erc1155DepositAmount, 0, type(uint128).max - erc1155InitialAmount - 1));
+        erc1155InitialAmount = uint112(bound(erc1155InitialAmount, 0, type(uint112).max - 1));
+        erc1155DepositAmount = uint112(bound(erc1155DepositAmount, 0, type(uint112).max - erc1155InitialAmount - 1));
         // And: total deposit amounts are bigger than zero.
         vm.assume(erc20InitialAmount + erc20DepositAmount > 0);
         vm.assume(erc1155InitialAmount + erc1155DepositAmount > 0);
