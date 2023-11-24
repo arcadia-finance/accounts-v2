@@ -31,6 +31,7 @@ import { RegistryErrors } from "./libraries/Errors.sol";
 contract Registry is IRegistry, RegistryGuardian {
     using BitPackingLib for bytes32;
     using FixedPointMathLib for uint256;
+    using AssetValuationLib for AssetValueAndRiskFactors[];
 
     /* //////////////////////////////////////////////////////////////
                                CONSTANTS
@@ -649,7 +650,7 @@ contract Registry is IRegistry, RegistryGuardian {
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
         // Calculate the "collateralValue" in USD with 18 decimals precision.
-        collateralValue = AssetValuationLib._calculateCollateralValue(valuesAndRiskFactors);
+        collateralValue = valuesAndRiskFactors._calculateCollateralValue();
 
         // Convert the USD-value to the value in BaseCurrency if the BaseCurrency is different from USD (0-address).
         if (baseCurrency != address(0)) {
@@ -682,7 +683,7 @@ contract Registry is IRegistry, RegistryGuardian {
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
         // Calculate the "liquidationValue" in USD with 18 decimals precision.
-        liquidationValue = AssetValuationLib._calculateLiquidationValue(valuesAndRiskFactors);
+        liquidationValue = valuesAndRiskFactors._calculateLiquidationValue();
 
         // Convert the USD-value to the value in BaseCurrency if the BaseCurrency is different from USD (0-address).
         if (baseCurrency != address(0)) {

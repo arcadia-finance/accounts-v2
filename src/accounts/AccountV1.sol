@@ -33,6 +33,7 @@ import { AccountErrors } from "../libraries/Errors.sol";
  */
 contract AccountV1 is AccountStorageV1, IAccount {
     using SafeTransferLib for ERC20;
+    using AssetValuationLib for AssetValueAndRiskFactors[];
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
@@ -467,7 +468,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         openDebt = ICreditor(creditor_).startLiquidation(initiator);
         uint256 usedMargin = openDebt + fixedLiquidationCost;
 
-        if (openDebt == 0 || AssetValuationLib._calculateLiquidationValue(assetAndRiskValues) >= usedMargin) {
+        if (openDebt == 0 || assetAndRiskValues._calculateLiquidationValue() >= usedMargin) {
             revert AccountErrors.AccountNotLiquidatable();
         }
     }
