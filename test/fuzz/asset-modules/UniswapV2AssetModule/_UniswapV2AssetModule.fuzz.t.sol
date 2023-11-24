@@ -63,10 +63,7 @@ abstract contract UniswapV2AssetModule_Fuzz_Test is Fuzz_Test {
         vm.stopPrank();
 
         vm.startPrank(users.creatorAddress);
-        uniswapV2AssetModule = new UniswapV2AssetModuleExtension(
-            address(registryExtension),
-            address(uniswapV2Factory)
-        );
+        uniswapV2AssetModule = new UniswapV2AssetModuleExtension(address(registryExtension), address(uniswapV2Factory));
         registryExtension.addAssetModule(address(uniswapV2AssetModule));
         vm.stopPrank();
     }

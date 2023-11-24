@@ -94,7 +94,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         // Hash tx.origin with the user provided salt to avoid front-running Account deployment with an identical salt.
         // We use tx.origin instead of msg.sender so that deployments through a third party contract are not vulnerable to front-running.
         account = address(
-            new Proxy{salt: keccak256(abi.encodePacked(salt, tx.origin))}(versionInformation[accountVersion].logic)
+            new Proxy{ salt: keccak256(abi.encodePacked(salt, tx.origin)) }(versionInformation[accountVersion].logic)
         );
 
         IAccount(account).initialize(msg.sender, versionInformation[accountVersion].registry, baseCurrency, creditor);
