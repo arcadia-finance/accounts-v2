@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { Fuzz_Test } from "../fuzz/Fuzz.t.sol";
 import { AccountV1 } from "../../src/accounts/AccountV1.sol";
@@ -89,9 +89,11 @@ abstract contract Gas_Test is Fuzz_Test {
         assets = new address[](3);
         assets[0] = address(mockERC20.stable1);
         assets[1] = address(mockERC20.stable2);
+        assets[2] = address(mockERC20.token1);
         amounts = new uint256[](3);
         amounts[0] = 1000 * 10 ** 18;
         amounts[1] = 1000 * 10 ** 18;
+        amounts[2] = 1000 * 10 ** 18;
         ids = new uint256[](3);
 
         vm.stopPrank();

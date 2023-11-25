@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { Gas_Test } from "../Gas.t.sol";
 import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
@@ -36,5 +36,39 @@ contract Deposits_TrippleERC20_Gas_Test is Gas_Test {
         vm.resumeGasMetering();
         vm.prank(users.accountOwner);
         account.deposit(assets, ids, amounts);
+    }
+
+    function testGas_Value_ERC20_Tripple() public {
+        vm.pauseGasMetering();
+        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account) =
+            prepare_deposit_tripple_erc20(newAccount);
+        vm.prank(users.accountOwner);
+        account.deposit(assets, ids, amounts);
+        vm.resumeGasMetering();
+
+        account.getAccountValue(address(mockERC20.stable1));
+    }
+
+    function testGas_GenerateAssetData_ERC20_Tripple() public {
+        vm.pauseGasMetering();
+        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account) =
+            prepare_deposit_tripple_erc20(newAccount);
+        vm.prank(users.accountOwner);
+        account.deposit(assets, ids, amounts);
+        vm.resumeGasMetering();
+
+        account.generateAssetData();
+    }
+
+    function testGas_Withdraw_ERC20_Tripple() public {
+        vm.pauseGasMetering();
+        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account) =
+            prepare_deposit_tripple_erc20(newAccount);
+        vm.prank(users.accountOwner);
+        account.deposit(assets, ids, amounts);
+        vm.resumeGasMetering();
+
+        vm.prank(users.accountOwner);
+        account.withdraw(assets, ids, amounts);
     }
 }

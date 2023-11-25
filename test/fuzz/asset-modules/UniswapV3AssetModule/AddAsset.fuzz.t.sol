@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { UniswapV3AssetModule_Fuzz_Test, AssetModule, UniswapV3AssetModule } from "./_UniswapV3AssetModule.fuzz.t.sol";
 

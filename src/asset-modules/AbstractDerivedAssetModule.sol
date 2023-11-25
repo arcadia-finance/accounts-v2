@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { AssetModule } from "./AbstractAssetModule.sol";
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -110,15 +110,11 @@ abstract contract DerivedAssetModule is AssetModule {
         address[] memory underlyingAssets = new address[](length);
         uint256[] memory underlyingAssetIds = new uint256[](length);
         uint256[] memory amounts = new uint256[](length);
-        for (uint256 i; i < length;) {
+        for (uint256 i; i < length; ++i) {
             (underlyingAssets[i], underlyingAssetIds[i]) = _getAssetFromKey(underlyingAssetKeys[i]);
             // We use the USD price per 10**18 tokens instead of the USD price per token to guarantee
             // sufficient precision.
             amounts[i] = 1e18;
-
-            unchecked {
-                ++i;
-            }
         }
 
         rateUnderlyingAssetsToUsd =
@@ -170,12 +166,8 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 length = underlyingAssetKeys.length;
         address[] memory assets = new address[](length);
         uint256[] memory assetIds = new uint256[](length);
-        for (uint256 i; i < length;) {
+        for (uint256 i; i < length; ++i) {
             (assets[i], assetIds[i]) = _getAssetFromKey(underlyingAssetKeys[i]);
-
-            unchecked {
-                ++i;
-            }
         }
 
         (uint16[] memory collateralFactors, uint16[] memory liquidationFactors) =
@@ -186,14 +178,10 @@ abstract contract DerivedAssetModule is AssetModule {
         liquidationFactor = liquidationFactors[0];
 
         // Keep the lowest risk factor of all underlying assets.
-        for (uint256 i = 1; i < length;) {
+        for (uint256 i = 1; i < length; ++i) {
             if (collateralFactor > collateralFactors[i]) collateralFactor = collateralFactors[i];
 
             if (liquidationFactor > liquidationFactors[i]) liquidationFactor = liquidationFactors[i];
-
-            unchecked {
-                ++i;
-            }
         }
 
         // Cache riskFactor
@@ -285,7 +273,7 @@ abstract contract DerivedAssetModule is AssetModule {
         //  - Add USD value of all underlying assets together.
         //  - Keep the lowest risk factor of all underlying assets.
         uint256 length = underlyingAssetsAmounts.length;
-        for (uint256 i = 1; i < length;) {
+        for (uint256 i = 1; i < length; ++i) {
             valueInUsd += underlyingAssetsAmounts[i].mulDivDown(rateUnderlyingAssetsToUsd[i].assetValue, 1e18);
 
             if (collateralFactor > rateUnderlyingAssetsToUsd[i].collateralFactor) {
@@ -294,10 +282,6 @@ abstract contract DerivedAssetModule is AssetModule {
 
             if (liquidationFactor > rateUnderlyingAssetsToUsd[i].liquidationFactor) {
                 liquidationFactor = rateUnderlyingAssetsToUsd[i].liquidationFactor;
-            }
-
-            unchecked {
-                ++i;
             }
         }
 
@@ -467,7 +451,7 @@ abstract contract DerivedAssetModule is AssetModule {
         address underlyingAsset;
         uint256 underlyingId;
 
-        for (uint256 i; i < underlyingAssetKeys.length;) {
+        for (uint256 i; i < underlyingAssetKeys.length; ++i) {
             // Calculate the change in exposure to the underlying assets since last interaction.
             deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
                 - int256(uint256(lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]]));
@@ -488,10 +472,6 @@ abstract contract DerivedAssetModule is AssetModule {
                 exposureAssetToUnderlyingAssets[i],
                 deltaExposureAssetToUnderlyingAsset
             );
-
-            unchecked {
-                ++i;
-            }
         }
 
         // Cache and update lastUsdExposureAsset.
@@ -545,7 +525,7 @@ abstract contract DerivedAssetModule is AssetModule {
         address underlyingAsset;
         uint256 underlyingId;
 
-        for (uint256 i; i < underlyingAssetKeys.length;) {
+        for (uint256 i; i < underlyingAssetKeys.length; ++i) {
             // Calculate the change in exposure to the underlying assets since last interaction.
             deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
                 - int256(uint256(lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]]));
@@ -566,10 +546,6 @@ abstract contract DerivedAssetModule is AssetModule {
                 exposureAssetToUnderlyingAssets[i],
                 deltaExposureAssetToUnderlyingAsset
             );
-
-            unchecked {
-                ++i;
-            }
         }
 
         // Cache and update lastUsdExposureAsset.
