@@ -571,7 +571,7 @@ contract ERC4626AssetModuleExtension is StandardERC4626AssetModule {
     }
 }
 
-contract MultiCallExtention is ActionMultiCall {
+contract MultiCallExtension is ActionMultiCall {
     function assets() public view returns (address[] memory) {
         return mintedAssets;
     }

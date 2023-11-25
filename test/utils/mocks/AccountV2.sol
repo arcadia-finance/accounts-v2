@@ -524,17 +524,21 @@ contract AccountV2 is AccountStorageV2 {
     }
 
     /**
-     * @notice Calls external action target to execute and interact with external logic.
-     * @param actionTarget The address of the action target.
-     * @param actionData A bytes object containing two actionAssetData structs, an address array and a bytes array.
-     * @return creditor_ The contract address of the creditor.
+     * @notice Calls external Action Multicall to execute and interact with external logic.
+     * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
+     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
+     * The second struct contains the info about the owner's assets that are not in this Account and need to be transferred to the actionTarget.
+     * The third struct contains the permit for the Permit2 transfer.
+     * @param signature The signature to verify.
+     * @param actionTarget The address of the Action Multicall.
+     * @return creditor_ The contract address of the Creditor.
      * @return accountVersion_ The Account version.
      * @dev Similar to flash loans, this function optimistically calls external logic and checks for the Account state at the very end.
-     * @dev Flash Action can interact with and chain together any DeFi protocol to swap, stake, claim...
+     * This allows users to interact with and chain together any DeFi protocol to swap, stake, claim...
      * The only requirements are that the recipient tokens of the interactions are allowlisted, deposited back into the Account and
      * that the Account is in a healthy state at the end of the transaction.
      */
-    function flashAction(address actionTarget, bytes calldata actionData, bytes calldata signature)
+    function flashAction(bytes calldata actionData, bytes calldata signature, address actionTarget)
         external
         nonReentrant
         onlyAssetManager
@@ -546,11 +550,8 @@ contract AccountV2 is AccountStorageV2 {
             ActionData memory withdrawData,
             ActionData memory transferFromOwnerData,
             IPermit2.PermitBatchTransferFrom memory permit,
-            ,
-            ,
-        ) = abi.decode(
-            actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, ActionData, address[], bytes[])
-        );
+            bytes memory actionTargetData
+        ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes));
 
         // Withdraw assets to actionTarget.
         _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);
@@ -566,7 +567,7 @@ contract AccountV2 is AccountStorageV2 {
         }
 
         // Execute Action(s).
-        ActionData memory depositData = IActionBase(actionTarget).executeAction(actionData);
+        ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
 
         // Deposit assets from actionTarget into Account.
         _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionTarget);
