@@ -364,7 +364,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * If both values are zero, we check if the Account is currently healthy.
      */
     function isAccountHealthy(uint256 debtIncrease, uint256 openDebt)
-        external
+        public
         view
         returns (bool success, address creditor_, uint256 accountVersion_)
     {
@@ -379,6 +379,17 @@ contract AccountV1 is AccountStorageV1, IAccount {
         }
 
         return (success, creditor, ACCOUNT_VERSION);
+    }
+
+    /**
+     * @notice Checks if the Account is healthy and still has free margin.
+     * @return success Boolean indicating if there is sufficient margin to back the debt of the Account.
+     * @return creditor_ The contract address of the Creditor.
+     * @return accountVersion_ The Account version.
+     * @dev An Account is healthy if the collateral value is bigger than or equal to the used margin.
+     */
+    function isAccountHealthy() external view returns (bool success, address creditor_, uint256 accountVersion_) {
+        (success, creditor_, accountVersion_) = isAccountHealthy(0, 0);
     }
 
     /**
@@ -526,13 +537,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Calls external Action Multicall to execute and interact with external logic.
-     * @param actionTarget The address of the Action Multicall.
-     * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
+     * @notice Executes a flash action.
+     * @param actionData A bytes object containing three actionAssetData structs and a bytes object.
      * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
      * The second struct contains the info about the owner's assets that are not in this Account and need to be transferred to the actionTarget.
-     * The third struct contains the info about the assets that needs to be deposited from the actionTarget back into the Account.
+     * The third struct contains the permit for the Permit2 transfer.
+     * The bytes object contains the encoded input for the actionTarget.
      * @param signature The signature to verify.
+     * @param actionTarget The contract address of the flashAction.
      * @return creditor_ The contract address of the Creditor.
      * @return accountVersion_ The Account version.
      * @dev Similar to flash loans, this function optimistically calls external logic and checks for the Account state at the very end.
@@ -540,7 +552,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The only requirements are that the recipient tokens of the interactions are allowlisted, deposited back into the Account and
      * that the Account is in a healthy state at the end of the transaction.
      */
-    function flashAction(address actionTarget, bytes calldata actionData, bytes calldata signature)
+    function flashAction(bytes calldata actionData, bytes calldata signature, address actionTarget)
         external
         nonReentrant
         onlyAssetManager
@@ -553,27 +565,25 @@ contract AccountV1 is AccountStorageV1, IAccount {
             ActionData memory withdrawData,
             ActionData memory transferFromOwnerData,
             IPermit2.PermitBatchTransferFrom memory permit,
-            ,
-            ,
-        ) = abi.decode(
-            actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, ActionData, address[], bytes[])
-        );
+            bytes memory actionTargetData
+        ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes));
 
-        // Withdraw assets to actionTarget.
+        // Withdraw assets to the actionTarget.
         _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);
 
-        // Transfer assets from owner (that are not assets in this account) to actionTarget.
+        // Transfer assets from owner (that are not assets in this account) to the actionTarget.
         if (transferFromOwnerData.assets.length > 0) {
             _transferFromOwner(transferFromOwnerData, actionTarget);
         }
 
-        // If the function input includes a signature and non-empty token permissions, initiate a transfer via Permit2.
+        // If the function input includes a signature and non-empty token permissions,
+        // initiate a transfer to the actionTarget via Permit2.
         if (signature.length > 0 && permit.permitted.length > 0) {
             _transferFromOwnerWithPermit(permit, signature, actionTarget);
         }
 
-        // Execute Action(s).
-        ActionData memory depositData = IActionBase(actionTarget).executeAction(actionData);
+        // Execute the flash Action(s).
+        ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
 
         // Deposit assets from actionTarget into Account.
         _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionTarget);

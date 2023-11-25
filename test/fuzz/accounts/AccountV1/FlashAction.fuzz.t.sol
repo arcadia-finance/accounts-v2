@@ -61,7 +61,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         // Should revert if the reentrancy guard is locked.
         vm.startPrank(sender);
         vm.expectRevert(AccountErrors.NoReentry.selector);
-        accountExtension.flashAction(actionTarget, actionData, signature);
+        accountExtension.flashAction(signature, actionData, actionTarget);
         vm.stopPrank();
     }
 
@@ -76,7 +76,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         // Should revert if the Account is in an auction.
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.AccountInAuction.selector);
-        accountExtension.flashAction(actionTarget, actionData, signature);
+        accountExtension.flashAction(signature, actionData, actionTarget);
         vm.stopPrank();
     }
 
@@ -93,7 +93,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
 
         vm.startPrank(sender);
         vm.expectRevert("A: Only Asset Manager");
-        accountExtension.flashAction(address(action), new bytes(0), new bytes(0));
+        accountExtension.flashAction(new bytes(0), new bytes(0), address(action));
         vm.stopPrank();
     }
 
@@ -116,7 +116,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
 
         vm.startPrank(assetManager);
         vm.expectRevert("A: Only Asset Manager");
-        proxy.flashAction(address(action), new bytes(0), new bytes(0));
+        proxy.flashAction(new bytes(0), new bytes(0), address(action));
         vm.stopPrank();
     }
 
@@ -125,7 +125,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
 
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.ActionNotAllowed.selector);
-        accountExtension.flashAction(action_, new bytes(0), new bytes(0));
+        accountExtension.flashAction(new bytes(0), new bytes(0), action_);
         vm.stopPrank();
     }
 
@@ -153,30 +153,36 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
             assetTypes: assetTypes
         });
 
+        // Avoid stack too deep
+        uint8 lengthStack = arrLength;
+        bytes calldata signatureStack = signature;
+
         IPermit2.TokenPermissions[] memory tokenPermissions;
 
-        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, assetDataIn, to, data);
+        bytes memory actionTargetData = abi.encode(assetDataIn, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, actionTargetData);
 
         //Already sent asset to action contract
         uint256 id = 10;
-        for (uint256 i; i < arrLength; ++i) {
+        for (uint256 i; i < lengthStack; ++i) {
             vm.prank(users.accountOwner);
             mockERC721.nft1.transferFrom(users.accountOwner, address(action), id);
             ++id;
         }
-
-        // Bring signature back to stack to avoid stack too deep below.
-        bytes calldata signatureStack = signature;
 
         vm.prank(address(action));
         mockERC721.nft1.setApprovalForAll(address(accountExtension), true);
 
         vm.prank(users.accountOwner);
         vm.expectRevert(AccountErrors.TooManyAssets.selector);
-        accountExtension.flashAction(address(action), callData, signatureStack);
+        accountExtension.flashAction(callData, signatureStack, address(action));
     }
 
-    function testFuzz_Revert_flashAction_InsufficientReturned(uint128 debtAmount, uint32 fixedLiquidationCost) public {
+    function testFuzz_Revert_flashAction_InsufficientReturned(
+        uint128 debtAmount,
+        uint32 fixedLiquidationCost,
+        bytes calldata signature
+    ) public {
         vm.assume(debtAmount > 0);
 
         // Init account
@@ -256,7 +262,11 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         ActionData memory transferFromOwner;
         IPermit2.TokenPermissions[] memory tokenPermissions;
 
-        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, assetDataIn, to, data);
+        // Avoid stack too deep
+        bytes memory signatureStack = signature;
+
+        bytes memory actionTargetData = abi.encode(assetDataIn, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, actionTargetData);
 
         // Deposit token1 in account first
         depositERC20InAccount(
@@ -265,7 +275,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
 
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.AccountUnhealthy.selector);
-        accountNotInitialised.flashAction(address(action), callData, new bytes(0));
+        accountNotInitialised.flashAction(callData, signatureStack, address(action));
         vm.stopPrank();
     }
 
@@ -475,7 +485,8 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
 
         IPermit2.TokenPermissions[] memory tokenPermissions;
 
-        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, assetDataIn, to, data);
+        bytes memory actionTargetData = abi.encode(assetDataIn, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, actionTargetData);
 
         // Deposit token1 in account first
         depositERC20InAccount(
@@ -496,7 +507,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         assert(mockERC721.nft1.ownerOf(1) == users.accountOwner);
 
         // Call flashAction() on Account
-        accountNotInitialised.flashAction(address(action), callData, signatureStack);
+        accountNotInitialised.flashAction(callData, signatureStack, address(action));
 
         // Assert that the Account now has a balance of TOKEN2 and STABLE1
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) > 0);
@@ -601,20 +612,25 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         ActionData memory transferFromOwner;
         IPermit2.TokenPermissions[] memory tokenPermissions;
 
-        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, assetDataIn, to, data);
+        // Avoid stack too deep
+        bytes memory signatureStack = signature;
+        address assetManagerStack = assetManager;
+
+        bytes memory actionTargetData = abi.encode(assetDataIn, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, actionTargetData);
 
         // Deposit token1 in account first
         depositERC20InAccount(
             mockERC20.token1, token1AmountForAction, users.accountOwner, address(accountNotInitialised)
         );
 
-        vm.startPrank(assetManager);
+        vm.startPrank(assetManagerStack);
 
         // Assert the account has no TOKEN2 balance initially
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) == 0);
 
         // Call flashAction() on Account
-        accountNotInitialised.flashAction(address(action), callData, signature);
+        accountNotInitialised.flashAction(callData, signatureStack, address(action));
 
         // Assert that the Account now has a balance of TOKEN2
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) > 0);
@@ -693,7 +709,8 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         address[] memory to;
         bytes[] memory data;
 
-        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, permit, assetDataIn, to, data);
+        bytes memory actionTargetData = abi.encode(assetDataIn, to, data);
+        bytes memory callData = abi.encode(assetDataOut, transferFromOwner, permit, actionTargetData);
 
         // Check state pre function call
         assertEq(mockERC20.token1.balanceOf(fromStack), token1AmountStack);
@@ -703,7 +720,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
 
         // Call flashAction() on Account
         vm.prank(fromStack);
-        accountNotInitialised.flashAction(address(action), callData, signature);
+        accountNotInitialised.flashAction(callData, signature, address(action));
 
         // Check state after function call
         assertEq(mockERC20.token1.balanceOf(fromStack), 0);
