@@ -9,9 +9,9 @@ import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
- * @notice Fuzz tests for the function "updateOpenPosition" of contract "AccountV1".
+ * @notice Fuzz tests for the function "increaseOpenPosition" of contract "AccountV1".
  */
-contract UpdateOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
+contract IncreaseOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
@@ -36,10 +36,10 @@ contract UpdateOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.prank(nonCreditor);
         vm.expectRevert(AccountErrors.OnlyCreditor.selector);
-        accountExtension.updateOpenPosition(debt);
+        accountExtension.increaseOpenPosition(debt);
     }
 
-    function testFuzz_Revert_updateOpenPosition_InsufficientMargin(
+    function testFuzz_Revert_increaseOpenPosition_InsufficientMargin(
         uint256 debt,
         uint112 collateralValue,
         uint256 fixedLiquidationCost
@@ -68,10 +68,10 @@ contract UpdateOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Then: Transaction should revert with AccountErrors.AccountUnhealthy.selector.
         vm.prank(address(creditorStable1));
         vm.expectRevert(AccountErrors.AccountUnhealthy.selector);
-        accountExtension.updateOpenPosition(debt);
+        accountExtension.increaseOpenPosition(debt);
     }
 
-    function testFuzz_Success_updateOpenPosition(uint256 debt, uint112 collateralValue, uint256 fixedLiquidationCost)
+    function testFuzz_Success_increaseOpenPosition(uint256 debt, uint112 collateralValue, uint256 fixedLiquidationCost)
         public
     {
         // "exposure" is strictly smaller than "maxExposure".
@@ -89,7 +89,7 @@ contract UpdateOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // When: The Creditor tries to take more margin against the Account
         vm.prank(address(creditorStable1));
-        uint256 version = accountExtension.updateOpenPosition(debt);
+        uint256 version = accountExtension.increaseOpenPosition(debt);
 
         // Then: The action is successful
         assertEq(version, 1);

@@ -496,13 +496,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Checks if the Account is still healthy for an updated open position.
+     * @notice Checks that the increase of the open position is allowed.
      * @param openPosition The new open position.
      * @return accountVersion The current Account version.
-     * @dev The Account must check that a Margin Account is opened for the Creditor
-     * that is changing the open position for the Account.
+     * @dev The Account performs the following checks when an open position (liabilities) are increased:
+     *  - The caller is indeed a Creditor for which a margin account is opened.
+     *  - The Account is still healthy after given the new open position.
      */
-    function updateOpenPosition(uint256 openPosition) external view onlyCreditor returns (uint256 accountVersion) {
+    function increaseOpenPosition(uint256 openPosition) external view onlyCreditor returns (uint256 accountVersion) {
         // If the open position is 0, the Account is always healthy.
         // An Account is unhealthy if the collateral value is smaller than the used margin.
         // The used margin equals the sum of the given amount of openPosition and the gas cost to liquidate.
@@ -523,6 +524,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The first bytes object contains the signature for the Permit2 transfer.
      * The second bytes object contains the encoded input for the actionTarget.
      * @return accountVersion The current Account version.
+     * @dev Next to the flasaction, the following checks are performed done:
+     *  - The caller is indeed a Creditor for which a margin account is opened.
+     *  - The Account is still healthy after when the flash action.
      */
     function flashActionByCreditor(address actionTarget, bytes calldata actionData)
         external
@@ -546,7 +550,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * as long as the Account position remains healthy.
      * @dev No need to set the Owner as Asset Manager as they will automatically have all permissions of an Asset Manager.
      * @dev Potential use-cases of the Asset Manager might be to:
-     * - Automate actions by keeper networks,
+     * - Automate actions by keeper networks.
+     * - Do flash actions (optimistic actions).
      * - Chain multiple interactions together (eg. deposit and trade in one transaction).
      */
     function setAssetManager(address assetManager, bool value) external onlyOwner {
