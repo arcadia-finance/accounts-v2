@@ -20,6 +20,7 @@ library AccountErrors {
     error NoReentry();
     error NonZeroOpenPosition();
     error OnlyFactory();
+    error OnlyCreditor();
     error OnlyLiquidator();
     error OnlyOwner();
     error TooManyAssets();

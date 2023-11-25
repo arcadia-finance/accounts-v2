@@ -7,9 +7,9 @@ pragma solidity 0.8.19;
 import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "isAccountHealthy()" of contract "AccountV1".
+ * @notice Fuzz tests for the function "isAccountUnhealthy" of contract "AccountV1".
  */
-contract IsAccountHealthyWithoutArgs_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
+contract IsAccountUnhealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
@@ -29,18 +29,20 @@ contract IsAccountHealthyWithoutArgs_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test 
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Success_isAccountHealthy_InsufficientMargin(
+    function testFuzz_Success_isAccountUnhealthy_InsufficientMargin(
         uint256 debtInitial,
         uint112 collateralValue,
         uint256 fixedLiquidationCost
     ) public {
+        // Account has open position.
+        debtInitial = bound(debtInitial, 1, type(uint256).max);
+
         // No overflow of Used Margin.
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint256).max - debtInitial);
         fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
         uint256 usedMargin = debtInitial + fixedLiquidationCost;
 
         // Given: Insufficient margin
-        vm.assume(usedMargin > 0);
         collateralValue = uint112(bound(collateralValue, 0, usedMargin - 1));
         // "exposure" is strictly smaller than "maxExposure".
         collateralValue = uint112(bound(collateralValue, 0, type(uint112).max - 1));
@@ -55,15 +57,13 @@ contract IsAccountHealthyWithoutArgs_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test 
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
 
         // When: Calling isAccountHealthy()
-        (bool success, address creditor, uint256 version) = accountExtension.isAccountHealthy();
+        bool isUnhealthy = accountExtension.isAccountUnhealthy();
 
         // Then: The Account should not be healthy.
-        assertTrue(!success);
-        assertEq(creditor, address(creditorStable1));
-        assertEq(version, 1);
+        assertTrue(isUnhealthy);
     }
 
-    function testFuzz_Success_isAccountHealthy_SufficientMargin(
+    function testFuzz_Success_isAccountUnhealthy_SufficientMargin(
         uint256 debtInitial,
         uint112 collateralValue,
         uint256 fixedLiquidationCost
@@ -86,11 +86,9 @@ contract IsAccountHealthyWithoutArgs_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test 
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
 
         // When: Calling isAccountHealthy()
-        (bool success, address creditor, uint256 version) = accountExtension.isAccountHealthy();
+        bool isUnhealthy = accountExtension.isAccountUnhealthy();
 
         // Then: Account should be healthy.
-        assertTrue(success);
-        assertEq(creditor, address(creditorStable1));
-        assertEq(version, 1);
+        assertFalse(isUnhealthy);
     }
 }
