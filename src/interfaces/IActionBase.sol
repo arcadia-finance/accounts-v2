@@ -18,7 +18,7 @@ struct ActionData {
 
 interface IActionBase {
     /**
-     * @notice Calls a an external target contract arbitrary calldata.
+     * @notice Calls an external target contract with arbitrary calldata.
      * @param actionTargetData A bytes object containing the encoded input for the actionTarget.
      * @return resultData An actionAssetData struct with the final balances of this actionTarget contract.
      */

@@ -684,8 +684,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * to the same asset that will get withdrawn. If multiple asset IDs of the same contract address
      * are to be withdrawn, the assetAddress must be repeated in assetAddresses.
      * Example inputs:
-     * [wETH, DAI, BAYC, Interleave], [0, 0, 15, 2], [10**18, 10**18, 1, 100], [0, 0, 1, 2]
-     * [Interleave, Interleave, BAYC, BAYC, wETH], [3, 5, 16, 17, 0], [123, 456, 1, 1, 10**18], [2, 2, 1, 1, 0]
+     * [wETH, DAI, BAYC, SandboxASSET], [0, 0, 15, 2], [10**18, 10**18, 1, 100], [0, 0, 1, 2]
+     * [SandboxASSET, SandboxASSET, BAYC, BAYC, wETH], [3, 5, 16, 17, 0], [123, 456, 1, 1, 10**18], [2, 2, 1, 1, 0]
      * @dev Will fail if the Account is in an unhealthy state after withdrawal (collateral value is smaller than the used margin).
      * If no debt is taken yet on this Account, users are free to withdraw any asset at any time.
      */
