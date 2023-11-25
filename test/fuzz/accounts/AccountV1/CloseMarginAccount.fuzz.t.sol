@@ -34,6 +34,16 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_closeMarginAccount_Reentered() public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.NoReentry.selector);
+        accountExtension.closeMarginAccount();
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_closeMarginAccount_NotDuringAuction() public {
         // Set "inAuction" to true.
         accountExtension.setInAuction();

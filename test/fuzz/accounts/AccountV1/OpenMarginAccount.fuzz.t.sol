@@ -31,7 +31,17 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         proxyAccount.openMarginAccount(address(creditorStable1));
     }
 
-    function testFuzz_Revert_closeMarginAccount_NotDuringAuction() public {
+    function testFuzz_Revert_openeMarginAccount_Reentered() public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.NoReentry.selector);
+        accountExtension.openMarginAccount(address(creditorStable1));
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_openeMarginAccount_NotDuringAuction() public {
         // Set "inAuction" to true.
         accountExtension.setInAuction();
 

@@ -272,7 +272,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Only open margin accounts for protocols you trust!
      * The Creditor has significant authorization: use margin, trigger liquidation, and manage assets.
      */
-    function openMarginAccount(address newCreditor) external onlyOwner notDuringAuction {
+    function openMarginAccount(address newCreditor) external onlyOwner nonReentrant notDuringAuction {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
 
@@ -303,6 +303,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param creditor_ The contract address of the Creditor.
      */
     function _openMarginAccount(address creditor_) internal {
+        creditor = creditor_;
         (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_) =
             ICreditor(creditor_).openMarginAccount(ACCOUNT_VERSION);
         if (!success) revert AccountErrors.InvalidAccountVersion();
@@ -310,14 +311,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
         fixedLiquidationCost = uint96(fixedLiquidationCost_);
         if (baseCurrency != baseCurrency_) _setBaseCurrency(baseCurrency_);
 
-        emit MarginAccountChanged(creditor = creditor_, liquidator = liquidator_);
+        emit MarginAccountChanged(creditor_, liquidator = liquidator_);
     }
 
     /**
      * @notice Closes the margin account of the Creditor.
      * @dev Currently only one Creditor can be set.
      */
-    function closeMarginAccount() external onlyOwner notDuringAuction {
+    function closeMarginAccount() external onlyOwner nonReentrant notDuringAuction {
         // Cache creditor.
         address creditor_ = creditor;
         if (creditor_ == address(0)) revert AccountErrors.CreditorNotSet();
