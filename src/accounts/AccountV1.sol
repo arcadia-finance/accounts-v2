@@ -537,13 +537,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Calls external Action Multicall to execute and interact with external logic.
-     * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
+     * @notice Executes a flash action.
+     * @param actionData A bytes object containing three actionAssetData structs and a bytes object.
      * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
      * The second struct contains the info about the owner's assets that are not in this Account and need to be transferred to the actionTarget.
      * The third struct contains the permit for the Permit2 transfer.
+     * The bytes object contains the encoded input for the actionTarget.
      * @param signature The signature to verify.
-     * @param actionTarget The address of the Action Multicall.
+     * @param actionTarget The contract address of the flashAction.
      * @return creditor_ The contract address of the Creditor.
      * @return accountVersion_ The Account version.
      * @dev Similar to flash loans, this function optimistically calls external logic and checks for the Account state at the very end.
@@ -567,20 +568,21 @@ contract AccountV1 is AccountStorageV1, IAccount {
             bytes memory actionTargetData
         ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes));
 
-        // Withdraw assets to actionTarget.
+        // Withdraw assets to the actionTarget.
         _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);
 
-        // Transfer assets from owner (that are not assets in this account) to actionTarget.
+        // Transfer assets from owner (that are not assets in this account) to the actionTarget.
         if (transferFromOwnerData.assets.length > 0) {
             _transferFromOwner(transferFromOwnerData, actionTarget);
         }
 
-        // If the function input includes a signature and non-empty token permissions, initiate a transfer via Permit2.
+        // If the function input includes a signature and non-empty token permissions,
+        // initiate a transfer to the actionTarget via Permit2.
         if (signature.length > 0 && permit.permitted.length > 0) {
             _transferFromOwnerWithPermit(permit, signature, actionTarget);
         }
 
-        // Execute Action(s).
+        // Execute the flash Action(s).
         ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
 
         // Deposit assets from actionTarget into Account.
