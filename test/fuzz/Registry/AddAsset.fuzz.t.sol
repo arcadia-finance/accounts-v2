@@ -26,6 +26,9 @@ contract AddAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.assume(unprivilegedAddress_ != address(erc20AssetModule));
         vm.assume(unprivilegedAddress_ != address(floorERC721AssetModule));
         vm.assume(unprivilegedAddress_ != address(floorERC1155AssetModule));
+        vm.assume(unprivilegedAddress_ != address(primaryAssetModule));
+        vm.assume(unprivilegedAddress_ != address(derivedAssetModule));
+
         vm.startPrank(unprivilegedAddress_);
         // When: unprivilegedAddress_ calls addAsset
         // Then: addAsset should revert with RegistryErrors.Only_AssetModule.selector
