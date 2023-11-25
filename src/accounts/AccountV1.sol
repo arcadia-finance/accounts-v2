@@ -344,7 +344,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev The liquidation value of the Account is equal to the spot value of the underlying assets,
      * discounted by a haircut (the liquidation factor).
      * The liquidation value takes into account that not the full value of the assets can go towards
-     * repaying the debt: a fraction of the value is lost due to:
+     * repaying the liabilities: a fraction of the value is lost due to:
      * slippage while liquidating the assets,
      * fees for the auction initiator,
      * fees for the auction terminator and
@@ -393,7 +393,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Checks if the Account is healthy and still has free margin.
-     * @return success Boolean indicating if there is sufficient margin to back the debt of the Account.
+     * @return success Boolean indicating if there is sufficient margin to back the liabilities of the Account.
      */
     function isAccountUnhealthy() public view returns (bool success) {
         // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always healthy.
@@ -424,7 +424,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @return assetIds Array of the IDs of the assets in Account.
      * @return assetAmounts Array with the amounts of the assets in Account.
      * @return creditor_ The Creditor, address 0 if no active Creditor.
-     * @return openDebt The open debt issued against the Account.
+     * @return openPosition The open position (liabilities) issued against the Account.
      * @return assetAndRiskValues Array of asset values and corresponding collateral and liquidation factors.
      */
     function startLiquidation(address initiator)
@@ -436,7 +436,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             uint256[] memory assetIds,
             uint256[] memory assetAmounts,
             address creditor_,
-            uint256 openDebt,
+            uint256 openPosition,
             AssetValueAndRiskFactors[] memory assetAndRiskValues
         )
     {
@@ -448,10 +448,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
             IRegistry(registry).getValuesInBaseCurrency(baseCurrency, creditor_, assetAddresses, assetIds, assetAmounts);
 
         // Since the function is only callable by the Liquidator, we know that a liquidator and a Creditor are set.
-        openDebt = ICreditor(creditor_).startLiquidation(initiator);
-        uint256 usedMargin = openDebt + fixedLiquidationCost;
+        openPosition = ICreditor(creditor_).startLiquidation(initiator);
+        uint256 usedMargin = openPosition + fixedLiquidationCost;
 
-        if (openDebt == 0 || assetAndRiskValues._calculateLiquidationValue() >= usedMargin) {
+        if (openPosition == 0 || assetAndRiskValues._calculateLiquidationValue() >= usedMargin) {
             revert AccountErrors.AccountNotLiquidatable();
         }
     }
@@ -505,7 +505,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function updateOpenPosition(uint256 openPosition) external view onlyCreditor returns (uint256 accountVersion) {
         // If the open position is 0, the Account is always healthy.
         // An Account is unhealthy if the collateral value is smaller than the used margin.
-        // The used margin equals the sum of the given amount of openDebt and the gas cost to liquidate.
+        // The used margin equals the sum of the given amount of openPosition and the gas cost to liquidate.
         if (openPosition > 0 && getCollateralValue() < openPosition + fixedLiquidationCost) {
             revert AccountErrors.AccountUnhealthy();
         }
@@ -703,7 +703,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * [wETH, DAI, BAYC, SandboxASSET], [0, 0, 15, 2], [10**18, 10**18, 1, 100], [0, 0, 1, 2]
      * [SandboxASSET, SandboxASSET, BAYC, BAYC, wETH], [3, 5, 16, 17, 0], [123, 456, 1, 1, 10**18], [2, 2, 1, 1, 0]
      * @dev Will fail if the Account is in an unhealthy state after withdrawal (collateral value is smaller than the used margin).
-     * If no debt is taken yet on this Account, users are free to withdraw any asset at any time.
+     * If the Account has no open position (liabilities), users are free to withdraw any asset at any time.
      */
     function withdraw(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
