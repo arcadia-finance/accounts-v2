@@ -538,13 +538,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Executes a flash action.
-     * @param actionData A bytes object containing three actionAssetData structs and a bytes object.
-     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
-     * The second struct contains the info about the owner's assets that are not in this Account and need to be transferred to the actionTarget.
-     * The third struct contains the permit for the Permit2 transfer.
-     * The bytes object contains the encoded input for the actionTarget.
-     * @param signature The signature to verify.
      * @param actionTarget The contract address of the flashAction.
+     * @param actionData A bytes object containing three structs and two bytes objects.
+     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
+     * The second struct contains the info about the owner's assets that need to be transferred from the owner to the actionTarget.
+     * The third struct contains the permit for the Permit2 transfer.
+     * The first bytes object contains the signature for the Permit2 transfer.
+     * The second bytes object contains the encoded input for the actionTarget.
      * @return creditor_ The contract address of the Creditor.
      * @return accountVersion_ The Account version.
      * @dev Similar to flash loans, this function optimistically calls external logic and checks for the Account state at the very end.
@@ -552,7 +552,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The only requirements are that the recipient tokens of the interactions are allowlisted, deposited back into the Account and
      * that the Account is in a healthy state at the end of the transaction.
      */
-    function flashAction(bytes calldata actionData, bytes calldata signature, address actionTarget)
+    function flashAction(address actionTarget, bytes calldata actionData)
         external
         nonReentrant
         onlyAssetManager
@@ -563,8 +563,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
             ActionData memory withdrawData,
             ActionData memory transferFromOwnerData,
             IPermit2.PermitBatchTransferFrom memory permit,
+            bytes memory signature,
             bytes memory actionTargetData
-        ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes));
+        ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes, bytes));
 
         // Withdraw assets to the actionTarget.
         _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);
@@ -575,7 +576,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         }
 
         // If the function input includes a signature and non-empty token permissions,
-        // initiate a transfer to the actionTarget via Permit2.
+        // initiate a transfer from the owner to the actionTarget via Permit2.
         if (signature.length > 0 && permit.permitted.length > 0) {
             _transferFromOwnerWithPermit(permit, signature, actionTarget);
         }
@@ -612,8 +613,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * to the same asset that will get deposited. If multiple asset IDs of the same contract address
      * are deposited, the assetAddress must be repeated in assetAddresses.
      * Example inputs:
-     * [wETH, DAI, BAYC, Azuki], [0, 0, 15, 2], [10**18, 10**18, 1, 100], [0, 0, 1, 2]
-     * [Azuki, Azuki, BAYC, BAYC, wETH], [3, 5, 16, 17, 0], [123, 456, 1, 1, 10**18], [2, 2, 1, 1, 0]
+     * [wETH, DAI, BAYC, SandboxASSET], [0, 0, 15, 2], [10**18, 10**18, 1, 100], [0, 0, 1, 2]
+     * [SandboxASSET, SandboxASSET, BAYC, BAYC, wETH], [3, 5, 16, 17, 0], [123, 456, 1, 1, 10**18], [2, 2, 1, 1, 0]
      */
     function deposit(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
@@ -981,7 +982,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      */
     function _transferFromOwnerWithPermit(
         IPermit2.PermitBatchTransferFrom memory permit,
-        bytes calldata signature,
+        bytes memory signature,
         address to_
     ) internal {
         uint256 tokenPermissionsLength = permit.permitted.length;
