@@ -39,10 +39,6 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         action = new ActionMultiCall();
         multiActionMock = new MultiActionMock();
 
-        // Set allowed action contract
-        vm.prank(users.creatorAddress);
-        registryExtension.setAllowedAction(address(action), true);
-
         accountNotInitialised = new AccountExtension();
     }
 
@@ -117,15 +113,6 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         vm.startPrank(assetManager);
         vm.expectRevert("A: Only Asset Manager");
         proxy.flashAction(new bytes(0), new bytes(0), address(action));
-        vm.stopPrank();
-    }
-
-    function testFuzz_Revert_flashAction_actionNotAllowed(address action_) public {
-        vm.assume(action_ != address(action));
-
-        vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.ActionNotAllowed.selector);
-        accountExtension.flashAction(new bytes(0), new bytes(0), action_);
         vm.stopPrank();
     }
 

@@ -53,8 +53,6 @@ contract Registry is IRegistry, RegistryGuardian {
     mapping(address => bool) public isAssetModule;
     // Map oracleModule => flag.
     mapping(address => bool) public isOracleModule;
-    // Map action => flag.
-    mapping(address => bool) public isActionAllowed;
     // Map asset => Asset Module.
     mapping(address => address) public assetToAssetModule;
     // Map oracle identifier => oracleModule.
@@ -117,20 +115,6 @@ contract Registry is IRegistry, RegistryGuardian {
      */
     constructor(address factory) {
         FACTORY = factory;
-    }
-
-    /* ///////////////////////////////////////////////////////////////
-                        EXTERNAL CONTRACTS
-    /////////////////////////////////////////////////////////////// */
-
-    /**
-     * @notice Sets an allowance of an Action Multicall
-     * @param action The contract address of the Action Multicall.
-     * @param allowed Bool to indicate its status.
-     * @dev Can only be called by owner.
-     */
-    function setAllowedAction(address action, bool allowed) external onlyOwner {
-        emit AllowedActionSet(action, isActionAllowed[action] = allowed);
     }
 
     /* ///////////////////////////////////////////////////////////////

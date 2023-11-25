@@ -7,7 +7,6 @@ pragma solidity 0.8.19;
 library AccountErrors {
     error AccountNotLiquidatable();
     error AccountUnhealthy();
-    error ActionNotAllowed();
     error AlreadyInitialized();
     error BaseCurrencyNotFound();
     error CreditorAlreadySet();

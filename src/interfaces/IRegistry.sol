@@ -21,13 +21,6 @@ interface IRegistry {
     function inRegistry(address asset) external view returns (bool);
 
     /**
-     * @notice Checks if an action is allowed.
-     * @param action The contract address of the action.
-     * @return boolean.
-     */
-    function isActionAllowed(address action) external view returns (bool);
-
-    /**
      * @notice Batch deposit multiple assets.
      * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.

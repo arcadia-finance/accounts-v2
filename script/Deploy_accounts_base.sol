@@ -134,7 +134,6 @@ contract ArcadiaAccountDeployment is Test {
         factory.setNewAccountInfo(address(registry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);
 
-        registry.setAllowedAction(address(actionMultiCall), true);
         registry.changeGuardian(deployerAddress);
 
         wethLendingPool.setAccountVersion(1, true);

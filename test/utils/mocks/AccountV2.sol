@@ -544,8 +544,6 @@ contract AccountV2 is AccountStorageV2 {
         onlyAssetManager
         returns (address, uint256)
     {
-        if (!IRegistry(registry).isActionAllowed(actionTarget)) revert AccountErrors.ActionNotAllowed();
-
         (
             ActionData memory withdrawData,
             ActionData memory transferFromOwnerData,
