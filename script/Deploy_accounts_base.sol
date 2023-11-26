@@ -79,6 +79,8 @@ contract ArcadiaAccountDeployment is Test {
         factory = Factory(0x38dB790e1894A5863387B43290c8340121e7Cd48); //todo: change after factory deploy
         wethLendingPool = ILendingPool(0xA04B08324745AEc82De30c3581c407BE63E764c8); //todo: change after LP deploy
         usdcLendingPool = ILendingPool(0x4d39409993dBe365c9AcaAe7c7e259C06FBFFa4A); //todo: change after LP deploy
+        wethLendingPool.setRiskManager(deployerAddress);
+        usdcLendingPool.setRiskManager(deployerAddress);
 
         registry = new Registry(address(factory));
         standardERC20AssetModule = new StandardERC20AssetModule(address(registry));
@@ -239,6 +241,9 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.reth_collFact_2,
             DeployRiskConstantsBase.reth_liqFact_2
         );
+
+        registry.setMaxRecursionDepth(address(usdcLendingPool), 4);
+        registry.setMaxRecursionDepth(address(wethLendingPool), 4);
 
         vm.stopBroadcast();
     }

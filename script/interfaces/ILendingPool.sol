@@ -17,4 +17,6 @@ interface ILendingPool {
     }
 
     function setInterestConfig(InterestRateConfiguration calldata interestRateConfiguration) external;
+
+    function setRiskManager(address riskManager) external;
 }
