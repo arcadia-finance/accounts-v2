@@ -96,7 +96,11 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
-    function testFuzz_Revert_deposit_LengthOfListDoesNotMatch(uint8 addrLen, uint8 idLen, uint8 amountLen) public {
+    function testFuzz_Revert_deposit_WithoutCreditor_LengthOfListDoesNotMatch(
+        uint8 addrLen,
+        uint8 idLen,
+        uint8 amountLen
+    ) public {
         vm.assume((addrLen != idLen && addrLen != amountLen));
         vm.assume(
             addrLen <= accountExtension.ASSET_LIMIT() && idLen <= accountExtension.ASSET_LIMIT()
@@ -162,13 +166,11 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_deposit_UnknownAsset(address asset, uint256 id, uint256 amount) public {
-        vm.assume(asset != address(mockERC20.stable1));
-        vm.assume(asset != address(mockERC20.stable2));
-        vm.assume(asset != address(mockERC20.token1));
-        vm.assume(asset != address(mockERC20.token2));
-        vm.assume(asset != address(mockERC721.nft1));
-        vm.assume(asset != address(mockERC1155.sft1));
+    function testFuzz_Revert_deposit_WithoutCreditor_UnknownAsset(address asset, uint256 id, uint256 amount) public {
+        vm.prank(users.accountOwner);
+        accountExtension.closeMarginAccount();
+
+        vm.assume(!registryExtension.inRegistry(asset));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;
@@ -180,7 +182,25 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert();
+        vm.expectRevert(bytes(""));
+        accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_deposit_WithCreditor_UnknownAsset(address asset, uint256 id, uint256 amount) public {
+        vm.assume(!registryExtension.inRegistry(asset));
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = asset;
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = id;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amount;
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(bytes(""));
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -253,7 +273,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1), 0);
     }
 
-    function testFuzz_Success_deposit_NonZeroAmounts(
+    function testFuzz_Success_deposit_WithCreditor_NonZeroAmounts(
         uint112 erc20InitialAmount,
         uint112 erc20DepositAmount,
         uint8 erc721Id1,
@@ -261,6 +281,87 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint112 erc1155InitialAmount,
         uint112 erc1155DepositAmount
     ) public {
+        // Given: "exposure" is strictly smaller than "maxExposure".
+        erc20InitialAmount = uint112(bound(erc20InitialAmount, 0, type(uint112).max - 1));
+        erc20DepositAmount = uint112(bound(erc20DepositAmount, 0, type(uint112).max - erc20InitialAmount - 1));
+        vm.assume(erc721Id1 != erc721Id2);
+        erc1155InitialAmount = uint112(bound(erc1155InitialAmount, 0, type(uint112).max - 1));
+        erc1155DepositAmount = uint112(bound(erc1155DepositAmount, 0, type(uint112).max - erc1155InitialAmount - 1));
+        // And: total deposit amounts are bigger than zero.
+        vm.assume(erc20InitialAmount + erc20DepositAmount > 0);
+        vm.assume(erc1155InitialAmount + erc1155DepositAmount > 0);
+
+        // Given: An initial state of the account with assets.
+        address[] memory assetAddresses = new address[](3);
+        assetAddresses[0] = address(mockERC20.token1);
+        assetAddresses[1] = address(mockERC721.nft1);
+        assetAddresses[2] = address(mockERC1155.sft1);
+
+        uint256[] memory assetIds = new uint256[](3);
+        assetIds[0] = 0;
+        assetIds[1] = erc721Id1;
+        assetIds[2] = 1;
+
+        uint256[] memory assetAmounts = new uint256[](3);
+        assetAmounts[0] = erc20InitialAmount;
+        assetAmounts[1] = 1;
+        assetAmounts[2] = erc1155InitialAmount;
+
+        mintDepositAssets(erc20InitialAmount, erc721Id1, erc1155InitialAmount);
+        approveAllAssets();
+
+        vm.prank(users.accountOwner);
+        accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
+
+        // When: A user deposits additional assets.
+        assetIds[1] = erc721Id2;
+        assetAmounts[0] = erc20DepositAmount;
+        assetAmounts[2] = erc1155DepositAmount;
+        mintDepositAssets(erc20DepositAmount, erc721Id2, erc1155DepositAmount);
+
+        vm.prank(users.accountOwner);
+        accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
+
+        // Then: Asset arrays are properly updated.
+        (uint256 erc20Length, uint256 erc721Length,, uint256 erc1155Length) = accountExtension.getLengths();
+
+        assertEq(erc20Length, 1);
+        assertEq(
+            accountExtension.getERC20Balances(address(mockERC20.token1)),
+            mockERC20.token1.balanceOf(address(accountExtension))
+        );
+        assertEq(accountExtension.getERC20Balances(address(mockERC20.token1)), erc20InitialAmount + erc20DepositAmount);
+
+        assertEq(erc721Length, 2);
+        assertEq(accountExtension.getERC721Stored(0), address(mockERC721.nft1));
+        assertEq(accountExtension.getERC721Stored(1), address(mockERC721.nft1));
+        assertEq(accountExtension.getERC721TokenIds(0), erc721Id1);
+        assertEq(accountExtension.getERC721TokenIds(1), erc721Id2);
+
+        assertEq(erc1155Length, 1);
+        assertEq(accountExtension.getERC1155Stored(0), address(mockERC1155.sft1));
+        assertEq(accountExtension.getERC1155TokenIds(0), 1);
+        assertEq(
+            accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1),
+            mockERC1155.sft1.balanceOf(address(accountExtension), 1)
+        );
+        assertEq(
+            accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1),
+            erc1155InitialAmount + erc1155DepositAmount
+        );
+    }
+
+    function testFuzz_Success_deposit_WithoutCreditor_NonZeroAmounts(
+        uint112 erc20InitialAmount,
+        uint112 erc20DepositAmount,
+        uint8 erc721Id1,
+        uint8 erc721Id2,
+        uint112 erc1155InitialAmount,
+        uint112 erc1155DepositAmount
+    ) public {
+        vm.prank(users.accountOwner);
+        accountExtension.closeMarginAccount();
+
         // Given: "exposure" is strictly smaller than "maxExposure".
         erc20InitialAmount = uint112(bound(erc20InitialAmount, 0, type(uint112).max - 1));
         erc20DepositAmount = uint112(bound(erc20DepositAmount, 0, type(uint112).max - erc20InitialAmount - 1));

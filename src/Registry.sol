@@ -163,32 +163,6 @@ contract Registry is IRegistry, RegistryGuardian {
     }
 
     /**
-     * @notice Batch checks if multiple assets are allowed.
-     * @param assetAddresses Array of the contract addresses of the assets.
-     * @param assetIds Array of the ids of the assets.
-     * @return A boolean, indicating if all the assets are allowed.
-     */
-    function batchIsAllowed(address[] memory assetAddresses, uint256[] memory assetIds) external view returns (bool) {
-        uint256 length = assetAddresses.length;
-        if (length != assetIds.length) revert RegistryErrors.Length_Mismatch();
-
-        address assetAddress;
-        address assetModule;
-        for (uint256 i; i < length; ++i) {
-            assetAddress = assetAddresses[i];
-            // For unknown assets, assetModule will equal the zero-address.
-            assetModule = assetToAssetModule[assetAddress];
-
-            if (assetModule == address(0) || !IAssetModule(assetModule).isAllowed(assetAddress, assetIds[i])) {
-                return false;
-            }
-        }
-
-        // Only if all assets are allowed, the for-loop will end.
-        return true;
-    }
-
-    /**
      * @notice Adds a new asset to the Registry.
      * @param assetAddress The contract address of the asset.
      * @dev Assets that are already in the registry cannot be overwritten,
@@ -360,7 +334,9 @@ contract Registry is IRegistry, RegistryGuardian {
      * 1 = ERC721.
      * 2 = ERC1155.
      * ...
-     * @dev increaseExposure in the Asset Module checks and updates the exposure for each asset and, if applicable, its underlying asset(s).
+     * @dev If no Creditor is set, only check that the assets are allowed (= can be priced).
+     * @dev If a Creditor is set, increaseExposure in the Asset Module checks and updates the exposure for each asset
+     * and if applicable, its underlying asset(s).
      */
     function batchProcessDeposit(
         address creditor,
@@ -373,11 +349,24 @@ contract Registry is IRegistry, RegistryGuardian {
 
         address assetAddress;
         assetTypes = new uint256[](addrLength);
-        for (uint256 i; i < addrLength; ++i) {
-            assetAddress = assetAddresses[i];
-            assetTypes[i] = IAssetModule(assetToAssetModule[assetAddress]).processDirectDeposit(
-                creditor, assetAddress, assetIds[i], amounts[i]
-            );
+
+        if (creditor == address(0)) {
+            bool isAllowed_;
+            for (uint256 i; i < addrLength; ++i) {
+                assetAddress = assetAddresses[i];
+                // For unknown assets, assetModule will equal the zero-address and call reverts.
+                (isAllowed_, assetTypes[i]) =
+                    IAssetModule(assetToAssetModule[assetAddress]).processAsset(assetAddress, assetIds[i]);
+                if (!isAllowed_) revert RegistryErrors.AssetNotAllowed();
+            }
+        } else {
+            for (uint256 i; i < addrLength; ++i) {
+                assetAddress = assetAddresses[i];
+                // For unknown assets, assetModule will equal the zero-address and call reverts.
+                assetTypes[i] = IAssetModule(assetToAssetModule[assetAddress]).processDirectDeposit(
+                    creditor, assetAddress, assetIds[i], amounts[i]
+                );
+            }
         }
     }
 
@@ -392,7 +381,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * 1 = ERC721.
      * 2 = ERC1155.
      * ...
-     * @dev batchProcessWithdrawal in the Asset Module updates the exposure for each asset and underlying asset.
+     * @dev If a Creditor is set, batchProcessWithdrawal in the Asset Module updates the exposure for each asset and underlying asset.
      */
     function batchProcessWithdrawal(
         address creditor,
@@ -405,11 +394,22 @@ contract Registry is IRegistry, RegistryGuardian {
 
         address assetAddress;
         assetTypes = new uint256[](addrLength);
-        for (uint256 i; i < addrLength; ++i) {
-            assetAddress = assetAddresses[i];
-            assetTypes[i] = IAssetModule(assetToAssetModule[assetAddress]).processDirectWithdrawal(
-                creditor, assetAddress, assetIds[i], amounts[i]
-            );
+
+        if (creditor == address(0)) {
+            for (uint256 i; i < addrLength; ++i) {
+                assetAddress = assetAddresses[i];
+                // For unknown assets, assetModule will equal the zero-address and call reverts.
+                (, assetTypes[i]) =
+                    IAssetModule(assetToAssetModule[assetAddress]).processAsset(assetAddress, assetIds[i]);
+            }
+        } else {
+            for (uint256 i; i < addrLength; ++i) {
+                assetAddress = assetAddresses[i];
+                // For unknown assets, assetModule will equal the zero-address and call reverts.
+                assetTypes[i] = IAssetModule(assetToAssetModule[assetAddress]).processDirectWithdrawal(
+                    creditor, assetAddress, assetIds[i], amounts[i]
+                );
+            }
         }
     }
 

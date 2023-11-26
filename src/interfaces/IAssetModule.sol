@@ -15,6 +15,19 @@ interface IAssetModule {
     function isAllowed(address asset, uint256 assetId) external view returns (bool);
 
     /**
+     * @notice Returns if an asset is allowed and its asset type.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @return A boolean, indicating if the asset is allowed.
+     * @return assetType Identifier for the type of the asset:
+     * 0 = ERC20.
+     * 1 = ERC721.
+     * 2 = ERC1155
+     * ...
+     */
+    function processAsset(address asset, uint256 assetId) external view returns (bool, uint256);
+
+    /**
      * @notice Returns the usd value of an asset.
      * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
