@@ -59,6 +59,8 @@ contract Registry is IRegistry, RegistryGuardian {
     mapping(uint256 => address) internal oracleToOracleModule;
     // Map Creditor to minimum USD-value of assets that are taken into account.
     mapping(address => uint256) public minUsdValueCreditor;
+    // Map Creditor to maximum recursion depth of asset pricing.
+    mapping(address => uint256) public maxRecursionDepthCreditor;
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
@@ -241,6 +243,14 @@ contract Registry is IRegistry, RegistryGuardian {
         return true;
     }
 
+    /**
+     * @notice Sets the maximum recursion depth while pricing an asset for a given Creditor.
+     * @param creditor The contract address of the Creditor for which to set the maximum recursion depth.
+     */
+    function setMaxRecursionDepth(address creditor, uint256 maxRecursionDepth) external onlyRiskManager(creditor) {
+        maxRecursionDepthCreditor[creditor] = maxRecursionDepth;
+    }
+
     /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
@@ -361,12 +371,14 @@ contract Registry is IRegistry, RegistryGuardian {
             }
         } else {
             uint256 recursiveCalls;
+            uint256 maxRecursionDepth = maxRecursionDepthCreditor[creditor];
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
                 (recursiveCalls, assetTypes[i]) = IAssetModule(assetToAssetModule[assetAddress]).processDirectDeposit(
                     creditor, assetAddress, assetIds[i], amounts[i]
                 );
+                if (recursiveCalls > maxRecursionDepth) revert RegistryErrors.MaxRecursionDepthReached();
             }
         }
     }
