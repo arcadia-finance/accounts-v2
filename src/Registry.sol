@@ -244,7 +244,7 @@ contract Registry is IRegistry, RegistryGuardian {
     }
 
     /**
-     * @notice Sets the maximum recursion depth while pricing an Account for a given Creditor.
+     * @notice Sets the maximum recursion depth while pricing an asset for a given Creditor.
      * @param creditor The contract address of the Creditor for which to set the maximum recursion depth.
      */
     function setMaxRecursionDepth(address creditor, uint256 maxRecursionDepth) external onlyRiskManager(creditor) {

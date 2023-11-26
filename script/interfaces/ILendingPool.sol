@@ -7,16 +7,16 @@ pragma solidity 0.8.22;
 interface ILendingPool {
     function setBorrowCap(uint128 borrowCap) external;
 
-    function setAccountVersion(uint256 version, bool value) external;
+    /**
+     * @notice Enables or disables a certain Account version to be used as margin account.
+     * @param accountVersion the Account version to be enabled/disabled.
+     * @param valid The validity of the respective accountVersion.
+     */
+    function setAccountVersion(uint256 accountVersion, bool valid) external;
 
-    struct InterestRateConfiguration {
-        uint72 baseRatePerYear; //18 decimals precision.
-        uint72 lowSlopePerYear; //18 decimals precision.
-        uint72 highSlopePerYear; //18 decimals precision.
-        uint40 utilisationThreshold; //5 decimal precision.
-    }
-
-    function setInterestConfig(InterestRateConfiguration calldata interestRateConfiguration) external;
-
+    /**
+     * @notice Sets a new Risk Manager.
+     * @param riskManager The address of the new Risk Manager.
+     */
     function setRiskManager(address riskManager) external;
 }
