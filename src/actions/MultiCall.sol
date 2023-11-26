@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
@@ -50,16 +50,12 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
         uint256 callLength = to.length;
         if (callLength != data.length) revert LengthMismatch();
 
-        for (uint256 i; i < callLength;) {
+        for (uint256 i; i < callLength; ++i) {
             (bool success, bytes memory result) = to[i].call(data[i]);
             require(success, string(result));
-
-            unchecked {
-                ++i;
-            }
         }
 
-        for (uint256 i; i < depositData.assets.length;) {
+        for (uint256 i; i < depositData.assets.length; ++i) {
             if (depositData.assetTypes[i] == 0) {
                 depositData.assetAmounts[i] = IERC20(depositData.assets[i]).balanceOf(address(this));
             } else if (depositData.assetTypes[i] == 1) {
@@ -78,9 +74,6 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
             } else if (depositData.assetTypes[i] == 2) {
                 depositData.assetAmounts[i] =
                     IERC1155(depositData.assets[i]).balanceOf(address(this), depositData.assetIds[i]);
-            }
-            unchecked {
-                ++i;
             }
         }
 

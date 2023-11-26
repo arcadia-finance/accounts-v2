@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
@@ -75,6 +75,22 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Should revert if the reentrancy guard is locked.
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.NoReentry.selector);
+        accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_upgradeAccount_NotDuringAuction(
+        address newImplementation,
+        address newRegistry,
+        uint88 newVersion,
+        bytes calldata data
+    ) public {
+        // Set "inAuction" to true.
+        accountExtension.setInAuction();
+
+        // Should revert if Account is being auctioned.
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.AccountInAuction.selector);
         accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
     }
