@@ -2,8 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
+// Struct with information to pass to and from the actionTarget.
 struct ActionData {
     // Array of the contract addresses of the assets.
     address[] assets;
@@ -16,13 +17,11 @@ struct ActionData {
 }
 
 interface IActionBase {
-    // Struct with information to pass to and from actionHandlers.
-
     /**
-     * @notice Calls a series of addresses with arbitrary calldata.
-     * @param actionData A bytes object containing two actionAssetData structs, an address array and a bytes array.
-     * @return resultData An actionAssetData struct with the balances of this ActionMultiCall address.
+     * @notice Calls an external target contract with arbitrary calldata.
+     * @param actionTargetData A bytes object containing the encoded input for the actionTarget.
+     * @return resultData An actionAssetData struct with the final balances of this actionTarget contract.
      */
 
-    function executeAction(bytes calldata actionData) external returns (ActionData memory);
+    function executeAction(bytes calldata actionTargetData) external returns (ActionData memory);
 }

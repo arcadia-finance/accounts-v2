@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
@@ -47,7 +47,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setLocked(2);
 
         // Should revert if the reentrancy guard is locked.
-        vm.startPrank(users.accountOwner);
+        vm.startPrank(accountExtension.liquidator());
         vm.expectRevert(AccountErrors.NoReentry.selector);
         accountExtension.startLiquidation(liquidationInitiator);
         vm.stopPrank();

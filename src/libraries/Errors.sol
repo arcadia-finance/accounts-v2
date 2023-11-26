@@ -2,12 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 library AccountErrors {
     error AccountNotLiquidatable();
     error AccountUnhealthy();
-    error ActionNotAllowed();
     error AlreadyInitialized();
     error BaseCurrencyNotFound();
     error CreditorAlreadySet();
@@ -21,6 +20,7 @@ library AccountErrors {
     error NoReentry();
     error NonZeroOpenPosition();
     error OnlyFactory();
+    error OnlyCreditor();
     error OnlyLiquidator();
     error OnlyOwner();
     error TooManyAssets();

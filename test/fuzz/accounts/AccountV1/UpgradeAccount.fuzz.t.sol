@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
@@ -63,6 +63,23 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+
+    function testFuzz_Revert_upgradeAccount_NonFactory(
+        address newImplementation,
+        address newRegistry,
+        uint88 newVersion,
+        address nonFactory,
+        bytes calldata data
+    ) public {
+        vm.assume(nonFactory != address(factory));
+
+        // Should revert if not called by the Factory.
+        vm.startPrank(nonFactory);
+        vm.expectRevert(AccountErrors.OnlyFactory.selector);
+        proxyAccount.upgradeAccount(newImplementation, newRegistry, newVersion, data);
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_upgradeAccount_Reentered(
         address newImplementation,
         address newRegistry,
@@ -73,7 +90,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setLocked(2);
 
         // Should revert if the reentrancy guard is locked.
-        vm.startPrank(users.accountOwner);
+        vm.startPrank(address(factory));
         vm.expectRevert(AccountErrors.NoReentry.selector);
         accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
@@ -89,25 +106,9 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setInAuction();
 
         // Should revert if Account is being auctioned.
-        vm.startPrank(users.accountOwner);
+        vm.startPrank(address(factory));
         vm.expectRevert(AccountErrors.AccountInAuction.selector);
         accountExtension.upgradeAccount(newImplementation, newRegistry, newVersion, data);
-        vm.stopPrank();
-    }
-
-    function testFuzz_Revert_upgradeAccount_NonFactory(
-        address newImplementation,
-        address newRegistry,
-        uint88 newVersion,
-        address nonFactory,
-        bytes calldata data
-    ) public {
-        vm.assume(nonFactory != address(factory));
-
-        // Should revert if not called by the Factory.
-        vm.startPrank(nonFactory);
-        vm.expectRevert(AccountErrors.OnlyFactory.selector);
-        proxyAccount.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
     }
 

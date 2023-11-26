@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { BaseHandler } from "./BaseHandler.sol";
 import { AccountV1 } from "../../../src/accounts/AccountV1.sol";

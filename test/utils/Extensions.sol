@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
@@ -55,6 +55,10 @@ contract AccountExtension is AccountV1 {
 
     function setOwner(address newOwner) public {
         owner = newOwner;
+    }
+
+    function flashAction(address actionTarget, bytes calldata actionData) public {
+        _flashAction(actionTarget, actionData);
     }
 
     function setRegistry(address registry_) public {
@@ -571,7 +575,7 @@ contract ERC4626AssetModuleExtension is StandardERC4626AssetModule {
     }
 }
 
-contract MultiCallExtention is ActionMultiCall {
+contract MultiCallExtension is ActionMultiCall {
     function assets() public view returns (address[] memory) {
         return mintedAssets;
     }

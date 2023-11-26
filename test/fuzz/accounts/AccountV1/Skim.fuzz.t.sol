@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
@@ -30,6 +30,16 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.startPrank(nonOwner);
         vm.expectRevert(AccountErrors.OnlyOwner.selector);
+        accountExtension.skim(asset, id, type_);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_skim_Reentered(address asset, uint256 id, uint256 type_) public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.NoReentry.selector);
         accountExtension.skim(asset, id, type_);
         vm.stopPrank();
     }

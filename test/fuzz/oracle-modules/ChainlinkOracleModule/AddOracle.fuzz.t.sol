@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { ChainlinkOracleModule_Fuzz_Test } from "./_ChainlinkOracleModule.fuzz.t.sol";
 
@@ -67,6 +67,7 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         vm.assume(oracle != address(mockERC20.token3));
         vm.assume(oracle != address(mockERC20.token4));
         vm.assume(oracle != address(vm));
+        vm.assume(oracle != address(proxyAccount));
 
         vm.prank(users.creatorAddress);
         vm.expectRevert(bytes(""));

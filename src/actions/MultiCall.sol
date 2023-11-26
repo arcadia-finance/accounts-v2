@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
@@ -40,29 +40,22 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
 
     /**
      * @notice Calls a series of addresses with arbitrary calldata.
-     * @param actionData A bytes object containing three actionData structs, an address array and a bytes array.
+     * @param actionData A bytes object containing one actionData struct, an address array and a bytes array.
      * @return depositData The modified `ActionData` struct representing the final state of the `depositData` after executing the action.
-     * @dev It is important to note that the `actionData` must be correctly encoded with the expected argument types.
-     * Otherwise, the execution may fail or produce unexpected results.
      */
     function executeAction(bytes calldata actionData) external override returns (ActionData memory) {
-        (,,, ActionData memory depositData, address[] memory to, bytes[] memory data) = abi.decode(
-            actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, ActionData, address[], bytes[])
-        );
+        (ActionData memory depositData, address[] memory to, bytes[] memory data) =
+            abi.decode(actionData, (ActionData, address[], bytes[]));
 
         uint256 callLength = to.length;
         if (callLength != data.length) revert LengthMismatch();
 
-        for (uint256 i; i < callLength;) {
+        for (uint256 i; i < callLength; ++i) {
             (bool success, bytes memory result) = to[i].call(data[i]);
             require(success, string(result));
-
-            unchecked {
-                ++i;
-            }
         }
 
-        for (uint256 i; i < depositData.assets.length;) {
+        for (uint256 i; i < depositData.assets.length; ++i) {
             if (depositData.assetTypes[i] == 0) {
                 depositData.assetAmounts[i] = IERC20(depositData.assets[i]).balanceOf(address(this));
             } else if (depositData.assetTypes[i] == 1) {
@@ -81,9 +74,6 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
             } else if (depositData.assetTypes[i] == 2) {
                 depositData.assetAmounts[i] =
                     IERC1155(depositData.assets[i]).balanceOf(address(this), depositData.assetIds[i]);
-            }
-            unchecked {
-                ++i;
             }
         }
 

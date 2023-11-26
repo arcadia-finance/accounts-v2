@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import "../lib/forge-std/src/Test.sol";
 import { DeployAddresses, DeployBytes, DeployRiskConstantsBase } from "./Constants/DeployConstants.sol";
@@ -134,7 +134,6 @@ contract ArcadiaAccountDeployment is Test {
         factory.setNewAccountInfo(address(registry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);
 
-        registry.setAllowedAction(address(actionMultiCall), true);
         registry.changeGuardian(deployerAddress);
 
         wethLendingPool.setAccountVersion(1, true);

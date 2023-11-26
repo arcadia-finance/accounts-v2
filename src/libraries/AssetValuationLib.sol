@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 // Struct with risk and valuation related information for a certain asset.
 struct AssetValueAndRiskFactors {
@@ -40,11 +40,8 @@ library AssetValuationLib {
         pure
         returns (uint256 collateralValue)
     {
-        for (uint256 i; i < valuesAndRiskFactors.length;) {
+        for (uint256 i; i < valuesAndRiskFactors.length; ++i) {
             collateralValue += valuesAndRiskFactors[i].assetValue * valuesAndRiskFactors[i].collateralFactor;
-            unchecked {
-                ++i;
-            }
         }
         collateralValue = collateralValue / ONE_4;
     }
@@ -59,11 +56,8 @@ library AssetValuationLib {
         pure
         returns (uint256 liquidationValue)
     {
-        for (uint256 i; i < valuesAndRiskFactors.length;) {
+        for (uint256 i; i < valuesAndRiskFactors.length; ++i) {
             liquidationValue += valuesAndRiskFactors[i].assetValue * valuesAndRiskFactors[i].liquidationFactor;
-            unchecked {
-                ++i;
-            }
         }
         liquidationValue = liquidationValue / ONE_4;
     }

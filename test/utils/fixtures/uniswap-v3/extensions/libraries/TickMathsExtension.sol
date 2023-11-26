@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import "../../../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 

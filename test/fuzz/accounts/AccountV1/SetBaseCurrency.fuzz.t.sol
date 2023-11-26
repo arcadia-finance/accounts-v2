@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
@@ -31,6 +31,15 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.expectRevert(AccountErrors.OnlyOwner.selector);
         accountExtension.setBaseCurrency(address(mockERC20.token1));
         vm.stopPrank();
+    }
+
+    function testFuzz_Revert_setBaseCurrency_Reentered() public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        vm.prank(users.accountOwner);
+        vm.expectRevert(AccountErrors.NoReentry.selector);
+        accountExtension.setBaseCurrency(address(mockERC20.token1));
     }
 
     function testFuzz_Revert_setBaseCurrency_CreditorSet() public {

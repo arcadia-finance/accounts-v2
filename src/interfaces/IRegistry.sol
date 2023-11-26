@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
 
@@ -19,13 +19,6 @@ interface IRegistry {
      * @return boolean.
      */
     function inRegistry(address asset) external view returns (bool);
-
-    /**
-     * @notice Checks if an action is allowed.
-     * @param action The contract address of the action.
-     * @return boolean.
-     */
-    function isActionAllowed(address action) external view returns (bool);
 
     /**
      * @notice Batch deposit multiple assets.
