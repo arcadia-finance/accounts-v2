@@ -400,7 +400,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always healthy.
         // An Account is unhealthy if the collateral value is smaller than the used margin.
         uint256 usedMargin = getUsedMargin();
-        success = usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin;
+        isUnhealthy = usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin;
     }
 
     /**
