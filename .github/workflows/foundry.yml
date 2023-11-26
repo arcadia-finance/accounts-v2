@@ -6,6 +6,7 @@ on:
       - dev*
       - fix/fixes
       - AF-*
+      - refactor/*
 
 name: Foundry Tests
 

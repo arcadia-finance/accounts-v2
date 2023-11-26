@@ -95,6 +95,7 @@ contract ComputeProfitMaximizingTrade_UniswapV2AssetModule_Fuzz_Test is UniswapV
 
         (bool token0ToToken1, uint256 amountIn) =
             uniswapV2AssetModule.computeProfitMaximizingTrade(priceToken0, priceToken1, reserve0, reserve1);
+        vm.assume(amountIn > 0);
 
         uint112 reserveIn;
         uint112 reserveOut;

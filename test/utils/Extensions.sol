@@ -214,10 +214,6 @@ abstract contract AbstractAssetModuleExtension is AssetModule {
 abstract contract AbstractPrimaryAssetModuleExtension is PrimaryAssetModule {
     constructor(address registry_, uint256 assetType_) PrimaryAssetModule(registry_, assetType_) { }
 
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
-
     function setExposure(
         address creditor,
         address asset,
@@ -233,10 +229,6 @@ abstract contract AbstractPrimaryAssetModuleExtension is PrimaryAssetModule {
 
 abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
     constructor(address registry_, uint256 assetType_) DerivedAssetModule(registry_, assetType_) { }
-
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)
         external
@@ -292,7 +284,7 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
         public
         returns (uint256 usdExposureAsset)
     {
-        usdExposureAsset = _processDeposit(creditor, assetKey, exposureAsset);
+        (, usdExposureAsset) = _processDeposit(exposureAsset, creditor, assetKey);
     }
 
     function getAndUpdateExposureAsset(address creditor, bytes32 assetKey, int256 deltaAsset)
@@ -321,10 +313,6 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
 contract StandardERC20AssetModuleExtension is StandardERC20AssetModule {
     constructor(address registry_) StandardERC20AssetModule(registry_) { }
 
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
-
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
     }
@@ -343,10 +331,6 @@ contract StandardERC20AssetModuleExtension is StandardERC20AssetModule {
 contract FloorERC721AssetModuleExtension is FloorERC721AssetModule {
     constructor(address registry_) FloorERC721AssetModule(registry_) { }
 
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
-
     function getIdRange(address asset) public view returns (uint256 start, uint256 end) {
         start = idRange[asset].start;
         end = idRange[asset].end;
@@ -363,18 +347,10 @@ contract FloorERC721AssetModuleExtension is FloorERC721AssetModule {
 
 contract FloorERC1155AssetModuleExtension is FloorERC1155AssetModule {
     constructor(address registry_) FloorERC1155AssetModule(registry_) { }
-
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
 }
 
 contract UniswapV2AssetModuleExtension is UniswapV2AssetModule {
     constructor(address registry_, address uniswapV2Factory_) UniswapV2AssetModule(registry_, uniswapV2Factory_) { }
-
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
@@ -470,10 +446,6 @@ contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
         UniswapV3AssetModule(registry_, nonfungiblePositionManager)
     { }
 
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
-
     function getNonFungiblePositionManager() public view returns (address nonFungiblePositionManager) {
         nonFungiblePositionManager = address(NON_FUNGIBLE_POSITION_MANAGER);
     }
@@ -540,10 +512,6 @@ contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
 
 contract ERC4626AssetModuleExtension is StandardERC4626AssetModule {
     constructor(address registry_) StandardERC4626AssetModule(registry_) { }
-
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);

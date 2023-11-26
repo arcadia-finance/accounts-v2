@@ -97,7 +97,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
 
         // When: Asset is indirectly withdrawn.
         vm.prank(address(registryExtension));
-        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectWithdrawal(
+        uint256 usdExposureUpperAssetToAsset = assetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -106,7 +106,6 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
         );
 
         // Then: Correct output variables are returned.
-        assertTrue(primaryFlag);
         assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // And: assetExposure is updated.
@@ -129,7 +128,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
 
         // When: Asset is indirectly withdrawn.
         vm.prank(address(registryExtension));
-        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectWithdrawal(
+        uint256 usdExposureUpperAssetToAsset = assetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -138,7 +137,6 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
         );
 
         // Then: Correct output variables are returned.
-        assertTrue(primaryFlag);
         assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // And: assetExposure is updated.
@@ -160,7 +158,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
 
         // When: Asset is indirectly withdrawn.
         vm.prank(address(registryExtension));
-        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectWithdrawal(
+        uint256 usdExposureUpperAssetToAsset = assetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -169,7 +167,6 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstr
         );
 
         // Then: Correct output variables are returned.
-        assertTrue(primaryFlag);
         assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // And: assetExposure is updated.

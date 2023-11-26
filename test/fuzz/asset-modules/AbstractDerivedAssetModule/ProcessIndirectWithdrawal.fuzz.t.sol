@@ -64,16 +64,13 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstr
 
         // When: "Registry" calls "processIndirectWithdrawal".
         vm.prank(address(registryExtension));
-        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedAssetModule.processIndirectWithdrawal(
+        uint256 usdExposureUpperAssetToAsset = derivedAssetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
             exposureUpperAssetToAsset,
             deltaExposureUpperAssetToAsset_
         );
-
-        // Then: PRIMARY_FLAG is false.
-        assertFalse(PRIMARY_FLAG);
 
         // And:
         assertEq(usdExposureUpperAssetToAsset, 0);
@@ -102,16 +99,13 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstr
 
         // When: "Registry" calls "processIndirectWithdrawal".
         vm.prank(address(registryExtension));
-        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedAssetModule.processIndirectWithdrawal(
+        uint256 usdExposureUpperAssetToAsset = derivedAssetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
             exposureUpperAssetToAsset,
             deltaExposureUpperAssetToAsset
         );
-
-        // Then: PRIMARY_FLAG is false.
-        assertFalse(PRIMARY_FLAG);
 
         // And:
         assertEq(usdExposureUpperAssetToAsset, 0);
@@ -150,16 +144,13 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstr
 
         // When: "Registry" calls "processIndirectWithdrawal".
         vm.prank(address(registryExtension));
-        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedAssetModule.processIndirectWithdrawal(
+        uint256 usdExposureUpperAssetToAsset = derivedAssetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
             exposureUpperAssetToAsset,
             deltaExposureUpperAssetToAsset
         );
-
-        // Then: PRIMARY_FLAG is false.
-        assertFalse(PRIMARY_FLAG);
 
         // And: Correct "usdExposureUpperAssetToAsset" is returned.
         uint256 usdExposureUpperAssetToAssetExpected =

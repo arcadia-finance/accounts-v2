@@ -30,6 +30,5 @@ contract Constructor_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrimaryAsse
 
         assertEq(assetModule_.REGISTRY(), registry_);
         assertEq(assetModule_.ASSET_TYPE(), assetType_);
-        assertTrue(assetModule_.getPrimaryFlag());
     }
 }

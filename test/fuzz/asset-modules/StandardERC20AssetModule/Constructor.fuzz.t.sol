@@ -30,6 +30,5 @@ contract Constructor_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetMod
 
         assertEq(erc20AssetModule_.REGISTRY(), registry_);
         assertEq(erc20AssetModule_.ASSET_TYPE(), 0);
-        assertTrue(erc20AssetModule_.getPrimaryFlag());
     }
 }

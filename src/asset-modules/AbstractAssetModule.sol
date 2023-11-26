@@ -179,6 +179,7 @@ abstract contract AssetModule is Owned, IAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return assetType Identifier for the type of the asset:
      * 0 = ERC20.
      * 1 = ERC721.
@@ -188,7 +189,7 @@ abstract contract AssetModule is Owned, IAssetModule {
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         virtual
-        returns (uint256 assetType);
+        returns (uint256 recursiveCalls, uint256 assetType);
 
     /**
      * @notice Increases the exposure to an asset on an indirect deposit.
@@ -197,7 +198,7 @@ abstract contract AssetModule is Owned, IAssetModule {
      * @param assetId The id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      */
     function processIndirectDeposit(
@@ -206,7 +207,7 @@ abstract contract AssetModule is Owned, IAssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset);
+    ) public virtual returns (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset);
 
     /**
      * @notice Decreases the exposure to an asset on a direct withdrawal.
@@ -232,7 +233,6 @@ abstract contract AssetModule is Owned, IAssetModule {
      * @param assetId The id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      */
     function processIndirectWithdrawal(
@@ -241,5 +241,5 @@ abstract contract AssetModule is Owned, IAssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset);
+    ) public virtual returns (uint256 usdExposureUpperAssetToAsset);
 }

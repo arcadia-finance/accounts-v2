@@ -35,7 +35,7 @@ contract AssetModuleMock is AbstractAssetModuleExtension {
         public
         view
         override
-        returns (uint256 assetType)
+        returns (uint256 recursiveCalls, uint256 assetType)
     {
         assetType = ASSET_TYPE;
     }
@@ -46,7 +46,7 @@ contract AssetModuleMock is AbstractAssetModuleExtension {
         uint256 id,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public override returns (bool, uint256) { }
+    ) public override returns (uint256, uint256) { }
 
     function processDirectWithdrawal(address, address, uint256, uint256)
         public
@@ -63,5 +63,5 @@ contract AssetModuleMock is AbstractAssetModuleExtension {
         uint256 id,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public override returns (bool, uint256) { }
+    ) public override returns (uint256) { }
 }

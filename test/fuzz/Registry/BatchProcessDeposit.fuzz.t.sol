@@ -74,6 +74,34 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         registryExtension.batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
     }
 
+    function testFuzz_Revert_batchProcessDeposit_MaxRecursionReached(uint112 amountToken1, uint112 amountToken2)
+        public
+    {
+        amountToken1 = uint112(bound(amountToken1, 0, type(uint112).max - 1));
+        amountToken2 = uint112(bound(amountToken2, 0, type(uint112).max - 1));
+        // Given: Assets
+        address[] memory assetAddresses = new address[](2);
+        assetAddresses[0] = address(mockERC20.token1);
+        assetAddresses[1] = address(mockERC20.token2);
+
+        uint256[] memory assetIds = new uint256[](2);
+        assetIds[0] = 0;
+        assetIds[1] = 0;
+
+        uint256[] memory assetAmounts = new uint256[](2);
+        assetAmounts[0] = amountToken1;
+        assetAmounts[1] = amountToken2;
+
+        // When: guardian pauses registryExtension
+        vm.prank(users.riskManager);
+        registryExtension.setMaxRecursiveCalls(address(creditorUsd), 0);
+
+        // Then: batchProcessDeposit should reverted
+        vm.prank(address(proxyAccount));
+        vm.expectRevert(RegistryErrors.MaxRecursiveCallsReached.selector);
+        registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+    }
+
     function testFuzz_Revert_batchProcessDeposit_NonAccount(address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != address(proxyAccount));
 

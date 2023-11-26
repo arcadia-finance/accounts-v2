@@ -77,9 +77,10 @@ contract ProcessDirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPr
 
         // When: "amount" is deposited.
         vm.prank(address(registryExtension));
-        uint256 assetType =
+        (uint256 recursiveCalls, uint256 assetType) =
             assetModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
 
+        assertEq(recursiveCalls, 1);
         assertEq(assetType, 0);
 
         // Then: assetExposure is updated.

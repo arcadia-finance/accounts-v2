@@ -58,6 +58,7 @@ interface IAssetModule {
      * @param asset The contract address of the asset.
      * @param id The Id of the asset.
      * @param amount The amount of tokens.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return assetType Identifier for the type of the asset:
      * 0 = ERC20.
      * 1 = ERC721.
@@ -66,7 +67,7 @@ interface IAssetModule {
      */
     function processDirectDeposit(address creditor, address asset, uint256 id, uint256 amount)
         external
-        returns (uint256);
+        returns (uint256, uint256);
 
     /**
      * @notice Increases the exposure to an asset on an indirect deposit.
@@ -75,7 +76,7 @@ interface IAssetModule {
      * @param id The Id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      */
     function processIndirectDeposit(
@@ -84,7 +85,7 @@ interface IAssetModule {
         uint256 id,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external returns (bool, uint256);
+    ) external returns (uint256, uint256);
 
     /**
      * @notice Decreases the exposure to an asset on a direct withdrawal.
@@ -109,7 +110,6 @@ interface IAssetModule {
      * @param id The Id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      */
     function processIndirectWithdrawal(
@@ -118,5 +118,5 @@ interface IAssetModule {
         uint256 id,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) external returns (bool, uint256);
+    ) external returns (uint256);
 }

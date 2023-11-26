@@ -393,6 +393,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return assetType Identifier for the type of the asset:
      * 0 = ERC20.
      * 1 = ERC721.
@@ -403,7 +404,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         override
-        returns (uint256 assetType)
+        returns (uint256, uint256)
     {
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Asset Module.
         _addAsset(assetId);
@@ -419,7 +420,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param assetId The id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      * @dev super.processIndirectDeposit does check that msg.sender is the Registry.
      */
@@ -429,12 +430,12 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public override returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public override returns (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) {
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Asset Module.
         _addAsset(assetId);
 
         // Also checks that msg.sender == Registry.
-        (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
+        (recursiveCalls, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
     }
@@ -469,7 +470,6 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param assetId The id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      * @dev The stored liquidity on this contract is removed, otherwise _getUnderlyingAssets
      * would keep using the liquidity of the asset at the time of deposit even if its liquidity
@@ -481,8 +481,8 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public override returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
-        (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectWithdrawal(
+    ) public override returns (uint256 usdExposureUpperAssetToAsset) {
+        usdExposureUpperAssetToAsset = super.processIndirectWithdrawal(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 

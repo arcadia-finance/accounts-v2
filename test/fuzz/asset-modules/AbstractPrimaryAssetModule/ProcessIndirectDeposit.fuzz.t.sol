@@ -125,7 +125,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
 
         // When: Asset is indirectly deposited.
         vm.prank(address(registryExtension));
-        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
+        (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -134,7 +134,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         );
 
         // Then: Correct output variables are returned.
-        assertTrue(primaryFlag);
+        assertEq(recursiveCalls, 1);
         assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // And: assetExposure is updated.
@@ -162,7 +162,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
 
         // When: Asset is indirectly deposited.
         vm.prank(address(registryExtension));
-        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
+        (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -171,7 +171,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         );
 
         // Then: Correct output variables are returned.
-        assertTrue(primaryFlag);
+        assertEq(recursiveCalls, 1);
         assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // Then: assetExposure is updated.
@@ -197,7 +197,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
 
         // When: Asset is indirectly deposited.
         vm.prank(address(registryExtension));
-        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
+        (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -206,7 +206,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         );
 
         // Then: Correct output variables are returned.
-        assertTrue(primaryFlag);
+        assertEq(recursiveCalls, 1);
         assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // Then: assetExposure is updated.
