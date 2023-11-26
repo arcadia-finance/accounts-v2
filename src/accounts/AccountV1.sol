@@ -4,6 +4,10 @@
  */
 pragma solidity 0.8.22;
 
+import { AccountErrors } from "../libraries/Errors.sol";
+import { AccountStorageV1 } from "./AccountStorageV1.sol";
+import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
 import { IERC721 } from "../interfaces/IERC721.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
 import { IRegistry } from "../interfaces/IRegistry.sol";
@@ -11,10 +15,6 @@ import { ICreditor } from "../interfaces/ICreditor.sol";
 import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
 import { IAccount } from "../interfaces/IAccount.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
-import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
-import { AccountStorageV1 } from "./AccountStorageV1.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
-import { AccountErrors } from "../libraries/Errors.sol";
 
 /**
  * @title Arcadia Accounts
@@ -32,8 +32,8 @@ import { AccountErrors } from "../libraries/Errors.sol";
  * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
  */
 contract AccountV1 is AccountStorageV1, IAccount {
-    using SafeTransferLib for ERC20;
     using AssetValuationLib for AssetValueAndRiskFactors[];
+    using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
@@ -77,18 +77,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @dev Throws if called by any address other than the Factory address.
+     * @dev Throws if called when the Account is in an auction.
      */
-    modifier onlyFactory() {
-        if (msg.sender != IRegistry(registry).FACTORY()) revert AccountErrors.OnlyFactory();
-        _;
-    }
-
-    /**
-     * @dev Throws if called by any address other than the owner.
-     */
-    modifier onlyOwner() {
-        if (msg.sender != owner) revert AccountErrors.OnlyOwner();
+    modifier notDuringAuction() {
+        if (inAuction == true) revert AccountErrors.AccountInAuction();
         _;
     }
 
@@ -96,10 +88,24 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Throws if called by any address other than an Asset Manager or the owner.
      */
     modifier onlyAssetManager() {
-        // A custom error would need to read out owner + Creditor + isAssetManager storage
-        require(
-            msg.sender == owner || msg.sender == creditor || isAssetManager[owner][msg.sender], "A: Only Asset Manager"
-        );
+        // A custom error would need to read out owner + isAssetManager storage
+        require(msg.sender == owner || isAssetManager[owner][msg.sender], "A: Only Asset Manager");
+        _;
+    }
+
+    /**
+     * @dev Throws if called by any address other than the Creditor.
+     */
+    modifier onlyCreditor() {
+        if (msg.sender != creditor) revert AccountErrors.OnlyCreditor();
+        _;
+    }
+
+    /**
+     * @dev Throws if called by any address other than the Factory address.
+     */
+    modifier onlyFactory() {
+        if (msg.sender != IRegistry(registry).FACTORY()) revert AccountErrors.OnlyFactory();
         _;
     }
 
@@ -112,10 +118,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @dev Throws if called when the Account is in an auction.
+     * @dev Throws if called by any address other than the owner.
      */
-    modifier notDuringAuction() {
-        if (inAuction == true) revert AccountErrors.AccountInAuction();
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert AccountErrors.OnlyOwner();
         _;
     }
 
@@ -339,7 +345,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev The liquidation value of the Account is equal to the spot value of the underlying assets,
      * discounted by a haircut (the liquidation factor).
      * The liquidation value takes into account that not the full value of the assets can go towards
-     * repaying the debt: a fraction of the value is lost due to:
+     * repaying the liabilities: a fraction of the value is lost due to:
      * slippage while liquidating the assets,
      * fees for the auction initiator,
      * fees for the auction terminator and
@@ -350,49 +356,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
             generateAssetData();
         liquidationValue =
             IRegistry(registry).getLiquidationValue(baseCurrency, creditor, assetAddresses, assetIds, assetAmounts);
-    }
-
-    /**
-     * @notice Checks if the Account is healthy and still has free margin.
-     * @param debtIncrease The amount with which the debt is increased.
-     * @param openDebt The total open debt against the Account.
-     * @return success Boolean indicating if there is sufficient margin to back a certain amount of debt.
-     * @return creditor_ The contract address of the Creditor.
-     * @return accountVersion_ The Account version.
-     * @dev An Account is healthy if the collateral value is bigger than or equal to the used margin.
-     * @dev Only one of the values can be non-zero.
-     * Either we check on a certain increase of debt, or we check on a total amount of debt.
-     * If both values are zero, we check if the Account is currently healthy.
-     */
-    function isAccountHealthy(uint256 debtIncrease, uint256 openDebt)
-        external
-        view
-        returns (bool success, address creditor_, uint256 accountVersion_)
-    {
-        if (openDebt > 0) {
-            // Check if Account is healthy for a given amount of openDebt.
-            // The total Used margin equals the sum of the given amount of openDebt and the gas cost to liquidate.
-            success = getCollateralValue() >= openDebt + fixedLiquidationCost;
-        } else {
-            // Check if Account is still healthy after an increase of debt.
-            // The gas cost to liquidate is already taken into account in getUsedMargin().
-            success = getCollateralValue() >= getUsedMargin() + debtIncrease;
-        }
-
-        return (success, creditor, ACCOUNT_VERSION);
-    }
-
-    /**
-     * @notice Checks if the Account can be liquidated.
-     * @return success Boolean indicating if the Account can be liquidated.
-     */
-    function isAccountLiquidatable() external view returns (bool success) {
-        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is never liquidatable.
-        uint256 usedMargin = getUsedMargin();
-        if (usedMargin > fixedLiquidationCost) {
-            // An Account can be liquidated if the liquidation value is smaller than the used margin.
-            success = getLiquidationValue() < usedMargin;
-        }
     }
 
     /**
@@ -429,6 +392,28 @@ contract AccountV1 is AccountStorageV1, IAccount {
         }
     }
 
+    /**
+     * @notice Checks if the Account is unhealthy.
+     * @return isUnhealthy Boolean indicating if the Account is unhealthy.
+     */
+    function isAccountUnhealthy() public view returns (bool isUnhealthy) {
+        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always healthy.
+        // An Account is unhealthy if the collateral value is smaller than the used margin.
+        uint256 usedMargin = getUsedMargin();
+        isUnhealthy = usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin;
+    }
+
+    /**
+     * @notice Checks if the Account can be liquidated.
+     * @return success Boolean indicating if the Account can be liquidated.
+     */
+    function isAccountLiquidatable() external view returns (bool success) {
+        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is never liquidatable.
+        // An Account can be liquidated if the liquidation value is smaller than the used margin.
+        uint256 usedMargin = getUsedMargin();
+        success = usedMargin > fixedLiquidationCost && getLiquidationValue() < usedMargin;
+    }
+
     /* ///////////////////////////////////////////////////////////////
                           LIQUIDATION LOGIC
     /////////////////////////////////////////////////////////////// */
@@ -440,7 +425,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @return assetIds Array of the IDs of the assets in Account.
      * @return assetAmounts Array with the amounts of the assets in Account.
      * @return creditor_ The Creditor, address 0 if no active Creditor.
-     * @return openDebt The open debt issued against the Account.
+     * @return openPosition The open position (liabilities) issued against the Account.
      * @return assetAndRiskValues Array of asset values and corresponding collateral and liquidation factors.
      */
     function startLiquidation(address initiator)
@@ -452,7 +437,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             uint256[] memory assetIds,
             uint256[] memory assetAmounts,
             address creditor_,
-            uint256 openDebt,
+            uint256 openPosition,
             AssetValueAndRiskFactors[] memory assetAndRiskValues
         )
     {
@@ -464,10 +449,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
             IRegistry(registry).getValuesInBaseCurrency(baseCurrency, creditor_, assetAddresses, assetIds, assetAmounts);
 
         // Since the function is only callable by the Liquidator, we know that a liquidator and a Creditor are set.
-        openDebt = ICreditor(creditor_).startLiquidation(initiator);
-        uint256 usedMargin = openDebt + fixedLiquidationCost;
+        openPosition = ICreditor(creditor_).startLiquidation(initiator);
+        uint256 usedMargin = openPosition + fixedLiquidationCost;
 
-        if (openDebt == 0 || assetAndRiskValues._calculateLiquidationValue() >= usedMargin) {
+        if (openPosition == 0 || assetAndRiskValues._calculateLiquidationValue() >= usedMargin) {
             revert AccountErrors.AccountNotLiquidatable();
         }
     }
@@ -508,7 +493,59 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /*///////////////////////////////////////////////////////////////
-                    ASSET MANAGEMENT LOGIC
+                        CREDITOR ACTIONS
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Checks that the increase of the open position is allowed.
+     * @param openPosition The new open position.
+     * @return accountVersion The current Account version.
+     * @dev The Account performs the following checks when an open position (liabilities) are increased:
+     *  - The caller is indeed a Creditor for which a margin account is opened.
+     *  - The Account is still healthy after given the new open position.
+     */
+    function increaseOpenPosition(uint256 openPosition)
+        external
+        onlyCreditor
+        nonReentrant
+        returns (uint256 accountVersion)
+    {
+        // If the open position is 0, the Account is always healthy.
+        // An Account is unhealthy if the collateral value is smaller than the used margin.
+        // The used margin equals the sum of the given amount of openPosition and the gas cost to liquidate.
+        if (openPosition > 0 && getCollateralValue() < openPosition + fixedLiquidationCost) {
+            revert AccountErrors.AccountUnhealthy();
+        }
+
+        accountVersion = ACCOUNT_VERSION;
+    }
+
+    /**
+     * @notice Executes a flash action initiated by the Creditor.
+     * @param actionTarget The contract address of the flashAction.
+     * @param actionData A bytes object containing three structs and two bytes objects.
+     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
+     * The second struct contains the info about the owner's assets that need to be transferred from the owner to the actionTarget.
+     * The third struct contains the permit for the Permit2 transfer.
+     * The first bytes object contains the signature for the Permit2 transfer.
+     * The second bytes object contains the encoded input for the actionTarget.
+     * @return accountVersion The current Account version.
+     * @dev Next to the flasaction, the following checks are performed done:
+     *  - The caller is indeed a Creditor for which a margin account is opened.
+     *  - The Account is still healthy after when the flash action.
+     */
+    function flashActionByCreditor(address actionTarget, bytes calldata actionData)
+        external
+        onlyCreditor
+        returns (uint256 accountVersion)
+    {
+        _flashAction(actionTarget, actionData);
+
+        accountVersion = ACCOUNT_VERSION;
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                       ASSET MANAGER ACTIONS
     ///////////////////////////////////////////////////////////////*/
 
     /**
@@ -517,81 +554,80 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param value A boolean giving permissions to or taking permissions from an Asset Manager.
      * @dev Only set trusted addresses as Asset Manager. Asset Managers have full control over assets in the Account,
      * as long as the Account position remains healthy.
-     * @dev No need to set the Owner or Creditor as Asset Manager as they will automatically have all permissions of an Asset Manager.
+     * @dev No need to set the Owner as Asset Manager as they will automatically have all permissions of an Asset Manager.
      * @dev Potential use-cases of the Asset Manager might be to:
-     * - Automate actions by keeper networks,
-     * - Chain interactions with the Creditor together with Account actions (eg. borrow, deposit and trade in one transaction).
+     * - Automate actions by keeper networks.
+     * - Do flash actions (optimistic actions).
+     * - Chain multiple interactions together (eg. deposit and trade in one transaction).
      */
     function setAssetManager(address assetManager, bool value) external onlyOwner {
         emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = value);
     }
 
     /**
-     * @notice Calls external Action Multicall to execute and interact with external logic.
-     * @param actionHandler The address of the Action Multicall.
-     * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
-     * The first struct contains the info about the assets to withdraw from this Account to the actionHandler.
-     * The second struct contains the info about the owner's assets that are not in this Account and need to be transferred to the actionHandler.
-     * The third struct contains the info about the assets that needs to be deposited from the actionHandler back into the Account.
-     * @param signature The signature to verify.
-     * @return creditor_ The contract address of the Creditor.
-     * @return accountVersion_ The Account version.
+     * @notice Executes a flash action initiated by the Asset Manager.
+     * @param actionTarget The contract address of the flashAction.
+     * @param actionData A bytes object containing three structs and two bytes objects.
+     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
+     * The second struct contains the info about the owner's assets that need to be transferred from the owner to the actionTarget.
+     * The third struct contains the permit for the Permit2 transfer.
+     * The first bytes object contains the signature for the Permit2 transfer.
+     * The second bytes object contains the encoded input for the actionTarget.
+     */
+    function flashActionByAssetManager(address actionTarget, bytes calldata actionData) external onlyAssetManager {
+        _flashAction(actionTarget, actionData);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                       ASSET MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Executes a flash action.
+     * @param actionTarget The contract address of the flashAction.
+     * @param actionData A bytes object containing three structs and two bytes objects.
+     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
+     * The second struct contains the info about the owner's assets that need to be transferred from the owner to the actionTarget.
+     * The third struct contains the permit for the Permit2 transfer.
+     * The first bytes object contains the signature for the Permit2 transfer.
+     * The second bytes object contains the encoded input for the actionTarget.
      * @dev Similar to flash loans, this function optimistically calls external logic and checks for the Account state at the very end.
      * This allows users to interact with and chain together any DeFi protocol to swap, stake, claim...
      * The only requirements are that the recipient tokens of the interactions are allowlisted, deposited back into the Account and
      * that the Account is in a healthy state at the end of the transaction.
      */
-    function accountManagementAction(address actionHandler, bytes calldata actionData, bytes calldata signature)
-        external
-        nonReentrant
-        onlyAssetManager
-        notDuringAuction
-        returns (address, uint256)
-    {
-        if (!IRegistry(registry).isActionAllowed(actionHandler)) revert AccountErrors.ActionNotAllowed();
-
+    function _flashAction(address actionTarget, bytes calldata actionData) internal nonReentrant notDuringAuction {
         (
             ActionData memory withdrawData,
             ActionData memory transferFromOwnerData,
             IPermit2.PermitBatchTransferFrom memory permit,
-            ,
-            ,
-        ) = abi.decode(
-            actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, ActionData, address[], bytes[])
-        );
+            bytes memory signature,
+            bytes memory actionTargetData
+        ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes, bytes));
 
-        // Withdraw assets to actionHandler.
-        _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionHandler);
+        // Withdraw assets to the actionTarget.
+        _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);
 
-        // Transfer assets from owner (that are not assets in this account) to actionHandler.
+        // Transfer assets from owner (that are not assets in this account) to the actionTarget.
         if (transferFromOwnerData.assets.length > 0) {
-            _transferFromOwner(transferFromOwnerData, actionHandler);
+            _transferFromOwner(transferFromOwnerData, actionTarget);
         }
 
-        // If the function input includes a signature and non-empty token permissions, initiate a transfer via Permit2.
+        // If the function input includes a signature and non-empty token permissions,
+        // initiate a transfer from the owner to the actionTarget via Permit2.
         if (signature.length > 0 && permit.permitted.length > 0) {
-            _transferFromOwnerWithPermit(permit, signature, actionHandler);
+            _transferFromOwnerWithPermit(permit, signature, actionTarget);
         }
 
-        // Execute Action(s).
-        ActionData memory depositData = IActionBase(actionHandler).executeAction(actionData);
+        // Execute the flash Action(s).
+        ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
 
-        // Deposit assets from actionHandler into Account.
-        _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionHandler);
+        // Deposit assets from actionTarget into Account.
+        _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionTarget);
 
-        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always in a healthy state.
-        uint256 usedMargin = getUsedMargin();
         // Account must be healthy after actions are executed.
-        if (usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin) {
-            revert AccountErrors.AccountUnhealthy();
-        }
-
-        return (creditor, ACCOUNT_VERSION);
+        if (isAccountUnhealthy()) revert AccountErrors.AccountUnhealthy();
     }
-
-    /* ///////////////////////////////////////////////////////////////
-                    ASSET DEPOSIT/WITHDRAWN LOGIC
-    /////////////////////////////////////////////////////////////// */
 
     /**
      * @notice Deposits assets into the Account.
@@ -605,8 +641,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * to the same asset that will get deposited. If multiple asset IDs of the same contract address
      * are deposited, the assetAddress must be repeated in assetAddresses.
      * Example inputs:
-     * [wETH, DAI, BAYC, Interleave], [0, 0, 15, 2], [10**18, 10**18, 1, 100], [0, 0, 1, 2]
-     * [Interleave, Interleave, BAYC, BAYC, wETH], [3, 5, 16, 17, 0], [123, 456, 1, 1, 10**18], [2, 2, 1, 1, 0]
+     * [wETH, DAI, BAYC, SandboxASSET], [0, 0, 15, 2], [10**18, 10**18, 1, 100], [0, 0, 1, 2]
+     * [SandboxASSET, SandboxASSET, BAYC, BAYC, wETH], [3, 5, 16, 17, 0], [123, 456, 1, 1, 10**18], [2, 2, 1, 1, 0]
      */
     function deposit(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
@@ -669,10 +705,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * to the same asset that will get withdrawn. If multiple asset IDs of the same contract address
      * are to be withdrawn, the assetAddress must be repeated in assetAddresses.
      * Example inputs:
-     * [wETH, DAI, BAYC, Interleave], [0, 0, 15, 2], [10**18, 10**18, 1, 100], [0, 0, 1, 2]
-     * [Interleave, Interleave, BAYC, BAYC, wETH], [3, 5, 16, 17, 0], [123, 456, 1, 1, 10**18], [2, 2, 1, 1, 0]
+     * [wETH, DAI, BAYC, SandboxASSET], [0, 0, 15, 2], [10**18, 10**18, 1, 100], [0, 0, 1, 2]
+     * [SandboxASSET, SandboxASSET, BAYC, BAYC, wETH], [3, 5, 16, 17, 0], [123, 456, 1, 1, 10**18], [2, 2, 1, 1, 0]
      * @dev Will fail if the Account is in an unhealthy state after withdrawal (collateral value is smaller than the used margin).
-     * If no debt is taken yet on this Account, users are free to withdraw any asset at any time.
+     * If the Account has no open position (liabilities), users are free to withdraw any asset at any time.
      */
     function withdraw(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
@@ -682,12 +718,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
         // No need to check that all arrays have equal length, this check is will be done in the Registry.
         _withdraw(assetAddresses, assetIds, assetAmounts, msg.sender);
 
-        uint256 usedMargin = getUsedMargin();
-        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and all assets can be withdrawn.
         // Account must be healthy after assets are withdrawn.
-        if (usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin) {
-            revert AccountErrors.AccountUnhealthy();
-        }
+        if (isAccountUnhealthy()) revert AccountErrors.AccountUnhealthy();
     }
 
     /**
@@ -910,7 +942,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Transfers assets directly from the owner to the actionHandler contract.
+     * @notice Transfers assets directly from the owner to the actionTarget contract.
      * @param transferFromOwnerData A struct containing the info of all assets transferred from the owner that are not in this account.
      * @param to The address to withdraw to.
      */
@@ -940,14 +972,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Transfers assets from the owner to the actionHandler contract via Permit2.
+     * @notice Transfers assets from the owner to the actionTarget contract via Permit2.
      * @param permit Data specifying the terms of the transfer.
      * @param signature The signature to verify.
      * @param to_ The address to withdraw to.
      */
     function _transferFromOwnerWithPermit(
         IPermit2.PermitBatchTransferFrom memory permit,
-        bytes calldata signature,
+        bytes memory signature,
         address to_
     ) internal {
         uint256 tokenPermissionsLength = permit.permitted.length;

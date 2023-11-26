@@ -57,6 +57,10 @@ contract AccountExtension is AccountV1 {
         owner = newOwner;
     }
 
+    function flashAction(address actionTarget, bytes calldata actionData) public {
+        _flashAction(actionTarget, actionData);
+    }
+
     function setRegistry(address registry_) public {
         registry = registry_;
     }
@@ -571,7 +575,7 @@ contract ERC4626AssetModuleExtension is StandardERC4626AssetModule {
     }
 }
 
-contract MultiCallExtention is ActionMultiCall {
+contract MultiCallExtension is ActionMultiCall {
     function assets() public view returns (address[] memory) {
         return mintedAssets;
     }

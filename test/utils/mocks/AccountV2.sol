@@ -524,52 +524,51 @@ contract AccountV2 is AccountStorageV2 {
     }
 
     /**
-     * @notice Calls external action handler to execute and interact with external logic.
-     * @param actionHandler The address of the action handler.
-     * @param actionData A bytes object containing two actionAssetData structs, an address array and a bytes array.
-     * @return creditor_ The contract address of the creditor.
+     * @notice Calls external Action Multicall to execute and interact with external logic.
+     * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
+     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
+     * The second struct contains the info about the owner's assets that are not in this Account and need to be transferred to the actionTarget.
+     * The third struct contains the permit for the Permit2 transfer.
+     * @param signature The signature to verify.
+     * @param actionTarget The address of the Action Multicall.
+     * @return creditor_ The contract address of the Creditor.
      * @return accountVersion_ The Account version.
      * @dev Similar to flash loans, this function optimistically calls external logic and checks for the Account state at the very end.
-     * @dev accountManagementAction can interact with and chain together any DeFi protocol to swap, stake, claim...
+     * This allows users to interact with and chain together any DeFi protocol to swap, stake, claim...
      * The only requirements are that the recipient tokens of the interactions are allowlisted, deposited back into the Account and
      * that the Account is in a healthy state at the end of the transaction.
      */
-    function accountManagementAction(address actionHandler, bytes calldata actionData, bytes calldata signature)
+    function flashAction(bytes calldata actionData, bytes calldata signature, address actionTarget)
         external
         nonReentrant
         onlyAssetManager
         returns (address, uint256)
     {
-        if (!IRegistry(registry).isActionAllowed(actionHandler)) revert AccountErrors.ActionNotAllowed();
-
         (
             ActionData memory withdrawData,
             ActionData memory transferFromOwnerData,
             IPermit2.PermitBatchTransferFrom memory permit,
-            ,
-            ,
-        ) = abi.decode(
-            actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, ActionData, address[], bytes[])
-        );
+            bytes memory actionTargetData
+        ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes));
 
-        // Withdraw assets to actionHandler.
-        _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionHandler);
+        // Withdraw assets to actionTarget.
+        _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);
 
-        // Transfer assets from owner (that are not assets in this account) to actionHandler.
+        // Transfer assets from owner (that are not assets in this account) to actionTarget.
         if (transferFromOwnerData.assets.length > 0) {
-            _transferFromOwner(transferFromOwnerData, actionHandler);
+            _transferFromOwner(transferFromOwnerData, actionTarget);
         }
 
         // If the function input includes a signature and non-empty token permissions, initiate a transfer via Permit2.
         if (signature.length > 0 && permit.permitted.length > 0) {
-            _transferFromOwnerWithPermit(permit, signature, actionHandler);
+            _transferFromOwnerWithPermit(permit, signature, actionTarget);
         }
 
         // Execute Action(s).
-        ActionData memory depositData = IActionBase(actionHandler).executeAction(actionData);
+        ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
 
-        // Deposit assets from actionHandler into Account.
-        _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionHandler);
+        // Deposit assets from actionTarget into Account.
+        _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionTarget);
 
         // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always in a healthy state.
         uint256 usedMargin = getUsedMargin();
@@ -735,7 +734,7 @@ contract AccountV2 is AccountStorageV2 {
     }
 
     /**
-     * @notice Transfers assets directly from the owner to the actionHandler contract.
+     * @notice Transfers assets directly from the owner to the actionTarget contract.
      * @param transferFromOwnerData A struct containing the info of all assets transferred from the owner that are not in this account.
      * @param to The address to withdraw to.
      */
@@ -771,7 +770,7 @@ contract AccountV2 is AccountStorageV2 {
     }
 
     /**
-     * @notice Transfers assets from the owner to the actionHandler contract via Permit2.
+     * @notice Transfers assets from the owner to the actionTarget contract via Permit2.
      * @param permit Data specifying the terms of the transfer.
      * @param signature The signature to verify.
      * @param to_ The address to withdraw to.
