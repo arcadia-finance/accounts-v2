@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { IERC721 } from "../interfaces/IERC721.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
@@ -633,12 +633,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256[] memory assetTypes =
             IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
 
-        for (uint256 i; i < assetAddresses.length;) {
+        for (uint256 i; i < assetAddresses.length; ++i) {
             if (assetAmounts[i] == 0) {
                 // Skip if amount is 0 to prevent storing addresses that have 0 balance.
-                unchecked {
-                    ++i;
-                }
                 continue;
             }
 
@@ -652,9 +649,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
                 _depositERC1155(from, assetAddresses[i], assetIds[i], assetAmounts[i]);
             } else {
                 revert AccountErrors.UnknownAssetType();
-            }
-            unchecked {
-                ++i;
             }
         }
 
@@ -715,12 +709,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256[] memory assetTypes =
             IRegistry(registry).batchProcessWithdrawal(creditor, assetAddresses, assetIds, assetAmounts);
 
-        for (uint256 i; i < assetAddresses.length;) {
+        for (uint256 i; i < assetAddresses.length; ++i) {
             if (assetAmounts[i] == 0) {
                 // Skip if amount is 0 to prevent transferring 0 balances.
-                unchecked {
-                    ++i;
-                }
                 continue;
             }
 
@@ -734,9 +725,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
                 _withdrawERC1155(to, assetAddresses[i], assetIds[i], assetAmounts[i]);
             } else {
                 revert AccountErrors.UnknownAssetType();
-            }
-            unchecked {
-                ++i;
             }
         }
     }
@@ -827,14 +815,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
                 // There was only one ERC20 stored on the contract, safe to remove from array.
                 erc20Stored.pop();
             } else {
-                for (uint256 i; i < erc20StoredLength;) {
+                for (uint256 i; i < erc20StoredLength; ++i) {
                     if (erc20Stored[i] == ERC20Address) {
                         erc20Stored[i] = erc20Stored[erc20StoredLength - 1];
                         erc20Stored.pop();
                         break;
-                    }
-                    unchecked {
-                        ++i;
                     }
                 }
             }
@@ -865,16 +850,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
             erc721TokenIds.pop();
             erc721Stored.pop();
         } else {
-            for (; i < tokenIdLength;) {
+            for (; i < tokenIdLength; ++i) {
                 if (erc721TokenIds[i] == id && erc721Stored[i] == ERC721Address) {
                     erc721TokenIds[i] = erc721TokenIds[tokenIdLength - 1];
                     erc721TokenIds.pop();
                     erc721Stored[i] = erc721Stored[tokenIdLength - 1];
                     erc721Stored.pop();
                     break;
-                }
-                unchecked {
-                    ++i;
                 }
             }
             // For loop should break, otherwise we never went into the if-branch, meaning the token being withdrawn
@@ -910,7 +892,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
                 erc1155TokenIds.pop();
                 erc1155Stored.pop();
             } else {
-                for (uint256 i; i < tokenIdLength;) {
+                for (uint256 i; i < tokenIdLength; ++i) {
                     if (erc1155TokenIds[i] == id) {
                         if (erc1155Stored[i] == ERC1155Address) {
                             erc1155TokenIds[i] = erc1155TokenIds[tokenIdLength - 1];
@@ -919,9 +901,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
                             erc1155Stored.pop();
                             break;
                         }
-                    }
-                    unchecked {
-                        ++i;
                     }
                 }
             }
@@ -938,12 +917,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function _transferFromOwner(ActionData memory transferFromOwnerData, address to) internal {
         uint256 assetAddressesLength = transferFromOwnerData.assets.length;
         address owner_ = owner;
-        for (uint256 i; i < assetAddressesLength;) {
+        for (uint256 i; i < assetAddressesLength; ++i) {
             if (transferFromOwnerData.assetAmounts[i] == 0) {
                 // Skip if amount is 0 to prevent transferring 0 balances.
-                unchecked {
-                    ++i;
-                }
                 continue;
             }
 
@@ -959,9 +935,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
                 );
             } else {
                 revert AccountErrors.UnknownAssetType();
-            }
-            unchecked {
-                ++i;
             }
         }
     }
@@ -981,13 +954,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
         IPermit2.SignatureTransferDetails[] memory transferDetails =
             new IPermit2.SignatureTransferDetails[](tokenPermissionsLength);
 
-        for (uint256 i; i < tokenPermissionsLength;) {
+        for (uint256 i; i < tokenPermissionsLength; ++i) {
             transferDetails[i].to = to_;
             transferDetails[i].requestedAmount = permit.permitted[i].amount;
-
-            unchecked {
-                ++i;
-            }
         }
 
         PERMIT2.permitTransferFrom(permit, transferDetails, owner, signature);
@@ -1016,13 +985,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
         } else if (type_ == 1) {
             bool isStored;
             uint256 erc721StoredLength = erc721Stored.length;
-            for (uint256 i; i < erc721StoredLength;) {
+            for (uint256 i; i < erc721StoredLength; ++i) {
                 if (erc721Stored[i] == token && erc721TokenIds[i] == id) {
                     isStored = true;
                     break;
-                }
-                unchecked {
-                    ++i;
                 }
             }
 
@@ -1082,20 +1048,17 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256 i;
         uint256 erc20StoredLength = erc20Stored.length;
         address cacheAddr;
-        for (; i < erc20StoredLength;) {
+        for (; i < erc20StoredLength; ++i) {
             cacheAddr = erc20Stored[i];
             assetAddresses[i] = cacheAddr;
             // Gas: no need to store 0, index will continue anyway.
             // assetIds[i] = 0;
             assetAmounts[i] = erc20Balances[cacheAddr];
-            unchecked {
-                ++i;
-            }
         }
 
         uint256 j;
         uint256 erc721StoredLength = erc721Stored.length;
-        for (; j < erc721StoredLength;) {
+        for (; j < erc721StoredLength; ++j) {
             cacheAddr = erc721Stored[j];
             assetAddresses[i] = cacheAddr;
             assetIds[i] = erc721TokenIds[j];
@@ -1103,15 +1066,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
             unchecked {
                 ++i;
             }
-            unchecked {
-                ++j;
-            }
         }
 
         uint256 k;
         uint256 erc1155StoredLength = erc1155Stored.length;
         uint256 cacheId;
-        for (; k < erc1155StoredLength;) {
+        for (; k < erc1155StoredLength; ++k) {
             cacheAddr = erc1155Stored[k];
             cacheId = erc1155TokenIds[k];
             assetAddresses[i] = cacheAddr;
@@ -1119,9 +1079,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
             assetAmounts[i] = erc1155Balances[cacheAddr][cacheId];
             unchecked {
                 ++i;
-            }
-            unchecked {
-                ++k;
             }
         }
     }

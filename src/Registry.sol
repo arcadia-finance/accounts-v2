@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { BitPackingLib } from "./libraries/BitPackingLib.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -231,7 +231,7 @@ contract Registry is IRegistry, RegistryGuardian {
         bytes16 baseAsset;
         bytes16 quoteAsset;
         bytes16 lastAsset;
-        for (uint256 i; i < length;) {
+        for (uint256 i; i < length; ++i) {
             oracleModule = oracleToOracleModule[oracles[i]];
 
             if (!IOracleModule(oracleModule).isActive(oracles[i])) return false;
@@ -251,10 +251,6 @@ contract Registry is IRegistry, RegistryGuardian {
             }
             // Last asset in the sequence must end with "USD".
             if (i == length - 1 && lastAsset != "USD") return false;
-
-            unchecked {
-                ++i;
-            }
         }
 
         return true;
@@ -280,13 +276,9 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 length = assetAddresses.length;
         collateralFactors = new uint16[](length);
         liquidationFactors = new uint16[](length);
-        for (uint256 i; i < length;) {
+        for (uint256 i; i < length; ++i) {
             (collateralFactors[i], liquidationFactors[i]) = IAssetModule(assetToAssetModule[assetAddresses[i]])
                 .getRiskFactors(creditor, assetAddresses[i], assetIds[i]);
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -370,15 +362,11 @@ contract Registry is IRegistry, RegistryGuardian {
 
         address assetAddress;
         assetTypes = new uint256[](addrLength);
-        for (uint256 i; i < addrLength;) {
+        for (uint256 i; i < addrLength; ++i) {
             assetAddress = assetAddresses[i];
             assetTypes[i] = IAssetModule(assetToAssetModule[assetAddress]).processDirectDeposit(
                 creditor, assetAddress, assetIds[i], amounts[i]
             );
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -406,15 +394,11 @@ contract Registry is IRegistry, RegistryGuardian {
 
         address assetAddress;
         assetTypes = new uint256[](addrLength);
-        for (uint256 i; i < addrLength;) {
+        for (uint256 i; i < addrLength; ++i) {
             assetAddress = assetAddresses[i];
             assetTypes[i] = IAssetModule(assetToAssetModule[assetAddress]).processDirectWithdrawal(
                 creditor, assetAddress, assetIds[i], amounts[i]
             );
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -493,7 +477,7 @@ contract Registry is IRegistry, RegistryGuardian {
         rate = 1e18;
 
         uint256 length = oracles.length;
-        for (uint256 i; i < length;) {
+        for (uint256 i; i < length; ++i) {
             // Each Oracle has a fixed base asset and quote asset.
             // The oracle-rate expresses how much units of the quote asset (18 decimals precision) are required
             // to buy 1 unit of the BaseAsset.
@@ -505,10 +489,6 @@ contract Registry is IRegistry, RegistryGuardian {
                 // "Inverse direction" (how much of the BaseAsset is required to buy 1 unit of the QuoteAsset).
                 // -> Divide by the oracle-rate.
                 rate = rate.mulDivDown(1e18, IOracleModule(oracleToOracleModule[oracles[i]]).getRate(oracles[i]));
-            }
-
-            unchecked {
-                ++i;
             }
         }
     }
@@ -532,7 +512,7 @@ contract Registry is IRegistry, RegistryGuardian {
         valuesAndRiskFactors = new AssetValueAndRiskFactors[](length);
 
         uint256 minUsdValue = minUsdValueCreditor[creditor];
-        for (uint256 i; i < length;) {
+        for (uint256 i; i < length; ++i) {
             (
                 valuesAndRiskFactors[i].assetValue,
                 valuesAndRiskFactors[i].collateralFactor,
@@ -541,10 +521,6 @@ contract Registry is IRegistry, RegistryGuardian {
             // If asset value is too low, set to zero.
             // This is done to prevent dust attacks which may make liquidations unprofitable.
             if (valuesAndRiskFactors[i].assetValue < minUsdValue) valuesAndRiskFactors[i].assetValue = 0;
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -576,17 +552,13 @@ contract Registry is IRegistry, RegistryGuardian {
                 IAssetModule(assetToAssetModule[baseCurrency]).getValue(creditor, baseCurrency, 0, 1e18);
 
             uint256 length = assetAddresses.length;
-            for (uint256 i; i < length;) {
+            for (uint256 i; i < length; ++i) {
                 // "valuesAndRiskFactors.assetValue" is the USD-value of the asset with 18 decimals precision.
                 // "rateBaseCurrencyToUsd" is the USD-value of 10 ** 18 tokens of numeraire with 18 decimals precision.
                 // To get the asset value denominated in the numeraire, we have to multiply USD-value of "assetValue" with 10**18
                 // and divide by "rateBaseCurrencyToUsd".
                 valuesAndRiskFactors[i].assetValue =
                     valuesAndRiskFactors[i].assetValue.mulDivDown(1e18, rateBaseCurrencyToUsd);
-
-                unchecked {
-                    ++i;
-                }
             }
         }
     }
@@ -614,11 +586,8 @@ contract Registry is IRegistry, RegistryGuardian {
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
         uint256 length = assetAddresses.length;
-        for (uint256 i = 0; i < length;) {
+        for (uint256 i = 0; i < length; ++i) {
             assetValue += valuesAndRiskFactors[i].assetValue;
-            unchecked {
-                ++i;
-            }
         }
 
         // Convert the USD-value to the value in BaseCurrency if the BaseCurrency is different from USD (0-address).

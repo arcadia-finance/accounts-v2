@@ -1,6 +1,6 @@
 // https://github.com/Uniswap/v3-periphery/blob/main/contracts/libraries/PoolAddress.sol
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { PoolAddress } from "../../../../../../src/asset-modules/UniswapV3/libraries/PoolAddress.sol";
 
