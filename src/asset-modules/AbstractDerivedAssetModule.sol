@@ -6,6 +6,7 @@ pragma solidity 0.8.22;
 
 import { AssetModule } from "./AbstractAssetModule.sol";
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { SafeCastLib } from "../../lib/solmate/src/utils/SafeCastLib.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
 
@@ -459,7 +460,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
                 // Update "lastExposureAssetToUnderlyingAsset".
                 lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]] =
-                    uint128(exposureAssetToUnderlyingAssets[i]); // ToDo: safecast?
+                    SafeCastLib.safeCastTo128(exposureAssetToUnderlyingAssets[i]);
 
                 // Get the USD Value of the total exposure of "Asset" for its "Underlying Assets" at index "i".
                 // If the "underlyingAsset" has one or more underlying assets itself, the lower level
@@ -482,7 +483,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
             // Cache and update lastUsdExposureAsset.
             uint256 lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
-            lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint112(usdExposureAsset); // ToDo safecast.
+            lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = SafeCastLib.safeCastTo112(usdExposureAsset);
 
             // Cache lastUsdExposureProtocol.
             uint256 lastUsdExposureProtocol = riskParams[creditor].lastUsdExposureProtocol;
@@ -538,7 +539,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
             // Update "lastExposureAssetToUnderlyingAsset".
             lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]] =
-                uint128(exposureAssetToUnderlyingAssets[i]); // ToDo: safecast?
+                SafeCastLib.safeCastTo128(exposureAssetToUnderlyingAssets[i]);
 
             // Get the USD Value of the total exposure of "Asset" for for all of its "Underlying Assets".
             // If an "underlyingAsset" has one or more underlying assets itself, the lower level
@@ -596,6 +597,6 @@ abstract contract DerivedAssetModule is AssetModule {
             uint256 exposureAssetLast = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
             exposureAsset = exposureAssetLast > uint256(-deltaAsset) ? exposureAssetLast - uint256(-deltaAsset) : 0;
         }
-        lastExposuresAsset[creditor][assetKey].lastExposureAsset = uint112(exposureAsset); // ToDo safecast.
+        lastExposuresAsset[creditor][assetKey].lastExposureAsset = SafeCastLib.safeCastTo112(exposureAsset);
     }
 }
