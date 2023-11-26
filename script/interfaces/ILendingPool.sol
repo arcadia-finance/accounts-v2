@@ -5,8 +5,6 @@
 pragma solidity 0.8.22;
 
 interface ILendingPool {
-    function setBorrowCap(uint128 borrowCap) external;
-
     /**
      * @notice Enables or disables a certain Account version to be used as margin account.
      * @param accountVersion the Account version to be enabled/disabled.

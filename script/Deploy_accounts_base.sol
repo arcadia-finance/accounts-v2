@@ -141,9 +141,6 @@ contract ArcadiaAccountDeployment is Test {
         wethLendingPool.setAccountVersion(1, true);
         usdcLendingPool.setAccountVersion(1, true);
 
-        wethLendingPool.setBorrowCap(uint128(2000 * 10 ** 18));
-        usdcLendingPool.setBorrowCap(uint128(5_000_000 * 10 ** 6));
-
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
             DeployAddresses.comp_base,
