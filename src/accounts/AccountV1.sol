@@ -393,10 +393,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Checks if the Account is healthy and still has free margin.
-     * @return success Boolean indicating if there is sufficient margin to back the liabilities of the Account.
+     * @notice Checks if the Account is unhealthy.
+     * @return isUnhealthy Boolean indicating if the Account is unhealthy.
      */
-    function isAccountUnhealthy() public view returns (bool success) {
+    function isAccountUnhealthy() public view returns (bool isUnhealthy) {
         // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always healthy.
         // An Account is unhealthy if the collateral value is smaller than the used margin.
         uint256 usedMargin = getUsedMargin();
