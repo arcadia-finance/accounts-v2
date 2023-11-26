@@ -21,13 +21,6 @@ abstract contract DerivedAssetModule is AssetModule {
     using FixedPointMathLib for uint256;
 
     /* //////////////////////////////////////////////////////////////
-                                CONSTANTS
-    ////////////////////////////////////////////////////////////// */
-
-    // Identifier indicating that it is a Derived Asset Module.
-    bool internal constant PRIMARY_FLAG = false;
-
-    /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
@@ -302,6 +295,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return assetType Identifier for the type of the asset:
      * 0 = ERC20.
      * 1 = ERC721.
@@ -313,15 +307,18 @@ abstract contract DerivedAssetModule is AssetModule {
         virtual
         override
         onlyRegistry
-        returns (uint256 assetType)
+        returns (uint256 recursiveCalls, uint256 assetType)
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to Asset.
         uint256 exposureAsset = _getAndUpdateExposureAsset(creditor, assetKey, int256(amount));
 
-        _processDeposit(creditor, assetKey, exposureAsset);
+        (uint256 underlyingCalls,) = _processDeposit(exposureAsset, creditor, assetKey);
 
+        unchecked {
+            recursiveCalls = underlyingCalls + 1;
+        }
         assetType = ASSET_TYPE;
     }
 
@@ -332,7 +329,7 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param assetId The id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      * @dev An indirect deposit, is initiated by a deposit of another derived asset (the upper asset),
      * from which the asset of this Asset Module is an underlying asset.
@@ -343,13 +340,13 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public virtual override onlyRegistry returns (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to "Asset".
         uint256 exposureAsset = _getAndUpdateExposureAsset(creditor, assetKey, deltaExposureUpperAssetToAsset);
 
-        uint256 usdExposureAsset = _processDeposit(creditor, assetKey, exposureAsset);
+        (uint256 underlyingCalls, uint256 usdExposureAsset) = _processDeposit(exposureAsset, creditor, assetKey);
 
         if (exposureAsset == 0 || usdExposureAsset == 0) {
             usdExposureUpperAssetToAsset = 0;
@@ -358,7 +355,9 @@ abstract contract DerivedAssetModule is AssetModule {
             usdExposureUpperAssetToAsset = usdExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
         }
 
-        return (PRIMARY_FLAG, usdExposureUpperAssetToAsset);
+        unchecked {
+            recursiveCalls = underlyingCalls + 1;
+        }
     }
 
     /**
@@ -397,7 +396,6 @@ abstract contract DerivedAssetModule is AssetModule {
      * @param assetId The id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      * @dev An indirect withdrawal is initiated by a withdrawal of another Derived Asset (the upper asset),
      * from which the asset of this Asset Module is an Underlying Asset.
@@ -408,7 +406,7 @@ abstract contract DerivedAssetModule is AssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public virtual override onlyRegistry returns (uint256 usdExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to "Asset".
@@ -422,80 +420,88 @@ abstract contract DerivedAssetModule is AssetModule {
             // Calculate the USD value of the exposure of the Upper Asset to the Underlying asset.
             usdExposureUpperAssetToAsset = usdExposureAsset.mulDivDown(exposureUpperAssetToAsset, exposureAsset);
         }
-
-        return (PRIMARY_FLAG, usdExposureUpperAssetToAsset);
     }
 
     /**
      * @notice Update the exposure to an asset and its underlying asset(s) on deposit.
+     * @param exposureAsset The updated exposure to the asset.
      * @param creditor The contract address of the Creditor.
      * @param assetKey The unique identifier of the asset.
-     * @param exposureAsset The updated exposure to the asset.
+     * @return underlyingCalls The number of calls done to different asset modules to process the deposit/withdrawal of the underlying assets.
      * @return usdExposureAsset The USD value of the exposure of the asset, 18 decimals precision.
      * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
      * Underflows will not revert, but the exposure is instead set to 0.
      */
-    function _processDeposit(address creditor, bytes32 assetKey, uint256 exposureAsset)
+    function _processDeposit(uint256 exposureAsset, address creditor, bytes32 assetKey)
         internal
         virtual
-        returns (uint256 usdExposureAsset)
+        returns (uint256 underlyingCalls, uint256 usdExposureAsset)
     {
-        // Get the unique identifier(s) of the underlying asset(s).
-        bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
-
-        // Get the exposure to the asset's underlying asset(s) (in the decimal precision of the underlying assets).
-        (uint256[] memory exposureAssetToUnderlyingAssets,) =
-            _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
-
-        int256 deltaExposureAssetToUnderlyingAsset;
-        address underlyingAsset;
-        uint256 underlyingId;
-
-        for (uint256 i; i < underlyingAssetKeys.length; ++i) {
-            // Calculate the change in exposure to the underlying assets since last interaction.
-            deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
-                - int256(uint256(lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]]));
-
-            // Update "lastExposureAssetToUnderlyingAsset".
-            lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]] =
-                uint128(exposureAssetToUnderlyingAssets[i]); // ToDo: safecast?
-
-            // Get the USD Value of the total exposure of "Asset" for its "Underlying Assets" at index "i".
-            // If the "underlyingAsset" has one or more underlying assets itself, the lower level
-            // Asset Module(s) will recursively update their respective exposures and return
-            // the requested USD value to this Asset Module.
-            (underlyingAsset, underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
-            usdExposureAsset += IRegistry(REGISTRY).getUsdValueExposureToUnderlyingAssetAfterDeposit(
-                creditor,
-                underlyingAsset,
-                underlyingId,
-                exposureAssetToUnderlyingAssets[i],
-                deltaExposureAssetToUnderlyingAsset
-            );
-        }
-
-        // Cache and update lastUsdExposureAsset.
-        uint256 lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
-        lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint112(usdExposureAsset); // ToDo safecast.
-
-        // Cache lastUsdExposureProtocol.
-        uint256 lastUsdExposureProtocol = riskParams[creditor].lastUsdExposureProtocol;
-
-        // Update lastUsdExposureProtocol.
         uint256 usdExposureProtocol;
-        unchecked {
-            if (usdExposureAsset >= lastUsdExposureAsset) {
-                usdExposureProtocol = lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset);
-            } else if (lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset) {
-                usdExposureProtocol = lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset);
+        {
+            // Get the unique identifier(s) of the underlying asset(s).
+            bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+
+            // Get the exposure to the asset's underlying asset(s) (in the decimal precision of the underlying assets).
+            (uint256[] memory exposureAssetToUnderlyingAssets,) =
+                _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
+
+            int256 deltaExposureAssetToUnderlyingAsset;
+            address underlyingAsset;
+            uint256 underlyingId;
+            uint256 underlyingCalls_;
+            uint256 usdExposureToUnderlyingAsset;
+
+            for (uint256 i; i < underlyingAssetKeys.length; ++i) {
+                // Calculate the change in exposure to the underlying assets since last interaction.
+                deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
+                    - int256(uint256(lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]]));
+
+                // Update "lastExposureAssetToUnderlyingAsset".
+                lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]] =
+                    uint128(exposureAssetToUnderlyingAssets[i]); // ToDo: safecast?
+
+                // Get the USD Value of the total exposure of "Asset" for its "Underlying Assets" at index "i".
+                // If the "underlyingAsset" has one or more underlying assets itself, the lower level
+                // Asset Module(s) will recursively update their respective exposures and return
+                // the requested USD value to this Asset Module.
+                (underlyingAsset, underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
+                (underlyingCalls_, usdExposureToUnderlyingAsset) = IRegistry(REGISTRY)
+                    .getUsdValueExposureToUnderlyingAssetAfterDeposit(
+                    creditor,
+                    underlyingAsset,
+                    underlyingId,
+                    exposureAssetToUnderlyingAssets[i],
+                    deltaExposureAssetToUnderlyingAsset
+                );
+                usdExposureAsset += usdExposureToUnderlyingAsset;
+                unchecked {
+                    underlyingCalls += underlyingCalls_;
+                }
             }
-            // For the else case: (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset),
-            // usdExposureProtocol is set to 0, but usdExposureProtocol is already 0.
-        }
-        // The exposure must be strictly smaller than the maxExposure, not equal to or smaller than.
-        // This is to ensure that all deposits revert when maxExposure is set to 0, also deposits with 0 amounts.
-        if (usdExposureProtocol >= riskParams[creditor].maxUsdExposureProtocol) {
-            revert AssetModule.ExposureNotInLimits();
+
+            // Cache and update lastUsdExposureAsset.
+            uint256 lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
+            lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint112(usdExposureAsset); // ToDo safecast.
+
+            // Cache lastUsdExposureProtocol.
+            uint256 lastUsdExposureProtocol = riskParams[creditor].lastUsdExposureProtocol;
+
+            // Update lastUsdExposureProtocol.
+            unchecked {
+                if (usdExposureAsset >= lastUsdExposureAsset) {
+                    usdExposureProtocol = lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset);
+                } else if (lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset) {
+                    usdExposureProtocol = lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset);
+                }
+                // For the else case: (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset),
+                // usdExposureProtocol is set to 0, but usdExposureProtocol is already 0.
+            }
+            // The exposure must be strictly smaller than the maxExposure, not equal to or smaller than.
+            // This is to ensure that all deposits revert when maxExposure is set to 0, also deposits with 0 amounts.
+            if (usdExposureProtocol >= riskParams[creditor].maxUsdExposureProtocol) {
+                revert AssetModule.ExposureNotInLimits();
+            }
         }
         riskParams[creditor].lastUsdExposureProtocol = uint112(usdExposureProtocol);
     }

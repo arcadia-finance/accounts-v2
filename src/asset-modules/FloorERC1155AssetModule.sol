@@ -87,6 +87,7 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return assetType Identifier for the type of the asset:
      * 0 = ERC20.
      * 1 = ERC721.
@@ -97,7 +98,7 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
         public
         override
         onlyRegistry
-        returns (uint256 assetType)
+        returns (uint256, uint256)
     {
         if (!isAllowed(asset, assetId)) revert AssetNotAllowed();
 
@@ -111,7 +112,7 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
      * @param assetId The Id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      */
     function processIndirectDeposit(
@@ -120,10 +121,10 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public override onlyRegistry returns (uint256, uint256) {
         if (!isAllowed(asset, assetId)) revert AssetNotAllowed();
 
-        (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
+        return super.processIndirectDeposit(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
     }

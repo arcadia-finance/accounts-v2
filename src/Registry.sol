@@ -360,10 +360,11 @@ contract Registry is IRegistry, RegistryGuardian {
                 if (!isAllowed_) revert RegistryErrors.AssetNotAllowed();
             }
         } else {
+            uint256 recursiveCalls;
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
-                assetTypes[i] = IAssetModule(assetToAssetModule[assetAddress]).processDirectDeposit(
+                (recursiveCalls, assetTypes[i]) = IAssetModule(assetToAssetModule[assetAddress]).processDirectDeposit(
                     creditor, assetAddress, assetIds[i], amounts[i]
                 );
             }
@@ -422,6 +423,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param exposureAssetToUnderlyingAsset The amount of exposure of the asset to the underlying asset.
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the asset to the underlying asset
      * since the last interaction.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return usdExposureAssetToUnderlyingAsset The USD-value of the exposure of the asset to its underlying asset,
      * 18 decimals precision.
      */
@@ -431,8 +433,9 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
-    ) external onlyAssetModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
-        (, usdExposureAssetToUnderlyingAsset) = IAssetModule(assetToAssetModule[underlyingAsset]).processIndirectDeposit(
+    ) external onlyAssetModule returns (uint256 recursiveCalls, uint256 usdExposureAssetToUnderlyingAsset) {
+        (recursiveCalls, usdExposureAssetToUnderlyingAsset) = IAssetModule(assetToAssetModule[underlyingAsset])
+            .processIndirectDeposit(
             creditor,
             underlyingAsset,
             underlyingAssetId,
@@ -460,8 +463,7 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
     ) external onlyAssetModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
-        (, usdExposureAssetToUnderlyingAsset) = IAssetModule(assetToAssetModule[underlyingAsset])
-            .processIndirectWithdrawal(
+        usdExposureAssetToUnderlyingAsset = IAssetModule(assetToAssetModule[underlyingAsset]).processIndirectWithdrawal(
             creditor,
             underlyingAsset,
             underlyingAssetId,

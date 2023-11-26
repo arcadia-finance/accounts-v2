@@ -21,9 +21,6 @@ abstract contract PrimaryAssetModule is AssetModule {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
-    // Identifier indicating that it is a Primary Asset Module:
-    // the assets being priced have no underlying assets.
-    bool internal constant PRIMARY_FLAG = true;
     // The unit of the liquidation and collateral factors, 4 decimals precision.
     uint256 internal constant ONE_4 = 10_000;
 
@@ -205,6 +202,7 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return assetType Identifier for the type of the asset:
      * 0 = ERC20.
      * 1 = ERC721.
@@ -216,7 +214,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         virtual
         override
         onlyRegistry
-        returns (uint256 assetType)
+        returns (uint256, uint256)
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -231,7 +229,7 @@ abstract contract PrimaryAssetModule is AssetModule {
             riskParams[creditor][assetKey].lastExposureAsset = uint112(lastExposureAsset + amount);
         }
 
-        assetType = ASSET_TYPE;
+        return (1, ASSET_TYPE);
     }
 
     /**
@@ -241,7 +239,7 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param assetId The id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      * @dev An indirect deposit is initiated by a deposit of a Derived Asset (the upper asset),
      * from which the asset of this Asset Module is an Underlying Asset.
@@ -252,7 +250,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public virtual override onlyRegistry returns (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Cache lastExposureAsset.
@@ -278,7 +276,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         // Get Value in USD.
         (usdExposureUpperAssetToAsset,,) = getValue(creditor, asset, assetId, exposureUpperAssetToAsset);
 
-        return (PRIMARY_FLAG, usdExposureUpperAssetToAsset);
+        return (1, usdExposureUpperAssetToAsset);
     }
 
     /**
@@ -323,7 +321,6 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param assetId The id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      * @dev An indirect withdrawal is initiated by a withdrawal of a Derived Asset (the upper asset),
      * from which the asset of this Asset Module is an Underlying Asset.
@@ -336,7 +333,7 @@ abstract contract PrimaryAssetModule is AssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public virtual override onlyRegistry returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
+    ) public virtual override onlyRegistry returns (uint256 usdExposureUpperAssetToAsset) {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Cache lastExposureAsset.
@@ -357,7 +354,5 @@ abstract contract PrimaryAssetModule is AssetModule {
 
         // Get Value in USD.
         (usdExposureUpperAssetToAsset,,) = getValue(creditor, asset, assetId, exposureUpperAssetToAsset);
-
-        return (PRIMARY_FLAG, usdExposureUpperAssetToAsset);
     }
 }

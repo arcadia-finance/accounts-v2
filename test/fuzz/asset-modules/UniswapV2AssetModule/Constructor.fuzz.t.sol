@@ -30,7 +30,6 @@ contract Constructor_UniswapV2AssetModule_Fuzz_Test is UniswapV2AssetModule_Fuzz
         vm.stopPrank();
         assertEq(uniswapV2AssetModule_.REGISTRY(), registry_);
         assertEq(uniswapV2AssetModule_.ASSET_TYPE(), 0);
-        assertFalse(uniswapV2AssetModule_.getPrimaryFlag());
         assertEq(uniswapV2AssetModule_.getUniswapV2Factory(), address(uniswapV2Factory));
     }
 }

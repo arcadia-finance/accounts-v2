@@ -30,6 +30,5 @@ contract Constructor_StandardERC4626AssetModule_Fuzz_Test is StandardERC4626Asse
 
         assertEq(erc4626AssetModule_.REGISTRY(), registry_);
         assertEq(erc4626AssetModule_.ASSET_TYPE(), 0);
-        assertFalse(erc4626AssetModule_.getPrimaryFlag());
     }
 }

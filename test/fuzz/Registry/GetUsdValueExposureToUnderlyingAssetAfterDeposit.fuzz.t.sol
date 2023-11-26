@@ -81,7 +81,8 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_Registry_Fuzz_Test is 
 
         vm.prank(upperAssetModule);
         vm.expectCall(address(primaryAssetModule), data);
-        uint256 usdExposureAssetToUnderlyingAsset = registryExtension.getUsdValueExposureToUnderlyingAssetAfterDeposit(
+        (, uint256 usdExposureAssetToUnderlyingAsset) = registryExtension
+            .getUsdValueExposureToUnderlyingAssetAfterDeposit(
             address(creditorUsd),
             underlyingAsset,
             underlyingAssetId,

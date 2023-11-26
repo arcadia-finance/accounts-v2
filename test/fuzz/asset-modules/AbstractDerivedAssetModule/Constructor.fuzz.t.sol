@@ -30,6 +30,5 @@ contract Constructor_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedAsse
 
         assertEq(assetModule_.REGISTRY(), registry_);
         assertEq(assetModule_.ASSET_TYPE(), assetType_);
-        assertFalse(assetModule_.getPrimaryFlag());
     }
 }

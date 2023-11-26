@@ -49,6 +49,7 @@ interface IRegistry {
      * @param underlyingAssetId The underlying asset ID.
      * @param exposureAssetToUnderlyingAsset The amount of exposure of the asset to the underlying asset.
      * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the asset to the underlying asset since the last interaction.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return usdExposureAssetToUnderlyingAsset The Usd value of the exposure of the asset to the underlying asset, 18 decimals precision.
      */
     function getUsdValueExposureToUnderlyingAssetAfterDeposit(
@@ -57,7 +58,7 @@ interface IRegistry {
         uint256 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
-    ) external returns (uint256 usdExposureAssetToUnderlyingAsset);
+    ) external returns (uint256, uint256);
 
     /**
      * @notice This function is called by pricing modules of non-primary assets in order to update the exposure of an underlying asset after a withdrawal.

@@ -30,6 +30,5 @@ contract Constructor_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModul
 
         assertEq(assetModule_.REGISTRY(), registry_);
         assertEq(assetModule_.ASSET_TYPE(), 2);
-        assertTrue(assetModule_.getPrimaryFlag());
     }
 }

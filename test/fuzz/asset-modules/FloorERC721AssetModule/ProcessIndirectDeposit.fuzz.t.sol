@@ -94,7 +94,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         vm.assume(actualValueInUsd * exposureUpperAssetToAsset < type(uint256).max);
 
         vm.prank(address(registryExtension));
-        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = floorERC721AssetModule.processIndirectDeposit(
+        (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = floorERC721AssetModule.processIndirectDeposit(
             address(creditorUsd),
             address(mockERC721.nft2),
             assetId,
@@ -103,7 +103,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         );
 
         uint256 expectedUsdValueExposureUpperAssetToAsset = actualValueInUsd * exposureUpperAssetToAsset;
-        assertEq(primaryFlag, true);
+        assertEq(recursiveCalls, 1);
         assertEq(usdExposureUpperAssetToAsset, expectedUsdValueExposureUpperAssetToAsset);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft2)));
@@ -139,7 +139,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
             floorERC721AssetModule.getValue(address(creditorUsd), address(mockERC721.nft2), 0, 1);
 
         vm.prank(address(registryExtension));
-        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = floorERC721AssetModule.processIndirectDeposit(
+        (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = floorERC721AssetModule.processIndirectDeposit(
             address(creditorUsd),
             address(mockERC721.nft2),
             assetId,
@@ -148,7 +148,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         );
 
         uint256 expectedUsdValueExposureUpperAssetToAsset = actualValueInUsd * exposureUpperAssetToAsset;
-        assertEq(primaryFlag, true);
+        assertEq(recursiveCalls, 1);
         assertEq(usdExposureUpperAssetToAsset, expectedUsdValueExposureUpperAssetToAsset);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft2)));
@@ -184,7 +184,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
             floorERC721AssetModule.getValue(address(creditorUsd), address(mockERC721.nft2), 0, 1);
 
         vm.prank(address(registryExtension));
-        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = floorERC721AssetModule.processIndirectDeposit(
+        (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = floorERC721AssetModule.processIndirectDeposit(
             address(creditorUsd),
             address(mockERC721.nft2),
             assetId,
@@ -193,7 +193,7 @@ contract ProcessIndirectDeposit_FloorERC721AssetModule_Fuzz_Test is FloorERC721A
         );
 
         uint256 expectedUsdValueExposureUpperAssetToAsset = actualValueInUsd * exposureUpperAssetToAsset;
-        assertEq(primaryFlag, true);
+        assertEq(recursiveCalls, 1);
         assertEq(usdExposureUpperAssetToAsset, expectedUsdValueExposureUpperAssetToAsset);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft2)));
