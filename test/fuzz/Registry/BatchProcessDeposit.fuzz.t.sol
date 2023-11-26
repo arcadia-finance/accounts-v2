@@ -60,7 +60,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_batchProcessDeposit_lengthMismatch() public {
+    function testFuzz_Revert_batchProcessDeposit_LengthMismatch() public {
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC20.stable2);

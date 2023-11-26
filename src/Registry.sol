@@ -148,7 +148,7 @@ contract Registry is IRegistry, RegistryGuardian {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Checks for a token address and the corresponding Id if it is allowed.
+     * @notice Checks if an asset is allowed.
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @return A boolean, indicating if the asset is allowed.
@@ -156,9 +156,36 @@ contract Registry is IRegistry, RegistryGuardian {
     function isAllowed(address asset, uint256 assetId) external view returns (bool) {
         address assetModule = assetToAssetModule[asset];
 
+        // For unknown assets, assetModule will equal the zero-address.
         if (assetModule == address(0)) return false;
 
         return IAssetModule(assetModule).isAllowed(asset, assetId);
+    }
+
+    /**
+     * @notice Batch checks if multiple assets are allowed.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assetIds Array of the ids of the assets.
+     * @return A boolean, indicating if all the assets are allowed.
+     */
+    function batchIsAllowed(address[] memory assetAddresses, uint256[] memory assetIds) external view returns (bool) {
+        uint256 length = assetAddresses.length;
+        if (length != assetIds.length) revert RegistryErrors.Length_Mismatch();
+
+        address assetAddress;
+        address assetModule;
+        for (uint256 i; i < length; ++i) {
+            assetAddress = assetAddresses[i];
+            // For unknown assets, assetModule will equal the zero-address.
+            assetModule = assetToAssetModule[assetAddress];
+
+            if (assetModule == address(0) || !IAssetModule(assetModule).isAllowed(assetAddress, assetIds[i])) {
+                return false;
+            }
+        }
+
+        // Only if all assets are allowed, the for-loop will end.
+        return true;
     }
 
     /**
