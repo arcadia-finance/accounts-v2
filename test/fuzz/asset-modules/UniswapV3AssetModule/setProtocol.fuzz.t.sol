@@ -42,14 +42,14 @@ contract SetProtocol_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz
             new UniswapV3AssetModuleExtension(address(registryExtension), address(nonfungiblePositionManager));
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert(RegistryErrors.Only_AssetModule.selector);
+        vm.expectRevert(RegistryErrors.OnlyAssetModule.selector);
         uniV3AssetModule.setProtocol();
         vm.stopPrank();
     }
 
     function testFuzz_Revert_setProtocol_OverwriteExistingProtocol() public {
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert(RegistryErrors.Asset_Already_In_Registry.selector);
+        vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
         uniV3AssetModule.setProtocol();
         vm.stopPrank();
     }

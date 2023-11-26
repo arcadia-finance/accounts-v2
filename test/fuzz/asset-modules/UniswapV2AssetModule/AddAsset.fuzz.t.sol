@@ -48,7 +48,7 @@ contract AddAsset_UniswapV2AssetModule_Fuzz_Test is UniswapV2AssetModule_Fuzz_Te
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         uniswapV2AssetModule.addAsset(address(pairToken1Token2));
 
-        vm.expectRevert(RegistryErrors.Asset_Already_In_Registry.selector);
+        vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
         uniswapV2AssetModule.addAsset(address(pairToken1Token2));
     }
 

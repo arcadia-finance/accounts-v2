@@ -31,8 +31,8 @@ contract AddAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.startPrank(unprivilegedAddress_);
         // When: unprivilegedAddress_ calls addAsset
-        // Then: addAsset should revert with RegistryErrors.Only_AssetModule.selector
-        vm.expectRevert(RegistryErrors.Only_AssetModule.selector);
+        // Then: addAsset should revert with RegistryErrors.OnlyAssetModule.selector
+        vm.expectRevert(RegistryErrors.OnlyAssetModule.selector);
         registryExtension.addAsset(asset);
         vm.stopPrank();
     }
@@ -42,8 +42,8 @@ contract AddAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.startPrank(address(floorERC721AssetModule));
         // When: floorERC721AssetModule calls addAsset
-        // Then: addAsset should revert with RegistryErrors.Asset_Already_In_Registry.selector
-        vm.expectRevert(RegistryErrors.Asset_Already_In_Registry.selector);
+        // Then: addAsset should revert with RegistryErrors.AssetAlreadyInRegistry.selector
+        vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
         registryExtension.addAsset(address(mockERC20.token1));
         vm.stopPrank();
     }

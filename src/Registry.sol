@@ -80,7 +80,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @dev Only Accounts can call functions with this modifier.
      */
     modifier onlyAccount() {
-        if (!IFactory(FACTORY).isAccount(msg.sender)) revert RegistryErrors.Only_Account();
+        if (!IFactory(FACTORY).isAccount(msg.sender)) revert RegistryErrors.OnlyAccount();
         _;
     }
 
@@ -88,7 +88,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @dev Only Asset Modules can call functions with this modifier.
      */
     modifier onlyAssetModule() {
-        if (!isAssetModule[msg.sender]) revert RegistryErrors.Only_AssetModule();
+        if (!isAssetModule[msg.sender]) revert RegistryErrors.OnlyAssetModule();
         _;
     }
 
@@ -96,7 +96,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @dev Only Oracle Modules can call functions with this modifier.
      */
     modifier onlyOracleModule() {
-        if (!isOracleModule[msg.sender]) revert RegistryErrors.Only_OracleModule();
+        if (!isOracleModule[msg.sender]) revert RegistryErrors.OnlyOracleModule();
         _;
     }
 
@@ -128,7 +128,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param assetModule The contract address of the Asset Module.
      */
     function addAssetModule(address assetModule) external onlyOwner {
-        if (isAssetModule[assetModule]) revert RegistryErrors.AssetMod_Not_Unique();
+        if (isAssetModule[assetModule]) revert RegistryErrors.AssetModNotUnique();
         isAssetModule[assetModule] = true;
 
         emit AssetModuleAdded(assetModule);
@@ -139,7 +139,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param oracleModule The contract address of the Oracle Module.
      */
     function addOracleModule(address oracleModule) external onlyOwner {
-        if (isOracleModule[oracleModule]) revert RegistryErrors.OracleMod_Not_Unique();
+        if (isOracleModule[oracleModule]) revert RegistryErrors.OracleModNotUnique();
         isOracleModule[oracleModule] = true;
 
         emit OracleModuleAdded(oracleModule);
@@ -171,7 +171,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * as that would make it possible for devs to change the asset pricing.
      */
     function addAsset(address assetAddress) external onlyAssetModule {
-        if (inRegistry[assetAddress]) revert RegistryErrors.Asset_Already_In_Registry();
+        if (inRegistry[assetAddress]) revert RegistryErrors.AssetAlreadyInRegistry();
 
         inRegistry[assetAddress] = true;
 
@@ -210,7 +210,7 @@ contract Registry is IRegistry, RegistryGuardian {
     function checkOracleSequence(bytes32 oracleSequence) external view returns (bool) {
         (bool[] memory baseToQuoteAsset, uint256[] memory oracles) = oracleSequence.unpack();
         uint256 length = oracles.length;
-        if (length == 0) revert RegistryErrors.Min_1_Oracle();
+        if (length == 0) revert RegistryErrors.Min1Oracle();
         // Length can be maximally 3, but no need to explicitly check it.
         // BitPackingLib.unpack() can maximally return arrays of length 3.
 
@@ -355,7 +355,7 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256[] calldata amounts
     ) external whenDepositNotPaused onlyAccount returns (uint256[] memory assetTypes) {
         uint256 addrLength = assetAddresses.length;
-        if (addrLength != assetIds.length || addrLength != amounts.length) revert RegistryErrors.Length_Mismatch();
+        if (addrLength != assetIds.length || addrLength != amounts.length) revert RegistryErrors.LengthMismatch();
 
         address assetAddress;
         assetTypes = new uint256[](addrLength);
@@ -403,7 +403,7 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256[] calldata amounts
     ) external whenWithdrawNotPaused onlyAccount returns (uint256[] memory assetTypes) {
         uint256 addrLength = assetAddresses.length;
-        if (addrLength != assetIds.length || addrLength != amounts.length) revert RegistryErrors.Length_Mismatch();
+        if (addrLength != assetIds.length || addrLength != amounts.length) revert RegistryErrors.LengthMismatch();
 
         address assetAddress;
         assetTypes = new uint256[](addrLength);

@@ -62,7 +62,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
 
         vm.startPrank(users.creatorAddress);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
-        vm.expectRevert(RegistryErrors.Asset_Already_In_Registry.selector);
+        vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
         vm.stopPrank();
     }

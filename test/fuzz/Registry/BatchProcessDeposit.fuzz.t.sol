@@ -115,7 +115,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = 1;
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert(RegistryErrors.Only_Account.selector);
+        vm.expectRevert(RegistryErrors.OnlyAccount.selector);
         registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -133,7 +133,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 1000;
 
         vm.startPrank(address(proxyAccount));
-        vm.expectRevert(RegistryErrors.Length_Mismatch.selector);
+        vm.expectRevert(RegistryErrors.LengthMismatch.selector);
         registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }

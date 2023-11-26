@@ -55,7 +55,7 @@ contract CheckOracleSequence_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // Given length of oracles is zero (two rightmost bits are zero)
         oracleSequence = oracleSequence << 2;
 
-        vm.expectRevert(RegistryErrors.Min_1_Oracle.selector);
+        vm.expectRevert(RegistryErrors.Min1Oracle.selector);
         registryExtension.checkOracleSequence(oracleSequence);
     }
 

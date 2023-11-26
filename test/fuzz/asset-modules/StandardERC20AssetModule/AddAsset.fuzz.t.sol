@@ -56,7 +56,7 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
         erc20AssetModule.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
-        vm.expectRevert(RegistryErrors.Asset_Already_In_Registry.selector);
+        vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
         erc20AssetModule.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
         vm.stopPrank();
     }

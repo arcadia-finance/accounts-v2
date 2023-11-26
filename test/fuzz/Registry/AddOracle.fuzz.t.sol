@@ -25,7 +25,7 @@ contract AddOracle_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.assume(!registryExtension.isOracleModule(unprivilegedAddress_));
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert(RegistryErrors.Only_OracleModule.selector);
+        vm.expectRevert(RegistryErrors.OnlyOracleModule.selector);
         registryExtension.addOracle();
     }
 
