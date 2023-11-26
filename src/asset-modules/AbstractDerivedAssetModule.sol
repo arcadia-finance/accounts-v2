@@ -460,7 +460,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
                 // Update "lastExposureAssetToUnderlyingAsset".
                 lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]] =
-                    SafeCastLib.safeCastTo128(exposureAssetToUnderlyingAssets[i]);
+                    exposureAssetToUnderlyingAssets[i];
 
                 // Get the USD Value of the total exposure of "Asset" for its "Underlying Assets" at index "i".
                 // If the "underlyingAsset" has one or more underlying assets itself, the lower level
@@ -539,7 +539,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
             // Update "lastExposureAssetToUnderlyingAsset".
             lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]] =
-                SafeCastLib.safeCastTo128(exposureAssetToUnderlyingAssets[i]);
+                exposureAssetToUnderlyingAssets[i];
 
             // Get the USD Value of the total exposure of "Asset" for for all of its "Underlying Assets".
             // If an "underlyingAsset" has one or more underlying assets itself, the lower level
