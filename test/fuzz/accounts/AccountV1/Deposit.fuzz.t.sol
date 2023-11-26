@@ -40,6 +40,21 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
+    function testFuzz_Revert_deposit_Reentered(
+        address[] calldata assetAddresses,
+        uint256[] calldata assetIds,
+        uint256[] calldata assetAmounts
+    ) public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        // Should revert if the Account is in an auction.
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.NoReentry.selector);
+        accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_deposit_tooManyAssets(uint8 arrLength) public {
         vm.assume(arrLength > accountExtension.ASSET_LIMIT() && arrLength < 50);
 
