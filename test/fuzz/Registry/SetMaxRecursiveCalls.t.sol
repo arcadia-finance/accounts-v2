@@ -7,9 +7,9 @@ pragma solidity 0.8.22;
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "setRiskParametersOfDerivedAssetModule" of contract "Registry".
+ * @notice Fuzz tests for the function "setMaxRecursiveCalls" of contract "Registry".
  */
-contract SetMaxRecursionDepth_Registry_Fuzz_Test is Registry_Fuzz_Test {
+contract SetMaxRecursiveCalls_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -21,24 +21,24 @@ contract SetMaxRecursionDepth_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_setMaxRecursionDepth_NonRiskManager(
+    function testFuzz_Revert_setMaxRecursiveCalls_NonRiskManager(
         address unprivilegedAddress_,
-        uint256 maxRecursionDepth
+        uint256 maxRecursiveCalls
     ) public {
         vm.assume(unprivilegedAddress_ != users.riskManager);
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert(RegistryErrors.Unauthorized.selector);
-        registryExtension.setMaxRecursionDepth(address(creditorUsd), maxRecursionDepth);
+        registryExtension.setMaxRecursiveCalls(address(creditorUsd), maxRecursiveCalls);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_setMaxRecursionDepth(uint256 maxRecursionDepth) public {
+    function testFuzz_Success_setMaxRecursiveCalls(uint256 maxRecursiveCalls) public {
         vm.prank(users.riskManager);
-        registryExtension.setMaxRecursionDepth(address(creditorUsd), maxRecursionDepth);
+        registryExtension.setMaxRecursiveCalls(address(creditorUsd), maxRecursiveCalls);
 
-        uint256 actualMaxRecursionDepth = registryExtension.maxRecursionDepthCreditor(address(creditorUsd));
+        uint256 actualMaxRecursionDepth = registryExtension.maxRecursiveCalls(address(creditorUsd));
 
-        assertEq(actualMaxRecursionDepth, maxRecursionDepth);
+        assertEq(actualMaxRecursionDepth, maxRecursiveCalls);
     }
 }

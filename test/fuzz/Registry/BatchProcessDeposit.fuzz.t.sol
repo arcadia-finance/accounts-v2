@@ -94,11 +94,11 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         // When: guardian pauses registryExtension
         vm.prank(users.riskManager);
-        registryExtension.setMaxRecursionDepth(address(creditorUsd), 0);
+        registryExtension.setMaxRecursiveCalls(address(creditorUsd), 0);
 
         // Then: batchProcessDeposit should reverted
         vm.prank(address(proxyAccount));
-        vm.expectRevert(RegistryErrors.MaxRecursionDepthReached.selector);
+        vm.expectRevert(RegistryErrors.MaxRecursiveCallsReached.selector);
         registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
