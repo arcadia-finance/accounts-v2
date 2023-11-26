@@ -34,6 +34,16 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_skim_Reentered(address asset, uint256 id, uint256 type_) public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.NoReentry.selector);
+        accountExtension.skim(asset, id, type_);
+        vm.stopPrank();
+    }
+
     function testFuzz_Success_skim_Type0_NonZeroSkim(uint256 depositAmount, uint256 transferAmount) public {
         // Deposit ERC20.
         depositAmount = bound(depositAmount, 1, type(uint112).max - 1);

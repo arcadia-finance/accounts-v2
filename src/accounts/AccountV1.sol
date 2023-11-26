@@ -172,9 +172,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
      */
     function upgradeAccount(address newImplementation, address newRegistry, uint88 newVersion, bytes calldata data)
         external
+        onlyFactory
         nonReentrant
         notDuringAuction
-        onlyFactory
     {
         if (creditor != address(0)) {
             // If a Creditor is set, new version should be compatible.
@@ -251,7 +251,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @notice Sets the baseCurrency of the Account.
      * @param baseCurrency_ The new baseCurrency for the Account.
      */
-    function setBaseCurrency(address baseCurrency_) external onlyOwner {
+    function setBaseCurrency(address baseCurrency_) external onlyOwner nonReentrant {
         if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
         _setBaseCurrency(baseCurrency_);
     }
@@ -271,24 +271,47 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Opens a margin account on the Account for a Creditor.
-     * @param creditor_ The contract address of the Creditor.
+     * @notice Opens a margin account on the Account for a new Creditor.
+     * @param newCreditor The contract address of the Creditor.
      * @dev Currently only one Creditor can be set
      * (we are working towards a single account for multiple Creditors tho!).
-     * @dev Only open margin accounts for protocols you trust!
+     * @dev Only open margin accounts for Creditors you trust!
      * The Creditor has significant authorization: use margin, trigger liquidation, and manage assets.
      */
-    function openMarginAccount(address creditor_) external onlyOwner {
-        if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
-        _openMarginAccount(creditor_);
+    function openMarginAccount(address newCreditor) external onlyOwner nonReentrant notDuringAuction {
+        (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
+            generateAssetData();
+
+        // Cache old Creditor.
+        address oldCreditor = creditor;
+        if (oldCreditor == newCreditor) revert AccountErrors.CreditorAlreadySet();
+
+        // Check if all assets in the Account are allowed by the new Creditor
+        // and add the exposure of the account for the new Creditor.
+        IRegistry(registry).batchProcessDeposit(newCreditor, assetAddresses, assetIds, assetAmounts);
+
+        // Remove the exposures of the Account for the old Creditor.
+        if (oldCreditor != address(0)) {
+            IRegistry(registry).batchProcessWithdrawal(oldCreditor, assetAddresses, assetIds, assetAmounts);
+        }
+
+        // Open margin account for the new Creditor.
+        _openMarginAccount(newCreditor);
+
+        // A margin account can only be opened for one Creditor at a time.
+        // If set, close the margin account for the old Creditor.
+        if (oldCreditor != address(0)) {
+            // closeMarginAccount() checks if there is still an open position (open liabilities) for the Account.
+            // If so, the function reverts.
+            ICreditor(oldCreditor).closeMarginAccount(address(this));
+        }
     }
 
     /**
-     * @notice Internal function: Opens a margin account for a Creditor.
+     * @notice Internal function: Opens a margin account for a new Creditor.
      * @param creditor_ The contract address of the Creditor.
      */
     function _openMarginAccount(address creditor_) internal {
-        // openMarginAccount() is a view function, cannot modify state.
         (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_) =
             ICreditor(creditor_).openMarginAccount(ACCOUNT_VERSION);
         if (!success) revert AccountErrors.InvalidAccountVersion();
@@ -303,16 +326,23 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @notice Closes the margin account of the Creditor.
      * @dev Currently only one Creditor can be set.
      */
-    function closeMarginAccount() external onlyOwner notDuringAuction {
-        // Cache creditor
+    function closeMarginAccount() external onlyOwner nonReentrant notDuringAuction {
+        // Cache creditor.
         address creditor_ = creditor;
         if (creditor_ == address(0)) revert AccountErrors.CreditorNotSet();
-        // closeMarginAccount() checks if there is still open position. If so, reverts.
-        ICreditor(creditor_).closeMarginAccount(address(this));
 
         creditor = address(0);
         liquidator = address(0);
         fixedLiquidationCost = 0;
+
+        // Remove the exposures of the Account for the old Creditor.
+        (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
+            generateAssetData();
+        IRegistry(registry).batchProcessWithdrawal(creditor_, assetAddresses, assetIds, assetAmounts);
+
+        // closeMarginAccount() checks if there is still an open position (open liabilities) for the Account.
+        // If so, the function reverts.
+        ICreditor(creditor_).closeMarginAccount(address(this));
 
         emit MarginAccountChanged(address(0), address(0));
     }
@@ -430,8 +460,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      */
     function startLiquidation(address initiator)
         external
-        nonReentrant
         onlyLiquidator
+        nonReentrant
         returns (
             address[] memory assetAddresses,
             uint256[] memory assetIds,
@@ -647,6 +677,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function deposit(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
         onlyOwner
+        nonReentrant
     {
         // No need to check that all arrays have equal length, this check will be done in the Registry.
         _deposit(assetAddresses, assetIds, assetAmounts, msg.sender);
@@ -713,6 +744,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function withdraw(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
         onlyOwner
+        nonReentrant
         notDuringAuction
     {
         // No need to check that all arrays have equal length, this check is will be done in the Registry.
@@ -1002,7 +1034,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Function can retrieve assets that were transferred to the Account but not deposited
      * or can be used to claim yield for strictly upwards rebasing tokens.
      */
-    function skim(address token, uint256 id, uint256 type_) public onlyOwner {
+    function skim(address token, uint256 id, uint256 type_) public onlyOwner nonReentrant {
         if (token == address(0)) {
             payable(msg.sender).transfer(address(this).balance);
             return;

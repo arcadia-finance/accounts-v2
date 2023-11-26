@@ -45,6 +45,21 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
     }
 
+    function testFuzz_Revert_withdraw_Reentered(
+        address[] calldata assetAddresses,
+        uint256[] calldata assetIds,
+        uint256[] calldata assetAmounts
+    ) public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        // Should revert if the Account is in an auction.
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.NoReentry.selector);
+        accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_withdraw_InAuction(
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,

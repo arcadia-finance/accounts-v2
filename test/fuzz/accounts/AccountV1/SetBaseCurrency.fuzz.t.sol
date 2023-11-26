@@ -33,6 +33,15 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_setBaseCurrency_Reentered() public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        vm.prank(users.accountOwner);
+        vm.expectRevert(AccountErrors.NoReentry.selector);
+        accountExtension.setBaseCurrency(address(mockERC20.token1));
+    }
+
     function testFuzz_Revert_setBaseCurrency_CreditorSet() public {
         vm.prank(users.accountOwner);
         accountExtension.openMarginAccount(address(creditorStable1));

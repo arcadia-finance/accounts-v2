@@ -67,6 +67,7 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         vm.assume(oracle != address(mockERC20.token3));
         vm.assume(oracle != address(mockERC20.token4));
         vm.assume(oracle != address(vm));
+        vm.assume(oracle != address(proxyAccount));
 
         vm.prank(users.creatorAddress);
         vm.expectRevert(bytes(""));
