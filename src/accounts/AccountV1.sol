@@ -280,22 +280,24 @@ contract AccountV1 is AccountStorageV1, IAccount {
         address oldCreditor = creditor;
         if (oldCreditor == newCreditor) revert AccountErrors.CreditorAlreadySet();
 
-        // A margin account can only be opened for one Creditor at a time,
-        // first close the active margin account for the old Creditor.
-        if (oldCreditor != address(0)) {
-            // Remove the exposures of the Account for the old Creditor.
-            IRegistry(registry).batchProcessWithdrawal(oldCreditor, assetAddresses, assetIds, assetAmounts);
-
-            // closeMarginAccount() checks if there is still an open position (open liabilities) for the Account.
-            // If so, the function reverts.
-            ICreditor(oldCreditor).closeMarginAccount(address(this));
-        }
-
         // Check if all assets in the Account are allowed by the new Creditor
         // and add the exposure of the account for the new Creditor.
         IRegistry(registry).batchProcessDeposit(newCreditor, assetAddresses, assetIds, assetAmounts);
 
+        // Remove the exposures of the Account for the old Creditor.
+        if (oldCreditor != address(0)) {
+            IRegistry(registry).batchProcessWithdrawal(oldCreditor, assetAddresses, assetIds, assetAmounts);
+        }
+
+        // Close the active margin account for the old Creditor.
         _openMarginAccount(newCreditor);
+
+        // A margin account can only be opened for one Creditor at a time,
+        if (oldCreditor != address(0)) {
+            // closeMarginAccount() checks if there is still an open position (open liabilities) for the Account.
+            // If so, the function reverts.
+            ICreditor(oldCreditor).closeMarginAccount(address(this));
+        }
     }
 
     /**
@@ -303,7 +305,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param creditor_ The contract address of the Creditor.
      */
     function _openMarginAccount(address creditor_) internal {
-        creditor = creditor_;
         (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_) =
             ICreditor(creditor_).openMarginAccount(ACCOUNT_VERSION);
         if (!success) revert AccountErrors.InvalidAccountVersion();
@@ -311,7 +312,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         fixedLiquidationCost = uint96(fixedLiquidationCost_);
         if (baseCurrency != baseCurrency_) _setBaseCurrency(baseCurrency_);
 
-        emit MarginAccountChanged(creditor_, liquidator = liquidator_);
+        emit MarginAccountChanged(creditor = creditor_, liquidator = liquidator_);
     }
 
     /**
@@ -639,6 +640,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function deposit(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
         onlyOwner
+        nonReentrant
     {
         // No need to check that all arrays have equal length, this check will be done in the Registry.
         _deposit(assetAddresses, assetIds, assetAmounts, msg.sender);
@@ -712,6 +714,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         external
         onlyOwner
         notDuringAuction
+        nonReentrant
     {
         // No need to check that all arrays have equal length, this check is will be done in the Registry.
         _withdraw(assetAddresses, assetIds, assetAmounts, msg.sender);
