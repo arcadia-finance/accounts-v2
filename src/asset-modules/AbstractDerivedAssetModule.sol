@@ -483,7 +483,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
             // Cache and update lastUsdExposureAsset.
             uint256 lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
-            lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = SafeCastLib.safeCastTo112(usdExposureAsset);
+            lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint112(usdExposureAsset);
 
             // Cache lastUsdExposureProtocol.
             uint256 lastUsdExposureProtocol = riskParams[creditor].lastUsdExposureProtocol;
@@ -557,6 +557,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
         // Cache and update lastUsdExposureAsset.
         uint256 lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
+        // If usdExposureAsset is bigger than uint112, then safecast on L577 will revert.
         lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint112(usdExposureAsset);
 
         // Cache lastUsdExposureProtocol.
@@ -567,14 +568,13 @@ abstract contract DerivedAssetModule is AssetModule {
         unchecked {
             if (usdExposureAsset >= lastUsdExposureAsset) {
                 usdExposureProtocol = lastUsdExposureProtocol + (usdExposureAsset - lastUsdExposureAsset);
-                if (usdExposureProtocol > type(uint112).max) revert Overflow();
             } else if (lastUsdExposureProtocol > lastUsdExposureAsset - usdExposureAsset) {
                 usdExposureProtocol = lastUsdExposureProtocol - (lastUsdExposureAsset - usdExposureAsset);
             }
             // For the else case: (lastUsdExposureProtocol < lastUsdExposureAsset - usdExposureAsset),
             // usdExposureProtocol is set to 0, but usdExposureProtocol is already 0.
         }
-        riskParams[creditor].lastUsdExposureProtocol = uint112(usdExposureProtocol);
+        riskParams[creditor].lastUsdExposureProtocol = SafeCastLib.safeCastTo112(usdExposureProtocol);
     }
 
     /**
