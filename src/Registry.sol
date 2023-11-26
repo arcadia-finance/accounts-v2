@@ -335,7 +335,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * 2 = ERC1155.
      * ...
      * @dev If no Creditor is set, only check that the assets are allowed (= can be priced).
-     * @dev If a Creditor is set, increaseExposure in the Asset Module checks and updates the exposure for each asset
+     * @dev If a Creditor is set, processDirectDeposit in the Asset Module checks and updates the exposure for each asset
      * and if applicable, its underlying asset(s).
      */
     function batchProcessDeposit(
@@ -347,9 +347,8 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 addrLength = assetAddresses.length;
         if (addrLength != assetIds.length || addrLength != amounts.length) revert RegistryErrors.Length_Mismatch();
 
-        address assetAddress;
         assetTypes = new uint256[](addrLength);
-
+        address assetAddress;
         if (creditor == address(0)) {
             bool isAllowed_;
             for (uint256 i; i < addrLength; ++i) {
@@ -381,7 +380,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * 1 = ERC721.
      * 2 = ERC1155.
      * ...
-     * @dev If a Creditor is set, batchProcessWithdrawal in the Asset Module updates the exposure for each asset and underlying asset.
+     * @dev If a Creditor is set, processDirectWithdrawal in the Asset Module updates the exposure for each asset and underlying asset.
      */
     function batchProcessWithdrawal(
         address creditor,
@@ -392,13 +391,13 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 addrLength = assetAddresses.length;
         if (addrLength != assetIds.length || addrLength != amounts.length) revert RegistryErrors.Length_Mismatch();
 
-        address assetAddress;
         assetTypes = new uint256[](addrLength);
-
+        address assetAddress;
         if (creditor == address(0)) {
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
+                // The contract doesn't revert as this might block assets in Accounts.
                 (, assetTypes[i]) =
                     IAssetModule(assetToAssetModule[assetAddress]).processAsset(assetAddress, assetIds[i]);
             }
