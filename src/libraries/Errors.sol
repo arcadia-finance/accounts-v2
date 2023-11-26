@@ -53,7 +53,7 @@ library RegistryErrors {
     error Asset_Already_In_Registry();
     error AssetNotAllowed();
     error Length_Mismatch();
-    error MaxRecursionDepthReached();
+    error MaxRecursiveCallsReached();
     error Min_1_Oracle();
     error Only_Account();
     error Only_AssetModule();

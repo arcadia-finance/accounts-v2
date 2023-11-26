@@ -103,7 +103,7 @@ contract GetUsdValues_Registry_Fuzz_Test is Registry_Fuzz_Test {
         registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
-        registryExtension.setMinUsdValueCreditor(address(creditorUsd), minUsdValue);
+        registryExtension.setMinUsdValue(address(creditorUsd), minUsdValue);
         vm.stopPrank();
 
         address[] memory assetAddresses = new address[](1);

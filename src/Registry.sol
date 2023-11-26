@@ -29,9 +29,9 @@ import { RegistryErrors } from "./libraries/Errors.sol";
  *  - It manages the Action Multicall.
  */
 contract Registry is IRegistry, RegistryGuardian {
+    using AssetValuationLib for AssetValueAndRiskFactors[];
     using BitPackingLib for bytes32;
     using FixedPointMathLib for uint256;
-    using AssetValuationLib for AssetValueAndRiskFactors[];
 
     /* //////////////////////////////////////////////////////////////
                                CONSTANTS
@@ -58,9 +58,9 @@ contract Registry is IRegistry, RegistryGuardian {
     // Map oracle identifier => oracleModule.
     mapping(uint256 => address) internal oracleToOracleModule;
     // Map Creditor to minimum USD-value of assets that are taken into account.
-    mapping(address => uint256) public minUsdValueCreditor;
+    mapping(address => uint256) public minUsdValue;
     // Map Creditor to maximum recursion depth of asset pricing.
-    mapping(address => uint256) public maxRecursionDepthCreditor;
+    mapping(address => uint256) public maxRecursiveCalls;
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
@@ -243,14 +243,6 @@ contract Registry is IRegistry, RegistryGuardian {
         return true;
     }
 
-    /**
-     * @notice Sets the maximum recursion depth while pricing an asset for a given Creditor.
-     * @param creditor The contract address of the Creditor for which to set the maximum recursion depth.
-     */
-    function setMaxRecursionDepth(address creditor, uint256 maxRecursionDepth) external onlyRiskManager(creditor) {
-        maxRecursionDepthCreditor[creditor] = maxRecursionDepth;
-    }
-
     /*///////////////////////////////////////////////////////////////
                     RISK VARIABLES MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
@@ -321,12 +313,22 @@ contract Registry is IRegistry, RegistryGuardian {
     /**
      * @notice Sets the minimum USD-value of assets that are taken into account for a given Creditor.
      * @param creditor The contract address of the Creditor.
-     * @param minUsdValue The minimum USD-value of assets that are taken into account for the Creditor,
+     * @param minUsdValue_ The minimum USD-value of assets that are taken into account for the Creditor,
      * denominated in USD with 18 decimals precision.
      * @dev A minimum USD-value will help to avoid remaining dust amounts in Accounts, which couldn't be liquidated.
      */
-    function setMinUsdValueCreditor(address creditor, uint256 minUsdValue) external onlyRiskManager(creditor) {
-        minUsdValueCreditor[creditor] = minUsdValue;
+    function setMinUsdValue(address creditor, uint256 minUsdValue_) external onlyRiskManager(creditor) {
+        minUsdValue[creditor] = minUsdValue_;
+    }
+
+    /**
+     * @notice Sets the maximum number of recursive calls while processing an asset for a given Creditor.
+     * @param creditor The contract address of the Creditor for which to set the maximum recursion depth.
+     * @param maxRecursiveCalls_ The maximum number of calls to different asset modules that are required to process
+     * the deposit/withdrawal/pricing of a single asset.
+     */
+    function setMaxRecursiveCalls(address creditor, uint256 maxRecursiveCalls_) external onlyRiskManager(creditor) {
+        maxRecursiveCalls[creditor] = maxRecursiveCalls_;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -371,14 +373,14 @@ contract Registry is IRegistry, RegistryGuardian {
             }
         } else {
             uint256 recursiveCalls;
-            uint256 maxRecursionDepth = maxRecursionDepthCreditor[creditor];
+            uint256 maxRecursiveCalls_ = maxRecursiveCalls[creditor];
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
                 (recursiveCalls, assetTypes[i]) = IAssetModule(assetToAssetModule[assetAddress]).processDirectDeposit(
                     creditor, assetAddress, assetIds[i], amounts[i]
                 );
-                if (recursiveCalls > maxRecursionDepth) revert RegistryErrors.MaxRecursionDepthReached();
+                if (recursiveCalls > maxRecursiveCalls_) revert RegistryErrors.MaxRecursiveCallsReached();
             }
         }
     }
@@ -536,7 +538,7 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 length = assets.length;
         valuesAndRiskFactors = new AssetValueAndRiskFactors[](length);
 
-        uint256 minUsdValue = minUsdValueCreditor[creditor];
+        uint256 minUsdValue_ = minUsdValue[creditor];
         for (uint256 i; i < length; ++i) {
             (
                 valuesAndRiskFactors[i].assetValue,
@@ -545,7 +547,7 @@ contract Registry is IRegistry, RegistryGuardian {
             ) = IAssetModule(assetToAssetModule[assets[i]]).getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
             // If asset value is too low, set to zero.
             // This is done to prevent dust attacks which may make liquidations unprofitable.
-            if (valuesAndRiskFactors[i].assetValue < minUsdValue) valuesAndRiskFactors[i].assetValue = 0;
+            if (valuesAndRiskFactors[i].assetValue < minUsdValue_) valuesAndRiskFactors[i].assetValue = 0;
         }
     }
 
