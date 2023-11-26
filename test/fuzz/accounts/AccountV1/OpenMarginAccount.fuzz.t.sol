@@ -110,7 +110,20 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Success_openMarginAccount_FromNoCreditor() public {
+    function testFuzz_Success_openMarginAccount_FromNoCreditor(uint112 exposure, uint112 maxExposure) public {
+        // Given: "exposure" is strictly smaller than "maxExposure".
+        exposure = uint112(bound(exposure, 0, type(uint112).max - 1));
+        maxExposure = uint112(bound(maxExposure, exposure + 1, type(uint112).max));
+
+        // And: MaxExposure is set for creditor.
+        vm.prank(users.riskManager);
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1), address(mockERC20.stable1), 0, maxExposure, 0, 0
+        );
+
+        // And: The account has assets deposited.
+        depositTokenInAccount(proxyAccount, mockERC20.stable1, exposure);
+
         // Assert no creditor has been set on deployment
         assertEq(proxyAccount.creditor(), address(0));
         // Assert no liquidator, baseCurrency and liquidation costs have been defined on deployment
@@ -130,6 +143,11 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.liquidator(), Constants.initLiquidator);
         assertEq(proxyAccount.fixedLiquidationCost(), Constants.initLiquidationCost);
         assertEq(proxyAccount.baseCurrency(), address(mockERC20.stable1));
+
+        // And: the exposure of the Creditors is updated.
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
+        (uint128 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorStable1), assetKey);
+        assertEq(actualExposure, exposure);
     }
 
     function testFuzz_Success_openMarginAccount_FromDifferentCreditor(uint112 exposure, uint112 maxExposure) public {

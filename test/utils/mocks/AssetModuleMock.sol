@@ -6,7 +6,15 @@ import { AbstractAssetModuleExtension } from "../Extensions.sol";
 contract AssetModuleMock is AbstractAssetModuleExtension {
     constructor(address registry_, uint256 assetType_) AbstractAssetModuleExtension(registry_, assetType_) { }
 
-    function isAllowed(address asset, uint256) public view override returns (bool) { }
+    bool internal isAllowed_;
+
+    function isAllowed(address, uint256) public view override returns (bool) {
+        return isAllowed_;
+    }
+
+    function setIsAllowedResponse(bool response) public {
+        isAllowed_ = response;
+    }
 
     function getRiskFactors(address creditor, address asset, uint256 assetId)
         external

@@ -183,6 +183,45 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_withdraw_WithoutCreditor_UnknownAsset(address asset, uint256 id, uint256 amount) public {
+        vm.prank(users.accountOwner);
+        accountExtension.closeMarginAccount();
+
+        vm.assume(!registryExtension.inRegistry(asset));
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = asset;
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = id;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amount;
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(bytes(""));
+        accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_withdraw_WithCreditor_UnknownAsset(address asset, uint256 id, uint256 amount) public {
+        vm.assume(!registryExtension.inRegistry(asset));
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = asset;
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = id;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = amount;
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(bytes(""));
+        accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_withdraw_UnknownAsset_OneERC721Deposited() public {
         // Given: two ERC721.
         mockERC721.nft1.mint(users.accountOwner, 100);
@@ -319,9 +358,71 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
     }
 
-    function testFuzz_Success_withdraw_NoDebt_FullWithdrawal(uint112 erc20Amount, uint8 erc721Id, uint112 erc1155Amount)
-        public
-    {
+    function testFuzz_Success_withdraw_NoDebt_WithoutCreditor_FullWithdrawal(
+        uint112 erc20Amount,
+        uint8 erc721Id,
+        uint112 erc1155Amount
+    ) public {
+        vm.prank(users.accountOwner);
+        accountExtension.closeMarginAccount();
+
+        // Given: "exposure" is strictly smaller than "maxExposure".
+        erc20Amount = uint112(bound(erc20Amount, 0, type(uint112).max - 1));
+        erc1155Amount = uint112(bound(erc1155Amount, 0, type(uint112).max - 1));
+
+        // And: An initial state of the account with assets.
+        address[] memory assetAddresses = new address[](3);
+        assetAddresses[0] = address(mockERC20.token1);
+        assetAddresses[1] = address(mockERC721.nft1);
+        assetAddresses[2] = address(mockERC1155.sft1);
+
+        uint256[] memory assetIds = new uint256[](3);
+        assetIds[0] = 0;
+        assetIds[1] = erc721Id;
+        assetIds[2] = 1;
+
+        uint256[] memory assetAmounts = new uint256[](3);
+        assetAmounts[0] = erc20Amount;
+        assetAmounts[1] = 1;
+        assetAmounts[2] = erc1155Amount;
+
+        mintDepositAssets(erc20Amount, erc721Id, erc1155Amount);
+        approveAllAssets();
+
+        vm.prank(users.accountOwner);
+        accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
+
+        // When: A user Fully withdraws assets.
+        vm.prank(users.accountOwner);
+        accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
+
+        // Then: Asset arrays are properly updated.
+        (uint256 erc20Length, uint256 erc721Length,, uint256 erc1155Length) = accountExtension.getLengths();
+
+        assertEq(erc20Length, 0);
+        assertEq(
+            accountExtension.getERC20Balances(address(mockERC20.token1)),
+            mockERC20.token1.balanceOf(address(accountExtension))
+        );
+        assertEq(accountExtension.getERC20Balances(address(mockERC20.token1)), 0);
+        assertEq(mockERC20.token1.balanceOf(address(users.accountOwner)), erc20Amount);
+
+        assertEq(erc721Length, 0);
+
+        assertEq(erc1155Length, 0);
+        assertEq(
+            accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1),
+            mockERC1155.sft1.balanceOf(address(accountExtension), 1)
+        );
+        assertEq(accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1), 0);
+        assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), erc1155Amount);
+    }
+
+    function testFuzz_Success_withdraw_NoDebt_WithCreditor_FullWithdrawal(
+        uint112 erc20Amount,
+        uint8 erc721Id,
+        uint112 erc1155Amount
+    ) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
         erc20Amount = uint112(bound(erc20Amount, 0, type(uint112).max - 1));
         erc1155Amount = uint112(bound(erc1155Amount, 0, type(uint112).max - 1));

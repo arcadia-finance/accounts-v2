@@ -84,6 +84,21 @@ abstract contract AssetModule is Owned, IAssetModule {
     function isAllowed(address asset, uint256 assetId) public view virtual returns (bool);
 
     /**
+     * @notice Returns if an asset is allowed and its asset type.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @return A boolean, indicating if the asset is allowed.
+     * @return assetType Identifier for the type of the asset:
+     * 0 = ERC20.
+     * 1 = ERC721.
+     * 2 = ERC1155
+     * ...
+     */
+    function processAsset(address asset, uint256 assetId) external view virtual returns (bool, uint256) {
+        return (isAllowed(asset, assetId), ASSET_TYPE);
+    }
+
+    /**
      * @notice Returns the unique identifier of an asset based on the contract address and id.
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
