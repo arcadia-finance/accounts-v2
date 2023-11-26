@@ -242,8 +242,8 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.reth_liqFact_2
         );
 
-        registry.setMaxRecursionDepth(address(usdcLendingPool), 4);
-        registry.setMaxRecursionDepth(address(wethLendingPool), 4);
+        registry.setMaxRecursionDepth(address(usdcLendingPool), 5);
+        registry.setMaxRecursionDepth(address(wethLendingPool), 5);
 
         vm.stopBroadcast();
     }
