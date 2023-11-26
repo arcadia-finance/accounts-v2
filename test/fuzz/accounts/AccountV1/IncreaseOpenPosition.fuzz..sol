@@ -31,11 +31,20 @@ contract IncreaseOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_setAssetManager_NonCreditor(address nonCreditor, uint256 debt) public {
+    function testFuzz_Revert_increaseOpenPosition_NonCreditor(address nonCreditor, uint256 debt) public {
         vm.assume(nonCreditor != address(creditorStable1));
 
         vm.prank(nonCreditor);
         vm.expectRevert(AccountErrors.OnlyCreditor.selector);
+        accountExtension.increaseOpenPosition(debt);
+    }
+
+    function testFuzz_Revert_increaseOpenPosition_Reentered(uint256 debt) public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        vm.startPrank(address(creditorStable1));
+        vm.expectRevert(AccountErrors.NoReentry.selector);
         accountExtension.increaseOpenPosition(debt);
     }
 

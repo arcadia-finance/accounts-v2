@@ -504,7 +504,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
      *  - The caller is indeed a Creditor for which a margin account is opened.
      *  - The Account is still healthy after given the new open position.
      */
-    function increaseOpenPosition(uint256 openPosition) external view onlyCreditor returns (uint256 accountVersion) {
+    function increaseOpenPosition(uint256 openPosition)
+        external
+        onlyCreditor
+        nonReentrant
+        returns (uint256 accountVersion)
+    {
         // If the open position is 0, the Account is always healthy.
         // An Account is unhealthy if the collateral value is smaller than the used margin.
         // The used margin equals the sum of the given amount of openPosition and the gas cost to liquidate.
