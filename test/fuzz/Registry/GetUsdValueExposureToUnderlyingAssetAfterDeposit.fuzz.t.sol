@@ -34,7 +34,7 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_Registry_Fuzz_Test is 
         vm.assume(!registryExtension.isAssetModule(unprivilegedAddress_));
 
         vm.prank(unprivilegedAddress_);
-        vm.expectRevert(RegistryErrors.Only_AssetModule.selector);
+        vm.expectRevert(RegistryErrors.OnlyAssetModule.selector);
         registryExtension.getUsdValueExposureToUnderlyingAssetAfterDeposit(
             address(creditorUsd),
             underlyingAsset,

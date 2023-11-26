@@ -49,7 +49,7 @@ contract AddAsset_StandardERC4626AssetModule_Fuzz_Test is StandardERC4626AssetMo
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
         erc4626AssetModule.addAsset(address(ybToken1));
-        vm.expectRevert(RegistryErrors.Asset_Already_In_Registry.selector);
+        vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
         erc4626AssetModule.addAsset(address(ybToken1));
         vm.stopPrank();
     }

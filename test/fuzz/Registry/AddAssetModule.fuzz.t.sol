@@ -37,9 +37,9 @@ contract AddAssetModule_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // Given: All necessary contracts deployed on setup
 
         // When: users.creatorAddress calls addAssetModule for address(erc20AssetModule)
-        // Then: addAssetModule should revert with AssetMod_Not_Unique
+        // Then: addAssetModule should revert with AssetModNotUnique
         vm.prank(users.creatorAddress);
-        vm.expectRevert(RegistryErrors.AssetMod_Not_Unique.selector);
+        vm.expectRevert(RegistryErrors.AssetModNotUnique.selector);
         registryExtension.addAssetModule(address(erc20AssetModule));
     }
 

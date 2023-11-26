@@ -49,15 +49,15 @@ library GuardianErrors {
 }
 
 library RegistryErrors {
-    error AssetMod_Not_Unique();
-    error Asset_Already_In_Registry();
+    error AssetModNotUnique();
+    error AssetAlreadyInRegistry();
     error AssetNotAllowed();
-    error Length_Mismatch();
+    error LengthMismatch();
     error MaxRecursiveCallsReached();
-    error Min_1_Oracle();
-    error Only_Account();
-    error Only_AssetModule();
-    error Only_OracleModule();
-    error OracleMod_Not_Unique();
+    error Min1Oracle();
+    error OnlyAccount();
+    error OnlyAssetModule();
+    error OnlyOracleModule();
+    error OracleModNotUnique();
     error Unauthorized();
 }

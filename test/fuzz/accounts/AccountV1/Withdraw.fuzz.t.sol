@@ -94,7 +94,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         }
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(RegistryErrors.Length_Mismatch.selector);
+        vm.expectRevert(RegistryErrors.LengthMismatch.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
