@@ -117,9 +117,9 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint256 amountBefore = factory.allAccountsLength();
 
         vm.expectEmit();
-        emit MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
-        vm.expectEmit();
         emit Transfer(address(0), address(this), amountBefore + 1);
+        vm.expectEmit();
+        emit MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
         vm.expectEmit(false, true, true, true);
         emit AccountUpgraded(address(0), 1);
 

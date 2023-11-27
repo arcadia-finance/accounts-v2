@@ -148,7 +148,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev A proxy will be used to interact with the Account implementation.
      * Therefore everything is initialised through an init function.
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
-     * @dev The Creditor will only be set if it's a non-zero address.
+     * @dev The Creditor will only be set if it's a non-zero address, in this case the numeraire_ passed as input will be ignored.
      */
     function initialize(address owner_, address registry_, address numeraire_, address creditor_) external {
         if (registry != address(0)) revert AccountErrors.AlreadyInitialized();
@@ -158,8 +158,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         registry = registry_;
 
         if (creditor_ != address(0)) _openMarginAccount(creditor_);
-
-        emit NumeraireSet(numeraire = numeraire_);
+        else emit NumeraireSet(numeraire = numeraire_);
     }
 
     /**
@@ -176,23 +175,24 @@ contract AccountV1 is AccountStorageV1, IAccount {
         nonReentrant
         notDuringAuction
     {
-        if (creditor != address(0)) {
-            // If a Creditor is set, new version should be compatible.
-            // openMarginAccount() is a view function, cannot modify state.
-            (bool success,,,) = ICreditor(creditor).openMarginAccount(newVersion);
-            if (!success) revert AccountErrors.InvalidAccountVersion();
-        }
-
         // Cache old parameters.
         address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
         uint16 oldVersion = ACCOUNT_VERSION;
+
+        // Store new parameters.
         _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
 
         // Prevent that Account is upgraded to a new version where the Numeraire can't be priced.
         if (newRegistry != oldRegistry && !IRegistry(newRegistry).inRegistry(numeraire)) {
             revert AccountErrors.InvalidRegistry();
+        }
+
+        // If a Creditor is set, new version should be compatible.
+        if (creditor != address(0)) {
+            (bool success,,,) = ICreditor(creditor).openMarginAccount(newVersion);
+            if (!success) revert AccountErrors.InvalidAccountVersion();
         }
 
         // Hook on the new logic to finalize upgrade.

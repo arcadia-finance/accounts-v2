@@ -99,12 +99,12 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
             )
         );
 
-        IAccount(account).initialize(msg.sender, versionInformation[accountVersion].registry, numeraire, creditor);
-
         allAccounts.push(account);
         accountIndex[account] = allAccounts.length;
 
         _mint(msg.sender, allAccounts.length);
+
+        IAccount(account).initialize(msg.sender, versionInformation[accountVersion].registry, numeraire, creditor);
 
         emit AccountUpgraded(account, accountVersion);
     }
@@ -237,11 +237,11 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
             latestAccountVersion_ = ++latestAccountVersion;
         }
 
-        if (IAccount(implementation).ACCOUNT_VERSION() != latestAccountVersion) revert FactoryErrors.VersionMismatch();
-
         versionRoot = versionRoot_;
         versionInformation[latestAccountVersion_] =
             VersionInformation({ registry: registry, implementation: implementation, data: data });
+
+        if (IAccount(implementation).ACCOUNT_VERSION() != latestAccountVersion) revert FactoryErrors.VersionMismatch();
 
         emit AccountVersionAdded(uint88(latestAccountVersion_), registry, implementation);
     }
