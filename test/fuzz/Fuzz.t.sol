@@ -162,7 +162,7 @@ abstract contract Fuzz_Test is Base_Test {
             sft2ToUsd: 1 * 10 ** Constants.erc1155OracleDecimals
         });
 
-        // Create a creditor with each numeraire.
+        // Create a creditor with each Numeraire.
         creditorUsd = new CreditorMock();
         creditorStable1 = new CreditorMock();
         creditorToken1 = new CreditorMock();

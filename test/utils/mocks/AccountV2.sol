@@ -21,12 +21,12 @@ import { AccountErrors } from "../../../src/libraries/Errors.sol";
  * @title An Arcadia Account used to deposit a combination of all kinds of assets
  * @author Pragma Labs
  * @notice Users can use this Account to deposit assets (ERC20, ERC721, ERC1155, ...).
- * The Account will denominate all the pooled assets into one numeraire (one unit of account, like USD or ETH).
+ * The Account will denominate all the pooled assets into one Numeraire (one unit of account, like USD or ETH).
  * An increase of value of one asset will offset a decrease in value of another asset.
  * Users can take out a credit line against the single denominated value.
  * Ensure your total value denomination remains above the liquidation threshold, or risk being liquidated!
  * @dev An Account is a smart contract that will contain multiple assets.
- * Using getValue(<numeraire>), the Account returns the combined total value of all (allowed) assets the Account contains.
+ * Using getValue(<Numeraire>), the Account returns the combined total value of all (allowed) assets the Account contains.
  * Integrating this Account as means of collateral management for your own protocol that requires collateral is encouraged.
  * Arcadia's Account functions will guarantee you a certain value of the Account.
  * For whitelists or liquidation strategies specific to your protocol, contact: dev at arcadia.finance
@@ -227,10 +227,10 @@ contract AccountV2 is AccountStorageV2 {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Sets the numeraire of an Account.
-     * @param numeraire_ the new numeraire for the Account.
+     * @notice Sets the Numeraire of an Account.
+     * @param numeraire_ the new Numeraire for the Account.
      * @dev First checks if there is no creditor set,
-     * if there is none set, then a new numeraire is set.
+     * if there is none set, then a new Numeraire is set.
      */
     function setNumeraire(address numeraire_) external onlyOwner {
         if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
@@ -238,8 +238,8 @@ contract AccountV2 is AccountStorageV2 {
     }
 
     /**
-     * @notice Internal function: sets numeraire.
-     * @param numeraire_ the new numeraire for the Account.
+     * @notice Internal function: sets Numeraire.
+     * @param numeraire_ the new Numeraire for the Account.
      */
     function _setNumeraire(address numeraire_) internal {
         if (!IRegistry(registry).inRegistry(numeraire_)) revert AccountErrors.NumeraireNotFound();
@@ -350,11 +350,11 @@ contract AccountV2 is AccountStorageV2 {
     }
 
     /**
-     * @notice Returns the total value (mark to market) of the Account in a specific numeraire
-     * @param numeraire_ The numeraire to return the value in.
-     * @return accountValue Total value stored in the account, denominated in numeraire.
+     * @notice Returns the total value (mark to market) of the Account in a specific Numeraire
+     * @param numeraire_ The Numeraire to return the value in.
+     * @return accountValue Total value stored in the account, denominated in Numeraire.
      * @dev Fetches all stored assets with their amounts.
-     * Using a specified numeraire, fetches the value of all assets in said numeraire.
+     * Using a specified Numeraire, fetches the value of all assets in said Numeraire.
      */
     function getAccountValue(address numeraire_) external view returns (uint256 accountValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
@@ -364,8 +364,8 @@ contract AccountV2 is AccountStorageV2 {
 
     /**
      * @notice Calculates the total collateral value (MTM discounted with a haircut) of the Account.
-     * @return collateralValue The collateral value, returned in the decimal precision of the numeraire.
-     * @dev Returns the value denominated in the numeraire of the Account.
+     * @return collateralValue The collateral value, returned in the decimal precision of the Numeraire.
+     * @dev Returns the value denominated in the Numeraire of the Account.
      * @dev The collateral value of the Account is equal to the spot value of the underlying assets,
      * discounted by a haircut (the collateral factor). Since the value of
      * collateralized assets can fluctuate, the haircut guarantees that the Account
@@ -382,8 +382,8 @@ contract AccountV2 is AccountStorageV2 {
 
     /**
      * @notice Calculates the total liquidation value (MTM discounted with a factor to account for slippage) of the Account.
-     * @return liquidationValue The liquidation value, returned in the decimal precision of the numeraire.
-     * @dev Returns the value denominated in the numeraire of the Account.
+     * @return liquidationValue The liquidation value, returned in the decimal precision of the Numeraire.
+     * @dev Returns the value denominated in the Numeraire of the Account.
      * @dev The liquidation value of the Account is equal to the spot value of the underlying assets,
      * discounted by a haircut (the liquidation factor).
      * The liquidation value takes into account that not the full value of the assets can go towards
@@ -403,7 +403,7 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Used Margin is the value of the assets that is currently 'locked' to back:
      *  - All the liabilities issued against the Account.
      *  - An additional fixed buffer to cover gas fees in case of a liquidation.
-     * @dev The used margin is denominated in the numeraire.
+     * @dev The used margin is denominated in the Numeraire.
      * @dev Currently only one trusted application (Arcadia Lending) can open a margin account.
      * The open liability is fetched at the contract of the application -> only allow trusted audited creditors!!!
      */
@@ -420,7 +420,7 @@ contract AccountV2 is AccountStorageV2 {
      * @notice Calculates the remaining margin the owner of the Account can use.
      * @return freeMargin The remaining amount of margin a user can take.
      * @dev Free Margin is the value of the assets that is still free to back additional liabilities.
-     * @dev The free margin is denominated in the numeraire.
+     * @dev The free margin is denominated in the Numeraire.
      */
     function getFreeMargin() public view returns (uint256 freeMargin) {
         uint256 collateralValue = getCollateralValue();

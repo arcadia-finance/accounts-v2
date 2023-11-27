@@ -23,7 +23,7 @@ import { IPermit2 } from "../interfaces/IPermit2.sol";
  * They provide individuals, DAOs, and other protocols with a simple and flexible way to deposit and manage multiple assets as collateral.
  * The total combination of assets can be used as margin to back liabilities issued by any financial protocol (lending, leverage, futures...).
  * @dev Users can use this Account to deposit assets (fungible, non-fungible, LP positions, yiel bearing assets...).
- * The Account will denominate all the deposited assets into one numeraire (one unit of account, like USD or ETH).
+ * The Account will denominate all the deposited assets into one Numeraire (one unit of account, like USD or ETH).
  * Users can use the single denominated value of all their assets to take margin (take credit line, financing for leverage...).
  * An increase of value of one asset will offset a decrease in value of another asset.
  * Ensure your total value denomination remains above the liquidation threshold, or risk being liquidated!
@@ -190,7 +190,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
 
-        // Prevent that Account is upgraded to a new version where the numeraire can't be priced.
+        // Prevent that Account is upgraded to a new version where the Numeraire can't be priced.
         if (newRegistry != oldRegistry && !IRegistry(newRegistry).inRegistry(numeraire)) {
             revert AccountErrors.InvalidRegistry();
         }
@@ -244,12 +244,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /* ///////////////////////////////////////////////////////////////
-                        BASE CURRENCY LOGIC
+                        NUMERAIRE LOGIC
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Sets the numeraire of the Account.
-     * @param numeraire_ The new numeraire for the Account.
+     * @notice Sets the Numeraire of the Account.
+     * @param numeraire_ The new Numeraire for the Account.
      */
     function setNumeraire(address numeraire_) external onlyOwner nonReentrant {
         if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
@@ -257,8 +257,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Sets the numeraire of the Account.
-     * @param numeraire_ The new numeraire for the Account.
+     * @notice Sets the Numeraire of the Account.
+     * @param numeraire_ The new Numeraire for the Account.
      */
     function _setNumeraire(address numeraire_) internal {
         if (!IRegistry(registry).inRegistry(numeraire_)) revert AccountErrors.NumeraireNotFound();
@@ -353,8 +353,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Calculates the total collateral value (MTM discounted with a haircut) of the Account.
-     * @return collateralValue The collateral value, returned in the decimal precision of the numeraire.
-     * @dev Returns the value denominated in the numeraire of the Account.
+     * @return collateralValue The collateral value, returned in the decimal precision of the Numeraire.
+     * @dev Returns the value denominated in the Numeraire of the Account.
      * @dev The collateral value of the Account is equal to the spot value of the underlying assets,
      * discounted by a haircut (the collateral factor). Since the value of
      * collateralized assets can fluctuate, the haircut guarantees that the Account
@@ -394,7 +394,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Used Margin is the value of the assets that is currently 'locked' to back:
      *  - All the liabilities issued against the Account.
      *  - An additional fixed buffer to cover gas fees in case of a liquidation.
-     * @dev The used margin is denominated in the numeraire.
+     * @dev The used margin is denominated in the Numeraire.
      * @dev Currently only one Creditor at a time can open a margin account.
      * The open liability is fetched at the contract of the Creditor -> only allow trusted audited Creditors!!!
      */
@@ -411,7 +411,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @notice Calculates the remaining margin the owner of the Account can use.
      * @return freeMargin The remaining amount of margin a user can take.
      * @dev Free Margin is the value of the assets that is still free to back additional liabilities.
-     * @dev The free margin is denominated in the numeraire.
+     * @dev The free margin is denominated in the Numeraire.
      */
     function getFreeMargin() public view returns (uint256 freeMargin) {
         uint256 collateralValue = getCollateralValue();
@@ -1074,11 +1074,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Returns the total value (mark to market) of the Account in a specific numeraire
-     * @param numeraire_ The numeraire to return the value in.
-     * @return accountValue Total value stored in the account, denominated in numeraire.
+     * @notice Returns the total value (mark to market) of the Account in a specific Numeraire
+     * @param numeraire_ The Numeraire to return the value in.
+     * @return accountValue Total value stored in the account, denominated in Numeraire.
      * @dev Fetches all stored assets with their amounts.
-     * Using a specified numeraire, fetches the value of all assets in said numeraire.
+     * Using a specified Numeraire, fetches the value of all assets in said Numeraire.
      */
     function getAccountValue(address numeraire_) external view returns (uint256 accountValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
