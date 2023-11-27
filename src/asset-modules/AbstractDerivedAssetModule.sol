@@ -483,6 +483,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
             // Cache and update lastUsdExposureAsset.
             uint256 lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
+            // If usdExposureAsset is bigger than uint112, then check on usdExposureProtocol below will revert.
             lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint112(usdExposureAsset);
 
             // Cache lastUsdExposureProtocol.
@@ -557,7 +558,7 @@ abstract contract DerivedAssetModule is AssetModule {
 
         // Cache and update lastUsdExposureAsset.
         uint256 lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
-        // If usdExposureAsset is bigger than uint112, then safecast on L577 will revert.
+        // If usdExposureAsset is bigger than uint112, then safecast on usdExposureProtocol below will revert.
         lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint112(usdExposureAsset);
 
         // Cache lastUsdExposureProtocol.
