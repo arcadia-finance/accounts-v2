@@ -56,7 +56,8 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         // When: "_processWithdrawal" is called.
         // Then: The transaction reverts with "Overflow".
         bytes32 assetKey = derivedAssetModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        vm.expectRevert(AssetModule.Overflow.selector);
+        // Overflows in safecast.
+        vm.expectRevert(bytes(""));
         derivedAssetModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
     }
 

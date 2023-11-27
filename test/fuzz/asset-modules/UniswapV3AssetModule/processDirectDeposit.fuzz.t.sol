@@ -236,8 +236,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
         vm.assume(tickLower < tickUpper);
         vm.assume(isWithinAllowedRange(tickLower));
         vm.assume(isWithinAllowedRange(tickUpper));
-
-        vm.assume(liquidity > 0);
+        liquidity = uint128(bound(liquidity, 1, type(uint128).max));
 
         // Calculate and check that tick current is within allowed ranges.
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
@@ -268,12 +267,14 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
             );
 
             // Check that exposure to underlying tokens stays below maxExposures.
-            vm.assume(amount0 + initialExposure0 < maxExposure0);
-            vm.assume(amount1 + initialExposure1 < maxExposure1);
+            // vm.assume(amount0 + initialExposure0 < maxExposure0);
+            // vm.assume(amount1 + initialExposure1 < maxExposure1);
+            initialExposure0 = uint112(bound(initialExposure0, 0, maxExposure0 + amount0));
+            initialExposure1 = uint112(bound(initialExposure1, 0, maxExposure1 + amount1));
 
             // And: Usd value of underlying assets does not overflow.
-            vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-            vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            vm.assume(amount0 + initialExposure0 < type(uint112).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            vm.assume(amount1 + initialExposure1 < type(uint112).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
         }
 
         // Add underlying tokens and its oracles to Arcadia.
@@ -284,6 +285,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
                 uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+            vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, 0, usdExposureProtocol));
         }
 
