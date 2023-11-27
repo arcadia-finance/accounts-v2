@@ -148,7 +148,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev A proxy will be used to interact with the Account implementation.
      * Therefore everything is initialised through an init function.
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
-     * @dev The Creditor will only be set if it's a non-zero address.
+     * @dev The Creditor will only be set if it's a non-zero address, in this case the numeraire_ passed as input will be ignored.
      */
     function initialize(address owner_, address registry_, address numeraire_, address creditor_) external {
         if (registry != address(0)) revert AccountErrors.AlreadyInitialized();
@@ -158,8 +158,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         registry = registry_;
 
         if (creditor_ != address(0)) _openMarginAccount(creditor_);
-
-        emit NumeraireSet(numeraire = numeraire_);
+        else emit NumeraireSet(numeraire = numeraire_);
     }
 
     /**
