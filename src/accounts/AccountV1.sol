@@ -175,23 +175,24 @@ contract AccountV1 is AccountStorageV1, IAccount {
         nonReentrant
         notDuringAuction
     {
-        if (creditor != address(0)) {
-            // If a Creditor is set, new version should be compatible.
-            // openMarginAccount() is a view function, cannot modify state.
-            (bool success,,,) = ICreditor(creditor).openMarginAccount(newVersion);
-            if (!success) revert AccountErrors.InvalidAccountVersion();
-        }
-
         // Cache old parameters.
         address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
         uint16 oldVersion = ACCOUNT_VERSION;
+
+        // Store new parameters.
         _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
 
         // Prevent that Account is upgraded to a new version where the Numeraire can't be priced.
         if (newRegistry != oldRegistry && !IRegistry(newRegistry).inRegistry(numeraire)) {
             revert AccountErrors.InvalidRegistry();
+        }
+
+        // If a Creditor is set, new version should be compatible.
+        if (creditor != address(0)) {
+            (bool success,,,) = ICreditor(creditor).openMarginAccount(newVersion);
+            if (!success) revert AccountErrors.InvalidAccountVersion();
         }
 
         // Hook on the new logic to finalize upgrade.
