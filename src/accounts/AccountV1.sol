@@ -371,7 +371,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Calculates the total liquidation value (MTM discounted with a factor to account for slippage) of the Account.
-     * @return liquidationValue The liquidation value, returned in the decimal precision of the numeraire.
+     * @return liquidationValue The liquidation value, returned in the decimal precision of the Numeraire.
      * @dev The liquidation value of the Account is equal to the spot value of the underlying assets,
      * discounted by a haircut (the liquidation factor).
      * The liquidation value takes into account that not the full value of the assets can go towards
