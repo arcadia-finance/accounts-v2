@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { ERC20, SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
-contract StakingModule {
+abstract contract StakingModule {
     using FixedPointMathLib for uint256;
     using SafeTransferLib for ERC20;
 
@@ -76,6 +76,7 @@ contract StakingModule {
     }
 
     // Note: add nonReentrant and notPaused? modifiers
+    // Note: See who can call this function
     function stake(uint256 amount, address account) external updateReward(account) {
         if (amount == 0) revert AmountIsZero();
 
@@ -84,21 +85,28 @@ contract StakingModule {
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
 
         // Internal function to stake in protocol
+        _stake(amount);
 
         emit Staked(msg.sender, amount);
     }
 
+    function _stake(uint256 amount) internal virtual;
+
     // Note: add nonReentrant modifier
-    function withdraw(uint256 amount, address account) public updateReward(account) {
+    // Note: see who can call this function
+    function withdraw(uint256 amount, address account) external updateReward(account) {
         if (amount == 0) revert AmountIsZero();
 
         _totalSupply -= amount;
         _balances[msg.sender] -= amount;
 
         // Internal function to claim from protocol
+        _withdraw(amount);
 
         emit Withdrawn(msg.sender, amount);
     }
+
+    function _withdraw(uint256 amount) internal virtual;
 
     function rewardPerToken() public view returns (uint256 rewardPerToken_) {
         if (_totalSupply == 0) {
