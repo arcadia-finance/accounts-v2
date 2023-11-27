@@ -2,18 +2,17 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { UniswapV3Fixture, UniswapV3AssetModule_Fuzz_Test } from "./_UniswapV3AssetModule.fuzz.t.sol";
+import { UniswapV3AssetModule_Fuzz_Test } from "./_UniswapV3AssetModule.fuzz.t.sol";
 
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/NonfungiblePositionManager.sol";
-import { RiskModule } from "../../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
-import { UniswapV3AssetModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts" of contract "UniswapV3AssetModule".
@@ -43,8 +42,8 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AssetModule_Fuzz_Test is UniswapV3A
         asset0.decimals = bound(asset0.decimals, 0, 18);
         asset1.decimals = bound(asset1.decimals, 0, 18);
 
-        ERC20Mock token0 = new ERC20Mock('Token 0', 'TOK0', uint8(asset0.decimals));
-        ERC20Mock token1 = new ERC20Mock('Token 1', 'TOK1', uint8(asset1.decimals));
+        ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
+        ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
         if (token0 > token1) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
@@ -88,8 +87,8 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AssetModule_Fuzz_Test is UniswapV3A
         asset0.decimals = bound(asset0.decimals, 0, 18);
         asset1.decimals = bound(asset1.decimals, 0, 18);
 
-        ERC20Mock token0 = new ERC20Mock('Token 0', 'TOK0', uint8(asset0.decimals));
-        ERC20Mock token1 = new ERC20Mock('Token 1', 'TOK1', uint8(asset1.decimals));
+        ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
+        ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
         if (token0 > token1) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
@@ -128,8 +127,8 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AssetModule_Fuzz_Test is UniswapV3A
         asset0.decimals = bound(asset0.decimals, 0, 18);
         asset1.decimals = bound(asset1.decimals, 0, 18);
 
-        ERC20Mock token0 = new ERC20Mock('Token 0', 'TOK0', uint8(asset0.decimals));
-        ERC20Mock token1 = new ERC20Mock('Token 1', 'TOK1', uint8(asset1.decimals));
+        ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
+        ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
         if (token0 > token1) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
@@ -164,7 +163,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AssetModule_Fuzz_Test is UniswapV3A
 
         // When: "getUnderlyingAssetsAmounts" is called.
         uint256[] memory underlyingAssetsAmounts;
-        RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
         {
             bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
             (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =

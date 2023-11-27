@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "transferOwnership" of contract "AccountV1".
@@ -27,19 +27,8 @@ contract TransferOwnership_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(users.accountOwner, accountExtension.owner());
 
         vm.startPrank(sender);
-        vm.expectRevert("A: Only Factory");
+        vm.expectRevert(AccountErrors.OnlyFactory.selector);
         accountExtension.transferOwnership(to);
-        vm.stopPrank();
-
-        assertEq(users.accountOwner, accountExtension.owner());
-    }
-
-    function testFuzz_Revert_transferOwnership_InvalidRecipient() public {
-        assertEq(users.accountOwner, accountExtension.owner());
-
-        vm.startPrank(address(factory));
-        vm.expectRevert("A_TO: INVALID_RECIPIENT");
-        accountExtension.transferOwnership(address(0));
         vm.stopPrank();
 
         assertEq(users.accountOwner, accountExtension.owner());

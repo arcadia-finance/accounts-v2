@@ -2,11 +2,13 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { ChainlinkOracleModule_Fuzz_Test } from "./_ChainlinkOracleModule.fuzz.t.sol";
 
 import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
+import { ChainlinkOracleModule } from "../../../../src/oracle-modules/ChainlinkOracleModule.sol";
+import { OracleModule } from "../../../../src/oracle-modules/AbstractOracleModule.sol";
 
 /**
  * @notice Fuzz tests for the function "addOracle" of contract "ChainlinkOracleModule".
@@ -41,7 +43,7 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         vm.startPrank(users.creatorAddress);
         chainlinkOM.addOracle(address(mockOracles.token4ToUsd), baseAsset, quoteAsset);
 
-        vm.expectRevert("CLOM_AO: Oracle already added");
+        vm.expectRevert(OracleModule.OracleAlreadyAdded.selector);
         chainlinkOM.addOracle(address(mockOracles.token4ToUsd), baseAsset, quoteAsset);
         vm.stopPrank();
     }
@@ -64,6 +66,8 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         vm.assume(oracle != address(mockERC20.token2));
         vm.assume(oracle != address(mockERC20.token3));
         vm.assume(oracle != address(mockERC20.token4));
+        vm.assume(oracle != address(vm));
+        vm.assume(oracle != address(proxyAccount));
 
         vm.prank(users.creatorAddress);
         vm.expectRevert(bytes(""));
@@ -75,7 +79,7 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD", address(0));
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("CLOM_AO: Maximal 18 decimals");
+        vm.expectRevert(ChainlinkOracleModule.Max18Decimals.selector);
         chainlinkOM.addOracle(address(oracle), baseAsset, quoteAsset);
     }
 
@@ -89,7 +93,7 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD", address(0));
 
         oracleCounterLast = bound(oracleCounterLast, 0, type(uint80).max);
-        mainRegistryExtension.setOracleCounter(oracleCounterLast);
+        registryExtension.setOracleCounter(oracleCounterLast);
 
         vm.prank(users.creatorAddress);
         uint256 oracleId = chainlinkOM.addOracle(address(oracle), baseAsset, quoteAsset);
@@ -105,7 +109,7 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         (bytes16 baseAsset_, bytes16 quoteAsset_) = chainlinkOM.assetPair(oracleId);
         assertEq(baseAsset_, baseAsset);
         assertEq(quoteAsset_, quoteAsset);
-        assertEq(mainRegistryExtension.getOracleToOracleModule(oracleId), address(chainlinkOM));
-        assertEq(mainRegistryExtension.getOracleCounter(), oracleCounterLast + 1);
+        assertEq(registryExtension.getOracleToOracleModule(oracleId), address(chainlinkOM));
+        assertEq(registryExtension.getOracleCounter(), oracleCounterLast + 1);
     }
 }

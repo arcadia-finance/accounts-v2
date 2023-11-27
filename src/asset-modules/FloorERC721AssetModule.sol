@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IRegistry } from "./interfaces/IRegistry.sol";
 import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
 
 /**
@@ -12,7 +12,7 @@ import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
  * @author Pragma Labs
  * @notice The FloorERC721AssetModule stores pricing logic and basic information for ERC721 tokens for which a direct price feeds exists
  * for the floor price of the collection
- * @dev No end-user should directly interact with the FloorERC721AssetModule, only the Main-registry  or the contract owner
+ * @dev No end-user should directly interact with the FloorERC721AssetModule, only the Registry  or the contract owner
  */
 contract FloorERC721AssetModule is PrimaryAssetModule {
     /* //////////////////////////////////////////////////////////////
@@ -31,14 +31,21 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
     }
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    error AssetNotAllowed();
+    error InvalidRange();
+
+    /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The address of the Main-registry.
+     * @param registry_ The address of the Registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC721 tokens is 1.
      */
-    constructor(address mainRegistry_) PrimaryAssetModule(mainRegistry_, 1) { }
+    constructor(address registry_) PrimaryAssetModule(registry_, 1) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -56,10 +63,10 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
         external
         onlyOwner
     {
-        require(idRangeStart <= idRangeEnd, "AM721_AA: Invalid Range");
-        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracleSequence), "AM721_AA: Bad Sequence");
-        // Will revert in MainRegistry if asset was already added.
-        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
+        if (idRangeStart > idRangeEnd) revert InvalidRange();
+        if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert BadOracleSequence();
+        // Will revert in Registry if asset was already added.
+        IRegistry(REGISTRY).addAsset(asset);
 
         inAssetModule[asset] = true;
 
@@ -145,14 +152,24 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * param amount The amount of tokens.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
+     * @return assetType Identifier for the type of the asset:
+     * 0 = ERC20.
+     * 1 = ERC721.
+     * 2 = ERC1155
+     * ...
      * @dev amount of a deposit in ERC721 asset module must be 1.
-     * @dev super.processDirectDeposit does check that msg.sender is the MainRegistry.
+     * @dev super.processDirectDeposit does check that msg.sender is the Registry.
      */
-    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256) public override {
-        require(isAllowed(asset, assetId), "AM721_PDD: Asset not allowed");
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256)
+        public
+        override
+        returns (uint256, uint256)
+    {
+        if (!isAllowed(asset, assetId)) revert AssetNotAllowed();
 
-        // Also checks that msg.sender == MainRegistry.
-        super.processDirectDeposit(creditor, asset, assetId, 1);
+        // Also checks that msg.sender == Registry.
+        return super.processDirectDeposit(creditor, asset, assetId, 1);
     }
 
     /**
@@ -162,9 +179,9 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
      * @param assetId The Id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
-     * @dev super.processIndirectDeposit does check that msg.sender is the MainRegistry.
+     * @dev super.processIndirectDeposit does check that msg.sender is the Registry.
      */
     function processIndirectDeposit(
         address creditor,
@@ -172,10 +189,10 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public override returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
-        require(isAllowed(asset, assetId), "AM721_PID: Asset not allowed");
+    ) public override returns (uint256, uint256) {
+        if (!isAllowed(asset, assetId)) revert AssetNotAllowed();
 
-        // Also checks that msg.sender == MainRegistry.
+        // Also checks that msg.sender == Registry.
         return super.processIndirectDeposit(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );

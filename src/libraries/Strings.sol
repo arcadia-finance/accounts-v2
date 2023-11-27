@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 library Strings {
-    bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
-
     /**
      * @dev Converts a `uint256` to its ASCII `string` decimal representation.
      */

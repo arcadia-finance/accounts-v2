@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { ChainlinkOracleModule_Fuzz_Test } from "./_ChainlinkOracleModule.fuzz.t.sol";
 
@@ -21,13 +21,11 @@ contract Constructor_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fu
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address mainRegistry_) public {
+    function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.creatorAddress);
-        ChainlinkOracleModuleExtension oracleModule_ = new ChainlinkOracleModuleExtension(
-            mainRegistry_
-        );
+        ChainlinkOracleModuleExtension oracleModule_ = new ChainlinkOracleModuleExtension(registry_);
         vm.stopPrank();
 
-        assertEq(oracleModule_.MAIN_REGISTRY(), mainRegistry_);
+        assertEq(oracleModule_.REGISTRY(), registry_);
     }
 }

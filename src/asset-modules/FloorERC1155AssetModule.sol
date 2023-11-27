@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IRegistry } from "./interfaces/IRegistry.sol";
 import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
 
 /**
@@ -12,18 +12,26 @@ import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
  * @author Pragma Labs
  * @notice The FloorERC1155AssetModule stores pricing logic and basic information for ERC1155 tokens,
  *  for which a direct price feed exists per Id.
- * @dev No end-user should directly interact with the FloorERC1155AssetModule, only the Main-registry or the contract owner
+ * @dev No end-user should directly interact with the FloorERC1155AssetModule, only the Registry or the contract owner
  */
 contract FloorERC1155AssetModule is PrimaryAssetModule {
+    /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    error AssetAlreadyInAM();
+    error AssetNotAllowed();
+    error InvalidId();
+
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The address of the Main-registry.
+     * @param registry_ The address of the Registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC1155 tokens is 2.
      */
-    constructor(address mainRegistry_) PrimaryAssetModule(mainRegistry_, 2) { }
+    constructor(address registry_) PrimaryAssetModule(registry_, 2) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -39,16 +47,14 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
     function addAsset(address asset, uint256 assetId, bytes32 oracleSequence) external onlyOwner {
         if (inAssetModule[asset]) {
             // Contract address already added -> must be a new Id.
-            require(
-                assetToInformation[_getKeyFromAsset(asset, assetId)].assetUnit == 0, "AM1155_AA: Asset already in PM"
-            );
+            if (assetToInformation[_getKeyFromAsset(asset, assetId)].assetUnit != 0) revert AssetAlreadyInAM();
         } else {
             // New contract address.
-            IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
+            IRegistry(REGISTRY).addAsset(asset);
             inAssetModule[asset] = true;
         }
-        require(assetId <= type(uint96).max, "AM1155_AA: Invalid Id");
-        require(IMainRegistry(MAIN_REGISTRY).checkOracleSequence(oracleSequence), "AM1155_AA: Bad Sequence");
+        if (assetId > type(uint96).max) revert InvalidId();
+        if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert BadOracleSequence();
 
         // Unit for ERC1155 is 1 (standard ERC1155s don't have decimals).
         assetToInformation[_getKeyFromAsset(asset, assetId)] =
@@ -81,15 +87,22 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
+     * @return assetType Identifier for the type of the asset:
+     * 0 = ERC20.
+     * 1 = ERC721.
+     * 2 = ERC1155
+     * ...
      */
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         override
-        onlyMainReg
+        onlyRegistry
+        returns (uint256, uint256)
     {
-        require(isAllowed(asset, assetId), "AM1155_PDD: Asset not allowed");
+        if (!isAllowed(asset, assetId)) revert AssetNotAllowed();
 
-        super.processDirectDeposit(creditor, asset, assetId, amount);
+        return super.processDirectDeposit(creditor, asset, assetId, amount);
     }
 
     /**
@@ -99,7 +112,7 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
      * @param assetId The Id of the asset.
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return primaryFlag Identifier indicating if it is a Primary or Derived Asset Module.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      */
     function processIndirectDeposit(
@@ -108,10 +121,10 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
         uint256 assetId,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public override onlyMainReg returns (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) {
-        require(isAllowed(asset, assetId), "AM1155_PID: Asset not allowed");
+    ) public override onlyRegistry returns (uint256, uint256) {
+        if (!isAllowed(asset, assetId)) revert AssetNotAllowed();
 
-        (primaryFlag, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
+        return super.processIndirectDeposit(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
     }

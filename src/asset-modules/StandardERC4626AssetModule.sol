@@ -2,17 +2,17 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { DerivedAssetModule, IMainRegistry } from "./AbstractDerivedAssetModule.sol";
+import { DerivedAssetModule, IRegistry } from "./AbstractDerivedAssetModule.sol";
 import { IERC4626 } from "../interfaces/IERC4626.sol";
-import { RiskModule } from "../RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
 
 /**
  * @title Sub-registry for Standard ERC4626 tokens
  * @author Pragma Labs
  * @notice The StandardERC4626Registry stores pricing logic and basic information for ERC4626 tokens for which the underlying assets have direct price feed.
- * @dev No end-user should directly interact with the StandardERC4626Registry, only the Main-registry or the contract owner
+ * @dev No end-user should directly interact with the StandardERC4626Registry, only the Registry or the contract owner
  */
 contract StandardERC4626AssetModule is DerivedAssetModule {
     /* //////////////////////////////////////////////////////////////
@@ -23,14 +23,19 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+    error Underlying_Asset_Not_Allowed();
+
+    /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The address of the Main-registry.
+     * @param registry_ The address of the Registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address mainRegistry_) DerivedAssetModule(mainRegistry_, 0) { }
+    constructor(address registry_) DerivedAssetModule(registry_, 0) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -43,15 +48,15 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
     function addAsset(address asset) external onlyOwner {
         address underlyingAsset = address(IERC4626(asset).asset());
 
-        require(IMainRegistry(MAIN_REGISTRY).isAllowed(underlyingAsset, 0), "AM4626_AA: Underlying Asset not allowed");
+        if (!IRegistry(REGISTRY).isAllowed(underlyingAsset, 0)) revert Underlying_Asset_Not_Allowed();
         inAssetModule[asset] = true;
 
         bytes32[] memory underlyingAssets_ = new bytes32[](1);
         underlyingAssets_[0] = _getKeyFromAsset(underlyingAsset, 0);
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
-        // Will revert in MainRegistry if asset was already added.
-        IMainRegistry(MAIN_REGISTRY).addAsset(asset, ASSET_TYPE);
+        // Will revert in Registry if asset was already added.
+        IRegistry(REGISTRY).addAsset(asset);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -136,10 +141,7 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
         internal
         view
         override
-        returns (
-            uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
-        )
+        returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
         (address asset,) = _getAssetFromKey(assetKey);
         underlyingAssetsAmounts = new uint256[](1);

@@ -2,15 +2,15 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { Test } from "../lib/forge-std/src/Test.sol";
 import { Users } from "./utils/Types.sol";
 import { Factory } from "../src/Factory.sol";
-import { AccountV1 } from "../src/AccountV1.sol";
+import { AccountV1 } from "../src/accounts/AccountV1.sol";
 import { AccountV2 } from "./utils/mocks/AccountV2.sol";
 import { ChainlinkOracleModuleExtension } from "./utils/Extensions.sol";
-import { MainRegistryExtension } from "./utils/Extensions.sol";
+import { RegistryExtension } from "./utils/Extensions.sol";
 import { AssetModule } from "../src/asset-modules/AbstractAssetModule.sol";
 import { StandardERC20AssetModuleExtension } from "./utils/Extensions.sol";
 import { FloorERC721AssetModuleExtension } from "./utils/Extensions.sol";
@@ -34,7 +34,7 @@ abstract contract Base_Test is Test, Events, Errors {
     //////////////////////////////////////////////////////////////////////////*/
 
     Factory internal factory;
-    MainRegistryExtension internal mainRegistryExtension;
+    RegistryExtension internal registryExtension;
     ChainlinkOracleModuleExtension internal chainlinkOM;
     StandardERC20AssetModuleExtension internal erc20AssetModule;
     FloorERC721AssetModuleExtension internal floorERC721AssetModule;
@@ -67,42 +67,36 @@ abstract contract Base_Test is Test, Events, Errors {
         // Deploy the base test contracts.
         vm.startPrank(users.creatorAddress);
         factory = new Factory();
-        mainRegistryExtension = new MainRegistryExtension(address(factory));
-        chainlinkOM = new ChainlinkOracleModuleExtension(address(mainRegistryExtension));
-        erc20AssetModule = new StandardERC20AssetModuleExtension(address(mainRegistryExtension));
-        floorERC721AssetModule = new FloorERC721AssetModuleExtension(address(mainRegistryExtension));
-        floorERC1155AssetModule = new FloorERC1155AssetModuleExtension(
-            address(mainRegistryExtension)
-        );
+        registryExtension = new RegistryExtension(address(factory));
+        chainlinkOM = new ChainlinkOracleModuleExtension(address(registryExtension));
+        erc20AssetModule = new StandardERC20AssetModuleExtension(address(registryExtension));
+        floorERC721AssetModule = new FloorERC721AssetModuleExtension(address(registryExtension));
+        floorERC1155AssetModule = new FloorERC1155AssetModuleExtension(address(registryExtension));
 
         accountV1Logic = new AccountV1();
         accountV2Logic = new AccountV2();
-        factory.setNewAccountInfo(
-            address(mainRegistryExtension), address(accountV1Logic), Constants.upgradeProof1To2, ""
-        );
-        vm.stopPrank();
+        factory.setNewAccountInfo(address(registryExtension), address(accountV1Logic), Constants.upgradeProof1To2, "");
 
         // Set the Guardians.
         vm.startPrank(users.creatorAddress);
         factory.changeGuardian(users.guardian);
-        mainRegistryExtension.changeGuardian(users.guardian);
+        registryExtension.changeGuardian(users.guardian);
+
+        // Add Asset Modules to the Registry.
+        vm.startPrank(users.creatorAddress);
+        registryExtension.addAssetModule(address(erc20AssetModule));
+        registryExtension.addAssetModule(address(floorERC721AssetModule));
+        registryExtension.addAssetModule(address(floorERC1155AssetModule));
         vm.stopPrank();
 
-        // Add Asset Modules to the Main Registry.
+        // Add Oracle Modules to the Registry.
         vm.startPrank(users.creatorAddress);
-        mainRegistryExtension.addAssetModule(address(erc20AssetModule));
-        mainRegistryExtension.addAssetModule(address(floorERC721AssetModule));
-        mainRegistryExtension.addAssetModule(address(floorERC1155AssetModule));
-        vm.stopPrank();
-
-        // Add Oracle Modules to the Main Registry.
-        vm.startPrank(users.creatorAddress);
-        mainRegistryExtension.addOracleModule(address(chainlinkOM));
+        registryExtension.addOracleModule(address(chainlinkOM));
         vm.stopPrank();
 
         // Label the base test contracts.
         vm.label({ account: address(factory), newLabel: "Factory" });
-        vm.label({ account: address(mainRegistryExtension), newLabel: "Main Registry" });
+        vm.label({ account: address(registryExtension), newLabel: "Registry" });
         vm.label({ account: address(chainlinkOM), newLabel: "Chainlink Oracle Module" });
         vm.label({ account: address(erc20AssetModule), newLabel: "Standard ERC20 Asset Module" });
         vm.label({ account: address(floorERC721AssetModule), newLabel: "ERC721 Asset Module" });
@@ -111,9 +105,10 @@ abstract contract Base_Test is Test, Events, Errors {
         vm.label({ account: address(accountV2Logic), newLabel: "Account V2 Logic" });
 
         // Deploy an initial Account with all inputs to zero
-        vm.prank(users.accountOwner);
+        vm.startPrank(users.accountOwner);
         address proxyAddress = factory.createAccount(0, 0, address(0), address(0));
         proxyAccount = AccountV1(proxyAddress);
+        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -134,7 +129,7 @@ abstract contract Base_Test is Test, Events, Errors {
         bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
 
         // Get the bytecode of UniswapV3AssetModuleExtension.
-        args = abi.encode(address(mainRegistryExtension), nonfungiblePositionManager_);
+        args = abi.encode(address(registryExtension), nonfungiblePositionManager_);
         bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3AssetModuleExtension"), args);
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.
@@ -149,9 +144,9 @@ abstract contract Base_Test is Test, Events, Errors {
 
         vm.label({ account: address(uniV3AssetModule), newLabel: "Uniswap V3 Asset Module" });
 
-        // Add the Asset Module to the MainRegistry.
+        // Add the Asset Module to the Registry.
         vm.startPrank(users.creatorAddress);
-        mainRegistryExtension.addAssetModule(address(uniV3AssetModule));
+        registryExtension.addAssetModule(address(uniV3AssetModule));
         uniV3AssetModule.setProtocol();
         vm.stopPrank();
     }

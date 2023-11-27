@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { FloorERC721AssetModule_Fuzz_Test } from "./_FloorERC721AssetModule.fuzz.t.sol";
 
@@ -24,8 +24,8 @@ contract GetValue_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
 
         vm.prank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC721.nft2), 0, type(uint128).max, 0, 0
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC721.nft2), 0, type(uint112).max, 0, 0
         );
     }
 
@@ -33,7 +33,7 @@ contract GetValue_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_getValue_Overflow(uint256 rateNft2ToUsd, uint256 assetId, uint256 amount) public {
-        // No overflow MainRegistry.
+        // No overflow Registry.
         rateNft2ToUsd = bound(rateNft2ToUsd, 1, type(uint256).max / 10 ** (36 - Constants.nftOracleDecimals));
 
         // Overflow valueInUsd Asset Module (test-case).
@@ -49,7 +49,7 @@ contract GetValue_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
     }
 
     function testFuzz_Success_getValue(uint256 rateNft2ToUsd, uint256 assetId, uint256 amount) public {
-        // No overflow MainRegistry.
+        // No overflow Registry.
         rateNft2ToUsd = bound(rateNft2ToUsd, 0, type(uint256).max / 10 ** (36 - Constants.nftOracleDecimals));
 
         // No overflow valueInUsd in Asset Module.

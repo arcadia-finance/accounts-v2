@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 
@@ -15,6 +15,7 @@ import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.s
 import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2PairMock.sol";
 import { UniswapV2AssetModuleExtension } from "../../../utils/Extensions.sol";
 import { UniswapV2FactoryMock } from "../../../utils/mocks/UniswapV2FactoryMock.sol";
+import { UniswapV2AssetModule } from "../../../../src/asset-modules/UniswapV2AssetModule.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV2AssetModule" fuzz tests.
@@ -62,11 +63,8 @@ abstract contract UniswapV2AssetModule_Fuzz_Test is Fuzz_Test {
         vm.stopPrank();
 
         vm.startPrank(users.creatorAddress);
-        uniswapV2AssetModule = new UniswapV2AssetModuleExtension(
-            address(mainRegistryExtension),
-            address(uniswapV2Factory)
-        );
-        mainRegistryExtension.addAssetModule(address(uniswapV2AssetModule));
+        uniswapV2AssetModule = new UniswapV2AssetModuleExtension(address(registryExtension), address(uniswapV2Factory));
+        registryExtension.addAssetModule(address(uniswapV2AssetModule));
         vm.stopPrank();
     }
 
@@ -103,14 +101,14 @@ abstract contract UniswapV2AssetModule_Fuzz_Test is Fuzz_Test {
         vm.stopPrank();
 
         vm.startPrank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(token), 0, type(uint128).max, 0, 0
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(token), 0, type(uint112).max, 0, 0
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorStable1), address(token), 0, type(uint128).max, 0, 0
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1), address(token), 0, type(uint112).max, 0, 0
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorToken1), address(token), 0, type(uint128).max, 0, 0
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1), address(token), 0, type(uint112).max, 0, 0
         );
         vm.stopPrank();
     }

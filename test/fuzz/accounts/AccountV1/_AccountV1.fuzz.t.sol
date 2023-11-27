@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
@@ -11,6 +11,7 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { AccountExtension } from "../../../utils/Extensions.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { MultiActionMock } from "../../../utils/mocks/MultiActionMock.sol";
+import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Common logic needed by all "AccountV1" fuzz tests.
@@ -38,9 +39,9 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
         // Deploy Account.
         accountExtension = new AccountExtension();
 
-        // Initiate Account (set owner and baseCurrency).
+        // Initiate Account (set owner and numeraire).
         accountExtension.initialize(
-            users.accountOwner, address(mainRegistryExtension), address(mockERC20.stable1), address(creditorStable1)
+            users.accountOwner, address(registryExtension), address(mockERC20.stable1), address(creditorStable1)
         );
 
         // Set account in factory.
@@ -57,8 +58,8 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
 
     function openMarginAccount() internal {
         vm.startPrank(users.accountOwner);
-        accountExtension.closeTrustedMarginAccount();
-        accountExtension.openTrustedMarginAccount(address(creditorStable1));
+        accountExtension.closeMarginAccount();
+        accountExtension.openMarginAccount(address(creditorStable1));
         vm.stopPrank();
     }
 

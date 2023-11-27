@@ -3,40 +3,55 @@
  * SPDX-License-Identifier: BUSL-1.1
  */
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
+import { GuardianErrors } from "../libraries/Errors.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
 
 /**
  * @title Guardian
  * @author Pragma Labs
- * @notice This module provides the base logic that allows authorized accounts to trigger an emergency stop.
+ * @notice Abstract contract with the minimal implementation of a Guardian contract.
+ * It implements the following logic:
+ * - An authorized guardian can trigger an emergency stop.
+ * - The protocol owner can unpause functionalities one-by-one.
+ * - Anyone can unpause all functionalities after a fixed cool-down period.
  */
 abstract contract BaseGuardian is Owned {
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
+    // Last timestamp an emergency stop was triggered.
+    uint96 public pauseTimestamp;
     // Address of the Guardian.
     address public guardian;
-    // Last timestamp an emergency stop was triggered.
-    uint256 public pauseTimestamp;
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event GuardianChanged(address indexed oldGuardian, address indexed newGuardian);
+    event GuardianChanged(address indexed user, address indexed newGuardian);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @dev Throws if called by any account other than the guardian.
+     * @dev Only guardians can call functions with this modifier.
      */
     modifier onlyGuardian() {
-        require(msg.sender == guardian, "Guardian: Only guardian");
+        if (msg.sender != guardian) revert GuardianErrors.OnlyGuardian();
+        _;
+    }
+
+    /**
+     * @dev The public unpause() function, or a second pause() function, can only called a fixed coolDownPeriod after an initial pause().
+     * This gives the protocol owner time to investigate and solve potential issues,
+     * but ensures that no rogue owner or guardian can lock user funds for an indefinite amount of time.
+     */
+    modifier afterCoolDownOf(uint256 coolDownPeriod) {
+        if (block.timestamp <= pauseTimestamp + coolDownPeriod) revert GuardianErrors.CoolDownPeriodNotPassed();
         _;
     }
 
@@ -53,11 +68,9 @@ abstract contract BaseGuardian is Owned {
     /**
      * @notice This function is used to set the guardian address
      * @param guardian_ The address of the new guardian.
-     * @dev Allows onlyOwner to change the guardian address.
      */
     function changeGuardian(address guardian_) external onlyOwner {
-        emit GuardianChanged(guardian, guardian_);
-        guardian = guardian_;
+        emit GuardianChanged(msg.sender, guardian = guardian_);
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -66,25 +79,22 @@ abstract contract BaseGuardian is Owned {
 
     /**
      * @notice This function is used to pause all the flags of the contract.
-     * @dev This function can be called by the guardian to pause all functionality in the event of an emergency.
-     * This function pauses repay, withdraw, borrow, deposit and liquidation.
-     * This function can only be called by the guardian.
-     * The guardian can only pause the protocol again after 32 days have past since the last pause.
-     * This is to prevent that a malicious guardian can take user-funds hostage for an indefinite time.
-     * @dev After the guardian has paused the protocol, the owner has 30 days to find potential problems,
+     * @dev The Guardian can only pause the protocol again after 32 days have passed since the last pause.
+     * This is to prevent that a malicious owner or guardian can take user funds hostage for an indefinite time.
+     * After the guardian has paused the protocol, the owner has 30 days to find potential problems,
      * find a solution and unpause the protocol. If the protocol is not unpaused after 30 days,
      * an emergency procedure can be started by any user to unpause the protocol.
      * All users have now at least a two-day window to withdraw assets and close positions before
-     * the protocol can again be paused (after 32 days).
+     * the protocol can again be paused 32 days after the contract was previously paused.
      */
-    function pause() external virtual onlyGuardian { }
+    function pause() external virtual;
 
     /**
-     * @notice This function is used to unPause all flags.
+     * @notice This function is used to unpause all flags.
      * @dev If the protocol is not unpaused after 30 days, any user can unpause the protocol.
      * This ensures that no rogue owner or guardian can lock user funds for an indefinite amount of time.
      * All users have now at least a two-day window to withdraw assets and close positions before
-     * the protocol can again be paused (after 32 days).
+     * the protocol can again be paused 32 days after the contract was previously paused.
      */
-    function unPause() external virtual { }
+    function unpause() external virtual;
 }

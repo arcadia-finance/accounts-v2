@@ -2,11 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { OracleModule } from "./AbstractOracleModule.sol";
 import { IChainLinkData } from "../interfaces/IChainLinkData.sol";
-import { IMainRegistry } from "./interfaces/IMainRegistry.sol";
+import { IRegistry } from "./interfaces/IRegistry.sol";
 
 /**
  * @title Abstract Oracle Module
@@ -21,7 +21,7 @@ contract ChainlinkOracleModule is OracleModule {
     // Map oracle => flag.
     mapping(address => bool) internal inOracleModule;
 
-    // Map oracle => oracleId.
+    // Map oracle => oracle identifier.
     mapping(address => uint256) public oracleToOracleId;
 
     // Map oracle identifier => oracle information.
@@ -37,13 +37,19 @@ contract ChainlinkOracleModule is OracleModule {
     }
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    error Max18Decimals();
+
+    /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param mainRegistry_ The contract address of the MainRegistry.
+     * @param registry_ The contract address of the Registry.
      */
-    constructor(address mainRegistry_) OracleModule(mainRegistry_) { }
+    constructor(address registry_) OracleModule(registry_) { }
 
     /*///////////////////////////////////////////////////////////////
                         ORACLE INFORMATION
@@ -52,10 +58,10 @@ contract ChainlinkOracleModule is OracleModule {
     /**
      * @notice Returns the state of an oracle.
      * @param oracleId The identifier of the oracle to be checked.
-     * @return boolean indicating if the oracle is active or not.
+     * @return oracleIsActive Boolean indicating if the oracle is active or not.
      */
-    function isActive(uint256 oracleId) external view override returns (bool) {
-        return oracleInformation[oracleId].isActive;
+    function isActive(uint256 oracleId) external view override returns (bool oracleIsActive) {
+        oracleIsActive = oracleInformation[oracleId].isActive;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -74,13 +80,13 @@ contract ChainlinkOracleModule is OracleModule {
         onlyOwner
         returns (uint256 oracleId)
     {
-        require(!inOracleModule[oracle], "CLOM_AO: Oracle already added");
+        if (inOracleModule[oracle]) revert OracleAlreadyAdded();
 
         uint256 decimals = IChainLinkData(oracle).decimals();
-        require(decimals <= 18, "CLOM_AO: Maximal 18 decimals");
+        if (decimals > 18) revert Max18Decimals();
 
         inOracleModule[oracle] = true;
-        oracleId = IMainRegistry(MAIN_REGISTRY).addOracle();
+        oracleId = IRegistry(REGISTRY).addOracle();
 
         oracleToOracleId[oracle] = oracleId;
         assetPair[oracleId] = AssetPair({ baseAsset: baseAsset, quoteAsset: quoteAsset });
@@ -95,11 +101,11 @@ contract ChainlinkOracleModule is OracleModule {
      * @dev An inactive oracle will revert.
      * @dev Anyone can call this function as part of an oracle failsafe mechanism.
      * @dev If the oracle becomes functionally again (all checks pass), anyone can activate the oracle again.
-     * @dev An oracles can only be decommissioned if it is not performing as intended:
-     * - A call to the oracle reverts.
+     * @dev A Chainlink oracle can only be decommissioned if it is not performing as intended:
+     * - A call to the oracle contract reverts.
      * - The oracle returns the minimum value.
      * - The oracle returns the maximum value.
-     * - The oracle didn't update for over a week.
+     * - The oracle didn't update for over 2 days.
      */
     function decommissionOracle(uint256 oracleId) external override returns (bool oracleIsInUse) {
         address oracle = oracleInformation[oracleId].oracle;
@@ -112,7 +118,7 @@ contract ChainlinkOracleModule is OracleModule {
                 oracleIsInUse = false;
             } else if (answer >= IChainLinkData(IChainLinkData(oracle).aggregator()).maxAnswer()) {
                 oracleIsInUse = false;
-            } else if (updatedAt <= block.timestamp - 1 weeks) {
+            } else if (updatedAt <= block.timestamp - 2 days) {
                 oracleIsInUse = false;
             }
         } catch {
@@ -132,19 +138,27 @@ contract ChainlinkOracleModule is OracleModule {
      * @return oracleRate The rate of the BaseAsset in units of QuoteAsset, with 18 Decimals precision.
      * @dev The oracle rate reflects how much units of the QuoteAsset (18 decimals precision) are required,
      * to buy 1 unit of the BaseAsset.
+     * Example: If you have an oracle (WBTC/USDC).
+     *  - The BaseAsset is Wrapped Bitcoin (WBTC), which has 8 decimals.
+     *  - The QuoteAsset is USDC, which has 6 decimals.
+     *  - Assume an exchange rate from Bitcoin to USD of $30 000.
+     *  -> You need $30 000 (or 30 000 * 10**6 USDC) to buy 1 Bitcoin (or 1 * 10**8 WBTC).
+     *  -> You need 300 units of USDC to buy one unit of WBT.
+     * Since we use 18 decimals precision, the oracleRate will be 300 * 10**18.
      */
     function getRate(uint256 oracleId) external view override returns (uint256 oracleRate) {
         OracleInformation memory oracleInformation_ = oracleInformation[oracleId];
 
-        // If the oracle is not active (decommissioned), the transactions reverts.
+        // If the oracle is not active (decommissioned), the transactions revert.
         // This implies that no new credit can be taken against assets that use the decommissioned oracle,
         // but at the same time positions with these assets cannot be liquidated.
-        // A new oracleSequence for these assets must be set ASAP by the protocol owner.
-        require(oracleInformation_.isActive, "OH_GR: Inactive Oracle");
+        // A new oracleSequence for these assets must be set ASAP in their Asset Modules by the protocol owner.
+        if (!oracleInformation_.isActive) revert InactiveOracle();
 
         (, int256 tempRate,,,) = IChainLinkData(oracleInformation_.oracle).latestRoundData();
 
-        // Only overflows at absurdly large rates.
+        // Only overflows at absurdly large rates, when rate > type(uint256).max / 10 ** (18 - decimals).
+        // This is 1.1579209e+59 for an oracle with 0 decimals.
         unchecked {
             oracleRate = uint256(tempRate) * oracleInformation_.unitCorrection;
         }

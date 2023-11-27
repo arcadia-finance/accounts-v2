@@ -2,11 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 
 import { FactoryGuardianExtension } from "../../../utils/Extensions.sol";
+import { BaseGuardian } from "../../../../src/guardians/BaseGuardian.sol";
 
 /**
  * @notice Common logic needed by all "FactoryGuardian" fuzz tests.
@@ -16,10 +17,7 @@ abstract contract FactoryGuardian_Fuzz_Test is Fuzz_Test {
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    struct Flags {
-        bool createPaused;
-        bool liquidatePaused;
-    }
+    bool createPaused;
 
     /*////////////////////////////////////////////////////////////////
                             TEST CONTRACTS
@@ -45,7 +43,7 @@ abstract contract FactoryGuardian_Fuzz_Test is Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
                             HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
-    function setFlags(Flags memory flags) internal {
-        factoryGuardian.setFlags(flags.createPaused, flags.liquidatePaused);
+    function setFlags(bool flag) internal {
+        factoryGuardian.setFlags(flag);
     }
 }

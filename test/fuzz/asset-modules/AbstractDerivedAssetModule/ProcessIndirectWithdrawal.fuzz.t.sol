@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { AbstractDerivedAssetModule_Fuzz_Test } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
+import { AbstractDerivedAssetModule_Fuzz_Test, AssetModule } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processIndirectWithdrawal" of contract "AbstractDerivedAssetModule".
@@ -21,7 +21,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstr
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processIndirectWithdrawal_NonMainRegistry(
+    function testFuzz_Revert_processIndirectWithdrawal_NonRegistry(
         address unprivilegedAddress_,
         address creditor,
         address asset,
@@ -29,10 +29,10 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstr
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
+        vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         derivedAssetModule.processIndirectWithdrawal(
             creditor, asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
@@ -62,18 +62,15 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstr
         setDerivedAssetModuleAssetState(assetState);
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
-        // When: "MainRegistry" calls "processIndirectWithdrawal".
-        vm.prank(address(mainRegistryExtension));
-        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedAssetModule.processIndirectWithdrawal(
+        // When: "Registry" calls "processIndirectWithdrawal".
+        vm.prank(address(registryExtension));
+        uint256 usdExposureUpperAssetToAsset = derivedAssetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
             exposureUpperAssetToAsset,
             deltaExposureUpperAssetToAsset_
         );
-
-        // Then: PRIMARY_FLAG is false.
-        assertFalse(PRIMARY_FLAG);
 
         // And:
         assertEq(usdExposureUpperAssetToAsset, 0);
@@ -100,18 +97,15 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstr
         setDerivedAssetModuleAssetState(assetState);
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
-        // When: "MainRegistry" calls "processIndirectWithdrawal".
-        vm.prank(address(mainRegistryExtension));
-        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedAssetModule.processIndirectWithdrawal(
+        // When: "Registry" calls "processIndirectWithdrawal".
+        vm.prank(address(registryExtension));
+        uint256 usdExposureUpperAssetToAsset = derivedAssetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
             exposureUpperAssetToAsset,
             deltaExposureUpperAssetToAsset
         );
-
-        // Then: PRIMARY_FLAG is false.
-        assertFalse(PRIMARY_FLAG);
 
         // And:
         assertEq(usdExposureUpperAssetToAsset, 0);
@@ -125,7 +119,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstr
         int256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: "usdExposureToUnderlyingAsset" is not zero (test-case).
-        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint128).max);
+        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint112).max);
 
         // And: Withdrawal does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
@@ -148,18 +142,15 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstr
         setDerivedAssetModuleAssetState(assetState);
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
-        // When: "MainRegistry" calls "processIndirectWithdrawal".
-        vm.prank(address(mainRegistryExtension));
-        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedAssetModule.processIndirectWithdrawal(
+        // When: "Registry" calls "processIndirectWithdrawal".
+        vm.prank(address(registryExtension));
+        uint256 usdExposureUpperAssetToAsset = derivedAssetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
             exposureUpperAssetToAsset,
             deltaExposureUpperAssetToAsset
         );
-
-        // Then: PRIMARY_FLAG is false.
-        assertFalse(PRIMARY_FLAG);
 
         // And: Correct "usdExposureUpperAssetToAsset" is returned.
         uint256 usdExposureUpperAssetToAssetExpected =

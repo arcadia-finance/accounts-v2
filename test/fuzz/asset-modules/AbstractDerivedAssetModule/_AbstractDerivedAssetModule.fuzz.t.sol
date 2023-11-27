@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
@@ -19,24 +19,24 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     struct DerivedAssetModuleProtocolState {
-        uint128 lastUsdExposureProtocol;
-        uint128 maxUsdExposureProtocol;
+        uint112 lastUsdExposureProtocol;
+        uint112 maxUsdExposureProtocol;
     }
 
     struct DerivedAssetModuleAssetState {
         address creditor;
         address asset;
         uint256 assetId;
-        uint128 exposureAssetLast;
-        uint128 lastUsdExposureAsset;
+        uint112 exposureAssetLast;
+        uint112 lastUsdExposureAsset;
         address underlyingAsset;
         uint256 underlyingAssetId;
         uint256 exposureAssetToUnderlyingAsset;
-        uint128 lastExposureAssetToUnderlyingAsset;
+        uint112 lastExposureAssetToUnderlyingAsset;
     }
 
     struct UnderlyingAssetModuleState {
-        uint128 exposureAssetLast;
+        uint112 exposureAssetLast;
         uint256 usdValue;
     }
 
@@ -56,12 +56,12 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        derivedAssetModule = new DerivedAssetModuleMock(address(mainRegistryExtension), 0);
+        derivedAssetModule = new DerivedAssetModuleMock(address(registryExtension), 0);
 
-        primaryAssetModule = new PrimaryAssetModuleMock(address(mainRegistryExtension), 0);
+        primaryAssetModule = new PrimaryAssetModuleMock(address(registryExtension), 0);
 
-        mainRegistryExtension.addAssetModule(address(derivedAssetModule));
-        mainRegistryExtension.addAssetModule(address(primaryAssetModule));
+        registryExtension.addAssetModule(address(derivedAssetModule));
+        registryExtension.addAssetModule(address(primaryAssetModule));
 
         // We assume conversion rate and price of underlying asset both equal to 1.
         // Conversion rate and prices of underlying assets will be tested in specific asset modules.
@@ -106,12 +106,12 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
         DerivedAssetModuleAssetState memory assetState,
         UnderlyingAssetModuleState memory underlyingPMState
     ) internal {
-        // Set mapping between underlying Asset and its asset module in the Main Registry.
-        mainRegistryExtension.setAssetModuleForAsset(assetState.underlyingAsset, address(primaryAssetModule));
+        // Set mapping between underlying Asset and its asset module in the Registry.
+        registryExtension.setAssetToAssetModule(assetState.underlyingAsset, address(primaryAssetModule));
 
         // Set max exposure of mocked Asset Module for Underlying assets.
         primaryAssetModule.setExposure(
-            assetState.creditor, assetState.underlyingAsset, assetState.underlyingAssetId, 0, type(uint128).max
+            assetState.creditor, assetState.underlyingAsset, assetState.underlyingAssetId, 0, type(uint112).max
         );
 
         // Mock the "usdValue".
@@ -137,7 +137,7 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
 
         // And: usd Value of protocol is bigger or equal to each individual usd value of an asset (Invariant).
         assetState.lastUsdExposureAsset =
-            uint128(bound(assetState.lastUsdExposureAsset, 0, protocolState.lastUsdExposureProtocol));
+            uint112(bound(assetState.lastUsdExposureAsset, 0, protocolState.lastUsdExposureProtocol));
 
         return (protocolState, assetState, underlyingPMState);
     }
@@ -160,7 +160,7 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
         )
     {
         // Given: "usdExposureToUnderlyingAsset" does not overflow.
-        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, type(uint128).max);
+        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, type(uint112).max);
 
         // And: "usdExposureUpperAssetToAsset" does not overflow (unrealistic big values).
         if (underlyingPMState.usdValue != 0) {
@@ -177,7 +177,7 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
         if (deltaExposureUpperAssetToAsset > 0) {
             // Given: No overflow on exposureAsset.
             deltaExposureUpperAssetToAsset = int256(
-                bound(uint256(deltaExposureUpperAssetToAsset), 0, type(uint128).max - assetState.exposureAssetLast)
+                bound(uint256(deltaExposureUpperAssetToAsset), 0, type(uint112).max - assetState.exposureAssetLast)
             );
 
             exposureAsset = assetState.exposureAssetLast + uint256(deltaExposureUpperAssetToAsset);
@@ -190,17 +190,17 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
             }
         }
 
-        // And: "exposure" of underlyingAsset is strictly smaller as its "maxExposure".
+        // And: "exposure" of underlyingAsset is strictly smaller than its "maxExposure".
         assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max - 1);
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint112).max - 1);
 
         if (underlyingPMState.usdValue >= assetState.lastUsdExposureAsset) {
             // And: "usdExposureProtocol" does not overflow (unrealistically big).
-            protocolState.lastUsdExposureProtocol = uint128(
+            protocolState.lastUsdExposureProtocol = uint112(
                 bound(
                     protocolState.lastUsdExposureProtocol,
                     assetState.lastUsdExposureAsset,
-                    type(uint128).max - (underlyingPMState.usdValue - assetState.lastUsdExposureAsset)
+                    type(uint112).max - (underlyingPMState.usdValue - assetState.lastUsdExposureAsset)
                 )
             );
         }
@@ -231,7 +231,7 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
             protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 
-        // And: "exposure" is strictly smaller as "maxExposure".
+        // And: "exposure" is strictly smaller than "maxExposure".
         uint256 usdExposureProtocolExpected;
         if (underlyingPMState.usdValue >= assetState.lastUsdExposureAsset) {
             usdExposureProtocolExpected =
@@ -242,9 +242,9 @@ abstract contract AbstractDerivedAssetModule_Fuzz_Test is Fuzz_Test {
                 ? protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - underlyingPMState.usdValue)
                 : 0;
         }
-        vm.assume(usdExposureProtocolExpected < type(uint128).max);
+        vm.assume(usdExposureProtocolExpected < type(uint112).max);
         protocolState.maxUsdExposureProtocol =
-            uint128(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected + 1, type(uint128).max));
+            uint112(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected + 1, type(uint112).max));
 
         return (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
     }

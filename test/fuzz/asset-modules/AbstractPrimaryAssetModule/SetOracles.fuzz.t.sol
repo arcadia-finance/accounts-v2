@@ -2,11 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { AbstractPrimaryAssetModule_Fuzz_Test } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
+import { AbstractPrimaryAssetModule_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
+import { PrimaryAssetModule } from "../../../../src/asset-modules/AbstractPrimaryAssetModule.sol";
 import { OracleModuleMock } from "../../../utils/mocks/OracleModuleMock.sol";
 
 /**
@@ -20,7 +21,7 @@ contract CheckOracleSequence_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPri
     function setUp() public override {
         AbstractPrimaryAssetModule_Fuzz_Test.setUp();
 
-        oracleModule = new OracleModuleMock(address(mainRegistryExtension));
+        oracleModule = new OracleModuleMock(address(registryExtension));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -104,7 +105,7 @@ contract CheckOracleSequence_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPri
         assetModule.setAssetInformation(asset, assetId, 0, oracleSequenceOld);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("APAM_SO: Oracle still active");
+        vm.expectRevert(PrimaryAssetModule.OracleStillActive.selector);
         assetModule.setOracles(asset, assetId, oracleSequenceNew);
     }
 
@@ -172,7 +173,7 @@ contract CheckOracleSequence_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPri
         bytes32 oracleSequenceNew = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("APAM_SO: Bad sequence");
+        vm.expectRevert(PrimaryAssetModule.BadOracleSequence.selector);
         assetModule.setOracles(asset, assetId, oracleSequenceNew);
     }
 

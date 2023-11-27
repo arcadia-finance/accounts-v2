@@ -1,20 +1,24 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 /**
  * @title Proxy
  * @author Pragma Labs
- * @dev Implementation based on ERC-1967: Proxy Storage Slots
- * See https://eips.ethereum.org/EIPS/eip-1967
+ * @dev Implementation based on ERC1967: Proxy Storage Slots.
+ * See https://eips.ethereum.org/EIPS/eip-1967.
  */
 contract Proxy {
     /* //////////////////////////////////////////////////////////////
-                                STORAGE
+                                CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
     // Storage slot with the address of the current implementation.
     // This is the hardcoded keccak-256 hash of: "eip1967.proxy.implementation" subtracted by 1.
-    bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+    bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+
+    /* //////////////////////////////////////////////////////////////
+                                STORAGE
+    ////////////////////////////////////////////////////////////// */
 
     // Storage slot for the Account logic, a struct to avoid storage conflict when dealing with upgradeable contracts.
     struct AddressSlot {
@@ -32,11 +36,11 @@ contract Proxy {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param logic The contract address of the Account logic.
+     * @param implementation The contract address of the Account logic.
      */
-    constructor(address logic) payable {
-        _getAddressSlot(_IMPLEMENTATION_SLOT).value = logic;
-        emit Upgraded(logic);
+    constructor(address implementation) payable {
+        _getAddressSlot(IMPLEMENTATION_SLOT).value = implementation;
+        emit Upgraded(implementation);
     }
 
     /**
@@ -44,7 +48,7 @@ contract Proxy {
      * Will run if call data is empty.
      */
     receive() external payable virtual {
-        _delegate(_getAddressSlot(_IMPLEMENTATION_SLOT).value);
+        _delegate(_getAddressSlot(IMPLEMENTATION_SLOT).value);
     }
 
     /**
@@ -52,7 +56,7 @@ contract Proxy {
      * Will run if no other function in the contract matches the call data.
      */
     fallback() external payable virtual {
-        _delegate(_getAddressSlot(_IMPLEMENTATION_SLOT).value);
+        _delegate(_getAddressSlot(IMPLEMENTATION_SLOT).value);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -60,7 +64,7 @@ contract Proxy {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Returns an `AddressSlot` with member `value` located at `slot`.
+     * @notice Returns the "AddressSlot" with member "value" located at "slot".
      * @param slot The slot where the address of the Logic contract is stored.
      * @return r The address stored in slot.
      */
@@ -71,12 +75,12 @@ contract Proxy {
     }
 
     /*///////////////////////////////////////////////////////////////
-                        DELEGATION LOGIC
+                          DELEGATION LOGIC
     ///////////////////////////////////////////////////////////////*/
 
     /**
      * @param implementation The contract address of the logic.
-     * @dev Delegates the current call to `implementation`.
+     * @dev Delegates the current call to "implementation".
      * This function does not return to its internal call site, it will return directly to the external caller.
      */
     function _delegate(address implementation) internal virtual {

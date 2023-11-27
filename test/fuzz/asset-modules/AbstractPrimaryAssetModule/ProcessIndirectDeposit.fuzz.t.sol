@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { AbstractPrimaryAssetModule_Fuzz_Test } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
+import { AbstractPrimaryAssetModule_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processIndirectDeposit" of contract "AbstractPrimaryAssetModule".
@@ -21,22 +21,22 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processIndirectDeposit_NonMainRegistry(
+    function testFuzz_Revert_processIndirectDeposit_NonRegistry(
         PrimaryAssetModuleAssetState memory assetState,
         address unprivilegedAddress_,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given "caller" is not the Main Registry.
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
+        // Given "caller" is not the Registry.
+        vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        // Then: The transaction reverts with "AAM: ONLY_MAIN_REGISTRY".
+        // Then: The transaction reverts with AssetModule.OnlyRegistry.selector.
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
@@ -53,21 +53,21 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         uint256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: "exposureAssetLast" does not overflow.
-        assetState.exposureAssetLast = uint128(bound(assetState.exposureAssetLast, 0, type(uint128).max - 1));
+        assetState.exposureAssetLast = uint112(bound(assetState.exposureAssetLast, 0, type(uint112).max - 1));
         deltaExposureUpperAssetToAsset =
             bound(deltaExposureUpperAssetToAsset, 1, INT256_MAX - assetState.exposureAssetLast);
         uint256 expectedExposure = assetState.exposureAssetLast + deltaExposureUpperAssetToAsset;
 
         // And: "exposureAsset" is bigger or equal as "exposureAssetMax" (test-case).
-        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, 0, expectedExposure));
+        assetState.exposureAssetMax = uint112(bound(assetState.exposureAssetMax, 0, expectedExposure));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        // Then: The transaction reverts with "APAM_PID: Exposure not in limits".
-        vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("APAM_PID: Exposure not in limits");
+        // Then: The transaction reverts with AssetModule.ExposureNotInLimits.
+        vm.startPrank(address(registryExtension));
+        vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
@@ -88,15 +88,15 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         if (assetState.exposureAssetLast > deltaExposureUpperAssetToAsset) {
             expectedExposure = assetState.exposureAssetLast - deltaExposureUpperAssetToAsset;
         }
-        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, 0, expectedExposure));
+        assetState.exposureAssetMax = uint112(bound(assetState.exposureAssetMax, 0, expectedExposure));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        // Then: The transaction reverts with "APAM_PID: Exposure not in limits".
-        vm.startPrank(address(mainRegistryExtension));
-        vm.expectRevert("APAM_PID: Exposure not in limits");
+        // Then: The transaction reverts with AssetModule.ExposureNotInLimits.
+        vm.startPrank(address(registryExtension));
+        vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
@@ -112,20 +112,20 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         uint256 exposureUpperAssetToAsset,
         uint256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given: "exposureAsset" is strictly smaller as "exposureAssetMax" (test-case).
-        assetState.exposureAssetLast = uint128(bound(assetState.exposureAssetLast, 0, type(uint128).max - 2));
+        // Given: "exposureAsset" is strictly smaller than "exposureAssetMax" (test-case).
+        assetState.exposureAssetLast = uint112(bound(assetState.exposureAssetLast, 0, type(uint112).max - 2));
         deltaExposureUpperAssetToAsset =
-            bound(deltaExposureUpperAssetToAsset, 1, type(uint128).max - assetState.exposureAssetLast - 1);
+            bound(deltaExposureUpperAssetToAsset, 1, type(uint112).max - assetState.exposureAssetLast - 1);
         uint256 expectedExposure = assetState.exposureAssetLast + deltaExposureUpperAssetToAsset;
         assetState.exposureAssetMax =
-            uint128(bound(assetState.exposureAssetMax, expectedExposure + 1, type(uint128).max));
+            uint112(bound(assetState.exposureAssetMax, expectedExposure + 1, type(uint112).max));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        vm.prank(address(mainRegistryExtension));
-        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
+        vm.prank(address(registryExtension));
+        (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -134,7 +134,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         );
 
         // Then: Correct output variables are returned.
-        assertTrue(primaryFlag);
+        assertEq(recursiveCalls, 1);
         assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // And: assetExposure is updated.
@@ -149,20 +149,20 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         uint256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: deltaExposure is smaller or equal as assetState.exposureAssetLast.
-        assetState.exposureAssetLast = uint128(bound(assetState.exposureAssetLast, 0, type(uint128).max - 1));
+        assetState.exposureAssetLast = uint112(bound(assetState.exposureAssetLast, 0, type(uint112).max - 1));
         deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, 0, assetState.exposureAssetLast);
         uint256 expectedExposure = assetState.exposureAssetLast - deltaExposureUpperAssetToAsset;
 
-        // And: "exposureAsset" is strictly smaller as "exposureAssetMax" (test-case).
+        // And: "exposureAsset" is strictly smaller than "exposureAssetMax" (test-case).
         assetState.exposureAssetMax =
-            uint128(bound(assetState.exposureAssetMax, expectedExposure + 1, type(uint128).max));
+            uint112(bound(assetState.exposureAssetMax, expectedExposure + 1, type(uint112).max));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        vm.prank(address(mainRegistryExtension));
-        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
+        vm.prank(address(registryExtension));
+        (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -171,7 +171,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         );
 
         // Then: Correct output variables are returned.
-        assertTrue(primaryFlag);
+        assertEq(recursiveCalls, 1);
         assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // Then: assetExposure is updated.
@@ -189,15 +189,15 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         // Given: deltaExposure is bigger or equal as assetState.exposureAssetLast.
         deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, assetState.exposureAssetLast, INT256_MIN);
 
-        // And: "exposureAsset" is strictly smaller as "exposureAssetMax" (test-case).
-        assetState.exposureAssetMax = uint128(bound(assetState.exposureAssetMax, 1, type(uint128).max));
+        // And: "exposureAsset" is strictly smaller than "exposureAssetMax" (test-case).
+        assetState.exposureAssetMax = uint112(bound(assetState.exposureAssetMax, 1, type(uint112).max));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        vm.prank(address(mainRegistryExtension));
-        (bool primaryFlag, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
+        vm.prank(address(registryExtension));
+        (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -206,7 +206,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAssetModule_Fuzz_Test is Abstract
         );
 
         // Then: Correct output variables are returned.
-        assertTrue(primaryFlag);
+        assertEq(recursiveCalls, 1);
         assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
 
         // Then: assetExposure is updated.

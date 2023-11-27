@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
 
@@ -22,7 +22,7 @@ contract IsAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_isAccount_positive() public {
-        address newAccount = factory.createAccount(1, 0, address(0), address(0));
+        address newAccount = factory.createAccount(2, 0, address(0), address(0));
 
         assertTrue(factory.isAccount(newAccount));
     }

@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { AbstractDerivedAssetModule_Fuzz_Test } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
+import { AbstractDerivedAssetModule_Fuzz_Test, AssetModule } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processDirectWithdrawal" of contract "AbstractDerivedAssetModule".
@@ -21,17 +21,17 @@ contract ProcessDirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstrac
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processDirectWithdrawal_NonMainRegistry(
+    function testFuzz_Revert_processDirectWithdrawal_NonRegistry(
         address unprivilegedAddress_,
         address creditor,
         address asset,
         uint256 id,
         uint128 amount
     ) public {
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
+        vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         derivedAssetModule.processDirectWithdrawal(creditor, asset, id, amount);
         vm.stopPrank();
     }
@@ -56,12 +56,12 @@ contract ProcessDirectWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is Abstrac
         setDerivedAssetModuleAssetState(assetState);
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
-        // When: "MainRegistry" calls "processDirectWithdrawal".
-        vm.prank(address(mainRegistryExtension));
-        derivedAssetModule.processDirectWithdrawal(
+        // When: "Registry" calls "processDirectWithdrawal".
+        vm.prank(address(registryExtension));
+        uint256 assetType = derivedAssetModule.processDirectWithdrawal(
             assetState.creditor, assetState.asset, assetState.assetId, uint256(-amount)
         );
 
-        // Then: Transaction does not revert.
+        assertEq(assetType, 0);
     }
 }

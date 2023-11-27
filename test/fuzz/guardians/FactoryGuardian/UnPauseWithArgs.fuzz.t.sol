@@ -2,14 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { FactoryGuardian_Fuzz_Test } from "./_FactoryGuardian.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "unPause" of contract "FactoryGuardian".
+ * @notice Fuzz tests for the function "unpause" of contract "FactoryGuardian".
  */
-contract UnPause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
+contract Unpause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -21,21 +21,18 @@ contract UnPause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_unPause_OnlyOwner(address nonOwner, Flags memory flags) public {
+    function testFuzz_Revert_unpause_OnlyOwner(address nonOwner, bool flag) public {
         vm.assume(nonOwner != users.creatorAddress);
 
         vm.startPrank(nonOwner);
         vm.expectRevert("UNAUTHORIZED");
-        factoryGuardian.unPause(flags.createPaused, flags.liquidatePaused);
+        factoryGuardian.unpause(flag);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_unPause(
-        uint256 lastPauseTimestamp,
-        uint256 timePassed,
-        Flags memory initialFlags,
-        Flags memory flags
-    ) public {
+    function testFuzz_Success_unpause(uint256 lastPauseTimestamp, uint256 timePassed, bool initialFlag, bool flag)
+        public
+    {
         lastPauseTimestamp = bound(lastPauseTimestamp, 32 days + 1, type(uint32).max);
         timePassed = bound(timePassed, 0, type(uint32).max);
 
@@ -45,7 +42,7 @@ contract UnPause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test
         factoryGuardian.pause();
 
         // And: Flags are in random state.
-        setFlags(initialFlags);
+        setFlags(initialFlag);
 
         // And: Some time passed.
         vm.warp(lastPauseTimestamp + timePassed);
@@ -53,15 +50,12 @@ contract UnPause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test
         // When: A "owner" un-pauses.
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
-        emit PauseUpdate(
-            initialFlags.createPaused && flags.createPaused, initialFlags.liquidatePaused && flags.liquidatePaused
-        );
-        factoryGuardian.unPause(flags.createPaused, flags.liquidatePaused);
+        emit PauseFlagsUpdated(initialFlag && flag);
+        factoryGuardian.unpause(flag);
         vm.stopPrank();
 
         // Then: Flags can only be toggled from paused (true) to unpaused (false)
         // if initialFlag was true en new flag is false.
-        assertEq(factoryGuardian.createPaused(), initialFlags.createPaused && flags.createPaused);
-        assertEq(factoryGuardian.liquidatePaused(), initialFlags.liquidatePaused && flags.liquidatePaused);
+        assertEq(factoryGuardian.createPaused(), initialFlag && flag);
     }
 }

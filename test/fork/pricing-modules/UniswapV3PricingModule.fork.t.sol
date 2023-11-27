@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { Fork_Test } from "../Fork.t.sol";
 
@@ -45,8 +45,8 @@ contract UniswapV3AssetModule_Fork_Test is Fork_Test {
 
         // Set max exposure to uniswap V3.
         vm.prank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfDerivedAssetModule(
-            address(uniV3AssetModule), address(0), type(uint128).max, 100
+        registryExtension.setRiskParametersOfDerivedAssetModule(
+            address(uniV3AssetModule), address(0), type(uint112).max, 100
         );
     }
 
@@ -211,7 +211,7 @@ contract UniswapV3AssetModule_Fork_Test is Fork_Test {
         assetAmounts[1] = amountWeth;
 
         uint256 expectedValue =
-            mainRegistryExtension.getTotalValue(address(0), address(0), assetAddresses, assetIds, assetAmounts);
+            registryExtension.getTotalValue(address(0), address(0), assetAddresses, assetIds, assetAmounts);
 
         // Precision Chainlink oracles is often in the order of percentages.
         assertInRange(actualValue, expectedValue, 2);

@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { AbstractPrimaryAssetModule_Fuzz_Test } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
+import { AbstractPrimaryAssetModule_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processDirectWithdrawal" of contract "AbstractPrimaryAssetModule".
@@ -21,21 +21,21 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstrac
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processDirectWithdrawal_NonMainRegistry(
+    function testFuzz_Revert_processDirectWithdrawal_NonRegistry(
         PrimaryAssetModuleAssetState memory assetState,
         address unprivilegedAddress_,
         uint128 amount
     ) public {
-        // Given "caller" is not the Main Registry.
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
+        // Given "caller" is not the Registry.
+        vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         // And: State is persisted.
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is withdrawn.
-        // Then: The transaction reverts with "AAM: ONLY_MAIN_REGISTRY".
+        // Then: The transaction reverts with AssetModule.OnlyRegistry.selector.
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
     }
@@ -51,8 +51,11 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstrac
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is withdrawn.
-        vm.prank(address(mainRegistryExtension));
-        assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
+        vm.prank(address(registryExtension));
+        uint256 assetType =
+            assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
+
+        assertEq(assetType, 0);
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
@@ -73,8 +76,11 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAssetModule_Fuzz_Test is Abstrac
         setPrimaryAssetModuleAssetState(assetState);
 
         // When: "amount" is withdrawn.
-        vm.prank(address(mainRegistryExtension));
-        assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
+        vm.prank(address(registryExtension));
+        uint256 assetType =
+            assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
+
+        assertEq(assetType, 0);
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));

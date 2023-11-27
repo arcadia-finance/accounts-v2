@@ -2,11 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { AbstractPrimaryAssetModule_Fuzz_Test } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
 
-import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
 /**
@@ -32,11 +32,11 @@ contract GetRiskFactors_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPrimaryA
         uint16 liquidationFactor
     ) public {
         // And: Risk factors are below max risk factor.
-        collateralFactor = uint16(bound(collateralFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
-        liquidationFactor = uint16(bound(liquidationFactor, 0, RiskConstants.RISK_FACTOR_UNIT));
+        collateralFactor = uint16(bound(collateralFactor, 0, AssetValuationLib.ONE_4));
+        liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, AssetValuationLib.ONE_4));
 
         // And: Underlying asset is in primaryAssetModule.
-        vm.prank(address(mainRegistryExtension));
+        vm.prank(address(registryExtension));
         assetModule.setRiskParameters(creditor, asset, assetId, 0, collateralFactor, liquidationFactor);
 
         // When: "getRiskFactors" is called.

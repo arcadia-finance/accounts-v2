@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountExtension } from "../../../utils/Extensions.sol";
 
@@ -31,26 +31,26 @@ contract Initialize_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_initialize_InvalidMainreg() public {
-        vm.expectRevert("A_I: Registry cannot be 0!");
+    function testFuzz_Revert_initialize_InvalidReg() public {
+        vm.expectRevert(AccountErrors.InvalidRegistry.selector);
         accountNotInitialised.initialize(users.accountOwner, address(0), address(0), address(0));
     }
 
     function testFuzz_Revert_initialize_AlreadyInitialized() public {
-        accountNotInitialised.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
+        accountNotInitialised.initialize(users.accountOwner, address(registryExtension), address(0), address(0));
 
-        vm.expectRevert("A_I: Already initialized!");
-        accountNotInitialised.initialize(users.accountOwner, address(mainRegistryExtension), address(0), address(0));
+        vm.expectRevert(AccountErrors.AlreadyInitialized.selector);
+        accountNotInitialised.initialize(users.accountOwner, address(registryExtension), address(0), address(0));
     }
 
     function testFuzz_Success_initialize(address owner_) public {
         vm.expectEmit(true, true, true, true);
-        emit BaseCurrencySet(address(0));
-        accountNotInitialised.initialize(owner_, address(mainRegistryExtension), address(0), address(0));
+        emit NumeraireSet(address(0));
+        accountNotInitialised.initialize(owner_, address(registryExtension), address(0), address(0));
 
         assertEq(accountNotInitialised.owner(), owner_);
         assertEq(accountNotInitialised.getLocked(), 1);
-        assertEq(accountNotInitialised.registry(), address(mainRegistryExtension));
-        assertEq(accountNotInitialised.baseCurrency(), address(0));
+        assertEq(accountNotInitialised.registry(), address(registryExtension));
+        assertEq(accountNotInitialised.numeraire(), address(0));
     }
 }

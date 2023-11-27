@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "skim" of contract "AccountV1".
@@ -29,14 +29,24 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.startPrank(nonOwner);
-        vm.expectRevert("A_S: Only owner can skim");
+        vm.expectRevert(AccountErrors.OnlyOwner.selector);
+        accountExtension.skim(asset, id, type_);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_skim_Reentered(address asset, uint256 id, uint256 type_) public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.NoReentry.selector);
         accountExtension.skim(asset, id, type_);
         vm.stopPrank();
     }
 
     function testFuzz_Success_skim_Type0_NonZeroSkim(uint256 depositAmount, uint256 transferAmount) public {
         // Deposit ERC20.
-        depositAmount = bound(depositAmount, 1, type(uint128).max - 1);
+        depositAmount = bound(depositAmount, 1, type(uint112).max - 1);
         transferAmount = bound(transferAmount, 1, type(uint256).max - depositAmount);
 
         depositERC20InAccount(mockERC20.token1, depositAmount, users.accountOwner, address(accountExtension));
@@ -52,16 +62,16 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
 
         assertEq(
-            accountExtension.erc20Balances(address(mockERC20.token1)),
+            accountExtension.getERC20Balances(address(mockERC20.token1)),
             mockERC20.token1.balanceOf(address(accountExtension))
         );
-        assertEq(accountExtension.erc20Balances(address(mockERC20.token1)), depositAmount);
+        assertEq(accountExtension.getERC20Balances(address(mockERC20.token1)), depositAmount);
         assertEq(mockERC20.token1.balanceOf(address(users.accountOwner)), transferAmount);
     }
 
     function testFuzz_Success_skim_Type0_NothingToSkim(uint256 depositAmount) public {
         // Deposit ERC20.
-        depositAmount = bound(depositAmount, 1, type(uint128).max - 1);
+        depositAmount = bound(depositAmount, 1, type(uint112).max - 1);
 
         depositERC20InAccount(mockERC20.token1, depositAmount, users.accountOwner, address(accountExtension));
 
@@ -69,10 +79,10 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.skim(address(mockERC20.token1), 0, 0);
 
         assertEq(
-            accountExtension.erc20Balances(address(mockERC20.token1)),
+            accountExtension.getERC20Balances(address(mockERC20.token1)),
             mockERC20.token1.balanceOf(address(accountExtension))
         );
-        assertEq(accountExtension.erc20Balances(address(mockERC20.token1)), depositAmount);
+        assertEq(accountExtension.getERC20Balances(address(mockERC20.token1)), depositAmount);
         assertEq(mockERC20.token1.balanceOf(address(users.accountOwner)), 0);
     }
 
@@ -127,7 +137,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_skim_Type2_NonZeroSkim(uint256 depositAmount, uint256 transferAmount) public {
         // Deposit ERC1155.
-        depositAmount = bound(depositAmount, 1, type(uint128).max - 1);
+        depositAmount = bound(depositAmount, 1, type(uint112).max - 1);
         transferAmount = bound(transferAmount, 1, type(uint256).max - depositAmount);
 
         address[] memory assetAddresses = new address[](1);
@@ -157,16 +167,16 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         (,,, uint256 erc1155Length) = accountExtension.getLengths();
         assertEq(erc1155Length, 1);
         assertEq(
-            accountExtension.erc1155Balances(address(mockERC1155.sft1), 1),
+            accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1),
             mockERC1155.sft1.balanceOf(address(accountExtension), 1)
         );
-        assertEq(accountExtension.erc1155Balances(address(mockERC1155.sft1), 1), depositAmount);
+        assertEq(accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1), depositAmount);
         assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), transferAmount);
     }
 
     function testFuzz_Success_skim_Type2_NothingToSkim(uint256 depositAmount) public {
         // Deposit ERC1155.
-        depositAmount = bound(depositAmount, 1, type(uint128).max - 1);
+        depositAmount = bound(depositAmount, 1, type(uint112).max - 1);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC1155.sft1);
@@ -189,10 +199,10 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         (,,, uint256 erc1155Length) = accountExtension.getLengths();
         assertEq(erc1155Length, 1);
         assertEq(
-            accountExtension.erc1155Balances(address(mockERC1155.sft1), 1),
+            accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1),
             mockERC1155.sft1.balanceOf(address(accountExtension), 1)
         );
-        assertEq(accountExtension.erc1155Balances(address(mockERC1155.sft1), 1), depositAmount);
+        assertEq(accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1), depositAmount);
         assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), 0);
     }
 

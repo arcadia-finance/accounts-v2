@@ -2,11 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { AbstractDerivedAssetModule_Fuzz_Test } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
 
-import { RiskModule } from "../../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "_getRateUnderlyingAssetsToUsd" of contract "AbstractDerivedAssetModule".
@@ -48,12 +48,12 @@ contract GetRateUnderlyingAssetsToUsd_AbstractDerivedAssetModule_Fuzz_Test is Ab
         assetIds[0] = assetState.underlyingAssetId;
         assetAmounts[0] = 1e18;
         bytes memory data =
-            abi.encodeCall(mainRegistryExtension.getValuesInUsd, (assetState.creditor, assets, assetIds, assetAmounts));
+            abi.encodeCall(registryExtension.getValuesInUsd, (assetState.creditor, assets, assetIds, assetAmounts));
 
         // When: "_getRateUnderlyingAssetsToUsd" is called.
-        // Then: The Function "getUsdValue" on "MainRegistry" is called with correct parameters.
-        vm.expectCall(address(mainRegistryExtension), data);
-        RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd =
+        // Then: The Function "getUsdValue" on "Registry" is called with correct parameters.
+        vm.expectCall(address(registryExtension), data);
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd =
             derivedAssetModule.getRateUnderlyingAssetsToUsd(assetState.creditor, underlyingAssetKeys);
 
         // And: Transaction returns correct "rateUnderlyingAssetsToUsd".

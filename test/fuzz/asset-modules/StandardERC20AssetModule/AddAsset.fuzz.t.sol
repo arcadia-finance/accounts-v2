@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { StandardERC20AssetModule_Fuzz_Test } from "./_StandardERC20AssetModule.fuzz.t.sol";
 
@@ -15,6 +15,7 @@ import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.s
 import {
     PrimaryAssetModule, StandardERC20AssetModule
 } from "../../../../src/asset-modules/StandardERC20AssetModule.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "StandardERC20AssetModule".
@@ -47,7 +48,7 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
         bytes32 badSequence = BitPackingLib.pack(badDirection, oracleToken4ToUsdArr);
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("AM20_AA: Bad Sequence");
+        vm.expectRevert(PrimaryAssetModule.BadOracleSequence.selector);
         erc20AssetModule.addAsset(address(mockERC20.token4), badSequence);
         vm.stopPrank();
     }
@@ -55,7 +56,7 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
         erc20AssetModule.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
-        vm.expectRevert("MR_AA: Asset already in mainreg");
+        vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
         erc20AssetModule.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
         vm.stopPrank();
     }
@@ -71,7 +72,7 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
         oracleAssetToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(oracle)));
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("AM20_AA: Maximal 18 decimals");
+        vm.expectRevert(StandardERC20AssetModule.Max18Decimals.selector);
         erc20AssetModule.addAsset(address(asset), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
     }
 
@@ -86,10 +87,8 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
         assertEq(assetUnit, 10 ** Constants.tokenDecimals);
         assertEq(oracles, oraclesToken4ToUsd);
 
-        assertTrue(mainRegistryExtension.inMainRegistry(address(mockERC20.token4)));
-        (uint96 assetType_, address assetModule) =
-            mainRegistryExtension.assetToAssetInformation(address(mockERC20.token4));
-        assertEq(assetType_, 0);
+        assertTrue(registryExtension.inRegistry(address(mockERC20.token4)));
+        address assetModule = registryExtension.assetToAssetModule(address(mockERC20.token4));
         assertEq(assetModule, address(erc20AssetModule));
     }
 }

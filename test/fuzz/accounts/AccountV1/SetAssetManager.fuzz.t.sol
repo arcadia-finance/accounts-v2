@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "setAssetManager" of contract "AccountV1".
@@ -29,7 +29,7 @@ contract SetAssetManager_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.startPrank(nonOwner);
-        vm.expectRevert("A: Only Owner");
+        vm.expectRevert(AccountErrors.OnlyOwner.selector);
         accountExtension.setAssetManager(assetManager, value);
         vm.stopPrank();
     }

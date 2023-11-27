@@ -2,19 +2,18 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { UniswapV3AssetModule_Fuzz_Test } from "./_UniswapV3AssetModule.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
-import { DerivedAssetModule } from "../../../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
-import { RiskConstants } from "../../../../src/libraries/RiskConstants.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
@@ -115,11 +114,11 @@ contract GetValue_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz_Te
         uint256 liqFactor1,
         uint256 riskFactorUniV3
     ) public {
-        liqFactor0 = bound(liqFactor0, 0, RiskConstants.RISK_FACTOR_UNIT);
+        liqFactor0 = bound(liqFactor0, 0, AssetValuationLib.ONE_4);
         collFactor0 = bound(collFactor0, 0, liqFactor0);
-        liqFactor1 = bound(liqFactor1, 0, RiskConstants.RISK_FACTOR_UNIT);
+        liqFactor1 = bound(liqFactor1, 0, AssetValuationLib.ONE_4);
         collFactor1 = bound(collFactor1, 0, liqFactor1);
-        riskFactorUniV3 = bound(riskFactorUniV3, 0, RiskConstants.RISK_FACTOR_UNIT);
+        riskFactorUniV3 = bound(riskFactorUniV3, 0, AssetValuationLib.ONE_4);
 
         // Deploy and sort tokens.
         decimals0 = bound(decimals0, 6, 18);
@@ -141,14 +140,14 @@ contract GetValue_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz_Te
         addUnderlyingTokenToArcadia(address(token1), 1);
 
         vm.startPrank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(token0), 0, type(uint128).max, uint16(collFactor0), uint16(liqFactor0)
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(token0), 0, type(uint112).max, uint16(collFactor0), uint16(liqFactor0)
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(token1), 0, type(uint128).max, uint16(collFactor1), uint16(liqFactor1)
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(token1), 0, type(uint112).max, uint16(collFactor1), uint16(liqFactor1)
         );
-        mainRegistryExtension.setRiskParametersOfDerivedAssetModule(
-            address(creditorUsd), address(uniV3AssetModule), type(uint128).max, uint16(riskFactorUniV3)
+        registryExtension.setRiskParametersOfDerivedAssetModule(
+            address(creditorUsd), address(uniV3AssetModule), type(uint112).max, uint16(riskFactorUniV3)
         );
         vm.stopPrank();
 
@@ -157,8 +156,8 @@ contract GetValue_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz_Te
         uint256 expectedLiqFactor = liqFactor0 < liqFactor1 ? liqFactor0 : liqFactor1;
 
         // Next apply risk factor for uniswap V3.
-        expectedCollFactor = expectedCollFactor * riskFactorUniV3 / RiskConstants.RISK_FACTOR_UNIT;
-        expectedLiqFactor = expectedLiqFactor * riskFactorUniV3 / RiskConstants.RISK_FACTOR_UNIT;
+        expectedCollFactor = expectedCollFactor * riskFactorUniV3 / AssetValuationLib.ONE_4;
+        expectedLiqFactor = expectedLiqFactor * riskFactorUniV3 / AssetValuationLib.ONE_4;
 
         (, uint256 actualCollFactor, uint256 actualLiqFactor) =
             uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);

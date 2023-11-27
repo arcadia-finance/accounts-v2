@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "blockAccountVersion" of contract "Factory".
@@ -39,12 +39,12 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(accountVersion > currentVersion || accountVersion == 0);
 
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert("FTRY_BVV: Invalid version");
+        vm.expectRevert(FactoryErrors.InvalidAccountVersion.selector);
         factory.blockAccountVersion(accountVersion);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_blockAccountVersion(uint16 accountVersion) public {
+    function testFuzz_Success_blockAccountVersion(uint88 accountVersion) public {
         uint256 currentVersion = factory.latestAccountVersion();
         vm.assume(accountVersion <= currentVersion);
         vm.assume(accountVersion != 0);

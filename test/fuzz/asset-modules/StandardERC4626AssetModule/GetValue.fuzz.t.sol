@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { StandardERC4626AssetModule_Fuzz_Test } from "./_StandardERC4626AssetModule.fuzz.t.sol";
 
@@ -37,7 +37,7 @@ contract GetValue_StandardERC4626AssetModule_Fuzz_Test is StandardERC4626AssetMo
         vm.assume(totalAssets > 0);
         vm.assume(rateToken1ToUsd_ > 0);
 
-        // No Overflow MainRegistry
+        // No Overflow Registry
         vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD);
         // No Overflow ERC4626
         vm.assume(shares <= type(uint256).max / totalAssets);
@@ -74,7 +74,7 @@ contract GetValue_StandardERC4626AssetModule_Fuzz_Test is StandardERC4626AssetMo
         vm.assume(shares <= totalSupply);
         vm.assume(totalSupply > 0);
 
-        // No Overflow MainRegistry
+        // No Overflow Registry
         vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD / 1e18);
         // No Overflow ERC4626
         if (totalAssets > 0) {

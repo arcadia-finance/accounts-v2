@@ -2,29 +2,31 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { ERC20, SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { IERC721 } from "../../../src/interfaces/IERC721.sol";
 import { IERC1155 } from "../../../src/interfaces/IERC1155.sol";
-import { IMainRegistry } from "../../../src/interfaces/IMainRegistry.sol";
-import { ITrustedCreditor } from "../../../src/interfaces/ITrustedCreditor.sol";
+import { IRegistry } from "../../../src/interfaces/IRegistry.sol";
+import { ICreditor } from "../../../src/interfaces/ICreditor.sol";
 import { IActionBase, ActionData } from "../../../src/interfaces/IActionBase.sol";
-import { IFactory } from "../../../src/interfaces/IFactory.sol";
-import { IAccount } from "../../../src/interfaces/IAccount.sol";
-import { ActionData } from "../../../src/actions/utils/ActionData.sol";
 import { AccountStorageV2 } from "./AccountStorageV2.sol";
+import { IPermit2 } from "../../../src/interfaces/IPermit2.sol";
+
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
+
+import { AccountErrors } from "../../../src/libraries/Errors.sol";
 
 /**
  * @title An Arcadia Account used to deposit a combination of all kinds of assets
  * @author Pragma Labs
  * @notice Users can use this Account to deposit assets (ERC20, ERC721, ERC1155, ...).
- * The Account will denominate all the pooled assets into one baseCurrency (one unit of account, like usd or eth).
+ * The Account will denominate all the pooled assets into one Numeraire (one unit of account, like USD or ETH).
  * An increase of value of one asset will offset a decrease in value of another asset.
  * Users can take out a credit line against the single denominated value.
  * Ensure your total value denomination remains above the liquidation threshold, or risk being liquidated!
- * @dev A Account is a smart contract that will contain multiple assets.
- * Using getValue(<baseCurrency>), the Account returns the combined total value of all (allowed) assets the Account contains.
+ * @dev An Account is a smart contract that will contain multiple assets.
+ * Using getValue(<Numeraire>), the Account returns the combined total value of all (allowed) assets the Account contains.
  * Integrating this Account as means of collateral management for your own protocol that requires collateral is encouraged.
  * Arcadia's Account functions will guarantee you a certain value of the Account.
  * For whitelists or liquidation strategies specific to your protocol, contact: dev at arcadia.finance
@@ -38,11 +40,13 @@ contract AccountV2 is AccountStorageV2 {
 
     // Storage slot with the address of the current implementation.
     // This is the hardcoded keccak-256 hash of: "eip1967.proxy.implementation" subtracted by 1.
-    bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
-    // The maximum amount of different assets that can be used as collateral within an Arcadia Vault.
+    bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+    // The maximum amount of different assets that can be used as collateral within an Arcadia Account.
     uint256 public constant ASSET_LIMIT = 15;
-    // The current Vault Version.
+    // The current Account Version.
     uint16 public constant ACCOUNT_VERSION = 2;
+    // Uniswap Permit2 contract
+    IPermit2 internal immutable permit2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
     // Storage slot for the Account logic, a struct to avoid storage conflict when dealing with upgradeable contracts.
     struct AddressSlot {
@@ -53,19 +57,32 @@ contract AccountV2 is AccountStorageV2 {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event BaseCurrencySet(address baseCurrency);
-    event TrustedMarginAccountChanged(address indexed protocol, address indexed liquidator);
     event AssetManagerSet(address indexed owner, address indexed assetManager, bool value);
+    event NumeraireSet(address indexed numeraire);
+    event MarginAccountChanged(address indexed creditor, address indexed liquidator);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @dev Throws if function is reentered.
+     */
+    modifier nonReentrant() {
+        if (locked != 1) revert AccountErrors.NoReentry();
+
+        locked = 2;
+
+        _;
+
+        locked = 1;
+    }
+
+    /**
      * @dev Throws if called by any account other than the factory address.
      */
     modifier onlyFactory() {
-        require(msg.sender == IMainRegistry(registry).FACTORY(), "A: Only Factory");
+        if (msg.sender != IRegistry(registry).FACTORY()) revert AccountErrors.OnlyFactory();
         _;
     }
 
@@ -73,18 +90,26 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        require(msg.sender == owner, "A: Only Owner");
+        if (msg.sender != owner) revert AccountErrors.OnlyOwner();
         _;
     }
 
     /**
-     * @dev Throws if called by any account other than an asset manager or the owner.
+     * @dev Throws if called by any account other than an Asset Manager or the owner.
      */
     modifier onlyAssetManager() {
+        // A custom error would need to read out owner + creditor + isAssetManager storage
         require(
-            msg.sender == owner || msg.sender == trustedCreditor || isAssetManager[owner][msg.sender],
-            "A: Only Asset Manager"
+            msg.sender == owner || msg.sender == creditor || isAssetManager[owner][msg.sender], "A: Only Asset Manager"
         );
+        _;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the Liquidator address.
+     */
+    modifier onlyLiquidator() {
+        if (msg.sender != liquidator) revert AccountErrors.OnlyLiquidator();
         _;
     }
 
@@ -109,27 +134,27 @@ contract AccountV2 is AccountStorageV2 {
      * This function will only be called (once) in the same transaction as the proxy Account creation through the factory.
      * @param owner_ The sender of the 'createAccount' on the factory
      * @param registry_ The 'beacon' contract with the external logic.
-     * @param baseCurrency_ The Base-currency in which the Account is denominated.
-     * @param creditor The contract address of the trusted creditor.
+     * @param numeraire_ The Numeraire in which the Account is denominated.
+     * @param creditor_ The contract address of the creditor.
      */
-    function initialize(address owner_, address registry_, address baseCurrency_, address creditor) external {
-        require(registry == address(0), "A_I: Already initialized!");
-        require(registry_ != address(0), "A_I: Registry cannot be 0!");
+    function initialize(address owner_, address registry_, address numeraire_, address creditor_) external {
+        if (registry != address(0)) revert AccountErrors.AlreadyInitialized();
+        if (registry_ == address(0)) revert AccountErrors.InvalidRegistry();
         owner = owner_;
         registry = registry_;
-        baseCurrency = baseCurrency_;
+        numeraire = numeraire_;
 
-        if (creditor != address(0)) {
-            _openTrustedMarginAccount(creditor);
+        if (creditor_ != address(0)) {
+            _openMarginAccount(creditor_);
         }
 
-        emit BaseCurrencySet(baseCurrency_);
+        emit NumeraireSet(numeraire_);
     }
 
     /**
      * @notice Updates the Account version and stores a new address in the EIP1967 implementation slot.
      * @param newImplementation The contract with the new Account logic.
-     * @param newRegistry The MainRegistry for this specific implementation (might be identical as the old registry).
+     * @param newRegistry The Registry for this specific implementation (might be identical as the old registry).
      * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.
      * @param newVersion The new version of the Account logic.
      */
@@ -137,26 +162,26 @@ contract AccountV2 is AccountStorageV2 {
         external
         onlyFactory
     {
-        if (isTrustedCreditorSet) {
-            //If a trustedCreditor is set, new version should be compatible.
-            //openMarginAccount() is a view function, cannot modify state.
-            (bool success,,,) = ITrustedCreditor(trustedCreditor).openMarginAccount(newVersion);
-            require(success, "A_UA: Invalid Account version");
+        if (creditor != address(0)) {
+            // If a creditor is set, new version should be compatible.
+            // openMarginAccount() is a view function, cannot modify state.
+            (bool success,,,) = ICreditor(creditor).openMarginAccount(newVersion);
+            if (!success) revert AccountErrors.InvalidAccountVersion();
         }
 
-        //Cache old parameters
-        address oldImplementation = _getAddressSlot(_IMPLEMENTATION_SLOT).value;
+        // Cache old parameters
+        address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
         uint16 oldVersion = ACCOUNT_VERSION;
-        _getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;
+        _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
 
-        //Hook on the new logic to finalize upgrade.
-        //Used to eg. Remove exposure from old Registry and Add exposure to the new Registry.
-        //Extra data can be added by the factory for complex instructions.
+        // Hook on the new logic to finalize upgrade.
+        // Used to eg. Remove exposure from old Registry and Add exposure to the new Registry.
+        // Extra data can be added by the factory for complex instructions.
         this.upgradeHook(oldImplementation, oldRegistry, oldVersion, data);
 
-        //Event emitted by Factory.
+        // Event emitted by Factory.
     }
 
     /**
@@ -183,9 +208,7 @@ contract AccountV2 is AccountStorageV2 {
      * Owner of Account NFT = owner of Account
      */
     function transferOwnership(address newOwner) external onlyFactory {
-        if (newOwner == address(0)) {
-            revert("A_TO: INVALID_RECIPIENT");
-        }
+        if (newOwner == address(0)) revert AccountErrors.InvalidRecipient();
         _transferOwnership(newOwner);
     }
 
@@ -196,7 +219,7 @@ contract AccountV2 is AccountStorageV2 {
     function _transferOwnership(address newOwner) internal {
         owner = newOwner;
 
-        //Event emitted by Factory.
+        // Event emitted by Factory.
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -204,25 +227,25 @@ contract AccountV2 is AccountStorageV2 {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Sets the baseCurrency of a Account.
-     * @param baseCurrency_ the new baseCurrency for the Account.
-     * @dev First checks if there is no trusted creditor set,
-     * if there is none set, then a new baseCurrency is set.
+     * @notice Sets the Numeraire of an Account.
+     * @param numeraire_ the new Numeraire for the Account.
+     * @dev First checks if there is no creditor set,
+     * if there is none set, then a new Numeraire is set.
      */
-    function setBaseCurrency(address baseCurrency_) external onlyOwner {
-        require(!isTrustedCreditorSet, "A_SBC: Trusted Creditor Set");
-        _setBaseCurrency(baseCurrency_);
+    function setNumeraire(address numeraire_) external onlyOwner {
+        if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
+        _setNumeraire(numeraire_);
     }
 
     /**
-     * @notice Internal function: sets baseCurrency.
-     * @param baseCurrency_ the new baseCurrency for the Account.
+     * @notice Internal function: sets Numeraire.
+     * @param numeraire_ the new Numeraire for the Account.
      */
-    function _setBaseCurrency(address baseCurrency_) internal {
-        require(IMainRegistry(registry).inMainRegistry(baseCurrency_), "A_SBC: baseCurrency not found");
-        baseCurrency = baseCurrency_;
+    function _setNumeraire(address numeraire_) internal {
+        if (!IRegistry(registry).inRegistry(numeraire_)) revert AccountErrors.NumeraireNotFound();
+        numeraire = numeraire_;
 
-        emit BaseCurrencySet(baseCurrency_);
+        emit NumeraireSet(numeraire_);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -230,57 +253,54 @@ contract AccountV2 is AccountStorageV2 {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Opens a margin account on the Account for a trusted Creditor.
-     * @param creditor The contract address of the trusted Creditor.
-     * @dev Currently only one trusted Creditor can be set
+     * @notice Opens a margin account on the Account for a Creditor.
+     * @param creditor_ The contract address of the Creditor.
+     * @dev Currently only one Creditor can be set
      * (we are working towards a single account for multiple creditors tho!).
      * @dev Only open margin accounts for protocols you trust!
-     * The Creditor should be trusted by the Account Owner, but not by any of the Arcadia-Account smart contracts.
-     * TrustedProtocol and Liquidator will never be called from an Arcadia Contract with a function that can modify state.
-     * @dev The creditor has significant authorisation: use margin, trigger liquidation, and manage assets.
+     * The Creditor has significant authorisation: use margin, trigger liquidation, and manage assets.
      */
-    function openTrustedMarginAccount(address creditor) external onlyOwner {
-        require(!isTrustedCreditorSet, "A_OTMA: ALREADY SET");
-
-        _openTrustedMarginAccount(creditor);
+    function openMarginAccount(address creditor_) external onlyOwner {
+        if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
+        _openMarginAccount(creditor_);
     }
 
     /**
-     * @notice Internal function: Opens a margin account on the Account for a trusted Creditor.
-     * @param creditor The contract address of the trusted Creditor.
+     * @notice Internal function: Opens a margin account on the Account for a Creditor.
+     * @param creditor_ The contract address of the Creditor.
      */
-    function _openTrustedMarginAccount(address creditor) internal {
-        //openMarginAccount() is a view function, cannot modify state.
-        (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_) =
-            ITrustedCreditor(creditor).openMarginAccount(ACCOUNT_VERSION);
-        require(success, "A_OTMA: Invalid Version");
+    function _openMarginAccount(address creditor_) internal {
+        // openMarginAccount() is a view function, cannot modify state.
+        (bool success, address numeraire_, address liquidator_, uint256 fixedLiquidationCost_) =
+            ICreditor(creditor_).openMarginAccount(ACCOUNT_VERSION);
+        if (!success) revert AccountErrors.InvalidAccountVersion();
 
         liquidator = liquidator_;
-        trustedCreditor = creditor;
+        creditor = creditor_;
         fixedLiquidationCost = uint96(fixedLiquidationCost_);
-        if (baseCurrency != baseCurrency_) {
-            _setBaseCurrency(baseCurrency_);
+        if (numeraire != numeraire_) {
+            _setNumeraire(numeraire_);
         }
-        isTrustedCreditorSet = true;
 
-        emit TrustedMarginAccountChanged(creditor, liquidator_);
+        emit MarginAccountChanged(creditor_, liquidator_);
     }
 
     /**
      * @notice Closes the margin account on the Account of the trusted application..
-     * @dev Currently only one trusted creditor can be set.
+     * @dev Currently only one creditor can be set.
      */
-    function closeTrustedMarginAccount() external onlyOwner {
-        require(isTrustedCreditorSet, "A_CTMA: NOT SET");
-        //getOpenPosition() is a view function, cannot modify state.
-        require(ITrustedCreditor(trustedCreditor).getOpenPosition(address(this)) == 0, "A_CTMA: NON-ZERO OPEN POSITION");
+    function closeMarginAccount() external onlyOwner {
+        // Cache creditor
+        address creditor_ = creditor;
+        if (creditor_ == address(0)) revert AccountErrors.CreditorNotSet();
+        // closeMarginAccount() checks if there is still open position. If so, reverts.
+        ICreditor(creditor_).closeMarginAccount(address(this));
 
-        isTrustedCreditorSet = false;
-        trustedCreditor = address(0);
+        creditor = address(0);
         liquidator = address(0);
         fixedLiquidationCost = 0;
 
-        emit TrustedMarginAccountChanged(address(0), address(0));
+        emit MarginAccountChanged(address(0), address(0));
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -292,28 +312,28 @@ contract AccountV2 is AccountStorageV2 {
      * @param debtIncrease The amount with which the debt is increased.
      * @param totalOpenDebt The total open Debt against the Account.
      * @return success Boolean indicating if there is sufficient margin to back a certain amount of Debt.
-     * @return trustedCreditor_ The contract address of the trusted creditor.
+     * @return creditor_ The contract address of the creditor.
      * @return accountVersion_ The Account version.
-     * @dev A Account is healthy if the Collateral value is bigger than or equal to the Used Margin.
+     * @dev An Account is healthy if the Collateral value is bigger than or equal to the Used Margin.
      * @dev Only one of the values can be non-zero, or we check on a certain increase of debt, or we check on a total amount of debt.
      * @dev If both values are zero, we check if the Account is currently healthy.
      */
     function isAccountHealthy(uint256 debtIncrease, uint256 totalOpenDebt)
         external
         view
-        returns (bool success, address trustedCreditor_, uint256 accountVersion_)
+        returns (bool success, address creditor_, uint256 accountVersion_)
     {
         if (totalOpenDebt > 0) {
-            //Check if Account is healthy for a given amount of openDebt.
-            //The total Used margin equals the sum of the given amount of openDebt and the gas cost to liquidate.
+            // Check if Account is healthy for a given amount of openDebt.
+            // The total Used margin equals the sum of the given amount of openDebt and the gas cost to liquidate.
             success = getCollateralValue() >= totalOpenDebt + fixedLiquidationCost;
         } else {
-            //Check if Account is still healthy after an increase of debt.
-            //The gas cost to liquidate is already taken into account in getUsedMargin().
+            // Check if Account is still healthy after an increase of debt.
+            // The gas cost to liquidate is already taken into account in getUsedMargin().
             success = getCollateralValue() >= getUsedMargin() + debtIncrease;
         }
 
-        return (success, trustedCreditor, ACCOUNT_VERSION);
+        return (success, creditor, ACCOUNT_VERSION);
     }
 
     /**
@@ -321,52 +341,49 @@ contract AccountV2 is AccountStorageV2 {
      * @return success Boolean indicating if the Account can be liquidated.
      */
     function isAccountLiquidatable() external view returns (bool success) {
-        //If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is never liquidatable.
+        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is never liquidatable.
         uint256 usedMargin = getUsedMargin();
         if (usedMargin > fixedLiquidationCost) {
-            //A Account can be liquidated if the Liquidation value is smaller than the Used Margin.
+            // An Account can be liquidated if the Liquidation value is smaller than the Used Margin.
             success = getLiquidationValue() < usedMargin;
         }
     }
 
     /**
-     * @notice Returns the total value (mark to market) of the Account in a specific baseCurrency
-     * @param baseCurrency_ The baseCurrency to return the value in.
-     * @return accountValue Total value stored in the account, denominated in baseCurrency.
+     * @notice Returns the total value (mark to market) of the Account in a specific Numeraire
+     * @param numeraire_ The Numeraire to return the value in.
+     * @return accountValue Total value stored in the account, denominated in Numeraire.
      * @dev Fetches all stored assets with their amounts.
-     * Using a specified baseCurrency, fetches the value of all assets in said baseCurrency.
+     * Using a specified Numeraire, fetches the value of all assets in said Numeraire.
      */
-    function getAccountValue(address baseCurrency_) external view returns (uint256 accountValue) {
+    function getAccountValue(address numeraire_) external view returns (uint256 accountValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
-        accountValue = IMainRegistry(registry).getTotalValue(
-            baseCurrency_, trustedCreditor, assetAddresses, assetIds, assetAmounts
-        );
+        accountValue = IRegistry(registry).getTotalValue(numeraire_, creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
      * @notice Calculates the total collateral value (MTM discounted with a haircut) of the Account.
-     * @return collateralValue The collateral value, returned in the decimals of the base currency.
-     * @dev Returns the value denominated in the baseCurrency of the Account.
+     * @return collateralValue The collateral value, returned in the decimal precision of the Numeraire.
+     * @dev Returns the value denominated in the Numeraire of the Account.
      * @dev The collateral value of the Account is equal to the spot value of the underlying assets,
      * discounted by a haircut (the collateral factor). Since the value of
-     * collateralised assets can fluctuate, the haircut guarantees that the Account
-     * remains over-collateralised with a high confidence level (99,9%+). The size of the
+     * collateralized assets can fluctuate, the haircut guarantees that the Account
+     * remains over-collateralized with a high confidence level (99,9%+). The size of the
      * haircut depends on the underlying risk of the assets in the Account, the bigger the volatility
-     * or the smaller the on-chain liquidity, the bigger the haircut will be.
+     * or the smaller the onchain liquidity, the bigger the haircut will be.
      */
     function getCollateralValue() public view returns (uint256 collateralValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
-        collateralValue = IMainRegistry(registry).getCollateralValue(
-            baseCurrency, trustedCreditor, assetAddresses, assetIds, assetAmounts
-        );
+        collateralValue =
+            IRegistry(registry).getCollateralValue(numeraire, creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
      * @notice Calculates the total liquidation value (MTM discounted with a factor to account for slippage) of the Account.
-     * @return liquidationValue The liquidation value, returned in the decimals of the base currency.
-     * @dev Returns the value denominated in the baseCurrency of the Account.
+     * @return liquidationValue The liquidation value, returned in the decimal precision of the Numeraire.
+     * @dev Returns the value denominated in the Numeraire of the Account.
      * @dev The liquidation value of the Account is equal to the spot value of the underlying assets,
      * discounted by a haircut (the liquidation factor).
      * The liquidation value takes into account that not the full value of the assets can go towards
@@ -376,9 +393,8 @@ contract AccountV2 is AccountStorageV2 {
     function getLiquidationValue() public view returns (uint256 liquidationValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
-        liquidationValue = IMainRegistry(registry).getLiquidationValue(
-            baseCurrency, trustedCreditor, assetAddresses, assetIds, assetAmounts
-        );
+        liquidationValue =
+            IRegistry(registry).getLiquidationValue(numeraire, creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
@@ -387,28 +403,30 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Used Margin is the value of the assets that is currently 'locked' to back:
      *  - All the liabilities issued against the Account.
      *  - An additional fixed buffer to cover gas fees in case of a liquidation.
-     * @dev The used margin is denominated in the baseCurrency.
+     * @dev The used margin is denominated in the Numeraire.
      * @dev Currently only one trusted application (Arcadia Lending) can open a margin account.
      * The open liability is fetched at the contract of the application -> only allow trusted audited creditors!!!
      */
     function getUsedMargin() public view returns (uint256 usedMargin) {
-        if (!isTrustedCreditorSet) return 0;
+        // Cache creditor
+        address creditor_ = creditor;
+        if (creditor_ == address(0)) return 0;
 
-        //getOpenPosition() is a view function, cannot modify state.
-        usedMargin = ITrustedCreditor(trustedCreditor).getOpenPosition(address(this)) + fixedLiquidationCost;
+        // getOpenPosition() is a view function, cannot modify state.
+        usedMargin = ICreditor(creditor_).getOpenPosition(address(this)) + fixedLiquidationCost;
     }
 
     /**
      * @notice Calculates the remaining margin the owner of the Account can use.
      * @return freeMargin The remaining amount of margin a user can take.
      * @dev Free Margin is the value of the assets that is still free to back additional liabilities.
-     * @dev The free margin is denominated in the baseCurrency.
+     * @dev The free margin is denominated in the Numeraire.
      */
     function getFreeMargin() public view returns (uint256 freeMargin) {
         uint256 collateralValue = getCollateralValue();
         uint256 usedMargin = getUsedMargin();
 
-        //gas: explicit check is done to prevent underflow.
+        // gas: explicit check is done to prevent underflow.
         unchecked {
             freeMargin = collateralValue > usedMargin ? collateralValue - usedMargin : 0;
         }
@@ -419,49 +437,71 @@ contract AccountV2 is AccountStorageV2 {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Function called by Liquidator to start liquidation of the Account.
-     * @param openDebt The open debt taken by `originalOwner` at moment of liquidation at trustedCreditor
-     * @return originalOwner The original owner of this Account.
-     * @return baseCurrency_ The baseCurrency in which the Account is denominated.
-     * @return trustedCreditor_ The account or contract that is owed the debt.
-     * @dev Requires a liquidation value below Used margin.
-     * @dev Transfers ownership of the Account to the liquidator!
+     * @notice Checks if an Account is liquidatable and continues the liquidation flow.
+     * @return assetAddresses Array of the contract addresses of the assets in Account.
+     * @return assetIds Array of the IDs of the assets in Account.
+     * @return assetAmounts Array with the amounts of the assets in Account.
+     * @return owner_ Owner of the account.
+     * @return creditor_ The creditor, address 0 if no active Creditor.
+     * @return openDebt The open Debt issued against the Account.
+     * @return assetAndRiskValues Array of asset values and corresponding collateral factors.
      */
-    function liquidateAccount(uint256 openDebt)
+    function startLiquidation(address liquidationInitiator)
         external
-        returns (address originalOwner, address baseCurrency_, address trustedCreditor_)
+        nonReentrant
+        onlyLiquidator
+        returns (
+            address[] memory assetAddresses,
+            uint256[] memory assetIds,
+            uint256[] memory assetAmounts,
+            address owner_,
+            address creditor_,
+            uint256 openDebt,
+            AssetValueAndRiskFactors[] memory assetAndRiskValues
+        )
     {
-        require(msg.sender == liquidator, "A_LA: Only Liquidator");
+        owner_ = owner;
+        creditor_ = creditor;
 
-        //Cache trustedCreditor.
-        trustedCreditor_ = trustedCreditor;
+        (assetAddresses, assetIds, assetAmounts) = generateAssetData();
+        assetAndRiskValues =
+            IRegistry(registry).getValuesInNumeraire(numeraire, creditor_, assetAddresses, assetIds, assetAmounts);
 
-        //Close margin account.
-        isTrustedCreditorSet = false;
-        trustedCreditor = address(0);
-        liquidator = address(0);
+        // Since the function is only callable by the liquidator, a liquidator and a Creditor are set.
+        openDebt = ICreditor(creditor).startLiquidation(liquidationInitiator);
+        uint256 usedMargin = openDebt + fixedLiquidationCost;
 
-        //If getLiquidationValue (total value discounted with liquidation factor to account for slippage)
-        //is smaller than the Used Margin: sum of the liabilities of the Account (openDebt)
-        //and the max gas cost to liquidate the Account (fixedLiquidationCost),
-        //then the Account can be successfully liquidated.
-        //Liquidations are triggered by the trustedCreditor (via Liquidator), the openDebt is
-        //passed as input to avoid the need of another contract call back to trustedCreditor.
-        require(getLiquidationValue() < openDebt + fixedLiquidationCost, "A_LA: liqValue above usedMargin");
+        if (openDebt == 0 || AssetValuationLib._calculateLiquidationValue(assetAndRiskValues) >= usedMargin) {
+            revert AccountErrors.AccountNotLiquidatable();
+        }
+    }
 
-        //Set fixedLiquidationCost to 0 since margin account is closed.
-        fixedLiquidationCost = 0;
+    /**
+     * @notice Transfers the asset bought by a bidder during a liquidation event.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assetIds Array of the IDs of the assets.
+     * @param assetAmounts Array with the amounts of the assets.
+     * @param bidder The address of the bidder.
+     */
+    function auctionBid(
+        address[] memory assetAddresses,
+        uint256[] memory assetIds,
+        uint256[] memory assetAmounts,
+        address bidder
+    ) external onlyLiquidator {
+        _withdraw(assetAddresses, assetIds, assetAmounts, bidder);
+    }
 
-        //Transfer ownership of the ERC721 in Factory of the Account to the Liquidator.
-        IFactory(IMainRegistry(registry).FACTORY()).liquidate(msg.sender);
-
-        //Transfer ownership of the Account itself to the Liquidator.
-        originalOwner = owner;
-        _transferOwnership(msg.sender);
-
-        emit TrustedMarginAccountChanged(address(0), address(0));
-
-        return (originalOwner, baseCurrency, trustedCreditor_);
+    /**
+     * @notice Transfers all assets of the Account in case the auction did not end successful (= Bought In).
+     * @param to The recipient's address to receive the assets, set by the Creditor.
+     * @dev When an auction is not successful, the assets are considered "Bought In" (auction terminology):
+     * Any remaining assets in the Account are transferred to a certain recipient address, set by the creditor.
+     */
+    function auctionBoughtIn(address to) external onlyLiquidator {
+        (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
+            generateAssetData();
+        _withdraw(assetAddresses, assetIds, assetAmounts, to);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -471,56 +511,72 @@ contract AccountV2 is AccountStorageV2 {
     /**
      * @notice Add or remove an Asset Manager.
      * @param assetManager the address of the Asset Manager
-     * @param value A boolean giving permissions to or taking permissions from an Asset manager
-     * @dev Only set trusted addresses as Asset manager, Asset managers can potentially steal assets (as long as the Account position remains healthy).
-     * @dev No need to set the Owner as Asset manager, owner will automatically have all permissions of an asset manager.
-     * @dev Potential use-cases of the asset manager might be to:
+     * @param value A boolean giving permissions to or taking permissions from an Asset Manager
+     * @dev Only set trusted addresses as Asset Manager, Asset Managers can potentially steal assets (as long as the Account position remains healthy).
+     * @dev No need to set the Owner as Asset Manager, owner will automatically have all permissions of an Asset Manager.
+     * @dev Potential use-cases of the Asset Manager might be to:
      * - Automate actions by keeper networks,
-     * - Chain interactions with the Trusted Creditor together with Account actions (eg. borrow deposit and trade in one transaction).
+     * - Chain interactions with the Creditor together with Account actions (eg. borrow deposit and trade in one transaction).
      */
     function setAssetManager(address assetManager, bool value) external onlyOwner {
-        isAssetManager[msg.sender][assetManager] = value;
-
-        emit AssetManagerSet(msg.sender, assetManager, value);
+        emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = value);
     }
 
     /**
-     * @notice Calls external action handler to execute and interact with external logic.
-     * @param actionHandler The address of the action handler.
-     * @param actionData A bytes object containing two actionAssetData structs, an address array and a bytes array.
-     * @return trustedCreditor_ The contract address of the trusted creditor.
+     * @notice Calls external Action Multicall to execute and interact with external logic.
+     * @param actionData A bytes object containing three actionAssetData structs, an address array and a bytes array.
+     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
+     * The second struct contains the info about the owner's assets that are not in this Account and need to be transferred to the actionTarget.
+     * The third struct contains the permit for the Permit2 transfer.
+     * @param signature The signature to verify.
+     * @param actionTarget The address of the Action Multicall.
+     * @return creditor_ The contract address of the Creditor.
      * @return accountVersion_ The Account version.
      * @dev Similar to flash loans, this function optimistically calls external logic and checks for the Account state at the very end.
-     * @dev accountManagementAction can interact with and chain together any DeFi protocol to swap, stake, claim...
+     * This allows users to interact with and chain together any DeFi protocol to swap, stake, claim...
      * The only requirements are that the recipient tokens of the interactions are allowlisted, deposited back into the Account and
      * that the Account is in a healthy state at the end of the transaction.
      */
-    function accountManagementAction(address actionHandler, bytes calldata actionData)
+    function flashAction(bytes calldata actionData, bytes calldata signature, address actionTarget)
         external
+        nonReentrant
         onlyAssetManager
         returns (address, uint256)
     {
-        require(IMainRegistry(registry).isActionAllowed(actionHandler), "A_AMA: Action not allowed");
+        (
+            ActionData memory withdrawData,
+            ActionData memory transferFromOwnerData,
+            IPermit2.PermitBatchTransferFrom memory permit,
+            bytes memory actionTargetData
+        ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes));
 
-        (ActionData memory outgoing,,,) = abi.decode(actionData, (ActionData, ActionData, address[], bytes[]));
+        // Withdraw assets to actionTarget.
+        _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);
 
-        // Withdraw assets to actionHandler.
-        _withdraw(outgoing.assets, outgoing.assetIds, outgoing.assetAmounts, actionHandler);
-
-        // Execute Action(s).
-        ActionData memory incoming = IActionBase(actionHandler).executeAction(actionData);
-
-        // Deposit assets from actionHandler into Account.
-        _deposit(incoming.assets, incoming.assetIds, incoming.assetAmounts, actionHandler);
-
-        //If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always in a healthy state.
-        uint256 usedMargin = getUsedMargin();
-        if (usedMargin > fixedLiquidationCost) {
-            //Account must be healthy after actions are executed.
-            require(getCollateralValue() >= usedMargin, "A_AMA: Account Unhealthy");
+        // Transfer assets from owner (that are not assets in this account) to actionTarget.
+        if (transferFromOwnerData.assets.length > 0) {
+            _transferFromOwner(transferFromOwnerData, actionTarget);
         }
 
-        return (trustedCreditor, ACCOUNT_VERSION);
+        // If the function input includes a signature and non-empty token permissions, initiate a transfer via Permit2.
+        if (signature.length > 0 && permit.permitted.length > 0) {
+            _transferFromOwnerWithPermit(permit, signature, actionTarget);
+        }
+
+        // Execute Action(s).
+        ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
+
+        // Deposit assets from actionTarget into Account.
+        _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionTarget);
+
+        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always in a healthy state.
+        uint256 usedMargin = getUsedMargin();
+        // Account must be healthy after actions are executed.
+        if (usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin) {
+            revert AccountErrors.AccountUnhealthy();
+        }
+
+        return (creditor, ACCOUNT_VERSION);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -546,7 +602,7 @@ contract AccountV2 is AccountStorageV2 {
         external
         onlyOwner
     {
-        //No need to check that all arrays have equal length, this check is already done in the MainRegistry.
+        // No need to check that all arrays have equal length, this check is already done in the Registry.
         _deposit(assetAddresses, assetIds, assetAmounts, msg.sender);
     }
 
@@ -557,20 +613,22 @@ contract AccountV2 is AccountStorageV2 {
      * @param assetAmounts Array with the amounts of the assets.
      * @param from The address to withdraw the assets from.
      */
+
     function _deposit(
         address[] memory assetAddresses,
         uint256[] memory assetIds,
         uint256[] memory assetAmounts,
         address from
     ) internal {
-        //Reverts in mainRegistry if input is invalid.
+        // Reverts in registry if input is invalid.
         uint256[] memory assetTypes =
-            IMainRegistry(registry).batchProcessDeposit(trustedCreditor, assetAddresses, assetIds, assetAmounts);
+            IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {
             if (assetAmounts[i] == 0) {
-                //Skip if amount is 0 to prevent storing addresses that have 0 balance.
+                // Skip if amount is 0 to prevent storing addresses that have 0 balance.
+                // ToDo silent fail or should we revert here?
                 unchecked {
                     ++i;
                 }
@@ -578,20 +636,24 @@ contract AccountV2 is AccountStorageV2 {
             }
 
             if (assetTypes[i] == 0) {
+                if (assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
                 _depositERC20(from, assetAddresses[i], assetAmounts[i]);
             } else if (assetTypes[i] == 1) {
+                if (assetAmounts[i] != 1) revert AccountErrors.InvalidERC721Amount();
                 _depositERC721(from, assetAddresses[i], assetIds[i]);
             } else if (assetTypes[i] == 2) {
                 _depositERC1155(from, assetAddresses[i], assetIds[i], assetAmounts[i]);
             } else {
-                revert("A_D: Unknown asset type");
+                revert AccountErrors.UnknownAssetType();
             }
             unchecked {
                 ++i;
             }
         }
 
-        require(erc20Stored.length + erc721Stored.length + erc1155Stored.length <= ASSET_LIMIT, "A_D: Too many assets");
+        if (erc20Stored.length + erc721Stored.length + erc1155Stored.length > ASSET_LIMIT) {
+            revert AccountErrors.TooManyAssets();
+        }
     }
 
     /**
@@ -615,14 +677,13 @@ contract AccountV2 is AccountStorageV2 {
         external
         onlyOwner
     {
-        //No need to check that all arrays have equal length, this check is already done in the MainRegistry.
+        // No need to check that all arrays have equal length, this check is already done in the Registry.
         _withdraw(assetAddresses, assetIds, assetAmounts, msg.sender);
 
         uint256 usedMargin = getUsedMargin();
-        //If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and all assets can be withdrawn.
-        if (usedMargin > fixedLiquidationCost) {
-            //Account must be healthy after assets are withdrawn.
-            require(getCollateralValue() >= usedMargin, "A_W: Account Unhealthy");
+        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and all assets can be withdrawn.
+        if (usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin) {
+            revert AccountErrors.AccountUnhealthy();
         }
     }
 
@@ -640,14 +701,14 @@ contract AccountV2 is AccountStorageV2 {
         uint256[] memory assetAmounts,
         address to
     ) internal {
-        //Reverts in mainRegistry if input is invalid.
+        // Reverts in registry if input is invalid.
         uint256[] memory assetTypes =
-            IMainRegistry(registry).batchProcessWithdrawal(trustedCreditor, assetAddresses, assetIds, assetAmounts); //reverts in mainregistry if invalid input
+            IRegistry(registry).batchProcessWithdrawal(creditor, assetAddresses, assetIds, assetAmounts); // reverts in registry if invalid input
 
         uint256 assetAddressesLength = assetAddresses.length;
         for (uint256 i; i < assetAddressesLength;) {
             if (assetAmounts[i] == 0) {
-                //Skip if amount is 0 to prevent transferring 0 balances.
+                // Skip if amount is 0 to prevent transferring 0 balances.
                 unchecked {
                     ++i;
                 }
@@ -655,18 +716,83 @@ contract AccountV2 is AccountStorageV2 {
             }
 
             if (assetTypes[i] == 0) {
+                if (assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
                 _withdrawERC20(to, assetAddresses[i], assetAmounts[i]);
             } else if (assetTypes[i] == 1) {
+                if (assetAmounts[i] != 1) revert AccountErrors.InvalidERC721Amount();
                 _withdrawERC721(to, assetAddresses[i], assetIds[i]);
             } else if (assetTypes[i] == 2) {
                 _withdrawERC1155(to, assetAddresses[i], assetIds[i], assetAmounts[i]);
             } else {
-                require(false, "A_W: Unknown asset type");
+                revert AccountErrors.UnknownAssetType();
             }
             unchecked {
                 ++i;
             }
         }
+    }
+
+    /**
+     * @notice Transfers assets directly from the owner to the actionTarget contract.
+     * @param transferFromOwnerData A struct containing the info of all assets transferred from the owner that are not in this account.
+     * @param to The address to withdraw to.
+     */
+    function _transferFromOwner(ActionData memory transferFromOwnerData, address to) internal {
+        uint256 assetAddressesLength = transferFromOwnerData.assets.length;
+        address owner_ = owner;
+        for (uint256 i; i < assetAddressesLength;) {
+            if (transferFromOwnerData.assetAmounts[i] == 0) {
+                // Skip if amount is 0 to prevent transferring 0 balances.
+                unchecked {
+                    ++i;
+                }
+                continue;
+            }
+
+            if (transferFromOwnerData.assetTypes[i] == 0) {
+                ERC20(transferFromOwnerData.assets[i]).safeTransferFrom(
+                    owner_, to, transferFromOwnerData.assetAmounts[i]
+                );
+            } else if (transferFromOwnerData.assetTypes[i] == 1) {
+                IERC721(transferFromOwnerData.assets[i]).safeTransferFrom(owner_, to, transferFromOwnerData.assetIds[i]);
+            } else if (transferFromOwnerData.assetTypes[i] == 2) {
+                IERC1155(transferFromOwnerData.assets[i]).safeTransferFrom(
+                    owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
+                );
+            } else {
+                revert AccountErrors.UnknownAssetType();
+            }
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /**
+     * @notice Transfers assets from the owner to the actionTarget contract via Permit2.
+     * @param permit Data specifying the terms of the transfer.
+     * @param signature The signature to verify.
+     * @param to_ The address to withdraw to.
+     */
+    function _transferFromOwnerWithPermit(
+        IPermit2.PermitBatchTransferFrom memory permit,
+        bytes calldata signature,
+        address to_
+    ) internal {
+        uint256 tokenPermissionsLength = permit.permitted.length;
+        IPermit2.SignatureTransferDetails[] memory transferDetails =
+            new IPermit2.SignatureTransferDetails[](tokenPermissionsLength);
+
+        for (uint256 i; i < tokenPermissionsLength;) {
+            transferDetails[i].to = to_;
+            transferDetails[i].requestedAmount = permit.permitted[i].amount;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        permit2.permitTransferFrom(permit, transferDetails, owner, signature);
     }
 
     /**
@@ -788,8 +914,8 @@ contract AccountV2 is AccountStorageV2 {
 
         uint256 i;
         if (tokenIdLength == 1) {
-            //There was only one ERC721 stored on the contract, safe to remove both lists.
-            require(erc721TokenIds[0] == id && erc721Stored[0] == ERC721Address, "A_W721: Unknown asset");
+            // There was only one ERC721 stored on the contract, safe to remove both lists.
+            if (erc721TokenIds[0] != id || erc721Stored[0] != ERC721Address) revert AccountErrors.UnknownAsset();
             erc721TokenIds.pop();
             erc721Stored.pop();
         } else {
@@ -805,9 +931,9 @@ contract AccountV2 is AccountStorageV2 {
                     ++i;
                 }
             }
-            //For loop should break, otherwise we never went into the if-branch, meaning the token being withdrawn
-            //is unknown and not properly deposited.
-            require(i < tokenIdLength, "A_W721: Unknown asset");
+            // For loop should break, otherwise we never went into the if-branch, meaning the token being withdrawn
+            // is unknown and not properly deposited.
+            if (i == tokenIdLength) revert AccountErrors.UnknownAsset();
         }
 
         IERC721(ERC721Address).safeTransferFrom(address(this), to, id);
@@ -865,9 +991,7 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Function can retrieve assets that were transferred to the Account but not deposited.
      * or can be used to claim yield for rebasing tokens.
      */
-    function skim(address token, uint256 id, uint256 type_) public {
-        require(msg.sender == owner, "A_S: Only owner can skim");
-
+    function skim(address token, uint256 id, uint256 type_) public onlyOwner {
         if (token == address(0)) {
             payable(owner).transfer(address(this).balance);
             return;
@@ -926,7 +1050,7 @@ contract AccountV2 is AccountStorageV2 {
         uint256 totalLength;
         unchecked {
             totalLength = erc20Stored.length + erc721Stored.length + erc1155Stored.length;
-        } //Cannot realistically overflow. No max(uint256) contracts deployed.
+        } // Cannot realistically overflow. No max(uint256) contracts deployed.
         assetAddresses = new address[](totalLength);
         assetIds = new uint256[](totalLength);
         assetAmounts = new uint256[](totalLength);
@@ -937,7 +1061,7 @@ contract AccountV2 is AccountStorageV2 {
         for (; i < erc20StoredLength;) {
             cacheAddr = erc20Stored[i];
             assetAddresses[i] = cacheAddr;
-            //assetIds[i] = 0; //gas: no need to store 0, index will continue anyway.
+            // assetIds[i] = 0; // gas: no need to store 0, index will continue anyway.
             assetAmounts[i] = erc20Balances[cacheAddr];
             unchecked {
                 ++i;
@@ -986,7 +1110,7 @@ contract AccountV2 is AccountStorageV2 {
     }
 
     fallback() external {
-        revert();
+        revert AccountErrors.NoFallback();
     }
 
     function returnFive() public pure returns (uint256) {
@@ -996,17 +1120,15 @@ contract AccountV2 is AccountStorageV2 {
     /**
      * @notice Finalizes the Upgrade to a new Account version on the new Logic Contract.
      * param oldImplementation The contract with the new old logic.
-     * @param oldRegistry The MainRegistry of the old version (might be identical as the new registry)
+     * @param oldRegistry The Registry of the old version (might be identical as the new registry)
      * param oldVersion The old version of the Account logic.
      * param data Arbitrary data, can contain instructions to execute in this function.
      * @dev If upgradeHook() is implemented, it MUST be verify that msg.sender == address(this).
      */
     function upgradeHook(address, address oldRegistry, uint16, bytes calldata) external {
         require(msg.sender == address(this), "Not the right address");
-        IMainRegistry(oldRegistry).batchProcessWithdrawal(
-            address(0), new address[](0), new uint256[](0), new uint256[](0)
-        );
-        IMainRegistry(registry).batchProcessDeposit(address(0), new address[](0), new uint256[](0), new uint256[](0));
+        IRegistry(oldRegistry).batchProcessWithdrawal(address(0), new address[](0), new uint256[](0), new uint256[](0));
+        IRegistry(registry).batchProcessDeposit(address(0), new address[](0), new uint256[](0), new uint256[](0));
 
         storageV2 = returnFive();
     }

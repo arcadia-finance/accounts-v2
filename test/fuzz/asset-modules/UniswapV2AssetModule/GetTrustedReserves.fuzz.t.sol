@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { UniswapV2AssetModule_Fuzz_Test } from "./_UniswapV2AssetModule.fuzz.t.sol";
+import { UniswapV2AssetModule_Fuzz_Test, UniswapV2AssetModule } from "./_UniswapV2AssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "getTrustedReserves" of contract "UniswapV2AssetModule".
@@ -24,7 +24,7 @@ contract GetTrustedReserves_UniswapV2AssetModule_Fuzz_Test is UniswapV2AssetModu
     function testFuzz_Revert_getTrustedReserves_ZeroReserves(uint256 trustedPriceToken0, uint256 trustedPriceToken1)
         public
     {
-        vm.expectRevert("UV2_GTR: ZERO_PAIR_RESERVES");
+        vm.expectRevert(UniswapV2AssetModule.Zero_Reserves.selector);
         uniswapV2AssetModule.getTrustedReserves(address(pairToken1Token2), trustedPriceToken0, trustedPriceToken1);
     }
 

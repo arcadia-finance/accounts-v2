@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { UniswapV2AssetModule_Fuzz_Test } from "./_UniswapV2AssetModule.fuzz.t.sol";
 
@@ -72,7 +72,7 @@ contract ComputeProfitMaximizingTrade_UniswapV2AssetModule_Fuzz_Test is UniswapV
             prod0 := mul(invariant, prod)
             prod1 := sub(sub(mm, prod0), lt(mm, prod0))
         }
-        vm.expectRevert(abi.encodeWithSignature("PRBMath__MulDivOverflow(uint256,uint256)", prod1, denominator));
+        vm.expectRevert(bytes(""));
         uniswapV2AssetModule.computeProfitMaximizingTrade(priceToken0, priceToken1, reserve0, reserve1);
     }
 
@@ -95,6 +95,7 @@ contract ComputeProfitMaximizingTrade_UniswapV2AssetModule_Fuzz_Test is UniswapV
 
         (bool token0ToToken1, uint256 amountIn) =
             uniswapV2AssetModule.computeProfitMaximizingTrade(priceToken0, priceToken1, reserve0, reserve1);
+        vm.assume(amountIn > 0);
 
         uint112 reserveIn;
         uint112 reserveOut;

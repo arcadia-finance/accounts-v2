@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { AbstractDerivedAssetModuleExtension } from "../Extensions.sol";
-import { RiskModule } from "../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 
 contract DerivedAssetModuleMock is AbstractDerivedAssetModuleExtension {
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
@@ -11,9 +11,7 @@ contract DerivedAssetModuleMock is AbstractDerivedAssetModuleExtension {
     bool internal returnRateUnderlyingAssetToUsd;
     uint256 internal rateUnderlyingAssetToUsd;
 
-    constructor(address mainRegistry_, uint256 assetType_)
-        AbstractDerivedAssetModuleExtension(mainRegistry_, assetType_)
-    { }
+    constructor(address registry_, uint256 assetType_) AbstractDerivedAssetModuleExtension(registry_, assetType_) { }
 
     function isAllowed(address asset, uint256) public view override returns (bool) { }
 
@@ -48,17 +46,14 @@ contract DerivedAssetModuleMock is AbstractDerivedAssetModuleExtension {
         internal
         view
         override
-        returns (
-            uint256[] memory underlyingAssetsAmount,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
-        )
+        returns (uint256[] memory underlyingAssetsAmount, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
         underlyingAssetsAmount = new uint256[](1);
         underlyingAssetsAmount[0] = underlyingAssetAmount;
 
         // If rateUnderlyingAssetToUsd is set, also return rateUnderlyingAssetsToUsd.
         if (returnRateUnderlyingAssetToUsd) {
-            rateUnderlyingAssetsToUsd = new RiskModule.AssetValueAndRiskFactors[](1);
+            rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](1);
             rateUnderlyingAssetsToUsd[0].assetValue = rateUnderlyingAssetToUsd;
         }
 

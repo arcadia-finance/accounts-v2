@@ -2,14 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { BaseHandler } from "./BaseHandler.sol";
-import { AccountV1 } from "../../../src/AccountV1.sol";
+import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
 import { AccountV2 } from "../../utils/mocks/AccountV2.sol";
 import { Factory } from "../../../src/Factory.sol";
-import { MainRegistryExtension } from "../../utils/Extensions.sol";
-import { TrustedCreditorMock } from "../../utils/mocks/TrustedCreditorMock.sol";
+import { RegistryExtension } from "../../utils/Extensions.sol";
+import { CreditorMock } from "../../utils/mocks/CreditorMock.sol";
 import "../../utils/Constants.sol";
 
 /// @dev This contract and not { Factory } is exposed to Foundry for invariant testing. The point is
@@ -27,7 +27,7 @@ contract FactoryHandler is BaseHandler {
     //////////////////////////////////////////////////////////////////////////*/
 
     Factory internal factory;
-    MainRegistryExtension internal mainRegistryExtension;
+    RegistryExtension internal registryExtension;
     AccountV1 internal account;
     AccountV2 internal accountV2;
 
@@ -35,14 +35,9 @@ contract FactoryHandler is BaseHandler {
                                     CONSTRUCTOR
     //////////////////////////////////////////////////////////////////////////*/
     // Todo: Why do I have to add "memory" to the 2 account instances in the input
-    constructor(
-        Factory factory_,
-        MainRegistryExtension mainRegistryExtension_,
-        AccountV1 account_,
-        AccountV2 accountV2_
-    ) {
+    constructor(Factory factory_, RegistryExtension registryExtension_, AccountV1 account_, AccountV2 accountV2_) {
         factory = factory_;
-        mainRegistryExtension = mainRegistryExtension_;
+        registryExtension = registryExtension_;
         account = account_;
         accountV2 = accountV2_;
     }
@@ -50,10 +45,10 @@ contract FactoryHandler is BaseHandler {
     /*//////////////////////////////////////////////////////////////////////////
                                     FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
-    function createAccount(uint256 salt, address baseCurrency) public {
+    function createAccount(uint256 salt, address numeraire) public {
         address creditor = address(0);
         uint16 accountVersion = 0;
-        factory.createAccount(salt, accountVersion, baseCurrency, creditor);
+        factory.createAccount(salt, accountVersion, numeraire, creditor);
     }
 
     function setNewAccountInfo() public {
@@ -62,9 +57,7 @@ contract FactoryHandler is BaseHandler {
         // Objective is to only activate a V2 once
         if (callsToSetNewAccountInfo == 3) {
             vm.prank(factory.owner());
-            factory.setNewAccountInfo(
-                address(mainRegistryExtension), address(accountV2), Constants.upgradeProof1To2, ""
-            );
+            factory.setNewAccountInfo(address(registryExtension), address(accountV2), Constants.upgradeProof1To2, "");
         }
     }
 }

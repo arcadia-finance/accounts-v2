@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 interface IPrimaryAssetModule {
     /**
@@ -11,14 +11,14 @@ interface IPrimaryAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
      * @param maxExposure The maximum exposure of a creditor to the asset.
-     * @param collateralFactor The collateral factor of the asset for the creditor, 2 decimals precision.
-     * @param liquidationFactor The liquidation factor of the asset for the creditor, 2 decimals precision.
+     * @param collateralFactor The collateral factor of the asset for the creditor, 4 decimals precision.
+     * @param liquidationFactor The liquidation factor of the asset for the creditor, 4 decimals precision.
      */
     function setRiskParameters(
         address creditor,
         address asset,
         uint256 assetId,
-        uint128 maxExposure,
+        uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external;

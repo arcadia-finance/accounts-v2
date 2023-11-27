@@ -2,11 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
-import { AccountV1 } from "../../src/AccountV1.sol";
+import { AccountV1 } from "../../src/accounts/AccountV1.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
 import { ChainlinkOracleModule } from "../../src/oracle-modules/ChainlinkOracleModule.sol";
@@ -14,12 +14,12 @@ import { DerivedAssetModule } from "../../src/asset-modules/AbstractDerivedAsset
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
 import { FloorERC721AssetModule } from "../../src/asset-modules/FloorERC721AssetModule.sol";
 import { FloorERC1155AssetModule } from "../../src/asset-modules/FloorERC1155AssetModule.sol";
-import { MainRegistryGuardian } from "../../src/guardians/MainRegistryGuardian.sol";
-import { MainRegistry } from "../../src/MainRegistry.sol";
-import { IMainRegistry } from "../../src/interfaces/IMainRegistry.sol";
+import { RegistryGuardian } from "../../src/guardians/RegistryGuardian.sol";
+import { Registry } from "../../src/Registry.sol";
+import { IRegistry } from "../../src/interfaces/IRegistry.sol";
 import { AssetModule } from "../../src/asset-modules/AbstractAssetModule.sol";
 import { PrimaryAssetModule } from "../../src/asset-modules/AbstractPrimaryAssetModule.sol";
-import { RiskModule } from "../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../src/libraries/AssetValuationLib.sol";
 import { StandardERC20AssetModule } from "../../src/asset-modules/StandardERC20AssetModule.sol";
 import { StandardERC4626AssetModule } from "../../src/asset-modules/StandardERC4626AssetModule.sol";
 import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModule.sol";
@@ -37,16 +37,16 @@ contract AccountExtension is AccountV1 {
         locked = locked_;
     }
 
+    function setInAuction() external {
+        inAuction = true;
+    }
+
     function getLengths() external view returns (uint256, uint256, uint256, uint256) {
         return (erc20Stored.length, erc721Stored.length, erc721TokenIds.length, erc1155Stored.length);
     }
 
-    function setTrustedCreditor(address trustedCreditor_) public {
-        trustedCreditor = trustedCreditor_;
-    }
-
-    function setIsTrustedCreditorSet(bool set) public {
-        isTrustedCreditorSet = set;
+    function setCreditor(address creditor_) public {
+        creditor = creditor_;
     }
 
     function setFixedLiquidationCost(uint96 fixedLiquidationCost_) public {
@@ -57,13 +57,49 @@ contract AccountExtension is AccountV1 {
         owner = newOwner;
     }
 
+    function flashAction(address actionTarget, bytes calldata actionData) public {
+        _flashAction(actionTarget, actionData);
+    }
+
     function setRegistry(address registry_) public {
         registry = registry_;
+    }
+
+    function getERC20Stored(uint256 index) public view returns (address) {
+        return erc20Stored[index];
+    }
+
+    function getERC20Balances(address asset) public view returns (uint256) {
+        return erc20Balances[asset];
+    }
+
+    function getERC721Stored(uint256 index) public view returns (address) {
+        return erc721Stored[index];
+    }
+
+    function getERC721TokenIds(uint256 index) public view returns (uint256) {
+        return erc721TokenIds[index];
+    }
+
+    function getERC1155Stored(uint256 index) public view returns (address) {
+        return erc1155Stored[index];
+    }
+
+    function getERC1155TokenIds(uint256 index) public view returns (uint256) {
+        return erc1155TokenIds[index];
+    }
+
+    function getERC1155Balances(address asset, uint256 assetId) public view returns (uint256) {
+        return erc1155Balances[asset][assetId];
     }
 }
 
 contract BaseGuardianExtension is BaseGuardian {
     constructor() BaseGuardian() { }
+
+    function pause() external override { }
+
+    function unpause() external override { }
 }
 
 contract BitPackingLibExtension {
@@ -77,7 +113,7 @@ contract BitPackingLibExtension {
 }
 
 contract ChainlinkOracleModuleExtension is ChainlinkOracleModule {
-    constructor(address mainRegistry_) ChainlinkOracleModule(mainRegistry_) { }
+    constructor(address registry_) ChainlinkOracleModule(registry_) { }
 
     function getInOracleModule(address oracle) public view returns (bool) {
         return inOracleModule[oracle];
@@ -97,20 +133,19 @@ contract ChainlinkOracleModuleExtension is ChainlinkOracleModule {
 contract FactoryGuardianExtension is FactoryGuardian {
     constructor() FactoryGuardian() { }
 
-    function setPauseTimestamp(uint256 pauseTimestamp_) public {
+    function setPauseTimestamp(uint96 pauseTimestamp_) public {
         pauseTimestamp = pauseTimestamp_;
     }
 
-    function setFlags(bool createPaused_, bool liquidatePaused_) public {
+    function setFlags(bool createPaused_) public {
         createPaused = createPaused_;
-        liquidatePaused = liquidatePaused_;
     }
 }
 
-contract MainRegistryGuardianExtension is MainRegistryGuardian {
-    constructor() MainRegistryGuardian() { }
+contract RegistryGuardianExtension is RegistryGuardian {
+    constructor() RegistryGuardian() { }
 
-    function setPauseTimestamp(uint256 pauseTimestamp_) public {
+    function setPauseTimestamp(uint96 pauseTimestamp_) public {
         pauseTimestamp = pauseTimestamp_;
     }
 
@@ -120,10 +155,10 @@ contract MainRegistryGuardianExtension is MainRegistryGuardian {
     }
 }
 
-contract MainRegistryExtension is MainRegistry {
+contract RegistryExtension is Registry {
     using FixedPointMathLib for uint256;
 
-    constructor(address factory_) MainRegistry(factory_) { }
+    constructor(address factory_) Registry(factory_) { }
 
     function getOracleCounter() public view returns (uint256 oracleCounter_) {
         oracleCounter_ = oracleCounter;
@@ -141,35 +176,31 @@ contract MainRegistryExtension is MainRegistry {
         oracleToOracleModule[oracleId] = oracleModule;
     }
 
-    function setAssetType(address asset, uint96 assetType) public {
-        assetToAssetInformation[asset].assetType = assetType;
-    }
-
-    function setAssetModuleForAsset(address asset, address assetModule) public {
-        assetToAssetInformation[asset].assetModule = assetModule;
+    function setAssetToAssetModule(address asset, address assetModule) public {
+        assetToAssetModule[asset] = assetModule;
     }
 }
 
-contract RiskModuleExtension {
-    function calculateCollateralValue(RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors)
+contract AssetValuationLibExtension {
+    function calculateCollateralValue(AssetValueAndRiskFactors[] memory valuesAndRiskFactors)
         external
         pure
         returns (uint256 collateralValue)
     {
-        collateralValue = RiskModule._calculateCollateralValue(valuesAndRiskFactors);
+        collateralValue = AssetValuationLib._calculateCollateralValue(valuesAndRiskFactors);
     }
 
-    function calculateLiquidationValue(RiskModule.AssetValueAndRiskFactors[] memory valuesAndRiskFactors)
+    function calculateLiquidationValue(AssetValueAndRiskFactors[] memory valuesAndRiskFactors)
         external
         pure
         returns (uint256 liquidationValue)
     {
-        liquidationValue = RiskModule._calculateLiquidationValue(valuesAndRiskFactors);
+        liquidationValue = AssetValuationLib._calculateLiquidationValue(valuesAndRiskFactors);
     }
 }
 
 abstract contract AbstractAssetModuleExtension is AssetModule {
-    constructor(address mainRegistry_, uint256 assetType_) AssetModule(mainRegistry_, assetType_) { }
+    constructor(address registry_, uint256 assetType_) AssetModule(registry_, assetType_) { }
 
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
@@ -181,18 +212,14 @@ abstract contract AbstractAssetModuleExtension is AssetModule {
 }
 
 abstract contract AbstractPrimaryAssetModuleExtension is PrimaryAssetModule {
-    constructor(address mainRegistry_, uint256 assetType_) PrimaryAssetModule(mainRegistry_, assetType_) { }
-
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
+    constructor(address registry_, uint256 assetType_) PrimaryAssetModule(registry_, assetType_) { }
 
     function setExposure(
         address creditor,
         address asset,
         uint256 assetId,
-        uint128 lastExposureAsset,
-        uint128 maxExposure
+        uint112 lastExposureAsset,
+        uint112 maxExposure
     ) public {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
         riskParams[creditor][assetKey].lastExposureAsset = lastExposureAsset;
@@ -201,11 +228,7 @@ abstract contract AbstractPrimaryAssetModuleExtension is PrimaryAssetModule {
 }
 
 abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
-    constructor(address mainRegistry_, uint256 assetType_) DerivedAssetModule(mainRegistry_, assetType_) { }
-
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
+    constructor(address registry_, uint256 assetType_) DerivedAssetModule(registry_, assetType_) { }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)
         external
@@ -225,7 +248,7 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
             lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKey];
     }
 
-    function setUsdExposureProtocol(address creditor, uint128 maxUsdExposureProtocol_, uint128 usdExposureProtocol_)
+    function setUsdExposureProtocol(address creditor, uint112 maxUsdExposureProtocol_, uint112 usdExposureProtocol_)
         public
     {
         riskParams[creditor].maxUsdExposureProtocol = maxUsdExposureProtocol_;
@@ -238,8 +261,8 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
         uint256 assetId,
         address underLyingAsset,
         uint256 underlyingAssetId,
-        uint128 exposureAssetLast,
-        uint128 lastUsdExposureAsset,
+        uint112 exposureAssetLast,
+        uint112 lastUsdExposureAsset,
         uint128 exposureAssetToUnderlyingAssetLast
     ) public {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
@@ -252,7 +275,7 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
     function getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys)
         public
         view
-        returns (RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+        returns (AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
     }
@@ -261,7 +284,7 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
         public
         returns (uint256 usdExposureAsset)
     {
-        usdExposureAsset = _processDeposit(creditor, assetKey, exposureAsset);
+        (, usdExposureAsset) = _processDeposit(exposureAsset, creditor, assetKey);
     }
 
     function getAndUpdateExposureAsset(address creditor, bytes32 assetKey, int256 deltaAsset)
@@ -288,11 +311,7 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
 }
 
 contract StandardERC20AssetModuleExtension is StandardERC20AssetModule {
-    constructor(address mainRegistry_) StandardERC20AssetModule(mainRegistry_) { }
-
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
+    constructor(address registry_) StandardERC20AssetModule(registry_) { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
@@ -302,7 +321,7 @@ contract StandardERC20AssetModuleExtension is StandardERC20AssetModule {
         (key) = _getKeyFromAsset(asset, assetId);
     }
 
-    function setExposure(address creditor, address asset, uint128 lastExposureAsset, uint128 maxExposure) public {
+    function setExposure(address creditor, address asset, uint112 lastExposureAsset, uint112 maxExposure) public {
         bytes32 assetKey = _getKeyFromAsset(asset, 0);
         riskParams[creditor][assetKey].lastExposureAsset = lastExposureAsset;
         riskParams[creditor][assetKey].maxExposure = maxExposure;
@@ -310,11 +329,7 @@ contract StandardERC20AssetModuleExtension is StandardERC20AssetModule {
 }
 
 contract FloorERC721AssetModuleExtension is FloorERC721AssetModule {
-    constructor(address mainRegistry_) FloorERC721AssetModule(mainRegistry_) { }
-
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
+    constructor(address registry_) FloorERC721AssetModule(registry_) { }
 
     function getIdRange(address asset) public view returns (uint256 start, uint256 end) {
         start = idRange[asset].start;
@@ -331,21 +346,11 @@ contract FloorERC721AssetModuleExtension is FloorERC721AssetModule {
 }
 
 contract FloorERC1155AssetModuleExtension is FloorERC1155AssetModule {
-    constructor(address mainRegistry_) FloorERC1155AssetModule(mainRegistry_) { }
-
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
+    constructor(address registry_) FloorERC1155AssetModule(registry_) { }
 }
 
 contract UniswapV2AssetModuleExtension is UniswapV2AssetModule {
-    constructor(address mainRegistry_, address uniswapV2Factory_)
-        UniswapV2AssetModule(mainRegistry_, uniswapV2Factory_)
-    { }
-
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
+    constructor(address registry_, address uniswapV2Factory_) UniswapV2AssetModule(registry_, uniswapV2Factory_) { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
@@ -382,7 +387,7 @@ contract UniswapV2AssetModuleExtension is UniswapV2AssetModule {
         view
         returns (
             uint256[] memory exposureAssetToUnderlyingAssets,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+            AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
         (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
@@ -437,16 +442,12 @@ contract UniswapV2AssetModuleExtension is UniswapV2AssetModule {
 }
 
 contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
-    constructor(address mainRegistry_, address nonfungiblePositionManager)
-        UniswapV3AssetModule(mainRegistry_, nonfungiblePositionManager)
+    constructor(address registry_, address nonfungiblePositionManager)
+        UniswapV3AssetModule(registry_, nonfungiblePositionManager)
     { }
 
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
-
     function getNonFungiblePositionManager() public view returns (address nonFungiblePositionManager) {
-        nonFungiblePositionManager = NON_FUNGIBLE_POSITION_MANAGER;
+        nonFungiblePositionManager = address(NON_FUNGIBLE_POSITION_MANAGER);
     }
 
     function getUniswapV3Factory() public view returns (address uniswapV3Factory) {
@@ -475,7 +476,7 @@ contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
         view
         returns (
             uint256[] memory exposureAssetToUnderlyingAssets,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+            AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
         (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
@@ -510,11 +511,7 @@ contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
 }
 
 contract ERC4626AssetModuleExtension is StandardERC4626AssetModule {
-    constructor(address mainRegistry_) StandardERC4626AssetModule(mainRegistry_) { }
-
-    function getPrimaryFlag() public pure returns (bool primaryFlag) {
-        primaryFlag = PRIMARY_FLAG;
-    }
+    constructor(address registry_) StandardERC4626AssetModule(registry_) { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
@@ -534,7 +531,7 @@ contract ERC4626AssetModuleExtension is StandardERC4626AssetModule {
         view
         returns (
             uint256[] memory exposureAssetToUnderlyingAssets,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+            AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
         (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
@@ -546,7 +543,7 @@ contract ERC4626AssetModuleExtension is StandardERC4626AssetModule {
     }
 }
 
-contract MultiCallExtention is ActionMultiCall {
+contract MultiCallExtension is ActionMultiCall {
     function assets() public view returns (address[] memory) {
         return mintedAssets;
     }

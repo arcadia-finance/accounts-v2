@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { OracleModuleMock } from "../../../utils/mocks/OracleModuleMock.sol";
@@ -25,6 +25,6 @@ abstract contract AbstractOracleModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        oracleModule = new OracleModuleMock(address(mainRegistryExtension));
+        oracleModule = new OracleModuleMock(address(registryExtension));
     }
 }

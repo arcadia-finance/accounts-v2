@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { AbstractDerivedAssetModule_Fuzz_Test } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
+import { AbstractDerivedAssetModule_Fuzz_Test, AssetModule } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "_processWithdrawal" of contract "AbstractDerivedAssetModule".
@@ -32,19 +32,19 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
         assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint112).max);
 
         // And: delta "usdExposureAsset" is positive (test-case).
-        vm.assume(assetState.lastUsdExposureAsset < type(uint128).max);
+        vm.assume(assetState.lastUsdExposureAsset < type(uint112).max);
         underlyingPMState.usdValue =
-            bound(underlyingPMState.usdValue, assetState.lastUsdExposureAsset + 1, type(uint128).max);
+            bound(underlyingPMState.usdValue, assetState.lastUsdExposureAsset + 1, type(uint112).max);
 
         // And: "usdExposureProtocol" overflows (unrealistically big).
-        protocolState.lastUsdExposureProtocol = uint128(
+        protocolState.lastUsdExposureProtocol = uint112(
             bound(
                 protocolState.lastUsdExposureProtocol,
-                type(uint128).max - (underlyingPMState.usdValue - assetState.lastUsdExposureAsset) + 1,
-                type(uint128).max
+                type(uint112).max - (underlyingPMState.usdValue - assetState.lastUsdExposureAsset) + 1,
+                type(uint112).max
             )
         );
 
@@ -54,9 +54,10 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // When: "_processWithdrawal" is called.
-        // Then: The transaction reverts with "ADAM_PW: Overflow".
+        // Then: The transaction reverts with "Overflow".
         bytes32 assetKey = derivedAssetModule.getKeyFromAsset(assetState.asset, assetState.assetId);
-        vm.expectRevert("ADAM_PW: Overflow");
+        // Overflows in safecast.
+        vm.expectRevert(bytes(""));
         derivedAssetModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
     }
 
@@ -71,18 +72,18 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
         assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint112).max);
 
         // And: delta "usdExposureAsset" is positive (test-case).
         underlyingPMState.usdValue =
-            bound(underlyingPMState.usdValue, assetState.lastUsdExposureAsset, type(uint128).max);
+            bound(underlyingPMState.usdValue, assetState.lastUsdExposureAsset, type(uint112).max);
 
         // And: "usdExposureProtocol" does not overflow (unrealistically big).
-        protocolState.lastUsdExposureProtocol = uint128(
+        protocolState.lastUsdExposureProtocol = uint112(
             bound(
                 protocolState.lastUsdExposureProtocol,
                 assetState.lastUsdExposureAsset,
-                type(uint128).max - (underlyingPMState.usdValue - assetState.lastUsdExposureAsset)
+                type(uint112).max - (underlyingPMState.usdValue - assetState.lastUsdExposureAsset)
             )
         );
         uint256 usdExposureProtocolExpected =
@@ -90,7 +91,7 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
 
         // And: exposure does not exceeds max exposure.
         protocolState.maxUsdExposureProtocol =
-            uint128(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected, type(uint128).max));
+            uint112(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected, type(uint112).max));
 
         // And: State is persisted.
         setDerivedAssetModuleProtocolState(protocolState, assetState.creditor);
@@ -101,7 +102,7 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
             - int256(uint256(assetState.lastExposureAssetToUnderlyingAsset));
         bytes memory data = abi.encodeCall(
-            mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
+            registryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
             (
                 assetState.creditor,
                 assetState.underlyingAsset,
@@ -112,8 +113,8 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         );
 
         // When: "_processDeposit" is called.
-        // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
-        vm.expectCall(address(mainRegistryExtension), data);
+        // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "Registry" is called with correct parameters.
+        vm.expectCall(address(registryExtension), data);
         bytes32 assetKey = derivedAssetModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdExposureAsset = derivedAssetModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 
@@ -148,18 +149,18 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
         assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint112).max);
 
         // And: delta "usdExposureAsset" is negative (test-case).
         vm.assume(assetState.lastUsdExposureAsset > 0);
         underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.lastUsdExposureAsset - 1);
 
         // And: "usdExposureProtocol" does not underflow (test-case).
-        protocolState.lastUsdExposureProtocol = uint128(
+        protocolState.lastUsdExposureProtocol = uint112(
             bound(
                 protocolState.lastUsdExposureProtocol,
                 assetState.lastUsdExposureAsset - underlyingPMState.usdValue,
-                type(uint128).max
+                type(uint112).max
             )
         );
         uint256 usdExposureProtocolExpected =
@@ -174,7 +175,7 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
             - int256(uint256(assetState.lastExposureAssetToUnderlyingAsset));
         bytes memory data = abi.encodeCall(
-            mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
+            registryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
             (
                 assetState.creditor,
                 assetState.underlyingAsset,
@@ -185,8 +186,8 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         );
 
         // When: "_processDeposit" is called.
-        // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
-        vm.expectCall(address(mainRegistryExtension), data);
+        // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "Registry" is called with correct parameters.
+        vm.expectCall(address(registryExtension), data);
         bytes32 assetKey = derivedAssetModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdExposureAsset = derivedAssetModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 
@@ -221,14 +222,14 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
 
         // And: No overflow on exposureAssetToUnderlyingAsset.
         assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint128).max);
+            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint112).max);
 
         // And: delta "usdExposureAsset" is negative (test-case).
         vm.assume(assetState.lastUsdExposureAsset > 0);
         underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.lastUsdExposureAsset - 1);
 
         // And: "usdExposureProtocol" does underflow (test-case).
-        protocolState.lastUsdExposureProtocol = uint128(
+        protocolState.lastUsdExposureProtocol = uint112(
             bound(
                 protocolState.lastUsdExposureProtocol, 0, assetState.lastUsdExposureAsset - underlyingPMState.usdValue
             )
@@ -243,7 +244,7 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
             - int256(uint256(assetState.lastExposureAssetToUnderlyingAsset));
         bytes memory data = abi.encodeCall(
-            mainRegistryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
+            registryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
             (
                 assetState.creditor,
                 assetState.underlyingAsset,
@@ -254,8 +255,8 @@ contract ProcessWithdrawal_AbstractDerivedAssetModule_Fuzz_Test is AbstractDeriv
         );
 
         // When: "_processDeposit" is called.
-        // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "MainRegistry" is called with correct parameters.
-        vm.expectCall(address(mainRegistryExtension), data);
+        // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "Registry" is called with correct parameters.
+        vm.expectCall(address(registryExtension), data);
         bytes32 assetKey = derivedAssetModule.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdExposureAsset = derivedAssetModule.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 

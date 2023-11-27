@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { UniswapV3AssetModule_Fuzz_Test } from "./_UniswapV3AssetModule.fuzz.t.sol";
+import { UniswapV3AssetModule_Fuzz_Test, AssetModule } from "./_UniswapV3AssetModule.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
@@ -37,15 +37,15 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
 
         deployUniswapV3AssetModule(address(nonfungiblePositionManager));
 
-        token0 = new ERC20Mock('Token 0', 'TOK0', 18);
-        token1 = new ERC20Mock('Token 1', 'TOK1', 18);
+        token0 = new ERC20Mock("Token 0", "TOK0", 18);
+        token1 = new ERC20Mock("Token 1", "TOK1", 18);
         (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processIndirectDeposit_NonMainRegistry(
+    function testFuzz_Revert_processIndirectDeposit_NonRegistry(
         address unprivilegedAddress,
         uint128 liquidity,
         int24 tickLower,
@@ -54,7 +54,7 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
         uint256 priceToken1,
         uint256 exposureUpperAssetToAsset
     ) public {
-        vm.assume(unprivilegedAddress != address(mainRegistryExtension));
+        vm.assume(unprivilegedAddress != address(registryExtension));
 
         vm.assume(tickLower < tickUpper);
         vm.assume(isWithinAllowedRange(tickLower));
@@ -76,7 +76,7 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
         uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         vm.startPrank(unprivilegedAddress);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         uniV3AssetModule.processIndirectDeposit(
             address(creditorUsd), address(nonfungiblePositionManager), tokenId, exposureUpperAssetToAsset, 1
         );
@@ -87,13 +87,13 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
         uint128 liquidity,
         int24 tickLower,
         int24 tickUpper,
-        uint128 maxUsdExposureProtocol,
+        uint112 maxUsdExposureProtocol,
         uint256 priceToken0,
         uint256 priceToken1,
-        uint128 initialExposure0,
-        uint128 initialExposure1,
-        uint128 maxExposure0,
-        uint128 maxExposure1
+        uint112 initialExposure0,
+        uint112 initialExposure1,
+        uint112 maxExposure0,
+        uint112 maxExposure1
     ) public {
         vm.assume(tickLower < tickUpper);
         vm.assume(isWithinAllowedRange(tickLower));
@@ -146,18 +146,19 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
                 uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
-            vm.assume(usdExposureProtocol < type(uint128).max);
-            maxUsdExposureProtocol = uint128(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint128).max));
+            vm.assume(usdExposureProtocol < type(uint112).max);
+            maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
 
         vm.prank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfDerivedAssetModule(
+        registryExtension.setRiskParametersOfDerivedAssetModule(
             address(creditorUsd), address(uniV3AssetModule), maxUsdExposureProtocol, 100
         );
 
-        vm.prank(address(mainRegistryExtension));
-        uniV3AssetModule.processIndirectDeposit(
+        vm.prank(address(registryExtension));
+        (uint256 recursiveCalls,) = uniV3AssetModule.processIndirectDeposit(
             address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0, 1
         );
+        assertEq(recursiveCalls, 3);
     }
 }

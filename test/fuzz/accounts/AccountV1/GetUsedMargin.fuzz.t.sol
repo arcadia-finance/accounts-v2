@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
@@ -17,18 +17,16 @@ contract GetUsedMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function setUp() public override {
         AccountV1_Fuzz_Test.setUp();
 
-        // Given: Trusted Creditor is set.
+        // Given: Creditor is set.
         openMarginAccount();
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getUsedMargin_TrustedCreditorNotSet(uint256 openDebt, uint96 fixedLiquidationCost)
-        public
-    {
-        // Test-case: trusted creditor is not set.
-        accountExtension.setIsTrustedCreditorSet(false);
+    function testFuzz_Success_getUsedMargin_CreditorNotSet(uint256 openDebt, uint96 fixedLiquidationCost) public {
+        // Test-case: creditor is not set.
+        accountExtension.setCreditor(address(0));
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
@@ -39,13 +37,11 @@ contract GetUsedMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(0, accountExtension.getUsedMargin());
     }
 
-    function testFuzz_Success_getUsedMargin_TrustedCreditorIsSet(uint256 openDebt, uint96 fixedLiquidationCost)
-        public
-    {
+    function testFuzz_Success_getUsedMargin_CreditorIsSet(uint256 openDebt, uint96 fixedLiquidationCost) public {
         // No overflow of Used Margin.
         vm.assume(openDebt <= type(uint256).max - fixedLiquidationCost);
 
-        // Test-case: trusted creditor set.
+        // Test-case: creditor set.
 
         // Set fixedLiquidationCost
         accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));

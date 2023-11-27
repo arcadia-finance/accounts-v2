@@ -1,12 +1,20 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { AbstractAssetModuleExtension } from "../Extensions.sol";
 
 contract AssetModuleMock is AbstractAssetModuleExtension {
-    constructor(address mainRegistry_, uint256 assetType_) AbstractAssetModuleExtension(mainRegistry_, assetType_) { }
+    constructor(address registry_, uint256 assetType_) AbstractAssetModuleExtension(registry_, assetType_) { }
 
-    function isAllowed(address asset, uint256) public view override returns (bool) { }
+    bool internal isAllowed_;
+
+    function isAllowed(address, uint256) public view override returns (bool) {
+        return isAllowed_;
+    }
+
+    function setIsAllowedResponse(bool response) public {
+        isAllowed_ = response;
+    }
 
     function getRiskFactors(address creditor, address asset, uint256 assetId)
         external
@@ -23,7 +31,15 @@ contract AssetModuleMock is AbstractAssetModuleExtension {
         returns (uint256, uint256, uint256)
     { }
 
-    function processDirectDeposit(address creditor, address asset, uint256 id, uint256 amount) public override { }
+    function processDirectDeposit(address, address, uint256, uint256)
+        public
+        view
+        override
+        returns (uint256 recursiveCalls, uint256 assetType)
+    {
+        recursiveCalls = 1;
+        assetType = ASSET_TYPE;
+    }
 
     function processIndirectDeposit(
         address creditor,
@@ -31,9 +47,16 @@ contract AssetModuleMock is AbstractAssetModuleExtension {
         uint256 id,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public override returns (bool, uint256) { }
+    ) public override returns (uint256, uint256) { }
 
-    function processDirectWithdrawal(address creditor, address asset, uint256 id, uint256 amount) public override { }
+    function processDirectWithdrawal(address, address, uint256, uint256)
+        public
+        view
+        override
+        returns (uint256 assetType)
+    {
+        assetType = ASSET_TYPE;
+    }
 
     function processIndirectWithdrawal(
         address creditor,
@@ -41,5 +64,5 @@ contract AssetModuleMock is AbstractAssetModuleExtension {
         uint256 id,
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
-    ) public override returns (bool, uint256) { }
+    ) public override returns (uint256) { }
 }

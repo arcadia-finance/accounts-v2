@@ -2,9 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { FactoryGuardian_Fuzz_Test } from "./_FactoryGuardian.fuzz.t.sol";
+
+import { GuardianErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "pause" of contract "FactoryGuardian".
@@ -25,7 +27,7 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         vm.assume(nonGuard != users.guardian);
 
         vm.startPrank(nonGuard);
-        vm.expectRevert("Guardian: Only guardian");
+        vm.expectRevert(GuardianErrors.OnlyGuardian.selector);
         factoryGuardian.pause();
         vm.stopPrank();
     }
@@ -43,14 +45,14 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         vm.warp(lastPauseTimestamp + timePassed);
 
         // When: Guardian pauses again within 32 days passed from the last pause.
-        // Then: The transaction reverts with "G_P: Cannot pause".
+        // Then: The transaction reverts with "Cannot_Pause".
         vm.startPrank(users.guardian);
-        vm.expectRevert("G_P: Cannot pause");
+        vm.expectRevert(GuardianErrors.CoolDownPeriodNotPassed.selector);
         factoryGuardian.pause();
         vm.stopPrank();
     }
 
-    function testFuzz_Success_pause(uint256 lastPauseTimestamp, uint256 timePassed, Flags memory initialFlags) public {
+    function testFuzz_Success_pause(uint256 lastPauseTimestamp, uint256 timePassed, bool flag) public {
         lastPauseTimestamp = bound(lastPauseTimestamp, 32 days + 1, type(uint32).max - 32 days - 1);
         timePassed = bound(timePassed, 32 days + 1, type(uint32).max);
 
@@ -60,20 +62,19 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         factoryGuardian.pause();
 
         // And: Flags are in random state.
-        setFlags(initialFlags);
+        setFlags(flag);
 
         // Given: More than 32 days passed.
         vm.warp(lastPauseTimestamp + timePassed);
 
         // When: the Guardian pauses.
         vm.startPrank(users.guardian);
-        vm.expectEmit(true, true, true, true);
-        emit PauseUpdate(true, true);
+        vm.expectEmit();
+        emit PauseFlagsUpdated(true);
         factoryGuardian.pause();
         vm.stopPrank();
 
         // Then: All flags are set to True.
         assertTrue(factoryGuardian.createPaused());
-        assertTrue(factoryGuardian.liquidatePaused());
     }
 }

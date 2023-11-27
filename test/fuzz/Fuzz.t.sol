@@ -2,19 +2,19 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { Base_Test, Constants } from "../Base.t.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
-import { MainRegistry } from "../../src/MainRegistry.sol";
+import { Registry } from "../../src/Registry.sol";
 import { AssetModule } from "../../src/asset-modules/AbstractAssetModule.sol";
-import { TrustedCreditorMock } from "../utils/mocks/TrustedCreditorMock.sol";
+import { CreditorMock } from "../utils/mocks/CreditorMock.sol";
 import { ERC20Mock } from "../utils/mocks/ERC20Mock.sol";
 import { ERC721Mock } from "../utils/mocks/ERC721Mock.sol";
 import { ERC1155Mock } from "../utils/mocks/ERC1155Mock.sol";
 import { ArcadiaOracle } from "../utils/mocks/ArcadiaOracle.sol";
-import { AccountV1 } from "../../src/AccountV1.sol";
+import { AccountV1 } from "../../src/accounts/AccountV1.sol";
 
 /**
  * @notice Common logic needed by all fuzz tests.
@@ -56,9 +56,54 @@ abstract contract Fuzz_Test is Base_Test {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    TrustedCreditorMock internal creditorUsd;
-    TrustedCreditorMock internal creditorStable1;
-    TrustedCreditorMock internal creditorToken1;
+    CreditorMock internal creditorUsd;
+    CreditorMock internal creditorStable1;
+    CreditorMock internal creditorToken1;
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                   MODIFIERS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    modifier notTestContracts(address fuzzedAddress) {
+        vm.assume(fuzzedAddress != address(factory));
+        vm.assume(fuzzedAddress != address(accountV1Logic));
+        vm.assume(fuzzedAddress != address(accountV2Logic));
+        vm.assume(fuzzedAddress != address(registryExtension));
+        vm.assume(fuzzedAddress != address(vm));
+        vm.assume(fuzzedAddress != address(this));
+        vm.assume(fuzzedAddress != address(chainlinkOM));
+        vm.assume(fuzzedAddress != address(erc20AssetModule));
+        vm.assume(fuzzedAddress != address(floorERC1155AssetModule));
+        vm.assume(fuzzedAddress != address(floorERC721AssetModule));
+        vm.assume(fuzzedAddress != address(uniV3AssetModule));
+        vm.assume(fuzzedAddress != address(creditorUsd));
+        vm.assume(fuzzedAddress != address(creditorStable1));
+        vm.assume(fuzzedAddress != address(creditorToken1));
+        vm.assume(fuzzedAddress != address(mockERC20.stable1));
+        vm.assume(fuzzedAddress != address(mockERC20.stable2));
+        vm.assume(fuzzedAddress != address(mockERC20.token1));
+        vm.assume(fuzzedAddress != address(mockERC20.token2));
+        vm.assume(fuzzedAddress != address(mockERC20.token3));
+        vm.assume(fuzzedAddress != address(mockERC20.token4));
+        vm.assume(fuzzedAddress != address(mockERC721.nft1));
+        vm.assume(fuzzedAddress != address(mockERC721.nft2));
+        vm.assume(fuzzedAddress != address(mockERC721.nft3));
+        vm.assume(fuzzedAddress != address(mockERC1155.sft1));
+        vm.assume(fuzzedAddress != address(mockERC1155.sft2));
+        vm.assume(fuzzedAddress != address(mockOracles.stable1ToUsd));
+        vm.assume(fuzzedAddress != address(mockOracles.stable2ToUsd));
+        vm.assume(fuzzedAddress != address(mockOracles.token1ToUsd));
+        vm.assume(fuzzedAddress != address(mockOracles.token2ToUsd));
+        vm.assume(fuzzedAddress != address(mockOracles.token3ToToken4));
+        vm.assume(fuzzedAddress != address(mockOracles.token4ToUsd));
+        vm.assume(fuzzedAddress != address(mockOracles.nft1ToToken1));
+        vm.assume(fuzzedAddress != address(mockOracles.nft2ToUsd));
+        vm.assume(fuzzedAddress != address(mockOracles.nft3ToToken1));
+        vm.assume(fuzzedAddress != address(mockOracles.sft1ToToken1));
+        vm.assume(fuzzedAddress != address(mockOracles.sft2ToUsd));
+        assumeNotForgeAddress(fuzzedAddress);
+        _;
+    }
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -117,18 +162,18 @@ abstract contract Fuzz_Test is Base_Test {
             sft2ToUsd: 1 * 10 ** Constants.erc1155OracleDecimals
         });
 
-        // Create a trusted creditor with each baseCurrency.
-        creditorUsd = new TrustedCreditorMock();
-        creditorStable1 = new TrustedCreditorMock();
-        creditorToken1 = new TrustedCreditorMock();
-        creditorStable1.setBaseCurrency(address(mockERC20.stable1));
-        creditorToken1.setBaseCurrency(address(mockERC20.token1));
+        // Create a creditor with each Numeraire.
+        creditorUsd = new CreditorMock();
+        creditorStable1 = new CreditorMock();
+        creditorToken1 = new CreditorMock();
+        creditorStable1.setNumeraire(address(mockERC20.stable1));
+        creditorToken1.setNumeraire(address(mockERC20.token1));
         creditorUsd.setRiskManager(users.riskManager);
         creditorStable1.setRiskManager(users.riskManager);
         creditorToken1.setRiskManager(users.riskManager);
 
-        // Initialize the default liquidation cost and liquidator of trusted creditor
-        // The base currency on initialization will depend on the type of test and set at a lower level
+        // Initialize the default liquidation cost and liquidator of creditor
+        // The numeraire on initialization will depend on the type of test and set at a lower level
         creditorStable1.setFixedLiquidationCost(Constants.initLiquidationCost);
         creditorStable1.setLiquidator(Constants.initLiquidator);
 
@@ -160,7 +205,7 @@ abstract contract Fuzz_Test is Base_Test {
         chainlinkOM.addOracle(address(mockOracles.sft1ToToken1), "SFT1", "TOKEN1");
         vm.stopPrank();
 
-        vm.startPrank(mainRegistryExtension.owner());
+        vm.startPrank(registryExtension.owner());
         // Create the oracle-direction arrays.
         BA_TO_QA_SINGLE[0] = true;
         BA_TO_QA_DOUBLE[0] = true;
@@ -201,124 +246,127 @@ abstract contract Fuzz_Test is Base_Test {
 
         // Set Risk Variables.
         vm.startPrank(users.riskManager);
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setMaxRecursiveCalls(address(creditorUsd), type(uint256).max);
+        registryExtension.setMaxRecursiveCalls(address(creditorStable1), type(uint256).max);
+        registryExtension.setMaxRecursiveCalls(address(creditorToken1), type(uint256).max);
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.stable1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.stable1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.stable1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
 
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.stable2),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.stable2),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.stable2),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
 
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.token1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.token1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.token1),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToTokenCollFactor,
             Constants.tokenToTokenLiqFactor
         );
 
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.token2),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.token2),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
+        registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.token2),
             0,
-            type(uint128).max,
+            type(uint112).max,
             Constants.tokenToTokenCollFactor,
             Constants.tokenToTokenLiqFactor
         );
 
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC721.nft1), 0, type(uint112).max, 0, 0
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorStable1), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1), address(mockERC721.nft1), 0, type(uint112).max, 0, 0
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorToken1), address(mockERC721.nft1), 0, type(uint128).max, 0, 0
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1), address(mockERC721.nft1), 0, type(uint112).max, 0, 0
         );
 
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorUsd), address(mockERC1155.sft1), 1, type(uint112).max, 0, 0
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorStable1), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorStable1), address(mockERC1155.sft1), 1, type(uint112).max, 0, 0
         );
-        mainRegistryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorToken1), address(mockERC1155.sft1), 1, type(uint128).max, 0, 0
+        registryExtension.setRiskParametersOfPrimaryAsset(
+            address(creditorToken1), address(mockERC1155.sft1), 1, type(uint112).max, 0, 0
         );
 
         vm.stopPrank();
@@ -333,11 +381,7 @@ abstract contract Fuzz_Test is Base_Test {
         returns (ArcadiaOracle)
     {
         vm.startPrank(users.defaultCreatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(
-            uint8(decimals),
-            description,
-            address(73)
-        );
+        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
         oracle.setOffchainTransmitter(users.defaultTransmitter);
         vm.stopPrank();
         vm.startPrank(users.defaultTransmitter);
@@ -349,11 +393,7 @@ abstract contract Fuzz_Test is Base_Test {
 
     function initMockedOracle(uint8 decimals, string memory description) public returns (ArcadiaOracle) {
         vm.startPrank(users.defaultCreatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(
-            uint8(decimals),
-            description,
-            address(73)
-        );
+        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
         oracle.setOffchainTransmitter(users.defaultTransmitter);
         vm.stopPrank();
         return oracle;
@@ -364,11 +404,7 @@ abstract contract Fuzz_Test is Base_Test {
         returns (ArcadiaOracle)
     {
         vm.startPrank(users.defaultCreatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(
-            uint8(decimals),
-            description,
-            address(73)
-        );
+        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
         oracle.setOffchainTransmitter(users.defaultTransmitter);
         vm.stopPrank();
 

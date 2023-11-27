@@ -2,12 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { FloorERC1155AssetModule_Fuzz_Test } from "./_FloorERC1155AssetModule.fuzz.t.sol";
 
-import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
+import { FloorERC1155AssetModule } from "../../../../src/asset-modules/FloorERC1155AssetModule.sol";
+import { PrimaryAssetModule } from "../../../../src/asset-modules/AbstractPrimaryAssetModule.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "FloorERC1155AssetModule".
@@ -35,7 +37,7 @@ contract AddAsset_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModule_F
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
         vm.startPrank(users.creatorAddress);
         floorERC1155AssetModule.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
-        vm.expectRevert("AM1155_AA: Asset already in PM");
+        vm.expectRevert(FloorERC1155AssetModule.AssetAlreadyInAM.selector);
         floorERC1155AssetModule.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
         vm.stopPrank();
     }
@@ -44,7 +46,7 @@ contract AddAsset_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModule_F
         id = bound(id, uint256(type(uint96).max) + 1, type(uint256).max);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("AM1155_AA: Invalid Id");
+        vm.expectRevert(FloorERC1155AssetModule.InvalidId.selector);
         floorERC1155AssetModule.addAsset(address(mockERC1155.sft2), id, oraclesSft2ToUsd);
     }
 
@@ -56,7 +58,7 @@ contract AddAsset_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModule_F
         bytes32 badSequence = BitPackingLib.pack(badDirection, oracleSft2ToUsdArr);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("AM1155_AA: Bad Sequence");
+        vm.expectRevert(PrimaryAssetModule.BadOracleSequence.selector);
         floorERC1155AssetModule.addAsset(address(mockERC1155.sft2), 1, badSequence);
     }
 
@@ -71,10 +73,8 @@ contract AddAsset_FloorERC1155AssetModule_Fuzz_Test is FloorERC1155AssetModule_F
         assertEq(assetUnit, 1);
         assertEq(oracles, oraclesSft2ToUsd);
 
-        assertTrue(mainRegistryExtension.inMainRegistry(address(mockERC1155.sft2)));
-        (uint96 assetType_, address assetModule) =
-            mainRegistryExtension.assetToAssetInformation(address(mockERC1155.sft2));
-        assertEq(assetType_, 2);
+        assertTrue(registryExtension.inRegistry(address(mockERC1155.sft2)));
+        address assetModule = registryExtension.assetToAssetModule(address(mockERC1155.sft2));
         assertEq(assetModule, address(floorERC1155AssetModule));
     }
 

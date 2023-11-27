@@ -2,11 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
+import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
 
 /**
  * @notice Common logic needed by all "FloorERC721AssetModule" fuzz tests.

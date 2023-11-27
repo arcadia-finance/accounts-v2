@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
-import { AbstractDerivedAssetModule_Fuzz_Test } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
+import { AbstractDerivedAssetModule_Fuzz_Test, AssetModule } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processIndirectDeposit" of contract "AbstractDerivedAssetModule".
@@ -21,7 +21,7 @@ contract ProcessIndirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is Abstract
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_processIndirectDeposit_NonMainRegistry(
+    function testFuzz_Revert_processIndirectDeposit_NonRegistry(
         address unprivilegedAddress_,
         address creditor,
         address asset,
@@ -29,10 +29,10 @@ contract ProcessIndirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is Abstract
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(unprivilegedAddress_ != address(mainRegistryExtension));
+        vm.assume(unprivilegedAddress_ != address(registryExtension));
 
         vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("AAM: ONLY_MAIN_REGISTRY");
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
         derivedAssetModule.processIndirectDeposit(
             creditor, asset, id, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
@@ -62,9 +62,9 @@ contract ProcessIndirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is Abstract
         setDerivedAssetModuleAssetState(assetState);
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
-        // When: "MainRegistry" calls "processDirectDeposit".
-        vm.prank(address(mainRegistryExtension));
-        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedAssetModule.processIndirectDeposit(
+        // When: "Registry" calls "processDirectDeposit".
+        vm.prank(address(registryExtension));
+        (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = derivedAssetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -72,8 +72,8 @@ contract ProcessIndirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is Abstract
             deltaExposureUpperAssetToAsset_
         );
 
-        // Then: PRIMARY_FLAG is false.
-        assertFalse(PRIMARY_FLAG);
+        // Then: recursiveCalls is correct.
+        assertEq(recursiveCalls, 2);
 
         // And: Correct "usdExposureUpperAssetToAsset" is returned.
         assertEq(usdExposureUpperAssetToAsset, 0);
@@ -100,9 +100,9 @@ contract ProcessIndirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is Abstract
         setDerivedAssetModuleAssetState(assetState);
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
-        // When: "MainRegistry" calls "processIndirectDeposit".
-        vm.prank(address(mainRegistryExtension));
-        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedAssetModule.processIndirectDeposit(
+        // When: "Registry" calls "processIndirectDeposit".
+        vm.prank(address(registryExtension));
+        (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = derivedAssetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -110,8 +110,8 @@ contract ProcessIndirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is Abstract
             deltaExposureUpperAssetToAsset
         );
 
-        // Then: PRIMARY_FLAG is false.
-        assertFalse(PRIMARY_FLAG);
+        // Then: recursiveCalls is correct.
+        assertEq(recursiveCalls, 2);
 
         // Correct "usdExposureUpperAssetToAsset" is returned.
         assertEq(usdExposureUpperAssetToAsset, 0);
@@ -125,7 +125,7 @@ contract ProcessIndirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is Abstract
         int256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: "usdExposureToUnderlyingAsset" is not zero (test-case).
-        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint128).max);
+        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint112).max);
 
         // And: Deposit does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
@@ -148,9 +148,9 @@ contract ProcessIndirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is Abstract
         setDerivedAssetModuleAssetState(assetState);
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
-        // When: "MainRegistry" calls "processIndirectDeposit".
-        vm.prank(address(mainRegistryExtension));
-        (bool PRIMARY_FLAG, uint256 usdExposureUpperAssetToAsset) = derivedAssetModule.processIndirectDeposit(
+        // When: "Registry" calls "processIndirectDeposit".
+        vm.prank(address(registryExtension));
+        (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = derivedAssetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
             assetState.assetId,
@@ -158,8 +158,8 @@ contract ProcessIndirectDeposit_AbstractDerivedAssetModule_Fuzz_Test is Abstract
             deltaExposureUpperAssetToAsset
         );
 
-        // Then: PRIMARY_FLAG is false.
-        assertFalse(PRIMARY_FLAG);
+        // Then: recursiveCalls is correct.
+        assertEq(recursiveCalls, 2);
 
         // And: Correct "usdExposureUpperAssetToAsset" is returned.
         uint256 usdExposureUpperAssetToAssetExpected =

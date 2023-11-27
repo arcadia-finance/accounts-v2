@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { OracleModule } from "../../../src/oracle-modules/AbstractOracleModule.sol";
 
@@ -10,7 +10,7 @@ contract OracleModuleMock is OracleModule {
 
     mapping(uint256 => uint256) internal rate;
 
-    constructor(address mainRegistry_) OracleModule(mainRegistry_) { }
+    constructor(address registry_) OracleModule(registry_) { }
 
     function isActive(uint256 oracleId) external view override returns (bool) {
         return isActive_[oracleId];

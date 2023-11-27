@@ -2,13 +2,13 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { StandardERC4626AssetModule_Fuzz_Test } from "./_StandardERC4626AssetModule.fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
-import { RiskModule } from "../../../../src/RiskModule.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts()" of contract "StandardERC4626AssetModule".
@@ -32,7 +32,7 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626AssetModule_Fuzz_Test is Stan
     function testFuzz_Success_getUnderlyingAssetsAmounts(uint256 shares, uint256 totalSupply, uint256 totalAssets)
         public
     {
-        // Given: userBalance is smaller as total amount of shares (invariant ERC20).
+        // Given: userBalance is smaller than total amount of shares (invariant ERC20).
         shares = bound(shares, 0, totalSupply);
 
         // And: "convertToAssets()" does not overflow.
@@ -48,10 +48,8 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626AssetModule_Fuzz_Test is Stan
         // When: "_getUnderlyingAssetsAmounts" is called with 'shares'.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(ybToken1)));
         bytes32[] memory emptyArray = new bytes32[](1);
-        (
-            uint256[] memory underlyingAssetsAmounts,
-            RiskModule.AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
-        ) = erc4626AssetModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, shares, emptyArray);
+        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
+            erc4626AssetModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, shares, emptyArray);
 
         // Then: The correct underlyingAssetsAmount is returned.
         uint256 expectedUnderlyingAssetsAmount = totalSupply > 0 ? shares * totalAssets / totalSupply : 0;

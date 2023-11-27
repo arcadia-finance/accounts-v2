@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { AssetModuleMock } from "../../../utils/mocks/AssetModuleMock.sol";
@@ -17,6 +17,22 @@ abstract contract AbstractAssetModule_Fuzz_Test is Fuzz_Test {
 
     AssetModuleMock internal assetModule;
 
+    /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+    error OnlyRegistry();
+    error RiskFactorNotInLimits();
+    error Overflow();
+    error OracleStillActive();
+    error BadOracleSequence();
+    error CollFactorNotInLimits();
+    error LiqFactorNotInLimits();
+    error ExposureNotInLimits();
+    error InvalidRange();
+    error InvalidId();
+    error AssetNotAllowed();
+    error AssetAlreadyInAM();
+
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -25,6 +41,6 @@ abstract contract AbstractAssetModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        assetModule = new AssetModuleMock(address(mainRegistryExtension), 0);
+        assetModule = new AssetModuleMock(address(registryExtension), 0);
     }
 }

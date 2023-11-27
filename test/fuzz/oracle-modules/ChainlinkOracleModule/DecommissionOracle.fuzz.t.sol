@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { ChainlinkOracleModule_Fuzz_Test } from "./_ChainlinkOracleModule.fuzz.t.sol";
 
@@ -24,8 +24,8 @@ contract DecommissionOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleMo
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_decommissionOracle_NotInRegistry(address sender, uint80 oracleId) public {
-        // Given: An oracle not added to the "MainRegistry".
-        oracleId = uint80(bound(oracleId, mainRegistryExtension.getOracleCounter(), type(uint80).max));
+        // Given: An oracle not added to the "Registry".
+        oracleId = uint80(bound(oracleId, registryExtension.getOracleCounter(), type(uint80).max));
 
         vm.startPrank(sender);
         vm.expectRevert(bytes(""));
@@ -119,7 +119,7 @@ contract DecommissionOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleMo
         maxAnswer = int192(int256(bound(maxAnswer, minAnswer + 2, type(int192).max)));
         price = int192(int256(bound(price, minAnswer + 1, maxAnswer - 1)));
 
-        timePassed = uint32(bound(timePassed, 1 weeks + 1, type(uint32).max));
+        timePassed = uint32(bound(timePassed, 2 days + 1, type(uint32).max));
 
         vm.prank(users.creatorAddress);
         uint256 oracleId = chainlinkOM.addOracle(address(mockOracles.token3ToToken4), "TOKEN3", "TOKEN4");
@@ -155,7 +155,7 @@ contract DecommissionOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleMo
         maxAnswer = int192(int256(bound(maxAnswer, minAnswer + 2, type(int192).max)));
         price = int192(int256(bound(price, minAnswer + 1, maxAnswer - 1)));
 
-        timePassed = uint32(bound(timePassed, 0, 1 weeks));
+        timePassed = uint32(bound(timePassed, 0, 2 days));
 
         vm.prank(users.creatorAddress);
         uint256 oracleId = chainlinkOM.addOracle(address(mockOracles.token3ToToken4), "TOKEN3", "TOKEN4");
@@ -191,7 +191,7 @@ contract DecommissionOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleMo
         maxAnswer = int192(int256(bound(maxAnswer, minAnswer + 2, type(int192).max)));
         price = int192(int256(bound(price, minAnswer + 1, maxAnswer - 1)));
 
-        timePassed = uint32(bound(timePassed, 1 weeks + 1, type(uint32).max));
+        timePassed = uint32(bound(timePassed, 2 days + 1, type(uint32).max));
 
         vm.prank(users.creatorAddress);
         uint256 oracleId = chainlinkOM.addOracle(address(mockOracles.token3ToToken4), "TOKEN3", "TOKEN4");

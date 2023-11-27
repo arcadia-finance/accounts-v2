@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { MultiCall_Fuzz_Test } from "./_MultiCall.fuzz.t.sol";
 
@@ -33,8 +33,8 @@ contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
 
         deployUniswapV3AssetModule(address(univ3PosMgr));
 
-        token0 = new ERC20Mock('Token 0', 'TOK0', 18);
-        token1 = new ERC20Mock('Token 1', 'TOK1', 18);
+        token0 = new ERC20Mock("Token 0", "TOK0", 18);
+        token1 = new ERC20Mock("Token 1", "TOK1", 18);
         (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
         token0.mint(users.creatorAddress, 10 ** 38);
         token1.mint(users.creatorAddress, 10 ** 38);
@@ -48,11 +48,15 @@ contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         public
     {
         vm.assume(notV3Contract != address(univ3PosMgr));
+        vm.assume(notV3Contract != address(proxyAccount));
+
+        vm.prank(address(action));
         vm.expectRevert(bytes(""));
         action.mintUniV3LP(notV3Contract, abi.encodeWithSelector(randomSelector, randomBytes));
     }
 
     function testFuzz_Revert_mintUniV3LP_WrongSelector(bytes4 randomSelector, bytes memory randomBytes) public {
+        vm.prank(address(action));
         vm.expectRevert(bytes(""));
         action.mintUniV3LP(address(univ3PosMgr), abi.encodeWithSelector(randomSelector, randomBytes));
     }
@@ -89,6 +93,7 @@ contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
 
         assertEq(action.assets(), new address[](0));
         assertEq(action.ids(), new uint256[](0));
+        vm.prank(address(action));
         action.mintUniV3LP(address(univ3PosMgr), data);
 
         uint256 tokenId = univ3PosMgr.id();

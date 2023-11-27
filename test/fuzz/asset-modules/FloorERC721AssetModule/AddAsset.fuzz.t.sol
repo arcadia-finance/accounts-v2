@@ -2,12 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { FloorERC721AssetModule_Fuzz_Test } from "./_FloorERC721AssetModule.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { FloorERC721AssetModule } from "../../../../src/asset-modules/FloorERC721AssetModule.sol";
+import { PrimaryAssetModule } from "../../../../src/asset-modules/AbstractPrimaryAssetModule.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "FloorERC721AssetModule".
@@ -37,7 +39,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
         end = bound(end, 0, start - 1);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("AM721_AA: Invalid Range");
+        vm.expectRevert(FloorERC721AssetModule.InvalidRange.selector);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
     }
 
@@ -51,7 +53,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
         bytes32 badSequence = BitPackingLib.pack(badDirection, oracleNft2ToUsdArr);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert("AM721_AA: Bad Sequence");
+        vm.expectRevert(PrimaryAssetModule.BadOracleSequence.selector);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, badSequence);
     }
 
@@ -60,7 +62,7 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
 
         vm.startPrank(users.creatorAddress);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
-        vm.expectRevert("MR_AA: Asset already in mainreg");
+        vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
         floorERC721AssetModule.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
         vm.stopPrank();
     }
@@ -82,10 +84,8 @@ contract AddAsset_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_Fuz
         assertEq(start_, start);
         assertEq(end_, end);
 
-        assertTrue(mainRegistryExtension.inMainRegistry(address(mockERC721.nft2)));
-        (uint96 assetType_, address assetModule) =
-            mainRegistryExtension.assetToAssetInformation(address(mockERC721.nft2));
-        assertEq(assetType_, 1);
+        assertTrue(registryExtension.inRegistry(address(mockERC721.nft2)));
+        address assetModule = registryExtension.assetToAssetModule(address(mockERC721.nft2));
         assertEq(assetModule, address(floorERC721AssetModule));
     }
 }

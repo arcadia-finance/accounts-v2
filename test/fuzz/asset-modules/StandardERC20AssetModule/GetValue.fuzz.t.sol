@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import { StandardERC20AssetModule_Fuzz_Test } from "./_StandardERC20AssetModule.fuzz.t.sol";
 
@@ -24,7 +24,7 @@ contract GetValue_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_getValue_Overflow(uint256 rateToken1ToUsdNew, uint256 amountToken1) public {
-        // No Overflow MainRegistry
+        // No Overflow Registry
         rateToken1ToUsdNew =
             bound(rateToken1ToUsdNew, 1, type(uint256).max / 10 ** (36 - Constants.tokenOracleDecimals));
 
@@ -43,7 +43,7 @@ contract GetValue_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
     }
 
     function testFuzz_Success_getValue(uint256 rateToken1ToUsdNew, uint256 amountToken1) public {
-        // No Overflow MainRegistry
+        // No Overflow Registry
         rateToken1ToUsdNew =
             bound(rateToken1ToUsdNew, 1, type(uint256).max / 10 ** (36 - Constants.tokenOracleDecimals));
 
