@@ -87,7 +87,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.creditor(), address(creditorUsd));
         assertEq(proxyAccount.liquidator(), address(0));
         assertEq(proxyAccount.fixedLiquidationCost(), 0);
-        assertEq(proxyAccount.baseCurrency(), address(0)); // USD
+        assertEq(proxyAccount.numeraire(), address(0)); // USD
 
         // Assert old creditor has exposure.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
@@ -126,10 +126,10 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Assert no creditor has been set on deployment
         assertEq(proxyAccount.creditor(), address(0));
-        // Assert no liquidator, baseCurrency and liquidation costs have been defined on deployment
+        // Assert no liquidator, numeraire and liquidation costs have been defined on deployment
         assertEq(proxyAccount.liquidator(), address(0));
         assertEq(proxyAccount.fixedLiquidationCost(), 0);
-        assertEq(proxyAccount.baseCurrency(), address(0));
+        assertEq(proxyAccount.numeraire(), address(0));
 
         // Open a margin account
         vm.startPrank(users.accountOwner);
@@ -142,7 +142,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.creditor(), address(creditorStable1));
         assertEq(proxyAccount.liquidator(), Constants.initLiquidator);
         assertEq(proxyAccount.fixedLiquidationCost(), Constants.initLiquidationCost);
-        assertEq(proxyAccount.baseCurrency(), address(mockERC20.stable1));
+        assertEq(proxyAccount.numeraire(), address(mockERC20.stable1));
 
         // And: the exposure of the Creditors is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
@@ -176,7 +176,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.creditor(), address(creditorUsd));
         assertEq(proxyAccount.liquidator(), address(0));
         assertEq(proxyAccount.fixedLiquidationCost(), 0);
-        assertEq(proxyAccount.baseCurrency(), address(0)); // USD
+        assertEq(proxyAccount.numeraire(), address(0)); // USD
 
         // Assert old creditor has exposure.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
@@ -194,7 +194,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.creditor(), address(creditorStable1));
         assertEq(proxyAccount.liquidator(), Constants.initLiquidator);
         assertEq(proxyAccount.fixedLiquidationCost(), Constants.initLiquidationCost);
-        assertEq(proxyAccount.baseCurrency(), address(mockERC20.stable1));
+        assertEq(proxyAccount.numeraire(), address(mockERC20.stable1));
 
         // And: the exposure of the Creditors is updated.
         (actualExposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
@@ -203,14 +203,14 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(actualExposure, exposure);
     }
 
-    function testFuzz_Success_openMarginAccount_DifferentBaseCurrency(address liquidator, uint96 fixedLiquidationCost)
+    function testFuzz_Success_openMarginAccount_DifferentNumeraire(address liquidator, uint96 fixedLiquidationCost)
         public
     {
-        // Confirm initial base currency is not set for the Account
-        assertEq(proxyAccount.baseCurrency(), address(0));
+        // Confirm initial numeraire is not set for the Account
+        assertEq(proxyAccount.numeraire(), address(0));
 
-        // Update base currency of the creditor to TOKEN1
-        creditorStable1.setBaseCurrency(address(mockERC20.token1));
+        // Update numeraire of the creditor to TOKEN1
+        creditorStable1.setNumeraire(address(mockERC20.token1));
         // Update liquidation costs in creditor
         creditorStable1.setFixedLiquidationCost(fixedLiquidationCost);
         // Update liquidator in creditor
@@ -218,7 +218,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
-        emit BaseCurrencySet(address(mockERC20.token1));
+        emit NumeraireSet(address(mockERC20.token1));
         vm.expectEmit();
         emit MarginAccountChanged(address(creditorStable1), liquidator);
         proxyAccount.openMarginAccount(address(creditorStable1));
@@ -226,15 +226,15 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         assertEq(proxyAccount.creditor(), address(creditorStable1));
         assertEq(proxyAccount.liquidator(), liquidator);
-        assertEq(proxyAccount.baseCurrency(), address(mockERC20.token1));
+        assertEq(proxyAccount.numeraire(), address(mockERC20.token1));
         assertEq(proxyAccount.fixedLiquidationCost(), fixedLiquidationCost);
     }
 
-    function testFuzz_Success_openMarginAccount_SameBaseCurrency() public {
-        // Deploy an Account with baseCurrency set to STABLE1
+    function testFuzz_Success_openMarginAccount_SameNumeraire() public {
+        // Deploy an Account with numeraire set to STABLE1
         address deployedAccount = factory.createAccount(1111, 0, address(mockERC20.stable1), address(0));
-        assertEq(AccountV1(deployedAccount).baseCurrency(), address(mockERC20.stable1));
-        assertEq(creditorStable1.baseCurrency(), address(mockERC20.stable1));
+        assertEq(AccountV1(deployedAccount).numeraire(), address(mockERC20.stable1));
+        assertEq(creditorStable1.numeraire(), address(mockERC20.stable1));
 
         vm.expectEmit();
         emit MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
@@ -242,7 +242,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         assertEq(AccountV1(deployedAccount).liquidator(), Constants.initLiquidator);
         assertEq(AccountV1(deployedAccount).creditor(), address(creditorStable1));
-        assertEq(AccountV1(deployedAccount).baseCurrency(), address(mockERC20.stable1));
+        assertEq(AccountV1(deployedAccount).numeraire(), address(mockERC20.stable1));
         assertEq(AccountV1(deployedAccount).fixedLiquidationCost(), Constants.initLiquidationCost);
     }
 }

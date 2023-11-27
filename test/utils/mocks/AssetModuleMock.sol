@@ -37,6 +37,7 @@ contract AssetModuleMock is AbstractAssetModuleExtension {
         override
         returns (uint256 recursiveCalls, uint256 assetType)
     {
+        recursiveCalls = 1;
         assetType = ASSET_TYPE;
     }
 

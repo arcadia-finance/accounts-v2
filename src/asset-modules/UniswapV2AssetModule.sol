@@ -206,12 +206,12 @@ contract UniswapV2AssetModule is DerivedAssetModule {
     /**
      * @notice Returns the trusted amount of token0 provided as liquidity, given two trusted prices of token0 and token1
      * @param pair Address of the Uniswap V2 Liquidity pool
-     * @param trustedPriceToken0 Trusted price of an amount of Token0 in a given BaseCurrency
-     * @param trustedPriceToken1 Trusted price of an amount of Token1 in a given BaseCurrency
+     * @param trustedPriceToken0 Trusted price of an amount of Token0 in a given Numeraire
+     * @param trustedPriceToken1 Trusted price of an amount of Token1 in a given Numeraire
      * @param liquidityAmount The amount of LP tokens (ERC20)
      * @return token0Amount The trusted amount of token0 provided as liquidity
      * @return token1Amount The trusted amount of token1 provided as liquidity
-     * @dev Both trusted prices must be for the same BaseCurrency, and for an equal amount of tokens
+     * @dev Both trusted prices must be for the same Numeraire, and for an equal amount of tokens
      *      e.g. if trustedPriceToken0 is the USD price for 10**18 tokens of token0,
      *      than trustedPriceToken2 must be the USD price for 10**18 tokens of token1.
      *      The amount of tokens should be big enough to guarantee enough precision for tokens with small unit-prices
@@ -241,11 +241,11 @@ contract UniswapV2AssetModule is DerivedAssetModule {
     /**
      * @notice Gets the reserves after an arbitrage moves the price to the profit-maximizing ratio given externally observed trusted price
      * @param pair Address of the Uniswap V2 Liquidity pool
-     * @param trustedPriceToken0 Trusted price of an amount of Token0 in a given BaseCurrency
-     * @param trustedPriceToken1 Trusted price of an amount of Token1 in a given BaseCurrency
+     * @param trustedPriceToken0 Trusted price of an amount of Token0 in a given Numeraire
+     * @param trustedPriceToken1 Trusted price of an amount of Token1 in a given Numeraire
      * @return reserve0 The reserves of token0 in the liquidity pool after arbitrage
      * @return reserve1 The reserves of token1 in the liquidity pool after arbitrage
-     * @dev Both trusted prices must be for the same BaseCurrency, and for an equal amount of tokens
+     * @dev Both trusted prices must be for the same Numeraire, and for an equal amount of tokens
      *      e.g. if trustedPriceToken0 is the USD price for 10**18 tokens of token0,
      *      than trustedPriceToken2 must be the USD price for 10**18 tokens of token1.
      *      The amount of tokens should be big enough to guarantee enough precision for tokens with small unit-prices
@@ -284,13 +284,13 @@ contract UniswapV2AssetModule is DerivedAssetModule {
 
     /**
      * @notice Computes the direction and magnitude of the profit-maximizing trade
-     * @param trustedPriceToken0 Trusted price of an amount of Token0 in a given BaseCurrency
-     * @param trustedPriceToken1 Trusted price of an equal amount of Token1 in a given BaseCurrency
+     * @param trustedPriceToken0 Trusted price of an amount of Token0 in a given Numeraire
+     * @param trustedPriceToken1 Trusted price of an equal amount of Token1 in a given Numeraire
      * @param reserve0 The current untrusted reserves of token0 in the liquidity pool
      * @param reserve1 The current untrusted reserves of token1 in the liquidity pool
      * @return token0ToToken1 The direction of the profit-maximizing trade
      * @return amountIn The amount of tokens to be swapped of the profit-maximizing trade
-     * @dev Both trusted prices must be for the same BaseCurrency, and for an equal amount of tokens
+     * @dev Both trusted prices must be for the same Numeraire, and for an equal amount of tokens
      *      e.g. if trustedPriceToken0 is the USD price for 10**18 tokens of token0,
      *      than trustedPriceToken2 must be the USD price for 10**18 tokens of token1.
      *      The amount of tokens should be big enough to guarantee enough precision for tokens with small unit-prices

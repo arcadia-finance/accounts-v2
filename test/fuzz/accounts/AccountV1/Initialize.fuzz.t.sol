@@ -45,12 +45,12 @@ contract Initialize_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_initialize(address owner_) public {
         vm.expectEmit(true, true, true, true);
-        emit BaseCurrencySet(address(0));
+        emit NumeraireSet(address(0));
         accountNotInitialised.initialize(owner_, address(registryExtension), address(0), address(0));
 
         assertEq(accountNotInitialised.owner(), owner_);
         assertEq(accountNotInitialised.getLocked(), 1);
         assertEq(accountNotInitialised.registry(), address(registryExtension));
-        assertEq(accountNotInitialised.baseCurrency(), address(0));
+        assertEq(accountNotInitialised.numeraire(), address(0));
     }
 }

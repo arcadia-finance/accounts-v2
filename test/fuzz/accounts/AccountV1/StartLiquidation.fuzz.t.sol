@@ -83,8 +83,8 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 
-        AssetValueAndRiskFactors[] memory assetAndRiskValues = registryExtension.getValuesInBaseCurrency(
-            accountExtension2.baseCurrency(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
+        AssetValueAndRiskFactors[] memory assetAndRiskValues = registryExtension.getValuesInNumeraire(
+            accountExtension2.numeraire(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
         );
 
         // Given : Liquidation value is greater than or equal to used margin
@@ -162,8 +162,8 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 
-        AssetValueAndRiskFactors[] memory assetAndRiskValues = registryExtension.getValuesInBaseCurrency(
-            accountExtension2.baseCurrency(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
+        AssetValueAndRiskFactors[] memory assetAndRiskValues = registryExtension.getValuesInNumeraire(
+            accountExtension2.numeraire(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
         );
 
         // Given : Liquidation value is smaller than used margin

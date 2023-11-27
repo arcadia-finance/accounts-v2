@@ -35,8 +35,9 @@ contract AccountStorageV1 {
     address public owner;
     // The contract address of the Creditor.
     address public creditor;
-    // The baseCurrency of the Account in which all assets and liabilities are denominated.
-    address public baseCurrency;
+    // The Numeraire (the unit in which prices are measured) of the Account,
+    // in which all assets and liabilities are denominated.
+    address public numeraire;
 
     // Array with all the contract addresses of ERC20 tokens in the account.
     address[] internal erc20Stored;

@@ -13,7 +13,7 @@ import { Constants } from "../../utils/Constants.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 
 /**
- * @notice Fuzz tests for the function "getValuesInBaseCurrency" of contract "Registry".
+ * @notice Fuzz tests for the function "getValuesInNumeraire" of contract "Registry".
  */
 contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_getValuesInBaseCurrency_UnknownAsset() public {
+    function testFuzz_Revert_getValuesInNumeraire_UnknownAsset() public {
         // Should revert here as mockERC20.token3 was not added to an asset  module
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
@@ -42,14 +42,12 @@ contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10;
 
         vm.expectRevert(bytes(""));
-        registryExtension.getValuesInBaseCurrency(
-            address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts
-        );
+        registryExtension.getValuesInNumeraire(address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
-    function testFuzz_Revert_getValuesInBaseCurrency_UnknownBaseCurrencyAddress(address baseCurrency) public {
-        vm.assume(baseCurrency != address(0));
-        vm.assume(!registryExtension.inRegistry(baseCurrency));
+    function testFuzz_Revert_getValuesInNumeraire_UnknownNumeraireAddress(address numeraire) public {
+        vm.assume(numeraire != address(0));
+        vm.assume(!registryExtension.inRegistry(numeraire));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.stable2);
@@ -64,12 +62,10 @@ contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10;
 
         vm.expectRevert(bytes(""));
-        registryExtension.getValuesInBaseCurrency(
-            baseCurrency, address(creditorUsd), assetAddresses, assetIds, assetAmounts
-        );
+        registryExtension.getValuesInNumeraire(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
-    function testFuzz_Success_getValuesInBaseCurrency_BaseCurrencyIsUsd() public {
+    function testFuzz_Success_getValuesInNumeraire_NumeraireIsUsd() public {
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.stable1);
         assetAddresses[1] = address(mockERC20.token1);
@@ -85,7 +81,7 @@ contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10 ** Constants.tokenDecimals;
         assetAmounts[2] = 1;
 
-        AssetValueAndRiskFactors[] memory actualValuesPerAsset = registryExtension.getValuesInBaseCurrency(
+        AssetValueAndRiskFactors[] memory actualValuesPerAsset = registryExtension.getValuesInNumeraire(
             address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );
 
@@ -106,7 +102,7 @@ contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assertTrue(CompareArrays.compareArrays(expectedListOfValuesPerAsset, actualListOfValuesPerAsset));
     }
 
-    function testFuzz_Success_getValuesInBaseCurrency_BaseCurrencyIsNotUsd() public {
+    function testFuzz_Success_getValuesInNumeraire_NumeraireIsNotUsd() public {
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.stable1);
         assetAddresses[1] = address(mockERC20.token1);
@@ -122,7 +118,7 @@ contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10 ** Constants.tokenDecimals;
         assetAmounts[2] = 1;
 
-        AssetValueAndRiskFactors[] memory actualValuesPerAsset = registryExtension.getValuesInBaseCurrency(
+        AssetValueAndRiskFactors[] memory actualValuesPerAsset = registryExtension.getValuesInNumeraire(
             address(mockERC20.token1), address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );
 
@@ -130,13 +126,13 @@ contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, assetAmounts[1], oracleToken1ToUsdArr);
         uint256 nft1ValueInUsd = convertAssetToUsd(0, assetAmounts[2], oracleNft1ToToken1ToUsd);
 
-        uint256 stable1ValueInBCurrency = convertUsdToBaseCurrency(
+        uint256 stable1ValueInBCurrency = convertUsdToNumeraire(
             Constants.tokenDecimals, stable1ValueInUsd, rates.token1ToUsd, Constants.tokenOracleDecimals
         );
-        uint256 token1ValueInBCurrency = convertUsdToBaseCurrency(
+        uint256 token1ValueInBCurrency = convertUsdToNumeraire(
             Constants.tokenDecimals, token1ValueInUsd, rates.token1ToUsd, Constants.tokenOracleDecimals
         );
-        uint256 nft1ValueInBCurrency = convertUsdToBaseCurrency(
+        uint256 nft1ValueInBCurrency = convertUsdToNumeraire(
             Constants.tokenDecimals, nft1ValueInUsd, rates.token1ToUsd, Constants.tokenOracleDecimals
         );
 

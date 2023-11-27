@@ -96,7 +96,7 @@ contract FlashActionByAssetManager_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, P
         accountNotInitialised.setOwner(users.accountOwner);
         accountNotInitialised.setRegistry(address(registryExtension));
         vm.prank(users.accountOwner);
-        accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
+        accountNotInitialised.setNumeraire(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
 
         creditorStable1.setOpenPosition(address(accountNotInitialised), debtAmount);
@@ -256,7 +256,7 @@ contract FlashActionByAssetManager_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, P
         accountNotInitialised.setOwner(users.accountOwner);
         accountNotInitialised.setAssetManager(assetManager, true);
         accountNotInitialised.setRegistry(address(registryExtension));
-        accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
+        accountNotInitialised.setNumeraire(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
         vm.stopPrank();
 

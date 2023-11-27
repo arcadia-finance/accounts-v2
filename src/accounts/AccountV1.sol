@@ -23,7 +23,7 @@ import { IPermit2 } from "../interfaces/IPermit2.sol";
  * They provide individuals, DAOs, and other protocols with a simple and flexible way to deposit and manage multiple assets as collateral.
  * The total combination of assets can be used as margin to back liabilities issued by any financial protocol (lending, leverage, futures...).
  * @dev Users can use this Account to deposit assets (fungible, non-fungible, LP positions, yiel bearing assets...).
- * The Account will denominate all the deposited assets into one baseCurrency (one unit of account, like USD or ETH).
+ * The Account will denominate all the deposited assets into one numeraire (one unit of account, like USD or ETH).
  * Users can use the single denominated value of all their assets to take margin (take credit line, financing for leverage...).
  * An increase of value of one asset will offset a decrease in value of another asset.
  * Ensure your total value denomination remains above the liquidation threshold, or risk being liquidated!
@@ -59,8 +59,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ////////////////////////////////////////////////////////////// */
 
     event AssetManagerSet(address indexed owner, address indexed assetManager, bool value);
-    event BaseCurrencySet(address indexed baseCurrency);
     event MarginAccountChanged(address indexed creditor, address indexed liquidator);
+    event NumeraireSet(address indexed numeraire);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -143,14 +143,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @notice Initiates the variables of the Account.
      * @param owner_ The sender of the 'createAccount' on the Factory
      * @param registry_ The 'beacon' contract with the external logic to price assets.
-     * @param baseCurrency_ The Base-currency in which the Account is denominated.
+     * @param numeraire_ The Numeraire in which the Account is denominated.
      * @param creditor_ The contract address of the Creditor.
      * @dev A proxy will be used to interact with the Account implementation.
      * Therefore everything is initialised through an init function.
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
      * @dev The Creditor will only be set if it's a non-zero address.
      */
-    function initialize(address owner_, address registry_, address baseCurrency_, address creditor_) external {
+    function initialize(address owner_, address registry_, address numeraire_, address creditor_) external {
         if (registry != address(0)) revert AccountErrors.AlreadyInitialized();
         if (registry_ == address(0)) revert AccountErrors.InvalidRegistry();
         owner = owner_;
@@ -159,7 +159,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
         if (creditor_ != address(0)) _openMarginAccount(creditor_);
 
-        emit BaseCurrencySet(baseCurrency = baseCurrency_);
+        emit NumeraireSet(numeraire = numeraire_);
     }
 
     /**
@@ -190,8 +190,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
         _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
 
-        // Prevent that Account is upgraded to a new version where the baseCurrency can't be priced.
-        if (newRegistry != oldRegistry && !IRegistry(newRegistry).inRegistry(baseCurrency)) {
+        // Prevent that Account is upgraded to a new version where the numeraire can't be priced.
+        if (newRegistry != oldRegistry && !IRegistry(newRegistry).inRegistry(numeraire)) {
             revert AccountErrors.InvalidRegistry();
         }
 
@@ -248,22 +248,22 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Sets the baseCurrency of the Account.
-     * @param baseCurrency_ The new baseCurrency for the Account.
+     * @notice Sets the numeraire of the Account.
+     * @param numeraire_ The new numeraire for the Account.
      */
-    function setBaseCurrency(address baseCurrency_) external onlyOwner nonReentrant {
+    function setNumeraire(address numeraire_) external onlyOwner nonReentrant {
         if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
-        _setBaseCurrency(baseCurrency_);
+        _setNumeraire(numeraire_);
     }
 
     /**
-     * @notice Sets the baseCurrency of the Account.
-     * @param baseCurrency_ The new baseCurrency for the Account.
+     * @notice Sets the numeraire of the Account.
+     * @param numeraire_ The new numeraire for the Account.
      */
-    function _setBaseCurrency(address baseCurrency_) internal {
-        if (!IRegistry(registry).inRegistry(baseCurrency_)) revert AccountErrors.BaseCurrencyNotFound();
+    function _setNumeraire(address numeraire_) internal {
+        if (!IRegistry(registry).inRegistry(numeraire_)) revert AccountErrors.NumeraireNotFound();
 
-        emit BaseCurrencySet(baseCurrency = baseCurrency_);
+        emit NumeraireSet(numeraire = numeraire_);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -312,12 +312,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param creditor_ The contract address of the Creditor.
      */
     function _openMarginAccount(address creditor_) internal {
-        (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_) =
+        (bool success, address numeraire_, address liquidator_, uint256 fixedLiquidationCost_) =
             ICreditor(creditor_).openMarginAccount(ACCOUNT_VERSION);
         if (!success) revert AccountErrors.InvalidAccountVersion();
 
         fixedLiquidationCost = uint96(fixedLiquidationCost_);
-        if (baseCurrency != baseCurrency_) _setBaseCurrency(baseCurrency_);
+        if (numeraire != numeraire_) _setNumeraire(numeraire_);
 
         emit MarginAccountChanged(creditor = creditor_, liquidator = liquidator_);
     }
@@ -353,8 +353,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Calculates the total collateral value (MTM discounted with a haircut) of the Account.
-     * @return collateralValue The collateral value, returned in the decimals of the base currency.
-     * @dev Returns the value denominated in the baseCurrency of the Account.
+     * @return collateralValue The collateral value, returned in the decimal precision of the numeraire.
+     * @dev Returns the value denominated in the numeraire of the Account.
      * @dev The collateral value of the Account is equal to the spot value of the underlying assets,
      * discounted by a haircut (the collateral factor). Since the value of
      * collateralized assets can fluctuate, the haircut guarantees that the Account
@@ -366,12 +366,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
         collateralValue =
-            IRegistry(registry).getCollateralValue(baseCurrency, creditor, assetAddresses, assetIds, assetAmounts);
+            IRegistry(registry).getCollateralValue(numeraire, creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
      * @notice Calculates the total liquidation value (MTM discounted with a factor to account for slippage) of the Account.
-     * @return liquidationValue The liquidation value, returned in the decimals of the base currency.
+     * @return liquidationValue The liquidation value, returned in the decimal precision of the numeraire.
      * @dev The liquidation value of the Account is equal to the spot value of the underlying assets,
      * discounted by a haircut (the liquidation factor).
      * The liquidation value takes into account that not the full value of the assets can go towards
@@ -385,7 +385,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
         liquidationValue =
-            IRegistry(registry).getLiquidationValue(baseCurrency, creditor, assetAddresses, assetIds, assetAmounts);
+            IRegistry(registry).getLiquidationValue(numeraire, creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
@@ -394,7 +394,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Used Margin is the value of the assets that is currently 'locked' to back:
      *  - All the liabilities issued against the Account.
      *  - An additional fixed buffer to cover gas fees in case of a liquidation.
-     * @dev The used margin is denominated in the baseCurrency.
+     * @dev The used margin is denominated in the numeraire.
      * @dev Currently only one Creditor at a time can open a margin account.
      * The open liability is fetched at the contract of the Creditor -> only allow trusted audited Creditors!!!
      */
@@ -411,7 +411,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @notice Calculates the remaining margin the owner of the Account can use.
      * @return freeMargin The remaining amount of margin a user can take.
      * @dev Free Margin is the value of the assets that is still free to back additional liabilities.
-     * @dev The free margin is denominated in the baseCurrency.
+     * @dev The free margin is denominated in the numeraire.
      */
     function getFreeMargin() public view returns (uint256 freeMargin) {
         uint256 collateralValue = getCollateralValue();
@@ -476,7 +476,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
         (assetAddresses, assetIds, assetAmounts) = generateAssetData();
         assetAndRiskValues =
-            IRegistry(registry).getValuesInBaseCurrency(baseCurrency, creditor_, assetAddresses, assetIds, assetAmounts);
+            IRegistry(registry).getValuesInNumeraire(numeraire, creditor_, assetAddresses, assetIds, assetAmounts);
 
         // Since the function is only callable by the Liquidator, we know that a liquidator and a Creditor are set.
         openPosition = ICreditor(creditor_).startLiquidation(initiator);
@@ -1074,17 +1074,16 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Returns the total value (mark to market) of the Account in a specific baseCurrency
-     * @param baseCurrency_ The baseCurrency to return the value in.
-     * @return accountValue Total value stored in the account, denominated in baseCurrency.
+     * @notice Returns the total value (mark to market) of the Account in a specific numeraire
+     * @param numeraire_ The numeraire to return the value in.
+     * @return accountValue Total value stored in the account, denominated in numeraire.
      * @dev Fetches all stored assets with their amounts.
-     * Using a specified baseCurrency, fetches the value of all assets in said baseCurrency.
+     * Using a specified numeraire, fetches the value of all assets in said numeraire.
      */
-    function getAccountValue(address baseCurrency_) external view returns (uint256 accountValue) {
+    function getAccountValue(address numeraire_) external view returns (uint256 accountValue) {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
-        accountValue =
-            IRegistry(registry).getTotalValue(baseCurrency_, creditor, assetAddresses, assetIds, assetAmounts);
+        accountValue = IRegistry(registry).getTotalValue(numeraire_, creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**

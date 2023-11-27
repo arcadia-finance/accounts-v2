@@ -57,16 +57,16 @@ interface IRegistry {
     ) external returns (uint256[] memory);
 
     /**
-     * @notice Calculates the combined value of a combination of assets, denominated in a given BaseCurrency.
-     * @param baseCurrency The contract address of the BaseCurrency.
+     * @notice Calculates the combined value of a combination of assets, denominated in a given Numeraire.
+     * @param numeraire The contract address of the Numeraire.
      * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @return assetValue The combined value of the assets, denominated in BaseCurrency.
+     * @return assetValue The combined value of the assets, denominated in the Numeraire.
      */
     function getTotalValue(
-        address baseCurrency,
+        address numeraire,
         address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
@@ -74,16 +74,16 @@ interface IRegistry {
     ) external view returns (uint256);
 
     /**
-     * @notice Calculates the collateralValue of a combination of assets, denominated in a given BaseCurrency.
-     * @param baseCurrency The contract address of the BaseCurrency.
+     * @notice Calculates the collateralValue of a combination of assets, denominated in a given Numeraire.
+     * @param numeraire The contract address of the Numeraire.
      * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @return collateralValue The collateral value of the assets, denominated in BaseCurrency.
+     * @return collateralValue The collateral value of the assets, denominated in the Numeraire.
      */
     function getCollateralValue(
-        address baseCurrency,
+        address numeraire,
         address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
@@ -91,16 +91,16 @@ interface IRegistry {
     ) external view returns (uint256);
 
     /**
-     * @notice Calculates the getLiquidationValue of a combination of assets, denominated in a given BaseCurrency.
-     * @param baseCurrency The contract address of the BaseCurrency.
+     * @notice Calculates the getLiquidationValue of a combination of assets, denominated in a given Numeraire.
+     * @param numeraire The contract address of the Numeraire.
      * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @return liquidationValue The liquidation value of the assets, denominated in BaseCurrency.
+     * @return liquidationValue The liquidation value of the assets, denominated in the Numeraire.
      */
     function getLiquidationValue(
-        address baseCurrency,
+        address numeraire,
         address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
@@ -108,16 +108,16 @@ interface IRegistry {
     ) external view returns (uint256);
 
     /**
-     * @notice Calculates the values per asset, denominated in a given BaseCurrency.
-     * @param baseCurrency The contract address of the BaseCurrency.
+     * @notice Calculates the values per asset, denominated in a given Numeraire.
+     * @param numeraire The contract address of the Numeraire.
      * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @return valuesAndRiskFactors The array of values per assets, denominated in BaseCurrency.
+     * @return valuesAndRiskFactors The array of values per assets, denominated in the Numeraire.
      */
-    function getValuesInBaseCurrency(
-        address baseCurrency,
+    function getValuesInNumeraire(
+        address numeraire,
         address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,

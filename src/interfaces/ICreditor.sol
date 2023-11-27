@@ -15,7 +15,7 @@ interface ICreditor {
      * @notice Checks if Account fulfills all requirements and returns Creditor parameters.
      * @param accountVersion The version of the Arcadia Account.
      * @return success Bool indicating if all requirements are met.
-     * @return baseCurrency The base currency of the Creditor.
+     * @return numeraire The numeraire of the Creditor.
      * @return liquidator The liquidator of the Creditor.
      * @return fixedLiquidationCost Estimated fixed costs (independent of size of debt) to liquidate a position.
      */

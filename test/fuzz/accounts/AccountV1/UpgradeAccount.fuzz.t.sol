@@ -21,7 +21,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     struct Checks {
         uint88 accountVersion;
-        address baseCurrency;
+        address numeraire;
         address owner;
         address liquidator;
         address registry;
@@ -38,7 +38,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function createCompareStruct() public view returns (Checks memory) {
         Checks memory checks;
 
-        checks.baseCurrency = proxyAccount.baseCurrency();
+        checks.numeraire = proxyAccount.numeraire();
         checks.owner = proxyAccount.owner();
         checks.liquidator = proxyAccount.liquidator();
         checks.registry = proxyAccount.registry();

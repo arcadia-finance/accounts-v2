@@ -162,18 +162,18 @@ abstract contract Fuzz_Test is Base_Test {
             sft2ToUsd: 1 * 10 ** Constants.erc1155OracleDecimals
         });
 
-        // Create a creditor with each baseCurrency.
+        // Create a creditor with each numeraire.
         creditorUsd = new CreditorMock();
         creditorStable1 = new CreditorMock();
         creditorToken1 = new CreditorMock();
-        creditorStable1.setBaseCurrency(address(mockERC20.stable1));
-        creditorToken1.setBaseCurrency(address(mockERC20.token1));
+        creditorStable1.setNumeraire(address(mockERC20.stable1));
+        creditorToken1.setNumeraire(address(mockERC20.token1));
         creditorUsd.setRiskManager(users.riskManager);
         creditorStable1.setRiskManager(users.riskManager);
         creditorToken1.setRiskManager(users.riskManager);
 
         // Initialize the default liquidation cost and liquidator of creditor
-        // The base currency on initialization will depend on the type of test and set at a lower level
+        // The numeraire on initialization will depend on the type of test and set at a lower level
         creditorStable1.setFixedLiquidationCost(Constants.initLiquidationCost);
         creditorStable1.setLiquidator(Constants.initLiquidator);
 

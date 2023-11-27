@@ -27,9 +27,9 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_getTotalValue_UnknownBaseCurrency(address baseCurrency) public {
-        vm.assume(baseCurrency != address(0));
-        vm.assume(!registryExtension.inRegistry(baseCurrency));
+    function testFuzz_Revert_getTotalValue_UnknownNumeraire(address numeraire) public {
+        vm.assume(numeraire != address(0));
+        vm.assume(!registryExtension.inRegistry(numeraire));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.stable2);
@@ -44,10 +44,10 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10;
 
         vm.expectRevert(bytes(""));
-        registryExtension.getTotalValue(baseCurrency, address(creditorToken1), assetAddresses, assetIds, assetAmounts);
+        registryExtension.getTotalValue(numeraire, address(creditorToken1), assetAddresses, assetIds, assetAmounts);
     }
 
-    function testFuzz_Revert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdOverflow(
+    function testFuzz_Revert_getTotalValue_CalculateValueInNumeraireFromValueInUsdOverflow(
         uint256 rateToken1ToUsd,
         uint256 amountToken2,
         uint8 token2Decimals
@@ -97,7 +97,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         );
     }
 
-    function testFuzz_Revert_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsdWithRateZero(uint256 amountToken2)
+    function testFuzz_Revert_getTotalValue_CalculateValueInNumeraireFromValueInUsdWithRateZero(uint256 amountToken2)
         public
     {
         vm.assume(amountToken2 > 0);
@@ -139,19 +139,19 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10 ** Constants.tokenDecimals;
         assetAmounts[2] = 1;
 
-        // BaseCurrency for actualTotalValue is set to mockERC20.token1
+        // Numeraire for actualTotalValue is set to mockERC20.token1
         uint256 actualTotalValue = registryExtension.getTotalValue(
             address(mockERC20.token1), address(creditorToken1), assetAddresses, assetIds, assetAmounts
         );
 
         uint256 token1ValueInToken1 = assetAmounts[0];
-        uint256 token2ValueInToken1 = convertUsdToBaseCurrency(
+        uint256 token2ValueInToken1 = convertUsdToNumeraire(
             Constants.tokenDecimals,
             convertAssetToUsd(Constants.tokenDecimals, assetAmounts[1], oracleToken2ToUsdArr),
             rates.token1ToUsd,
             Constants.tokenOracleDecimals
         );
-        uint256 nft1ValueInToken1 = convertUsdToBaseCurrency(
+        uint256 nft1ValueInToken1 = convertUsdToNumeraire(
             Constants.tokenDecimals,
             convertAssetToUsd(0, assetAmounts[2], oracleNft1ToToken1ToUsd),
             rates.token1ToUsd,
@@ -163,7 +163,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assertEq(expectedTotalValue, actualTotalValue);
     }
 
-    function testFuzz_Success_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsd_token2With18Decimals(
+    function testFuzz_Success_getTotalValue_CalculateValueInNumeraireFromValueInUsd_token2With18Decimals(
         uint256 rateToken1ToUsd,
         uint256 amountToken2
     ) public {
@@ -200,7 +200,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         );
 
         uint256 token2ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, amountToken2, oracleToken2ToUsdArr);
-        uint256 token2ValueInToken1 = convertUsdToBaseCurrency(
+        uint256 token2ValueInToken1 = convertUsdToNumeraire(
             Constants.tokenDecimals, token2ValueInUsd, rateToken1ToUsd, Constants.tokenOracleDecimals
         );
 
@@ -210,7 +210,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assertEq(expectedValue, actualTotalValue);
     }
 
-    function testFuzz_Success_getTotalValue_CalculateValueInBaseCurrencyFromValueInUsd_token2With6decimals(
+    function testFuzz_Success_getTotalValue_CalculateValueInNumeraireFromValueInUsd_token2With6decimals(
         uint256 rateToken1ToUsd,
         uint128 amountToken2
     ) public {
@@ -236,7 +236,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         );
 
         uint256 token2ValueInUsd = convertAssetToUsd(Constants.stableDecimals, amountToken2, oracleStable2ToUsdArr);
-        uint256 token2ValueInToken1 = convertUsdToBaseCurrency(
+        uint256 token2ValueInToken1 = convertUsdToNumeraire(
             Constants.tokenDecimals, token2ValueInUsd, rateToken1ToUsd, Constants.tokenOracleDecimals
         );
 

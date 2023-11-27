@@ -74,16 +74,16 @@ abstract contract Registry_Fuzz_Test is Fuzz_Test {
         usdValue = (Constants.WAD * ratesMultiplied * amount) / (10 ** (sumOfOracleDecimals + assetDecimals));
     }
 
-    function convertUsdToBaseCurrency(
-        uint256 baseCurrencyDecimals,
+    function convertUsdToNumeraire(
+        uint256 numeraireDecimals,
         uint256 usdAmount,
-        uint256 rateBaseCurrencyToUsd,
+        uint256 rateNumeraireToUsd,
         uint256 oracleDecimals
     ) public pure returns (uint256 assetValue) {
-        assetValue = (usdAmount * 10 ** oracleDecimals) / rateBaseCurrencyToUsd;
-        // USD value will always be in 18 decimals so we have to convert to baseCurrency decimals if needed
-        if (baseCurrencyDecimals < 18) {
-            assetValue /= 10 ** (18 - baseCurrencyDecimals);
+        assetValue = (usdAmount * 10 ** oracleDecimals) / rateNumeraireToUsd;
+        // USD value will always be in 18 decimals so we have to convert to numeraire decimals if needed
+        if (numeraireDecimals < 18) {
+            assetValue /= 10 ** (18 - numeraireDecimals);
         }
     }
 }

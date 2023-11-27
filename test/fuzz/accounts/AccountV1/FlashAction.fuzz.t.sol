@@ -132,7 +132,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
         accountNotInitialised.setRegistry(address(registryExtension));
-        accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
+        accountNotInitialised.setNumeraire(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
         vm.stopPrank();
 
@@ -244,7 +244,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         accountNotInitialised.setOwner(from);
         accountNotInitialised.setRegistry(address(registryExtension));
         vm.prank(from);
-        accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
+        accountNotInitialised.setNumeraire(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
 
         // Set the account as initialized in the factory
@@ -312,7 +312,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         accountNotInitialised.setOwner(users.accountOwner);
         accountNotInitialised.setRegistry(address(registryExtension));
         vm.prank(users.accountOwner);
-        accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
+        accountNotInitialised.setNumeraire(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
 
         creditorStable1.setOpenPosition(address(accountNotInitialised), debtAmount);
@@ -477,7 +477,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         accountNotInitialised.setOwner(from);
         accountNotInitialised.setRegistry(address(registryExtension));
         vm.prank(from);
-        accountNotInitialised.setBaseCurrency(address(mockERC20.token1));
+        accountNotInitialised.setNumeraire(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
 
         // Set the account as initialised in the factory

@@ -9,7 +9,7 @@ contract CreditorMock {
 
     uint96 public fixedLiquidationCost;
 
-    address public baseCurrency;
+    address public numeraire;
     address public riskManager;
     address public liquidator;
 
@@ -22,16 +22,16 @@ contract CreditorMock {
     function openMarginAccount(uint256)
         external
         view
-        returns (bool success, address baseCurrency_, address liquidator_, uint256 fixedLiquidationCost_)
+        returns (bool success, address numeraire_, address liquidator_, uint256 fixedLiquidationCost_)
     {
         if (isCallSuccesfull) {
             success = true;
-            baseCurrency_ = baseCurrency;
+            numeraire_ = numeraire;
             liquidator_ = liquidator;
             fixedLiquidationCost_ = fixedLiquidationCost;
         } else {
             success = false;
-            baseCurrency_ = address(0);
+            numeraire_ = address(0);
             liquidator_ = address(0);
             fixedLiquidationCost_ = 0;
         }
@@ -53,8 +53,8 @@ contract CreditorMock {
         isCallSuccesfull = success;
     }
 
-    function setBaseCurrency(address baseCurrency_) external {
-        baseCurrency = baseCurrency_;
+    function setNumeraire(address numeraire_) external {
+        numeraire = numeraire_;
     }
 
     function setRiskManager(address riskManager_) external {

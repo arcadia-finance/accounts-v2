@@ -25,9 +25,9 @@ contract GetLiquidationValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_getLiquidationValue_UnknownBaseCurrency(address baseCurrency) public {
-        vm.assume(baseCurrency != address(0));
-        vm.assume(!registryExtension.inRegistry(baseCurrency));
+    function testFuzz_Revert_getLiquidationValue_UnknownNumeraire(address numeraire) public {
+        vm.assume(numeraire != address(0));
+        vm.assume(!registryExtension.inRegistry(numeraire));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token2);
@@ -42,9 +42,7 @@ contract GetLiquidationValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 1;
 
         vm.expectRevert(bytes(""));
-        registryExtension.getLiquidationValue(
-            baseCurrency, address(creditorUsd), assetAddresses, assetIds, assetAmounts
-        );
+        registryExtension.getLiquidationValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Success_getLiquidationValue(int64 rateToken1ToUsd, uint64 amountToken1, uint16 liquidationFactor_)
