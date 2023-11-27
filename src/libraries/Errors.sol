@@ -5,10 +5,11 @@
 pragma solidity 0.8.22;
 
 library AccountErrors {
+    error AccountInAuction();
     error AccountNotLiquidatable();
     error AccountUnhealthy();
     error AlreadyInitialized();
-    error BaseCurrencyNotFound();
+    error NumeraireNotFound();
     error CreditorAlreadySet();
     error CreditorNotSet();
     error InvalidAccountVersion();
@@ -26,7 +27,6 @@ library AccountErrors {
     error TooManyAssets();
     error UnknownAsset();
     error UnknownAssetType();
-    error AccountInAuction();
 }
 
 library FactoryErrors {

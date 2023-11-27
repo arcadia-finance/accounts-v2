@@ -7,9 +7,9 @@ pragma solidity 0.8.22;
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "setBaseCurrency" of contract "AccountV1".
+ * @notice Fuzz tests for the function "setNumeraire" of contract "AccountV1".
  */
-contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
+contract SetNumeraire_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -24,53 +24,53 @@ contract SetBaseCurrency_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_setBaseCurrency_NonAuthorized(address unprivilegedAddress_) public {
+    function testFuzz_Revert_setNumeraire_NonAuthorized(address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != users.accountOwner);
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert(AccountErrors.OnlyOwner.selector);
-        accountExtension.setBaseCurrency(address(mockERC20.token1));
+        accountExtension.setNumeraire(address(mockERC20.token1));
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_setBaseCurrency_Reentered() public {
+    function testFuzz_Revert_setNumeraire_Reentered() public {
         // Reentrancy guard is in locked state.
         accountExtension.setLocked(2);
 
         vm.prank(users.accountOwner);
         vm.expectRevert(AccountErrors.NoReentry.selector);
-        accountExtension.setBaseCurrency(address(mockERC20.token1));
+        accountExtension.setNumeraire(address(mockERC20.token1));
     }
 
-    function testFuzz_Revert_setBaseCurrency_CreditorSet() public {
+    function testFuzz_Revert_setNumeraire_CreditorSet() public {
         vm.prank(users.accountOwner);
         accountExtension.openMarginAccount(address(creditorStable1));
 
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.CreditorAlreadySet.selector);
-        accountExtension.setBaseCurrency(address(mockERC20.token1));
+        accountExtension.setNumeraire(address(mockERC20.token1));
         vm.stopPrank();
 
-        assertEq(accountExtension.baseCurrency(), address(mockERC20.stable1));
+        assertEq(accountExtension.numeraire(), address(mockERC20.stable1));
     }
 
-    function testFuzz_Revert_setBaseCurrency_BaseCurrencyNotFound(address baseCurrency_) public {
-        vm.assume(baseCurrency_ != address(0));
-        vm.assume(!registryExtension.inRegistry(baseCurrency_));
+    function testFuzz_Revert_setNumeraire_NumeraireNotFound(address numeraire_) public {
+        vm.assume(numeraire_ != address(0));
+        vm.assume(!registryExtension.inRegistry(numeraire_));
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.BaseCurrencyNotFound.selector);
-        accountExtension.setBaseCurrency(baseCurrency_);
+        vm.expectRevert(AccountErrors.NumeraireNotFound.selector);
+        accountExtension.setNumeraire(numeraire_);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_setBaseCurrency() public {
+    function testFuzz_Success_setNumeraire() public {
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
-        emit BaseCurrencySet(address(mockERC20.token1));
-        accountExtension.setBaseCurrency(address(mockERC20.token1));
+        emit NumeraireSet(address(mockERC20.token1));
+        accountExtension.setNumeraire(address(mockERC20.token1));
         vm.stopPrank();
 
-        assertEq(accountExtension.baseCurrency(), address(mockERC20.token1));
+        assertEq(accountExtension.numeraire(), address(mockERC20.token1));
     }
 }

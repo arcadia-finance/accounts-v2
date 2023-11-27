@@ -15,10 +15,10 @@ interface IAccount {
      * @notice Initiates the variables of the Account.
      * @param owner The sender of the 'createAccount' on the factory
      * @param registry The 'beacon' contract with the external logic.
-     * @param baseCurrency The Base-currency in which the Account is denominated.
+     * @param numeraire The Numeraire in which the Account is denominated.
      * @param creditor The contract address of the creditor.
      */
-    function initialize(address owner, address registry, address baseCurrency, address creditor) external;
+    function initialize(address owner, address registry, address numeraire, address creditor) external;
 
     /**
      * @notice Updates the Account version and stores a new address in the EIP1967 implementation slot.

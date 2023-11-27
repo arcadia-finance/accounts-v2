@@ -103,8 +103,8 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertTrue(proxyAccount.liquidator() == address(0));
         assertEq(proxyAccount.fixedLiquidationCost(), 0);
 
-        // And: Base currency is still set.
-        assertEq(proxyAccount.baseCurrency(), address(mockERC20.stable1));
+        // And: Numeraire is still set.
+        assertEq(proxyAccount.numeraire(), address(mockERC20.stable1));
 
         // Exposure from Creditor is updated.
         (actualExposure,,,) = erc20AssetModule.riskParams(address(creditorStable1), assetKey);

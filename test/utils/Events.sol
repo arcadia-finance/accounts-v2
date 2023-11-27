@@ -39,7 +39,7 @@ abstract contract Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     event AssetManagerSet(address indexed owner, address indexed assetManager, bool value);
-    event BaseCurrencySet(address indexed baseCurrency);
+    event NumeraireSet(address indexed numeraire);
     event MarginAccountChanged(address indexed creditor, address indexed liquidator);
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ abstract contract Events {
 
     event RiskManagerUpdated(address riskManager);
     event RiskVariablesSet(
-        address indexed asset, uint8 indexed baseCurrencyId, uint16 collateralFactor, uint16 liquidationFactor
+        address indexed asset, uint8 indexed numeraireId, uint16 collateralFactor, uint16 liquidationFactor
     );
     event MaxExposureSet(address indexed asset, uint128 maxExposure);
 

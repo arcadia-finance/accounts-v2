@@ -60,10 +60,6 @@ library DeployNumbers {
     uint256 public constant axlusdtDecimals = 6;
     uint256 public constant axlDecimals = 6;
     uint256 public constant crvDecimals = 18;
-
-    uint256 public constant UsdBaseCurrency = 0;
-    uint256 public constant EthBaseCurrency = 1;
-    uint256 public constant UsdcBaseCurrency = 2;
 }
 
 library DeployBytes {
