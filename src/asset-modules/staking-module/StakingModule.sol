@@ -4,6 +4,8 @@
  */
 pragma solidity 0.8.22;
 
+import { IFactory } from "../../interfaces/IFactory.sol";
+
 import { ERC1155 } from "../../../lib/solmate/src/tokens/ERC1155.sol";
 import { ERC20, SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -15,6 +17,10 @@ abstract contract StakingModule is ERC1155 {
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
+
+    address private immutable FACTORY;
+
+    uint256 private idCounter;
 
     mapping(uint256 id => ERC20 stakingToken) public stakingToken;
     mapping(uint256 id => ERC20 rewardsToken) public rewardsToken;
@@ -40,6 +46,7 @@ abstract contract StakingModule is ERC1155 {
     ////////////////////////////////////////////////////////////// */
 
     error AmountIsZero();
+    error NotAnArcadiaAccount();
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -50,10 +57,18 @@ abstract contract StakingModule is ERC1155 {
 
         if (account != address(0)) {
             rewards[id][account] = earnedByAccount(id, account);
-            userRewardPerTokenPaid[id][account] = rewardPerTokenStored[i];
+            userRewardPerTokenPaid[id][account] = rewardPerTokenStored[id];
         }
 
         _;
+    }
+
+    /* //////////////////////////////////////////////////////////////
+                                CONSTRUCTOR
+    ////////////////////////////////////////////////////////////// */
+
+    constructor(address factory) {
+        FACTORY = factory;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -64,25 +79,33 @@ abstract contract StakingModule is ERC1155 {
         return totalSupply_[id];
     }
 
+    function _setNewStakingToken(address stakingToken_, address rewardsToken_) internal virtual {
+        ++idCounter;
+        stakingToken[idCounter] = ERC20(stakingToken_);
+        rewardsToken[idCounter] = ERC20(rewardsToken_);
+    }
+
     /*///////////////////////////////////////////////////////////////
                         STAKING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
     // Note: add nonReentrant and notPaused modifiers ?
     // Note: See who can call this function
+    // Will revert in safeTransferFrom if "id" is not correct.
     // Stakes the stakingToken and handles accounting for Account.
     function stake(uint256 id, uint256 amount, address account) external updateReward(id, account) {
         if (amount == 0) revert AmountIsZero();
+        if (!IFactory(FACTORY).isAccount(account)) revert NotAnArcadiaAccount();
 
         stakingToken[id].safeTransferFrom(msg.sender, address(this), amount);
 
         totalSupply_[id] += amount;
-        _mint(account, id, amount, "");
+        _mint(msg.sender, id, amount, "");
 
-        // Internal function to stake in protocol
-        _stake(amount);
+        // Internal function to stake in external staking contract.
+        _stake(id, amount);
 
-        emit Staked(msg.sender, amount);
+        emit Staked(account, amount);
     }
 
     // Stake "stakingToken" in external staking contract.
@@ -97,8 +120,8 @@ abstract contract StakingModule is ERC1155 {
         totalSupply_[id] -= amount;
         _burn(account, id, amount);
 
-        // Internal function to claim from protocol
-        _withdraw(amount);
+        // Internal function to claim from external staking contract.
+        _withdraw(id, amount);
 
         emit Withdrawn(msg.sender, amount);
     }
@@ -125,7 +148,7 @@ abstract contract StakingModule is ERC1155 {
 
     // Note: see if we can optimize rewardPerToken here, as we calculate it in modifier previously.
     function earnedByAccount(uint256 id, address account) public view returns (uint256 earned_) {
-        uint256 rewardPerTokenClaimable = rewardPerToken() - userRewardPerTokenPaid[account];
+        uint256 rewardPerTokenClaimable = rewardPerToken(id) - userRewardPerTokenPaid[id][account];
         earned_ = rewards[id][account] + balanceOf[account][id].mulDivDown(rewardPerTokenClaimable, 1e18);
     }
 
