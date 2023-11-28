@@ -4,10 +4,11 @@
  */
 pragma solidity 0.8.22;
 
+import { ERC1155 } from "../../../lib/solmate/src/tokens/ERC1155.sol";
 import { ERC20, SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
-abstract contract StakingModule {
+abstract contract StakingModule is ERC1155 {
     using FixedPointMathLib for uint256;
     using SafeTransferLib for ERC20;
 
@@ -15,24 +16,24 @@ abstract contract StakingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    ERC20 public immutable stakingToken;
-    ERC20 public immutable rewardsToken;
+    mapping(uint256 id => ERC20 stakingToken) public stakingToken;
+    mapping(uint256 id => ERC20 rewardsToken) public rewardsToken;
 
-    uint256 public lastUpdateTime;
-    uint256 public rewardPerTokenStored;
+    // Note: see if struct could be more efficient here. (How are mappings packed inside a struct/storage) ?
+    mapping(uint256 id => uint256 rewardPerTokenStored) public rewardPerTokenStored;
+    mapping(uint256 id => uint256 previousRewardsBalance) public previousRewardsBalance;
+    mapping(uint256 id => uint256 totalSupply) public totalSupply_;
 
-    uint256 private _totalSupply;
-
-    mapping(address => uint256) public rewards;
-    mapping(address => uint256) private _balances;
-    mapping(address => uint256) public userRewardPerTokenPaid;
+    mapping(uint256 id => mapping(address account => uint256 rewards)) public rewards;
+    mapping(uint256 id => mapping(address account => uint256 rewardPerTokenPaid)) public userRewardPerTokenPaid;
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
     event Staked(address indexed account, uint256 amount);
-    event Withdrawn(address indexed user, uint256 amount);
+    event Withdrawn(address indexed account, uint256 amount);
+    event RewardPaid(address indexed account, uint256 reward);
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -44,45 +45,39 @@ abstract contract StakingModule {
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
 
-    modifier updateReward(address account) {
-        rewardPerTokenStored = rewardPerToken();
-        lastUpdateTime = block.timestamp;
+    modifier updateReward(uint256 id, address account) {
+        rewardPerTokenStored[id] = rewardPerToken(id);
+
         if (account != address(0)) {
-            rewards[account] = earned(account);
-            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+            rewards[id][account] = earnedByAccount(id, account);
+            userRewardPerTokenPaid[id][account] = rewardPerTokenStored[i];
         }
+
         _;
     }
 
-    /* //////////////////////////////////////////////////////////////
-                                CONSTRUCTOR
-    ////////////////////////////////////////////////////////////// */
+    /*///////////////////////////////////////////////////////////////
+                        STAKINGTOKEN INFORMATION
+    ///////////////////////////////////////////////////////////////*/
 
-    constructor(ERC20 stakingToken_, ERC20 rewardsToken_) {
-        stakingToken = stakingToken_;
-        rewardsToken = rewardsToken_;
+    function totalSupply(uint256 id) external view returns (uint256) {
+        return totalSupply_[id];
     }
 
     /*///////////////////////////////////////////////////////////////
-                        STAKING TOKEN INFORMATION
+                        STAKING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
-    function totalSupply() external view returns (uint256) {
-        return _totalSupply;
-    }
-
-    function balanceOf(address account) external view returns (uint256) {
-        return _balances[account];
-    }
-
-    // Note: add nonReentrant and notPaused? modifiers
+    // Note: add nonReentrant and notPaused modifiers ?
     // Note: See who can call this function
-    function stake(uint256 amount, address account) external updateReward(account) {
+    // Stakes the stakingToken and handles accounting for Account.
+    function stake(uint256 id, uint256 amount, address account) external updateReward(id, account) {
         if (amount == 0) revert AmountIsZero();
 
-        _totalSupply += amount;
-        _balances[msg.sender] += amount;
-        stakingToken.safeTransferFrom(msg.sender, address(this), amount);
+        stakingToken[id].safeTransferFrom(msg.sender, address(this), amount);
+
+        totalSupply_[id] += amount;
+        _mint(account, id, amount, "");
 
         // Internal function to stake in protocol
         _stake(amount);
@@ -90,15 +85,17 @@ abstract contract StakingModule {
         emit Staked(msg.sender, amount);
     }
 
-    function _stake(uint256 amount) internal virtual;
+    // Stake "stakingToken" in external staking contract.
+    function _stake(uint256 id, uint256 amount) internal virtual { }
 
-    // Note: add nonReentrant modifier
+    // Note: add nonReentrant modifier?
     // Note: see who can call this function
-    function withdraw(uint256 amount, address account) external updateReward(account) {
+    // Unstakes and withdraws the rewards.
+    function withdraw(uint256 id, uint256 amount, address account) external updateReward(id, account) {
         if (amount == 0) revert AmountIsZero();
 
-        _totalSupply -= amount;
-        _balances[msg.sender] -= amount;
+        totalSupply_[id] -= amount;
+        _burn(account, id, amount);
 
         // Internal function to claim from protocol
         _withdraw(amount);
@@ -106,21 +103,42 @@ abstract contract StakingModule {
         emit Withdrawn(msg.sender, amount);
     }
 
-    function _withdraw(uint256 amount) internal virtual;
+    // Withdraw "stakingToken" from external staking contract.
+    function _withdraw(uint256 id, uint256 amount) internal virtual { }
 
-    function rewardPerToken() public view returns (uint256 rewardPerToken_) {
-        if (_totalSupply == 0) {
-            return rewardPerTokenStored;
+    /*///////////////////////////////////////////////////////////////
+                        REWARDS ACCOUNTING LOGIC
+    ///////////////////////////////////////////////////////////////*/
+
+    // Updates the reward per token.
+    function rewardPerToken(uint256 id) public view returns (uint256 rewardPerToken_) {
+        if (totalSupply_[id] == 0) {
+            return rewardPerTokenStored[id];
         }
 
         // Calc total earned amount of this contract as of now minus last time = earned over period.
-        uint256 earnedSinceLastUpdate;
-        rewardPerToken_ = rewardPerTokenStored + earnedSinceLastUpdate.mulDivDown(1e18, _totalSupply);
+        uint256 actualRewardsBalance = _getActualRewardsBalance(id);
+        uint256 earnedSinceLastUpdate = actualRewardsBalance - previousRewardsBalance[id];
+
+        rewardPerToken_ = rewardPerTokenStored[id] + earnedSinceLastUpdate.mulDivDown(1e18, totalSupply_[id]);
     }
 
     // Note: see if we can optimize rewardPerToken here, as we calculate it in modifier previously.
-    function earned(address account) public view returns (uint256 earned_) {
+    function earnedByAccount(uint256 id, address account) public view returns (uint256 earned_) {
         uint256 rewardPerTokenClaimable = rewardPerToken() - userRewardPerTokenPaid[account];
-        earned_ = rewards[account] + _balances[account].mulDivDown(rewardPerTokenClaimable, 1e18);
+        earned_ = rewards[id][account] + balanceOf[account][id].mulDivDown(rewardPerTokenClaimable, 1e18);
+    }
+
+    // Get the total rewards available to claim for this contract.
+    function _getActualRewardsBalance(uint256 id) internal view virtual returns (uint256 earned) { }
+
+    // Claim reward and transfer to Account
+    function getReward(uint256 id, address account) external virtual updateReward(id, account) {
+        uint256 reward = rewards[id][account];
+        if (reward > 0) {
+            rewards[id][account] = 0;
+            rewardsToken[id].safeTransfer(msg.sender, reward);
+            emit RewardPaid(account, reward);
+        }
     }
 }
