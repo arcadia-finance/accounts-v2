@@ -10,7 +10,7 @@ import { ERC1155 } from "../../../lib/solmate/src/tokens/ERC1155.sol";
 import { ERC20, SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
-abstract contract StakingModule is ERC1155 {
+abstract contract AbstractStakingModule is ERC1155 {
     using FixedPointMathLib for uint256;
     using SafeTransferLib for ERC20;
 
@@ -114,20 +114,29 @@ abstract contract StakingModule is ERC1155 {
     // Note: add nonReentrant modifier?
     // Note: see who can call this function
     // Unstakes and withdraws the rewards.
-    function withdraw(uint256 id, uint256 amount, address account) external updateReward(id, account) {
+    function withdraw(uint256 id, uint256 amount, address account, bytes calldata data)
+        external
+        updateReward(id, account)
+    {
         if (amount == 0) revert AmountIsZero();
 
         totalSupply_[id] -= amount;
         _burn(account, id, amount);
 
-        // Internal function to claim from external staking contract.
+        // Internal function to claim from external staking contract (claim all)
         _withdraw(id, amount);
+        getReward(id, account);
+
+        safeTransferFrom(address(this), account, id, amount, data);
 
         emit Withdrawn(msg.sender, amount);
     }
 
-    // Withdraw "stakingToken" from external staking contract.
+    // Withdraw "stakingToken" from external staking contract and claim all rewards.
     function _withdraw(uint256 id, uint256 amount) internal virtual { }
+
+    // Will claim all pending rewards for this contract
+    function _claimRewards(uint256 id) internal virtual { }
 
     /*///////////////////////////////////////////////////////////////
                         REWARDS ACCOUNTING LOGIC
@@ -156,11 +165,15 @@ abstract contract StakingModule is ERC1155 {
     function _getActualRewardsBalance(uint256 id) internal view virtual returns (uint256 earned) { }
 
     // Claim reward and transfer to Account
-    function getReward(uint256 id, address account) external virtual updateReward(id, account) {
+    function getReward(uint256 id, address account) public virtual updateReward(id, account) {
         uint256 reward = rewards[id][account];
+
+        _claimRewards(id);
+        previousRewardsBalance[id] = 0;
+
         if (reward > 0) {
             rewards[id][account] = 0;
-            rewardsToken[id].safeTransfer(msg.sender, reward);
+            rewardsToken[id].safeTransfer(account, reward);
             emit RewardPaid(account, reward);
         }
     }
