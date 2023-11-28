@@ -23,7 +23,9 @@ abstract contract AbstractStakingModule is ERC1155 {
     uint256 private idCounter;
 
     mapping(uint256 id => ERC20 stakingToken) public stakingToken;
-    mapping(uint256 id => ERC20 rewardsToken) public rewardsToken;
+    mapping(uint256 id => ERC20 rewardToken) public rewardToken;
+    mapping(uint256 id => uint256 decimals) public stakingTokenDecimals;
+    mapping(uint256 id => uint256 decimals) public rewardTokenDecimals;
 
     // Note: see if struct could be more efficient here. (How are mappings packed inside a struct/storage) ?
     mapping(uint256 id => uint256 rewardPerTokenStored) public rewardPerTokenStored;
@@ -79,10 +81,17 @@ abstract contract AbstractStakingModule is ERC1155 {
         return totalSupply_[id];
     }
 
-    function _setNewStakingToken(address stakingToken_, address rewardsToken_) internal virtual {
+    function _setNewStakingToken(address stakingToken_, address rewardToken_) internal virtual {
+        // Increment idCounter
         ++idCounter;
-        stakingToken[idCounter] = ERC20(stakingToken_);
-        rewardsToken[idCounter] = ERC20(rewardsToken_);
+
+        // Cache new id
+        uint256 newId = idCounter;
+
+        stakingToken[newId] = ERC20(stakingToken_);
+        rewardToken[newId] = ERC20(rewardToken_);
+        stakingTokenDecimals[newId] = uint256(ERC20(stakingToken_).decimals());
+        rewardTokenDecimals[newId] = uint256(ERC20(rewardToken_).decimals());
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -152,13 +161,15 @@ abstract contract AbstractStakingModule is ERC1155 {
         uint256 actualRewardsBalance = _getActualRewardsBalance(id);
         uint256 earnedSinceLastUpdate = actualRewardsBalance - previousRewardsBalance[id];
 
-        rewardPerToken_ = rewardPerTokenStored[id] + earnedSinceLastUpdate.mulDivDown(1e18, totalSupply_[id]);
+        rewardPerToken_ = rewardPerTokenStored[id]
+            + earnedSinceLastUpdate.mulDivDown(10 ** stakingTokenDecimals[id], totalSupply_[id]);
     }
 
     // Note: see if we can optimize rewardPerToken here, as we calculate it in modifier previously.
     function earnedByAccount(uint256 id, address account) public view returns (uint256 earned_) {
         uint256 rewardPerTokenClaimable = rewardPerToken(id) - userRewardPerTokenPaid[id][account];
-        earned_ = rewards[id][account] + balanceOf[account][id].mulDivDown(rewardPerTokenClaimable, 1e18);
+        earned_ = rewards[id][account]
+            + balanceOf[account][id].mulDivDown(rewardPerTokenClaimable, 10 ** stakingTokenDecimals[id]);
     }
 
     // Get the total rewards available to claim for this contract.
@@ -173,7 +184,7 @@ abstract contract AbstractStakingModule is ERC1155 {
 
         if (reward > 0) {
             rewards[id][account] = 0;
-            rewardsToken[id].safeTransfer(account, reward);
+            rewardToken[id].safeTransfer(account, reward);
             emit RewardPaid(account, reward);
         }
     }

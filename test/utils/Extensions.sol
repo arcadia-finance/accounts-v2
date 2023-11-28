@@ -25,6 +25,7 @@ import { StandardERC4626AssetModule } from "../../src/asset-modules/StandardERC4
 import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModule.sol";
 import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
+import { AbstractStakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 
 contract AccountExtension is AccountV1 {
     constructor() AccountV1() { }
@@ -558,5 +559,13 @@ contract MultiCallExtension is ActionMultiCall {
 
     function setMintedIds(uint256[] memory mintedIds_) public {
         mintedIds = mintedIds_;
+    }
+}
+
+abstract contract AbstractStakingModuleExtension is AbstractStakingModule {
+    constructor(address factory) AbstractStakingModule(factory) { }
+
+    function setNewStakingToken(address stakingToken_, address rewardsToken_) public {
+        _setNewStakingToken(stakingToken_, rewardsToken_);
     }
 }
