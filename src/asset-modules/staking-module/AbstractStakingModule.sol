@@ -81,7 +81,8 @@ abstract contract AbstractStakingModule is ERC1155 {
         return totalSupply_[id];
     }
 
-    function _setNewStakingToken(address stakingToken_, address rewardToken_) internal virtual {
+    // Note: Should we make this one virtual ?
+    function _setNewStakingToken(address stakingToken_, address rewardToken_) internal {
         // Increment idCounter
         ++idCounter;
 
@@ -176,7 +177,8 @@ abstract contract AbstractStakingModule is ERC1155 {
     function _getActualRewardsBalance(uint256 id) internal view virtual returns (uint256 earned) { }
 
     // Claim reward and transfer to Account
-    function getReward(uint256 id, address account) public virtual updateReward(id, account) {
+    // Note: should that function be virtual ?
+    function getReward(uint256 id, address account) public updateReward(id, account) {
         uint256 reward = rewards[id][account];
 
         _claimRewards(id);
@@ -188,4 +190,6 @@ abstract contract AbstractStakingModule is ERC1155 {
             emit RewardPaid(account, reward);
         }
     }
+
+    function uri(uint256 id) public view override returns (string memory) {}
 }

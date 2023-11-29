@@ -91,15 +91,6 @@ contract StakingRewardsMock {
     }
 
     /* //////////////////////////////////////////////////////////////
-                                CONSTRUCTOR
-    ////////////////////////////////////////////////////////////// */
-
-    constructor(address _rewardsToken, address _stakingToken) {
-        rewardsToken = ERC20(_rewardsToken);
-        stakingToken = ERC20(_stakingToken);
-    }
-
-    /* //////////////////////////////////////////////////////////////
                                 FUNCTIONS
     ////////////////////////////////////////////////////////////// */
 
@@ -200,5 +191,10 @@ contract StakingRewardsMock {
         rewards[account] = rewards_;
         totalSupply_ = totalSupply__;
         _balances[account] = accountBalance;
+    }
+
+    function setStakingAndRewardTokens(address stakingToken_, address rewardToken_) public {
+        rewardsToken = ERC20(rewardToken_);
+        stakingToken = ERC20(stakingToken_);
     }
 }
