@@ -185,12 +185,21 @@ contract StakingRewardsMock {
         emit RewardsDurationUpdated(rewardsDuration);
     }
 
-    function setStakingRewardsState(uint256 rewards_, address account, uint256 totalSupply__, uint256 accountBalance)
-        public
-    {
+    /* //////////////////////////////////////////////////////////////
+                          HELPER FUNCTIONS
+    ////////////////////////////////////////////////////////////// */
+
+    function setStakingRewardsState(
+        uint256 rewards_,
+        address account,
+        uint256 totalSupply__,
+        uint256 accountBalance,
+        uint256 rewardPerTokenStored_
+    ) public {
         rewards[account] = rewards_;
         totalSupply_ = totalSupply__;
         _balances[account] = accountBalance;
+        rewardPerTokenStored = rewardPerTokenStored_;
     }
 
     function setStakingAndRewardTokens(address stakingToken_, address rewardToken_) public {

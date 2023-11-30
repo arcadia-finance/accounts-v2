@@ -568,4 +568,20 @@ abstract contract AbstractStakingModuleExtension is AbstractStakingModule {
     function setNewStakingToken(address stakingToken_, address rewardsToken_) public {
         _setNewStakingToken(stakingToken_, rewardsToken_);
     }
+
+    function setPreviousRewardsBalance(uint256 id, uint256 balance) public {
+        previousRewardsBalance[id] = balance;
+    }
+
+    function setTotalSupply(uint256 id, uint256 totalSupply__) public {
+        totalSupply_[id] = totalSupply__;
+    }
+
+    function setRewardsForAccount(uint256 id, uint256 rewards_, address account) public {
+        rewards[id][account] = rewards_;
+    }
+
+    function setUserRewardPerTokenPaid(uint256 id, uint256 rewardPaid, address account) public {
+        userRewardPerTokenPaid[id][account] = rewardPaid;
+    }
 }

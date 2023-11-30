@@ -21,12 +21,10 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         uint256 totalSupply;
         uint256 rewards;
         uint256 balance;
+        uint256 rewardPerTokenStored;
     }
 
-    struct AbstractStakingModuleState {
-        uint256 idCounter;
-        address stakingToken;
-        address rewardToken;
+    struct AbstractStakingModuleStateForId {
         uint256 previousRewardBalance;
         uint256 totalSupply;
         uint256 rewards;
@@ -59,5 +57,20 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
-    
+    function setStakingRewardsContractState(StakingRewardsContractState memory rewardState, address account) internal {
+        stakingRewardsContract.setStakingRewardsState(
+            rewardState.rewards, account, rewardState.totalSupply, rewardState.balance, rewardState.rewardPerTokenStored
+        );
+    }
+
+    function setStakingModuleState(
+        AbstractStakingModuleStateForId memory stakingModuleStateForId,
+        uint256 id,
+        address account
+    ) internal {
+        stakingModule.setPreviousRewardsBalance(id, stakingModuleStateForId.previousRewardBalance);
+        stakingModule.setTotalSupply(id, stakingModuleStateForId.totalSupply);
+        stakingModule.setRewardsForAccount(id, stakingModuleStateForId.rewards, account);
+        stakingModule.setUserRewardPerTokenPaid(id, stakingModuleStateForId.userRewardPerTokenPaid, account);
+    }
 }

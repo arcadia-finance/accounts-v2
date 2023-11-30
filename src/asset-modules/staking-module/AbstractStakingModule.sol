@@ -4,8 +4,6 @@
  */
 pragma solidity 0.8.22;
 
-import { IFactory } from "../../interfaces/IFactory.sol";
-
 import { ERC1155 } from "../../../lib/solmate/src/tokens/ERC1155.sol";
 import { ERC20, SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -18,10 +16,9 @@ abstract contract AbstractStakingModule is ERC1155 {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    address private immutable FACTORY;
-
     uint256 private idCounter;
 
+    mapping(address stakingToken => uint256 id) public stakingTokenToId;
     mapping(uint256 id => ERC20 stakingToken) public stakingToken;
     mapping(uint256 id => ERC20 rewardToken) public rewardToken;
     mapping(uint256 id => uint256 decimals) public stakingTokenDecimals;
@@ -54,8 +51,8 @@ abstract contract AbstractStakingModule is ERC1155 {
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
 
-    modifier updateReward(uint256 id, address account) {
-        rewardPerTokenStored[id] = rewardPerToken(id);
+    modifier updateReward(uint256 id, address account, bool claimRewards) {
+        rewardPerTokenStored[id] = _rewardPerToken(id, claimRewards);
 
         if (account != address(0)) {
             rewards[id][account] = earnedByAccount(id, account);
@@ -63,14 +60,6 @@ abstract contract AbstractStakingModule is ERC1155 {
         }
 
         _;
-    }
-
-    /* //////////////////////////////////////////////////////////////
-                                CONSTRUCTOR
-    ////////////////////////////////////////////////////////////// */
-
-    constructor(address factory) {
-        FACTORY = factory;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -82,15 +71,13 @@ abstract contract AbstractStakingModule is ERC1155 {
     }
 
     // Note: Should we make this one virtual ?
-    function _setNewStakingToken(address stakingToken_, address rewardToken_) internal {
-        // Increment idCounter
-        ++idCounter;
-
+    function setNewStakingToken(address stakingToken_, address rewardToken_) public {
         // Cache new id
-        uint256 newId = idCounter;
+        uint256 newId = ++idCounter;
 
         stakingToken[newId] = ERC20(stakingToken_);
         rewardToken[newId] = ERC20(rewardToken_);
+        stakingTokenToId[stakingToken_] = newId;
         stakingTokenDecimals[newId] = uint256(ERC20(stakingToken_).decimals());
         rewardTokenDecimals[newId] = uint256(ERC20(rewardToken_).decimals());
     }
@@ -103,9 +90,8 @@ abstract contract AbstractStakingModule is ERC1155 {
     // Note: See who can call this function
     // Will revert in safeTransferFrom if "id" is not correct.
     // Stakes the stakingToken and handles accounting for Account.
-    function stake(uint256 id, uint256 amount, address account) external updateReward(id, account) {
+    function stake(uint256 id, uint256 amount) external updateReward(id, msg.sender, false) {
         if (amount == 0) revert AmountIsZero();
-        if (!IFactory(FACTORY).isAccount(account)) revert NotAnArcadiaAccount();
 
         stakingToken[id].safeTransferFrom(msg.sender, address(this), amount);
 
@@ -115,7 +101,7 @@ abstract contract AbstractStakingModule is ERC1155 {
         // Internal function to stake in external staking contract.
         _stake(id, amount);
 
-        emit Staked(account, amount);
+        emit Staked(msg.sender, amount);
     }
 
     // Stake "stakingToken" in external staking contract.
@@ -124,20 +110,18 @@ abstract contract AbstractStakingModule is ERC1155 {
     // Note: add nonReentrant modifier?
     // Note: see who can call this function
     // Unstakes and withdraws the rewards.
-    function withdraw(uint256 id, uint256 amount, address account, bytes calldata data)
-        external
-        updateReward(id, account)
-    {
+    function withdraw(uint256 id, uint256 amount) external updateReward(id, msg.sender, true) {
         if (amount == 0) revert AmountIsZero();
 
         totalSupply_[id] -= amount;
-        _burn(account, id, amount);
+        _burn(msg.sender, id, amount);
 
-        // Internal function to claim from external staking contract (claim all)
+        // withdraw staked tokens
         _withdraw(id, amount);
-        getReward(id, account);
+        // claim rewards
+        _getReward(id);
 
-        safeTransferFrom(address(this), account, id, amount, data);
+        stakingToken[id].safeTransfer(msg.sender, amount);
 
         emit Withdrawn(msg.sender, amount);
     }
@@ -153,6 +137,21 @@ abstract contract AbstractStakingModule is ERC1155 {
     ///////////////////////////////////////////////////////////////*/
 
     // Updates the reward per token.
+    function _rewardPerToken(uint256 id, bool claimRewards) internal returns (uint256 rewardPerToken_) {
+        if (totalSupply_[id] == 0) {
+            return rewardPerTokenStored[id];
+        }
+
+        // Calc total earned amount of this contract as of now minus last time = earned over period.
+        uint256 actualRewardsBalance = _getActualRewardsBalance(id);
+        uint256 earnedSinceLastUpdate = actualRewardsBalance - previousRewardsBalance[id];
+
+        previousRewardsBalance[id] = claimRewards ? 0 : actualRewardsBalance;
+
+        rewardPerToken_ = rewardPerTokenStored[id]
+            + earnedSinceLastUpdate.mulDivDown(10 ** stakingTokenDecimals[id], totalSupply_[id]);
+    }
+
     function rewardPerToken(uint256 id) public view returns (uint256 rewardPerToken_) {
         if (totalSupply_[id] == 0) {
             return rewardPerTokenStored[id];
@@ -178,18 +177,31 @@ abstract contract AbstractStakingModule is ERC1155 {
 
     // Claim reward and transfer to Account
     // Note: should that function be virtual ?
-    function getReward(uint256 id, address account) public updateReward(id, account) {
-        uint256 reward = rewards[id][account];
+    function getReward(uint256 id) public updateReward(id, msg.sender, true) {
+        uint256 reward = rewards[id][msg.sender];
 
         _claimRewards(id);
         previousRewardsBalance[id] = 0;
 
         if (reward > 0) {
-            rewards[id][account] = 0;
-            rewardToken[id].safeTransfer(account, reward);
-            emit RewardPaid(account, reward);
+            rewards[id][msg.sender] = 0;
+            rewardToken[id].safeTransfer(msg.sender, reward);
+            emit RewardPaid(msg.sender, reward);
         }
     }
 
-    function uri(uint256 id) public view override returns (string memory) {}
+    function _getReward(uint256 id) internal {
+        uint256 reward = rewards[id][msg.sender];
+
+        _claimRewards(id);
+        previousRewardsBalance[id] = 0;
+
+        if (reward > 0) {
+            rewards[id][msg.sender] = 0;
+            rewardToken[id].safeTransfer(msg.sender, reward);
+            emit RewardPaid(msg.sender, reward);
+        }
+    }
+
+    function uri(uint256 id) public view override returns (string memory) { }
 }
