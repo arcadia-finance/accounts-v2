@@ -563,12 +563,6 @@ contract MultiCallExtension is ActionMultiCall {
 }
 
 abstract contract AbstractStakingModuleExtension is AbstractStakingModule {
-    constructor(address factory) AbstractStakingModule(factory) { }
-
-    function setNewStakingToken(address stakingToken_, address rewardsToken_) public {
-        _setNewStakingToken(stakingToken_, rewardsToken_);
-    }
-
     function setPreviousRewardsBalance(uint256 id, uint256 balance) public {
         previousRewardsBalance[id] = balance;
     }
@@ -583,5 +577,9 @@ abstract contract AbstractStakingModuleExtension is AbstractStakingModule {
 
     function setUserRewardPerTokenPaid(uint256 id, uint256 rewardPaid, address account) public {
         userRewardPerTokenPaid[id][account] = rewardPaid;
+    }
+
+    function getIdCounter() public view returns (uint256 idCounter_) {
+        idCounter_ = idCounter;
     }
 }

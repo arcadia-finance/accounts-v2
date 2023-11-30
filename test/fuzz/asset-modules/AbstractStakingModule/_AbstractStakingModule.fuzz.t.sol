@@ -8,6 +8,8 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { StakingRewardsMock } from "../../../utils/mocks/StakingRewardsMock.sol";
 import { StakingModuleMock } from "../../../utils/mocks/StakingModuleMock.sol";
+import { StakingModuleErrors } from "../../../../src/libraries/Errors.sol";
+import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 
 /**
  * @notice Common logic needed by "AbstractStakingModule" fuzz tests.
@@ -47,7 +49,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        stakingModule = new StakingModuleMock(address(factory));
+        stakingModule = new StakingModuleMock();
         stakingRewardsContract = new StakingRewardsMock();
 
         vm.stopPrank();
@@ -72,5 +74,48 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         stakingModule.setTotalSupply(id, stakingModuleStateForId.totalSupply);
         stakingModule.setRewardsForAccount(id, stakingModuleStateForId.rewards, account);
         stakingModule.setUserRewardPerTokenPaid(id, stakingModuleStateForId.userRewardPerTokenPaid, account);
+    }
+
+    function addStakingTokens(uint8 numberOfTokens, uint8 stakingTokenDecimals, uint8 rewardTokenDecimals)
+        public
+        returns (address[] memory stakingTokens, address[] memory rewardTokens)
+    {
+        stakingTokens = new address[](numberOfTokens);
+        rewardTokens = new address[](numberOfTokens);
+
+        for (uint8 i = 0; i < numberOfTokens; ++i) {
+            ERC20Mock stakingToken = new ERC20Mock("StakingToken", "STK", stakingTokenDecimals);
+            ERC20Mock rewardToken = new ERC20Mock("RewardToken", "RWT", rewardTokenDecimals);
+
+            stakingTokens[i] = address(stakingToken);
+            rewardTokens[i] = address(rewardToken);
+
+            stakingModule.addNewStakingToken(address(stakingToken), address(rewardToken));
+        }
+    }
+
+    function mintTokenTo(address token, address to, uint256 amount) public {
+        ERC20Mock(token).mint(to, amount);
+    }
+
+    function mintTokensTo(address[] memory tokens, address to, uint256[] memory amounts) public {
+        for (uint8 i = 0; i < tokens.length; ++i) {
+            ERC20Mock(tokens[i]).mint(to, amounts[i]);
+        }
+    }
+
+    function approveTokenFor(address token, address spender, uint256 amount, address user) public {
+        vm.prank(user);
+        ERC20Mock(token).approve(spender, amount);
+    }
+
+    function approveTokensFor(address[] memory tokens, address spender, uint256[] memory amounts, address user)
+        public
+    {
+        vm.startPrank(user);
+        for (uint8 i = 0; i < tokens.length; ++i) {
+            ERC20Mock(tokens[i]).approve(spender, amounts[i]);
+        }
+        vm.stopPrank();
     }
 }

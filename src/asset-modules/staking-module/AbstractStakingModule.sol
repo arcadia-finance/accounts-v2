@@ -16,7 +16,7 @@ abstract contract AbstractStakingModule is ERC1155 {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    uint256 private idCounter;
+    uint256 internal idCounter;
 
     mapping(address stakingToken => uint256 id) public stakingTokenToId;
     mapping(uint256 id => ERC20 stakingToken) public stakingToken;
@@ -45,7 +45,6 @@ abstract contract AbstractStakingModule is ERC1155 {
     ////////////////////////////////////////////////////////////// */
 
     error AmountIsZero();
-    error NotAnArcadiaAccount();
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -71,7 +70,7 @@ abstract contract AbstractStakingModule is ERC1155 {
     }
 
     // Note: Should we make this one virtual ?
-    function setNewStakingToken(address stakingToken_, address rewardToken_) public {
+    function addNewStakingToken(address stakingToken_, address rewardToken_) public {
         // Cache new id
         uint256 newId = ++idCounter;
 
