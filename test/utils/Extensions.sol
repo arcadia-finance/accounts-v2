@@ -582,4 +582,16 @@ abstract contract AbstractStakingModuleExtension is AbstractStakingModule {
     function getIdCounter() public view returns (uint256 idCounter_) {
         idCounter_ = idCounter;
     }
+
+    function setRewardPerTokenStored(uint256 id, uint256 amount) public {
+        rewardPerTokenStored[id] = amount;
+    }
+
+    function setBalanceOfAccountForId(uint256 id, uint256 amount, address account) public {
+        balanceOf[account][id] = amount;
+    }
+
+    function setStakingTokensDecimals(uint256 id, uint256 decimals) public {
+        stakingTokenDecimals[id] = decimals;
+    }
 }

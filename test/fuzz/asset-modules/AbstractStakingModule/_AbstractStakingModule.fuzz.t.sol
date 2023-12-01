@@ -30,7 +30,9 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         uint256 previousRewardBalance;
         uint256 totalSupply;
         uint256 rewards;
-        uint256 userRewardPerTokenPaid;
+        uint128 userRewardPerTokenPaid;
+        uint128 rewardPerTokenStored;
+        uint256 actualRewardBalance;
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -66,14 +68,40 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
     }
 
     function setStakingModuleState(
-        AbstractStakingModuleStateForId memory stakingModuleStateForId,
+        AbstractStakingModuleStateForId memory stakingModuleState,
         uint256 id,
         address account
-    ) internal {
-        stakingModule.setPreviousRewardsBalance(id, stakingModuleStateForId.previousRewardBalance);
-        stakingModule.setTotalSupply(id, stakingModuleStateForId.totalSupply);
-        stakingModule.setRewardsForAccount(id, stakingModuleStateForId.rewards, account);
-        stakingModule.setUserRewardPerTokenPaid(id, stakingModuleStateForId.userRewardPerTokenPaid, account);
+    ) internal returns (AbstractStakingModuleStateForId memory stakingModuleState_) {
+        stakingModuleState_ = givenValidStakingModuleState(stakingModuleState);
+
+        stakingModule.setPreviousRewardsBalance(id, stakingModuleState_.previousRewardBalance);
+        stakingModule.setTotalSupply(id, stakingModuleState_.totalSupply);
+        stakingModule.setRewardsForAccount(id, stakingModuleState_.rewards, account);
+        stakingModule.setUserRewardPerTokenPaid(id, stakingModuleState_.userRewardPerTokenPaid, account);
+        stakingModule.setRewardPerTokenStored(id, stakingModuleState_.rewardPerTokenStored);
+        stakingModule.setActualRewardBalance(id, stakingModuleState_.actualRewardBalance);
+    }
+
+    function givenValidStakingModuleState(AbstractStakingModuleStateForId memory stakingModuleState)
+        public
+        view
+        returns (AbstractStakingModuleStateForId memory stakingModuleState_)
+    {
+        // Given : rewardPerTokenStored should be >= to userRewardPerTokenPaid.
+        stakingModuleState.rewardPerTokenStored = uint128(
+            bound(stakingModuleState.rewardPerTokenStored, stakingModuleState.userRewardPerTokenPaid, type(uint256).max)
+        );
+
+        // Given : previousRewardBalance should be smaller than type(uint256).max / 1e18
+        stakingModuleState.previousRewardBalance =
+            bound(stakingModuleState.previousRewardBalance, 0, type(uint256).max / 1e18);
+
+        // Given : actual reward balance should be at least equal to previous reward balance.
+        stakingModuleState.actualRewardBalance = bound(
+            stakingModuleState.actualRewardBalance, stakingModuleState.previousRewardBalance, type(uint256).max / 1e18
+        );
+
+        stakingModuleState_ = stakingModuleState;
     }
 
     function addStakingTokens(uint8 numberOfTokens, uint8 stakingTokenDecimals, uint8 rewardTokenDecimals)

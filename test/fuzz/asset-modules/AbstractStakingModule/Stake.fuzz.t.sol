@@ -64,5 +64,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         assertEq(stakingModule.balanceOf(staker, 2), amount);
         assertEq(ERC20Mock(stakingTokens[0]).balanceOf(address(stakingModule)), amount);
         assertEq(ERC20Mock(stakingTokens[1]).balanceOf(address(stakingModule)), amount);
+        assertEq(stakingModule.totalSupply_(1), amount);
+        assertEq(stakingModule.totalSupply_(2), amount);
     }
 }
