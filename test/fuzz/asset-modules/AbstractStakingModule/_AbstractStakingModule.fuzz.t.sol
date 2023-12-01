@@ -27,12 +27,13 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
     }
 
     struct AbstractStakingModuleStateForId {
-        uint256 previousRewardBalance;
+        uint128 previousRewardBalance;
         uint256 totalSupply;
-        uint256 rewards;
+        uint128 userBalance;
+        uint128 rewards;
         uint128 userRewardPerTokenPaid;
         uint128 rewardPerTokenStored;
-        uint256 actualRewardBalance;
+        uint128 actualRewardBalance;
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -80,6 +81,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         stakingModule.setUserRewardPerTokenPaid(id, stakingModuleState_.userRewardPerTokenPaid, account);
         stakingModule.setRewardPerTokenStored(id, stakingModuleState_.rewardPerTokenStored);
         stakingModule.setActualRewardBalance(id, stakingModuleState_.actualRewardBalance);
+        stakingModule.setBalanceOfAccountForId(id, stakingModuleState_.userBalance, account);
     }
 
     function givenValidStakingModuleState(AbstractStakingModuleStateForId memory stakingModuleState)
@@ -89,17 +91,24 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
     {
         // Given : rewardPerTokenStored should be >= to userRewardPerTokenPaid.
         stakingModuleState.rewardPerTokenStored = uint128(
-            bound(stakingModuleState.rewardPerTokenStored, stakingModuleState.userRewardPerTokenPaid, type(uint256).max)
+            bound(stakingModuleState.rewardPerTokenStored, stakingModuleState.userRewardPerTokenPaid, type(uint128).max)
         );
 
-        // Given : previousRewardBalance should be smaller than type(uint256).max / 1e18
+        // Given : previousRewardBalance should be smaller than type(uint256).max / 1e18.
         stakingModuleState.previousRewardBalance =
-            bound(stakingModuleState.previousRewardBalance, 0, type(uint256).max / 1e18);
+            uint128(bound(stakingModuleState.previousRewardBalance, 0, type(uint128).max));
 
-        // Given : actual reward balance should be at least equal to previous reward balance.
-        stakingModuleState.actualRewardBalance = bound(
-            stakingModuleState.actualRewardBalance, stakingModuleState.previousRewardBalance, type(uint256).max / 1e18
+        // Given : Actual reward balance should be at least equal to previousRewardBalance.
+        vm.assume(stakingModuleState.actualRewardBalance >= stakingModuleState.previousRewardBalance);
+
+        // Given : The difference between the actual and previous reward balance should be smaller than type(uint128).max / 1e18.
+        vm.assume(
+            stakingModuleState.actualRewardBalance - stakingModuleState.previousRewardBalance < type(uint128).max / 1e18
         );
+
+        // Given : totalSupply should be >= to userBalance
+        stakingModuleState.totalSupply =
+            bound(stakingModuleState.totalSupply, stakingModuleState.userBalance, type(uint256).max);
 
         stakingModuleState_ = stakingModuleState;
     }
