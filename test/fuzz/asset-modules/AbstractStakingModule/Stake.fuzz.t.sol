@@ -12,14 +12,6 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
  * @notice Fuzz tests for the function "stake" of contract "AbstractStakingModule".
  */
 contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
-    /*////////////////////////////////////////////////////////////////
-                            VARIABLES
-    /////////////////////////////////////////////////////////////// */
-
-    /*////////////////////////////////////////////////////////////////
-                            TEST CONTRACTS
-    /////////////////////////////////////////////////////////////// */
-
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -37,13 +29,12 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         stakingModule.stake(0, 0);
     }
 
-    function testFuzz_success_stake(uint256 decimals, uint256 amount, address staker) public {
+    function testFuzz_success_stake(uint256 amount, address staker) public {
         // Given : Can't stake zero amount
         vm.assume(amount > 0);
-        decimals = bound(decimals, 6, 18);
 
         // Given : Two staking tokens are added to the stakingModule
-        (address[] memory stakingTokens,) = addStakingTokens(2, uint8(decimals), uint8(decimals));
+        (address[] memory stakingTokens,) = addStakingTokens(2);
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = amount;

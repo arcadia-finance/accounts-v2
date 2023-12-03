@@ -14,6 +14,7 @@ import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointM
  */
 contract RewardPerToken_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
+
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

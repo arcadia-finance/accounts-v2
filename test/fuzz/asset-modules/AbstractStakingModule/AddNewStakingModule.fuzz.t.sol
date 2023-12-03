@@ -13,14 +13,6 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
  * @notice Fuzz tests for the function "addNewStakingToken" of contract "AbstractStakingModule".
  */
 contract AddNewStakingToken_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
-    /*////////////////////////////////////////////////////////////////
-                            VARIABLES
-    /////////////////////////////////////////////////////////////// */
-
-    /*////////////////////////////////////////////////////////////////
-                            TEST CONTRACTS
-    /////////////////////////////////////////////////////////////// */
-
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -42,7 +34,6 @@ contract AddNewStakingToken_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
         assertEq(address(stakingModule.stakingToken(idCounter)), address(mockERC20.stable1));
         assertEq(address(stakingModule.rewardToken(idCounter)), address(mockERC20.token1));
         assertEq(stakingModule.stakingTokenDecimals(idCounter), mockERC20.stable1.decimals());
-        assertEq(stakingModule.rewardTokenDecimals(idCounter), mockERC20.token1.decimals());
         assertEq(stakingModule.stakingTokenToId(address(mockERC20.stable1)), idCounter);
         assertEq(idCounter, 1);
 

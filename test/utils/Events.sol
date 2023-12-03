@@ -91,4 +91,5 @@ abstract contract Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     event Staked(address user, uint256 amount);
+    event RewardPaid(address user, uint256 amount);
 }

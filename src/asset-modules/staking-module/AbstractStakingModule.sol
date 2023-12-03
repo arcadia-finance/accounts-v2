@@ -22,7 +22,6 @@ abstract contract AbstractStakingModule is ERC1155 {
     mapping(uint256 id => ERC20 stakingToken) public stakingToken;
     mapping(uint256 id => ERC20 rewardToken) public rewardToken;
     mapping(uint256 id => uint256 decimals) public stakingTokenDecimals;
-    mapping(uint256 id => uint256 decimals) public rewardTokenDecimals;
 
     // Note: see if struct could be more efficient here. (How are mappings packed inside a struct/storage) ?
     mapping(uint256 id => uint256 rewardPerTokenStored) public rewardPerTokenStored;
@@ -45,15 +44,21 @@ abstract contract AbstractStakingModule is ERC1155 {
     ////////////////////////////////////////////////////////////// */
 
     error AmountIsZero();
+    error InvalidTokenDecimals();
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
 
     modifier updateReward(uint256 id, address account, bool claimRewards) {
+        // Note : We might increment rewardPerTokenStored directly in _rewardPerToken()
         rewardPerTokenStored[id] = _rewardPerToken(id, claimRewards);
 
+        // Rewards should be claimed before calling earnedByAccount, otherwise accounting is not correct.
+        if (claimRewards) _claimRewards(id);
+
         if (account != address(0)) {
+            // TODO : we can optimizez earnedByAccount to not call second time rewardPerToken()
             rewards[id][account] = earnedByAccount(id, account);
             userRewardPerTokenPaid[id][account] = rewardPerTokenStored[id];
         }
@@ -70,15 +75,22 @@ abstract contract AbstractStakingModule is ERC1155 {
     }
 
     // Note: Should we make this one virtual ?
+    // TODO : Add testing for errors
     function addNewStakingToken(address stakingToken_, address rewardToken_) public {
         // Cache new id
         uint256 newId = ++idCounter;
 
+        // Cache tokens decimals
+        uint256 stakingTokenDecimals_ = ERC20(stakingToken_).decimals();
+        uint256 rewardTokenDecimals_ = ERC20(rewardToken_).decimals();
+
+        if (stakingTokenDecimals_ > 18 || rewardTokenDecimals_ > 18) revert InvalidTokenDecimals();
+        if (stakingTokenDecimals_ < 6 || rewardTokenDecimals_ < 6) revert InvalidTokenDecimals();
+
         stakingToken[newId] = ERC20(stakingToken_);
         rewardToken[newId] = ERC20(rewardToken_);
         stakingTokenToId[stakingToken_] = newId;
-        stakingTokenDecimals[newId] = uint256(ERC20(stakingToken_).decimals());
-        rewardTokenDecimals[newId] = uint256(ERC20(rewardToken_).decimals());
+        stakingTokenDecimals[newId] = stakingTokenDecimals_;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -178,9 +190,6 @@ abstract contract AbstractStakingModule is ERC1155 {
     // Note: should that function be virtual ?
     function getReward(uint256 id) public updateReward(id, msg.sender, true) {
         uint256 reward = rewards[id][msg.sender];
-
-        _claimRewards(id);
-        previousRewardsBalance[id] = 0;
 
         if (reward > 0) {
             rewards[id][msg.sender] = 0;

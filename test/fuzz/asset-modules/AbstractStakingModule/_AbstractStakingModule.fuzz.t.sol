@@ -62,6 +62,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
+    // Note: don't think we need this one for the abstract module testing
     function setStakingRewardsContractState(StakingRewardsContractState memory rewardState, address account) internal {
         stakingRewardsContract.setStakingRewardsState(
             rewardState.rewards, account, rewardState.totalSupply, rewardState.balance, rewardState.rewardPerTokenStored
@@ -113,12 +114,17 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         stakingModuleState_ = stakingModuleState;
     }
 
-    function addStakingTokens(uint8 numberOfTokens, uint8 stakingTokenDecimals, uint8 rewardTokenDecimals)
+    function addStakingTokens(uint8 numberOfTokens)
         public
         returns (address[] memory stakingTokens, address[] memory rewardTokens)
     {
         stakingTokens = new address[](numberOfTokens);
         rewardTokens = new address[](numberOfTokens);
+
+        uint8 stakingTokenDecimals;
+        stakingTokenDecimals = uint8(bound(stakingTokenDecimals, 6, 18));
+        uint8 rewardTokenDecimals;
+        rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 6, 18));
 
         for (uint8 i = 0; i < numberOfTokens; ++i) {
             ERC20Mock stakingToken = new ERC20Mock("StakingToken", "STK", stakingTokenDecimals);
