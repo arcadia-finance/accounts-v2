@@ -95,7 +95,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
             bound(stakingModuleState.rewardPerTokenStored, stakingModuleState.userRewardPerTokenPaid, type(uint128).max)
         );
 
-        // Given : previousRewardBalance should be smaller than type(uint256).max / 1e18.
+        // Given : previousRewardBalance should be smaller than type(uint128).max.
         stakingModuleState.previousRewardBalance =
             uint128(bound(stakingModuleState.previousRewardBalance, 0, type(uint128).max));
 
