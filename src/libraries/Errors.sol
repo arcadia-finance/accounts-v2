@@ -64,4 +64,6 @@ library RegistryErrors {
 
 library StakingModuleErrors {
     error AmountIsZero();
+    error NoReentry();
+    error InvalidTokenDecimals();
 }

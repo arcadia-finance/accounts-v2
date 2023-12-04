@@ -4,6 +4,7 @@
  */
 pragma solidity 0.8.22;
 
+import { StakingModuleErrors } from "../../libraries/Errors.sol";
 import { ERC1155 } from "../../../lib/solmate/src/tokens/ERC1155.sol";
 import { ERC20, SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -16,7 +17,10 @@ abstract contract AbstractStakingModule is ERC1155 {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
+    // A counter that will increment the id for each new staking token added.
     uint256 internal idCounter;
+    // Flag Indicating if a function is locked to protect against reentrancy.
+    uint256 internal locked = 1;
 
     mapping(address stakingToken => uint256 id) public stakingTokenToId;
     mapping(uint256 id => ERC20 stakingToken) public stakingToken;
@@ -40,15 +44,18 @@ abstract contract AbstractStakingModule is ERC1155 {
     event RewardPaid(address indexed account, uint256 id, uint256 reward);
 
     /* //////////////////////////////////////////////////////////////
-                                ERRORS
-    ////////////////////////////////////////////////////////////// */
-
-    error AmountIsZero();
-    error InvalidTokenDecimals();
-
-    /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
+
+    /**
+     * @dev Throws if function is reentered.
+     */
+    modifier nonReentrant() {
+        if (locked != 1) revert StakingModuleErrors.NoReentry();
+        locked = 2;
+        _;
+        locked = 1;
+    }
 
     modifier updateReward(uint256 id, address account, bool claimRewards) {
         // Note : We might increment rewardPerTokenStored directly in _rewardPerToken()
@@ -74,7 +81,6 @@ abstract contract AbstractStakingModule is ERC1155 {
         return totalSupply_[id];
     }
 
-    // Note: Should we make this one virtual ?
     // TODO : Add testing for errors
     function addNewStakingToken(address stakingToken_, address rewardToken_) public {
         // Cache new id
@@ -84,8 +90,8 @@ abstract contract AbstractStakingModule is ERC1155 {
         uint256 stakingTokenDecimals_ = ERC20(stakingToken_).decimals();
         uint256 rewardTokenDecimals_ = ERC20(rewardToken_).decimals();
 
-        if (stakingTokenDecimals_ > 18 || rewardTokenDecimals_ > 18) revert InvalidTokenDecimals();
-        if (stakingTokenDecimals_ < 6 || rewardTokenDecimals_ < 6) revert InvalidTokenDecimals();
+        if (stakingTokenDecimals_ > 18 || rewardTokenDecimals_ > 18) revert StakingModuleErrors.InvalidTokenDecimals();
+        if (stakingTokenDecimals_ < 6 || rewardTokenDecimals_ < 6) revert StakingModuleErrors.InvalidTokenDecimals();
 
         stakingToken[newId] = ERC20(stakingToken_);
         rewardToken[newId] = ERC20(rewardToken_);
@@ -97,19 +103,17 @@ abstract contract AbstractStakingModule is ERC1155 {
                         STAKING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
-    // Note: add nonReentrant and notPaused modifiers ?
-    // Note: See who can call this function
-    // Will revert in safeTransferFrom if "id" is not correct.
+    // Will revert in safeTransferFrom if "id" is not correct or if not enough approval / balance.
     // Stakes the stakingToken and handles accounting for Account.
-    function stake(uint256 id, uint256 amount) external updateReward(id, msg.sender, false) {
-        if (amount == 0) revert AmountIsZero();
+    function stake(uint256 id, uint256 amount) external nonReentrant updateReward(id, msg.sender, false) {
+        if (amount == 0) revert StakingModuleErrors.AmountIsZero();
 
         stakingToken[id].safeTransferFrom(msg.sender, address(this), amount);
 
         totalSupply_[id] += amount;
         _mint(msg.sender, id, amount, "");
 
-        // Internal function to stake in external staking contract.
+        // Will stake stakingToken in external staking contract.
         _stake(id, amount);
 
         emit Staked(msg.sender, id, amount);
@@ -118,18 +122,16 @@ abstract contract AbstractStakingModule is ERC1155 {
     // Stake "stakingToken" in external staking contract.
     function _stake(uint256 id, uint256 amount) internal virtual { }
 
-    // Note: add nonReentrant modifier?
-    // Note: see who can call this function
     // Unstakes and withdraws the rewards.
-    function withdraw(uint256 id, uint256 amount) external updateReward(id, msg.sender, true) {
-        if (amount == 0) revert AmountIsZero();
+    function withdraw(uint256 id, uint256 amount) external nonReentrant updateReward(id, msg.sender, true) {
+        if (amount == 0) revert StakingModuleErrors.AmountIsZero();
 
         totalSupply_[id] -= amount;
         _burn(msg.sender, id, amount);
 
-        // withdraw staked tokens
+        // Withdraw staked tokens from external staking contract.
         _withdraw(id, amount);
-        // claim rewards
+        // Claim rewards
         _getReward(id);
 
         stakingToken[id].safeTransfer(msg.sender, amount);
@@ -187,8 +189,7 @@ abstract contract AbstractStakingModule is ERC1155 {
     function _getActualRewardsBalance(uint256 id) internal view virtual returns (uint256 earned) { }
 
     // Claim reward and transfer to Account
-    // Note: should that function be virtual ?
-    function getReward(uint256 id) public updateReward(id, msg.sender, true) {
+    function getReward(uint256 id) public nonReentrant updateReward(id, msg.sender, true) {
         uint256 reward = rewards[id][msg.sender];
 
         if (reward > 0) {

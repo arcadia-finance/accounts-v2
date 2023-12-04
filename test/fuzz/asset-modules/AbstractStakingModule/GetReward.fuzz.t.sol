@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, StakingModuleErrors } from "./_AbstractStakingModule.fuzz.t.sol";
 
 import { AbstractStakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
@@ -27,6 +27,17 @@ contract GetReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+
+    function testFuzz_Revert_getReward_Reentered(uint256 id) public {
+        // Given : Reentrancy guard is in locked state.
+        stakingModule.setLocked(2);
+
+        // When : A user withdraws.
+        // Then : It should revert.
+        vm.expectRevert(StakingModuleErrors.NoReentry.selector);
+        stakingModule.getReward(id);
+        vm.stopPrank();
+    }
 
     function testFuzz_Success_getReward_ZeroReward(
         uint256 id,
@@ -85,6 +96,9 @@ contract GetReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz
         // Given : The claim function on the external staking contract is not implemented, thus we fund the stakingModule with reward tokens that should be transferred.
         uint256 earned = stakingModule.earnedByAccount(id, account);
         mintERC20TokenTo(address(stakingModule.rewardToken(id)), address(stakingModule), earned);
+
+        // Given : earned > 0, for very small reward increase and high balances, it could return zero.
+        vm.assume(earned > 0);
 
         // When : Account calls getReward()
         vm.startPrank(account);

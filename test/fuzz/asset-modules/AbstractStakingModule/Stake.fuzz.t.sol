@@ -25,7 +25,19 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
+    function testFuzz_Revert_stake_Reentered(uint256 id, uint256 amount) public {
+        // Given : Reentrancy guard is in locked state.
+        stakingModule.setLocked(2);
+
+        // When : A user stakes.
+        // Then : It should revert.
+        vm.expectRevert(StakingModuleErrors.NoReentry.selector);
+        stakingModule.stake(id, amount);
+        vm.stopPrank();
+    }
+
     function testFuzz_revert_stake_ZeroAmount() public {
+        // The stake function should revert when trying to stake 0 amount.
         vm.expectRevert(StakingModuleErrors.AmountIsZero.selector);
         stakingModule.stake(0, 0);
     }

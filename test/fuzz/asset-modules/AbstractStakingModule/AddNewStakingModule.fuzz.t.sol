@@ -26,18 +26,21 @@ contract AddNewStakingToken_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_success_addNewStakingToken() public {
-        // Add new staking and reward token
+        // Given: No staking token previously set
+        assertEq(stakingModule.getIdCounter(), 0);
+
+        // When : We add a new staking token with it's respective reward token
         stakingModule.addNewStakingToken(address(mockERC20.stable1), address(mockERC20.token1));
 
+        // Then : Id counter should increase to 1 and staking and reward token should be added with correct info.
         uint256 idCounter = stakingModule.getIdCounter();
-
         assertEq(address(stakingModule.stakingToken(idCounter)), address(mockERC20.stable1));
         assertEq(address(stakingModule.rewardToken(idCounter)), address(mockERC20.token1));
         assertEq(stakingModule.stakingTokenDecimals(idCounter), mockERC20.stable1.decimals());
         assertEq(stakingModule.stakingTokenToId(address(mockERC20.stable1)), idCounter);
         assertEq(idCounter, 1);
 
-        // Add new staking and reward token
+        // Repeat the above operation for an additional token
         stakingModule.addNewStakingToken(address(mockERC20.token1), address(mockERC20.stable1));
 
         uint256 idCounter2 = stakingModule.getIdCounter();

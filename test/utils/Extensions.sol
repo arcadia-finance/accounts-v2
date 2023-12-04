@@ -594,4 +594,8 @@ abstract contract AbstractStakingModuleExtension is AbstractStakingModule {
     function setStakingTokensDecimals(uint256 id, uint256 decimals) public {
         stakingTokenDecimals[id] = decimals;
     }
+
+    function setLocked(uint256 locked_) external {
+        locked = locked_;
+    }
 }
