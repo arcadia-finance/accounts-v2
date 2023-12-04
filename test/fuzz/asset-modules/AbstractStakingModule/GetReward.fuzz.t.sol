@@ -91,5 +91,6 @@ contract GetReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz
 
         // Then : Account should have received the reward tokens.
         assertEq(earned, stakingModule.rewardToken(id).balanceOf(account));
+        assertEq(stakingModule.rewards(id, account), 0);
     }
 }

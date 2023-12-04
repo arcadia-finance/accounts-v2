@@ -137,7 +137,7 @@ abstract contract AbstractStakingModule is ERC1155 {
         emit Withdrawn(msg.sender, amount);
     }
 
-    // Withdraw "stakingToken" from external staking contract and claim all rewards.
+    // Withdraw "stakingToken" from external staking contract.
     function _withdraw(uint256 id, uint256 amount) internal virtual { }
 
     // Will claim all pending rewards for this contract
@@ -200,9 +200,6 @@ abstract contract AbstractStakingModule is ERC1155 {
 
     function _getReward(uint256 id) internal {
         uint256 reward = rewards[id][msg.sender];
-
-        _claimRewards(id);
-        previousRewardsBalance[id] = 0;
 
         if (reward > 0) {
             rewards[id][msg.sender] = 0;
