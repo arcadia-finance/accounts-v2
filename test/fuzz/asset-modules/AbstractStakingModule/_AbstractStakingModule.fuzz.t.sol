@@ -114,16 +114,14 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         stakingModuleState_ = stakingModuleState;
     }
 
-    function addStakingTokens(uint8 numberOfTokens)
+    function addStakingTokens(uint8 numberOfTokens, uint8 stakingTokenDecimals, uint8 rewardTokenDecimals)
         public
         returns (address[] memory stakingTokens, address[] memory rewardTokens)
     {
         stakingTokens = new address[](numberOfTokens);
         rewardTokens = new address[](numberOfTokens);
 
-        uint8 stakingTokenDecimals;
         stakingTokenDecimals = uint8(bound(stakingTokenDecimals, 6, 18));
-        uint8 rewardTokenDecimals;
         rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 6, 18));
 
         for (uint8 i = 0; i < numberOfTokens; ++i) {
@@ -135,30 +133,5 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
 
             stakingModule.addNewStakingToken(address(stakingToken), address(rewardToken));
         }
-    }
-
-    function mintTokenTo(address token, address to, uint256 amount) public {
-        ERC20Mock(token).mint(to, amount);
-    }
-
-    function mintTokensTo(address[] memory tokens, address to, uint256[] memory amounts) public {
-        for (uint8 i = 0; i < tokens.length; ++i) {
-            ERC20Mock(tokens[i]).mint(to, amounts[i]);
-        }
-    }
-
-    function approveTokenFor(address token, address spender, uint256 amount, address user) public {
-        vm.prank(user);
-        ERC20Mock(token).approve(spender, amount);
-    }
-
-    function approveTokensFor(address[] memory tokens, address spender, uint256[] memory amounts, address user)
-        public
-    {
-        vm.startPrank(user);
-        for (uint8 i = 0; i < tokens.length; ++i) {
-            ERC20Mock(tokens[i]).approve(spender, amounts[i]);
-        }
-        vm.stopPrank();
     }
 }

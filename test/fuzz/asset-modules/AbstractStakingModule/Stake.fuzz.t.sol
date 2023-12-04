@@ -30,19 +30,24 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         stakingModule.stake(0, 0);
     }
 
-    function testFuzz_success_stake(uint256 amount, address staker) public {
+    function testFuzz_success_stake(
+        uint256 amount,
+        address staker,
+        uint8 stakingTokenDecimals,
+        uint8 rewardTokenDecimals
+    ) public {
         // Given : Can't stake zero amount
         vm.assume(amount > 0);
 
         // Given : Two staking tokens are added to the stakingModule
-        (address[] memory stakingTokens,) = addStakingTokens(2);
+        (address[] memory stakingTokens,) = addStakingTokens(2, stakingTokenDecimals, rewardTokenDecimals);
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = amount;
         amounts[1] = amount;
 
-        mintTokensTo(stakingTokens, staker, amounts);
-        approveTokensFor(stakingTokens, address(stakingModule), amounts, staker);
+        mintERC20TokensTo(stakingTokens, staker, amounts);
+        approveERC20TokensFor(stakingTokens, address(stakingModule), amounts, staker);
 
         // When :  A user is staking via the Staking Module
         vm.startPrank(staker);

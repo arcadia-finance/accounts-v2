@@ -442,4 +442,29 @@ abstract contract Fuzz_Test is Base_Test {
         account_.deposit(assets, ids, amounts);
         vm.stopPrank();
     }
+
+    function mintERC20TokenTo(address token, address to, uint256 amount) public {
+        ERC20Mock(token).mint(to, amount);
+    }
+
+    function mintERC20TokensTo(address[] memory tokens, address to, uint256[] memory amounts) public {
+        for (uint8 i = 0; i < tokens.length; ++i) {
+            ERC20Mock(tokens[i]).mint(to, amounts[i]);
+        }
+    }
+
+    function approveERC20TokenFor(address token, address spender, uint256 amount, address user) public {
+        vm.prank(user);
+        ERC20Mock(token).approve(spender, amount);
+    }
+
+    function approveERC20TokensFor(address[] memory tokens, address spender, uint256[] memory amounts, address user)
+        public
+    {
+        vm.startPrank(user);
+        for (uint8 i = 0; i < tokens.length; ++i) {
+            ERC20Mock(tokens[i]).approve(spender, amounts[i]);
+        }
+        vm.stopPrank();
+    }
 }

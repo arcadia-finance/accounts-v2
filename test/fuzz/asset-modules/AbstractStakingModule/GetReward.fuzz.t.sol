@@ -61,7 +61,9 @@ contract GetReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz
     function testFuzz_Success_getReward_RewardGreaterThanZero(
         address account,
         AbstractStakingModuleStateForId memory moduleState,
-        uint128 rewardIncrease
+        uint128 rewardIncrease,
+        uint8 stakingTokenDecimals,
+        uint8 rewardTokenDecimals
     ) public {
         // Given : id = 1
         uint256 id = 1;
@@ -70,7 +72,7 @@ contract GetReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz
         AbstractStakingModuleStateForId memory moduleState_ = setStakingModuleState(moduleState, id, account);
 
         // Given : Add a staking token + reward token pair
-        addStakingTokens(1);
+        addStakingTokens(1, stakingTokenDecimals, rewardTokenDecimals);
 
         // Given : Account has a positive balance
         vm.assume(stakingModule.balanceOf(account, id) > 0);
@@ -82,7 +84,7 @@ contract GetReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz
 
         // Given : The claim function on the external staking contract is not implemented, thus we fund the stakingModule with reward tokens that should be transferred.
         uint256 earned = stakingModule.earnedByAccount(id, account);
-        mintTokenTo(address(stakingModule.rewardToken(id)), address(stakingModule), earned);
+        mintERC20TokenTo(address(stakingModule.rewardToken(id)), address(stakingModule), earned);
 
         // When : Account calls getReward()
         vm.startPrank(account);

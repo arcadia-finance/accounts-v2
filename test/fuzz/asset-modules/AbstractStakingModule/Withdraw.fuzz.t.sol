@@ -38,7 +38,12 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         stakingModule.withdraw(id, amount);
     }
 
-    function testFuzz_Success_Withdraw(address account, AbstractStakingModuleStateForId memory moduleState) public {
+    function testFuzz_Success_Withdraw(
+        address account,
+        AbstractStakingModuleStateForId memory moduleState,
+        uint8 stakingTokenDecimals,
+        uint8 rewardTokenDecimals
+    ) public {
         // Given : id = 2
         uint256 id = 2;
 
@@ -46,7 +51,8 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         AbstractStakingModuleStateForId memory moduleState_ = setStakingModuleState(moduleState, id, account);
 
         // Given : Add a staking token + reward token pairs
-        (address[] memory stakingTokens, address[] memory rewardTokens) = addStakingTokens(2);
+        (address[] memory stakingTokens, address[] memory rewardTokens) =
+            addStakingTokens(2, stakingTokenDecimals, rewardTokenDecimals);
 
         // Given : Account has a positive balance
         vm.assume(stakingModule.balanceOf(account, id) > 0);
@@ -61,7 +67,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         uint256 earnedRewards = stakingModule.earnedByAccount(id, account);
         amounts[1] = earnedRewards;
 
-        mintTokensTo(tokens, address(stakingModule), amounts);
+        mintERC20TokensTo(tokens, address(stakingModule), amounts);
 
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
