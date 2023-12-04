@@ -6,6 +6,7 @@ pragma solidity 0.8.22;
 
 import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t.sol";
 
+import { AbstractStakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
@@ -84,8 +85,9 @@ contract GetReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz
         mintTokenTo(address(stakingModule.rewardToken(id)), address(stakingModule), earned);
 
         // When : Account calls getReward()
-        // Note : add event testing
         vm.startPrank(account);
+        vm.expectEmit();
+        emit AbstractStakingModule.RewardPaid(account, id, earned);
         stakingModule.getReward(id);
         vm.stopPrank();
 

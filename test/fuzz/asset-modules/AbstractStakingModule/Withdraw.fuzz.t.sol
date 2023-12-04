@@ -6,6 +6,7 @@ pragma solidity 0.8.22;
 
 import { AbstractStakingModule_Fuzz_Test, ERC20Mock, StakingModuleErrors } from "./_AbstractStakingModule.fuzz.t.sol";
 
+import { AbstractStakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
@@ -63,9 +64,11 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         mintTokensTo(tokens, address(stakingModule), amounts);
 
         // When : Account withdraws from stakingModule
-        // Note : Check for emitted event
-        vm.prank(account);
+        vm.startPrank(account);
+        vm.expectEmit();
+        emit AbstractStakingModule.Withdrawn(account, id, moduleState_.userBalance);
         stakingModule.withdraw(id, moduleState_.userBalance);
+        vm.stopPrank();
 
         // Then : Account should get the staking and reward tokens.
         assertEq(ERC20Mock(tokens[0]).balanceOf(account), moduleState_.userBalance);

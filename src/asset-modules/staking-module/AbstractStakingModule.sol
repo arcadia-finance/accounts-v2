@@ -35,9 +35,9 @@ abstract contract AbstractStakingModule is ERC1155 {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event Staked(address indexed account, uint256 amount);
-    event Withdrawn(address indexed account, uint256 amount);
-    event RewardPaid(address indexed account, uint256 reward);
+    event Staked(address indexed account, uint256 id, uint256 amount);
+    event Withdrawn(address indexed account, uint256 id, uint256 amount);
+    event RewardPaid(address indexed account, uint256 id, uint256 reward);
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -112,7 +112,7 @@ abstract contract AbstractStakingModule is ERC1155 {
         // Internal function to stake in external staking contract.
         _stake(id, amount);
 
-        emit Staked(msg.sender, amount);
+        emit Staked(msg.sender, id, amount);
     }
 
     // Stake "stakingToken" in external staking contract.
@@ -134,7 +134,7 @@ abstract contract AbstractStakingModule is ERC1155 {
 
         stakingToken[id].safeTransfer(msg.sender, amount);
 
-        emit Withdrawn(msg.sender, amount);
+        emit Withdrawn(msg.sender, id, amount);
     }
 
     // Withdraw "stakingToken" from external staking contract.
@@ -194,7 +194,7 @@ abstract contract AbstractStakingModule is ERC1155 {
         if (reward > 0) {
             rewards[id][msg.sender] = 0;
             rewardToken[id].safeTransfer(msg.sender, reward);
-            emit RewardPaid(msg.sender, reward);
+            emit RewardPaid(msg.sender, id, reward);
         }
     }
 
@@ -204,7 +204,7 @@ abstract contract AbstractStakingModule is ERC1155 {
         if (reward > 0) {
             rewards[id][msg.sender] = 0;
             rewardToken[id].safeTransfer(msg.sender, reward);
-            emit RewardPaid(msg.sender, reward);
+            emit RewardPaid(msg.sender, id, reward);
         }
     }
 
