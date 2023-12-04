@@ -6,7 +6,6 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { StakingRewardsMock } from "../../../utils/mocks/StakingRewardsMock.sol";
 import { StakingModuleMock } from "../../../utils/mocks/StakingModuleMock.sol";
 import { StakingModuleErrors } from "../../../../src/libraries/Errors.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
@@ -18,13 +17,6 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
-
-    struct StakingRewardsContractState {
-        uint256 totalSupply;
-        uint256 rewards;
-        uint256 balance;
-        uint256 rewardPerTokenStored;
-    }
 
     struct AbstractStakingModuleStateForId {
         uint128 previousRewardBalance;
@@ -41,7 +33,6 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     StakingModuleMock internal stakingModule;
-    StakingRewardsMock internal stakingRewardsContract;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -53,7 +44,6 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         vm.startPrank(users.creatorAddress);
 
         stakingModule = new StakingModuleMock();
-        stakingRewardsContract = new StakingRewardsMock();
 
         vm.stopPrank();
     }
@@ -61,13 +51,6 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
-
-    // Note: don't think we need this one for the abstract module testing
-    function setStakingRewardsContractState(StakingRewardsContractState memory rewardState, address account) internal {
-        stakingRewardsContract.setStakingRewardsState(
-            rewardState.rewards, account, rewardState.totalSupply, rewardState.balance, rewardState.rewardPerTokenStored
-        );
-    }
 
     function setStakingModuleState(
         AbstractStakingModuleStateForId memory stakingModuleState,
