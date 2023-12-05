@@ -35,6 +35,9 @@ contract AccountStorageV1 {
     address public owner;
     // The contract address of the Creditor.
     address public creditor;
+    // The contract address of an approved Creditor.
+    // This is a Creditor for which a margin Account can be opened later in time to e.g. refinance liabilities.
+    address internal approvedCreditor;
     // The Numeraire (the unit in which prices are measured) of the Account,
     // in which all assets and liabilities are denominated.
     address public numeraire;

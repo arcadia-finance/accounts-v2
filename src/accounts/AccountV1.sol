@@ -301,7 +301,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         // A margin account can only be opened for one Creditor at a time.
         // If set, close the margin account for the old Creditor.
         if (oldCreditor != address(0)) {
-            // closeMarginAccount() checks if there is still an open position (open liabilities) for the Account.
+            // closeMarginAccount() checks if there is still an open position (open liabilities) of the Account for the old Creditor.
             // If so, the function reverts.
             ICreditor(oldCreditor).closeMarginAccount(address(this));
         }
@@ -345,6 +345,16 @@ contract AccountV1 is AccountStorageV1, IAccount {
         ICreditor(creditor_).closeMarginAccount(address(this));
 
         emit MarginAccountChanged(address(0), address(0));
+    }
+
+    /**
+     * @notice Sets an approved Creditor.
+     * @param creditor_ The contract address of the approved Creditor.
+     * @dev An approved Creditor is a Creditor for which no margin Account is immediately opened.
+     * But the approved Creditor itself can open the margin Account later in time to e.g. refinance liabilities.
+     */
+    function setApprovedCreditor(address creditor_) external onlyOwner {
+        approvedCreditor = creditor_;
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -523,6 +533,83 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /*///////////////////////////////////////////////////////////////
+                       ASSET MANAGER ACTIONS
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Add or remove an Asset Manager.
+     * @param assetManager The address of the Asset Manager.
+     * @param value A boolean giving permissions to or taking permissions from an Asset Manager.
+     * @dev Only set trusted addresses as Asset Manager. Asset Managers have full control over assets in the Account,
+     * as long as the Account position remains healthy.
+     * @dev No need to set the Owner as Asset Manager as they will automatically have all permissions of an Asset Manager.
+     * @dev Potential use-cases of the Asset Manager might be to:
+     * - Automate actions by keeper networks.
+     * - Do flash actions (optimistic actions).
+     * - Chain multiple interactions together (eg. deposit and trade in one transaction).
+     */
+    function setAssetManager(address assetManager, bool value) external onlyOwner {
+        emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = value);
+    }
+
+    /**
+     * @notice Executes a flash action.
+     * @param actionTarget The contract address of the actionTarget to execute external logic.
+     * @param actionData A bytes object containing three structs and two bytes objects.
+     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
+     * The second struct contains the info about the owner's assets that need to be transferred from the owner to the actionTarget.
+     * The third struct contains the permit for the Permit2 transfer.
+     * The first bytes object contains the signature for the Permit2 transfer.
+     * The second bytes object contains the encoded input for the actionTarget.
+     * @dev This function optimistically chains multiple actions together (= do a flash action):
+     * - It can optimistically withdraw assets from the Account to the actionTarget.
+     * - It can transfer assets directly from the owner to the actionTarget.
+     * - It can execute external logic on the actionTarget, and interact with any DeFi protocol to swap, stake, claim...
+     * - It can deposit all recipient tokens from the actionTarget back into the Account.
+     * At the very end of the flash action, the following check is performed:
+     * - The Account is in a healthy state (collateral value is greater than open liabilities).
+     * If a check fails, the whole transaction reverts.
+     */
+    function flashAction(address actionTarget, bytes calldata actionData)
+        external
+        onlyAssetManager
+        nonReentrant
+        notDuringAuction
+    {
+        // Decode flash action data.
+        (
+            ActionData memory withdrawData,
+            ActionData memory transferFromOwnerData,
+            IPermit2.PermitBatchTransferFrom memory permit,
+            bytes memory signature,
+            bytes memory actionTargetData
+        ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes, bytes));
+
+        // Withdraw assets to the actionTarget.
+        _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);
+
+        // Transfer assets from owner (that are not assets in this account) to the actionTarget.
+        if (transferFromOwnerData.assets.length > 0) {
+            _transferFromOwner(transferFromOwnerData, actionTarget);
+        }
+
+        // If the function input includes a signature and non-empty token permissions,
+        // initiate a transfer from the owner to the actionTarget via Permit2.
+        if (signature.length > 0 && permit.permitted.length > 0) {
+            _transferFromOwnerWithPermit(permit, signature, actionTarget);
+        }
+
+        // Execute external logic on the actionTarget.
+        ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
+
+        // Deposit assets from actionTarget into Account.
+        _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionTarget);
+
+        // Account must be healthy after actions are executed.
+        if (isAccountUnhealthy()) revert AccountErrors.AccountUnhealthy();
+    }
+
+    /*///////////////////////////////////////////////////////////////
                         CREDITOR ACTIONS
     ///////////////////////////////////////////////////////////////*/
 
@@ -551,8 +638,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Executes a flash action initiated by the Creditor.
-     * @param actionTarget The contract address of the flashAction.
+     * @notice Executes a flash action initiated by a Creditor.
+     * @param actionTarget actionTarget The contract address of the actionTarget to execute external logic.
      * @param actionData A bytes object containing three structs and two bytes objects.
      * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
      * The second struct contains the info about the owner's assets that need to be transferred from the owner to the actionTarget.
@@ -560,73 +647,33 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The first bytes object contains the signature for the Permit2 transfer.
      * The second bytes object contains the encoded input for the actionTarget.
      * @return accountVersion The current Account version.
-     * @dev Next to the flasaction, the following checks are performed done:
-     *  - The caller is indeed a Creditor for which a margin account is opened.
-     *  - The Account is still healthy after when the flash action.
+     * @dev This function optimistically chains multiple actions together (= do a flash action):
+     * - Before calling this function, a Creditor can execute arbitrary logic (e.g. give a flashloan to the actionTarget).
+     * - A margin Account can be opened for a new Creditor, if the new Creditor is approved by the Account Owner.
+     * - It can optimistically withdraw assets from the Account to the actionTarget.
+     * - It can transfer assets directly from the owner to the actionTarget.
+     * - It can execute external logic on the actionTarget, and interact with any DeFi protocol to swap, stake, claim...
+     * - It can deposit all recipient tokens from the actionTarget back into the Account.
+     * At the very end of the flash action, the following checks are performed:
+     * - The Account is in a healthy state (collateral value is greater than open liabilities).
+     * - If a new margin Account is opened for a new Creditor, then the Account has no open positions anymore with the old Creditor.
+     * If a check fails, the whole transaction reverts.
+     * @dev This function can be used to refinance liabilities between different Creditors,
+     * without the need to first sell collateral to close the open position of the old Creditor.
      */
     function flashActionByCreditor(address actionTarget, bytes calldata actionData)
         external
-        onlyCreditor
+        nonReentrant
+        notDuringAuction
         returns (uint256 accountVersion)
     {
-        _flashAction(actionTarget, actionData);
+        // Cache the current Creditor.
+        address currentCreditor = creditor;
 
-        accountVersion = ACCOUNT_VERSION;
-    }
+        // The caller has to be or the Creditor of the Account, or an approved Creditor.
+        if (msg.sender != currentCreditor && msg.sender != approvedCreditor) revert AccountErrors.OnlyCreditor();
 
-    /*///////////////////////////////////////////////////////////////
-                       ASSET MANAGER ACTIONS
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Add or remove an Asset Manager.
-     * @param assetManager The address of the Asset Manager.
-     * @param value A boolean giving permissions to or taking permissions from an Asset Manager.
-     * @dev Only set trusted addresses as Asset Manager. Asset Managers have full control over assets in the Account,
-     * as long as the Account position remains healthy.
-     * @dev No need to set the Owner as Asset Manager as they will automatically have all permissions of an Asset Manager.
-     * @dev Potential use-cases of the Asset Manager might be to:
-     * - Automate actions by keeper networks.
-     * - Do flash actions (optimistic actions).
-     * - Chain multiple interactions together (eg. deposit and trade in one transaction).
-     */
-    function setAssetManager(address assetManager, bool value) external onlyOwner {
-        emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = value);
-    }
-
-    /**
-     * @notice Executes a flash action initiated by the Asset Manager.
-     * @param actionTarget The contract address of the flashAction.
-     * @param actionData A bytes object containing three structs and two bytes objects.
-     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
-     * The second struct contains the info about the owner's assets that need to be transferred from the owner to the actionTarget.
-     * The third struct contains the permit for the Permit2 transfer.
-     * The first bytes object contains the signature for the Permit2 transfer.
-     * The second bytes object contains the encoded input for the actionTarget.
-     */
-    function flashActionByAssetManager(address actionTarget, bytes calldata actionData) external onlyAssetManager {
-        _flashAction(actionTarget, actionData);
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                       ASSET MANAGEMENT
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Executes a flash action.
-     * @param actionTarget The contract address of the flashAction.
-     * @param actionData A bytes object containing three structs and two bytes objects.
-     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
-     * The second struct contains the info about the owner's assets that need to be transferred from the owner to the actionTarget.
-     * The third struct contains the permit for the Permit2 transfer.
-     * The first bytes object contains the signature for the Permit2 transfer.
-     * The second bytes object contains the encoded input for the actionTarget.
-     * @dev Similar to flash loans, this function optimistically calls external logic and checks for the Account state at the very end.
-     * This allows users to interact with and chain together any DeFi protocol to swap, stake, claim...
-     * The only requirements are that the recipient tokens of the interactions are allowlisted, deposited back into the Account and
-     * that the Account is in a healthy state at the end of the transaction.
-     */
-    function _flashAction(address actionTarget, bytes calldata actionData) internal nonReentrant notDuringAuction {
+        // Decode flash action data.
         (
             ActionData memory withdrawData,
             ActionData memory transferFromOwnerData,
@@ -637,6 +684,27 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
         // Withdraw assets to the actionTarget.
         _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);
+
+        if (msg.sender != currentCreditor) {
+            // If the caller is the approved Creditor, a margin Account must be opened for the approved Creditor.
+            // And the exposures for the current and approved Creditors need to be updated.
+            approvedCreditor = address(0);
+
+            (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
+                generateAssetData();
+
+            // Check if all assets in the Account are allowed by the approved Creditor
+            // and add the exposure of the account for the approved Creditor.
+            IRegistry(registry).batchProcessDeposit(msg.sender, assetAddresses, assetIds, assetAmounts);
+
+            // Remove the exposures of the Account for the current Creditor.
+            if (currentCreditor != address(0)) {
+                IRegistry(registry).batchProcessWithdrawal(currentCreditor, assetAddresses, assetIds, assetAmounts);
+            }
+
+            // Open margin account for the approved Creditor.
+            _openMarginAccount(msg.sender);
+        }
 
         // Transfer assets from owner (that are not assets in this account) to the actionTarget.
         if (transferFromOwnerData.assets.length > 0) {
@@ -649,15 +717,28 @@ contract AccountV1 is AccountStorageV1, IAccount {
             _transferFromOwnerWithPermit(permit, signature, actionTarget);
         }
 
-        // Execute the flash Action(s).
+        // Execute external logic on the actionTarget.
         ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
 
         // Deposit assets from actionTarget into Account.
         _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionTarget);
 
+        if (currentCreditor != address(0) && msg.sender != currentCreditor) {
+            // If the caller is the approved Creditor, the margin Account for the current Creditor (if set) must be closed.
+            // closeMarginAccount() checks if there is still an open position (open liabilities) of the Account for the old Creditor.
+            // If so, the function reverts.
+            ICreditor(currentCreditor).closeMarginAccount(address(this));
+        }
+
         // Account must be healthy after actions are executed.
         if (isAccountUnhealthy()) revert AccountErrors.AccountUnhealthy();
+
+        accountVersion = ACCOUNT_VERSION;
     }
+
+    /*///////////////////////////////////////////////////////////////
+                          ASSET MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
 
     /**
      * @notice Deposits assets into the Account.
