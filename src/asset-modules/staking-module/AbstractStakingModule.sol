@@ -57,6 +57,12 @@ abstract contract AbstractStakingModule is ERC1155 {
         locked = 1;
     }
 
+    /**
+     * @notice Will update the rewards claimable on this contract.
+     * @param id The id of the specific staking token.
+     * @param account The Account for which updating the rewards.
+     * @param claimRewards Is set to "true" if the action necessits to claim available rewards for this contract.
+     */
     modifier updateReward(uint256 id, address account, bool claimRewards) {
         // Note : We might increment rewardPerTokenStored directly in _rewardPerToken()
         rewardPerTokenStored[id] = _rewardPerToken(id, claimRewards);
@@ -77,11 +83,20 @@ abstract contract AbstractStakingModule is ERC1155 {
                         STAKINGTOKEN INFORMATION
     ///////////////////////////////////////////////////////////////*/
 
-    function totalSupply(uint256 id) external view returns (uint256) {
+    /**
+     * @notice Returns the total supply of a specific token staked via this contract.
+     * @param id The id of the specific staking token.
+     * @return _totalSupply The total supply of the staking token staked via this contract.
+     */
+    function totalSupply(uint256 id) external view returns (uint256 _totalSupply) {
         return totalSupply_[id];
     }
 
-    // TODO : Add testing for errors
+    /**
+     * @notice Adds a new staking token with it's corresponding reward token.
+     * @param stakingToken_ The address of the staking token.
+     * @param rewardToken_ The address of the reward token.
+     */
     function addNewStakingToken(address stakingToken_, address rewardToken_) public {
         // Cache new id
         uint256 newId = ++idCounter;
@@ -100,11 +115,14 @@ abstract contract AbstractStakingModule is ERC1155 {
     }
 
     /*///////////////////////////////////////////////////////////////
-                        STAKING LOGIC
+                           (UN)STAKING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
-    // Will revert in safeTransferFrom if "id" is not correct or if not enough approval / balance.
-    // Stakes the stakingToken and handles accounting for Account.
+    /**
+     * @notice Stakes an amount of tokens for the caller and mints the corresponding ERC1155 token.
+     * @param id The id of the specific staking token.
+     * @param amount The amount of tokens to stake.
+     */
     function stake(uint256 id, uint256 amount) external nonReentrant updateReward(id, msg.sender, false) {
         if (amount == 0) revert StakingModuleErrors.AmountIsZero();
 
@@ -119,10 +137,18 @@ abstract contract AbstractStakingModule is ERC1155 {
         emit Staked(msg.sender, id, amount);
     }
 
-    // Stake "stakingToken" in external staking contract.
+    /**
+     * @notice Internal function to stake an amount of tokens in the external staking contract.
+     * @param id The id of the specific staking token.
+     * @param amount The amount of tokens to stake.
+     */
     function _stake(uint256 id, uint256 amount) internal virtual { }
 
-    // Unstakes and withdraws the rewards.
+    /**
+     * @notice Unstakes and withdraws the specific staking token from the external contract and claims all pending rewards.
+     * @param id The id of the specific staking token.
+     * @param amount The amount of tokens to withdraw.
+     */
     function withdraw(uint256 id, uint256 amount) external nonReentrant updateReward(id, msg.sender, true) {
         if (amount == 0) revert StakingModuleErrors.AmountIsZero();
 
@@ -139,17 +165,29 @@ abstract contract AbstractStakingModule is ERC1155 {
         emit Withdrawn(msg.sender, id, amount);
     }
 
-    // Withdraw "stakingToken" from external staking contract.
+    /**
+     * @notice Unstakes and withdraws the staking token from the external contract.
+     * @param id The id of the specific staking token.
+     * @param amount The amount of tokens to withdraw.
+     */
     function _withdraw(uint256 id, uint256 amount) internal virtual { }
-
-    // Will claim all pending rewards for this contract
-    function _claimRewards(uint256 id) internal virtual { }
 
     /*///////////////////////////////////////////////////////////////
                         REWARDS ACCOUNTING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
-    // Updates the reward per token.
+    /**
+     * @notice Claims the rewards available for this contract.
+     * @param id The id of the specific staking token.
+     */
+    function _claimRewards(uint256 id) internal virtual { }
+
+    /**
+     * @notice Returns the updated reward per token stored if rewards have accrued for this contract.
+     * @param id The id of the specific staking token.
+     * @param claimRewards Is set to "true" if the action necessits to claim the available rewards from external contract.
+     * @return rewardPerToken_ The updated reward per token stored.
+     */
     function _rewardPerToken(uint256 id, bool claimRewards) internal returns (uint256 rewardPerToken_) {
         if (totalSupply_[id] == 0) {
             return rewardPerTokenStored[id];
@@ -165,6 +203,11 @@ abstract contract AbstractStakingModule is ERC1155 {
             + earnedSinceLastUpdate.mulDivDown(10 ** stakingTokenDecimals[id], totalSupply_[id]);
     }
 
+    /**
+     * @notice Returns the updated reward per token stored if rewards have accrued for this contract.
+     * @param id The id of the specific staking token.
+     * @return rewardPerToken_ The updated reward per token stored.
+     */
     function rewardPerToken(uint256 id) public view returns (uint256 rewardPerToken_) {
         if (totalSupply_[id] == 0) {
             return rewardPerTokenStored[id];
@@ -178,17 +221,30 @@ abstract contract AbstractStakingModule is ERC1155 {
             + earnedSinceLastUpdate.mulDivDown(10 ** stakingTokenDecimals[id], totalSupply_[id]);
     }
 
-    // Note: see if we can optimize rewardPerToken here, as we calculate it in modifier previously.
-    function earnedByAccount(uint256 id, address account) public view returns (uint256 earned_) {
+    /**
+     * @notice Returns the amount of rewards claimable by an Account.
+     * @param id The id of the specific staking token.
+     * @param account The Account to calculate current rewards for.
+     * @return earned The current amount of rewards earned by the Account.
+     */
+    function earnedByAccount(uint256 id, address account) public view returns (uint256 earned) {
+        // Note: see if we can optimize rewardPerToken here, as we calculate it in modifier previously.
         uint256 rewardPerTokenClaimable = rewardPerToken(id) - userRewardPerTokenPaid[id][account];
-        earned_ = rewards[id][account]
+        earned = rewards[id][account]
             + balanceOf[account][id].mulDivDown(rewardPerTokenClaimable, 10 ** stakingTokenDecimals[id]);
     }
 
-    // Get the total rewards available to claim for this contract.
+    /**
+     * @notice Returns the amount of rewards earned by this contract.
+     * @param id The id of the specific staking token.
+     * @return earned The current amount of rewards earned by the the contract.
+     */
     function _getActualRewardsBalance(uint256 id) internal view virtual returns (uint256 earned) { }
 
-    // Claim reward and transfer to Account
+    /**
+     * @notice Claims the rewards available for an Account.
+     * @param id The id of the specific staking token.
+     */
     function getReward(uint256 id) public nonReentrant updateReward(id, msg.sender, true) {
         uint256 reward = rewards[id][msg.sender];
 
@@ -199,6 +255,10 @@ abstract contract AbstractStakingModule is ERC1155 {
         }
     }
 
+    /**
+     * @notice Claims the rewards available for an Account.
+     * @param id The id of the specific staking token.
+     */
     function _getReward(uint256 id) internal {
         uint256 reward = rewards[id][msg.sender];
 
@@ -209,5 +269,5 @@ abstract contract AbstractStakingModule is ERC1155 {
         }
     }
 
-    function uri(uint256 id) public view override returns (string memory) { }
+    function uri(uint256 id) public view virtual override returns (string memory) { }
 }
