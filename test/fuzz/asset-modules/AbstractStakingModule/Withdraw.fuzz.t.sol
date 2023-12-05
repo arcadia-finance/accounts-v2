@@ -55,6 +55,9 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         uint8 stakingTokenDecimals,
         uint8 rewardTokenDecimals
     ) public {
+        // Given : account != zero address
+        vm.assume(account != address(0));
+
         // Given : id = 2
         uint256 id = 2;
 

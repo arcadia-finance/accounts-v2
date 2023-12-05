@@ -76,6 +76,9 @@ contract GetReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz
         uint8 stakingTokenDecimals,
         uint8 rewardTokenDecimals
     ) public {
+        // Given : account != zero address
+        vm.assume(account != address(0));
+
         // Given : id = 1
         uint256 id = 1;
 
