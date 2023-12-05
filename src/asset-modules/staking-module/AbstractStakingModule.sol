@@ -27,7 +27,7 @@ abstract contract AbstractStakingModule is ERC1155 {
     mapping(uint256 id => ERC20 rewardToken) public rewardToken;
     mapping(uint256 id => uint256 decimals) public stakingTokenDecimals;
 
-    // Note: see if struct could be more efficient here. (How are mappings packed inside a struct/storage) ?
+    // Note: to discuss if we can limit to uint128 amount, in this case work with mappings to Structs for all the below (think best is to have two separate structs as accessed in dfferent functions). + stakingTokenDecimals in struct as well.
     mapping(uint256 id => uint256 rewardPerTokenStored) public rewardPerTokenStored;
     mapping(uint256 id => uint256 previousRewardsBalance) public previousRewardsBalance;
     mapping(uint256 id => uint256 totalSupply) public totalSupply_;
