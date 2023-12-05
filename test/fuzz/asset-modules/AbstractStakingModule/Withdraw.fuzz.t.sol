@@ -92,4 +92,86 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         assertEq(ERC20Mock(tokens[1]).balanceOf(account), earnedRewards);
         assertEq(stakingModule.balanceOf(account, id), 0);
     }
+
+    function testFuzz_Success_Withdraw_ValidAccountingFlow() public {
+        // Given : 2 actors and initial staking token amounts
+        address user1 = address(0x1);
+        address user2 = address(0x2);
+        uint256 user1InitBalance = 1_000_000 * (10 ** Constants.stableDecimals);
+        uint256 user2InitBalance = 4_000_000 * (10 ** Constants.stableDecimals);
+
+        // Given : Fund both users with amount of stakingTokens
+        address stakingToken = address(mockERC20.stable1);
+        address rewardToken = address(mockERC20.token1);
+        mintERC20TokenTo(stakingToken, user1, user1InitBalance);
+        mintERC20TokenTo(stakingToken, user2, user2InitBalance);
+
+        // Given : Add stakingToken and rewardToken to stakingModule
+        stakingModule.addNewStakingToken(stakingToken, rewardToken);
+
+        // Given : Both users stake in the stakingModule
+        approveERC20TokenFor(stakingToken, address(stakingModule), user1InitBalance, user1);
+        approveERC20TokenFor(stakingToken, address(stakingModule), user2InitBalance, user2);
+
+        vm.prank(user1);
+        stakingModule.stake(1, user1InitBalance);
+        vm.prank(user2);
+        stakingModule.stake(1, user2InitBalance);
+
+        // Given : Mock rewards
+        uint256 rewardAmount1 = 1_000_000 * (10 ** Constants.tokenDecimals);
+        stakingModule.setActualRewardBalance(1, rewardAmount1);
+        mintERC20TokenTo(rewardToken, address(stakingModule), rewardAmount1);
+
+        // When : User1 claims rewards
+        // Then : He should receive 1/5 of the rewardAmount1
+        vm.prank(user1);
+        stakingModule.getReward(1);
+
+        assertEq(mockERC20.token1.balanceOf(user1), rewardAmount1 / 5);
+
+        // Given : User 1 stakes additional tokens and stakes
+        uint256 user1AddedBalance = 3_000_000 * (10 ** Constants.stableDecimals);
+        mintERC20TokenTo(stakingToken, user1, user1AddedBalance);
+        approveERC20TokenFor(stakingToken, address(stakingModule), user1AddedBalance, user1);
+
+        vm.prank(user1);
+        stakingModule.stake(1, user1AddedBalance);
+
+        // Given : Add 1 mio more rewards
+        uint256 rewardAmount2 = 1_000_000 * (10 ** Constants.tokenDecimals);
+        stakingModule.setActualRewardBalance(1, rewardAmount2);
+        mintERC20TokenTo(rewardToken, address(stakingModule), rewardAmount2);
+
+        // Given : A third user stakes while there is no reward increase (this shouldn't accrue rewards for him and not impact other user rewards)
+        address user3 = address(0x3);
+        mintERC20TokenTo(stakingToken, user3, user1AddedBalance);
+        approveERC20TokenFor(stakingToken, address(stakingModule), user1AddedBalance, user3);
+
+        vm.prank(user3);
+        stakingModule.stake(1, user1AddedBalance);
+
+        // When : User1 withdraws
+        // Then : He should receive half of rewardAmount2
+        vm.prank(user1);
+        stakingModule.withdraw(1, user1InitBalance + user1AddedBalance);
+
+        assertEq(mockERC20.token1.balanceOf(user1), (rewardAmount1 / 5) + (rewardAmount2 / 2));
+        assertEq(mockERC20.stable1.balanceOf(user1), user1InitBalance + user1AddedBalance);
+
+        // When : User2 withdraws
+        // Then : He should receive 4/5 of rewards1 + 1/2 of rewards2
+        vm.prank(user2);
+        stakingModule.withdraw(1, user2InitBalance);
+
+        assertEq(mockERC20.token1.balanceOf(user2), ((4 * rewardAmount1) / 5) + (rewardAmount2 / 2));
+        assertEq(mockERC20.stable1.balanceOf(user2), user2InitBalance);
+
+        // When : User2 calls getRewards()
+        // Then : He should not have accrued any rewards
+        vm.prank(user3);
+        stakingModule.getReward(1);
+
+        assertEq(mockERC20.token1.balanceOf(user3), 0);
+    }
 }
