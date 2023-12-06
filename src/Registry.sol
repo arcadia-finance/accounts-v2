@@ -37,7 +37,7 @@ contract Registry is IRegistry, RegistryGuardian {
                                CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
-    // Contract address of the Factory.
+    // The contract address of the Arcadia Accounts Factory.
     address public immutable FACTORY;
 
     /* //////////////////////////////////////////////////////////////

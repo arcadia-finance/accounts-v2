@@ -88,7 +88,7 @@ contract ArcadiaAccountDeployment is Test {
 
         chainlinkOM = new ChainlinkOracleModule(address(registry));
 
-        account = new AccountV1();
+        account = new AccountV1(address(factory));
         actionMultiCall = new ActionMultiCall();
 
         registry.addAssetModule(address(standardERC20AssetModule));

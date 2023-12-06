@@ -4,18 +4,18 @@
  */
 pragma solidity 0.8.22;
 
+import { AccountErrors } from "../../../src/libraries/Errors.sol";
+import { AccountStorageV2 } from "./AccountStorageV2.sol";
 import { ERC20, SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { IERC721 } from "../../../src/interfaces/IERC721.sol";
 import { IERC1155 } from "../../../src/interfaces/IERC1155.sol";
 import { IRegistry } from "../../../src/interfaces/IRegistry.sol";
 import { ICreditor } from "../../../src/interfaces/ICreditor.sol";
 import { IActionBase, ActionData } from "../../../src/interfaces/IActionBase.sol";
-import { AccountStorageV2 } from "./AccountStorageV2.sol";
+import { IAccount } from "../../../src/interfaces/IAccount.sol";
+import { IFactory } from "../../../src/interfaces/IFactory.sol";
 import { IPermit2 } from "../../../src/interfaces/IPermit2.sol";
-
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
-
-import { AccountErrors } from "../../../src/libraries/Errors.sol";
 
 /**
  * @title An Arcadia Account used to deposit a combination of all kinds of assets
@@ -45,6 +45,8 @@ contract AccountV2 is AccountStorageV2 {
     uint256 public constant ASSET_LIMIT = 15;
     // The current Account Version.
     uint16 public constant ACCOUNT_VERSION = 2;
+    // The contract address of the Arcadia Accounts Factory.
+    address public immutable FACTORY;
     // Uniswap Permit2 contract
     IPermit2 internal immutable permit2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
@@ -82,7 +84,7 @@ contract AccountV2 is AccountStorageV2 {
      * @dev Throws if called by any account other than the factory address.
      */
     modifier onlyFactory() {
-        if (msg.sender != IRegistry(registry).FACTORY()) revert AccountErrors.OnlyFactory();
+        if (msg.sender != FACTORY) revert AccountErrors.OnlyFactory();
         _;
     }
 
@@ -117,10 +119,15 @@ contract AccountV2 is AccountStorageV2 {
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
-    constructor() {
+    /**
+     * @param factory The contract address of the Arcadia Accounts Factory.
+     */
+    constructor(address factory) {
         // This will only be the owner of the Account logic implementation.
         // and will not affect any subsequent proxy implementation using this Account logic.
         owner = msg.sender;
+
+        FACTORY = factory;
     }
 
     /* ///////////////////////////////////////////////////////////////

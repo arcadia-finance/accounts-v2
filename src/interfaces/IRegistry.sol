@@ -8,8 +8,8 @@ import { AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
 
 interface IRegistry {
     /**
-     * @notice Returns the Factory address.
-     * @return factory The contract address of the Factory.
+     * @notice Returns the Arcadia Accounts Factory.
+     * @return factory The contract address of the Arcadia Accounts Factory.
      */
     function FACTORY() external view returns (address);
 

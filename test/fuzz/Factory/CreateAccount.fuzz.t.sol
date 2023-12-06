@@ -55,7 +55,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint8 versionsToMake,
         uint8[] calldata versionsToBlock
     ) public {
-        AccountVariableVersion account_ = new AccountVariableVersion(0);
+        AccountVariableVersion account_ = new AccountVariableVersion(0, address(factory));
 
         vm.assume(versionsToBlock.length < 10 && versionsToBlock.length > 0);
         vm.assume(uint256(versionsToMake) + 1 < type(uint8).max);
