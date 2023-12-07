@@ -178,7 +178,8 @@ abstract contract AbstractStakingModule is ERC1155 {
      */
     function _updateReward(uint256 id, address account, bool claimRewards) internal {
         // Note : We might increment rewardPerTokenStored directly in _rewardPerToken()
-        idToInfo[id].rewardPerTokenStored = _rewardPerToken(id, claimRewards);
+        uint128 rewardPerTokenStored = _rewardPerToken(id, claimRewards);
+        idToInfo[id].rewardPerTokenStored = rewardPerTokenStored;
 
         // Rewards should be claimed before calling earnedByAccount, otherwise accounting is not correct.
         if (claimRewards) _claimRewards(id);
@@ -186,7 +187,7 @@ abstract contract AbstractStakingModule is ERC1155 {
         AccountRewardInfo storage accountRewardInfo = idToAccountRewardInfo[id][account];
         // TODO : we can optimizez earnedByAccount to not call second time rewardPerToken()
         accountRewardInfo.rewards = earnedByAccount(id, account);
-        accountRewardInfo.userRewardPerTokenPaid = idToInfo[id].rewardPerTokenStored;
+        accountRewardInfo.userRewardPerTokenPaid = rewardPerTokenStored;
     }
 
     /**

@@ -39,12 +39,13 @@ contract GetReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz
         vm.stopPrank();
     }
 
-    /*     function testFuzz_Success_getReward_ZeroReward(
+    function testFuzz_Success_getReward_ZeroReward(
         uint256 id,
         address account,
         uint128 previousRewardBalance,
         uint128 rewardPerTokenStored,
-        uint128 accountBalance
+        uint128 accountBalance,
+        uint8 decimals
     ) public {
         // Given : previousRewardBalance > 0, since we are claiming the rewards of the external staking contract via getReward() we have to validate that previousRewardBalance is set to 0 after. actualRewardBalance should be equal to previousRewardBalance, as account should not earn over that period.
         vm.assume(previousRewardBalance > 0);
@@ -60,6 +61,10 @@ contract GetReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz
         stakingModule.setBalanceOfAccountForId(id, accountBalance, account);
         stakingModule.setTotalSupply(id, accountBalance);
 
+        // Given : stakingTokenWeiUnit != 0
+        decimals = uint8(bound(decimals, 1, 18));
+        stakingModule.setStakingTokensDecimals(id, decimals);
+
         // When : Account calls getReward().
         vm.prank(account);
         stakingModule.getReward(id);
@@ -69,7 +74,7 @@ contract GetReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz
         assertEq(previousRewardBalance_, 0);
         (uint128 rewards_,) = stakingModule.idToAccountRewardInfo(id, account);
         assertEq(rewards_, 0);
-    } */
+    }
 
     function testFuzz_Success_getReward_RewardGreaterThanZero(
         address account,
