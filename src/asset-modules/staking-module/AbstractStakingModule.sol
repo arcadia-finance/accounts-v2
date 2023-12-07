@@ -108,12 +108,58 @@ abstract contract AbstractStakingModule is ERC1155 {
                            (UN)STAKING LOGIC
     ///////////////////////////////////////////////////////////////*/
 
+    function stake(uint256 id, uint128 amount) external nonReentrant {
+        if (amount == 0) revert StakingModuleErrors.AmountIsZero();
+
+        // Need to transfer the underlying asset before minting or ERC777s could reenter.
+        stakingToken[id].safeTransferFrom(msg.sender, address(this), amount);
+
+        // Calculate the pending rewards since the last interaction.
+        IdToInfo memory idToInfo_ = idToInfo[id];
+        if (idToInfo_.totalSupply > 0) {
+            // Fetch and cache the current reward balance from the staking contract.
+            uint256 currentRewardsBalance = _getActualRewardsBalance(id);
+
+            // Calculate the increase in rewards since last contract interaction.
+            uint256 deltaRewards = currentRewardsBalance - idToInfo_.previousRewardBalance;
+
+            // Calculate and cache the new RewardPerToken.
+            uint256 currentRewardPerToken = idToInfo_.rewardPerTokenStored
+                + deltaRewards.mulDivDown(idToInfo_.stakingTokenWeiUnit, idToInfo_.totalSupply);
+
+            // We don't claim any pending rewards when staking, but since the balance of the account will change after minting,
+            // we will need to credit the account with its earned rewards since last interaction or the accounting is off.
+            uint256 accountBalance = balanceOf[msg.sender][id];
+            uint128 currentReward;
+            if (accountBalance > 0) {
+                AccountRewardInfo memory accountRewardInfo = idToAccountRewardInfo[id][msg.sender];
+                // Calculate the difference in rewardPerToken since the last interaction of the account with this contract.
+                uint256 deltaRewardPerToken = currentRewardPerToken - accountRewardInfo.userRewardPerTokenPaid;
+                // Calculate the pending rewards earned by the Account since its last interaction with this contract.
+                currentReward = uint128(
+                    accountRewardInfo.rewards
+                        + accountBalance.mulDivDown(deltaRewardPerToken, idToInfo_.stakingTokenWeiUnit)
+                );
+            }
+            // Update the storage variables.
+            idToInfo[id].previousRewardBalance = uint128(currentRewardsBalance);
+            idToInfo[id].rewardPerTokenStored = uint128(currentRewardPerToken);
+            idToAccountRewardInfo[id][msg.sender] =
+                AccountRewardInfo({ rewards: currentReward, userRewardPerTokenPaid: uint128(currentRewardPerToken) });
+        }
+        idToInfo[id].totalSupply = idToInfo_.totalSupply + amount;
+
+        _mint(msg.sender, id, amount, "");
+        _stake(id, amount);
+        emit Staked(msg.sender, id, amount);
+    }
+
     /**
      * @notice Stakes an amount of tokens for the caller and mints the corresponding ERC1155 token.
      * @param id The id of the specific staking token.
      * @param amount The amount of tokens to stake.
      */
-    function stake(uint256 id, uint128 amount) external nonReentrant {
+    function stakeOld(uint256 id, uint128 amount) external nonReentrant {
         if (amount == 0) revert StakingModuleErrors.AmountIsZero();
 
         _updateReward(id, msg.sender, false);
@@ -136,12 +182,65 @@ abstract contract AbstractStakingModule is ERC1155 {
      */
     function _stake(uint256 id, uint256 amount) internal virtual { }
 
+    function withdraw(uint256 id, uint128 amount) external nonReentrant {
+        if (amount == 0) revert StakingModuleErrors.AmountIsZero();
+
+        // Calculate the change in rewards since the last interaction.
+        IdToInfo memory idToInfo_ = idToInfo[id];
+        uint256 currentReward;
+        if (idToInfo_.totalSupply > 0) {
+            // Fetch and cache the current reward balance from the staking contract.
+            uint256 currentRewardsBalance = _getActualRewardsBalance(id);
+
+            // Calculate the increase in rewards since last contract interaction.
+            uint256 deltaRewards = currentRewardsBalance - idToInfo_.previousRewardBalance;
+
+            // Calculate and cache the new RewardPerToken.
+            uint256 currentRewardPerToken = idToInfo_.rewardPerTokenStored
+                + deltaRewards.mulDivDown(idToInfo_.stakingTokenWeiUnit, idToInfo_.totalSupply);
+
+            // Calculate rewards of the account.
+            uint256 accountBalance = balanceOf[msg.sender][id];
+            if (accountBalance > 0) {
+                AccountRewardInfo memory accountRewardInfo = idToAccountRewardInfo[id][msg.sender];
+                // Calculate the difference in rewardPerToken since the last interaction of the account with this contract.
+                uint256 deltaRewardPerToken = currentRewardPerToken - accountRewardInfo.userRewardPerTokenPaid;
+                // Calculate the pending rewards earned by the Account since its last interaction with this contract.
+                currentReward = accountRewardInfo.rewards
+                    + accountBalance.mulDivDown(deltaRewardPerToken, idToInfo_.stakingTokenWeiUnit);
+            }
+            // Update the storage variables.
+            idToInfo[id].previousRewardBalance = 0;
+            idToInfo[id].rewardPerTokenStored = uint128(currentRewardPerToken);
+            idToAccountRewardInfo[id][msg.sender] =
+                AccountRewardInfo({ rewards: 0, userRewardPerTokenPaid: uint128(currentRewardPerToken) });
+        }
+
+        idToInfo[id].totalSupply = idToInfo_.totalSupply - amount;
+
+        _burn(msg.sender, id, amount);
+        // Withdraw staked tokens from external staking contract.
+        _withdraw(id, amount);
+
+        // Claim rewards
+        _claimRewards(id);
+
+        if (currentReward > 0) {
+            rewardToken[id].safeTransfer(msg.sender, currentReward);
+            emit RewardPaid(msg.sender, id, currentReward);
+        }
+
+        stakingToken[id].safeTransfer(msg.sender, amount);
+
+        emit Withdrawn(msg.sender, id, amount);
+    }
+
     /**
      * @notice Unstakes and withdraws the specific staking token from the external contract and claims all pending rewards.
      * @param id The id of the specific staking token.
      * @param amount The amount of tokens to withdraw.
      */
-    function withdraw(uint256 id, uint128 amount) external nonReentrant {
+    function withdrawOld(uint256 id, uint128 amount) external nonReentrant {
         if (amount == 0) revert StakingModuleErrors.AmountIsZero();
 
         _updateReward(id, msg.sender, true);
@@ -265,11 +364,51 @@ abstract contract AbstractStakingModule is ERC1155 {
      */
     function _getActualRewardsBalance(uint256 id) internal view virtual returns (uint128 earned) { }
 
+    function getReward(uint256 id) public nonReentrant {
+        // Calculate the change in rewards since the last interaction.
+        IdToInfo memory idToInfo_ = idToInfo[id];
+        uint256 currentReward;
+        if (idToInfo_.totalSupply > 0) {
+            // Fetch and cache the current reward balance from the staking contract.
+            uint256 currentRewardsBalance = _getActualRewardsBalance(id);
+
+            // Calculate the increase in rewards since last contract interaction.
+            uint256 deltaRewards = currentRewardsBalance - idToInfo_.previousRewardBalance;
+
+            // Calculate and cache the new RewardPerToken.
+            uint256 currentRewardPerToken = idToInfo_.rewardPerTokenStored
+                + deltaRewards.mulDivDown(idToInfo_.stakingTokenWeiUnit, idToInfo_.totalSupply);
+
+            // Calculate rewards of the account.
+            uint256 accountBalance = balanceOf[msg.sender][id];
+            if (accountBalance > 0) {
+                AccountRewardInfo memory accountRewardInfo = idToAccountRewardInfo[id][msg.sender];
+                // Calculate the difference in rewardPerToken since the last interaction of the account with this contract.
+                uint256 deltaRewardPerToken = currentRewardPerToken - accountRewardInfo.userRewardPerTokenPaid;
+                // Calculate the pending rewards earned by the Account since its last interaction with this contract.
+                currentReward = accountRewardInfo.rewards
+                    + accountBalance.mulDivDown(deltaRewardPerToken, idToInfo_.stakingTokenWeiUnit);
+            }
+            // Update the storage variables.
+            idToInfo[id].previousRewardBalance = 0;
+            idToInfo[id].rewardPerTokenStored = uint128(currentRewardPerToken);
+            idToAccountRewardInfo[id][msg.sender] =
+                AccountRewardInfo({ rewards: 0, userRewardPerTokenPaid: uint128(currentRewardPerToken) });
+        }
+
+        _claimRewards(id);
+
+        if (currentReward > 0) {
+            rewardToken[id].safeTransfer(msg.sender, currentReward);
+            emit RewardPaid(msg.sender, id, currentReward);
+        }
+    }
+
     /**
      * @notice Claims the rewards available for an Account.
      * @param id The id of the specific staking token.
      */
-    function getReward(uint256 id) public nonReentrant {
+    function getRewardOld(uint256 id) public nonReentrant {
         _updateReward(id, msg.sender, true);
         _getReward(id);
     }
