@@ -38,7 +38,7 @@ contract EarnedByAccount_AbstractStakingModule_Fuzz_Test is AbstractStakingModul
 
         // Given : Staking token decimals is min 6 and max 18
         stakingTokenDecimals = bound(stakingTokenDecimals, 6, 18);
-        stakingModule.setStakingTokensDecimals(id, stakingTokenDecimals);
+        stakingModule.setStakingTokensDecimals(id, uint8(stakingTokenDecimals));
 
         // When : Calling earnedByAccount()
         uint256 earned = stakingModule.earnedByAccount(id, account);

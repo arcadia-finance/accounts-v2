@@ -563,39 +563,39 @@ contract MultiCallExtension is ActionMultiCall {
 }
 
 abstract contract AbstractStakingModuleExtension is AbstractStakingModule {
-    function setPreviousRewardsBalance(uint256 id, uint256 balance) public {
-        previousRewardsBalance[id] = balance;
+    function setPreviousRewardsBalance(uint256 id, uint128 balance) public {
+        idToInfo[id].previousRewardBalance = balance;
     }
 
-    function setTotalSupply(uint256 id, uint256 totalSupply__) public {
-        totalSupply_[id] = totalSupply__;
+    function setTotalSupply(uint256 id, uint128 totalSupply_) public {
+        idToInfo[id].totalSupply = totalSupply_;
     }
 
-    function setRewardsForAccount(uint256 id, uint256 rewards_, address account) public {
-        rewards[id][account] = rewards_;
+    function setRewardsForAccount(uint256 id, uint128 rewards_, address account) public {
+        idToAccountRewardInfo[id][account].rewards = rewards_;
     }
 
-    function setUserRewardPerTokenPaid(uint256 id, uint256 rewardPaid, address account) public {
-        userRewardPerTokenPaid[id][account] = rewardPaid;
+    function setUserRewardPerTokenPaid(uint256 id, uint128 rewardPaid, address account) public {
+        idToAccountRewardInfo[id][account].userRewardPerTokenPaid = rewardPaid;
     }
 
-    function getIdCounter() public view returns (uint256 idCounter_) {
-        idCounter_ = idCounter;
-    }
-
-    function setRewardPerTokenStored(uint256 id, uint256 amount) public {
-        rewardPerTokenStored[id] = amount;
+    function setRewardPerTokenStored(uint256 id, uint128 amount) public {
+        idToInfo[id].rewardPerTokenStored = amount;
     }
 
     function setBalanceOfAccountForId(uint256 id, uint256 amount, address account) public {
         balanceOf[account][id] = amount;
     }
 
-    function setStakingTokensDecimals(uint256 id, uint256 decimals) public {
-        stakingTokenDecimals[id] = decimals;
+    function setStakingTokensDecimals(uint256 id, uint8 decimals) public {
+        idToInfo[id].stakingTokenWeiUnit = uint64(10 ** decimals);
     }
 
     function setLocked(uint256 locked_) external {
         locked = locked_;
+    }
+
+    function getIdCounter() public view returns (uint256 idCounter_) {
+        idCounter_ = idCounter;
     }
 }

@@ -28,7 +28,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_withdraw_Reentered(uint256 id, uint256 amount) public {
+    function testFuzz_Revert_withdraw_Reentered(uint256 id, uint128 amount) public {
         // Given : Reentrancy guard is in locked state.
         stakingModule.setLocked(2);
 
@@ -41,7 +41,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
 
     function testFuzz_Revert_Withdraw_ZeroAmount(uint256 id) public {
         // Given : Amount is 0.
-        uint256 amount = 0;
+        uint128 amount = 0;
 
         // When : Trying to withdraw zero amount.
         // Then : It should revert.
@@ -100,8 +100,8 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // Given : 2 actors and initial staking token amounts
         address user1 = address(0x1);
         address user2 = address(0x2);
-        uint256 user1InitBalance = 1_000_000 * (10 ** Constants.stableDecimals);
-        uint256 user2InitBalance = 4_000_000 * (10 ** Constants.stableDecimals);
+        uint128 user1InitBalance = uint128(1_000_000 * (10 ** Constants.stableDecimals));
+        uint128 user2InitBalance = uint128(4_000_000 * (10 ** Constants.stableDecimals));
 
         // Given : Fund both users with amount of stakingTokens
         address stakingToken = address(mockERC20.stable1);
@@ -122,7 +122,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         stakingModule.stake(1, user2InitBalance);
 
         // Given : Mock rewards
-        uint256 rewardAmount1 = 1_000_000 * (10 ** Constants.tokenDecimals);
+        uint128 rewardAmount1 = uint128(1_000_000 * (10 ** Constants.tokenDecimals));
         stakingModule.setActualRewardBalance(1, rewardAmount1);
         mintERC20TokenTo(rewardToken, address(stakingModule), rewardAmount1);
 
@@ -134,7 +134,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         assertEq(mockERC20.token1.balanceOf(user1), rewardAmount1 / 5);
 
         // Given : User 1 stakes additional tokens and stakes
-        uint256 user1AddedBalance = 3_000_000 * (10 ** Constants.stableDecimals);
+        uint128 user1AddedBalance = uint128(3_000_000 * (10 ** Constants.stableDecimals));
         mintERC20TokenTo(stakingToken, user1, user1AddedBalance);
         approveERC20TokenFor(stakingToken, address(stakingModule), user1AddedBalance, user1);
 
@@ -142,7 +142,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         stakingModule.stake(1, user1AddedBalance);
 
         // Given : Add 1 mio more rewards
-        uint256 rewardAmount2 = 1_000_000 * (10 ** Constants.tokenDecimals);
+        uint128 rewardAmount2 = uint128(1_000_000 * (10 ** Constants.tokenDecimals));
         stakingModule.setActualRewardBalance(1, rewardAmount2);
         mintERC20TokenTo(rewardToken, address(stakingModule), rewardAmount2);
 

@@ -20,7 +20,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
 
     struct AbstractStakingModuleStateForId {
         uint128 previousRewardBalance;
-        uint256 totalSupply;
+        uint128 totalSupply;
         uint128 userBalance;
         uint128 rewards;
         uint128 userRewardPerTokenPaid;
@@ -73,15 +73,6 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         view
         returns (AbstractStakingModuleStateForId memory stakingModuleState_)
     {
-        // Given : rewardPerTokenStored should be >= to userRewardPerTokenPaid.
-        stakingModuleState.rewardPerTokenStored = uint128(
-            bound(stakingModuleState.rewardPerTokenStored, stakingModuleState.userRewardPerTokenPaid, type(uint128).max)
-        );
-
-        // Given : previousRewardBalance should be smaller than type(uint128).max.
-        stakingModuleState.previousRewardBalance =
-            uint128(bound(stakingModuleState.previousRewardBalance, 0, type(uint128).max));
-
         // Given : Actual reward balance should be at least equal to previousRewardBalance.
         vm.assume(stakingModuleState.actualRewardBalance >= stakingModuleState.previousRewardBalance);
 
@@ -90,9 +81,42 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
             stakingModuleState.actualRewardBalance - stakingModuleState.previousRewardBalance < type(uint128).max / 1e18
         );
 
+        // Given : rewardPerTokenStored + rewardPerTokenClaimable should not be over type(uint128).max
+        stakingModuleState.rewardPerTokenStored = uint128(
+            bound(
+                stakingModuleState.rewardPerTokenStored,
+                0,
+                type(uint128).max
+                    - ((stakingModuleState.actualRewardBalance - stakingModuleState.previousRewardBalance) * 1e18)
+            )
+        );
+
+        // Given : rewardPerTokenStored should always be >= userRewardPerTokenPaid
+        vm.assume(stakingModuleState.rewardPerTokenStored >= stakingModuleState.userRewardPerTokenPaid);
+
+        // Cache rewardPerTokenClaimable
+        uint128 rewardPerTokenClaimable = stakingModuleState.rewardPerTokenStored
+            + ((stakingModuleState.actualRewardBalance - stakingModuleState.previousRewardBalance) * 1e18);
+
+        // Given : userBalance * rewardPerTokenClaimable should not be > type(uint128)
+        stakingModuleState.userBalance =
+            uint128(bound(stakingModuleState.userBalance, 0, (type(uint128).max) - rewardPerTokenClaimable));
+
+        // Extra check for the above
+        vm.assume(uint256(stakingModuleState.userBalance) * rewardPerTokenClaimable < type(uint128).max);
+
+        // Given : previously earned rewards for Account + new rewards should not be > type(uint128).max.
+        stakingModuleState.rewards = uint128(
+            bound(
+                stakingModuleState.rewards,
+                0,
+                type(uint128).max - (stakingModuleState.userBalance * rewardPerTokenClaimable)
+            )
+        );
+
         // Given : totalSupply should be >= to userBalance
         stakingModuleState.totalSupply =
-            bound(stakingModuleState.totalSupply, stakingModuleState.userBalance, type(uint256).max);
+            uint128(bound(stakingModuleState.totalSupply, stakingModuleState.userBalance, type(uint128).max));
 
         stakingModuleState_ = stakingModuleState;
     }

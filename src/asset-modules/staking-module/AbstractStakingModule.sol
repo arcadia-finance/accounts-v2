@@ -22,25 +22,37 @@ abstract contract AbstractStakingModule is ERC1155 {
     // Flag Indicating if a function is locked to protect against reentrancy.
     uint256 internal locked = 1;
 
+    // Map a staking token to it's token id.
     mapping(address stakingToken => uint256 id) public stakingTokenToId;
+    // Map a token id to it's corresponding staking token.
     mapping(uint256 id => ERC20 stakingToken) public stakingToken;
+    // Map a token id to it's corresponding reward token.
     mapping(uint256 id => ERC20 rewardToken) public rewardToken;
-    mapping(uint256 id => uint256 decimals) public stakingTokenDecimals;
+    // Map a token id to it's corresponding struct containing general info.
+    mapping(uint256 id => IdToInfo) public idToInfo;
+    // Map a token id and an Account to it's corresponding struct containing reward information for that account.
+    mapping(uint256 id => mapping(address account => AccountRewardInfo)) public idToAccountRewardInfo;
 
-    // Note: to discuss if we can limit to uint128 amount, in this case work with mappings to Structs for all the below (think best is to have two separate structs as accessed in dfferent functions). + stakingTokenDecimals in struct as well.
-    mapping(uint256 id => uint256 rewardPerTokenStored) public rewardPerTokenStored;
-    mapping(uint256 id => uint256 previousRewardsBalance) public previousRewardsBalance;
-    mapping(uint256 id => uint256 totalSupply) public totalSupply_;
+    // Struct with the general information that should be kept relative to a token id.
+    struct IdToInfo {
+        uint128 rewardPerTokenStored;
+        uint64 stakingTokenWeiUnit;
+        uint128 previousRewardBalance;
+        uint128 totalSupply;
+    }
 
-    mapping(uint256 id => mapping(address account => uint256 rewards)) public rewards;
-    mapping(uint256 id => mapping(address account => uint256 rewardPerTokenPaid)) public userRewardPerTokenPaid;
+    // Struct containing the information needed for rewards
+    struct AccountRewardInfo {
+        uint128 rewards;
+        uint128 userRewardPerTokenPaid;
+    }
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event Staked(address indexed account, uint256 id, uint256 amount);
-    event Withdrawn(address indexed account, uint256 id, uint256 amount);
+    event Staked(address indexed account, uint256 id, uint128 amount);
+    event Withdrawn(address indexed account, uint256 id, uint128 amount);
     event RewardPaid(address indexed account, uint256 id, uint256 reward);
 
     /* //////////////////////////////////////////////////////////////
@@ -57,28 +69,6 @@ abstract contract AbstractStakingModule is ERC1155 {
         locked = 1;
     }
 
-    /**
-     * @notice Will update the rewards claimable on this contract.
-     * @param id The id of the specific staking token.
-     * @param account The Account for which updating the rewards.
-     * @param claimRewards Is set to "true" if the action necessits to claim available rewards for this contract.
-     */
-    modifier updateReward(uint256 id, address account, bool claimRewards) {
-        // Note : We might increment rewardPerTokenStored directly in _rewardPerToken()
-        rewardPerTokenStored[id] = _rewardPerToken(id, claimRewards);
-
-        // Rewards should be claimed before calling earnedByAccount, otherwise accounting is not correct.
-        if (claimRewards) _claimRewards(id);
-
-        if (account != address(0)) {
-            // TODO : we can optimizez earnedByAccount to not call second time rewardPerToken()
-            rewards[id][account] = earnedByAccount(id, account);
-            userRewardPerTokenPaid[id][account] = rewardPerTokenStored[id];
-        }
-
-        _;
-    }
-
     /*///////////////////////////////////////////////////////////////
                         STAKINGTOKEN INFORMATION
     ///////////////////////////////////////////////////////////////*/
@@ -88,8 +78,8 @@ abstract contract AbstractStakingModule is ERC1155 {
      * @param id The id of the specific staking token.
      * @return _totalSupply The total supply of the staking token staked via this contract.
      */
-    function totalSupply(uint256 id) external view returns (uint256 _totalSupply) {
-        return totalSupply_[id];
+    function totalSupply(uint256 id) external view returns (uint128 _totalSupply) {
+        return idToInfo[id].totalSupply;
     }
 
     /**
@@ -111,7 +101,7 @@ abstract contract AbstractStakingModule is ERC1155 {
         stakingToken[newId] = ERC20(stakingToken_);
         rewardToken[newId] = ERC20(rewardToken_);
         stakingTokenToId[stakingToken_] = newId;
-        stakingTokenDecimals[newId] = stakingTokenDecimals_;
+        idToInfo[newId].stakingTokenWeiUnit = uint64(10 ** stakingTokenDecimals_);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -123,12 +113,14 @@ abstract contract AbstractStakingModule is ERC1155 {
      * @param id The id of the specific staking token.
      * @param amount The amount of tokens to stake.
      */
-    function stake(uint256 id, uint256 amount) external nonReentrant updateReward(id, msg.sender, false) {
+    function stake(uint256 id, uint128 amount) external nonReentrant {
         if (amount == 0) revert StakingModuleErrors.AmountIsZero();
+
+        _updateReward(id, msg.sender, false);
 
         stakingToken[id].safeTransferFrom(msg.sender, address(this), amount);
 
-        totalSupply_[id] += amount;
+        idToInfo[id].totalSupply += amount;
         _mint(msg.sender, id, amount, "");
 
         // Will stake stakingToken in external staking contract.
@@ -149,10 +141,12 @@ abstract contract AbstractStakingModule is ERC1155 {
      * @param id The id of the specific staking token.
      * @param amount The amount of tokens to withdraw.
      */
-    function withdraw(uint256 id, uint256 amount) external nonReentrant updateReward(id, msg.sender, true) {
+    function withdraw(uint256 id, uint128 amount) external nonReentrant {
         if (amount == 0) revert StakingModuleErrors.AmountIsZero();
 
-        totalSupply_[id] -= amount;
+        _updateReward(id, msg.sender, true);
+
+        idToInfo[id].totalSupply -= amount;
         _burn(msg.sender, id, amount);
 
         // Withdraw staked tokens from external staking contract.
@@ -177,6 +171,25 @@ abstract contract AbstractStakingModule is ERC1155 {
     ///////////////////////////////////////////////////////////////*/
 
     /**
+     * @notice Will update the rewards claimable on this contract.
+     * @param id The id of the specific staking token.
+     * @param account The Account for which updating the rewards.
+     * @param claimRewards Is set to "true" if the action necessits to claim available rewards for this contract.
+     */
+    function _updateReward(uint256 id, address account, bool claimRewards) internal {
+        // Note : We might increment rewardPerTokenStored directly in _rewardPerToken()
+        idToInfo[id].rewardPerTokenStored = _rewardPerToken(id, claimRewards);
+
+        // Rewards should be claimed before calling earnedByAccount, otherwise accounting is not correct.
+        if (claimRewards) _claimRewards(id);
+
+        AccountRewardInfo storage accountRewardInfo = idToAccountRewardInfo[id][account];
+        // TODO : we can optimizez earnedByAccount to not call second time rewardPerToken()
+        accountRewardInfo.rewards = earnedByAccount(id, account);
+        accountRewardInfo.userRewardPerTokenPaid = idToInfo[id].rewardPerTokenStored;
+    }
+
+    /**
      * @notice Claims the rewards available for this contract.
      * @param id The id of the specific staking token.
      */
@@ -188,19 +201,22 @@ abstract contract AbstractStakingModule is ERC1155 {
      * @param claimRewards Is set to "true" if the action necessits to claim the available rewards from external contract.
      * @return rewardPerToken_ The updated reward per token stored.
      */
-    function _rewardPerToken(uint256 id, bool claimRewards) internal returns (uint256 rewardPerToken_) {
-        if (totalSupply_[id] == 0) {
-            return rewardPerTokenStored[id];
-        }
+    function _rewardPerToken(uint256 id, bool claimRewards) internal returns (uint128 rewardPerToken_) {
+        IdToInfo storage idToInfo_ = idToInfo[id];
 
-        // Calc total earned amount of this contract as of now minus last time = earned over period.
-        uint256 actualRewardsBalance = _getActualRewardsBalance(id);
-        uint256 earnedSinceLastUpdate = actualRewardsBalance - previousRewardsBalance[id];
+        // Cache totalSupply
+        uint256 totalSupply_ = idToInfo_.totalSupply;
 
-        previousRewardsBalance[id] = claimRewards ? 0 : actualRewardsBalance;
+        if (totalSupply_ == 0) return idToInfo_.rewardPerTokenStored;
 
-        rewardPerToken_ = rewardPerTokenStored[id]
-            + earnedSinceLastUpdate.mulDivDown(10 ** stakingTokenDecimals[id], totalSupply_[id]);
+        // Calculate total earned rewards for this contract since last update.
+        uint128 actualRewardsBalance = _getActualRewardsBalance(id);
+        uint256 earnedSinceLastUpdate = actualRewardsBalance - idToInfo_.previousRewardBalance;
+
+        idToInfo[id].previousRewardBalance = claimRewards ? 0 : actualRewardsBalance;
+
+        rewardPerToken_ = idToInfo_.rewardPerTokenStored
+            + uint128(earnedSinceLastUpdate.mulDivDown(idToInfo_.stakingTokenWeiUnit, totalSupply_));
     }
 
     /**
@@ -208,17 +224,22 @@ abstract contract AbstractStakingModule is ERC1155 {
      * @param id The id of the specific staking token.
      * @return rewardPerToken_ The updated reward per token stored.
      */
-    function rewardPerToken(uint256 id) public view returns (uint256 rewardPerToken_) {
-        if (totalSupply_[id] == 0) {
-            return rewardPerTokenStored[id];
+    function rewardPerToken(uint256 id) public view returns (uint128 rewardPerToken_) {
+        IdToInfo storage idToInfo_ = idToInfo[id];
+
+        // Cache totalSupply
+        uint256 totalSupply_ = idToInfo_.totalSupply;
+
+        if (totalSupply_ == 0) {
+            return idToInfo_.rewardPerTokenStored;
         }
 
-        // Calc total earned amount of this contract as of now minus last time = earned over period.
-        uint256 actualRewardsBalance = _getActualRewardsBalance(id);
-        uint256 earnedSinceLastUpdate = actualRewardsBalance - previousRewardsBalance[id];
+        // Calculate total earned rewards for this contract since last update.
+        uint128 actualRewardsBalance = _getActualRewardsBalance(id);
+        uint256 earnedSinceLastUpdate = actualRewardsBalance - idToInfo_.previousRewardBalance;
 
-        rewardPerToken_ = rewardPerTokenStored[id]
-            + earnedSinceLastUpdate.mulDivDown(10 ** stakingTokenDecimals[id], totalSupply_[id]);
+        rewardPerToken_ = idToInfo_.rewardPerTokenStored
+            + uint128(earnedSinceLastUpdate.mulDivDown(idToInfo_.stakingTokenWeiUnit, totalSupply_));
     }
 
     /**
@@ -227,11 +248,13 @@ abstract contract AbstractStakingModule is ERC1155 {
      * @param account The Account to calculate current rewards for.
      * @return earned The current amount of rewards earned by the Account.
      */
-    function earnedByAccount(uint256 id, address account) public view returns (uint256 earned) {
+    function earnedByAccount(uint256 id, address account) public view returns (uint128 earned) {
         // Note: see if we can optimize rewardPerToken here, as we calculate it in modifier previously.
-        uint256 rewardPerTokenClaimable = rewardPerToken(id) - userRewardPerTokenPaid[id][account];
-        earned = rewards[id][account]
-            + balanceOf[account][id].mulDivDown(rewardPerTokenClaimable, 10 ** stakingTokenDecimals[id]);
+        AccountRewardInfo storage idToAccountRewardInfo_ = idToAccountRewardInfo[id][account];
+
+        uint256 rewardPerTokenClaimable = rewardPerToken(id) - idToAccountRewardInfo_.userRewardPerTokenPaid;
+        earned = idToAccountRewardInfo_.rewards
+            + uint128(balanceOf[account][id].mulDivDown(rewardPerTokenClaimable, idToInfo[id].stakingTokenWeiUnit));
     }
 
     /**
@@ -239,20 +262,15 @@ abstract contract AbstractStakingModule is ERC1155 {
      * @param id The id of the specific staking token.
      * @return earned The current amount of rewards earned by the the contract.
      */
-    function _getActualRewardsBalance(uint256 id) internal view virtual returns (uint256 earned) { }
+    function _getActualRewardsBalance(uint256 id) internal view virtual returns (uint128 earned) { }
 
     /**
      * @notice Claims the rewards available for an Account.
      * @param id The id of the specific staking token.
      */
-    function getReward(uint256 id) public nonReentrant updateReward(id, msg.sender, true) {
-        uint256 reward = rewards[id][msg.sender];
-
-        if (reward > 0) {
-            rewards[id][msg.sender] = 0;
-            rewardToken[id].safeTransfer(msg.sender, reward);
-            emit RewardPaid(msg.sender, id, reward);
-        }
+    function getReward(uint256 id) public nonReentrant {
+        _updateReward(id, msg.sender, true);
+        _getReward(id);
     }
 
     /**
@@ -260,10 +278,10 @@ abstract contract AbstractStakingModule is ERC1155 {
      * @param id The id of the specific staking token.
      */
     function _getReward(uint256 id) internal {
-        uint256 reward = rewards[id][msg.sender];
+        uint256 reward = idToAccountRewardInfo[id][msg.sender].rewards;
 
         if (reward > 0) {
-            rewards[id][msg.sender] = 0;
+            idToAccountRewardInfo[id][msg.sender].rewards = 0;
             rewardToken[id].safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, id, reward);
         }

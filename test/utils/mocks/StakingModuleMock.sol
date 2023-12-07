@@ -4,9 +4,9 @@ pragma solidity 0.8.22;
 import { AbstractStakingModuleExtension } from "../Extensions.sol";
 
 contract StakingModuleMock is AbstractStakingModuleExtension {
-    mapping(uint256 id => uint256 rewardBalance) public actualRewardBalance;
+    mapping(uint256 id => uint128 rewardBalance) public actualRewardBalance;
 
-    function setActualRewardBalance(uint256 id, uint256 amount) public {
+    function setActualRewardBalance(uint256 id, uint128 amount) public {
         actualRewardBalance[id] = amount;
     }
 
@@ -18,7 +18,7 @@ contract StakingModuleMock is AbstractStakingModuleExtension {
         actualRewardBalance[id] = 0;
     }
 
-    function _getActualRewardsBalance(uint256 id) internal view override returns (uint256 earned) {
+    function _getActualRewardsBalance(uint256 id) internal view override returns (uint128 earned) {
         earned = actualRewardBalance[id];
     }
 }

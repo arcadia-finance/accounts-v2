@@ -25,7 +25,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_stake_Reentered(uint256 id, uint256 amount) public {
+    function testFuzz_Revert_stake_Reentered(uint256 id, uint128 amount) public {
         // Given : Reentrancy guard is in locked state.
         stakingModule.setLocked(2);
 
@@ -43,7 +43,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
     }
 
     function testFuzz_success_stake(
-        uint256 amount,
+        uint128 amount,
         address staker,
         uint8 stakingTokenDecimals,
         uint8 rewardTokenDecimals
@@ -76,7 +76,9 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         assertEq(stakingModule.balanceOf(staker, 2), amount);
         assertEq(ERC20Mock(stakingTokens[0]).balanceOf(address(stakingModule)), amount);
         assertEq(ERC20Mock(stakingTokens[1]).balanceOf(address(stakingModule)), amount);
-        assertEq(stakingModule.totalSupply_(1), amount);
-        assertEq(stakingModule.totalSupply_(2), amount);
+        (,,, uint128 totalSupply1) = stakingModule.idToInfo(1);
+        (,,, uint128 totalSupply2) = stakingModule.idToInfo(2);
+        assertEq(totalSupply1, amount);
+        assertEq(totalSupply2, amount);
     }
 }

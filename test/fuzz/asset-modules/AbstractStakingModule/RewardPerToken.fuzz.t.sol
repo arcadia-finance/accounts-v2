@@ -49,7 +49,7 @@ contract RewardPerToken_AbstractStakingModule_Fuzz_Test is AbstractStakingModule
         AbstractStakingModuleStateForId memory moduleState,
         uint256 id,
         address account,
-        uint256 stakingTokenDecimals
+        uint8 stakingTokenDecimals
     ) public {
         // Given : Total supply is > 0 (totalSupply should be >= userBalance)
         vm.assume(moduleState.userBalance > 0);
@@ -58,7 +58,7 @@ contract RewardPerToken_AbstractStakingModule_Fuzz_Test is AbstractStakingModule
         AbstractStakingModuleStateForId memory moduleState_ = setStakingModuleState(moduleState, id, account);
 
         // Given : Staking token decimals is min 6 and max 18
-        stakingTokenDecimals = bound(stakingTokenDecimals, 6, 18);
+        stakingTokenDecimals = uint8(bound(stakingTokenDecimals, 6, 18));
         stakingModule.setStakingTokensDecimals(id, stakingTokenDecimals);
 
         // When : Calling rewardPerToken()

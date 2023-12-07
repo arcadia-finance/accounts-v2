@@ -71,7 +71,8 @@ contract AddNewStakingToken_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
         uint256 idCounter = stakingModule.getIdCounter();
         assertEq(address(stakingModule.stakingToken(idCounter)), address(mockERC20.stable1));
         assertEq(address(stakingModule.rewardToken(idCounter)), address(mockERC20.token1));
-        assertEq(stakingModule.stakingTokenDecimals(idCounter), mockERC20.stable1.decimals());
+        (, uint64 stakingTokenWeiUnit,,) = stakingModule.idToInfo(idCounter);
+        assertEq(stakingTokenWeiUnit, 10 ** mockERC20.stable1.decimals());
         assertEq(stakingModule.stakingTokenToId(address(mockERC20.stable1)), idCounter);
         assertEq(idCounter, 1);
 
