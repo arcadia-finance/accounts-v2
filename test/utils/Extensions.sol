@@ -587,10 +587,6 @@ abstract contract AbstractStakingModuleExtension is AbstractStakingModule {
         balanceOf[account][id] = amount;
     }
 
-    function setStakingTokensDecimals(uint256 id, uint8 decimals) public {
-        idToInfo[id].stakingTokenWeiUnit = uint64(10 ** decimals);
-    }
-
     function setLocked(uint256 locked_) external {
         locked = locked_;
     }

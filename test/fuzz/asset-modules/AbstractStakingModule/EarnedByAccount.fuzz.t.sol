@@ -30,15 +30,10 @@ contract EarnedByAccount_AbstractStakingModule_Fuzz_Test is AbstractStakingModul
     function testFuzz_success_earnedByAccount(
         AbstractStakingModuleStateForId memory moduleState,
         uint256 id,
-        address account,
-        uint256 stakingTokenDecimals
+        address account
     ) public {
         // Given : Valid state
         AbstractStakingModuleStateForId memory moduleState_ = setStakingModuleState(moduleState, id, account);
-
-        // Given : Staking token decimals is min 6 and max 18
-        stakingTokenDecimals = bound(stakingTokenDecimals, 6, 18);
-        stakingModule.setStakingTokensDecimals(id, uint8(stakingTokenDecimals));
 
         // When : Calling earnedByAccount()
         uint256 earned = stakingModule.earnedByAccount(id, account);
@@ -47,8 +42,8 @@ contract EarnedByAccount_AbstractStakingModule_Fuzz_Test is AbstractStakingModul
         // rewardPerToken() is previously tested
         uint256 rewardPerToken = stakingModule.rewardPerToken(id);
         uint256 rewardPerTokenClaimable = rewardPerToken - moduleState_.userRewardPerTokenPaid;
-        uint256 earned_ = moduleState_.rewards
-            + uint256(moduleState.userBalance).mulDivDown(rewardPerTokenClaimable, 10 ** stakingTokenDecimals);
+        uint256 earned_ =
+            moduleState_.rewards + uint256(moduleState.userBalance).mulDivDown(rewardPerTokenClaimable, 1e18);
 
         assertEq(earned, earned_);
     }

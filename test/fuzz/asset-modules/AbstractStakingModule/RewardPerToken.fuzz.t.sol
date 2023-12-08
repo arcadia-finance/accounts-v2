@@ -48,8 +48,7 @@ contract RewardPerToken_AbstractStakingModule_Fuzz_Test is AbstractStakingModule
     function testFuzz_success_rewardPerToken_totalSupplyNonZero(
         AbstractStakingModuleStateForId memory moduleState,
         uint256 id,
-        address account,
-        uint8 stakingTokenDecimals
+        address account
     ) public {
         // Given : Total supply is > 0 (totalSupply should be >= userBalance)
         vm.assume(moduleState.userBalance > 0);
@@ -57,18 +56,13 @@ contract RewardPerToken_AbstractStakingModule_Fuzz_Test is AbstractStakingModule
         // Given : Valid state
         AbstractStakingModuleStateForId memory moduleState_ = setStakingModuleState(moduleState, id, account);
 
-        // Given : Staking token decimals is min 6 and max 18
-        stakingTokenDecimals = uint8(bound(stakingTokenDecimals, 6, 18));
-        stakingModule.setStakingTokensDecimals(id, stakingTokenDecimals);
-
         // When : Calling rewardPerToken()
         uint256 rewardPerToken = stakingModule.rewardPerToken(id);
 
         // Then : It should return the correct value
         uint256 initialRewardPerToken = moduleState_.rewardPerTokenStored;
         uint256 earnedSinceLastUpdate = moduleState_.actualRewardBalance - moduleState_.previousRewardBalance;
-        uint256 earnedPerTokenSinceLastUpdate =
-            earnedSinceLastUpdate.mulDivDown(10 ** stakingTokenDecimals, moduleState_.totalSupply);
+        uint256 earnedPerTokenSinceLastUpdate = earnedSinceLastUpdate.mulDivDown(1e18, moduleState_.totalSupply);
         uint256 rewardPerToken_ = initialRewardPerToken + earnedPerTokenSinceLastUpdate;
 
         assertEq(rewardPerToken, rewardPerToken_);
