@@ -20,8 +20,8 @@ abstract contract AbstractStakingModule is ERC1155, ReentrancyGuard {
     // A counter that will increment the id for each new staking token added.
     uint256 internal idCounter;
 
-    // Map a staking token to it's token id.
-    mapping(address stakingToken => uint256 id) public stakingTokenToId;
+    // Map a staking token and reward token pair to their corresponding token id.
+    mapping(address stakingToken => mapping(address rewardToken => uint256 id)) public tokenToRewardToId;
     // Map a token id to it's corresponding staking token.
     mapping(uint256 id => ERC20 stakingToken) public stakingToken;
     // Map a token id to it's corresponding reward token.
@@ -59,6 +59,7 @@ abstract contract AbstractStakingModule is ERC1155, ReentrancyGuard {
     error AmountIsZero();
     error NoReentry();
     error InvalidTokenDecimals();
+    error TokenToRewardPairAlreadySet();
 
     /*///////////////////////////////////////////////////////////////
                         STAKINGTOKEN INFORMATION
@@ -79,6 +80,8 @@ abstract contract AbstractStakingModule is ERC1155, ReentrancyGuard {
      * @param rewardToken_ The address of the reward token.
      */
     function addNewStakingToken(address stakingToken_, address rewardToken_) public {
+        if (tokenToRewardToId[stakingToken_][rewardToken_] != 0) revert TokenToRewardPairAlreadySet();
+
         // Cache new id
         uint256 newId;
         unchecked {
@@ -93,7 +96,7 @@ abstract contract AbstractStakingModule is ERC1155, ReentrancyGuard {
 
         stakingToken[newId] = ERC20(stakingToken_);
         rewardToken[newId] = ERC20(rewardToken_);
-        stakingTokenToId[stakingToken_] = newId;
+        tokenToRewardToId[stakingToken_][rewardToken_] = newId;
     }
 
     /*///////////////////////////////////////////////////////////////

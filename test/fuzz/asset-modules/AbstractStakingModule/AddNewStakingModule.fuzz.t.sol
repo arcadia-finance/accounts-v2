@@ -25,6 +25,27 @@ contract AddNewStakingToken_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
+    function testFuzz_revert_addNewStakingToken_tokenAndRewardPairAlreadySet(
+        uint8 stakingTokenDecimals,
+        uint8 rewardTokenDecimals
+    ) public {
+        // Given : Staking token decimals <= 18
+        stakingTokenDecimals = uint8(bound(stakingTokenDecimals, 0, 18));
+        // Given : RewardToken decimals is <= 18
+        rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 18));
+
+        address stakingToken = address(new ERC20Mock("xxx", "xxx", stakingTokenDecimals));
+        address rewardToken = address(new ERC20Mock("xxx", "xxx", rewardTokenDecimals));
+
+        // Given : A token/reward pair is set for the first time.
+        stakingModule.addNewStakingToken(stakingToken, rewardToken);
+
+        // When : We try to add the same pair
+        // Then : It should revert, as a token id already exists for that pair
+        vm.expectRevert(AbstractStakingModule.TokenToRewardPairAlreadySet.selector);
+        stakingModule.addNewStakingToken(stakingToken, rewardToken);
+    }
+
     function testFuzz_revert_addNewStakingToken_stakingTokenDecimalsGreaterThan18(
         uint8 stakingTokenDecimals,
         uint8 rewardTokenDecimals
@@ -72,7 +93,7 @@ contract AddNewStakingToken_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
         uint256 idCounter = stakingModule.getIdCounter();
         assertEq(address(stakingModule.stakingToken(idCounter)), address(mockERC20.stable1));
         assertEq(address(stakingModule.rewardToken(idCounter)), address(mockERC20.token1));
-        assertEq(stakingModule.stakingTokenToId(address(mockERC20.stable1)), idCounter);
+        assertEq(stakingModule.tokenToRewardToId(address(mockERC20.stable1), address(mockERC20.token1)), idCounter);
         assertEq(idCounter, 1);
 
         // Repeat the above operation for an additional token
