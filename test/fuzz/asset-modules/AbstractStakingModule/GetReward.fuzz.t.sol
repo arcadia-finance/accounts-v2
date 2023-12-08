@@ -27,17 +27,6 @@ contract GetReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_getReward_Reentered(uint256 id) public {
-        // Given : Reentrancy guard is in locked state.
-        stakingModule.setLocked(2);
-
-        // When : A user withdraws.
-        // Then : It should revert.
-        vm.expectRevert(AbstractStakingModule.NoReentry.selector);
-        stakingModule.getReward(id);
-        vm.stopPrank();
-    }
-
     function testFuzz_Success_getReward_ZeroReward(
         uint256 id,
         address account,

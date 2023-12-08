@@ -587,10 +587,6 @@ abstract contract AbstractStakingModuleExtension is AbstractStakingModule {
         balanceOf[account][id] = amount;
     }
 
-    function setLocked(uint256 locked_) external {
-        locked = locked_;
-    }
-
     function getIdCounter() public view returns (uint256 idCounter_) {
         idCounter_ = idCounter;
     }

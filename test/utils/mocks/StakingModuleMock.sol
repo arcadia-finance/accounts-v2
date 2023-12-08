@@ -21,4 +21,6 @@ contract StakingModuleMock is AbstractStakingModuleExtension {
     function _getActualRewardsBalance(uint256 id) internal view override returns (uint128 earned) {
         earned = actualRewardBalance[id];
     }
+
+    function uri(uint256 id) public view virtual override returns (string memory) { }
 }

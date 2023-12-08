@@ -27,17 +27,6 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_withdraw_Reentered(uint256 id, uint128 amount) public {
-        // Given : Reentrancy guard is in locked state.
-        stakingModule.setLocked(2);
-
-        // When : A user withdraws.
-        // Then : It should revert.
-        vm.expectRevert(AbstractStakingModule.NoReentry.selector);
-        stakingModule.withdraw(id, amount);
-        vm.stopPrank();
-    }
-
     function testFuzz_Revert_Withdraw_ZeroAmount(uint256 id) public {
         // Given : Amount is 0.
         uint128 amount = 0;

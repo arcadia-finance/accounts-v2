@@ -5,10 +5,11 @@
 pragma solidity 0.8.22;
 
 import { ERC1155 } from "../../../lib/solmate/src/tokens/ERC1155.sol";
+import { ReentrancyGuard } from "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
 import { ERC20, SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
-abstract contract AbstractStakingModule is ERC1155 {
+abstract contract AbstractStakingModule is ERC1155, ReentrancyGuard {
     using FixedPointMathLib for uint256;
     using SafeTransferLib for ERC20;
 
@@ -18,8 +19,6 @@ abstract contract AbstractStakingModule is ERC1155 {
 
     // A counter that will increment the id for each new staking token added.
     uint256 internal idCounter;
-    // Flag Indicating if a function is locked to protect against reentrancy.
-    uint256 internal locked = 1;
 
     // Map a staking token to it's token id.
     mapping(address stakingToken => uint256 id) public stakingTokenToId;
@@ -60,20 +59,6 @@ abstract contract AbstractStakingModule is ERC1155 {
     error AmountIsZero();
     error NoReentry();
     error InvalidTokenDecimals();
-
-    /* //////////////////////////////////////////////////////////////
-                                MODIFIERS
-    ////////////////////////////////////////////////////////////// */
-
-    /**
-     * @dev Throws if function is reentered.
-     */
-    modifier nonReentrant() {
-        if (locked != 1) revert NoReentry();
-        locked = 2;
-        _;
-        locked = 1;
-    }
 
     /*///////////////////////////////////////////////////////////////
                         STAKINGTOKEN INFORMATION
@@ -145,7 +130,7 @@ abstract contract AbstractStakingModule is ERC1155 {
      * @param id The id of the specific staking token.
      * @param amount The amount of tokens to stake.
      */
-    function _stake(uint256 id, uint256 amount) internal virtual { }
+    function _stake(uint256 id, uint256 amount) internal virtual;
 
     function _getCurrentBalances(uint256 id, address account)
         internal
@@ -222,7 +207,7 @@ abstract contract AbstractStakingModule is ERC1155 {
      * @param id The id of the specific staking token.
      * @param amount The amount of tokens to withdraw.
      */
-    function _withdraw(uint256 id, uint256 amount) internal virtual { }
+    function _withdraw(uint256 id, uint256 amount) internal virtual;
 
     /*///////////////////////////////////////////////////////////////
                         REWARDS ACCOUNTING LOGIC
@@ -232,7 +217,7 @@ abstract contract AbstractStakingModule is ERC1155 {
      * @notice Claims the rewards available for this contract.
      * @param id The id of the specific staking token.
      */
-    function _claimRewards(uint256 id) internal virtual { }
+    function _claimRewards(uint256 id) internal virtual;
 
     /**
      * @notice Returns the updated reward per token stored if rewards have accrued for this contract.
@@ -275,7 +260,7 @@ abstract contract AbstractStakingModule is ERC1155 {
      * @param id The id of the specific staking token.
      * @return earned The current amount of rewards earned by the the contract.
      */
-    function _getActualRewardsBalance(uint256 id) internal view virtual returns (uint128 earned) { }
+    function _getActualRewardsBalance(uint256 id) internal view virtual returns (uint128 earned);
 
     function getReward(uint256 id) public nonReentrant {
         // Calculate the updated reward balances.
@@ -300,5 +285,5 @@ abstract contract AbstractStakingModule is ERC1155 {
         }
     }
 
-    function uri(uint256 id) public view virtual override returns (string memory) { }
+    function uri(uint256 id) public view virtual override returns (string memory);
 }
