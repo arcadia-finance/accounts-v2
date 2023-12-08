@@ -80,7 +80,10 @@ abstract contract AbstractStakingModule is ERC1155, ReentrancyGuard {
      */
     function addNewStakingToken(address stakingToken_, address rewardToken_) public {
         // Cache new id
-        uint256 newId = ++idCounter;
+        uint256 newId;
+        unchecked {
+            newId = ++idCounter;
+        }
 
         // Cache tokens decimals
         uint256 stakingTokenDecimals_ = ERC20(stakingToken_).decimals();
@@ -224,13 +227,10 @@ abstract contract AbstractStakingModule is ERC1155, ReentrancyGuard {
      * @param id The id of the specific staking token.
      * @return rewardPerToken_ The updated reward per token stored.
      */
-    function rewardPerToken(uint256 id) public view returns (uint128 rewardPerToken_) {
-        IdToInfo storage idToInfo_ = idToInfo[id];
+    function rewardPerToken(uint256 id) public view returns (uint256 rewardPerToken_) {
+        IdToInfo memory idToInfo_ = idToInfo[id];
 
-        // Cache totalSupply
-        uint256 totalSupply_ = idToInfo_.totalSupply;
-
-        if (totalSupply_ == 0) {
+        if (idToInfo_.totalSupply == 0) {
             return idToInfo_.rewardPerTokenStored;
         }
 
@@ -238,7 +238,7 @@ abstract contract AbstractStakingModule is ERC1155, ReentrancyGuard {
         uint128 actualRewardsBalance = _getActualRewardsBalance(id);
         uint256 earnedSinceLastUpdate = actualRewardsBalance - idToInfo_.previousRewardBalance;
 
-        rewardPerToken_ = idToInfo_.rewardPerTokenStored + uint128(earnedSinceLastUpdate.mulDivDown(1e18, totalSupply_));
+        rewardPerToken_ = idToInfo_.rewardPerTokenStored + earnedSinceLastUpdate.mulDivDown(1e18, idToInfo_.totalSupply);
     }
 
     /**
@@ -247,12 +247,11 @@ abstract contract AbstractStakingModule is ERC1155, ReentrancyGuard {
      * @param account The Account to calculate current rewards for.
      * @return earned The current amount of rewards earned by the Account.
      */
-    function earnedByAccount(uint256 id, address account) public view returns (uint128 earned) {
-        AccountRewardInfo storage idToAccountRewardInfo_ = idToAccountRewardInfo[id][account];
+    function earnedByAccount(uint256 id, address account) public view returns (uint256 earned) {
+        AccountRewardInfo memory idToAccountRewardInfo_ = idToAccountRewardInfo[id][account];
 
         uint256 rewardPerTokenClaimable = rewardPerToken(id) - idToAccountRewardInfo_.userRewardPerTokenPaid;
-        earned =
-            idToAccountRewardInfo_.rewards + uint128(balanceOf[account][id].mulDivDown(rewardPerTokenClaimable, 1e18));
+        earned = idToAccountRewardInfo_.rewards + balanceOf[account][id].mulDivDown(rewardPerTokenClaimable, 1e18);
     }
 
     /**
