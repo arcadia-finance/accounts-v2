@@ -128,8 +128,8 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         stakingTokens = new address[](numberOfTokens);
         rewardTokens = new address[](numberOfTokens);
 
-        stakingTokenDecimals = uint8(bound(stakingTokenDecimals, 6, 18));
-        rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 6, 18));
+        stakingTokenDecimals = uint8(bound(stakingTokenDecimals, 0, 18));
+        rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 18));
 
         for (uint8 i = 0; i < numberOfTokens; ++i) {
             ERC20Mock stakingToken = new ERC20Mock("StakingToken", "STK", stakingTokenDecimals);

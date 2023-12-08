@@ -95,7 +95,6 @@ abstract contract AbstractStakingModule is ERC1155 {
         uint256 rewardTokenDecimals_ = ERC20(rewardToken_).decimals();
 
         if (stakingTokenDecimals_ > 18 || rewardTokenDecimals_ > 18) revert StakingModuleErrors.InvalidTokenDecimals();
-        if (stakingTokenDecimals_ < 6 || rewardTokenDecimals_ < 6) revert StakingModuleErrors.InvalidTokenDecimals();
 
         stakingToken[newId] = ERC20(stakingToken_);
         rewardToken[newId] = ERC20(rewardToken_);

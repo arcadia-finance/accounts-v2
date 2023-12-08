@@ -25,14 +25,14 @@ contract AddNewStakingToken_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_revert_addNewStakingToken_decimalsGreaterThan18(
+    function testFuzz_revert_addNewStakingToken_stakingTokenDecimalsGreaterThan18(
         uint8 stakingTokenDecimals,
         uint8 rewardTokenDecimals
     ) public {
         // Given : stakingToken decimals is > 18
         stakingTokenDecimals = uint8(bound(stakingTokenDecimals, 19, type(uint8).max));
-        // Given : rewardToken decimals is >= 6 and <= 18
-        rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 6, 18));
+        // Given : rewardToken decimals is <= 18
+        rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 18));
 
         address stakingToken = address(new ERC20Mock("xxx", "xxx", stakingTokenDecimals));
         address rewardToken = address(new ERC20Mock("xxx", "xxx", rewardTokenDecimals));
@@ -43,18 +43,19 @@ contract AddNewStakingToken_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
         stakingModule.addNewStakingToken(stakingToken, rewardToken);
     }
 
-    function testFuzz_revert_addNewStakingToken_decimalsLessThan6(uint8 stakingTokenDecimals, uint8 rewardTokenDecimals)
-        public
-    {
-        // Given : stakingToken decimals is >= 6 and <= 18
-        stakingTokenDecimals = uint8(bound(stakingTokenDecimals, 6, 18));
-        // Given : rewardToken decimals is < 6
-        rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 5));
+    function testFuzz_revert_addNewStakingToken_rewardTokenDecimalsGreaterThan18(
+        uint8 stakingTokenDecimals,
+        uint8 rewardTokenDecimals
+    ) public {
+        // Given : rewardToken decimals is > 18
+        rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 19, type(uint8).max));
+        // Given : stakingTokenDecimals is <= 18
+        stakingTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 18));
 
         address stakingToken = address(new ERC20Mock("xxx", "xxx", stakingTokenDecimals));
         address rewardToken = address(new ERC20Mock("xxx", "xxx", rewardTokenDecimals));
 
-        // When : We try to add a new reward token that has less than 6 decimals
+        // When : We try to add a new staking token that has over 18 decimals
         // Then : It should revert
         vm.expectRevert(StakingModuleErrors.InvalidTokenDecimals.selector);
         stakingModule.addNewStakingToken(stakingToken, rewardToken);
