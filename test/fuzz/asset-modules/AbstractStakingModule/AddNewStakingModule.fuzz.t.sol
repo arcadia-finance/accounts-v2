@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test, StakingModuleErrors } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, AbstractStakingModule } from "./_AbstractStakingModule.fuzz.t.sol";
 
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
@@ -39,7 +39,7 @@ contract AddNewStakingToken_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
 
         // When : We try to add a new staking token that has over 18 decimals
         // Then : It should revert
-        vm.expectRevert(StakingModuleErrors.InvalidTokenDecimals.selector);
+        vm.expectRevert(AbstractStakingModule.InvalidTokenDecimals.selector);
         stakingModule.addNewStakingToken(stakingToken, rewardToken);
     }
 
@@ -57,7 +57,7 @@ contract AddNewStakingToken_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
 
         // When : We try to add a new staking token that has over 18 decimals
         // Then : It should revert
-        vm.expectRevert(StakingModuleErrors.InvalidTokenDecimals.selector);
+        vm.expectRevert(AbstractStakingModule.InvalidTokenDecimals.selector);
         stakingModule.addNewStakingToken(stakingToken, rewardToken);
     }
 

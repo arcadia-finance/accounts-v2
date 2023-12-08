@@ -61,9 +61,3 @@ library RegistryErrors {
     error OracleModNotUnique();
     error Unauthorized();
 }
-
-library StakingModuleErrors {
-    error AmountIsZero();
-    error NoReentry();
-    error InvalidTokenDecimals();
-}

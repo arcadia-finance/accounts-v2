@@ -4,9 +4,8 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test, ERC20Mock, StakingModuleErrors } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, AbstractStakingModule, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
 
-import { AbstractStakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
@@ -34,7 +33,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
 
         // When : A user withdraws.
         // Then : It should revert.
-        vm.expectRevert(StakingModuleErrors.NoReentry.selector);
+        vm.expectRevert(AbstractStakingModule.NoReentry.selector);
         stakingModule.withdraw(id, amount);
         vm.stopPrank();
     }
@@ -45,7 +44,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
 
         // When : Trying to withdraw zero amount.
         // Then : It should revert.
-        vm.expectRevert(StakingModuleErrors.AmountIsZero.selector);
+        vm.expectRevert(AbstractStakingModule.AmountIsZero.selector);
         stakingModule.withdraw(id, amount);
     }
 

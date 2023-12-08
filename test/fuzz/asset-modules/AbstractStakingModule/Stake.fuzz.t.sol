@@ -4,9 +4,8 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test, StakingModuleErrors, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, AbstractStakingModule, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
 
-import { AbstractStakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 /**
@@ -31,14 +30,14 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
 
         // When : A user stakes.
         // Then : It should revert.
-        vm.expectRevert(StakingModuleErrors.NoReentry.selector);
+        vm.expectRevert(AbstractStakingModule.NoReentry.selector);
         stakingModule.stake(id, amount);
         vm.stopPrank();
     }
 
     function testFuzz_revert_stake_ZeroAmount() public {
         // The stake function should revert when trying to stake 0 amount.
-        vm.expectRevert(StakingModuleErrors.AmountIsZero.selector);
+        vm.expectRevert(AbstractStakingModule.AmountIsZero.selector);
         stakingModule.stake(0, 0);
     }
 

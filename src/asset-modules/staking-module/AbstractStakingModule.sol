@@ -4,7 +4,6 @@
  */
 pragma solidity 0.8.22;
 
-import { StakingModuleErrors } from "../../libraries/Errors.sol";
 import { ERC1155 } from "../../../lib/solmate/src/tokens/ERC1155.sol";
 import { ERC20, SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -55,6 +54,14 @@ abstract contract AbstractStakingModule is ERC1155 {
     event RewardPaid(address indexed account, uint256 id, uint256 reward);
 
     /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    error AmountIsZero();
+    error NoReentry();
+    error InvalidTokenDecimals();
+
+    /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
 
@@ -62,7 +69,7 @@ abstract contract AbstractStakingModule is ERC1155 {
      * @dev Throws if function is reentered.
      */
     modifier nonReentrant() {
-        if (locked != 1) revert StakingModuleErrors.NoReentry();
+        if (locked != 1) revert NoReentry();
         locked = 2;
         _;
         locked = 1;
@@ -94,7 +101,7 @@ abstract contract AbstractStakingModule is ERC1155 {
         uint256 stakingTokenDecimals_ = ERC20(stakingToken_).decimals();
         uint256 rewardTokenDecimals_ = ERC20(rewardToken_).decimals();
 
-        if (stakingTokenDecimals_ > 18 || rewardTokenDecimals_ > 18) revert StakingModuleErrors.InvalidTokenDecimals();
+        if (stakingTokenDecimals_ > 18 || rewardTokenDecimals_ > 18) revert InvalidTokenDecimals();
 
         stakingToken[newId] = ERC20(stakingToken_);
         rewardToken[newId] = ERC20(rewardToken_);
@@ -106,7 +113,7 @@ abstract contract AbstractStakingModule is ERC1155 {
     ///////////////////////////////////////////////////////////////*/
 
     function stake(uint256 id, uint128 amount) external nonReentrant {
-        if (amount == 0) revert StakingModuleErrors.AmountIsZero();
+        if (amount == 0) revert AmountIsZero();
 
         // Need to transfer the underlying asset before minting or ERC777s could reenter.
         stakingToken[id].safeTransferFrom(msg.sender, address(this), amount);
@@ -176,7 +183,7 @@ abstract contract AbstractStakingModule is ERC1155 {
     }
 
     function withdraw(uint256 id, uint128 amount) external nonReentrant {
-        if (amount == 0) revert StakingModuleErrors.AmountIsZero();
+        if (amount == 0) revert AmountIsZero();
 
         // Calculate the updated reward balances.
         (, uint256 currentRewardPerToken, uint256 currentReward, uint256 totalSupply_) =

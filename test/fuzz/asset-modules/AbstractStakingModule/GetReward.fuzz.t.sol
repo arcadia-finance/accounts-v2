@@ -4,9 +4,8 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test, StakingModuleErrors } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, AbstractStakingModule } from "./_AbstractStakingModule.fuzz.t.sol";
 
-import { AbstractStakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
@@ -34,7 +33,7 @@ contract GetReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz
 
         // When : A user withdraws.
         // Then : It should revert.
-        vm.expectRevert(StakingModuleErrors.NoReentry.selector);
+        vm.expectRevert(AbstractStakingModule.NoReentry.selector);
         stakingModule.getReward(id);
         vm.stopPrank();
     }
