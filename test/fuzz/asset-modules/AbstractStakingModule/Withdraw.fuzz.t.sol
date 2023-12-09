@@ -4,15 +4,15 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test, AbstractStakingModule, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, StakingModule, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 /**
- * @notice Fuzz tests for the function "withdraw" of contract "AbstractStakingModule".
+ * @notice Fuzz tests for the function "withdraw" of contract "StakingModule".
  */
-contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
+contract Withdraw_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
     /* ///////////////////////////////////////////////////////////////
@@ -33,14 +33,14 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
 
         // When : Trying to withdraw zero amount.
         // Then : It should revert.
-        vm.expectRevert(AbstractStakingModule.AmountIsZero.selector);
+        vm.expectRevert(StakingModule.ZeroAmount.selector);
         stakingModule.withdraw(id, amount);
     }
 
     function testFuzz_Success_Withdraw(
         address account,
-        AbstractStakingModuleStateForId memory moduleState,
-        uint8 stakingTokenDecimals,
+        StakingModuleStateForId memory moduleState,
+        uint8 underlyingTokenDecimals,
         uint8 rewardTokenDecimals
     ) public {
         // Given : account != zero address
@@ -50,37 +50,37 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         uint256 id = 2;
 
         // Given : Valid state
-        AbstractStakingModuleStateForId memory moduleState_ = setStakingModuleState(moduleState, id, account);
+        StakingModuleStateForId memory moduleState_ = setStakingModuleState(moduleState, id, account);
 
         // Given : Add a staking token + reward token pairs
-        (address[] memory stakingTokens, address[] memory rewardTokens) =
-            addStakingTokens(2, stakingTokenDecimals, rewardTokenDecimals);
+        (address[] memory underlyingTokens, address[] memory rewardTokens) =
+            addStakingTokens(2, underlyingTokenDecimals, rewardTokenDecimals);
 
         // Given : Account has a positive balance
         vm.assume(stakingModule.balanceOf(account, id) > 0);
 
-        // Given : transfer stakingToken and rewardToken to stakingModule, as _withdraw and _claimRewards are not implemented on external staking contract.
+        // Given : transfer underlyingToken and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract.
         address[] memory tokens = new address[](2);
-        tokens[0] = stakingTokens[1];
+        tokens[0] = underlyingTokens[1];
         tokens[1] = rewardTokens[1];
 
         uint256[] memory amounts = new uint256[](2);
-        amounts[0] = moduleState_.userBalance;
-        uint256 earnedRewards = stakingModule.earnedByAccount(id, account);
-        amounts[1] = earnedRewards;
+        amounts[0] = moduleState_.accountBalance;
+        uint256 currentRewardAccount = stakingModule.rewardOf(account, id);
+        amounts[1] = currentRewardAccount;
 
         mintERC20TokensTo(tokens, address(stakingModule), amounts);
 
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit AbstractStakingModule.Withdrawn(account, id, moduleState_.userBalance);
-        stakingModule.withdraw(id, moduleState_.userBalance);
+        emit StakingModule.Withdrawn(account, id, moduleState_.accountBalance);
+        stakingModule.withdraw(id, moduleState_.accountBalance);
         vm.stopPrank();
 
         // Then : Account should get the staking and reward tokens.
-        assertEq(ERC20Mock(tokens[0]).balanceOf(account), moduleState_.userBalance);
-        assertEq(ERC20Mock(tokens[1]).balanceOf(account), earnedRewards);
+        assertEq(ERC20Mock(tokens[0]).balanceOf(account), moduleState_.accountBalance);
+        assertEq(ERC20Mock(tokens[1]).balanceOf(account), currentRewardAccount);
         assertEq(stakingModule.balanceOf(account, id), 0);
     }
 
@@ -91,18 +91,18 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         uint128 user1InitBalance = uint128(1_000_000 * (10 ** Constants.stableDecimals));
         uint128 user2InitBalance = uint128(4_000_000 * (10 ** Constants.stableDecimals));
 
-        // Given : Fund both users with amount of stakingTokens
-        address stakingToken = address(mockERC20.stable1);
+        // Given : Fund both users with amount of underlyingTokens
+        address underlyingToken = address(mockERC20.stable1);
         address rewardToken = address(mockERC20.token1);
-        mintERC20TokenTo(stakingToken, user1, user1InitBalance);
-        mintERC20TokenTo(stakingToken, user2, user2InitBalance);
+        mintERC20TokenTo(underlyingToken, user1, user1InitBalance);
+        mintERC20TokenTo(underlyingToken, user2, user2InitBalance);
 
-        // Given : Add stakingToken and rewardToken to stakingModule
-        stakingModule.addNewStakingToken(stakingToken, rewardToken);
+        // Given : Add underlyingToken and rewardToken to stakingModule
+        stakingModule.addNewStakingToken(underlyingToken, rewardToken);
 
         // Given : Both users stake in the stakingModule
-        approveERC20TokenFor(stakingToken, address(stakingModule), user1InitBalance, user1);
-        approveERC20TokenFor(stakingToken, address(stakingModule), user2InitBalance, user2);
+        approveERC20TokenFor(underlyingToken, address(stakingModule), user1InitBalance, user1);
+        approveERC20TokenFor(underlyingToken, address(stakingModule), user2InitBalance, user2);
 
         vm.prank(user1);
         stakingModule.stake(1, user1InitBalance);
@@ -117,14 +117,14 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // When : User1 claims rewards
         // Then : He should receive 1/5 of the rewardAmount1
         vm.prank(user1);
-        stakingModule.getReward(1);
+        stakingModule.claimReward(1);
 
         assertEq(mockERC20.token1.balanceOf(user1), rewardAmount1 / 5);
 
         // Given : User 1 stakes additional tokens and stakes
         uint128 user1AddedBalance = uint128(3_000_000 * (10 ** Constants.stableDecimals));
-        mintERC20TokenTo(stakingToken, user1, user1AddedBalance);
-        approveERC20TokenFor(stakingToken, address(stakingModule), user1AddedBalance, user1);
+        mintERC20TokenTo(underlyingToken, user1, user1AddedBalance);
+        approveERC20TokenFor(underlyingToken, address(stakingModule), user1AddedBalance, user1);
 
         vm.prank(user1);
         stakingModule.stake(1, user1AddedBalance);
@@ -136,8 +136,8 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
 
         // Given : A third user stakes while there is no reward increase (this shouldn't accrue rewards for him and not impact other user rewards)
         address user3 = address(0x3);
-        mintERC20TokenTo(stakingToken, user3, user1AddedBalance);
-        approveERC20TokenFor(stakingToken, address(stakingModule), user1AddedBalance, user3);
+        mintERC20TokenTo(underlyingToken, user3, user1AddedBalance);
+        approveERC20TokenFor(underlyingToken, address(stakingModule), user1AddedBalance, user3);
 
         vm.prank(user3);
         stakingModule.stake(1, user1AddedBalance);
@@ -161,7 +161,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // When : User2 calls getRewards()
         // Then : He should not have accrued any rewards
         vm.prank(user3);
-        stakingModule.getReward(1);
+        stakingModule.claimReward(1);
 
         assertEq(mockERC20.token1.balanceOf(user3), 0);
     }

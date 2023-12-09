@@ -25,7 +25,7 @@ import { StandardERC4626AssetModule } from "../../src/asset-modules/StandardERC4
 import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModule.sol";
 import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
-import { AbstractStakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
+import { StakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 
 contract AccountExtension is AccountV1 {
     constructor() AccountV1() { }
@@ -562,32 +562,45 @@ contract MultiCallExtension is ActionMultiCall {
     }
 }
 
-abstract contract AbstractStakingModuleExtension is AbstractStakingModule {
-    function setPreviousRewardsBalance(uint256 id, uint128 balance) public {
-        idToInfo[id].previousRewardBalance = balance;
+abstract contract StakingModuleExtension is StakingModule {
+    function setLastRewardGlobal(uint256 id, uint128 balance) public {
+        tokenState[id].lastRewardGlobal = balance;
     }
 
     function setTotalSupply(uint256 id, uint128 totalSupply_) public {
-        idToInfo[id].totalSupply = totalSupply_;
+        tokenState[id].totalSupply = totalSupply_;
     }
 
-    function setRewardsForAccount(uint256 id, uint128 rewards_, address account) public {
-        idToAccountRewardInfo[id][account].rewards = rewards_;
+    function setLastRewardAccount(uint256 id, uint128 rewards_, address account) public {
+        accountState[account][id].lastRewardAccount = rewards_;
     }
 
-    function setUserRewardPerTokenPaid(uint256 id, uint128 rewardPaid, address account) public {
-        idToAccountRewardInfo[id][account].userRewardPerTokenPaid = rewardPaid;
+    function setLastRewardPerTokenAccount(uint256 id, uint128 rewardPaid, address account) public {
+        accountState[account][id].lastRewardPerTokenAccount = rewardPaid;
     }
 
-    function setRewardPerTokenStored(uint256 id, uint128 amount) public {
-        idToInfo[id].rewardPerTokenStored = amount;
+    function setLastRewardPerTokenGlobal(uint256 id, uint128 amount) public {
+        tokenState[id].lastRewardPerTokenGlobal = amount;
     }
 
-    function setBalanceOfAccountForId(uint256 id, uint256 amount, address account) public {
+    function setBalanceOf(uint256 id, uint256 amount, address account) public {
         balanceOf[account][id] = amount;
     }
 
-    function getIdCounter() public view returns (uint256 idCounter_) {
-        idCounter_ = idCounter;
+    function getIdCounter() public view returns (uint256 lastId_) {
+        lastId_ = lastId;
+    }
+
+    function getCurrentBalances(address account, uint256 id)
+        public
+        view
+        returns (
+            uint256 currentRewardPerToken,
+            uint256 currentRewardGlobal,
+            uint256 totalSupply_,
+            uint256 currentRewardAccount
+        )
+    {
+        return _getCurrentBalances(account, id);
     }
 }

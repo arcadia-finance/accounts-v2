@@ -6,26 +6,26 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { AbstractStakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
+import { StakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 import { StakingModuleMock } from "../../../utils/mocks/StakingModuleMock.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 
 /**
- * @notice Common logic needed by "AbstractStakingModule" fuzz tests.
+ * @notice Common logic needed by "StakingModule" fuzz tests.
  */
 abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    struct AbstractStakingModuleStateForId {
-        uint128 previousRewardBalance;
+    struct StakingModuleStateForId {
+        uint128 currentRewardGlobal;
+        uint128 lastRewardPerTokenGlobal;
+        uint128 lastRewardGlobal;
         uint128 totalSupply;
-        uint128 userBalance;
-        uint128 rewards;
-        uint128 userRewardPerTokenPaid;
-        uint128 rewardPerTokenStored;
-        uint128 actualRewardBalance;
+        uint128 lastRewardPerTokenAccount;
+        uint128 lastRewardAccount;
+        uint128 accountBalance;
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -52,93 +52,92 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
-    function setStakingModuleState(
-        AbstractStakingModuleStateForId memory stakingModuleState,
-        uint256 id,
-        address account
-    ) internal returns (AbstractStakingModuleStateForId memory stakingModuleState_) {
+    function setStakingModuleState(StakingModuleStateForId memory stakingModuleState, uint256 id, address account)
+        internal
+        returns (StakingModuleStateForId memory stakingModuleState_)
+    {
         stakingModuleState_ = givenValidStakingModuleState(stakingModuleState);
 
-        stakingModule.setPreviousRewardsBalance(id, stakingModuleState_.previousRewardBalance);
+        stakingModule.setLastRewardGlobal(id, stakingModuleState_.lastRewardGlobal);
         stakingModule.setTotalSupply(id, stakingModuleState_.totalSupply);
-        stakingModule.setRewardsForAccount(id, stakingModuleState_.rewards, account);
-        stakingModule.setUserRewardPerTokenPaid(id, stakingModuleState_.userRewardPerTokenPaid, account);
-        stakingModule.setRewardPerTokenStored(id, stakingModuleState_.rewardPerTokenStored);
-        stakingModule.setActualRewardBalance(id, stakingModuleState_.actualRewardBalance);
-        stakingModule.setBalanceOfAccountForId(id, stakingModuleState_.userBalance, account);
+        stakingModule.setLastRewardAccount(id, stakingModuleState_.lastRewardAccount, account);
+        stakingModule.setLastRewardPerTokenAccount(id, stakingModuleState_.lastRewardPerTokenAccount, account);
+        stakingModule.setLastRewardPerTokenGlobal(id, stakingModuleState_.lastRewardPerTokenGlobal);
+        stakingModule.setActualRewardBalance(id, stakingModuleState_.currentRewardGlobal);
+        stakingModule.setBalanceOf(id, stakingModuleState_.accountBalance, account);
     }
 
-    function givenValidStakingModuleState(AbstractStakingModuleStateForId memory stakingModuleState)
+    function givenValidStakingModuleState(StakingModuleStateForId memory stakingModuleState)
         public
         view
-        returns (AbstractStakingModuleStateForId memory stakingModuleState_)
+        returns (StakingModuleStateForId memory stakingModuleState_)
     {
-        // Given : Actual reward balance should be at least equal to previousRewardBalance.
-        vm.assume(stakingModuleState.actualRewardBalance >= stakingModuleState.previousRewardBalance);
+        // Given : Actual reward balance should be at least equal to lastRewardGlobal.
+        vm.assume(stakingModuleState.currentRewardGlobal >= stakingModuleState.lastRewardGlobal);
 
         // Given : The difference between the actual and previous reward balance should be smaller than type(uint128).max / 1e18.
         vm.assume(
-            stakingModuleState.actualRewardBalance - stakingModuleState.previousRewardBalance < type(uint128).max / 1e18
+            stakingModuleState.currentRewardGlobal - stakingModuleState.lastRewardGlobal < type(uint128).max / 1e18
         );
 
-        // Given : rewardPerTokenStored + rewardPerTokenClaimable should not be over type(uint128).max
-        stakingModuleState.rewardPerTokenStored = uint128(
+        // Given : lastRewardPerTokenGlobal + rewardPerTokenClaimable should not be over type(uint128).max
+        stakingModuleState.lastRewardPerTokenGlobal = uint128(
             bound(
-                stakingModuleState.rewardPerTokenStored,
+                stakingModuleState.lastRewardPerTokenGlobal,
                 0,
                 type(uint128).max
-                    - ((stakingModuleState.actualRewardBalance - stakingModuleState.previousRewardBalance) * 1e18)
+                    - ((stakingModuleState.currentRewardGlobal - stakingModuleState.lastRewardGlobal) * 1e18)
             )
         );
 
-        // Given : rewardPerTokenStored should always be >= userRewardPerTokenPaid
-        vm.assume(stakingModuleState.rewardPerTokenStored >= stakingModuleState.userRewardPerTokenPaid);
+        // Given : lastRewardPerTokenGlobal should always be >= lastRewardPerTokenAccount
+        vm.assume(stakingModuleState.lastRewardPerTokenGlobal >= stakingModuleState.lastRewardPerTokenAccount);
 
         // Cache rewardPerTokenClaimable
-        uint128 rewardPerTokenClaimable = stakingModuleState.rewardPerTokenStored
-            + ((stakingModuleState.actualRewardBalance - stakingModuleState.previousRewardBalance) * 1e18);
+        uint128 rewardPerTokenClaimable = stakingModuleState.lastRewardPerTokenGlobal
+            + ((stakingModuleState.currentRewardGlobal - stakingModuleState.lastRewardGlobal) * 1e18);
 
-        // Given : userBalance * rewardPerTokenClaimable should not be > type(uint128)
-        stakingModuleState.userBalance =
-            uint128(bound(stakingModuleState.userBalance, 0, (type(uint128).max) - rewardPerTokenClaimable));
+        // Given : accountBalance * rewardPerTokenClaimable should not be > type(uint128)
+        stakingModuleState.accountBalance =
+            uint128(bound(stakingModuleState.accountBalance, 0, (type(uint128).max) - rewardPerTokenClaimable));
 
         // Extra check for the above
-        vm.assume(uint256(stakingModuleState.userBalance) * rewardPerTokenClaimable < type(uint128).max);
+        vm.assume(uint256(stakingModuleState.accountBalance) * rewardPerTokenClaimable < type(uint128).max);
 
         // Given : previously earned rewards for Account + new rewards should not be > type(uint128).max.
-        stakingModuleState.rewards = uint128(
+        stakingModuleState.lastRewardAccount = uint128(
             bound(
-                stakingModuleState.rewards,
+                stakingModuleState.lastRewardAccount,
                 0,
-                type(uint128).max - (stakingModuleState.userBalance * rewardPerTokenClaimable)
+                type(uint128).max - (stakingModuleState.accountBalance * rewardPerTokenClaimable)
             )
         );
 
-        // Given : totalSupply should be >= to userBalance
+        // Given : totalSupply should be >= to accountBalance
         stakingModuleState.totalSupply =
-            uint128(bound(stakingModuleState.totalSupply, stakingModuleState.userBalance, type(uint128).max));
+            uint128(bound(stakingModuleState.totalSupply, stakingModuleState.accountBalance, type(uint128).max));
 
         stakingModuleState_ = stakingModuleState;
     }
 
-    function addStakingTokens(uint8 numberOfTokens, uint8 stakingTokenDecimals, uint8 rewardTokenDecimals)
+    function addStakingTokens(uint8 numberOfTokens, uint8 underlyingTokenDecimals, uint8 rewardTokenDecimals)
         public
-        returns (address[] memory stakingTokens, address[] memory rewardTokens)
+        returns (address[] memory underlyingTokens, address[] memory rewardTokens)
     {
-        stakingTokens = new address[](numberOfTokens);
+        underlyingTokens = new address[](numberOfTokens);
         rewardTokens = new address[](numberOfTokens);
 
-        stakingTokenDecimals = uint8(bound(stakingTokenDecimals, 0, 18));
+        underlyingTokenDecimals = uint8(bound(underlyingTokenDecimals, 0, 18));
         rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 18));
 
         for (uint8 i = 0; i < numberOfTokens; ++i) {
-            ERC20Mock stakingToken = new ERC20Mock("StakingToken", "STK", stakingTokenDecimals);
+            ERC20Mock underlyingToken = new ERC20Mock("UnderlyingToken", "UTK", underlyingTokenDecimals);
             ERC20Mock rewardToken = new ERC20Mock("RewardToken", "RWT", rewardTokenDecimals);
 
-            stakingTokens[i] = address(stakingToken);
+            underlyingTokens[i] = address(underlyingToken);
             rewardTokens[i] = address(rewardToken);
 
-            stakingModule.addNewStakingToken(address(stakingToken), address(rewardToken));
+            stakingModule.addNewStakingToken(address(underlyingToken), address(rewardToken));
         }
     }
 }

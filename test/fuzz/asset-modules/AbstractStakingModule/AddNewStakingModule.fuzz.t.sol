@@ -4,15 +4,15 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test, AbstractStakingModule } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, StakingModule } from "./_AbstractStakingModule.fuzz.t.sol";
 
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "addNewStakingToken" of contract "AbstractStakingModule".
+ * @notice Fuzz tests for the function "addNewStakingToken" of contract "StakingModule".
  */
-contract AddNewStakingToken_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
+contract AddNewStakingToken_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -25,64 +25,64 @@ contract AddNewStakingToken_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_revert_addNewStakingToken_tokenAndRewardPairAlreadySet(
-        uint8 stakingTokenDecimals,
+    function testFuzz_Revert_addNewStakingToken_tokenAndRewardPairAlreadySet(
+        uint8 underlyingTokenDecimals,
         uint8 rewardTokenDecimals
     ) public {
         // Given : Staking token decimals <= 18
-        stakingTokenDecimals = uint8(bound(stakingTokenDecimals, 0, 18));
+        underlyingTokenDecimals = uint8(bound(underlyingTokenDecimals, 0, 18));
         // Given : RewardToken decimals is <= 18
         rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 18));
 
-        address stakingToken = address(new ERC20Mock("xxx", "xxx", stakingTokenDecimals));
+        address underlyingToken = address(new ERC20Mock("xxx", "xxx", underlyingTokenDecimals));
         address rewardToken = address(new ERC20Mock("xxx", "xxx", rewardTokenDecimals));
 
         // Given : A token/reward pair is set for the first time.
-        stakingModule.addNewStakingToken(stakingToken, rewardToken);
+        stakingModule.addNewStakingToken(underlyingToken, rewardToken);
 
         // When : We try to add the same pair
-        // Then : It should revert, as a token id already exists for that pair
-        vm.expectRevert(AbstractStakingModule.TokenToRewardPairAlreadySet.selector);
-        stakingModule.addNewStakingToken(stakingToken, rewardToken);
+        // Then : It should revert, as a staking token id already exists for that pair
+        vm.expectRevert(StakingModule.TokenToRewardPairAlreadySet.selector);
+        stakingModule.addNewStakingToken(underlyingToken, rewardToken);
     }
 
-    function testFuzz_revert_addNewStakingToken_stakingTokenDecimalsGreaterThan18(
-        uint8 stakingTokenDecimals,
+    function testFuzz_Revert_addNewStakingToken_underlyingTokenDecimalsGreaterThan18(
+        uint8 underlyingTokenDecimals,
         uint8 rewardTokenDecimals
     ) public {
-        // Given : stakingToken decimals is > 18
-        stakingTokenDecimals = uint8(bound(stakingTokenDecimals, 19, type(uint8).max));
+        // Given : underlyingToken decimals is > 18
+        underlyingTokenDecimals = uint8(bound(underlyingTokenDecimals, 19, type(uint8).max));
         // Given : rewardToken decimals is <= 18
         rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 18));
 
-        address stakingToken = address(new ERC20Mock("xxx", "xxx", stakingTokenDecimals));
+        address underlyingToken = address(new ERC20Mock("xxx", "xxx", underlyingTokenDecimals));
         address rewardToken = address(new ERC20Mock("xxx", "xxx", rewardTokenDecimals));
 
         // When : We try to add a new staking token that has over 18 decimals
         // Then : It should revert
-        vm.expectRevert(AbstractStakingModule.InvalidTokenDecimals.selector);
-        stakingModule.addNewStakingToken(stakingToken, rewardToken);
+        vm.expectRevert(StakingModule.InvalidTokenDecimals.selector);
+        stakingModule.addNewStakingToken(underlyingToken, rewardToken);
     }
 
-    function testFuzz_revert_addNewStakingToken_rewardTokenDecimalsGreaterThan18(
-        uint8 stakingTokenDecimals,
+    function testFuzz_Revert_addNewStakingToken_rewardTokenDecimalsGreaterThan18(
+        uint8 underlyingTokenDecimals,
         uint8 rewardTokenDecimals
     ) public {
         // Given : rewardToken decimals is > 18
         rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 19, type(uint8).max));
-        // Given : stakingTokenDecimals is <= 18
-        stakingTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 18));
+        // Given : underlyingTokenDecimals is <= 18
+        underlyingTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 18));
 
-        address stakingToken = address(new ERC20Mock("xxx", "xxx", stakingTokenDecimals));
+        address underlyingToken = address(new ERC20Mock("xxx", "xxx", underlyingTokenDecimals));
         address rewardToken = address(new ERC20Mock("xxx", "xxx", rewardTokenDecimals));
 
         // When : We try to add a new staking token that has over 18 decimals
         // Then : It should revert
-        vm.expectRevert(AbstractStakingModule.InvalidTokenDecimals.selector);
-        stakingModule.addNewStakingToken(stakingToken, rewardToken);
+        vm.expectRevert(StakingModule.InvalidTokenDecimals.selector);
+        stakingModule.addNewStakingToken(underlyingToken, rewardToken);
     }
 
-    function testFuzz_success_addNewStakingToken() public {
+    function testFuzz_Success_addNewStakingToken() public {
         // Given: No staking token previously set
         assertEq(stakingModule.getIdCounter(), 0);
 
@@ -90,17 +90,17 @@ contract AddNewStakingToken_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
         stakingModule.addNewStakingToken(address(mockERC20.stable1), address(mockERC20.token1));
 
         // Then : Id counter should increase to 1 and staking and reward token should be added with correct info.
-        uint256 idCounter = stakingModule.getIdCounter();
-        assertEq(address(stakingModule.stakingToken(idCounter)), address(mockERC20.stable1));
-        assertEq(address(stakingModule.rewardToken(idCounter)), address(mockERC20.token1));
-        assertEq(stakingModule.tokenToRewardToId(address(mockERC20.stable1), address(mockERC20.token1)), idCounter);
-        assertEq(idCounter, 1);
+        uint256 lastId = stakingModule.getIdCounter();
+        assertEq(address(stakingModule.underlyingToken(lastId)), address(mockERC20.stable1));
+        assertEq(address(stakingModule.rewardToken(lastId)), address(mockERC20.token1));
+        assertEq(stakingModule.tokenToRewardToId(address(mockERC20.stable1), address(mockERC20.token1)), lastId);
+        assertEq(lastId, 1);
 
         // Repeat the above operation for an additional token
         stakingModule.addNewStakingToken(address(mockERC20.token1), address(mockERC20.stable1));
 
-        uint256 idCounter2 = stakingModule.getIdCounter();
-        assertEq(idCounter2, 2);
-        assertEq(address(stakingModule.stakingToken(idCounter2)), address(mockERC20.token1));
+        uint256 lastId2 = stakingModule.getIdCounter();
+        assertEq(lastId2, 2);
+        assertEq(address(stakingModule.underlyingToken(lastId2)), address(mockERC20.token1));
     }
 }
