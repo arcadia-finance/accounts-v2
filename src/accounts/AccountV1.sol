@@ -14,6 +14,7 @@ import { IRegistry } from "../interfaces/IRegistry.sol";
 import { ICreditor } from "../interfaces/ICreditor.sol";
 import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
 import { IAccount } from "../interfaces/IAccount.sol";
+import { IFactory } from "../interfaces/IFactory.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
 
 /**
@@ -46,6 +47,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
     uint256 public constant ASSET_LIMIT = 15;
     // The current Account Version.
     uint16 public constant ACCOUNT_VERSION = 1;
+    // The contract address of the Arcadia Accounts Factory.
+    address public immutable FACTORY;
     // Uniswap Permit2 contract
     IPermit2 internal immutable PERMIT2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
@@ -105,7 +108,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Throws if called by any address other than the Factory address.
      */
     modifier onlyFactory() {
-        if (msg.sender != IRegistry(registry).FACTORY()) revert AccountErrors.OnlyFactory();
+        if (msg.sender != FACTORY) revert AccountErrors.OnlyFactory();
         _;
     }
 
@@ -129,10 +132,15 @@ contract AccountV1 is AccountStorageV1, IAccount {
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
-    constructor() {
+    /**
+     * @param factory The contract address of the Arcadia Accounts Factory.
+     */
+    constructor(address factory) {
         // This will only be the owner of the Account implementation.
         // and will not affect any subsequent proxy implementation using this Account implementation.
         owner = msg.sender;
+
+        FACTORY = factory;
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -148,7 +156,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev A proxy will be used to interact with the Account implementation.
      * Therefore everything is initialised through an init function.
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
-     * @dev The Creditor will only be set if it's a non-zero address.
+     * @dev The Creditor will only be set if it's a non-zero address, in this case the numeraire_ passed as input will be ignored.
      */
     function initialize(address owner_, address registry_, address numeraire_, address creditor_) external {
         if (registry != address(0)) revert AccountErrors.AlreadyInitialized();
@@ -158,8 +166,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         registry = registry_;
 
         if (creditor_ != address(0)) _openMarginAccount(creditor_);
-
-        emit NumeraireSet(numeraire = numeraire_);
+        else emit NumeraireSet(numeraire = numeraire_);
     }
 
     /**
@@ -176,23 +183,24 @@ contract AccountV1 is AccountStorageV1, IAccount {
         nonReentrant
         notDuringAuction
     {
-        if (creditor != address(0)) {
-            // If a Creditor is set, new version should be compatible.
-            // openMarginAccount() is a view function, cannot modify state.
-            (bool success,,,) = ICreditor(creditor).openMarginAccount(newVersion);
-            if (!success) revert AccountErrors.InvalidAccountVersion();
-        }
-
         // Cache old parameters.
         address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
         uint16 oldVersion = ACCOUNT_VERSION;
+
+        // Store new parameters.
         _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
 
         // Prevent that Account is upgraded to a new version where the Numeraire can't be priced.
         if (newRegistry != oldRegistry && !IRegistry(newRegistry).inRegistry(numeraire)) {
             revert AccountErrors.InvalidRegistry();
+        }
+
+        // If a Creditor is set, new version should be compatible.
+        if (creditor != address(0)) {
+            (bool success,,,) = ICreditor(creditor).openMarginAccount(newVersion);
+            if (!success) revert AccountErrors.InvalidAccountVersion();
         }
 
         // Hook on the new logic to finalize upgrade.
@@ -241,6 +249,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function transferOwnership(address newOwner) external onlyFactory {
         // The Factory will check that the new owner is not address(0).
         owner = newOwner;
+    }
+
+    function _transferOwnership(address newOwner) internal {
+        // The Factory will check that the new owner is not address(0).
+        owner = newOwner;
+        IFactory(FACTORY).safeTransferAccount(newOwner);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -506,13 +520,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /**
      * @notice Transfers all assets of the Account in case the auction did not end successful (= Bought In).
      * @param recipient The recipient address to receive the assets, set by the Creditor.
-     * @dev When an auction is not successful, the assets are considered "Bought In":
-     * Any remaining assets in the Account are transferred to a certain recipient address, set by the Creditor.
+     * @dev When an auction is not successful, the Account is considered "Bought In":
+     * The whole Account including any remaining assets are transferred to a certain recipient address, set by the Creditor.
      */
     function auctionBoughtIn(address recipient) external onlyLiquidator {
-        (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
-            generateAssetData();
-        _withdraw(assetAddresses, assetIds, assetAmounts, recipient);
+        _transferOwnership(recipient);
     }
 
     /**

@@ -114,7 +114,6 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_upgradeAccount_InvalidAccountVersion(
         address newImplementation,
-        address newRegistry,
         uint88 newVersion,
         bytes calldata data
     ) public {
@@ -126,7 +125,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.startPrank(address(factory));
         vm.expectRevert(AccountErrors.InvalidAccountVersion.selector);
-        proxyAccount.upgradeAccount(newImplementation, newRegistry, newVersion, data);
+        proxyAccount.upgradeAccount(newImplementation, address(registryExtension), newVersion, data);
         vm.stopPrank();
     }
 
@@ -142,10 +141,11 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         proxyAccount.openMarginAccount(address(creditorStable1));
 
         uint256 accountVersion = factory.latestAccountVersion() + 1;
-        AccountVariableVersion accountVarVersion = new AccountVariableVersion(accountVersion);
+        AccountVariableVersion accountVarVersion = new AccountVariableVersion(accountVersion, address(factory));
         bytes memory code = address(accountVarVersion).code;
         vm.etch(newImplementation, code);
         AccountVariableVersion(newImplementation).setAccountVersion(accountVersion);
+        AccountVariableVersion(newImplementation).setFactory(address(factory));
 
         vm.startPrank(users.creatorAddress);
         RegistryExtension registry2 = new RegistryExtension(address(factory));
