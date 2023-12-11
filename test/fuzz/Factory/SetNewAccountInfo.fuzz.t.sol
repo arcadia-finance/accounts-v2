@@ -30,7 +30,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function setUp() public override {
         Factory_Fuzz_Test.setUp();
 
-        accountVarVersion = new AccountVariableVersion(1);
+        accountVarVersion = new AccountVariableVersion(1, address(factory));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -81,8 +81,8 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     function testFuzz_Revert_setNewAccountInfo_InvalidAccountVersion() public {
-        AccountV2 newAccountV2 = new AccountV2();
-        AccountV2 newAccountV2_2 = new AccountV2();
+        AccountV2 newAccountV2 = new AccountV2(address(factory));
+        AccountV2 newAccountV2_2 = new AccountV2(address(factory));
 
         vm.startPrank(users.creatorAddress);
         //first set an actual version 2
@@ -91,6 +91,27 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.expectRevert(FactoryErrors.VersionMismatch.selector);
         factory.setNewAccountInfo(address(registryExtension), address(newAccountV2_2), Constants.upgradeRoot1To2, "");
         vm.stopPrank();
+    }
+
+    function testFuzz_Revert_setNewAccountInfo_InvalidAccountFactory(address nonFactory) public {
+        vm.assume(nonFactory != address(factory));
+
+        AccountV2 badAccount = new AccountV2(nonFactory);
+
+        vm.prank(users.creatorAddress);
+        vm.expectRevert(FactoryErrors.FactoryMismatch.selector);
+        factory.setNewAccountInfo(address(registryExtension), address(badAccount), Constants.upgradeRoot1To2, "");
+    }
+
+    function testFuzz_Revert_setNewAccountInfo_InvalidRegistryFactory(address nonFactory) public {
+        vm.assume(nonFactory != address(factory));
+
+        AccountV2 account_ = new AccountV2(nonFactory);
+        Registry badRegistry = new Registry(nonFactory);
+
+        vm.prank(users.creatorAddress);
+        vm.expectRevert(FactoryErrors.FactoryMismatch.selector);
+        factory.setNewAccountInfo(address(badRegistry), address(account_), Constants.upgradeRoot1To2, "");
     }
 
     function testFuzz_Success_setNewAccountInfo(address logic, bytes calldata data) public {
@@ -103,6 +124,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         bytes memory code = address(accountVarVersion).code;
         vm.etch(logic, code);
         AccountVariableVersion(logic).setAccountVersion(latestAccountVersionPre + 1);
+        AccountVariableVersion(logic).setFactory(address(factory));
 
         vm.prank(users.creatorAddress);
         registry2 = new RegistryExtension(address(factory));

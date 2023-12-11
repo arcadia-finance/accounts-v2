@@ -28,7 +28,7 @@ import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
 import { StakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 
 contract AccountExtension is AccountV1 {
-    constructor() AccountV1() { }
+    constructor(address factory) AccountV1(factory) { }
 
     function getLocked() external view returns (uint256 locked_) {
         locked_ = locked;
@@ -56,10 +56,6 @@ contract AccountExtension is AccountV1 {
 
     function setOwner(address newOwner) public {
         owner = newOwner;
-    }
-
-    function flashAction(address actionTarget, bytes calldata actionData) public {
-        _flashAction(actionTarget, actionData);
     }
 
     function setRegistry(address registry_) public {
