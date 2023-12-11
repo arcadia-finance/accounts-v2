@@ -9,6 +9,7 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { AccountExtension } from "../../../utils/Extensions.sol";
+import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { MultiActionMock } from "../../../utils/mocks/MultiActionMock.sol";
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
@@ -28,6 +29,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
 
     AccountExtension internal accountExtension;
     MultiActionMock internal multiActionMock;
+    ActionMultiCall internal action;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
