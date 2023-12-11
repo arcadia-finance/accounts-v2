@@ -11,4 +11,10 @@ interface IFactory {
      * @return bool indicating if the address is an Account or not.
      */
     function isAccount(address account) external view returns (bool);
+
+    /**
+     * @notice Function used to transfer an Account, called by the Account itself.
+     * @param to The target.
+     */
+    function safeTransferAccount(address to) external;
 }

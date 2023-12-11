@@ -20,6 +20,7 @@ import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Errors } from "./utils/Errors.sol";
 import { Utils } from "./utils/Utils.sol";
+import { ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";
 
 /// @notice Base test contract with common logic needed by all tests.
 abstract contract Base_Test is Test, Events, Errors {
@@ -43,6 +44,21 @@ abstract contract Base_Test is Test, Events, Errors {
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
     AccountV1 internal proxyAccount;
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                   MODIFIERS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    modifier canReceiveERC721(address to) {
+        if (to.code.length != 0) {
+            try ERC721TokenReceiver(to).onERC721Received(to, address(0), 0, "") returns (bytes4 response) {
+                vm.assume(response == ERC721TokenReceiver.onERC721Received.selector);
+            } catch {
+                vm.assume(false);
+            }
+        }
+        _;
+    }
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -73,8 +89,8 @@ abstract contract Base_Test is Test, Events, Errors {
         floorERC721AssetModule = new FloorERC721AssetModuleExtension(address(registryExtension));
         floorERC1155AssetModule = new FloorERC1155AssetModuleExtension(address(registryExtension));
 
-        accountV1Logic = new AccountV1();
-        accountV2Logic = new AccountV2();
+        accountV1Logic = new AccountV1(address(factory));
+        accountV2Logic = new AccountV2(address(factory));
         factory.setNewAccountInfo(address(registryExtension), address(accountV1Logic), Constants.upgradeProof1To2, "");
 
         // Set the Guardians.

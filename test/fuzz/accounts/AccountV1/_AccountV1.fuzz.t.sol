@@ -39,7 +39,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         // Deploy Account.
-        accountExtension = new AccountExtension();
+        accountExtension = new AccountExtension(address(factory));
 
         // Initiate Account (set owner and numeraire).
         accountExtension.initialize(

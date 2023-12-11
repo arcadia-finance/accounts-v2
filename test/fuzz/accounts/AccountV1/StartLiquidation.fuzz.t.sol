@@ -33,7 +33,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         AccountV1_Fuzz_Test.setUp();
 
         vm.prank(users.accountOwner);
-        accountExtension2 = new AccountExtension();
+        accountExtension2 = new AccountExtension(address(factory));
 
         assetValuationLib = new AssetValuationLibExtension();
     }
