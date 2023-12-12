@@ -29,6 +29,7 @@ contract ArcadiaAccountDeployment is Test {
     ERC20 internal dai;
     ERC20 internal weth;
     ERC20 internal usdc;
+    ERC20 internal usdbc;
     ERC20 internal cbeth;
     ERC20 internal reth;
 
@@ -48,6 +49,7 @@ contract ArcadiaAccountDeployment is Test {
     uint80[] internal oracleDaiToUsdArr = new uint80[](1);
     uint80[] internal oracleEthToUsdArr = new uint80[](1);
     uint80[] internal oracleUsdcToUsdArr = new uint80[](1);
+    uint80[] internal oracleUsdbcToUsdArr = new uint80[](1);
     uint80[] internal oracleCbethToEthToUsdArr = new uint80[](2);
     uint80[] internal oracleRethToEthToUsdArr = new uint80[](2);
 
@@ -67,8 +69,13 @@ contract ArcadiaAccountDeployment is Test {
         dai = ERC20(DeployAddresses.dai_base);
         weth = ERC20(DeployAddresses.weth_base);
         usdc = ERC20(DeployAddresses.usdc_base);
+        usdbc = ERC20(DeployAddresses.usdbc_base);
         cbeth = ERC20(DeployAddresses.cbeth_base);
         reth = ERC20(DeployAddresses.reth_base);
+
+        BA_TO_QA_SINGLE[0] = true;
+        BA_TO_QA_DOUBLE[0] = true;
+        BA_TO_QA_DOUBLE[1] = true;
     }
 
     function run() public {
@@ -77,8 +84,8 @@ contract ArcadiaAccountDeployment is Test {
 
         vm.startBroadcast(deployerPrivateKey);
         factory = Factory(0x38dB790e1894A5863387B43290c8340121e7Cd48); //todo: change after factory deploy
-        wethLendingPool = ILendingPool(0xA04B08324745AEc82De30c3581c407BE63E764c8); //todo: change after LP deploy
-        usdcLendingPool = ILendingPool(0x4d39409993dBe365c9AcaAe7c7e259C06FBFFa4A); //todo: change after LP deploy
+        wethLendingPool = ILendingPool(0x28bE1B63E01eDD073D45D3aB522a905BD45ff492); //todo: change after LP deploy
+        usdcLendingPool = ILendingPool(0xEda73DA39Aae3282DDC2Dc924c740574567FFabc); //todo: change after LP deploy
         wethLendingPool.setRiskManager(deployerAddress);
         usdcLendingPool.setRiskManager(deployerAddress);
 
@@ -107,6 +114,7 @@ contract ArcadiaAccountDeployment is Test {
         oracleDaiToUsdArr[0] = oracleDaiToUsdId;
         oracleEthToUsdArr[0] = oracleEthToUsdId;
         oracleUsdcToUsdArr[0] = oracleUsdcToUsdId;
+        oracleUsdbcToUsdArr[0] = oracleUsdcToUsdId;
         oracleCbethToEthToUsdArr[0] = oracleCbethToEthId;
         oracleCbethToEthToUsdArr[1] = oracleEthToUsdId;
         oracleRethToEthToUsdArr[0] = oracleRethToEthId;
@@ -123,6 +131,9 @@ contract ArcadiaAccountDeployment is Test {
         );
         standardERC20AssetModule.addAsset(
             DeployAddresses.usdc_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdcToUsdArr)
+        );
+        standardERC20AssetModule.addAsset(
+            DeployAddresses.usdbc_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdbcToUsdArr)
         );
         standardERC20AssetModule.addAsset(
             DeployAddresses.cbeth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleCbethToEthToUsdArr)
@@ -168,6 +179,14 @@ contract ArcadiaAccountDeployment is Test {
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
             DeployAddresses.usdc_base,
+            0,
+            type(uint112).max,
+            DeployRiskConstantsBase.usdc_collFact_1,
+            DeployRiskConstantsBase.usdc_liqFact_1
+        );
+        registry.setRiskParametersOfPrimaryAsset(
+            address(wethLendingPool),
+            DeployAddresses.usdbc_base,
             0,
             type(uint112).max,
             DeployRiskConstantsBase.usdc_collFact_1,
@@ -224,6 +243,14 @@ contract ArcadiaAccountDeployment is Test {
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
+            DeployAddresses.usdbc_base,
+            0,
+            type(uint112).max,
+            DeployRiskConstantsBase.usdc_collFact_2,
+            DeployRiskConstantsBase.usdc_liqFact_2
+        );
+        registry.setRiskParametersOfPrimaryAsset(
+            address(usdcLendingPool),
             DeployAddresses.cbeth_base,
             0,
             type(uint112).max,
@@ -239,9 +266,24 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.reth_liqFact_2
         );
 
+        registry.setRiskParametersOfDerivedAssetModule(
+            address(wethLendingPool), address(uniswapV3AssetModule), type(uint112).max, 10_000
+        );
+        registry.setRiskParametersOfDerivedAssetModule(
+            address(usdcLendingPool), address(uniswapV3AssetModule), type(uint112).max, 10_000
+        );
+
         registry.setMaxRecursiveCalls(address(usdcLendingPool), 5);
         registry.setMaxRecursiveCalls(address(wethLendingPool), 5);
 
         vm.stopBroadcast();
+
+        test();
+    }
+
+    function test() public view {
+        // todo: improve tests of deployed state.
+        assert(wethLendingPool.riskManager() == DeployAddresses.riskManager_weth_base);
+        assert(usdcLendingPool.riskManager() == DeployAddresses.riskManager_usdc_base);
     }
 }

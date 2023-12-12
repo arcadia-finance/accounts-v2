@@ -17,4 +17,9 @@ interface ILendingPool {
      * @param riskManager The address of the new Risk Manager.
      */
     function setRiskManager(address riskManager) external;
+
+    /**
+     * @notice Fetches the Risk Manager of the Lending Pool.
+     */
+    function riskManager() external view returns (address);
 }
