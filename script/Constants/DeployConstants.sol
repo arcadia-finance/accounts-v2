@@ -34,6 +34,9 @@ library DeployAddresses {
 
     // to do: change to gnosis
     address public constant treasury_base = 0xBEB56fbEf3387af554A554E7DB25830eB7b92e32;
+    address public constant deployer_base = 0xBED53dA1718aDD7E31f42a138231c7783829A3f4;
+    address public constant riskManager_weth_base = 0xBED53dA1718aDD7E31f42a138231c7783829A3f4;
+    address public constant riskManager_usdc_base = 0xBED53dA1718aDD7E31f42a138231c7783829A3f4;
 }
 
 library DeployNumbers {
