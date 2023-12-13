@@ -89,7 +89,7 @@ abstract contract StakingModule is ERC1155, ReentrancyGuard {
      * @param underlyingToken_ The contract address of the underlying token.
      * @param rewardToken_ The contract address of the reward token.
      */
-    function addNewStakingToken(address underlyingToken_, address rewardToken_) public {
+    function addNewStakingToken(address underlyingToken_, address rewardToken_) external virtual {
         if (tokenToRewardToId[underlyingToken_][rewardToken_] != 0) revert TokenToRewardPairAlreadySet();
 
         // Cache new id
@@ -98,11 +98,9 @@ abstract contract StakingModule is ERC1155, ReentrancyGuard {
             newId = ++lastId;
         }
 
-        // Cache tokens decimals
-        uint256 underlyingTokenDecimals_ = ERC20(underlyingToken_).decimals();
-        uint256 rewardTokenDecimals_ = ERC20(rewardToken_).decimals();
-
-        if (underlyingTokenDecimals_ > 18 || rewardTokenDecimals_ > 18) revert InvalidTokenDecimals();
+        if (ERC20(underlyingToken_).decimals() > 18 || ERC20(rewardToken_).decimals() > 18) {
+            revert InvalidTokenDecimals();
+        }
 
         underlyingToken[newId] = ERC20(underlyingToken_);
         rewardToken[newId] = ERC20(rewardToken_);
