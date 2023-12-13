@@ -32,7 +32,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         notAccountOwner(newAccountOwner)
     {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         vm.prank(newAccountOwner);
         vm.expectRevert("INVALID_RECIPIENT");
@@ -44,7 +44,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         notAccountOwner(newAccountOwner)
     {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         vm.prank(nonOwner);
         vm.expectRevert("WRONG_FROM");
@@ -56,7 +56,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         notAccountOwner(newAccountOwner)
     {
         vm.broadcast(newAccountOwner);
-        factory.createAccount(salt, 0, address(0), address(0));
+        factory.createAccount(salt, 0, address(0));
 
         uint256 latestId = factory.allAccountsLength();
         vm.prank(newAccountOwner);
@@ -69,7 +69,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         notAccountOwner(newAccountOwner)
     {
         vm.broadcast(newAccountOwner);
-        factory.createAccount(salt, 0, address(0), address(0));
+        factory.createAccount(salt, 0, address(0));
 
         uint256 latestId = factory.allAccountsLength();
         vm.prank(nonOwner);
@@ -82,7 +82,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         notAccountOwner(newAccountOwner)
     {
         vm.broadcast(newAccountOwner);
-        factory.createAccount(salt, 0, address(0), address(0));
+        factory.createAccount(salt, 0, address(0));
 
         uint256 latestId = factory.allAccountsLength();
         vm.prank(newAccountOwner);
@@ -95,7 +95,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         notAccountOwner(newAccountOwner)
     {
         vm.broadcast(newAccountOwner);
-        factory.createAccount(salt, 0, address(0), address(0));
+        factory.createAccount(salt, 0, address(0));
 
         uint256 latestId = factory.allAccountsLength();
         vm.prank(nonOwner);
@@ -108,7 +108,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         notAccountOwner(newAccountOwner)
     {
         vm.broadcast(newAccountOwner);
-        factory.createAccount(salt, 0, address(0), address(0));
+        factory.createAccount(salt, 0, address(0));
 
         uint256 latestId = factory.allAccountsLength();
         vm.prank(newAccountOwner);
@@ -121,7 +121,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         notAccountOwner(newAccountOwner)
     {
         vm.broadcast(newAccountOwner);
-        factory.createAccount(salt, 0, address(0), address(0));
+        factory.createAccount(salt, 0, address(0));
 
         uint256 latestId = factory.allAccountsLength();
         vm.prank(nonOwner);
@@ -135,7 +135,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         notTestContracts(nonOwner)
     {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         vm.prank(newAccountOwner);
         factory.safeTransferFrom(newAccountOwner, nonOwner, newAccount);
@@ -147,7 +147,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         notTestContracts(nonOwner)
     {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         vm.prank(newAccountOwner);
         factory.safeTransferFrom(newAccountOwner, nonOwner, newAccount);
@@ -159,7 +159,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         notTestContracts(nonOwner)
     {
         vm.broadcast(newAccountOwner);
-        factory.createAccount(salt, 0, address(0), address(0));
+        factory.createAccount(salt, 0, address(0));
 
         uint256 latestId = factory.allAccountsLength();
         vm.prank(newAccountOwner);
@@ -172,7 +172,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         notTestContracts(nonOwner)
     {
         vm.broadcast(newAccountOwner);
-        factory.createAccount(salt, 0, address(0), address(0));
+        factory.createAccount(salt, 0, address(0));
 
         uint256 latestId = factory.allAccountsLength();
         vm.prank(newAccountOwner);

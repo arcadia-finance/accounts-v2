@@ -232,7 +232,8 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_openMarginAccount_SameNumeraire() public {
         // Deploy an Account with numeraire set to STABLE1
-        address deployedAccount = factory.createAccount(1111, 0, address(mockERC20.stable1), address(0));
+        address deployedAccount = factory.createAccount(1111, 0, address(0));
+        AccountV1(deployedAccount).setNumeraire(address(mockERC20.stable1));
         assertEq(AccountV1(deployedAccount).numeraire(), address(mockERC20.stable1));
         assertEq(creditorStable1.numeraire(), address(mockERC20.stable1));
 

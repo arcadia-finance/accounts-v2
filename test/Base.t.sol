@@ -106,7 +106,7 @@ abstract contract Base_Test is Test, Events, Errors {
 
         // Deploy an initial Account with all inputs to zero
         vm.startPrank(users.accountOwner);
-        address proxyAddress = factory.createAccount(0, 0, address(0), address(0));
+        address proxyAddress = factory.createAccount(0, 0, address(0));
         proxyAccount = AccountV1(proxyAddress);
         vm.stopPrank();
     }
