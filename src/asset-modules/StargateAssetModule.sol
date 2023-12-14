@@ -24,7 +24,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     ////////////////////////////////////////////////////////////// */
 
     // The Stargate LP tokens staking contract.
-    address public immutable stargateLpStaking;
+    IStargateLpStaking public immutable stargateLpStaking;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -42,6 +42,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     error UnderlyingAssetNotAllowed();
     error AssetNotAllowed();
     error RewardTokenNotMatching();
+    error RewardsOnlyClaimableOnWithdrawal();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -52,7 +53,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @param stargateLpStaking_ The address of the Stargate LP staking contract.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address registry_, address stargateLpStaking_) DerivedAssetModule(registry_, 0) {
+    constructor(address registry_, IStargateLpStaking stargateLpStaking_) DerivedAssetModule(registry_, 0) {
         stargateLpStaking = stargateLpStaking_;
     }
 
@@ -172,7 +173,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         underlyingAssetsAmounts = new uint256[](1);
 
         // Calculate underlyingAssets amounts
-        // "amountSD" comes from the Stargate contracts and stands for amount in Shared Decimals, which should be convered to Local Decimals via convertRate.
+        // "amountSD" is used in Stargate contracts and stands for amount in Shared Decimals, which should be convered to Local Decimals via convertRate.
         uint256 amountSD =
             assetAmount.mulDivDown(IStargatePool(asset).totalLiquidity(), IStargatePool(asset).totalSupply());
         underlyingAssetsAmounts[0] = amountSD * IStargatePool(asset).convertRate();
@@ -189,12 +190,12 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @param asset The contract address of the Stargate LP token.
      * @param rewardToken_ The contract address of the reward token.
      */
-    function addNewStakingToken(address asset, address rewardToken_) external override {
+    function addNewStakingToken(address asset, address rewardToken_) public override {
         if (tokenToRewardToId[asset][rewardToken_] != 0) revert TokenToRewardPairAlreadySet();
 
         if (!isAllowed(asset, 0)) revert AssetNotAllowed();
 
-        if (address(IStargateLpStaking(stargateLpStaking).eToken()) != rewardToken_) revert RewardTokenNotMatching();
+        if (address(stargateLpStaking.eToken()) != rewardToken_) revert RewardTokenNotMatching();
 
         // Note: think this is already checked when adding an asset
         if (ERC20(asset).decimals() > 18 || ERC20(rewardToken_).decimals() > 18) revert InvalidTokenDecimals();
@@ -212,6 +213,14 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     }
 
     /*///////////////////////////////////////////////////////////////
+                    STAKING MODULE LOGIC
+    ///////////////////////////////////////////////////////////////*/
+
+    function claimReward(uint256) external pure override {
+        revert RewardsOnlyClaimableOnWithdrawal();
+    }
+
+    /*///////////////////////////////////////////////////////////////
                     INTERACTIONS STAKING CONTRACT
     ///////////////////////////////////////////////////////////////*/
 
@@ -221,13 +230,11 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @param amount The amount of underlying tokens to stake.
      */
     function _stake(uint256 id, uint256 amount) internal override {
-        // Cache asset
         ERC20 asset = underlyingToken[id];
-        asset.approve(stargateLpStaking, amount);
-        uint256 poolId = assetToPoolId[address(asset)];
+        asset.approve(address(stargateLpStaking), amount);
 
         // Stake asset
-        IStargateLpStaking(stargateLpStaking).deposit(poolId, amount);
+        stargateLpStaking.deposit(assetToPoolId[address(asset)], amount);
     }
 
     /**
@@ -235,11 +242,17 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @param id The id of the specific staking token.
      * @param amount The amount of underlying tokens to unstake and withdraw.
      */
-    function _withdraw(uint256 id, uint256 amount) internal override { }
+    function _withdraw(uint256 id, uint256 amount) internal override {
+        ERC20 asset = underlyingToken[id];
+
+        // Withdraw asset
+        stargateLpStaking.withdraw(assetToPoolId[address(asset)], amount);
+    }
 
     /**
      * @notice Claims the rewards available for this contract.
      * @param id The id of the specific staking token.
+     * @dev This function is left empty as there is no method on Stargate contract to claim rewards separately. Accounts have to withdraw in order to claim rewards.
      */
     function _claimReward(uint256 id) internal override { }
 
@@ -248,7 +261,10 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @param id The id of the specific staking token.
      * @return currentReward The amount of rewards tokens that can be claimed.
      */
-    function _getCurrentReward(uint256 id) internal view override returns (uint256 currentReward) { }
+    function _getCurrentReward(uint256 id) internal view override returns (uint256 currentReward) {
+        ERC20 asset = underlyingToken[id];
+        currentReward = stargateLpStaking.pendingEmissionToken(assetToPoolId[address(asset)], address(this));
+    }
 
     /*///////////////////////////////////////////////////////////////
                            ERC1155 LOGIC

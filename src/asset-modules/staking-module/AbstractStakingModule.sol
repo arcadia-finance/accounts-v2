@@ -89,7 +89,7 @@ abstract contract StakingModule is ERC1155, ReentrancyGuard {
      * @param underlyingToken_ The contract address of the underlying token.
      * @param rewardToken_ The contract address of the reward token.
      */
-    function addNewStakingToken(address underlyingToken_, address rewardToken_) external virtual {
+    function addNewStakingToken(address underlyingToken_, address rewardToken_) public virtual {
         if (tokenToRewardToId[underlyingToken_][rewardToken_] != 0) revert TokenToRewardPairAlreadySet();
 
         // Cache new id
@@ -191,7 +191,7 @@ abstract contract StakingModule is ERC1155, ReentrancyGuard {
      * @notice Claims the pending reward tokens of the caller.
      * @param id The id of the specific staking token.
      */
-    function claimReward(uint256 id) public nonReentrant {
+    function claimReward(uint256 id) external virtual nonReentrant {
         // Calculate the updated reward balances.
         (uint256 currentRewardPerToken,, uint256 totalSupply_, uint256 currentRewardSender) =
             _getCurrentBalances(msg.sender, id);
