@@ -28,6 +28,6 @@ contract CreateAccount_Factory_Gas_Test is Gas_Test {
 
     function testGas_CreateAccount() public {
         vm.prank(users.accountOwner);
-        factory.createAccount(1_000_000, 0, address(mockERC20.stable1), address(creditorStable1));
+        factory.createAccount(1_000_000, 0, address(creditorStable1));
     }
 }

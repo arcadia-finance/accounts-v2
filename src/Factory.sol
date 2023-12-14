@@ -76,12 +76,11 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @notice Function to create a new Account.
      * @param salt A salt to be used to generate the hash.
      * @param accountVersion The Account version.
-     * @param numeraire The Numeraire in which the Account is denominated.
      * @param creditor The contract address of the creditor.
      * @return account The contract address of the proxy contract of the newly deployed Account.
      * @dev If accountVersion == 0, the newest version will be used.
      */
-    function createAccount(uint256 salt, uint88 accountVersion, address numeraire, address creditor)
+    function createAccount(uint256 salt, uint88 accountVersion, address creditor)
         external
         whenCreateNotPaused
         returns (address account)
@@ -104,7 +103,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
 
         _mint(msg.sender, allAccounts.length);
 
-        IAccount(account).initialize(msg.sender, versionInformation[accountVersion].registry, numeraire, creditor);
+        IAccount(account).initialize(msg.sender, versionInformation[accountVersion].registry, creditor);
 
         emit AccountUpgraded(account, accountVersion);
     }
