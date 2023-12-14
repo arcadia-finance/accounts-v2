@@ -359,7 +359,8 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_withdraw_NoDebt_WithoutCreditor_FullWithdrawal(
         uint112 erc20Amount,
         uint8 erc721Id,
-        uint112 erc1155Amount
+        uint112 erc1155Amount,
+        uint32 time
     ) public {
         vm.prank(users.accountOwner);
         accountExtension.closeMarginAccount();
@@ -390,6 +391,8 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.prank(users.accountOwner);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
 
+        vm.warp(time);
+
         // When: A user Fully withdraws assets.
         vm.prank(users.accountOwner);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
@@ -414,6 +417,9 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         );
         assertEq(accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1), 0);
         assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), erc1155Amount);
+
+        // And: lastActionTimestamp is updated.
+        assertEq(accountExtension.lastActionTimestamp(), time);
     }
 
     function testFuzz_Success_withdraw_NoDebt_WithCreditor_FullWithdrawal(

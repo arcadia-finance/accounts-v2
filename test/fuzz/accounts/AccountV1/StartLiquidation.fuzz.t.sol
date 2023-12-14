@@ -132,7 +132,8 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint96 fixedLiquidationCost,
         uint256 openDebt,
         uint112 depositAmountToken1,
-        address liquidationInitiator
+        address liquidationInitiator,
+        uint32 time
     ) public {
         // "exposure" is strictly smaller than "maxExposure".
         depositAmountToken1 = uint112(bound(depositAmountToken1, 1, type(uint112).max - 1));
@@ -172,6 +173,8 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Deposit stable1 token in account
         accountExtension2.deposit(assetAddresses, assetIds, assetAmounts);
 
+        vm.warp(time);
+
         // When : The liquidator initiates a liquidation
         vm.startPrank(accountExtension2.liquidator());
         (
@@ -194,5 +197,8 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(assetAndRiskValues_[0].assetValue, assetAndRiskValues[0].assetValue);
         assertEq(assetAndRiskValues_[0].collateralFactor, assetAndRiskValues[0].collateralFactor);
         assertEq(assetAndRiskValues_[0].liquidationFactor, assetAndRiskValues[0].liquidationFactor);
+
+        // And: lastActionTimestamp is updated.
+        assertEq(accountExtension2.lastActionTimestamp(), time);
     }
 }

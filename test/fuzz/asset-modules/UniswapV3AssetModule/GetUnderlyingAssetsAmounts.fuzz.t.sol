@@ -6,6 +6,7 @@ pragma solidity 0.8.22;
 
 import { UniswapV3AssetModule_Fuzz_Test } from "./_UniswapV3AssetModule.fuzz.t.sol";
 
+import { Constants } from "../../../utils/Constants.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
@@ -100,6 +101,12 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AssetModule_Fuzz_Test is UniswapV3A
         // And: "rateUnderlyingAssetsToUsd" for token1 overflows in "_getRateUnderlyingAssetsToUsd" (test-case).
         // And: "usdValue" for token1 does not overflow on cast to int256.
         asset1.usdValue = bound(asset1.usdValue, type(uint256).max / 10 ** 36 + 1, INT256_MAX);
+        // And: "oracleRate" for token1 in "getRate" does not overflow
+        asset1.usdValue = bound(
+            asset1.usdValue,
+            type(uint256).max / 10 ** 36 + 1,
+            type(uint256).max / 10 ** (18 - Constants.tokenOracleDecimals)
+        );
 
         // And: position is valid.
         position = givenValidPosition(position);

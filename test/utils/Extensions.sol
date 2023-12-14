@@ -33,12 +33,16 @@ contract AccountExtension is AccountV1 {
         locked_ = locked;
     }
 
-    function setLocked(uint256 locked_) external {
+    function setLocked(uint8 locked_) external {
         locked = locked_;
     }
 
     function setInAuction() external {
         inAuction = true;
+    }
+
+    function setLastActionTimestamp(uint32 lastActionTimestamp_) external {
+        lastActionTimestamp = lastActionTimestamp_;
     }
 
     function getLengths() external view returns (uint256, uint256, uint256, uint256) {
@@ -91,6 +95,10 @@ contract AccountExtension is AccountV1 {
 
     function getERC1155Balances(address asset, uint256 assetId) public view returns (uint256) {
         return erc1155Balances[asset][assetId];
+    }
+
+    function getCoolDownPeriod() public pure returns (uint256 coolDownPeriod) {
+        coolDownPeriod = COOL_DOWN_PERIOD;
     }
 }
 

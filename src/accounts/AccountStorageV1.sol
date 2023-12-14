@@ -19,10 +19,14 @@ contract AccountStorageV1 {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Flag Indicating if a function is locked to protect against reentrancy.
-    uint256 internal locked;
     // Flag indicating if the Account is in an auction (in liquidation).
     bool public inAuction;
+    // Flag Indicating if a function is locked to protect against reentrancy.
+    uint8 internal locked;
+    // Used to prevent the old Owner from frontrunning a transferFrom().
+    // The Timestamp of the last account action, that might be disadvantageous for a new Owner
+    // (withdrawals, change of Creditor, increasing liabilities...).
+    uint32 public lastActionTimestamp;
     // The contract address of the liquidator, address 0 if no creditor is set.
     address public liquidator;
 

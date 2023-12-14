@@ -40,13 +40,16 @@ contract AccountV1 is AccountStorageV1, IAccount {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
+    // The current Account Version.
+    uint16 public constant ACCOUNT_VERSION = 1;
+    // The maximum amount of different assets that can be used as collateral within an Arcadia Account.
+    uint256 public constant ASSET_LIMIT = 15;
+    // The cool-down period after an account action, that might be disadvantageous for a new Owner,
+    // during which ownership cannot be transferred to prevent the old Owner from frontrunning a transferFrom().
+    uint256 internal constant COOL_DOWN_PERIOD = 5 minutes;
     // Storage slot with the address of the current implementation.
     // This is the hardcoded keccak-256 hash of: "eip1967.proxy.implementation" subtracted by 1.
     bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
-    // The maximum amount of different assets that can be used as collateral within an Arcadia Account.
-    uint256 public constant ASSET_LIMIT = 15;
-    // The current Account Version.
-    uint16 public constant ACCOUNT_VERSION = 1;
     // The contract address of the Arcadia Accounts Factory.
     address public immutable FACTORY;
     // Uniswap Permit2 contract
@@ -128,6 +131,15 @@ contract AccountV1 is AccountStorageV1, IAccount {
         _;
     }
 
+    /**
+     * @dev Starts the cool-down period during which ownership cannot be transferred.
+     * This prevents the old Owner from frontrunning a transferFrom().
+     */
+    modifier updateActionTimestamp() {
+        lastActionTimestamp = uint32(block.timestamp);
+        _;
+    }
+
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
@@ -180,6 +192,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         onlyFactory
         nonReentrant
         notDuringAuction
+        updateActionTimestamp
     {
         // Cache old parameters.
         address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
@@ -243,8 +256,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * A transfer of ownership of the Account is triggered by a transfer
      * of ownership of the accompanying ERC721 Account NFT, issued by the Factory.
      * Owner of Account NFT = owner of Account
+     * @dev Function uses a cool-down period during which ownership cannot be transferred.
+     * Cool-down period is triggered after any account action, that might be disadvantageous for a new Owner.
+     * This prevents the old Owner from frontrunning a transferFrom().
      */
     function transferOwnership(address newOwner) external onlyFactory {
+        if (block.timestamp <= lastActionTimestamp + COOL_DOWN_PERIOD) revert AccountErrors.CoolDownPeriodNotPassed();
+
         // The Factory will check that the new owner is not address(0).
         owner = newOwner;
     }
@@ -290,7 +308,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Only open margin accounts for Creditors you trust!
      * The Creditor has significant authorization: use margin, trigger liquidation, and manage assets.
      */
-    function openMarginAccount(address newCreditor) external onlyOwner nonReentrant notDuringAuction {
+    function openMarginAccount(address newCreditor)
+        external
+        onlyOwner
+        nonReentrant
+        notDuringAuction
+        updateActionTimestamp
+    {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
 
@@ -474,6 +498,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         external
         onlyLiquidator
         nonReentrant
+        updateActionTimestamp
         returns (
             address[] memory assetAddresses,
             uint256[] memory assetIds,
@@ -548,6 +573,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         external
         onlyCreditor
         nonReentrant
+        updateActionTimestamp
         returns (uint256 accountVersion)
     {
         // If the open position is 0, the Account is always healthy.
@@ -577,6 +603,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function flashActionByCreditor(address actionTarget, bytes calldata actionData)
         external
         onlyCreditor
+        updateActionTimestamp
         returns (uint256 accountVersion)
     {
         _flashAction(actionTarget, actionData);
@@ -614,7 +641,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The first bytes object contains the signature for the Permit2 transfer.
      * The second bytes object contains the encoded input for the actionTarget.
      */
-    function flashActionByAssetManager(address actionTarget, bytes calldata actionData) external onlyAssetManager {
+    function flashActionByAssetManager(address actionTarget, bytes calldata actionData)
+        external
+        onlyAssetManager
+        updateActionTimestamp
+    {
         _flashAction(actionTarget, actionData);
     }
 
@@ -756,6 +787,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         onlyOwner
         nonReentrant
         notDuringAuction
+        updateActionTimestamp
     {
         // No need to check that all arrays have equal length, this check is will be done in the Registry.
         _withdraw(assetAddresses, assetIds, assetAmounts, msg.sender);
@@ -1044,7 +1076,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Function can retrieve assets that were transferred to the Account but not deposited
      * or can be used to claim yield for strictly upwards rebasing tokens.
      */
-    function skim(address token, uint256 id, uint256 type_) public onlyOwner nonReentrant {
+    function skim(address token, uint256 id, uint256 type_) public onlyOwner nonReentrant updateActionTimestamp {
         if (token == address(0)) {
             payable(msg.sender).transfer(address(this).balance);
             return;
