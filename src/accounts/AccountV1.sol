@@ -131,6 +131,15 @@ contract AccountV1 is AccountStorageV1, IAccount {
         _;
     }
 
+    /**
+     * @dev Starts the cool-down period during which ownership cannot be transferred.
+     * This prevents the old Owner from frontrunning a transferFrom().
+     */
+    modifier updateActionTimestamp() {
+        lastActionTimestamp = uint32(block.timestamp);
+        _;
+    }
+
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
@@ -183,9 +192,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
         onlyFactory
         nonReentrant
         notDuringAuction
+        updateActionTimestamp
     {
-        lastActionTimestamp = uint32(block.timestamp);
-
         // Cache old parameters.
         address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
@@ -300,9 +308,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Only open margin accounts for Creditors you trust!
      * The Creditor has significant authorization: use margin, trigger liquidation, and manage assets.
      */
-    function openMarginAccount(address newCreditor) external onlyOwner nonReentrant notDuringAuction {
-        lastActionTimestamp = uint32(block.timestamp);
-
+    function openMarginAccount(address newCreditor)
+        external
+        onlyOwner
+        nonReentrant
+        notDuringAuction
+        updateActionTimestamp
+    {
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
 
@@ -486,6 +498,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         external
         onlyLiquidator
         nonReentrant
+        updateActionTimestamp
         returns (
             address[] memory assetAddresses,
             uint256[] memory assetIds,
@@ -496,7 +509,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
         )
     {
         inAuction = true;
-        lastActionTimestamp = uint32(block.timestamp);
         creditor_ = creditor;
 
         (assetAddresses, assetIds, assetAmounts) = generateAssetData();
@@ -561,10 +573,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
         external
         onlyCreditor
         nonReentrant
+        updateActionTimestamp
         returns (uint256 accountVersion)
     {
-        lastActionTimestamp = uint32(block.timestamp);
-
         // If the open position is 0, the Account is always healthy.
         // An Account is unhealthy if the collateral value is smaller than the used margin.
         // The used margin equals the sum of the given amount of openPosition and the gas cost to liquidate.
@@ -592,10 +603,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
     function flashActionByCreditor(address actionTarget, bytes calldata actionData)
         external
         onlyCreditor
+        updateActionTimestamp
         returns (uint256 accountVersion)
     {
-        lastActionTimestamp = uint32(block.timestamp);
-
         _flashAction(actionTarget, actionData);
 
         accountVersion = ACCOUNT_VERSION;
@@ -631,9 +641,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The first bytes object contains the signature for the Permit2 transfer.
      * The second bytes object contains the encoded input for the actionTarget.
      */
-    function flashActionByAssetManager(address actionTarget, bytes calldata actionData) external onlyAssetManager {
-        lastActionTimestamp = uint32(block.timestamp);
-
+    function flashActionByAssetManager(address actionTarget, bytes calldata actionData)
+        external
+        onlyAssetManager
+        updateActionTimestamp
+    {
         _flashAction(actionTarget, actionData);
     }
 
@@ -775,9 +787,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
         onlyOwner
         nonReentrant
         notDuringAuction
+        updateActionTimestamp
     {
-        lastActionTimestamp = uint32(block.timestamp);
-
         // No need to check that all arrays have equal length, this check is will be done in the Registry.
         _withdraw(assetAddresses, assetIds, assetAmounts, msg.sender);
 
@@ -1065,9 +1076,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Function can retrieve assets that were transferred to the Account but not deposited
      * or can be used to claim yield for strictly upwards rebasing tokens.
      */
-    function skim(address token, uint256 id, uint256 type_) public onlyOwner nonReentrant {
-        lastActionTimestamp = uint32(block.timestamp);
-
+    function skim(address token, uint256 id, uint256 type_) public onlyOwner nonReentrant updateActionTimestamp {
         if (token == address(0)) {
             payable(msg.sender).transfer(address(this).balance);
             return;
