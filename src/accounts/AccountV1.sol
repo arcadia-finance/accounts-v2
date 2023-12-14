@@ -151,14 +151,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @notice Initiates the variables of the Account.
      * @param owner_ The sender of the 'createAccount' on the Factory
      * @param registry_ The 'beacon' contract with the external logic to price assets.
-     * @param numeraire_ The Numeraire in which the Account is denominated.
      * @param creditor_ The contract address of the Creditor.
      * @dev A proxy will be used to interact with the Account implementation.
      * Therefore everything is initialised through an init function.
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
      * @dev The Creditor will only be set if it's a non-zero address, in this case the numeraire_ passed as input will be ignored.
      */
-    function initialize(address owner_, address registry_, address numeraire_, address creditor_) external {
+    function initialize(address owner_, address registry_, address creditor_) external {
         if (registry != address(0)) revert AccountErrors.AlreadyInitialized();
         if (registry_ == address(0)) revert AccountErrors.InvalidRegistry();
         owner = owner_;
@@ -166,7 +165,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
         registry = registry_;
 
         if (creditor_ != address(0)) _openMarginAccount(creditor_);
-        else emit NumeraireSet(numeraire = numeraire_);
     }
 
     /**
