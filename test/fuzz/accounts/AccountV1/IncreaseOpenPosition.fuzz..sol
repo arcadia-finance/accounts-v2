@@ -80,9 +80,12 @@ contract IncreaseOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.increaseOpenPosition(debt);
     }
 
-    function testFuzz_Success_increaseOpenPosition(uint256 debt, uint112 collateralValue, uint256 fixedLiquidationCost)
-        public
-    {
+    function testFuzz_Success_increaseOpenPosition(
+        uint256 debt,
+        uint112 collateralValue,
+        uint256 fixedLiquidationCost,
+        uint32 time
+    ) public {
         // "exposure" is strictly smaller than "maxExposure".
         collateralValue = uint112(bound(collateralValue, 0, type(uint112).max - 1));
         // test-case: Sufficient margin
@@ -96,11 +99,16 @@ contract IncreaseOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
 
+        vm.warp(time);
+
         // When: The Creditor tries to take more margin against the Account
         vm.prank(address(creditorStable1));
         uint256 version = accountExtension.increaseOpenPosition(debt);
 
         // Then: The action is successful
         assertEq(version, 1);
+
+        // And: lastActionTimestamp is updated.
+        assertEq(accountExtension.lastActionTimestamp(), time);
     }
 }

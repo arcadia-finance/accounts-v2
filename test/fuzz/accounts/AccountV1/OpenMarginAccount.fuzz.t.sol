@@ -110,7 +110,9 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Success_openMarginAccount_FromNoCreditor(uint112 exposure, uint112 maxExposure) public {
+    function testFuzz_Success_openMarginAccount_FromNoCreditor(uint112 exposure, uint112 maxExposure, uint32 time)
+        public
+    {
         // Given: "exposure" is strictly smaller than "maxExposure".
         exposure = uint112(bound(exposure, 0, type(uint112).max - 1));
         maxExposure = uint112(bound(maxExposure, exposure + 1, type(uint112).max));
@@ -131,6 +133,8 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.fixedLiquidationCost(), 0);
         assertEq(proxyAccount.numeraire(), address(0));
 
+        vm.warp(time);
+
         // Open a margin account
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
@@ -143,6 +147,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.liquidator(), Constants.initLiquidator);
         assertEq(proxyAccount.fixedLiquidationCost(), Constants.initLiquidationCost);
         assertEq(proxyAccount.numeraire(), address(mockERC20.stable1));
+        assertEq(proxyAccount.lastActionTimestamp(), time);
 
         // And: the exposure of the Creditors is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
@@ -150,7 +155,11 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(actualExposure, exposure);
     }
 
-    function testFuzz_Success_openMarginAccount_FromDifferentCreditor(uint112 exposure, uint112 maxExposure) public {
+    function testFuzz_Success_openMarginAccount_FromDifferentCreditor(
+        uint112 exposure,
+        uint112 maxExposure,
+        uint32 time
+    ) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
         exposure = uint112(bound(exposure, 0, type(uint112).max - 1));
         maxExposure = uint112(bound(maxExposure, exposure + 1, type(uint112).max));
@@ -183,6 +192,8 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         (uint128 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
         assertEq(actualExposure, exposure);
 
+        vm.warp(time);
+
         // When: Open a margin account with a new creditor.
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
@@ -195,6 +206,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.liquidator(), Constants.initLiquidator);
         assertEq(proxyAccount.fixedLiquidationCost(), Constants.initLiquidationCost);
         assertEq(proxyAccount.numeraire(), address(mockERC20.stable1));
+        assertEq(proxyAccount.lastActionTimestamp(), time);
 
         // And: the exposure of the Creditors is updated.
         (actualExposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
@@ -203,9 +215,11 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(actualExposure, exposure);
     }
 
-    function testFuzz_Success_openMarginAccount_DifferentNumeraire(address liquidator, uint96 fixedLiquidationCost)
-        public
-    {
+    function testFuzz_Success_openMarginAccount_DifferentNumeraire(
+        address liquidator,
+        uint96 fixedLiquidationCost,
+        uint32 time
+    ) public {
         // Confirm initial numeraire is not set for the Account
         assertEq(proxyAccount.numeraire(), address(0));
 
@@ -215,6 +229,8 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         creditorStable1.setFixedLiquidationCost(fixedLiquidationCost);
         // Update liquidator in creditor
         creditorStable1.setLiquidator(liquidator);
+
+        vm.warp(time);
 
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
@@ -228,13 +244,16 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.liquidator(), liquidator);
         assertEq(proxyAccount.numeraire(), address(mockERC20.token1));
         assertEq(proxyAccount.fixedLiquidationCost(), fixedLiquidationCost);
+        assertEq(proxyAccount.lastActionTimestamp(), time);
     }
 
-    function testFuzz_Success_openMarginAccount_SameNumeraire() public {
+    function testFuzz_Success_openMarginAccount_SameNumeraire(uint32 time) public {
         // Deploy an Account with numeraire set to STABLE1
         address deployedAccount = factory.createAccount(1111, 0, address(mockERC20.stable1), address(0));
         assertEq(AccountV1(deployedAccount).numeraire(), address(mockERC20.stable1));
         assertEq(creditorStable1.numeraire(), address(mockERC20.stable1));
+
+        vm.warp(time);
 
         vm.expectEmit();
         emit MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
@@ -244,5 +263,6 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(AccountV1(deployedAccount).creditor(), address(creditorStable1));
         assertEq(AccountV1(deployedAccount).numeraire(), address(mockERC20.stable1));
         assertEq(AccountV1(deployedAccount).fixedLiquidationCost(), Constants.initLiquidationCost);
+        assertEq(AccountV1(deployedAccount).lastActionTimestamp(), time);
     }
 }

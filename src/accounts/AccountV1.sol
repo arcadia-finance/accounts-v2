@@ -39,13 +39,16 @@ contract AccountV1 is AccountStorageV1, IAccount {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
+    // The current Account Version.
+    uint16 public constant ACCOUNT_VERSION = 1;
+    // The maximum amount of different assets that can be used as collateral within an Arcadia Account.
+    uint256 public constant ASSET_LIMIT = 15;
+    // The cool-down period after an account action, that might be disadvantageous for a new Owner,
+    // during which ownership cannot be transferred to prevent the old Owner from frontrunning a transferFrom().
+    uint256 internal constant COOL_DOWN_PERIOD = 5 minutes;
     // Storage slot with the address of the current implementation.
     // This is the hardcoded keccak-256 hash of: "eip1967.proxy.implementation" subtracted by 1.
     bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
-    // The maximum amount of different assets that can be used as collateral within an Arcadia Account.
-    uint256 public constant ASSET_LIMIT = 15;
-    // The current Account Version.
-    uint16 public constant ACCOUNT_VERSION = 1;
     // Uniswap Permit2 contract
     IPermit2 internal immutable PERMIT2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
@@ -175,6 +178,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
         nonReentrant
         notDuringAuction
     {
+        lastActionTimestamp = uint32(block.timestamp);
+
         // Cache old parameters.
         address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
@@ -237,8 +242,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * A transfer of ownership of the Account is triggered by a transfer
      * of ownership of the accompanying ERC721 Account NFT, issued by the Factory.
      * Owner of Account NFT = owner of Account
+     * @dev Function uses a cool-down period during which ownership cannot be transferred.
+     * Cool-down period is triggered after any account action, that might be disadvantageous for a new Owner.
+     * This prevents the old Owner from frontrunning a transferFrom().
      */
     function transferOwnership(address newOwner) external onlyFactory {
+        if (block.timestamp <= lastActionTimestamp + COOL_DOWN_PERIOD) revert AccountErrors.CoolDownPeriodNotPassed();
+
         // The Factory will check that the new owner is not address(0).
         owner = newOwner;
     }
@@ -279,6 +289,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The Creditor has significant authorization: use margin, trigger liquidation, and manage assets.
      */
     function openMarginAccount(address newCreditor) external onlyOwner nonReentrant notDuringAuction {
+        lastActionTimestamp = uint32(block.timestamp);
+
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
             generateAssetData();
 
@@ -472,6 +484,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         )
     {
         inAuction = true;
+        lastActionTimestamp = uint32(block.timestamp);
         creditor_ = creditor;
 
         (assetAddresses, assetIds, assetAmounts) = generateAssetData();
@@ -540,6 +553,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
         nonReentrant
         returns (uint256 accountVersion)
     {
+        lastActionTimestamp = uint32(block.timestamp);
+
         // If the open position is 0, the Account is always healthy.
         // An Account is unhealthy if the collateral value is smaller than the used margin.
         // The used margin equals the sum of the given amount of openPosition and the gas cost to liquidate.
@@ -569,6 +584,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
         onlyCreditor
         returns (uint256 accountVersion)
     {
+        lastActionTimestamp = uint32(block.timestamp);
+
         _flashAction(actionTarget, actionData);
 
         accountVersion = ACCOUNT_VERSION;
@@ -605,6 +622,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The second bytes object contains the encoded input for the actionTarget.
      */
     function flashActionByAssetManager(address actionTarget, bytes calldata actionData) external onlyAssetManager {
+        lastActionTimestamp = uint32(block.timestamp);
+
         _flashAction(actionTarget, actionData);
     }
 
@@ -747,6 +766,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
         nonReentrant
         notDuringAuction
     {
+        lastActionTimestamp = uint32(block.timestamp);
+
         // No need to check that all arrays have equal length, this check is will be done in the Registry.
         _withdraw(assetAddresses, assetIds, assetAmounts, msg.sender);
 
@@ -1035,6 +1056,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * or can be used to claim yield for strictly upwards rebasing tokens.
      */
     function skim(address token, uint256 id, uint256 type_) public onlyOwner nonReentrant {
+        lastActionTimestamp = uint32(block.timestamp);
+
         if (token == address(0)) {
             payable(msg.sender).transfer(address(this).balance);
             return;

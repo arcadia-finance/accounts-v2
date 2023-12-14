@@ -161,7 +161,8 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint112 erc20Amount,
         uint8 erc721Id,
         uint112 erc1155Amount,
-        uint256 debt
+        uint256 debt,
+        uint32 time
     ) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
         erc20Amount = uint112(bound(erc20Amount, 0, type(uint112).max - 1));
@@ -206,6 +207,8 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         bytes32[] memory proofs = new bytes32[](1);
         proofs[0] = Constants.upgradeProof1To2;
 
+        vm.warp(time);
+
         // When: "users.accountOwner" Upgrade the account to AccountV2Logic.
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
@@ -225,5 +228,8 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // And: The Account version is updated.
         assertEq(proxyAccount.ACCOUNT_VERSION(), factory.latestAccountVersion());
+
+        // And: lastActionTimestamp is updated.
+        assertEq(proxyAccount.lastActionTimestamp(), time);
     }
 }
