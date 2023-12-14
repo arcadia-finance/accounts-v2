@@ -25,7 +25,7 @@ contract Initialize_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function setUp() public override {
         AccountV1_Fuzz_Test.setUp();
 
-        accountNotInitialised = new AccountExtension();
+        accountNotInitialised = new AccountExtension(address(factory));
     }
 
     /*//////////////////////////////////////////////////////////////

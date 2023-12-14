@@ -27,7 +27,7 @@ import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
 
 contract AccountExtension is AccountV1 {
-    constructor() AccountV1() { }
+    constructor(address factory) AccountV1(factory) { }
 
     function getLocked() external view returns (uint256 locked_) {
         locked_ = locked;

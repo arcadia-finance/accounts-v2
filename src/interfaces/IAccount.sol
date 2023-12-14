@@ -12,6 +12,12 @@ interface IAccount {
     function ACCOUNT_VERSION() external view returns (uint16);
 
     /**
+     * @notice Returns the Arcadia Accounts Factory.
+     * @return factory The contract address of the Arcadia Accounts Factory.
+     */
+    function FACTORY() external view returns (address);
+
+    /**
      * @notice Initiates the variables of the Account.
      * @param owner The sender of the 'createAccount' on the factory
      * @param registry The 'beacon' contract with the external logic.
