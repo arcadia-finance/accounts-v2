@@ -34,7 +34,10 @@ contract GetRiskFactors_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedA
         uint16[2] memory collateralFactors,
         uint16[2] memory liquidationFactors
     ) public {
-        // Given: id's are smaller or equal to type(uint96).max.
+        // Given: underlyingAssets are unique.
+        vm.assume(underlyingAssets[0] != underlyingAssets[1]);
+
+        // And: id's are smaller or equal to type(uint96).max.
         underlyingAssetIds[0] = bound(underlyingAssetIds[0], 0, type(uint96).max);
         underlyingAssetIds[1] = bound(underlyingAssetIds[1], 0, type(uint96).max);
 
