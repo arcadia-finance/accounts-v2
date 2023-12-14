@@ -6,6 +6,8 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
+import { RevertingReceive } from "../../../utils/mocks/RevertingReceive.sol";
+
 /**
  * @notice Fuzz tests for the function "skim" of contract "AccountV1".
  */
@@ -42,6 +44,23 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.expectRevert(AccountErrors.NoReentry.selector);
         accountExtension.skim(asset, id, type_);
         vm.stopPrank();
+    }
+
+    function testFuzz_Revert_skim_Receive(uint256 transferAmount) public {
+        address revertingReceiver = address(new RevertingReceive());
+
+        accountExtension.setOwner(revertingReceiver);
+
+        uint256 balancePre = revertingReceiver.balance;
+
+        // No overflow.
+        transferAmount = bound(transferAmount, 0, type(uint256).max - balancePre);
+
+        vm.deal(revertingReceiver, transferAmount);
+
+        vm.prank(revertingReceiver);
+        vm.expectRevert(RevertingReceive.TestError.selector);
+        accountExtension.skim(address(0), 0, 0);
     }
 
     function testFuzz_Success_skim_Type0_NonZeroSkim(uint256 depositAmount, uint256 transferAmount, uint32 time)
