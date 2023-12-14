@@ -7,7 +7,8 @@ pragma solidity 0.8.22;
 import { Proxy } from "./Proxy.sol";
 import { IAccount } from "./interfaces/IAccount.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
-import { ERC721 } from "../lib/solmate/src/tokens/ERC721.sol";
+import { IRegistry } from "./interfaces/IRegistry.sol";
+import { ERC721, ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";
 import { Strings } from "./libraries/Strings.sol";
 import { MerkleProofLib } from "../lib/solmate/src/utils/MerkleProofLib.sol";
 import { FactoryGuardian } from "./guardians/FactoryGuardian.sol";
@@ -76,12 +77,11 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @notice Function to create a new Account.
      * @param salt A salt to be used to generate the hash.
      * @param accountVersion The Account version.
-     * @param numeraire The Numeraire in which the Account is denominated.
      * @param creditor The contract address of the creditor.
      * @return account The contract address of the proxy contract of the newly deployed Account.
      * @dev If accountVersion == 0, the newest version will be used.
      */
-    function createAccount(uint256 salt, uint88 accountVersion, address numeraire, address creditor)
+    function createAccount(uint256 salt, uint88 accountVersion, address creditor)
         external
         whenCreateNotPaused
         returns (address account)
@@ -104,7 +104,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
 
         _mint(msg.sender, allAccounts.length);
 
-        IAccount(account).initialize(msg.sender, versionInformation[accountVersion].registry, numeraire, creditor);
+        IAccount(account).initialize(msg.sender, versionInformation[accountVersion].registry, creditor);
 
         emit AccountUpgraded(account, accountVersion);
     }
@@ -211,6 +211,40 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         super.transferFrom(from, to, id);
     }
 
+    /**
+     * @notice Function used to transfer an Account, called by the Account itself.
+     * @param to The target.
+     * @dev Adaptation of safeTransferFrom from the ERC-721 standard, where the Account itself triggers the transfer.
+     * @dev The Account must do the transferOwnership() before calling this function.
+     */
+    function safeTransferAccount(address to) public {
+        if (to == address(0)) revert FactoryErrors.InvalidRecipient();
+
+        uint256 id = accountIndex[msg.sender];
+        if (id == 0) revert FactoryErrors.OnlyAccount();
+
+        address from = _ownerOf[id];
+
+        // Underflow of the sender's balance is impossible because we check for
+        // ownership above and the recipient's balance can't realistically overflow.
+        unchecked {
+            _balanceOf[from]--;
+            _balanceOf[to]++;
+        }
+
+        _ownerOf[id] = to;
+
+        delete getApproved[id];
+
+        if (
+            to.code.length != 0
+                && ERC721TokenReceiver(to).onERC721Received(msg.sender, from, id, "")
+                    != ERC721TokenReceiver.onERC721Received.selector
+        ) revert FactoryErrors.UnsafeRecipient();
+
+        emit Transfer(from, to, id);
+    }
+
     /*///////////////////////////////////////////////////////////////
                     ACCOUNT VERSION MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
@@ -242,6 +276,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
             VersionInformation({ registry: registry, implementation: implementation, data: data });
 
         if (IAccount(implementation).ACCOUNT_VERSION() != latestAccountVersion) revert FactoryErrors.VersionMismatch();
+        if (IAccount(implementation).FACTORY() != address(this)) revert FactoryErrors.FactoryMismatch();
+        if (IRegistry(registry).FACTORY() != address(this)) revert FactoryErrors.FactoryMismatch();
 
         emit AccountVersionAdded(uint88(latestAccountVersion_), registry, implementation);
     }

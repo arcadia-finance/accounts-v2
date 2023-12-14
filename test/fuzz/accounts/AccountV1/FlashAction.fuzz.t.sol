@@ -39,7 +39,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         action = new ActionMultiCall();
         multiActionMock = new MultiActionMock();
 
-        accountNotInitialised = new AccountExtension();
+        accountNotInitialised = new AccountExtension(address(factory));
     }
 
     /*//////////////////////////////////////////////////////////////

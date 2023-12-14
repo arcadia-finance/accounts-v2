@@ -26,7 +26,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function setUp() public override {
         Factory_Fuzz_Test.setUp();
 
-        AccountExtension account_ = new AccountExtension();
+        AccountExtension account_ = new AccountExtension(address(factory));
         coolDownPeriod = account_.getCoolDownPeriod();
     }
 
@@ -63,7 +63,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -80,7 +80,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -96,7 +96,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -114,7 +114,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -131,7 +131,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -149,7 +149,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -166,7 +166,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -184,7 +184,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -202,7 +202,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) notTestContracts(nonOwner) {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -218,7 +218,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) notTestContracts(nonOwner) {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -234,7 +234,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) notTestContracts(nonOwner) {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -251,7 +251,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) notTestContracts(nonOwner) {
         vm.broadcast(newAccountOwner);
-        address newAccount = factory.createAccount(salt, 0, address(0), address(0));
+        address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 

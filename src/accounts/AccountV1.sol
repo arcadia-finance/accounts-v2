@@ -14,6 +14,7 @@ import { IRegistry } from "../interfaces/IRegistry.sol";
 import { ICreditor } from "../interfaces/ICreditor.sol";
 import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
 import { IAccount } from "../interfaces/IAccount.sol";
+import { IFactory } from "../interfaces/IFactory.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
 
 /**
@@ -49,6 +50,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
     // Storage slot with the address of the current implementation.
     // This is the hardcoded keccak-256 hash of: "eip1967.proxy.implementation" subtracted by 1.
     bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+    // The contract address of the Arcadia Accounts Factory.
+    address public immutable FACTORY;
     // Uniswap Permit2 contract
     IPermit2 internal immutable PERMIT2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
@@ -108,7 +111,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev Throws if called by any address other than the Factory address.
      */
     modifier onlyFactory() {
-        if (msg.sender != IRegistry(registry).FACTORY()) revert AccountErrors.OnlyFactory();
+        if (msg.sender != FACTORY) revert AccountErrors.OnlyFactory();
         _;
     }
 
@@ -132,10 +135,15 @@ contract AccountV1 is AccountStorageV1, IAccount {
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
-    constructor() {
+    /**
+     * @param factory The contract address of the Arcadia Accounts Factory.
+     */
+    constructor(address factory) {
         // This will only be the owner of the Account implementation.
         // and will not affect any subsequent proxy implementation using this Account implementation.
         owner = msg.sender;
+
+        FACTORY = factory;
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -146,14 +154,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @notice Initiates the variables of the Account.
      * @param owner_ The sender of the 'createAccount' on the Factory
      * @param registry_ The 'beacon' contract with the external logic to price assets.
-     * @param numeraire_ The Numeraire in which the Account is denominated.
      * @param creditor_ The contract address of the Creditor.
      * @dev A proxy will be used to interact with the Account implementation.
      * Therefore everything is initialised through an init function.
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
      * @dev The Creditor will only be set if it's a non-zero address, in this case the numeraire_ passed as input will be ignored.
      */
-    function initialize(address owner_, address registry_, address numeraire_, address creditor_) external {
+    function initialize(address owner_, address registry_, address creditor_) external {
         if (registry != address(0)) revert AccountErrors.AlreadyInitialized();
         if (registry_ == address(0)) revert AccountErrors.InvalidRegistry();
         owner = owner_;
@@ -161,7 +168,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
         registry = registry_;
 
         if (creditor_ != address(0)) _openMarginAccount(creditor_);
-        else emit NumeraireSet(numeraire = numeraire_);
     }
 
     /**
@@ -251,6 +257,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
         // The Factory will check that the new owner is not address(0).
         owner = newOwner;
+    }
+
+    function _transferOwnership(address newOwner) internal {
+        // The Factory will check that the new owner is not address(0).
+        owner = newOwner;
+        IFactory(FACTORY).safeTransferAccount(newOwner);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -519,13 +531,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /**
      * @notice Transfers all assets of the Account in case the auction did not end successful (= Bought In).
      * @param recipient The recipient address to receive the assets, set by the Creditor.
-     * @dev When an auction is not successful, the assets are considered "Bought In":
-     * Any remaining assets in the Account are transferred to a certain recipient address, set by the Creditor.
+     * @dev When an auction is not successful, the Account is considered "Bought In":
+     * The whole Account including any remaining assets are transferred to a certain recipient address, set by the Creditor.
      */
     function auctionBoughtIn(address recipient) external onlyLiquidator {
-        (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
-            generateAssetData();
-        _withdraw(assetAddresses, assetIds, assetAmounts, recipient);
+        _transferOwnership(recipient);
     }
 
     /**

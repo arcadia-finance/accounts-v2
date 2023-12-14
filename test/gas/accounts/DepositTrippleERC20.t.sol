@@ -22,7 +22,7 @@ contract Deposits_TrippleERC20_Gas_Test is Gas_Test {
     function setUp() public override {
         Gas_Test.setUp();
         vm.prank(users.accountOwner);
-        newAccount = factory.createAccount(1_000_000, 0, address(mockERC20.stable1), address(creditorStable1));
+        newAccount = factory.createAccount(1_000_000, 0, address(creditorStable1));
     }
 
     /*//////////////////////////////////////////////////////////////

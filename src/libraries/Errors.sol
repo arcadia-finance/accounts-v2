@@ -32,10 +32,14 @@ library AccountErrors {
 
 library FactoryErrors {
     error AccountVersionBlocked();
+    error FactoryMismatch();
     error InvalidAccountVersion();
+    error InvalidRecipient();
     error InvalidUpgrade();
     error ImplIsZero();
+    error OnlyAccount();
     error OnlyAccountOwner();
+    error UnsafeRecipient();
     error VersionMismatch();
     error VersionRootIsZero();
 }

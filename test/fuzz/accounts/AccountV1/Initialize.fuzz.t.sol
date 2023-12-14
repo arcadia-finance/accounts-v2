@@ -25,7 +25,7 @@ contract Initialize_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function setUp() public override {
         AccountV1_Fuzz_Test.setUp();
 
-        accountNotInitialised = new AccountExtension();
+        accountNotInitialised = new AccountExtension(address(factory));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -33,32 +33,30 @@ contract Initialize_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_initialize_InvalidReg() public {
         vm.expectRevert(AccountErrors.InvalidRegistry.selector);
-        accountNotInitialised.initialize(users.accountOwner, address(0), address(0), address(0));
+        accountNotInitialised.initialize(users.accountOwner, address(0), address(0));
     }
 
     function testFuzz_Revert_initialize_AlreadyInitialized() public {
-        accountNotInitialised.initialize(users.accountOwner, address(registryExtension), address(0), address(0));
+        accountNotInitialised.initialize(users.accountOwner, address(registryExtension), address(0));
 
         vm.expectRevert(AccountErrors.AlreadyInitialized.selector);
-        accountNotInitialised.initialize(users.accountOwner, address(registryExtension), address(0), address(0));
+        accountNotInitialised.initialize(users.accountOwner, address(registryExtension), address(0));
     }
 
     function testFuzz_Success_initialize_WithoutCreditor(address owner_) public {
-        vm.expectEmit(true, true, true, true);
-        emit NumeraireSet(address(mockERC20.token1));
-        accountNotInitialised.initialize(owner_, address(registryExtension), address(mockERC20.token1), address(0));
+        accountNotInitialised.initialize(owner_, address(registryExtension), address(0));
 
         assertEq(accountNotInitialised.owner(), owner_);
         assertEq(accountNotInitialised.getLocked(), 1);
         assertEq(accountNotInitialised.registry(), address(registryExtension));
-        assertEq(accountNotInitialised.numeraire(), address(mockERC20.token1));
+        assertEq(accountNotInitialised.numeraire(), address(0));
         assertEq(accountNotInitialised.creditor(), address(0));
     }
 
-    function testFuzz_Success_initialize_WithCreditor(address owner_, address numeraire_) public {
+    function testFuzz_Success_initialize_WithCreditor(address owner_) public {
         vm.expectEmit(true, true, true, true);
         emit NumeraireSet(address(mockERC20.stable1));
-        accountNotInitialised.initialize(owner_, address(registryExtension), numeraire_, address(creditorStable1));
+        accountNotInitialised.initialize(owner_, address(registryExtension), address(creditorStable1));
 
         assertEq(accountNotInitialised.owner(), owner_);
         assertEq(accountNotInitialised.getLocked(), 1);

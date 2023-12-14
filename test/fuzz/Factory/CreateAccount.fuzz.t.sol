@@ -34,7 +34,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         // Then: Reverted
         vm.prank(sender);
         vm.expectRevert(FunctionIsPaused.selector);
-        factory.createAccount(salt, 0, address(0), address(0));
+        factory.createAccount(salt, 0, address(0));
     }
 
     function testFuzz_Revert_createAccount_CreateNonExistingAccountVersion(uint16 accountVersion) public {
@@ -43,10 +43,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.expectRevert(FactoryErrors.InvalidAccountVersion.selector);
         factory.createAccount(
-            uint256(keccak256(abi.encodePacked(accountVersion, block.timestamp))),
-            accountVersion,
-            address(0),
-            address(0)
+            uint256(keccak256(abi.encodePacked(accountVersion, block.timestamp))), accountVersion, address(0)
         );
     }
 
@@ -55,7 +52,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint8 versionsToMake,
         uint8[] calldata versionsToBlock
     ) public {
-        AccountVariableVersion account_ = new AccountVariableVersion(0);
+        AccountVariableVersion account_ = new AccountVariableVersion(0, address(factory));
 
         vm.assume(versionsToBlock.length < 10 && versionsToBlock.length > 0);
         vm.assume(uint256(versionsToMake) + 1 < type(uint8).max);
@@ -85,7 +82,6 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
             factory.createAccount(
                 uint256(keccak256(abi.encodePacked(versionsToBlock[z], block.timestamp))),
                 versionsToBlock[z],
-                address(0),
                 address(0)
             );
         }
@@ -102,7 +98,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         emit AccountUpgraded(address(0), 1);
 
         // Here we create an Account with no specific creditor
-        address actualDeployed = factory.createAccount(salt, 0, address(0), address(0));
+        address actualDeployed = factory.createAccount(salt, 0, address(0));
 
         assertEq(amountBefore + 1, factory.allAccountsLength());
         assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
@@ -124,7 +120,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         emit AccountUpgraded(address(0), 1);
 
         // Here we create an Account by specifying the creditor address
-        address actualDeployed = factory.createAccount(salt, 0, address(0), address(creditorStable1));
+        address actualDeployed = factory.createAccount(salt, 0, address(creditorStable1));
 
         assertEq(amountBefore + 1, factory.allAccountsLength());
         assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
@@ -138,7 +134,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(sender != address(0));
         uint256 amountBefore = factory.allAccountsLength();
         vm.prank(sender);
-        address actualDeployed = factory.createAccount(salt, 0, address(0), address(0));
+        address actualDeployed = factory.createAccount(salt, 0, address(0));
         assertEq(amountBefore + 1, factory.allAccountsLength());
         assertEq(AccountV1(actualDeployed).owner(), address(sender));
     }
@@ -156,10 +152,10 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         //Broadcast changes the tx.origin, prank only changes the msg.sender, not tx.origin
         vm.broadcast(sender0);
-        address proxy0 = factory.createAccount(salt, 0, address(0), address(0));
+        address proxy0 = factory.createAccount(salt, 0, address(0));
 
         vm.broadcast(sender1);
-        address proxy1 = factory.createAccount(salt, 0, address(0), address(0));
+        address proxy1 = factory.createAccount(salt, 0, address(0));
 
         assertTrue(proxy0 != proxy1);
     }

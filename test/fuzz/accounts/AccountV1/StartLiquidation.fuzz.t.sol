@@ -33,7 +33,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         AccountV1_Fuzz_Test.setUp();
 
         vm.prank(users.accountOwner);
-        accountExtension2 = new AccountExtension();
+        accountExtension2 = new AccountExtension(address(factory));
 
         assetValuationLib = new AssetValuationLibExtension();
     }
@@ -75,9 +75,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = depositAmountToken1;
 
         // Initialize Account and set open position on creditor
-        accountExtension2.initialize(
-            users.accountOwner, address(registryExtension), address(mockERC20.token1), address(creditorToken1)
-        );
+        accountExtension2.initialize(users.accountOwner, address(registryExtension), address(creditorToken1));
         accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
@@ -114,9 +112,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256 openDebt = 0;
 
         // Initialize Account and set open position on creditor
-        accountExtension2.initialize(
-            users.accountOwner, address(registryExtension), address(mockERC20.token1), address(creditorToken1)
-        );
+        accountExtension2.initialize(users.accountOwner, address(registryExtension), address(creditorToken1));
         accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
@@ -155,9 +151,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = depositAmountToken1;
 
         // Given: Account is initialized and an open position is set on creditor
-        accountExtension2.initialize(
-            users.accountOwner, address(registryExtension), address(mockERC20.token1), address(creditorToken1)
-        );
+        accountExtension2.initialize(users.accountOwner, address(registryExtension), address(creditorToken1));
         accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))

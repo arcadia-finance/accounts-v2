@@ -39,7 +39,7 @@ contract FlashActionByAssetManager_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, P
         action = new ActionMultiCall();
         multiActionMock = new MultiActionMock();
 
-        accountNotInitialised = new AccountExtension();
+        accountNotInitialised = new AccountExtension(address(factory));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ contract FlashActionByAssetManager_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, P
 
         // Deploy account via factory (proxy)
         vm.startPrank(users.accountOwner);
-        address proxyAddr = factory.createAccount(12_345_678, 0, address(0), address(0));
+        address proxyAddr = factory.createAccount(12_345_678, 0, address(0));
         AccountExtension proxy = AccountExtension(proxyAddr);
         vm.stopPrank();
 
