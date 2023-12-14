@@ -52,12 +52,10 @@ abstract contract FactoryGuardian is BaseGuardian {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @inheritdoc BaseGuardian
-     * @dev This function will pause the functionality to create new Accounts.
+     * @notice This function is used to pause the creation of Accounts.
+     * @dev The pause guardian of the Factory has no cool-down period.
      */
-    function pause() external override onlyGuardian afterCoolDownOf(32 days) {
-        pauseTimestamp = uint96(block.timestamp);
-
+    function pause() external override onlyGuardian {
         emit PauseFlagsUpdated(createPaused = true);
     }
 
