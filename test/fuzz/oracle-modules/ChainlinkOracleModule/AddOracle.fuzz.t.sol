@@ -48,27 +48,10 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_addOracle_NonOracle(address oracle, bytes16 baseAsset, bytes16 quoteAsset) public {
-        vm.assume(oracle != address(mockOracles.token1ToUsd));
-        vm.assume(oracle != address(mockOracles.token2ToUsd));
-        vm.assume(oracle != address(mockOracles.token3ToToken4));
-        vm.assume(oracle != address(mockOracles.token4ToUsd));
-        vm.assume(oracle != address(mockOracles.stable1ToUsd));
-        vm.assume(oracle != address(mockOracles.stable2ToUsd));
-        vm.assume(oracle != address(mockOracles.nft1ToToken1));
-        vm.assume(oracle != address(mockOracles.nft2ToUsd));
-        vm.assume(oracle != address(mockOracles.nft3ToToken1));
-        vm.assume(oracle != address(mockOracles.sft1ToToken1));
-        vm.assume(oracle != address(mockOracles.sft2ToUsd));
-        vm.assume(oracle != address(mockERC20.stable1));
-        vm.assume(oracle != address(mockERC20.stable2));
-        vm.assume(oracle != address(mockERC20.token1));
-        vm.assume(oracle != address(mockERC20.token2));
-        vm.assume(oracle != address(mockERC20.token3));
-        vm.assume(oracle != address(mockERC20.token4));
-        vm.assume(oracle != address(vm));
-        vm.assume(oracle != address(proxyAccount));
-
+    function testFuzz_Revert_addOracle_NonOracle(address oracle, bytes16 baseAsset, bytes16 quoteAsset)
+        public
+        notTestContracts(oracle)
+    {
         vm.prank(users.creatorAddress);
         vm.expectRevert(bytes(""));
         chainlinkOM.addOracle(oracle, baseAsset, quoteAsset);
