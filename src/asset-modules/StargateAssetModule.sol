@@ -34,6 +34,8 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
     // The specific Stargate pool id for an asset.
     mapping(address asset => uint256 poolId) internal assetToPoolId;
+    // A mapping from this contract ERC1155 tokens asset keys to it's corresponding stargate LP token asset key.
+    mapping(bytes32 erc1155AssetKey => bytes32 lpAssetKey) internal matchERC1155ToAsset;
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -55,6 +57,8 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      */
     constructor(address registry_, IStargateLpStaking stargateLpStaking_) DerivedAssetModule(registry_, 0) {
         stargateLpStaking = stargateLpStaking_;
+        // This contract should be added to the Registry to allow ERC1155 tokens minted by this contract.
+        IRegistry(REGISTRY).addAsset(address(this));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -99,13 +103,21 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     /**
      * @notice Returns the unique identifier of an asset based on the contract address and id.
      * @param asset The contract address of the asset.
-     * param assetId The Id of the asset.
+     * @param assetId The id of the asset.
      * @return key The unique identifier.
-     * @dev The assetId is hard-coded to 0, since both the assets as underlying assets for this Asset Modules are ERC20's.
+     * @dev Unsafe bitshift from uint256 to uint96, use only when the ids of the assets cannot exceed type(uint96).max.
+     * For asset where the id can be bigger than a uint96, use a mapping of asset and assetId to storage.
+     * These assets can however NOT be used as underlying assets (processIndirectDeposit() must revert).
      */
-    function _getKeyFromAsset(address asset, uint256) internal pure override returns (bytes32 key) {
+    function _getKeyFromAsset(address asset, uint256 assetId) internal view override returns (bytes32 key) {
         assembly {
-            key := asset
+            // Shift the assetId to the left by 20 bytes (160 bits).
+            // Then OR the result with the address.
+            key := or(shl(160, assetId), asset)
+        }
+
+        if (asset == address(this)) {
+            key = matchERC1155ToAsset[key];
         }
     }
 
@@ -113,15 +125,30 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @notice Returns the contract address and id of an asset based on the unique identifier.
      * @param key The unique identifier.
      * @return asset The contract address of the asset.
-     * @return assetId The Id of the asset.
-     * @dev The assetId is hard-coded to 0, since both the assets as underlying assets for this Asset Modules are ERC20's.
+     * @return assetId The id of the asset.
      */
-    function _getAssetFromKey(bytes32 key) internal pure override returns (address asset, uint256) {
+    function _getAssetFromKey(bytes32 key) internal view override returns (address asset, uint256 assetId) {
         assembly {
-            asset := key
+            // Shift to the right by 20 bytes (160 bits) to extract the uint96 assetId.
+            assetId := shr(160, key)
+
+            // Use bitmask to extract the address from the rightmost 160 bits.
+            asset := and(key, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
         }
 
-        return (asset, 0);
+        if (asset == address(this)) {
+            asset = address(underlyingToken[assetId]);
+            assetId = 0;
+        }
+    }
+
+    function _matchAssetKeys(bytes32 assetKey) internal view returns (bytes32 _assetKey) {
+        _assetKey = assetKey;
+        // Cache value
+        bytes32 matchedKey = matchERC1155ToAsset[assetKey];
+        if (matchedKey != bytes32(0x0)) {
+            _assetKey = matchedKey;
+        }
     }
 
     /**
@@ -135,6 +162,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         override
         returns (bytes32[] memory underlyingAssetKeys)
     {
+        assetKey = _matchAssetKeys(assetKey);
         underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
 
         if (underlyingAssetKeys.length == 0) {
@@ -167,6 +195,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         override
         returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
+        assetKey = _matchAssetKeys(assetKey);
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
 
         (address asset,) = _getAssetFromKey(assetKey);
@@ -186,7 +215,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a new staking token with it's corresponding underlying and reward token.
+     * @notice Adds a new staking token with it's corresponding reward token.
      * @param asset The contract address of the Stargate LP token.
      * @param rewardToken_ The contract address of the reward token.
      */
@@ -210,6 +239,11 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         underlyingToken[newId] = ERC20(asset);
         rewardToken[newId] = ERC20(rewardToken_);
         tokenToRewardToId[asset][rewardToken_] = newId;
+
+        // Map the assetKey of the new ERC1155 token id to it's corresponding LP token assetKey.
+        bytes32 erc1155AssetKey = _getKeyFromAsset(address(this), newId);
+        bytes32 lpTokenAssetKey = _getKeyFromAsset(asset, 0);
+        matchERC1155ToAsset[erc1155AssetKey] = lpTokenAssetKey;
     }
 
     /*///////////////////////////////////////////////////////////////
