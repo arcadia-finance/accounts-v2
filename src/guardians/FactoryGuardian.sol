@@ -13,7 +13,6 @@ import { BaseGuardian, GuardianErrors } from "./BaseGuardian.sol";
  * @notice Logic inherited by the Factory that allows:
  * - An authorized guardian to trigger an emergency stop.
  * - The protocol owner to unpause functionalities.
- * - Anyone to unpause all functionalities after a fixed cool-down period.
  */
 abstract contract FactoryGuardian is BaseGuardian {
     /* //////////////////////////////////////////////////////////////

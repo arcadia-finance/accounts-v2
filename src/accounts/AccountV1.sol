@@ -1078,7 +1078,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      */
     function skim(address token, uint256 id, uint256 type_) public onlyOwner nonReentrant updateActionTimestamp {
         if (token == address(0)) {
-            payable(msg.sender).transfer(address(this).balance);
+            (bool success, bytes memory result) = payable(msg.sender).call{ value: address(this).balance }("");
+            require(success, string(result));
             return;
         }
 

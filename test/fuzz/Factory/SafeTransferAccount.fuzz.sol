@@ -51,6 +51,7 @@ contract SafeTransferAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Success_safeTransferAccount(address to) public canReceiveERC721(to) {
         vm.assume(to != users.accountOwner);
+        vm.assume(to != address(0));
 
         uint256 balanceOwnerBefore = factory.balanceOf(users.accountOwner);
         uint256 balanceToBefore = factory.balanceOf(to);
