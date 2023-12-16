@@ -326,6 +326,11 @@ abstract contract PrimaryAssetModule is AssetModule {
      * from which the asset of this Asset Module is an Underlying Asset.
      * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
      * Underflows will not revert, but the exposure is instead set to 0.
+     * @dev Due to changing compositions of derived assets, exposure to a primary asset can increase or decrease over time,
+     * independent of deposits/withdrawals.
+     * When derived assets are deposited/withdrawn, these changes in composition since last interaction are also synced.
+     * As such the actual exposure on an indirect withdrawal of a primary asset can exceed the maxExposure, but this should never be blocked,
+     * (the withdrawal actually improves the situation by making the asset less over-exposed).
      */
     function processIndirectWithdrawal(
         address creditor,
