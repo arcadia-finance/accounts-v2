@@ -31,7 +31,10 @@ contract GetRiskFactors_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint16[2] memory collateralFactors,
         uint16[2] memory liquidationFactors
     ) public {
-        // Given: id's are smaller or equal to type(uint96).max.
+        // Given: assets are unique.
+        vm.assume(assets[0] != assets[1]);
+
+        // And: id's are smaller or equal to type(uint96).max.
         assetIds[0] = bound(assetIds[0], 0, type(uint96).max);
         assetIds[1] = bound(assetIds[1], 0, type(uint96).max);
 

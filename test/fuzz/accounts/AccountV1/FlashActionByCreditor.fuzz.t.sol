@@ -381,7 +381,8 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
     function testFuzz_Success_flashActionByCreditor_executeAction(
         uint128 debtAmount,
         uint32 fixedLiquidationCost,
-        bytes calldata signature
+        bytes calldata signature,
+        uint32 time
     ) public {
         vm.prank(users.accountOwner);
         accountExtension.openMarginAccount(address(creditorToken1));
@@ -473,6 +474,8 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         // Assert the accountExtension has no TOKEN2 balance initially
         assert(mockERC20.token2.balanceOf(address(accountExtension)) == 0);
 
+        vm.warp(time);
+
         // Call flashActionByCreditor() on Account
         vm.prank(address(creditorToken1));
         uint256 version = accountExtension.flashActionByCreditor(address(action), callData);
@@ -482,5 +485,8 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // Then: The action is successful
         assertEq(version, 1);
+
+        // And: lastActionTimestamp is updated.
+        assertEq(accountExtension.lastActionTimestamp(), time);
     }
 }
