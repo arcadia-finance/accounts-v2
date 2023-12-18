@@ -35,7 +35,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     // The specific Stargate pool id relative to the ERC1155 underlying token.
     mapping(uint256 tokenId => uint256 poolId) internal tokenIdToPoolId;
     // Maps this contract's ERC1155 assetKeys to their underlying Stargate LP token address.
-    mapping(bytes32 assetKey => address underlyingToken) internal assetKeyToUnderlyingToken;
+    mapping(bytes32 assetKey => address underlyingLpToken) internal assetKeyToUnderlyingLpToken;
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -71,18 +71,18 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      */
     function addAsset(uint256 tokenId, uint256 stargatePoolId) external onlyOwner {
         address poolLpToken = address(underlyingToken[tokenId]);
-        address poolDepositToken = IStargatePool(poolLpToken).token();
+        address poolUnderlyingToken = IStargatePool(poolLpToken).token();
 
         // Note: Double check the underlyingToken as for ETH it didn't seem to be the primary asset.
-        if (!IRegistry(REGISTRY).isAllowed(poolDepositToken, 0)) revert AssetNotAllowed();
+        if (!IRegistry(REGISTRY).isAllowed(poolUnderlyingToken, 0)) revert AssetNotAllowed();
 
         bytes32 assetKey = _getKeyFromAsset(address(this), tokenId);
 
-        assetKeyToUnderlyingToken[assetKey] = poolLpToken;
+        assetKeyToUnderlyingLpToken[assetKey] = poolLpToken;
         tokenIdToPoolId[tokenId] = stargatePoolId;
 
         bytes32[] memory underlyingAssets_ = new bytes32[](1);
-        underlyingAssets_[0] = _getKeyFromAsset(poolDepositToken, 0);
+        underlyingAssets_[0] = _getKeyFromAsset(poolUnderlyingToken, 0);
         assetToUnderlyingAssets[assetKey] = underlyingAssets_;
     }
 
@@ -140,7 +140,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     {
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
 
-        address poolLpToken = assetKeyToUnderlyingToken[assetKey];
+        address poolLpToken = assetKeyToUnderlyingLpToken[assetKey];
         underlyingAssetsAmounts = new uint256[](1);
 
         // Calculate underlyingAssets amounts
