@@ -30,7 +30,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // The Unique identifiers of the underlying assets of a Liquidity Position.
+    // Maps this contract's ERC1155 assetKeys to the keys of their underlying asset.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
     // The specific Stargate pool id relative to the ERC1155 underlying token.
     mapping(uint256 tokenId => uint256 poolId) internal tokenIdToPoolId;
@@ -54,8 +54,8 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @param stargateLpStaking_ The address of the Stargate LP staking contract.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address registry_, IStargateLpStaking stargateLpStaking_) DerivedAssetModule(registry_, 0) {
-        stargateLpStaking = stargateLpStaking_;
+    constructor(address registry_, address stargateLpStaking_) DerivedAssetModule(registry_, 0) {
+        stargateLpStaking = IStargateLpStaking(stargateLpStaking_);
         // This contract should be added to the Registry to allow ERC1155 tokens minted by this contract.
         IRegistry(REGISTRY).addAsset(address(this));
     }
@@ -176,7 +176,6 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
             newId = ++lastId;
         }
 
-        // Note: Think it makes more sense to rename to stakingToken for the case when it's the asset that is staked directly.
         underlyingToken[newId] = ERC20(asset);
         rewardToken[newId] = ERC20(rewardToken_);
         tokenToRewardToId[asset][rewardToken_] = newId;

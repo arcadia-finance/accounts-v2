@@ -89,7 +89,7 @@ abstract contract StakingModule is ERC1155, ReentrancyGuard {
      * @param underlyingToken_ The contract address of the underlying token.
      * @param rewardToken_ The contract address of the reward token.
      */
-    // Note: make this function internal and implementation external function.
+    // Note: make this function internal and implementation external
     function addNewStakingToken(address underlyingToken_, address rewardToken_) public virtual {
         if (tokenToRewardToId[underlyingToken_][rewardToken_] != 0) revert TokenToRewardPairAlreadySet();
 
