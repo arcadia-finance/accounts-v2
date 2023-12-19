@@ -83,7 +83,6 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         address poolLpToken = address(underlyingToken[tokenId]);
         address poolUnderlyingToken = IStargatePool(poolLpToken).token();
 
-        // Note: Double check the underlyingToken as for ETH it didn't seem to be the primary asset.
         if (!IRegistry(REGISTRY).isAllowed(poolUnderlyingToken, 0)) revert AssetNotAllowed();
 
         bytes32 assetKey = _getKeyFromAsset(address(this), tokenId);

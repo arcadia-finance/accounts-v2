@@ -629,4 +629,8 @@ contract StargateAssetModuleExtension is StargateAssetModule {
     function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
         (key) = _getKeyFromAsset(asset, assetId);
     }
+
+    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssetKeys) {
+        underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+    }
 }
