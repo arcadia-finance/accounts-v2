@@ -59,7 +59,7 @@ contract AddAsset_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test
 
         bytes32 assetModuleKey = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule), tokenId);
 
-        assertEq(stargateAssetModule.getAssetKeyToUnderlyingLpToken(assetModuleKey), address(poolMock));
+        assertEq(stargateAssetModule.getAssetKeyToPool(assetModuleKey), address(poolMock));
         assertEq(
             stargateAssetModule.getAssetToUnderlyingAssets(assetModuleKey),
             stargateAssetModule.getKeyFromAsset(address(mockERC20.token1), 0)

@@ -610,6 +610,10 @@ contract StargateAssetModuleExtension is StargateAssetModule {
         underlyingToken[id] = ERC20(underlyingToken_);
     }
 
+    function setAssetKeyToPool(bytes32 assetKey, address pool) public {
+        assetKeyToPool[assetKey] = pool;
+    }
+
     function getTokenIdToPoolId(uint256 tokenId) public view returns (uint256 poolId) {
         poolId = tokenIdToPoolId[tokenId];
     }
@@ -618,8 +622,8 @@ contract StargateAssetModuleExtension is StargateAssetModule {
         underlyingAssetKey = assetToUnderlyingAssets[assetKey][0];
     }
 
-    function getAssetKeyToUnderlyingLpToken(bytes32 assetKey) public view returns (address underlyingLpToken) {
-        underlyingLpToken = assetKeyToUnderlyingLpToken[assetKey];
+    function getAssetKeyToPool(bytes32 assetKey) public view returns (address pool) {
+        pool = assetKeyToPool[assetKey];
     }
 
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
@@ -632,5 +636,19 @@ contract StargateAssetModuleExtension is StargateAssetModule {
 
     function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssetKeys) {
         underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+    }
+
+    function getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 assetAmount,
+        bytes32[] memory underlyingAssetKeys
+    )
+        public
+        view
+        returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+    {
+        (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(creditor, assetKey, assetAmount, underlyingAssetKeys);
     }
 }
