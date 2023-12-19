@@ -7,6 +7,7 @@ pragma solidity 0.8.22;
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { StargateAssetModule } from "../../../../src/asset-modules/StargateAssetModule.sol";
+import { StargateAssetModuleExtension } from "../../../utils/Extensions.sol";
 import { LPStakingTimeMock } from "../../../utils/mocks/Stargate/StargateLpStakingMock.sol";
 import { StargatePoolMock } from "../../../utils/mocks/Stargate/StargatePoolMock.sol";
 
@@ -22,8 +23,8 @@ abstract contract StargateAssetModule_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    StargatePoolMock internal stargatePoolMock;
-    StargateAssetModule internal stargateAssetModule;
+    StargatePoolMock internal poolMock;
+    StargateAssetModuleExtension internal stargateAssetModule;
     LPStakingTimeMock internal lpStakingTimeMock;
 
     /* ///////////////////////////////////////////////////////////////
@@ -35,9 +36,12 @@ abstract contract StargateAssetModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        stargatePoolMock = new StargatePoolMock();
+        poolMock = new StargatePoolMock();
         lpStakingTimeMock = new LPStakingTimeMock();
-        stargateAssetModule = new StargateAssetModule(address(registryExtension), address(lpStakingTimeMock));
+        stargateAssetModule = new StargateAssetModuleExtension(address(registryExtension), address(lpStakingTimeMock));
+
+        registryExtension.addAssetModule(address(stargateAssetModule));
+        stargateAssetModule.initialize();
 
         vm.stopPrank();
     }

@@ -5,6 +5,7 @@
 pragma solidity 0.8.22;
 
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
 
 import { AccountV1 } from "../../src/accounts/AccountV1.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
@@ -26,6 +27,7 @@ import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModu
 import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
 import { StakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
+import { StargateAssetModule } from "../../src/asset-modules/StargateAssetModule.sol";
 
 contract AccountExtension is AccountV1 {
     constructor(address factory) AccountV1(factory) { }
@@ -598,5 +600,33 @@ abstract contract StakingModuleExtension is StakingModule {
         )
     {
         return _getCurrentBalances(account, id);
+    }
+}
+
+contract StargateAssetModuleExtension is StargateAssetModule {
+    constructor(address registry, address stargateLpStaking_) StargateAssetModule(registry, stargateLpStaking_) { }
+
+    function setUnderlyingTokenForId(uint256 id, address underlyingToken_) public {
+        underlyingToken[id] = ERC20(underlyingToken_);
+    }
+
+    function getTokenIdToPoolId(uint256 tokenId) public view returns (uint256 poolId) {
+        poolId = tokenIdToPoolId[tokenId];
+    }
+
+    function getAssetToUnderlyingAssets(bytes32 assetKey) public view returns (bytes32 underlyingAssetKey) {
+        underlyingAssetKey = assetToUnderlyingAssets[assetKey][0];
+    }
+
+    function getAssetKeyToUnderlyingLpToken(bytes32 assetKey) public view returns (address underlyingLpToken) {
+        underlyingLpToken = assetKeyToUnderlyingLpToken[assetKey];
+    }
+
+    function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
+        (asset, assetId) = _getAssetFromKey(key);
+    }
+
+    function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
+        (key) = _getKeyFromAsset(asset, assetId);
     }
 }

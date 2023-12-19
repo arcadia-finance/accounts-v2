@@ -21,4 +21,8 @@ contract StargatePoolMock {
         totalSupply = totalSupply_;
         convertRate = convertRate_;
     }
+
+    function setToken(address _token) public {
+        token = IERC20(_token);
+    }
 }

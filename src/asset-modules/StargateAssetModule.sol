@@ -54,14 +54,24 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @param stargateLpStaking_ The address of the Stargate LP staking contract.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
      */
-    constructor(address registry_, address stargateLpStaking_) DerivedAssetModule(registry_, 0) {
+    constructor(address registry_, address stargateLpStaking_) DerivedAssetModule(registry_, 2) {
         stargateLpStaking = IStargateLpStaking(stargateLpStaking_);
-        // This contract should be added to the Registry to allow ERC1155 tokens minted by this contract.
+    }
+
+    /* //////////////////////////////////////////////////////////////
+                               INITIALIZE
+    ////////////////////////////////////////////////////////////// */
+
+    /**
+     * @notice This function will add this contract as an asset in the Registry.
+     * @dev Will revert if called more than once.
+     */
+    function initialize() external onlyOwner {
         IRegistry(REGISTRY).addAsset(address(this));
     }
 
     /*///////////////////////////////////////////////////////////////
-                        ASSET MANAGEMENT
+                            ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
     /**
