@@ -104,9 +104,9 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @notice Checks for a token address and the corresponding Id if it is allowed.
      * param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * @return A boolean, indicating if the asset is allowed.
+     * @return allowed A boolean, indicating if the asset is allowed.
      */
-    function isAllowed(address, uint256 assetId) public view override returns (bool) {
+    function isAllowed(address, uint256 assetId) public view override returns (bool allowed) {
         if (tokenIdToPoolId[assetId] != 0) return true;
     }
 
