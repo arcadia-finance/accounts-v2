@@ -169,25 +169,9 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     /**
      * @notice Adds a new staking token with it's corresponding reward token.
      * @param asset The contract address of the Stargate LP token.
-     * @param rewardToken_ The contract address of the reward token.
      */
-    function addNewStakingToken(address asset, address rewardToken_) public onlyOwner {
-        if (tokenToRewardToId[asset][rewardToken_] != 0) revert TokenToRewardPairAlreadySet();
-
-        if (address(stargateLpStaking.eToken()) != rewardToken_) revert RewardTokenNotMatching();
-
-        // Note: think this is already checked when adding an asset
-        if (ERC20(asset).decimals() > 18 || ERC20(rewardToken_).decimals() > 18) revert InvalidTokenDecimals();
-
-        // Cache new id
-        uint256 newId;
-        unchecked {
-            newId = ++lastId;
-        }
-
-        underlyingToken[newId] = ERC20(asset);
-        rewardToken[newId] = ERC20(rewardToken_);
-        tokenToRewardToId[asset][rewardToken_] = newId;
+    function addNewStakingToken(address asset) external onlyOwner {
+        _addNewStakingToken(asset, address(stargateLpStaking.eToken()));
     }
 
     /*///////////////////////////////////////////////////////////////

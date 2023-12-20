@@ -655,4 +655,8 @@ contract StargateAssetModuleExtension is StargateAssetModule {
         (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
             _getUnderlyingAssetsAmounts(creditor, assetKey, assetAmount, underlyingAssetKeys);
     }
+
+    function getIdCounter() public view returns (uint256 lastId_) {
+        lastId_ = lastId;
+    }
 }

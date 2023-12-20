@@ -4,12 +4,13 @@
  */
 pragma solidity 0.8.22;
 
-import { StargateAssetModule_Fuzz_Test, StargateAssetModule } from "./_StargateAssetModule.fuzz.t.sol";
+import { StargateAssetModule_Fuzz_Test } from "./_StargateAssetModule.fuzz.t.sol";
+import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 
 /**
- * @notice Fuzz tests for the function "addAsset" of contract "StargateAssetModule".
+ * @notice Fuzz tests for the function "addNewStakingToken" of contract "StargateAssetModule".
  */
-contract AddAsset_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
+contract AddNewStakingToken_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -18,51 +19,33 @@ contract AddAsset_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test
         StargateAssetModule_Fuzz_Test.setUp();
     }
 
-    function testFuzz_Revert_addAsset_AssetNotAllowed(address poolToken, uint256 tokenId, uint256 poolId)
-        public
-        notTestContracts(poolToken)
-    {
-        // Given : The mocked pool is added in the Asset Module.
-        stargateAssetModule.setUnderlyingTokenForId(tokenId, address(poolMock));
-        // And : The token of the pool is not added in the Registry.
-        poolMock.setToken(poolToken);
-
-        // When : An asset is added to the AM.
-        // Then : It should revert.
-        vm.startPrank(users.creatorAddress);
-        vm.expectRevert(StargateAssetModule.AssetNotAllowed.selector);
-        stargateAssetModule.addAsset(tokenId, poolId);
-        vm.stopPrank();
-    }
-
-    function testFuzz_Revert_addAsset_NotOwner(address unprivilegedAddress_, uint256 tokenId, uint256 poolId) public {
+    function testFuzz_Revert_addNewStakingToken_NotOwner(address unprivilegedAddress_, address asset) public {
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
-        stargateAssetModule.addAsset(tokenId, poolId);
+        stargateAssetModule.addNewStakingToken(asset);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_addAsset(uint256 tokenId, uint256 stargatePoolId) public {
-        // Given : The underlying token of the pool is an asset added to the Registry
-        poolMock.setToken(address(mockERC20.token1));
-        // And : The pool LP token has already been added in the AM
-        stargateAssetModule.setUnderlyingTokenForId(tokenId, address(poolMock));
+    function testFuzz_Success_addNewStakingToken(uint256 decimals) public {
+        // Given : Decimals are max 18
+        decimals = bound(decimals, 0, 18);
+        address stakingToken = address(new ERC20Mock("", "", uint8(decimals)));
+        address rewardToken = address(new ERC20Mock("", "", uint8(decimals)));
 
-        // When : Adding an additional asset to the AM (via it's tokenId)
+        // And : The reward token is set on the LPStaking contract
+        lpStakingTimeMock.setEToken(rewardToken);
+
+        // When : We add a new staking token
         vm.prank(users.creatorAddress);
-        stargateAssetModule.addAsset(tokenId, stargatePoolId);
+        stargateAssetModule.addNewStakingToken(stakingToken);
 
-        // Then : Information should be set and correct
-        assertEq(stargateAssetModule.getTokenIdToPoolId(tokenId), stargatePoolId);
-
-        bytes32 assetModuleKey = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule), tokenId);
-
-        assertEq(stargateAssetModule.getAssetKeyToPool(assetModuleKey), address(poolMock));
-        assertEq(
-            stargateAssetModule.getAssetToUnderlyingAssets(assetModuleKey),
-            stargateAssetModule.getKeyFromAsset(address(mockERC20.token1), 0)
-        );
+        // Then : Id counter should increase to 1 and staking and reward token should be added with correct info.
+        uint256 lastId = stargateAssetModule.getIdCounter();
+        assertEq(address(stargateAssetModule.underlyingToken(lastId)), stakingToken);
+        assertEq(address(stargateAssetModule.rewardToken(lastId)), rewardToken);
+        assertEq(stargateAssetModule.tokenToRewardToId(stakingToken, rewardToken), lastId);
+        assertEq(lastId, 1);
     }
 }
