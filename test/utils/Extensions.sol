@@ -671,4 +671,8 @@ contract StargateAssetModuleExtension is StargateAssetModule {
     function withdrawExtension(uint256 id, uint256 amount) public {
         _withdraw(id, amount);
     }
+
+    function getCurrentReward(uint256 id) public view returns (uint256 currentReward) {
+        currentReward = _getCurrentReward(id);
+    }
 }
