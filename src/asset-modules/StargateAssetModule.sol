@@ -120,10 +120,6 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         returns (bytes32[] memory underlyingAssetKeys)
     {
         underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
-
-        if (underlyingAssetKeys.length == 0) {
-            // Note: not possible in this case, as the assetKey should be with the address and tokenId of this contract. Thus no data available if not added previously.
-        }
     }
 
     /**
