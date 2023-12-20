@@ -32,7 +32,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
 
     // Maps this contract's ERC1155 assetKeys to the keys of their underlying asset.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
-    // The specific Stargate pool id relative to the ERC1155 underlying token.
+    // The specific Stargate pool id relative to the ERC1155 tokenId.
     mapping(uint256 tokenId => uint256 poolId) internal tokenIdToPoolId;
     // Maps this contract's ERC1155 assetKeys to their underlying Stargate pool address.
     mapping(bytes32 assetKey => address pool) internal assetKeyToPool;
@@ -51,7 +51,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     /**
      * @param registry_ The address of the Registry.
      * @param stargateLpStaking_ The address of the Stargate LP staking contract.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC1155 tokens is 2.
      */
     constructor(address registry_, address stargateLpStaking_) DerivedAssetModule(registry_, 2) {
         stargateLpStaking = IStargateLpStaking(stargateLpStaking_);
