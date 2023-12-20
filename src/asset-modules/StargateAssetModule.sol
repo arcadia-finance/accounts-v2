@@ -42,7 +42,6 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     ////////////////////////////////////////////////////////////// */
 
     error AssetNotAllowed();
-    error RewardTokenNotMatching();
     error RewardsOnlyClaimableOnWithdrawal();
 
     /* //////////////////////////////////////////////////////////////

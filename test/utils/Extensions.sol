@@ -618,6 +618,10 @@ contract StargateAssetModuleExtension is StargateAssetModule {
         assetKeyToPool[assetKey] = pool;
     }
 
+    function setTokenIdToPoolId(uint256 tokenId, uint256 poolId) public {
+        tokenIdToPoolId[tokenId] = poolId;
+    }
+
     function getTokenIdToPoolId(uint256 tokenId) public view returns (uint256 poolId) {
         poolId = tokenIdToPoolId[tokenId];
     }
@@ -658,5 +662,13 @@ contract StargateAssetModuleExtension is StargateAssetModule {
 
     function getIdCounter() public view returns (uint256 lastId_) {
         lastId_ = lastId;
+    }
+
+    function stakeExtension(uint256 id, uint256 amount) public {
+        _stake(id, amount);
+    }
+
+    function withdrawExtension(uint256 id, uint256 amount) public {
+        _withdraw(id, amount);
     }
 }

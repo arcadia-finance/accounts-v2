@@ -37,6 +37,5 @@ contract LPStakingTimeMock {
 
     function withdraw(uint256 poolId, uint256 amount) external {
         poolIdToPoolInfo[poolId].lpToken.transfer(msg.sender, amount);
-        eToken.transfer(msg.sender, poolIdToPoolInfo[poolId].pendingEmissionsToken);
     }
 }
