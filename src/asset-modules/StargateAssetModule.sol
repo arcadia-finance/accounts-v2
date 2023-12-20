@@ -150,8 +150,9 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         // Cache totalLiquidity
         uint256 totalLiquidity = IStargatePool(poolLpToken).totalLiquidity();
 
-        // Calculate underlyingAssets amounts
-        // "amountSD" is used in Stargate contracts and stands for amount in Shared Decimals, which should be convered to Local Decimals via convertRate.
+        // Calculate underlyingAssets amounts.
+        // "amountSD" is used in Stargate contracts and stands for amount in Shared Decimals, which should be convered to Local Decimals via convertRate().
+        // "amountSD" will always be smaller or equal to amount in Local Decimals.
         uint256 amountSD =
             totalLiquidity != 0 ? assetAmount.mulDivDown(totalLiquidity, IStargatePool(poolLpToken).totalSupply()) : 0;
 
