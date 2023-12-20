@@ -171,7 +171,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @param asset The contract address of the Stargate LP token.
      * @param rewardToken_ The contract address of the reward token.
      */
-    function addNewStakingToken(address asset, address rewardToken_) public override onlyOwner {
+    function addNewStakingToken(address asset, address rewardToken_) public onlyOwner {
         if (tokenToRewardToId[asset][rewardToken_] != 0) revert TokenToRewardPairAlreadySet();
 
         if (address(stargateLpStaking.eToken()) != rewardToken_) revert RewardTokenNotMatching();

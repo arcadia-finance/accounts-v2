@@ -601,6 +601,10 @@ abstract contract StakingModuleExtension is StakingModule {
     {
         return _getCurrentBalances(account, id);
     }
+
+    function addNewStakingToken(address asset, address rewardToken) public {
+        _addNewStakingToken(asset, rewardToken);
+    }
 }
 
 contract StargateAssetModuleExtension is StargateAssetModule {
