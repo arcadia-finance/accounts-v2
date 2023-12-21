@@ -33,7 +33,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     // Maps this contract's ERC1155 assetKeys to the keys of their underlying asset.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
     // The specific Stargate pool id relative to the ERC1155 tokenId.
-    mapping(uint256 tokenId => uint256 poolId) internal tokenIdToPoolId;
+    mapping(uint256 tokenId => uint256 poolId) public tokenIdToPoolId;
     // Maps this contract's ERC1155 assetKeys to their underlying Stargate pool address.
     mapping(bytes32 assetKey => address pool) internal assetKeyToPool;
 

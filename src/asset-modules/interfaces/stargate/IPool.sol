@@ -11,4 +11,6 @@ interface IPool {
     function totalLiquidity() external view returns (uint256);
     function totalSupply() external view returns (uint256);
     function convertRate() external view returns (uint256);
+    function balanceOf(address) external view returns (uint256);
+    function approve(address, uint256) external returns (bool);
 }

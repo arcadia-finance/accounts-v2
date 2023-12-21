@@ -6,7 +6,6 @@ pragma solidity 0.8.22;
 
 import { Fork_Test } from "../../Fork.t.sol";
 
-import { IPool } from "../../../../src/asset-modules/interfaces/stargate/IPool.sol";
 import { ILpStakingTime } from "../../../../src/asset-modules/interfaces/stargate/ILpStakingTime.sol";
 import { IRouter } from "../../../../src/asset-modules/interfaces/stargate/IRouter.sol";
 import { StargateAssetModule } from "../../../../src/asset-modules/StargateAssetModule.sol";
@@ -19,7 +18,6 @@ contract StargateBase_Fork_Test is Fork_Test {
                             CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
-    IPool public USDCPool = IPool(0x4c80E24119CFB836cdF0a6b53dc23F04F7e652CA);
     IRouter public router = IRouter(0x45f1A95A4D3f3836523F5c83673c797f4d4d263B);
     ILpStakingTime public lpStakingTime = ILpStakingTime(0x06Eb48763f117c7Be887296CDcdfad2E4092739C);
 
