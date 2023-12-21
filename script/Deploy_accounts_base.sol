@@ -82,7 +82,7 @@ contract ArcadiaAccountDeployment is Test {
         wethLendingPool.setRiskManager(deployerAddress);
         usdcLendingPool.setRiskManager(deployerAddress);
 
-        registry = new Registry(address(factory));
+        registry = new Registry(address(factory), DeployAddresses.sequencerUptimeOracle_base);
         standardERC20AssetModule = new StandardERC20AssetModule(address(registry));
         uniswapV3AssetModule = new UniswapV3AssetModule(address(registry), DeployAddresses.uniswapV3PositionMgr_base);
 
@@ -240,8 +240,8 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.reth_liqFact_2
         );
 
-        registry.setMaxRecursiveCalls(address(usdcLendingPool), 5);
-        registry.setMaxRecursiveCalls(address(wethLendingPool), 5);
+        registry.setRiskParameters(address(usdcLendingPool), 0, 15 minutes, 5);
+        registry.setRiskParameters(address(wethLendingPool), 0, 15 minutes, 5);
 
         vm.stopBroadcast();
     }

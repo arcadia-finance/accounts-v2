@@ -246,9 +246,10 @@ abstract contract Fuzz_Test is Base_Test {
 
         // Set Risk Variables.
         vm.startPrank(users.riskManager);
-        registryExtension.setMaxRecursiveCalls(address(creditorUsd), type(uint256).max);
-        registryExtension.setMaxRecursiveCalls(address(creditorStable1), type(uint256).max);
-        registryExtension.setMaxRecursiveCalls(address(creditorToken1), type(uint256).max);
+        registryExtension.setRiskParameters(address(creditorUsd), 0, 15 minutes, type(uint64).max);
+        registryExtension.setRiskParameters(address(creditorStable1), 0, 15 minutes, type(uint64).max);
+        registryExtension.setRiskParameters(address(creditorToken1), 0, 15 minutes, type(uint64).max);
+
         registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.stable1),

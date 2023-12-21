@@ -6,6 +6,7 @@ pragma solidity 0.8.22;
 
 import { BitPackingLib } from "./libraries/BitPackingLib.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
 import { IDerivedAssetModule } from "./interfaces/IDerivedAssetModule.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
@@ -38,6 +39,8 @@ contract Registry is IRegistry, RegistryGuardian {
 
     // The contract address of the Arcadia Accounts Factory.
     address public immutable FACTORY;
+    // The contract address of the sequencer uptime oracle.
+    address internal immutable SEQUENCER_UPTIME_ORACLE;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -56,10 +59,20 @@ contract Registry is IRegistry, RegistryGuardian {
     mapping(address => address) public assetToAssetModule;
     // Map oracle identifier => oracleModule.
     mapping(uint256 => address) internal oracleToOracleModule;
-    // Map Creditor to minimum USD-value of assets that are taken into account.
-    mapping(address => uint256) public minUsdValue;
-    // Map Creditor to maximum recursion depth of asset pricing.
-    mapping(address => uint256) public maxRecursiveCalls;
+    // Map with the risk parameters for each Creditor.
+    mapping(address creditor => RiskParameters) public riskParams;
+
+    // Struct with the risk parameters for a specific Creditor.
+    struct RiskParameters {
+        // The minimum USD-value of assets that are taken into account, 18 decimals precision.
+        uint128 minUsdValue;
+        // The grace period after the sequencer is back up,
+        // during which no transactions relying on pricing logic can be executed
+        // (increasing open positions, withdrawing collateral and liquidations).
+        uint64 gracePeriod;
+        // The maximum number of recursive calls while processing an asset.
+        uint64 maxRecursiveCalls;
+    }
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
@@ -113,9 +126,11 @@ contract Registry is IRegistry, RegistryGuardian {
 
     /**
      * @param factory The contract address of the Arcadia Accounts Factory.
+     * @param sequencerUptimeOracle The contract address of the sequencer uptime oracle.
      */
-    constructor(address factory) {
+    constructor(address factory, address sequencerUptimeOracle) {
         FACTORY = factory;
+        SEQUENCER_UPTIME_ORACLE = sequencerUptimeOracle;
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -269,6 +284,29 @@ contract Registry is IRegistry, RegistryGuardian {
     }
 
     /**
+     * @notice Sets the risk parameters for a given Creditor.
+     * @param creditor The contract address of the Creditor.
+     * @param minUsdValue_ The minimum USD-value of assets that are taken into account for the Creditor,
+     * denominated in USD with 18 decimals precision.
+     * @param gracePeriod The grace period after the sequencer is back up,
+     * during which no transactions relying on pricing logic can be executed
+     * (increasing open positions, withdrawing collateral and liquidations).
+     * @param maxRecursiveCalls_ The maximum number of calls to different asset modules that are required to process
+     * the deposit/withdrawal/pricing of a single asset.
+     * @dev A minimum USD-value will help to avoid remaining dust amounts in Accounts, which couldn't be liquidated.
+     */
+    function setRiskParameters(address creditor, uint128 minUsdValue_, uint64 gracePeriod, uint64 maxRecursiveCalls_)
+        external
+        onlyRiskManager(creditor)
+    {
+        riskParams[creditor] = RiskParameters({
+            minUsdValue: minUsdValue_,
+            gracePeriod: gracePeriod,
+            maxRecursiveCalls: maxRecursiveCalls_
+        });
+    }
+
+    /**
      * @notice Sets the risk parameters for a Primary Asset for a given Creditor.
      * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
@@ -307,27 +345,6 @@ contract Registry is IRegistry, RegistryGuardian {
         uint16 riskFactor
     ) external onlyRiskManager(creditor) {
         IDerivedAssetModule(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
-    }
-
-    /**
-     * @notice Sets the minimum USD-value of assets that are taken into account for a given Creditor.
-     * @param creditor The contract address of the Creditor.
-     * @param minUsdValue_ The minimum USD-value of assets that are taken into account for the Creditor,
-     * denominated in USD with 18 decimals precision.
-     * @dev A minimum USD-value will help to avoid remaining dust amounts in Accounts, which couldn't be liquidated.
-     */
-    function setMinUsdValue(address creditor, uint256 minUsdValue_) external onlyRiskManager(creditor) {
-        minUsdValue[creditor] = minUsdValue_;
-    }
-
-    /**
-     * @notice Sets the maximum number of recursive calls while processing an asset for a given Creditor.
-     * @param creditor The contract address of the Creditor for which to set the maximum recursion depth.
-     * @param maxRecursiveCalls_ The maximum number of calls to different asset modules that are required to process
-     * the deposit/withdrawal/pricing of a single asset.
-     */
-    function setMaxRecursiveCalls(address creditor, uint256 maxRecursiveCalls_) external onlyRiskManager(creditor) {
-        maxRecursiveCalls[creditor] = maxRecursiveCalls_;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -371,7 +388,7 @@ contract Registry is IRegistry, RegistryGuardian {
             }
         } else {
             uint256 recursiveCalls;
-            uint256 maxRecursiveCalls_ = maxRecursiveCalls[creditor];
+            uint256 maxRecursiveCalls_ = riskParams[creditor].maxRecursiveCalls;
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
@@ -533,10 +550,18 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
     ) public view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+        // Check that the sequencer is not down, and that it is back up for longer than the grace period.
+        // This guarantees that no stale oracles are consumed when the sequencer is down,
+        // and that Account owners have time (the grace period) to bring their Account back in a healthy state.
+        RiskParameters memory riskParams_ = riskParams[creditor];
+        (, int256 answer, uint256 startedAt,,) = IChainLinkData(SEQUENCER_UPTIME_ORACLE).latestRoundData();
+        if (answer == 1 || block.timestamp - startedAt <= riskParams_.gracePeriod) {
+            revert RegistryErrors.GracePeriodNotOver();
+        }
+
         uint256 length = assets.length;
         valuesAndRiskFactors = new AssetValueAndRiskFactors[](length);
 
-        uint256 minUsdValue_ = minUsdValue[creditor];
         for (uint256 i; i < length; ++i) {
             (
                 valuesAndRiskFactors[i].assetValue,
@@ -545,7 +570,7 @@ contract Registry is IRegistry, RegistryGuardian {
             ) = IAssetModule(assetToAssetModule[assets[i]]).getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
             // If asset value is too low, set to zero.
             // This is done to prevent dust attacks which may make liquidations unprofitable.
-            if (valuesAndRiskFactors[i].assetValue < minUsdValue_) valuesAndRiskFactors[i].assetValue = 0;
+            if (valuesAndRiskFactors[i].assetValue < riskParams_.minUsdValue) valuesAndRiskFactors[i].assetValue = 0;
         }
     }
 

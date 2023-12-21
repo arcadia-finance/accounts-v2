@@ -57,6 +57,7 @@ library RegistryErrors {
     error AssetModNotUnique();
     error AssetAlreadyInRegistry();
     error AssetNotAllowed();
+    error GracePeriodNotOver();
     error LengthMismatch();
     error MaxRecursiveCallsReached();
     error Min1Oracle();

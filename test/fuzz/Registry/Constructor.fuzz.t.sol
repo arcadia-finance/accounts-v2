@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
 
-import { Registry } from "../../../src/Registry.sol";
+import { RegistryExtension } from "../../utils/Extensions.sol";
 
 /**
  * @notice Fuzz tests for the function "constructor" of contract "Registry".
@@ -23,11 +23,12 @@ contract Constructor_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment() public {
+    function testFuzz_Success_deployment(address sequencerUptimeOracle_) public {
         vm.startPrank(users.creatorAddress);
-        Registry registry = new Registry(address(factory));
+        RegistryExtension registry = new RegistryExtension(address(factory), sequencerUptimeOracle_);
         vm.stopPrank();
 
         assertEq(registry.FACTORY(), address(factory));
+        assertEq(registry.getSequencerUptimeOracle(), sequencerUptimeOracle_);
     }
 }

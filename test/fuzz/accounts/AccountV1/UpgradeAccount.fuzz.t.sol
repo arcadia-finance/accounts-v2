@@ -148,7 +148,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         AccountVariableVersion(newImplementation).setFactory(address(factory));
 
         vm.startPrank(users.creatorAddress);
-        RegistryExtension registry2 = new RegistryExtension(address(factory));
+        RegistryExtension registry2 = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
         factory.setNewAccountInfo(address(registry2), newImplementation, Constants.upgradeRoot1To2, data);
         vm.stopPrank();
 
