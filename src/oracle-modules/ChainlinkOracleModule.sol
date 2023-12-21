@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import { OracleModule } from "./AbstractOracleModule.sol";
-import { IChainLinkData } from "../interfaces/IChainLinkData.sol";
+import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
 
 /**
@@ -28,8 +28,8 @@ contract ChainlinkOracleModule is OracleModule {
     mapping(uint256 => OracleInformation) internal oracleInformation;
 
     struct OracleInformation {
-        // Flag indicating if the oracle is active or decommissioned.
-        bool isActive;
+        // The cutoff time after which an oracle is considered stale.
+        uint32 cutOffTime;
         // The correction with which the oracle-rate has to be multiplied to get a precision of 18 decimals.
         uint64 unitCorrection;
         // The contract address of the oracle.
@@ -52,19 +52,6 @@ contract ChainlinkOracleModule is OracleModule {
     constructor(address registry_) OracleModule(registry_) { }
 
     /*///////////////////////////////////////////////////////////////
-                        ORACLE INFORMATION
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Returns the state of an oracle.
-     * @param oracleId The identifier of the oracle to be checked.
-     * @return oracleIsActive Boolean indicating if the oracle is active or not.
-     */
-    function isActive(uint256 oracleId) external view override returns (bool oracleIsActive) {
-        oracleIsActive = oracleInformation[oracleId].isActive;
-    }
-
-    /*///////////////////////////////////////////////////////////////
                           ORACLE MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
@@ -75,7 +62,7 @@ contract ChainlinkOracleModule is OracleModule {
      * @param quoteAsset Label for the quote asset.
      * @return oracleId Unique identifier of the oracle.
      */
-    function addOracle(address oracle, bytes16 baseAsset, bytes16 quoteAsset)
+    function addOracle(address oracle, bytes16 baseAsset, bytes16 quoteAsset, uint32 cutOffTime)
         external
         onlyOwner
         returns (uint256 oracleId)
@@ -91,46 +78,55 @@ contract ChainlinkOracleModule is OracleModule {
         oracleToOracleId[oracle] = oracleId;
         assetPair[oracleId] = AssetPair({ baseAsset: baseAsset, quoteAsset: quoteAsset });
         oracleInformation[oracleId] =
-            OracleInformation({ isActive: true, unitCorrection: uint64(10 ** (18 - decimals)), oracle: oracle });
+            OracleInformation({ cutOffTime: cutOffTime, unitCorrection: uint64(10 ** (18 - decimals)), oracle: oracle });
     }
 
+    /*///////////////////////////////////////////////////////////////
+                        ORACLE INFORMATION
+    ///////////////////////////////////////////////////////////////*/
+
     /**
-     * @notice Sets an oracle to inactive if it is not properly functioning.
+     * @notice Returns the state of an oracle.
      * @param oracleId The identifier of the oracle to be checked.
-     * @return oracleIsInUse Boolean indicating if the oracle is still in use.
-     * @dev An inactive oracle will revert.
-     * @dev Anyone can call this function as part of an oracle failsafe mechanism.
-     * @dev If the oracle becomes functionally again (all checks pass), anyone can activate the oracle again.
-     * @dev A Chainlink oracle can only be decommissioned if it is not performing as intended:
-     * - A call to the oracle contract reverts.
-     * - The oracle returns the minimum value.
-     * - The oracle returns the maximum value.
-     * - The oracle didn't update for over 2 days.
+     * @return oracleIsActive Boolean indicating if the oracle is active or not.
      */
-    function decommissionOracle(uint256 oracleId) external override returns (bool oracleIsInUse) {
-        address oracle = oracleInformation[oracleId].oracle;
-
-        oracleIsInUse = true;
-
-        try IChainLinkData(oracle).latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80)
-        {
-            if (answer <= IChainLinkData(IChainLinkData(oracle).aggregator()).minAnswer()) {
-                oracleIsInUse = false;
-            } else if (answer >= IChainLinkData(IChainLinkData(oracle).aggregator()).maxAnswer()) {
-                oracleIsInUse = false;
-            } else if (updatedAt <= block.timestamp - 2 days) {
-                oracleIsInUse = false;
-            }
-        } catch {
-            oracleIsInUse = false;
-        }
-
-        oracleInformation[oracleId].isActive = oracleIsInUse;
+    function isActive(uint256 oracleId) external view override returns (bool oracleIsActive) {
+        (oracleIsActive,) = _getLatestAnswer(oracleInformation[oracleId]);
     }
 
     /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Retrieves answer from oracle and does sanity and staleness checks.
+     * @param oracleInformation_ Struct will all the necessary information of the oracle.
+     * @return success Bool indicating is the oracle is still active and performing as expected.
+     * @return answer The latest oracle value.
+     * @dev The following checks are done:
+     * - A call to the oracle contract does not revert.
+     * - The roundId is not zero.
+     * - The answer is not negative.
+     * - The oracle is not stale (last update was longer than the cutoff time ago).
+     * - The oracle update was not done in the future.
+     */
+    function _getLatestAnswer(OracleInformation memory oracleInformation_)
+        internal
+        view
+        returns (bool success, uint256 answer)
+    {
+        try IChainLinkData(oracleInformation_.oracle).latestRoundData() returns (
+            uint80 roundId, int256 answer_, uint256, uint256 updatedAt, uint80
+        ) {
+            if (
+                roundId > 0 && answer_ >= 0 && updatedAt > block.timestamp - oracleInformation_.cutOffTime
+                    && updatedAt <= block.timestamp
+            ) {
+                success = true;
+                answer = uint256(answer_);
+            }
+        } catch { }
+    }
 
     /**
      * @notice Returns the rate of the BaseAsset in units of QuoteAsset.
@@ -149,18 +145,18 @@ contract ChainlinkOracleModule is OracleModule {
     function getRate(uint256 oracleId) external view override returns (uint256 oracleRate) {
         OracleInformation memory oracleInformation_ = oracleInformation[oracleId];
 
-        // If the oracle is not active (decommissioned), the transactions revert.
+        (bool success, uint256 answer) = _getLatestAnswer(oracleInformation_);
+
+        // If the oracle is not active, the transactions revert.
         // This implies that no new credit can be taken against assets that use the decommissioned oracle,
         // but at the same time positions with these assets cannot be liquidated.
         // A new oracleSequence for these assets must be set ASAP in their Asset Modules by the protocol owner.
-        if (!oracleInformation_.isActive) revert InactiveOracle();
-
-        (, int256 tempRate,,,) = IChainLinkData(oracleInformation_.oracle).latestRoundData();
+        if (!success) revert InactiveOracle();
 
         // Only overflows at absurdly large rates, when rate > type(uint256).max / 10 ** (18 - decimals).
         // This is 1.1579209e+59 for an oracle with 0 decimals.
         unchecked {
-            oracleRate = uint256(tempRate) * oracleInformation_.unitCorrection;
+            oracleRate = answer * oracleInformation_.unitCorrection;
         }
     }
 }

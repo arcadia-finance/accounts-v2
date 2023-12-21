@@ -119,10 +119,20 @@ contract FlashActionByAssetManager_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, P
                 < type(uint256).max
         );
 
-        // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
+        // Warp time
+        time = uint32(bound(time, 2 days, type(uint32).max));
+        vm.warp(time);
+        // Update updatedAt to avoid InactiveOracle() reverts.
         vm.startPrank(users.defaultTransmitter);
-        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
+        mockOracles.stable1ToUsd.transmit(int256(rates.stable1ToUsd));
+        mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
+        mockOracles.nft1ToToken1.transmit(int256(rates.nft1ToToken1));
         vm.stopPrank();
+
+        // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
+        vm.prank(users.defaultTransmitter);
+        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
+
         bytes memory callData;
         {
             bytes[] memory data = new bytes[](5);
@@ -236,8 +246,6 @@ contract FlashActionByAssetManager_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, P
         assert(mockERC20.stable1.balanceOf(address(accountNotInitialised)) == 0);
         // Assert the owner of token id 1 of mockERC721.nft1 contract is accountOwner
         assert(mockERC721.nft1.ownerOf(1) == users.accountOwner);
-
-        vm.warp(time);
 
         // Call flashActionByAssetManager() on Account
         accountNotInitialised.flashActionByAssetManager(address(action), callData);

@@ -123,4 +123,8 @@ contract ArcadiaOracle is Owned {
     function setMaxAnswer(int192 maxAnswer_) public {
         maxAnswer = maxAnswer_;
     }
+
+    function setLatestRoundId(uint8 roundId_) public {
+        latestRoundId = roundId_;
+    }
 }

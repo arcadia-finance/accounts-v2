@@ -197,12 +197,12 @@ abstract contract Fuzz_Test is Base_Test {
 
         // Add Chainlink Oracles to the Chainlink Oracles Module.
         vm.startPrank(users.creatorAddress);
-        chainlinkOM.addOracle(address(mockOracles.stable1ToUsd), "STABLE1", "USD");
-        chainlinkOM.addOracle(address(mockOracles.stable2ToUsd), "STABLE2", "USD");
-        chainlinkOM.addOracle(address(mockOracles.token1ToUsd), "TOKEN1", "USD");
-        chainlinkOM.addOracle(address(mockOracles.token2ToUsd), "TOKEN2", "USD");
-        chainlinkOM.addOracle(address(mockOracles.nft1ToToken1), "NFT1", "TOKEN1");
-        chainlinkOM.addOracle(address(mockOracles.sft1ToToken1), "SFT1", "TOKEN1");
+        chainlinkOM.addOracle(address(mockOracles.stable1ToUsd), "STABLE1", "USD", 2 days);
+        chainlinkOM.addOracle(address(mockOracles.stable2ToUsd), "STABLE2", "USD", 2 days);
+        chainlinkOM.addOracle(address(mockOracles.token1ToUsd), "TOKEN1", "USD", 2 days);
+        chainlinkOM.addOracle(address(mockOracles.token2ToUsd), "TOKEN2", "USD", 2 days);
+        chainlinkOM.addOracle(address(mockOracles.nft1ToToken1), "NFT1", "TOKEN1", 2 days);
+        chainlinkOM.addOracle(address(mockOracles.sft1ToToken1), "SFT1", "TOKEN1", 2 days);
         vm.stopPrank();
 
         vm.startPrank(registryExtension.owner());

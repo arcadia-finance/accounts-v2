@@ -165,15 +165,21 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(openDebt + fixedLiquidationCost > assetValuationLib.calculateLiquidationValue(assetAndRiskValues));
 
         // Mint and approve stable1 tokens
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.prank(users.tokenCreatorAddress);
         mockERC20.token1.mint(users.accountOwner, depositAmountToken1);
         vm.startPrank(users.accountOwner);
         mockERC20.token1.approve(address(accountExtension2), type(uint256).max);
 
         // Deposit stable1 token in account
         accountExtension2.deposit(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
 
+        // Warp time
+        time = uint32(bound(time, 2 days, type(uint32).max));
         vm.warp(time);
+        // Update updatedAt to avoid InactiveOracle() reverts.
+        vm.prank(users.defaultTransmitter);
+        mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
 
         // When : The liquidator initiates a liquidation
         vm.startPrank(accountExtension2.liquidator());

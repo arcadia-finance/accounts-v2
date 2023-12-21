@@ -130,9 +130,9 @@ contract ChainlinkOracleModuleExtension is ChainlinkOracleModule {
     function getOracleInformation(uint256 oracleId)
         public
         view
-        returns (bool isActive_, uint64 unitCorrection, address oracle)
+        returns (uint32 cutOffTime, uint64 unitCorrection, address oracle)
     {
-        isActive_ = oracleInformation[oracleId].isActive;
+        cutOffTime = oracleInformation[oracleId].cutOffTime;
         unitCorrection = oracleInformation[oracleId].unitCorrection;
         oracle = oracleInformation[oracleId].oracle;
     }
