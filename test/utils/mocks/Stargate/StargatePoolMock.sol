@@ -5,15 +5,15 @@
 
 pragma solidity 0.8.22;
 
-// interfaces
 import { IERC20 } from "../../../../src/interfaces/IERC20.sol";
+import { ERC20Mock } from "../ERC20Mock.sol";
 
-contract StargatePoolMock {
+contract StargatePoolMock is ERC20Mock {
     IERC20 public token;
     uint256 public totalLiquidity;
-    uint256 public totalSupply;
     uint256 public convertRate;
-    // Lowest common decimals between chains
+
+    constructor(uint8 decimals_) ERC20Mock("StargatePoolMock", "SPM", decimals_) { }
 
     function setState(address token_, uint256 totalLiquidity_, uint256 totalSupply_, uint256 convertRate_) public {
         token = IERC20(token_);

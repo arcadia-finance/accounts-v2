@@ -18,16 +18,16 @@ contract IsAllowed_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Tes
         StargateAssetModule_Fuzz_Test.setUp();
     }
 
-    function testFuzz_Success_isAllowed_True(uint256 tokenId, uint256 stargatePoolId) public {
+    function testFuzz_Success_isAllowed_True(uint256 tokenId, uint256 stargatePoolId, address stargatePool) public {
         // Given : stargatePoolId is greater than zero (Stargate has no pools with the 0 id)
         vm.assume(stargatePoolId > 0);
 
+        // And : poolUnderlyingToken is a token added to the Registry.
         poolMock.setToken(address(mockERC20.token1));
-        stargateAssetModule.setUnderlyingTokenForId(tokenId, address(poolMock));
 
         // And : The ERC1155 tokenId has already been added to the AM.
         vm.prank(users.creatorAddress);
-        stargateAssetModule.addAsset(tokenId, stargatePoolId);
+        stargateAssetModule.addAsset(tokenId, stargatePoolId, address(poolMock));
 
         // When : Calling isAllowed()
         bool allowed = stargateAssetModule.isAllowed(address(stargateAssetModule), tokenId);

@@ -18,41 +18,31 @@ contract AddAsset_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test
         StargateAssetModule_Fuzz_Test.setUp();
     }
 
-    function testFuzz_Revert_addAsset_AssetNotAllowed(address poolToken, uint256 tokenId, uint256 poolId)
+    function testFuzz_Revert_addAsset_AssetNotAllowed(address poolUnderlyingToken, uint256 tokenId, uint256 poolId)
         public
-        notTestContracts(poolToken)
+        notTestContracts(poolUnderlyingToken)
     {
-        // Given : The mocked pool is added in the Asset Module.
-        stargateAssetModule.setUnderlyingTokenForId(tokenId, address(poolMock));
-        // And : The token of the pool is not added in the Registry.
-        poolMock.setToken(poolToken);
+        // Given : The pool underlying token is not added to the Registry (see modifier).
+        poolMock.setToken(poolUnderlyingToken);
 
         // When : An asset is added to the AM.
         // Then : It should revert.
         vm.startPrank(users.creatorAddress);
         vm.expectRevert(StargateAssetModule.AssetNotAllowed.selector);
-        stargateAssetModule.addAsset(tokenId, poolId);
-        vm.stopPrank();
-    }
-
-    function testFuzz_Revert_addAsset_NotOwner(address unprivilegedAddress_, uint256 tokenId, uint256 poolId) public {
-        vm.assume(unprivilegedAddress_ != users.creatorAddress);
-
-        vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert("UNAUTHORIZED");
-        stargateAssetModule.addAsset(tokenId, poolId);
+        stargateAssetModule.addAsset(tokenId, poolId, address(poolMock));
         vm.stopPrank();
     }
 
     function testFuzz_Success_addAsset(uint256 tokenId, uint256 stargatePoolId) public {
         // Given : The underlying token of the pool is an asset added to the Registry
         poolMock.setToken(address(mockERC20.token1));
+
         // And : The pool LP token has already been added in the AM
         stargateAssetModule.setUnderlyingTokenForId(tokenId, address(poolMock));
 
         // When : Adding an additional asset to the AM (via it's tokenId)
         vm.prank(users.creatorAddress);
-        stargateAssetModule.addAsset(tokenId, stargatePoolId);
+        stargateAssetModule.addAsset(tokenId, stargatePoolId, address(poolMock));
 
         // Then : Information should be set and correct
         assertEq(stargateAssetModule.getTokenIdToPoolId(tokenId), stargatePoolId);

@@ -36,7 +36,7 @@ abstract contract StargateAssetModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        poolMock = new StargatePoolMock();
+        poolMock = new StargatePoolMock(18);
         lpStakingTimeMock = new LPStakingTimeMock();
         stargateAssetModule = new StargateAssetModuleExtension(address(registryExtension), address(lpStakingTimeMock));
 

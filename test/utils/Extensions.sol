@@ -602,8 +602,8 @@ abstract contract StakingModuleExtension is StakingModule {
         return _getCurrentBalances(account, id);
     }
 
-    function addNewStakingToken(address asset, address rewardToken) public {
-        _addNewStakingToken(asset, rewardToken);
+    function addNewStakingToken(address asset, address rewardToken) public returns (uint256 tokenId) {
+        tokenId = _addNewStakingToken(asset, rewardToken);
     }
 }
 
@@ -674,5 +674,9 @@ contract StargateAssetModuleExtension is StargateAssetModule {
 
     function getCurrentReward(uint256 id) public view returns (uint256 currentReward) {
         currentReward = _getCurrentReward(id);
+    }
+
+    function addAsset(uint256 tokenId, uint256 stargatePoolId, address stargatePool) public {
+        _addAsset(tokenId, stargatePoolId, stargatePool);
     }
 }

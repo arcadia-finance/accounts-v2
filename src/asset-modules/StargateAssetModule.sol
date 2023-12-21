@@ -77,16 +77,16 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @notice Adds a new asset (Stargate LP Pool) to the StargateAssetModule.
      * @param tokenId The ERC1155 token id of this contract.
      * @param stargatePoolId The Stargate pool id relative to the underlying token of "tokenId".
+     * @param stargatePool The address of the Stargate pool.
      */
-    function addAsset(uint256 tokenId, uint256 stargatePoolId) external onlyOwner {
-        address pool = address(underlyingToken[tokenId]);
-        address poolUnderlyingToken = IStargatePool(pool).token();
+    function _addAsset(uint256 tokenId, uint256 stargatePoolId, address stargatePool) internal {
+        address poolUnderlyingToken = IStargatePool(stargatePool).token();
 
         if (!IRegistry(REGISTRY).isAllowed(poolUnderlyingToken, 0)) revert AssetNotAllowed();
 
         bytes32 assetKey = _getKeyFromAsset(address(this), tokenId);
 
-        assetKeyToPool[assetKey] = pool;
+        assetKeyToPool[assetKey] = stargatePool;
         tokenIdToPoolId[tokenId] = stargatePoolId;
 
         bytes32[] memory underlyingAssets_ = new bytes32[](1);
@@ -167,10 +167,15 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
 
     /**
      * @notice Adds a new staking token with it's corresponding reward token.
-     * @param asset The contract address of the Stargate LP token.
+     * @param stargatePool The contract address of the Stargate pool.
+     * @param stargatePoolId The Stargate pool id relative to the asset.
      */
-    function addNewStakingToken(address asset) external onlyOwner {
-        _addNewStakingToken(asset, address(stargateLpStaking.eToken()));
+    function addNewStakingToken(address stargatePool, uint256 stargatePoolId) external onlyOwner {
+        // Cache addresses
+        address rewardToken_ = address(stargateLpStaking.eToken());
+
+        uint256 tokenId = _addNewStakingToken(stargatePool, rewardToken_);
+        _addAsset(tokenId, stargatePoolId, stargatePool);
     }
 
     /*///////////////////////////////////////////////////////////////

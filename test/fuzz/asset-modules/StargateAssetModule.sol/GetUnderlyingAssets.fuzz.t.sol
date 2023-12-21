@@ -18,15 +18,15 @@ contract GetUnderlyingAssets_StargateAssetModule_Fuzz_Test is StargateAssetModul
         StargateAssetModule_Fuzz_Test.setUp();
     }
 
-    function testFuzz_Success_getUnderlyingAssets(uint256 tokenId, uint256 stargatePoolId) public {
+    function testFuzz_Success_getUnderlyingAssets(uint256 tokenId, uint256 stargatePoolId, address stargatePool)
+        public
+    {
         // Given : The pool deposit token (the underlying token) is set in the mocked pool contract. And is an asset that was previously added to the registry.
         poolMock.setToken(address(mockERC20.token1));
-        // And : The pool LP token has already been added in the AM
-        stargateAssetModule.setUnderlyingTokenForId(tokenId, address(poolMock));
 
         // And : The ERC1155 token is added to the AM.
         vm.prank(users.creatorAddress);
-        stargateAssetModule.addAsset(tokenId, stargatePoolId);
+        stargateAssetModule.addAsset(tokenId, stargatePoolId, address(poolMock));
 
         bytes32 assetKey = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule), tokenId);
 
