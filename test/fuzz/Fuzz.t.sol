@@ -65,6 +65,7 @@ abstract contract Fuzz_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     modifier notTestContracts(address fuzzedAddress) {
+        vm.assume(fuzzedAddress != address(sequencerUptimeOracle));
         vm.assume(fuzzedAddress != address(factory));
         vm.assume(fuzzedAddress != address(accountV1Logic));
         vm.assume(fuzzedAddress != address(accountV2Logic));
