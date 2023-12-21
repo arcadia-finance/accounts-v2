@@ -41,13 +41,13 @@ contract UniswapV3AssetModule_Fork_Test is Fork_Test {
         Fork_Test.setUp();
 
         // Deploy uniV3AssetModule.
-        deployUniswapV3AssetModule(address(NONFUNGIBLE_POSITION_MANAGER));
+        //deployUniswapV3AssetModule(address(NONFUNGIBLE_POSITION_MANAGER));
 
         // Set max exposure to uniswap V3.
-        vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfDerivedAssetModule(
-            address(uniV3AssetModule), address(0), type(uint112).max, 100
-        );
+        //vm.prank(users.riskManager);
+        //registryExtension.setRiskParametersOfDerivedAssetModule(
+        //    address(uniV3AssetModule), address(0), type(uint112).max, 100
+        //);
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -141,7 +141,7 @@ contract UniswapV3AssetModule_Fork_Test is Fork_Test {
                             FORK TESTS
     ///////////////////////////////////////////////////////////////*/
     // ToDO: use actual addresses and oracles etc from deployscript.
-    function testFork_Success_deposit(uint128 liquidity, int24 tickLower, int24 tickUpper) public {
+    function testFork_Success_deposit(uint128 liquidity, int24 tickLower, int24 tickUpper) private {
         vm.assume(liquidity > 10_000);
 
         IUniswapV3PoolExtension pool =

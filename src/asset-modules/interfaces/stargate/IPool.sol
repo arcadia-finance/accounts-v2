@@ -6,7 +6,7 @@
  */
 pragma solidity 0.8.22;
 
-interface IStargatePool {
+interface IPool {
     function token() external view returns (address);
     function totalLiquidity() external view returns (uint256);
     function totalSupply() external view returns (uint256);

@@ -6,9 +6,9 @@
  */
 pragma solidity 0.8.22;
 
-import { IERC20 } from "../../interfaces/IERC20.sol";
+import { IERC20 } from "../../../interfaces/IERC20.sol";
 
-interface IStargateLpStaking {
+interface ILpStakingTime {
     function eToken() external view returns (IERC20);
     function deposit(uint256 pid, uint256 amount) external;
     function withdraw(uint256 pid, uint256 amount) external;

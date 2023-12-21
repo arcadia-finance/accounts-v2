@@ -18,7 +18,7 @@ contract IsAllowed_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Tes
         StargateAssetModule_Fuzz_Test.setUp();
     }
 
-    function testFuzz_Success_isAllowed_True(uint256 tokenId, uint256 stargatePoolId, address stargatePool) public {
+    function testFuzz_Success_isAllowed_True(uint256 tokenId, uint256 stargatePoolId) public {
         // Given : stargatePoolId is greater than zero (Stargate has no pools with the 0 id)
         vm.assume(stargatePoolId > 0);
 
