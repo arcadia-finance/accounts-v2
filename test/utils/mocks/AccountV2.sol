@@ -620,7 +620,6 @@ contract AccountV2 is AccountStorageV2 {
      * @param assetAmounts Array with the amounts of the assets.
      * @param from The address to withdraw the assets from.
      */
-
     function _deposit(
         address[] memory assetAddresses,
         uint256[] memory assetIds,
@@ -701,7 +700,6 @@ contract AccountV2 is AccountStorageV2 {
      * @param assetAmounts Array with the amounts of the assets.
      * @param to The address to withdraw to.
      */
-
     function _withdraw(
         address[] memory assetAddresses,
         uint256[] memory assetIds,
