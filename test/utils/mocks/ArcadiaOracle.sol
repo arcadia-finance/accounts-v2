@@ -27,6 +27,7 @@ contract ArcadiaOracle is Owned {
         Unset, // unset
         Transmitter, // Offchain data transmissions to the oracle
         Validator // Offchain data validator for the setted values
+
     }
 
     struct OffchainConnector {

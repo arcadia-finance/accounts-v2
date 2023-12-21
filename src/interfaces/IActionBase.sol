@@ -22,6 +22,5 @@ interface IActionBase {
      * @param actionTargetData A bytes object containing the encoded input for the actionTarget.
      * @return resultData An actionAssetData struct with the final balances of this actionTarget contract.
      */
-
     function executeAction(bytes calldata actionTargetData) external returns (ActionData memory);
 }
