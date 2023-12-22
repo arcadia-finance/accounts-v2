@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 import { Constants } from "../../utils/Constants.sol";
 import { AssetModule } from "../../../src/asset-modules/AbstractAssetModule.sol";
@@ -25,6 +25,69 @@ contract GetLiquidationValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_getLiquidationValue_SequencerDown(
+        address numeraire,
+        address asset,
+        uint96 assetId,
+        uint256 assetAmount,
+        uint64 gracePeriod,
+        uint256 startedAt,
+        uint32 currentTime
+    ) public {
+        // Given: A random time.
+        vm.warp(currentTime);
+
+        // And: Sequencer is down.
+        sequencerUptimeOracle.setLatestRoundData(1, startedAt);
+
+        // And: A random gracePeriod.
+        vm.prank(creditorUsd.riskManager());
+        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = asset;
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = assetId;
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = assetAmount;
+
+        vm.expectRevert(RegistryErrors.SequencerDown.selector);
+        registryExtension.getLiquidationValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+    }
+
+    function testFuzz_Revert_getLiquidationValue_GracePeriodNotPassed(
+        address numeraire,
+        address asset,
+        uint96 assetId,
+        uint256 assetAmount,
+        uint32 gracePeriod,
+        uint32 startedAt,
+        uint32 currentTime
+    ) public {
+        // Given: A random time.
+        vm.warp(currentTime);
+
+        // And: Sequencer is online.
+        startedAt = uint32(bound(startedAt, 0, currentTime));
+        sequencerUptimeOracle.setLatestRoundData(0, startedAt);
+
+        // And: Grace period did not pass.
+        vm.assume(currentTime - startedAt < type(uint32).max);
+        gracePeriod = uint32(bound(gracePeriod, currentTime - startedAt + 1, type(uint32).max));
+        vm.prank(creditorUsd.riskManager());
+        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = asset;
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = assetId;
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = assetAmount;
+
+        vm.expectRevert(RegistryErrors.SequencerDown.selector);
+        registryExtension.getLiquidationValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+    }
+
     function testFuzz_Revert_getLiquidationValue_UnknownNumeraire(address numeraire) public {
         vm.assume(numeraire != address(0));
         vm.assume(!registryExtension.inRegistry(numeraire));
@@ -45,9 +108,28 @@ contract GetLiquidationValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         registryExtension.getLiquidationValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
-    function testFuzz_Success_getLiquidationValue(int64 rateToken1ToUsd, uint64 amountToken1, uint16 liquidationFactor_)
-        public
-    {
+    function testFuzz_Success_getLiquidationValue(
+        int64 rateToken1ToUsd,
+        uint64 amountToken1,
+        uint16 liquidationFactor_,
+        uint32 gracePeriod,
+        uint32 startedAt,
+        uint32 currentTime
+    ) public {
+        // Given: startedAt does not underflow.
+        // And: oracle staleness-check does not underflow.
+        currentTime = uint32(bound(currentTime, 2 days, type(uint32).max));
+        vm.warp(currentTime);
+
+        // And: Sequencer is online.
+        startedAt = uint32(bound(startedAt, 0, currentTime));
+        sequencerUptimeOracle.setLatestRoundData(0, startedAt);
+
+        // And: Grace period did pass.
+        gracePeriod = uint32(bound(gracePeriod, 0, currentTime - startedAt));
+        vm.prank(creditorUsd.riskManager());
+        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+
         vm.assume(liquidationFactor_ <= AssetValuationLib.ONE_4);
         vm.assume(rateToken1ToUsd > 0);
 

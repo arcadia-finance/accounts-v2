@@ -39,8 +39,6 @@ contract Registry is IRegistry, RegistryGuardian {
 
     // The contract address of the Arcadia Accounts Factory.
     address public immutable FACTORY;
-    // The contract address of the sequencer uptime oracle.
-    address internal immutable SEQUENCER_UPTIME_ORACLE;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -48,6 +46,9 @@ contract Registry is IRegistry, RegistryGuardian {
 
     // Counter with the number of oracles in the Registry.
     uint256 internal oracleCounter;
+
+    // The contract address of the sequencer uptime oracle.
+    address internal sequencerUptimeOracle;
 
     // Map registry => flag.
     mapping(address => bool) public inRegistry;
@@ -113,10 +114,22 @@ contract Registry is IRegistry, RegistryGuardian {
     }
 
     /**
+     * @param creditor The contract address of the Creditor.
      * @dev Only the Risk Manager of a Creditor can call functions with this modifier.
      */
     modifier onlyRiskManager(address creditor) {
         if (msg.sender != ICreditor(creditor).riskManager()) revert RegistryErrors.Unauthorized();
+        _;
+    }
+
+    /**
+     * @param creditor The contract address of the Creditor.
+     * @dev Throws if the sequencer is down,
+     * or the Creditor specific grace period after sequencer is back up did not pass.
+     */
+    modifier sequencerNotDown(address creditor) {
+        (, bool sequencerDown) = _isSequencerDown(creditor);
+        if (sequencerDown) revert RegistryErrors.SequencerDown();
         _;
     }
 
@@ -126,11 +139,58 @@ contract Registry is IRegistry, RegistryGuardian {
 
     /**
      * @param factory The contract address of the Arcadia Accounts Factory.
-     * @param sequencerUptimeOracle The contract address of the sequencer uptime oracle.
+     * @param sequencerUptimeOracle_ The contract address of the sequencer uptime oracle.
      */
-    constructor(address factory, address sequencerUptimeOracle) {
+    constructor(address factory, address sequencerUptimeOracle_) {
         FACTORY = factory;
-        SEQUENCER_UPTIME_ORACLE = sequencerUptimeOracle;
+        sequencerUptimeOracle = sequencerUptimeOracle_;
+
+        // Check that the sequencer uptime oracle is active.
+        (bool success,) = _isSequencerDown(address(0));
+        if (!success) revert RegistryErrors.OracleNotActive();
+    }
+
+    /* ///////////////////////////////////////////////////////////////
+                             L2 LOGIC
+    /////////////////////////////////////////////////////////////// */
+
+    /**
+     * @notice Checks that the sequencer is not down, and that it is back up for longer than the grace period.
+     * @param creditor The contract address of the Creditor.
+     * @return success Boolean indicating if the sequencer uptime oracle is active.
+     * @return sequencerDown Boolean indicating if the sequencer is down, or is still within the grace period.
+     * @dev This check guarantees that no stale oracles are consumed when the sequencer is down,
+     * and that Account owners have time (the grace period) to bring their Account back in a healthy state.
+     * @dev If the sequencer uptime oracle itself is not active, the sequencer is assumed to be still up.
+     */
+    function _isSequencerDown(address creditor) internal view returns (bool success, bool sequencerDown) {
+        // This guarantees that no stale oracles are consumed when the sequencer is down,
+        // and that Account owners have time (the grace period) to bring their Account back in a healthy state.
+        try IChainLinkData(sequencerUptimeOracle).latestRoundData() returns (
+            uint80, int256 answer, uint256 startedAt, uint256, uint80
+        ) {
+            success = true;
+            if (answer == 1 || block.timestamp - startedAt < riskParams[creditor].gracePeriod) {
+                sequencerDown = true;
+            }
+        } catch { }
+    }
+
+    /**
+     * @notice Sets a new sequencer uptime oracle in the case the current oracle is not active.
+     * @param sequencerUptimeOracle_ The contract address of the new sequencer uptime oracle.
+     */
+    function setSequencerUptimeOracle(address sequencerUptimeOracle_) external onlyOwner {
+        // Check that the current sequencer uptime oracle is not active.
+        (bool success,) = _isSequencerDown(address(0));
+        if (success) revert RegistryErrors.OracleStillActive();
+
+        // Set the new sequencer uptime oracle.
+        sequencerUptimeOracle = sequencerUptimeOracle_;
+
+        // Check that the new sequencer uptime oracle is active.
+        (success,) = _isSequencerDown(address(0));
+        if (!success) revert RegistryErrors.OracleNotActive();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -506,7 +566,7 @@ contract Registry is IRegistry, RegistryGuardian {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Returns the rate of a certain asset in USD.
+     * @notice Returns the rate of a certain primary asset in USD.
      * @param oracleSequence The sequence of the oracles to price the asset in USD,
      * packed in a single bytes32 object.
      * @return rate The USD rate of an asset, 18 decimals precision.
@@ -543,6 +603,9 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param assetAmounts Array with the amounts of the assets.
      * @return valuesAndRiskFactors The values of the assets, denominated in USD with 18 Decimals precision
      * and the corresponding risk factors for each asset for the given Creditor.
+     * @dev getValuesInUsd is a function for internal calculations and should NOT be used by external contracts.
+     * The function has a visibility public since it is also called by Derived Asset Modules for recursive pricing of assets.
+     * This function does not check if the sequencer is down or is back up less than the grace period.
      */
     function getValuesInUsd(
         address creditor,
@@ -550,18 +613,10 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
     ) public view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
-        // Check that the sequencer is not down, and that it is back up for longer than the grace period.
-        // This guarantees that no stale oracles are consumed when the sequencer is down,
-        // and that Account owners have time (the grace period) to bring their Account back in a healthy state.
-        RiskParameters memory riskParams_ = riskParams[creditor];
-        (, int256 answer, uint256 startedAt,,) = IChainLinkData(SEQUENCER_UPTIME_ORACLE).latestRoundData();
-        if (answer == 1 || block.timestamp - startedAt <= riskParams_.gracePeriod) {
-            revert RegistryErrors.GracePeriodNotOver();
-        }
-
         uint256 length = assets.length;
         valuesAndRiskFactors = new AssetValueAndRiskFactors[](length);
 
+        uint256 minUsdValue = riskParams[creditor].minUsdValue;
         for (uint256 i; i < length; ++i) {
             (
                 valuesAndRiskFactors[i].assetValue,
@@ -570,7 +625,7 @@ contract Registry is IRegistry, RegistryGuardian {
             ) = IAssetModule(assetToAssetModule[assets[i]]).getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
             // If asset value is too low, set to zero.
             // This is done to prevent dust attacks which may make liquidations unprofitable.
-            if (valuesAndRiskFactors[i].assetValue < riskParams_.minUsdValue) valuesAndRiskFactors[i].assetValue = 0;
+            if (valuesAndRiskFactors[i].assetValue < minUsdValue) valuesAndRiskFactors[i].assetValue = 0;
         }
     }
 
@@ -592,7 +647,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+    ) external view sequencerNotDown(creditor) returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
         valuesAndRiskFactors = getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
         // Convert the USD-values to values in Numeraire if the Numeraire is different from USD (0-address).
@@ -631,7 +686,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (uint256 assetValue) {
+    ) external view sequencerNotDown(creditor) returns (uint256 assetValue) {
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
@@ -664,7 +719,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (uint256 collateralValue) {
+    ) external view sequencerNotDown(creditor) returns (uint256 collateralValue) {
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
@@ -697,7 +752,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (uint256 liquidationValue) {
+    ) external view sequencerNotDown(creditor) returns (uint256 liquidationValue) {
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 

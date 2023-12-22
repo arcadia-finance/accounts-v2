@@ -166,10 +166,14 @@ contract RegistryGuardianExtension is RegistryGuardian {
 contract RegistryExtension is Registry {
     using FixedPointMathLib for uint256;
 
-    constructor(address factory, address sequencerUptimeOracle) Registry(factory, sequencerUptimeOracle) { }
+    constructor(address factory, address sequencerUptimeOracle_) Registry(factory, sequencerUptimeOracle_) { }
 
-    function getSequencerUptimeOracle() public view returns (address sequencerUptimeOracle) {
-        sequencerUptimeOracle = SEQUENCER_UPTIME_ORACLE;
+    function isSequencerDown(address creditor) public view returns (bool success, bool sequencerDown) {
+        return _isSequencerDown(creditor);
+    }
+
+    function getSequencerUptimeOracle() public view returns (address sequencerUptimeOracle_) {
+        sequencerUptimeOracle_ = sequencerUptimeOracle;
     }
 
     function getOracleCounter() public view returns (uint256 oracleCounter_) {

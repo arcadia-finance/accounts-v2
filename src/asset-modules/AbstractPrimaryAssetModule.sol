@@ -89,7 +89,7 @@ abstract contract PrimaryAssetModule is AssetModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Sets a new oracle sequence in the case one of the current oracles is decommissioned.
+     * @notice Sets a new oracle sequence in the case one of the current oracles is not active.
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @param newOracles The new sequence of the oracles, to price the asset in USD,
@@ -98,7 +98,7 @@ abstract contract PrimaryAssetModule is AssetModule {
     function setOracles(address asset, uint256 assetId, bytes32 newOracles) external onlyOwner {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-        // Old oracles must be decommissioned before a new sequence can be set.
+        // At least one of the old oracles must be inactive before a new sequence can be set.
         bytes32 oldOracles = assetToInformation[assetKey].oracleSequence;
         if (IRegistry(REGISTRY).checkOracleSequence(oldOracles)) revert OracleStillActive();
 

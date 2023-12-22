@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 
@@ -23,84 +23,6 @@ contract GetValuesInUsd_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_getValuesInUsd_UnknownCreditor(
-        address creditor,
-        address asset,
-        uint96 assetId,
-        uint256 assetAmount
-    ) public {
-        vm.assume(creditor != address(creditorUsd));
-        vm.assume(creditor != address(creditorStable1));
-        vm.assume(creditor != address(creditorToken1));
-
-        address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = asset;
-        uint256[] memory assetIds = new uint256[](1);
-        assetIds[0] = assetId;
-        uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = assetAmount;
-
-        vm.expectRevert(bytes(""));
-        registryExtension.getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
-    }
-
-    function testFuzz_Revert_getValuesInUsd_SequencerDown(
-        address asset,
-        uint96 assetId,
-        uint256 assetAmount,
-        uint64 gracePeriod,
-        uint256 startedAt,
-        uint32 currentTime
-    ) public {
-        vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
-
-        // Given sequencer is down.
-        sequencerUptimeOracle.setLatestRoundData(1, startedAt);
-
-        vm.warp(currentTime);
-
-        address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = asset;
-        uint256[] memory assetIds = new uint256[](1);
-        assetIds[0] = assetId;
-        uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = assetAmount;
-
-        vm.expectRevert(RegistryErrors.GracePeriodNotOver.selector);
-        registryExtension.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
-    }
-
-    function testFuzz_Revert_getValuesInUsd_GracePeriodNotOver(
-        address asset,
-        uint96 assetId,
-        uint256 assetAmount,
-        uint32 gracePeriod,
-        uint32 startedAt,
-        uint32 currentTime
-    ) public {
-        vm.warp(currentTime);
-
-        // Given: sequencer is back online.
-        startedAt = uint32(bound(startedAt, 0, currentTime));
-        sequencerUptimeOracle.setLatestRoundData(0, startedAt);
-
-        // And: Grace period did not pass.
-        gracePeriod = uint32(bound(gracePeriod, currentTime - startedAt, type(uint32).max));
-        vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
-
-        address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = asset;
-        uint256[] memory assetIds = new uint256[](1);
-        assetIds[0] = assetId;
-        uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = assetAmount;
-
-        vm.expectRevert(RegistryErrors.GracePeriodNotOver.selector);
-        registryExtension.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
-    }
-
     function testFuzz_Revert_getValuesInUsd_UnknownAsset(address asset, uint96 assetId, uint256 assetAmount) public {
         vm.assume(asset != address(mockERC20.stable1));
         vm.assume(asset != address(mockERC20.stable2));
