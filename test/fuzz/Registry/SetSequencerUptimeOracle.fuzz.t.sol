@@ -37,16 +37,16 @@ contract SetSequencerUptimeOracle_Registry_Fuzz_Test is Registry_Fuzz_Test {
         registryExtension.setSequencerUptimeOracle(sequencerUptimeOracle_);
     }
 
-    function testFuzz_Revert_setSequencerUptimeOracle_OracleStillActive(address sequencerUptimeOracle_) public {
+    function testFuzz_Revert_setSequencerUptimeOracle_OracleNotReverting(address sequencerUptimeOracle_) public {
         // Given: Current sequencer oracle is active.
         // When: creatorAddress calls setSequencerUptimeOracle with new oracle.
-        // Then: Function reverts with OracleStillActive.
+        // Then: Function reverts with OracleNotReverting.
         vm.prank(users.creatorAddress);
-        vm.expectRevert(RegistryErrors.OracleStillActive.selector);
+        vm.expectRevert(RegistryErrors.OracleNotReverting.selector);
         registryExtension.setSequencerUptimeOracle(sequencerUptimeOracle_);
     }
 
-    function testFuzz_Revert_setSequencerUptimeOracle_OracleNotActive() public {
+    function testFuzz_Revert_setSequencerUptimeOracle_OracleReverting() public {
         // Given: Current sequencer oracle reverts.
         sequencerUptimeOracle.setRevertsFlag(true);
 
@@ -55,9 +55,9 @@ contract SetSequencerUptimeOracle_Registry_Fuzz_Test is Registry_Fuzz_Test {
         sequencerUptimeOracle_.setRevertsFlag(true);
 
         // When: creatorAddress calls setSequencerUptimeOracle with new oracle.
-        // Then: Function reverts with OracleNotActive.
+        // Then: Function reverts with OracleReverting.
         vm.prank(users.creatorAddress);
-        vm.expectRevert(RegistryErrors.OracleNotActive.selector);
+        vm.expectRevert(RegistryErrors.OracleReverting.selector);
         registryExtension.setSequencerUptimeOracle(address(sequencerUptimeOracle_));
     }
 

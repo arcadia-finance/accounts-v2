@@ -23,11 +23,11 @@ contract Constructor_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_deployment_OracleNotActive() public {
+    function testFuzz_Revert_deployment_OracleReverting() public {
         sequencerUptimeOracle.setRevertsFlag(true);
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert(RegistryErrors.OracleNotActive.selector);
+        vm.expectRevert(RegistryErrors.OracleReverting.selector);
         new RegistryExtension(address(factory), address(sequencerUptimeOracle));
     }
 

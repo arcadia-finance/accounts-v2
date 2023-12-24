@@ -65,7 +65,7 @@ library RegistryErrors {
     error OnlyAssetModule();
     error OnlyOracleModule();
     error OracleModNotUnique();
-    error OracleStillActive();
-    error OracleNotActive();
+    error OracleNotReverting();
+    error OracleReverting();
     error Unauthorized();
 }

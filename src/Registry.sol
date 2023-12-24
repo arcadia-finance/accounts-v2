@@ -145,9 +145,9 @@ contract Registry is IRegistry, RegistryGuardian {
         FACTORY = factory;
         sequencerUptimeOracle = sequencerUptimeOracle_;
 
-        // Check that the sequencer uptime oracle is active.
+        // Check that the sequencer uptime oracle is not reverting.
         (bool success,) = _isSequencerDown(address(0));
-        if (!success) revert RegistryErrors.OracleNotActive();
+        if (!success) revert RegistryErrors.OracleReverting();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -157,11 +157,11 @@ contract Registry is IRegistry, RegistryGuardian {
     /**
      * @notice Checks that the sequencer is not down, and that it is back up for longer than the grace period.
      * @param creditor The contract address of the Creditor.
-     * @return success Boolean indicating if the sequencer uptime oracle is active.
-     * @return sequencerDown Boolean indicating if the sequencer is down, or is still within the grace period.
+     * @return success Boolean indicating whether the sequencer uptime oracle not reverting.
+     * @return sequencerDown Boolean indicating whether the sequencer is down, or is still within the grace period.
      * @dev This check guarantees that no stale oracles are consumed when the sequencer is down,
      * and that Account owners have time (the grace period) to bring their Account back in a healthy state.
-     * @dev If the sequencer uptime oracle itself is not active, the sequencer is assumed to be still up.
+     * @dev If the sequencer uptime oracle itself is reverting, the sequencer is assumed to be still up.
      */
     function _isSequencerDown(address creditor) internal view returns (bool success, bool sequencerDown) {
         // This guarantees that no stale oracles are consumed when the sequencer is down,
@@ -177,20 +177,20 @@ contract Registry is IRegistry, RegistryGuardian {
     }
 
     /**
-     * @notice Sets a new sequencer uptime oracle in the case the current oracle is not active.
+     * @notice Sets a new sequencer uptime oracle in the case the current oracle is reverting.
      * @param sequencerUptimeOracle_ The contract address of the new sequencer uptime oracle.
      */
     function setSequencerUptimeOracle(address sequencerUptimeOracle_) external onlyOwner {
-        // Check that the current sequencer uptime oracle is not active.
+        // Check that the current sequencer uptime oracle is reverting.
         (bool success,) = _isSequencerDown(address(0));
-        if (success) revert RegistryErrors.OracleStillActive();
+        if (success) revert RegistryErrors.OracleNotReverting();
 
         // Set the new sequencer uptime oracle.
         sequencerUptimeOracle = sequencerUptimeOracle_;
 
-        // Check that the new sequencer uptime oracle is active.
+        // Check that the new sequencer uptime oracle is not reverting.
         (success,) = _isSequencerDown(address(0));
-        if (!success) revert RegistryErrors.OracleNotActive();
+        if (!success) revert RegistryErrors.OracleReverting();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -346,24 +346,21 @@ contract Registry is IRegistry, RegistryGuardian {
     /**
      * @notice Sets the risk parameters for a given Creditor.
      * @param creditor The contract address of the Creditor.
-     * @param minUsdValue_ The minimum USD-value of assets that are taken into account for the Creditor,
+     * @param minUsdValue The minimum USD-value of assets that are taken into account for the Creditor,
      * denominated in USD with 18 decimals precision.
      * @param gracePeriod The grace period after the sequencer is back up,
      * during which no transactions relying on pricing logic can be executed
      * (increasing open positions, withdrawing collateral and liquidations).
-     * @param maxRecursiveCalls_ The maximum number of calls to different asset modules that are required to process
+     * @param maxRecursiveCalls The maximum number of calls to different asset modules that are required to process
      * the deposit/withdrawal/pricing of a single asset.
      * @dev A minimum USD-value will help to avoid remaining dust amounts in Accounts, which couldn't be liquidated.
      */
-    function setRiskParameters(address creditor, uint128 minUsdValue_, uint64 gracePeriod, uint64 maxRecursiveCalls_)
+    function setRiskParameters(address creditor, uint128 minUsdValue, uint64 gracePeriod, uint64 maxRecursiveCalls)
         external
         onlyRiskManager(creditor)
     {
-        riskParams[creditor] = RiskParameters({
-            minUsdValue: minUsdValue_,
-            gracePeriod: gracePeriod,
-            maxRecursiveCalls: maxRecursiveCalls_
-        });
+        riskParams[creditor] =
+            RiskParameters({ minUsdValue: minUsdValue, gracePeriod: gracePeriod, maxRecursiveCalls: maxRecursiveCalls });
     }
 
     /**
@@ -448,14 +445,14 @@ contract Registry is IRegistry, RegistryGuardian {
             }
         } else {
             uint256 recursiveCalls;
-            uint256 maxRecursiveCalls_ = riskParams[creditor].maxRecursiveCalls;
+            uint256 maxRecursiveCalls = riskParams[creditor].maxRecursiveCalls;
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
                 (recursiveCalls, assetTypes[i]) = IAssetModule(assetToAssetModule[assetAddress]).processDirectDeposit(
                     creditor, assetAddress, assetIds[i], amounts[i]
                 );
-                if (recursiveCalls > maxRecursiveCalls_) revert RegistryErrors.MaxRecursiveCallsReached();
+                if (recursiveCalls > maxRecursiveCalls) revert RegistryErrors.MaxRecursiveCallsReached();
             }
         }
     }
