@@ -130,9 +130,9 @@ contract ChainlinkOracleModuleExtension is ChainlinkOracleModule {
     function getOracleInformation(uint256 oracleId)
         public
         view
-        returns (bool isActive_, uint64 unitCorrection, address oracle)
+        returns (uint32 cutOffTime, uint64 unitCorrection, address oracle)
     {
-        isActive_ = oracleInformation[oracleId].isActive;
+        cutOffTime = oracleInformation[oracleId].cutOffTime;
         unitCorrection = oracleInformation[oracleId].unitCorrection;
         oracle = oracleInformation[oracleId].oracle;
     }
@@ -166,7 +166,15 @@ contract RegistryGuardianExtension is RegistryGuardian {
 contract RegistryExtension is Registry {
     using FixedPointMathLib for uint256;
 
-    constructor(address factory_) Registry(factory_) { }
+    constructor(address factory, address sequencerUptimeOracle_) Registry(factory, sequencerUptimeOracle_) { }
+
+    function isSequencerDown(address creditor) public view returns (bool success, bool sequencerDown) {
+        return _isSequencerDown(creditor);
+    }
+
+    function getSequencerUptimeOracle() public view returns (address sequencerUptimeOracle_) {
+        sequencerUptimeOracle_ = sequencerUptimeOracle;
+    }
 
     function getOracleCounter() public view returns (uint256 oracleCounter_) {
         oracleCounter_ = oracleCounter;

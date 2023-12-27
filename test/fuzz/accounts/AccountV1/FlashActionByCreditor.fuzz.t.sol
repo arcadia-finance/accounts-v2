@@ -64,8 +64,8 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
     function testFuzz_Success_flashActionByCreditor(
         uint128 debtAmount,
         uint32 fixedLiquidationCost,
-        bytes calldata signature,
-        uint32 time
+        uint32 time,
+        bytes calldata signature
     ) public {
         vm.startPrank(users.accountOwner);
         accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
@@ -91,74 +91,80 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
                 < type(uint256).max
         );
 
+        // Warp time
+        time = uint32(bound(time, 2 days, type(uint32).max));
+        vm.warp(time);
+        // Update updatedAt to avoid InactiveOracle() reverts.
+        vm.prank(users.defaultTransmitter);
+        mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
+
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
         vm.startPrank(users.defaultTransmitter);
         mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
         vm.stopPrank();
 
-        bytes[] memory data = new bytes[](3);
-        address[] memory to = new address[](3);
+        bytes memory callData;
+        {
+            bytes[] memory data = new bytes[](3);
+            address[] memory to = new address[](3);
 
-        data[0] = abi.encodeWithSignature(
-            "approve(address,uint256)", address(multiActionMock), token1AmountForAction + uint256(debtAmount)
-        );
-        data[1] = abi.encodeWithSignature(
-            "swapAssets(address,address,uint256,uint256)",
-            address(mockERC20.token1),
-            address(mockERC20.token2),
-            token1AmountForAction + uint256(debtAmount),
-            token2AmountForAction + uint256(debtAmount) * token1ToToken2Ratio
-        );
-        data[2] = abi.encodeWithSignature(
-            "approve(address,uint256)",
-            address(accountNotInitialised),
-            token2AmountForAction + uint256(debtAmount) * token1ToToken2Ratio
-        );
+            data[0] = abi.encodeWithSignature(
+                "approve(address,uint256)", address(multiActionMock), token1AmountForAction + uint256(debtAmount)
+            );
+            data[1] = abi.encodeWithSignature(
+                "swapAssets(address,address,uint256,uint256)",
+                address(mockERC20.token1),
+                address(mockERC20.token2),
+                token1AmountForAction + uint256(debtAmount),
+                token2AmountForAction + uint256(debtAmount) * token1ToToken2Ratio
+            );
+            data[2] = abi.encodeWithSignature(
+                "approve(address,uint256)",
+                address(accountNotInitialised),
+                token2AmountForAction + uint256(debtAmount) * token1ToToken2Ratio
+            );
 
-        // exposure token 2 does not exceed maxExposure.
-        vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint112).max);
-        vm.prank(users.tokenCreatorAddress);
-        mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
+            // exposure token 2 does not exceed maxExposure.
+            vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint112).max);
+            vm.prank(users.tokenCreatorAddress);
+            mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
 
-        vm.prank(users.tokenCreatorAddress);
-        mockERC20.token1.mint(address(action), debtAmount);
+            vm.prank(users.tokenCreatorAddress);
+            mockERC20.token1.mint(address(action), debtAmount);
 
-        to[0] = address(mockERC20.token1);
-        to[1] = address(multiActionMock);
-        to[2] = address(mockERC20.token2);
+            to[0] = address(mockERC20.token1);
+            to[1] = address(multiActionMock);
+            to[2] = address(mockERC20.token2);
 
-        ActionData memory assetDataOut = ActionData({
-            assets: new address[](1),
-            assetIds: new uint256[](1),
-            assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1)
-        });
+            ActionData memory assetDataOut = ActionData({
+                assets: new address[](1),
+                assetIds: new uint256[](1),
+                assetAmounts: new uint256[](1),
+                assetTypes: new uint256[](1)
+            });
 
-        assetDataOut.assets[0] = address(mockERC20.token1);
-        assetDataOut.assetTypes[0] = 0;
-        assetDataOut.assetIds[0] = 0;
-        assetDataOut.assetAmounts[0] = token1AmountForAction;
+            assetDataOut.assets[0] = address(mockERC20.token1);
+            assetDataOut.assetTypes[0] = 0;
+            assetDataOut.assetIds[0] = 0;
+            assetDataOut.assetAmounts[0] = token1AmountForAction;
 
-        ActionData memory assetDataIn = ActionData({
-            assets: new address[](1),
-            assetIds: new uint256[](1),
-            assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1)
-        });
+            ActionData memory assetDataIn = ActionData({
+                assets: new address[](1),
+                assetIds: new uint256[](1),
+                assetAmounts: new uint256[](1),
+                assetTypes: new uint256[](1)
+            });
 
-        assetDataIn.assets[0] = address(mockERC20.token2);
-        assetDataIn.assetTypes[0] = 0;
-        assetDataIn.assetIds[0] = 0;
+            assetDataIn.assets[0] = address(mockERC20.token2);
+            assetDataIn.assetTypes[0] = 0;
+            assetDataIn.assetIds[0] = 0;
 
-        ActionData memory transferFromOwner;
-        IPermit2.TokenPermissions[] memory tokenPermissions;
+            ActionData memory transferFromOwner;
+            IPermit2.TokenPermissions[] memory tokenPermissions;
 
-        // Avoid stack too deep
-        bytes memory signatureStack = signature;
-
-        bytes memory actionTargetData = abi.encode(assetDataIn, to, data);
-        bytes memory callData =
-            abi.encode(assetDataOut, transferFromOwner, tokenPermissions, signatureStack, actionTargetData);
+            bytes memory actionTargetData = abi.encode(assetDataIn, to, data);
+            callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, signature, actionTargetData);
+        }
 
         // Deposit token1 in account first
         depositERC20InAccount(
@@ -167,8 +173,6 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // Assert the account has no TOKEN2 balance initially
         assert(mockERC20.token2.balanceOf(address(accountNotInitialised)) == 0);
-
-        vm.warp(time);
 
         // Call flashActionByCreditor() on Account
         vm.prank(address(creditorStable1));

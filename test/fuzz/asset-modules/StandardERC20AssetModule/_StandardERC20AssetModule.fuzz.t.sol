@@ -27,7 +27,7 @@ abstract contract StandardERC20AssetModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        chainlinkOM.addOracle(address(mockOracles.token4ToUsd), "TOKEN4", "USD");
+        chainlinkOM.addOracle(address(mockOracles.token4ToUsd), "TOKEN4", "USD", 2 days);
 
         uint80[] memory oracleToken4ToUsdArr = new uint80[](1);
         oracleToken4ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token4ToUsd)));

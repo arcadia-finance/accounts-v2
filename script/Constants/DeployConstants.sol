@@ -32,6 +32,8 @@ library DeployAddresses {
 
     address public constant uniswapV3PositionMgr_base = 0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1;
 
+    address public constant sequencerUptimeOracle_base = 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433;
+
     // to do: change to gnosis
     address public constant treasury_base = 0xBEB56fbEf3387af554A554E7DB25830eB7b92e32;
 }
