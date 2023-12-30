@@ -35,13 +35,13 @@ abstract contract StakingModule is ERC1155, ReentrancyGuard {
 
     // Map underlying token and reward token pair to their corresponding staking token id.
     mapping(address underlyingToken => mapping(address rewardToken => uint256 id)) public tokenToRewardToId;
-    // Map staking token id to it's corresponding underlying token.
+    // Map staking token id to its corresponding underlying token.
     mapping(uint256 id => ERC20 underlyingToken) public underlyingToken;
-    // Map staking token id to it's corresponding reward token.
+    // Map staking token id to its corresponding reward token.
     mapping(uint256 id => ERC20 rewardToken) public rewardToken;
-    // Map staking token id to it's corresponding struct with global state.
+    // Map staking token id to its corresponding struct with global state.
     mapping(uint256 id => TokenState) public tokenState;
-    // Map Account and staking token id to it's corresponding struct with the account specific state.
+    // Map Account and staking token id to its corresponding struct with the account specific state.
     mapping(address account => mapping(uint256 id => AccountState)) public accountState;
 
     // Struct with the global state per staking token.
@@ -85,7 +85,7 @@ abstract contract StakingModule is ERC1155, ReentrancyGuard {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a new staking token with it's corresponding underlying and reward token.
+     * @notice Adds a new staking token with its corresponding underlying and reward token.
      * @param underlyingToken_ The contract address of the underlying token.
      * @param rewardToken_ The contract address of the reward token.
      */
