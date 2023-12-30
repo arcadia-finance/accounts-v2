@@ -24,7 +24,6 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
 
     // https://stargateprotocol.gitbook.io/stargate/developers/pool-ids
     uint256 public poolId = 1;
-    uint256 public initBalance = 1000 * 1e6;
 
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
@@ -36,6 +35,7 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
         vm.startPrank(users.creatorAddress);
 
         // Add USDbC and it's Chainlink oracle to the protocol.
+        // Here we use USDC oracle as no available oracle for USDbC.
         uint256 oracleId = chainlinkOM.addOracle(oracleUSDC, "USDbC", "USD");
 
         bool[] memory boolValues = new bool[](1);
@@ -49,6 +49,10 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
         // Add the USDbC pool LP token to the StargateAssetModule.
         stargateAssetModule.addNewStakingToken(address(pool), poolId);
         vm.stopPrank();
+
+        // Label contracts
+        vm.label({ account: address(pool), newLabel: "StargateUSDCPool" });
+        vm.label({ account: address(USDbC), newLabel: "USDbC" });
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -56,6 +60,7 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
     ///////////////////////////////////////////////////////////////*/
 
     function testFork_Success_StakeAndDepositInAccount() public {
+        uint256 initBalance = 1000 * 10 ** USDbC.decimals();
         assert(pool.balanceOf(users.accountOwner) == 0);
 
         // A user deposits in the Stargate USDbC pool.
@@ -85,7 +90,92 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
         assetAmounts[0] = stakedAmount;
 
         proxyAccount.deposit(assetAddresses, assetIds, assetAmounts);
+        assert(stargateAssetModule.balanceOf(address(proxyAccount), 1) == stakedAmount);
 
         vm.stopPrank();
+    }
+
+    // On withdrawal of the ERC1155 token, the corresponding asset (Stargate LP tokens) and accumulated rewards should be transfered to the user.
+    function testFork_Success_Withdraw() public {
+        // Given : Amount of underlying assets deposited in Stargate pool.
+        uint256 amount1 = 1_000_000 * 10 ** USDbC.decimals();
+        uint256 amount2 = 123_456 * 10 ** USDbC.decimals();
+
+        // And : 2 users deploy a new Arcadia Account.
+        address payable user1 = createUser("user1");
+        address payable user2 = createUser("user2");
+
+        vm.prank(user1);
+        address arcadiaAccount1 = factory.createAccount(100, 0, address(0), address(0));
+
+        vm.prank(user2);
+        address arcadiaAccount2 = factory.createAccount(101, 0, address(0), address(0));
+
+        // And : Stake Stargate Pool LP tokens in the Asset Modules and deposit minted ERC1155 in Accounts.
+        uint256 lpBalance1 = stakeInAssetModuleAndDepositInAccount(user1, arcadiaAccount1, USDbC, amount1, poolId, pool);
+        emit log_named_uint("lpBalance1", lpBalance1);
+        emit log_named_uint("TokenIdBalance1", stargateAssetModule.balanceOf(arcadiaAccount1, 1));
+        (uint256 amBalanceInLpStaking,) = lpStakingTime.userInfo(poolId, address(stargateAssetModule));
+        emit log_named_uint("AM balance in lpStaking ", amBalanceInLpStaking);
+        uint256 lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDbC, amount2, poolId, pool);
+
+        (amBalanceInLpStaking,) = lpStakingTime.userInfo(poolId, address(stargateAssetModule));
+        assert(lpBalance1 + lpBalance2 == amBalanceInLpStaking);
+
+        // And : We let 30 days pass to accumulate rewards.
+        vm.warp(block.timestamp + 30 days);
+
+        // And : User1 withdraws 1/2 position.
+        vm.prank(arcadiaAccount1);
+        stargateAssetModule.withdraw(1, uint128(lpBalance1 / 2));
+        assert(lpStakingTime.eToken().balanceOf(arcadiaAccount1) > 0);
+
+        // And : User2 withdraws fully
+        vm.prank(arcadiaAccount2);
+        stargateAssetModule.withdraw(1, uint128(lpBalance2));
+        assert(lpStakingTime.eToken().balanceOf(arcadiaAccount2) > 0);
+
+        // And : User2 decides to stake again via the AM.
+        lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDbC, amount2, poolId, pool);
+
+        // And : We let 30 days pass to accumulate rewards.
+        vm.warp(block.timestamp + 30 days);
+        emit log_named_uint("pendingEmissions", lpStakingTime.pendingEmissionToken(1, address(stargateAssetModule)));
+
+        // When : Both users withdraw fully (withdraw and claim rewards).
+        vm.prank(arcadiaAccount2);
+        stargateAssetModule.withdraw(1, uint128(lpBalance2));
+
+        emit log_named_uint("balance of A1", stargateAssetModule.balanceOf(arcadiaAccount1, 1));
+
+        (amBalanceInLpStaking,) = lpStakingTime.userInfo(poolId, address(stargateAssetModule));
+        emit log_named_uint("AM balance in lpStaking ", amBalanceInLpStaking);
+
+        (,, uint128 totalSupply) = stargateAssetModule.tokenState(1);
+        emit log_named_uint("totalSupply", totalSupply);
+
+        emit log_named_uint("balance of A1", stargateAssetModule.balanceOf(arcadiaAccount1, 1));
+
+        uint128 remainingBalanceAccount1 = uint128(stargateAssetModule.balanceOf(arcadiaAccount1, 1));
+
+        vm.prank(arcadiaAccount1);
+        stargateAssetModule.withdraw(1, remainingBalanceAccount1);
+
+        // Then : Values should be correct
+        uint256 rewardsAccount1 = lpStakingTime.eToken().balanceOf(arcadiaAccount1);
+        uint256 rewardsAccount2 = lpStakingTime.eToken().balanceOf(arcadiaAccount2);
+        emit log_named_uint("STG rewards Account 1", rewardsAccount1);
+        emit log_named_uint("STG rewards Account 2", rewardsAccount2);
+
+        assert(rewardsAccount1 > rewardsAccount2);
+
+        remainingBalanceAccount1 = uint128(stargateAssetModule.balanceOf(arcadiaAccount1, 1));
+        uint256 remainingBalanceAccount2 = stargateAssetModule.balanceOf(arcadiaAccount2, 1);
+
+        assert(remainingBalanceAccount1 == 0);
+        assert(remainingBalanceAccount2 == 0);
+
+        (,, totalSupply) = stargateAssetModule.tokenState(1);
+        assert(totalSupply == 0);
     }
 }

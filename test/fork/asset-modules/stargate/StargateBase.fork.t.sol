@@ -6,8 +6,11 @@ pragma solidity 0.8.22;
 
 import { Fork_Test } from "../../Fork.t.sol";
 
+import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
+import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
 import { ILpStakingTime } from "../../../../src/asset-modules/interfaces/stargate/ILpStakingTime.sol";
 import { IRouter } from "../../../../src/asset-modules/interfaces/stargate/IRouter.sol";
+import { IPool } from "../../../../src/asset-modules/interfaces/stargate/IPool.sol";
 import { StargateAssetModule } from "../../../../src/asset-modules/StargateAssetModule.sol";
 
 /**
@@ -39,11 +42,52 @@ contract StargateBase_Fork_Test is Fork_Test {
         stargateAssetModule.initialize();
 
         vm.stopPrank();
+
+        // Label contracts
+        vm.label({ account: address(router), newLabel: "StargateRouter" });
+        vm.label({ account: address(lpStakingTime), newLabel: "StargateLpStaking" });
     }
 
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
+
+    function stakeInAssetModuleAndDepositInAccount(
+        address user,
+        address account,
+        ERC20 underlyingAsset,
+        uint256 amount,
+        uint256 poolId,
+        IPool pool
+    ) public returns (uint256 lpBalance) {
+        // A user deposits in the Stargate USDbC pool.
+        vm.startPrank(user);
+        deal(address(underlyingAsset), user, amount);
+
+        underlyingAsset.approve(address(router), amount);
+        router.addLiquidity(poolId, amount, user);
+
+        // The user stakes the LP token via the StargateAssetModule
+        lpBalance = pool.balanceOf(user);
+        pool.approve(address(stargateAssetModule), lpBalance);
+        stargateAssetModule.stake(1, uint128(lpBalance));
+
+        // The user deposits the ERC1155 in it's Account.
+        stargateAssetModule.setApprovalForAll(account, true);
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = address(stargateAssetModule);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = 1;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = lpBalance;
+
+        AccountV1(account).deposit(assetAddresses, assetIds, assetAmounts);
+
+        vm.stopPrank();
+    }
 
     function assertInRange(uint256 actualValue, uint256 expectedValue, uint8 precision) internal {
         if (expectedValue == 0) {
