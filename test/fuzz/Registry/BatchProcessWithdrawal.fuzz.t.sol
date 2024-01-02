@@ -146,6 +146,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         address asset
     ) public {
         vm.assume(!registryExtension.inRegistry(asset));
+        amountWithdrawn = uint112(bound(amountWithdrawn, 1, type(uint112).max));
         vm.assume(amountDeposited >= amountWithdrawn);
 
         stdstore.target(address(registryExtension)).sig(registryExtension.inRegistry.selector).with_key(address(asset))

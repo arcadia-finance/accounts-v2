@@ -77,8 +77,8 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
     function testFuzz_Revert_batchProcessDeposit_MaxRecursionReached(uint112 amountToken1, uint112 amountToken2)
         public
     {
-        amountToken1 = uint112(bound(amountToken1, 0, type(uint112).max - 1));
-        amountToken2 = uint112(bound(amountToken2, 0, type(uint112).max - 1));
+        amountToken1 = uint112(bound(amountToken1, 1, type(uint112).max - 1));
+        amountToken2 = uint112(bound(amountToken2, 1, type(uint112).max - 1));
         // Given: Assets
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
@@ -179,6 +179,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint112 newMaxExposure,
         uint112 amount
     ) public {
+        amount = uint112(bound(amount, 1, type(uint112).max));
         vm.assume(newMaxExposure <= amount);
 
         vm.prank(users.riskManager);

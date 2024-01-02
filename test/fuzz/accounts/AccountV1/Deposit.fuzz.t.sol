@@ -203,6 +203,8 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_deposit_WithCreditor_UnknownAsset(address asset, uint256 id, uint256 amount) public {
         vm.assume(!registryExtension.inRegistry(asset));
 
+        amount = bound(amount, 1, type(uint256).max);
+
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;
 

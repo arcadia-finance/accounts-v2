@@ -821,10 +821,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
             IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
 
         for (uint256 i; i < assetAddresses.length; ++i) {
-            if (assetAmounts[i] == 0) {
-                // Skip if amount is 0 to prevent storing addresses that have 0 balance.
-                continue;
-            }
+            // Skip if amount is 0 to prevent storing addresses that have 0 balance,
+            // these are also skipped for batchProcessDeposit in the Registry.
+            if (assetAmounts[i] == 0) continue;
 
             if (assetTypes[i] == 0) {
                 if (assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
@@ -894,10 +893,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
             IRegistry(registry).batchProcessWithdrawal(creditor, assetAddresses, assetIds, assetAmounts);
 
         for (uint256 i; i < assetAddresses.length; ++i) {
-            if (assetAmounts[i] == 0) {
-                // Skip if amount is 0 to prevent transferring 0 balances.
-                continue;
-            }
+            // Skip if amount is 0 to prevent transferring 0 balances,
+            // these are also skipped for batchProcessWithdrawal in the Registry.
+            if (assetAmounts[i] == 0) continue;
 
             if (assetTypes[i] == 0) {
                 if (assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
