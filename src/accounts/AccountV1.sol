@@ -322,14 +322,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
         address oldCreditor = creditor;
         if (oldCreditor == newCreditor) revert AccountErrors.CreditorAlreadySet();
 
-        // Check if all assets in the Account are allowed by the new Creditor
-        // and add the exposure of the account for the new Creditor.
-        IRegistry(registry).batchProcessDeposit(newCreditor, assetAddresses, assetIds, assetAmounts);
-
         // Remove the exposures of the Account for the old Creditor.
         if (oldCreditor != address(0)) {
             IRegistry(registry).batchProcessWithdrawal(oldCreditor, assetAddresses, assetIds, assetAmounts);
         }
+
+        // Check if all assets in the Account are allowed by the new Creditor
+        // and add the exposure of the account for the new Creditor.
+        IRegistry(registry).batchProcessDeposit(newCreditor, assetAddresses, assetIds, assetAmounts);
 
         // Open margin account for the new Creditor.
         _openMarginAccount(newCreditor);
@@ -731,14 +731,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
             (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
                 generateAssetData();
 
-            // Check if all assets in the Account are allowed by the approved Creditor
-            // and add the exposure of the account for the approved Creditor.
-            IRegistry(registry).batchProcessDeposit(msg.sender, assetAddresses, assetIds, assetAmounts);
-
             // Remove the exposures of the Account for the current Creditor.
             if (currentCreditor != address(0)) {
                 IRegistry(registry).batchProcessWithdrawal(currentCreditor, assetAddresses, assetIds, assetAmounts);
             }
+
+            // Check if all assets in the Account are allowed by the approved Creditor
+            // and add the exposure of the account for the approved Creditor.
+            IRegistry(registry).batchProcessDeposit(msg.sender, assetAddresses, assetIds, assetAmounts);
 
             // Open margin account for the approved Creditor.
             _openMarginAccount(msg.sender);
