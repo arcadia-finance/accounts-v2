@@ -113,10 +113,7 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
 
         // And : Stake Stargate Pool LP tokens in the Asset Modules and deposit minted ERC1155 in Accounts.
         uint256 lpBalance1 = stakeInAssetModuleAndDepositInAccount(user1, arcadiaAccount1, USDbC, amount1, poolId, pool);
-        emit log_named_uint("lpBalance1", lpBalance1);
-        emit log_named_uint("TokenIdBalance1", stargateAssetModule.balanceOf(arcadiaAccount1, 1));
         (uint256 amBalanceInLpStaking,) = lpStakingTime.userInfo(poolId, address(stargateAssetModule));
-        emit log_named_uint("AM balance in lpStaking ", amBalanceInLpStaking);
         uint256 lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDbC, amount2, poolId, pool);
 
         (amBalanceInLpStaking,) = lpStakingTime.userInfo(poolId, address(stargateAssetModule));
@@ -146,15 +143,9 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
         vm.prank(arcadiaAccount2);
         stargateAssetModule.withdraw(1, uint128(lpBalance2));
 
-        emit log_named_uint("balance of A1", stargateAssetModule.balanceOf(arcadiaAccount1, 1));
-
         (amBalanceInLpStaking,) = lpStakingTime.userInfo(poolId, address(stargateAssetModule));
-        emit log_named_uint("AM balance in lpStaking ", amBalanceInLpStaking);
 
         (,, uint128 totalSupply) = stargateAssetModule.tokenState(1);
-        emit log_named_uint("totalSupply", totalSupply);
-
-        emit log_named_uint("balance of A1", stargateAssetModule.balanceOf(arcadiaAccount1, 1));
 
         uint128 remainingBalanceAccount1 = uint128(stargateAssetModule.balanceOf(arcadiaAccount1, 1));
 
