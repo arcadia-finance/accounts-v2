@@ -519,6 +519,34 @@ contract Registry is IRegistry, RegistryGuardian {
     }
 
     /**
+     * @notice Calculates the USD-values of underlying assets.
+     * @param creditor The contract address of the Creditor.
+     * @param assets Array of the contract addresses of the assets.
+     * @param assetIds Array of the ids of the assets.
+     * @param assetAmounts Array with the amounts of the assets.
+     * @return valuesAndRiskFactors The values of the assets, denominated in USD with 18 Decimals precision
+     * and the corresponding risk factors for each asset for the given Creditor.
+     * @dev Function should only be called by Derived Asset Modules, to get USD-values of underlying assets.
+     * no checks on the minimum usd-value are done.
+     */
+    function getValuesInUsdRecursive(
+        address creditor,
+        address[] calldata assets,
+        uint256[] calldata assetIds,
+        uint256[] calldata assetAmounts
+    ) external view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+        uint256 length = assets.length;
+        valuesAndRiskFactors = new AssetValueAndRiskFactors[](length);
+        for (uint256 i; i < length; ++i) {
+            (
+                valuesAndRiskFactors[i].assetValue,
+                valuesAndRiskFactors[i].collateralFactor,
+                valuesAndRiskFactors[i].liquidationFactor
+            ) = IAssetModule(assetToAssetModule[assets[i]]).getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
+        }
+    }
+
+    /**
      * @notice Calculates the USD-values per asset.
      * @param creditor The contract address of the Creditor.
      * @param assets Array of the contract addresses of the assets.
@@ -574,7 +602,7 @@ contract Registry is IRegistry, RegistryGuardian {
         if (numeraire != address(0)) {
             // We use the USD price per 10^18 tokens instead of the price per token to guarantee sufficient precision.
             (uint256 rateNumeraireToUsd,,) =
-                IAssetModule(assetToAssetModule[numeraire]).getValue(creditor, numeraire, 0, 1e18);
+                IAssetModule(assetToAssetModule[numeraire]).getValue(address(0), numeraire, 0, 1e18);
 
             uint256 length = assetAddresses.length;
             for (uint256 i; i < length; ++i) {

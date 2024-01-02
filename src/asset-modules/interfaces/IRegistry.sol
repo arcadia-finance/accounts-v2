@@ -86,14 +86,14 @@ interface IRegistry {
     function getRateInUsd(bytes32 oracleSequence) external view returns (uint256);
 
     /**
-     * @notice Calculates the usd value of an asset.
+     * @notice Calculates the USD-values of underlying assets.
      * @param creditor The contract address of the creditor.
      * @param assets Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
      * @return valuesAndRiskFactors The value of the asset denominated in USD, with 18 Decimals precision.
      */
-    function getValuesInUsd(
+    function getValuesInUsdRecursive(
         address creditor,
         address[] calldata assets,
         uint256[] calldata assetIds,
