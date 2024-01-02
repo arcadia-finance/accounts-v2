@@ -797,6 +797,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         external
         onlyOwner
         nonReentrant
+        notDuringAuction
     {
         // No need to check that all arrays have equal length, this check will be done in the Registry.
         _deposit(assetAddresses, assetIds, assetAmounts, msg.sender);
