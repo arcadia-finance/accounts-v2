@@ -389,7 +389,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev An approved Creditor is a Creditor for which no margin Account is immediately opened.
      * But the approved Creditor itself can open the margin Account later in time to e.g. refinance liabilities.
      */
-    function setApprovedCreditor(address creditor_) external onlyOwner {
+    function setApprovedCreditor(address creditor_) external onlyOwner updateActionTimestamp {
         approvedCreditor = creditor_;
     }
 
