@@ -381,8 +381,8 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
     function testFuzz_Success_flashActionByCreditor_executeAction(
         uint128 debtAmount,
         uint32 fixedLiquidationCost,
-        bytes calldata signature,
-        uint32 time
+        uint32 time,
+        bytes calldata signature
     ) public {
         vm.prank(users.accountOwner);
         accountExtension.openMarginAccount(address(creditorToken1));
@@ -398,6 +398,13 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
             token1AmountForAction + ((uint256(debtAmount) + fixedLiquidationCost) * token1ToToken2Ratio)
                 < type(uint256).max
         );
+
+        // Warp time
+        time = uint32(bound(time, 2 days, type(uint32).max));
+        vm.warp(time);
+        // Update updatedAt to avoid InactiveOracle() reverts.
+        vm.prank(users.defaultTransmitter);
+        mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
 
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of accountExtension
         vm.startPrank(users.defaultTransmitter);
@@ -423,50 +430,47 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
             token2AmountForAction + uint256(debtAmount) * token1ToToken2Ratio
         );
 
-        // exposure token 2 does not exceed maxExposure.
-        vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint112).max);
-        vm.prank(users.tokenCreatorAddress);
-        mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
+            // exposure token 2 does not exceed maxExposure.
+            vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint112).max);
+            vm.prank(users.tokenCreatorAddress);
+            mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
 
-        vm.prank(users.tokenCreatorAddress);
-        mockERC20.token1.mint(address(action), debtAmount);
+            vm.prank(users.tokenCreatorAddress);
+            mockERC20.token1.mint(address(action), debtAmount);
 
-        to[0] = address(mockERC20.token1);
-        to[1] = address(multiActionMock);
-        to[2] = address(mockERC20.token2);
+            to[0] = address(mockERC20.token1);
+            to[1] = address(multiActionMock);
+            to[2] = address(mockERC20.token2);
 
-        ActionData memory assetDataOut = ActionData({
-            assets: new address[](1),
-            assetIds: new uint256[](1),
-            assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1)
-        });
+            ActionData memory assetDataOut = ActionData({
+                assets: new address[](1),
+                assetIds: new uint256[](1),
+                assetAmounts: new uint256[](1),
+                assetTypes: new uint256[](1)
+            });
 
-        assetDataOut.assets[0] = address(mockERC20.token1);
-        assetDataOut.assetTypes[0] = 0;
-        assetDataOut.assetIds[0] = 0;
-        assetDataOut.assetAmounts[0] = token1AmountForAction;
+            assetDataOut.assets[0] = address(mockERC20.token1);
+            assetDataOut.assetTypes[0] = 0;
+            assetDataOut.assetIds[0] = 0;
+            assetDataOut.assetAmounts[0] = token1AmountForAction;
 
-        ActionData memory assetDataIn = ActionData({
-            assets: new address[](1),
-            assetIds: new uint256[](1),
-            assetAmounts: new uint256[](1),
-            assetTypes: new uint256[](1)
-        });
+            ActionData memory assetDataIn = ActionData({
+                assets: new address[](1),
+                assetIds: new uint256[](1),
+                assetAmounts: new uint256[](1),
+                assetTypes: new uint256[](1)
+            });
 
-        assetDataIn.assets[0] = address(mockERC20.token2);
-        assetDataIn.assetTypes[0] = 0;
-        assetDataIn.assetIds[0] = 0;
+            assetDataIn.assets[0] = address(mockERC20.token2);
+            assetDataIn.assetTypes[0] = 0;
+            assetDataIn.assetIds[0] = 0;
 
-        ActionData memory transferFromOwner;
-        IPermit2.TokenPermissions[] memory tokenPermissions;
+            ActionData memory transferFromOwner;
+            IPermit2.TokenPermissions[] memory tokenPermissions;
 
-        // Avoid stack too deep
-        bytes memory signatureStack = signature;
-
-        bytes memory actionTargetData = abi.encode(assetDataIn, to, data);
-        bytes memory callData =
-            abi.encode(assetDataOut, transferFromOwner, tokenPermissions, signatureStack, actionTargetData);
+            bytes memory actionTargetData = abi.encode(assetDataIn, to, data);
+            callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, signature, actionTargetData);
+        }
 
         // Deposit token1 in accountExtension first
         depositERC20InAccount(mockERC20.token1, token1AmountForAction, users.accountOwner, address(accountExtension));

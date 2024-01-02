@@ -27,6 +27,7 @@ contract ArcadiaOracle is Owned {
         Unset, // unset
         Transmitter, // Offchain data transmissions to the oracle
         Validator // Offchain data validator for the setted values
+
     }
 
     struct OffchainConnector {
@@ -122,5 +123,9 @@ contract ArcadiaOracle is Owned {
 
     function setMaxAnswer(int192 maxAnswer_) public {
         maxAnswer = maxAnswer_;
+    }
+
+    function setLatestRoundId(uint8 roundId_) public {
+        latestRoundId = roundId_;
     }
 }

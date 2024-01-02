@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 import { stdError } from "../../../lib/forge-std/src/StdError.sol";
 
@@ -15,7 +15,7 @@ import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/librar
 /**
  * @notice Fuzz tests for the function "getValuesInNumeraire" of contract "Registry".
  */
-contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
+contract GetValuesInNumeraire_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -27,8 +27,71 @@ contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_getValuesInNumeraire_SequencerDown(
+        address numeraire,
+        address asset,
+        uint96 assetId,
+        uint256 assetAmount,
+        uint64 gracePeriod,
+        uint256 startedAt,
+        uint32 currentTime
+    ) public {
+        // Given: A random time.
+        vm.warp(currentTime);
+
+        // And: Sequencer is down.
+        sequencerUptimeOracle.setLatestRoundData(1, startedAt);
+
+        // And: A random gracePeriod.
+        vm.prank(creditorUsd.riskManager());
+        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = asset;
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = assetId;
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = assetAmount;
+
+        vm.expectRevert(RegistryErrors.SequencerDown.selector);
+        registryExtension.getValuesInNumeraire(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+    }
+
+    function testFuzz_Revert_getValuesInNumeraire_GracePeriodNotPassed(
+        address numeraire,
+        address asset,
+        uint96 assetId,
+        uint256 assetAmount,
+        uint32 gracePeriod,
+        uint32 startedAt,
+        uint32 currentTime
+    ) public {
+        // Given: A random time.
+        vm.warp(currentTime);
+
+        // And: Sequencer is online.
+        startedAt = uint32(bound(startedAt, 0, currentTime));
+        sequencerUptimeOracle.setLatestRoundData(0, startedAt);
+
+        // And: Grace period did not pass.
+        vm.assume(currentTime - startedAt < type(uint32).max);
+        gracePeriod = uint32(bound(gracePeriod, currentTime - startedAt + 1, type(uint32).max));
+        vm.prank(creditorUsd.riskManager());
+        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = asset;
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = assetId;
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = assetAmount;
+
+        vm.expectRevert(RegistryErrors.SequencerDown.selector);
+        registryExtension.getValuesInNumeraire(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+    }
+
     function testFuzz_Revert_getValuesInNumeraire_UnknownAsset() public {
-        // Should revert here as mockERC20.token3 was not added to an asset  module
+        // Should revert here as mockERC20.token3 was not added to an asset module
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC20.token3);
@@ -65,7 +128,32 @@ contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         registryExtension.getValuesInNumeraire(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
-    function testFuzz_Success_getValuesInNumeraire_NumeraireIsUsd() public {
+    function testFuzz_Success_getValuesInNumeraire_NumeraireIsUsd(
+        uint32 gracePeriod,
+        uint32 startedAt,
+        uint32 currentTime
+    ) public {
+        // Given: startedAt does not underflow.
+        // And: oracle staleness-check does not underflow.
+        currentTime = uint32(bound(currentTime, 2 days, type(uint32).max));
+        vm.warp(currentTime);
+
+        // And: Oracles are not stale.
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.stable1ToUsd.transmit(int256(rates.stable1ToUsd));
+        mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
+        mockOracles.nft1ToToken1.transmit(int256(rates.nft1ToToken1));
+        vm.stopPrank();
+
+        // And: Sequencer is online.
+        startedAt = uint32(bound(startedAt, 0, currentTime));
+        sequencerUptimeOracle.setLatestRoundData(0, startedAt);
+
+        // And: Grace period did pass.
+        gracePeriod = uint32(bound(gracePeriod, 0, currentTime - startedAt));
+        vm.prank(creditorUsd.riskManager());
+        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.stable1);
         assetAddresses[1] = address(mockERC20.token1);
@@ -102,7 +190,32 @@ contract GetListOfValuesPerAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assertTrue(CompareArrays.compareArrays(expectedListOfValuesPerAsset, actualListOfValuesPerAsset));
     }
 
-    function testFuzz_Success_getValuesInNumeraire_NumeraireIsNotUsd() public {
+    function testFuzz_Success_getValuesInNumeraire_NumeraireIsNotUsd(
+        uint32 gracePeriod,
+        uint32 startedAt,
+        uint32 currentTime
+    ) public {
+        // Given: startedAt does not underflow.
+        // And: oracle staleness-check does not underflow.
+        currentTime = uint32(bound(currentTime, 2 days, type(uint32).max));
+        vm.warp(currentTime);
+
+        // And: Oracles are not stale.
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.stable1ToUsd.transmit(int256(rates.stable1ToUsd));
+        mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
+        mockOracles.nft1ToToken1.transmit(int256(rates.nft1ToToken1));
+        vm.stopPrank();
+
+        // And: Sequencer is online.
+        startedAt = uint32(bound(startedAt, 0, currentTime));
+        sequencerUptimeOracle.setLatestRoundData(0, startedAt);
+
+        // And: Grace period did pass.
+        gracePeriod = uint32(bound(gracePeriod, 0, currentTime - startedAt));
+        vm.prank(creditorUsd.riskManager());
+        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.stable1);
         assetAddresses[1] = address(mockERC20.token1);

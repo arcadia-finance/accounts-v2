@@ -125,8 +125,10 @@ contract CheckOracleSequence_AbstractPrimaryAssetModule_Fuzz_Test is AbstractPri
         assetModule.setAssetInformation(asset, assetId, 0, oracleSequenceOld);
 
         // New oracle must be different from old oracles or oracles in Chainlink OM (-> unknown).
-        vm.assume(!oracleModule.isActive(oracleNew));
-        vm.assume(!chainlinkOM.isActive(oracleNew));
+        oracleNew = uint80(bound(oracleNew, registryExtension.getOracleCounter(), type(uint80).max));
+        for (uint256 i; i < oraclesOld.length; ++i) {
+            vm.assume(oracleNew != oraclesOld[i]);
+        }
 
         // And one of the old oracles is not active anymore.
         vm.assume(oraclesOld[0] != oracleNew);
