@@ -40,6 +40,19 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
+    function testFuzz_Revert_deposit_AuctionOngoing(
+        address[] calldata assetAddresses,
+        uint256[] calldata assetIds,
+        uint256[] calldata assetAmounts
+    ) public {
+        accountExtension.setInAuction();
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.AccountInAuction.selector);
+        accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_deposit_Reentered(
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
