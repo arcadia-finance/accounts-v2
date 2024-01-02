@@ -187,6 +187,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         override
         returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
+        // Amount of a Uniswap V3 LP can only be either 0 or 1.
         if (amount == 0) {
             return (new uint256[](2), rateUnderlyingAssetsToUsd);
         }
