@@ -77,8 +77,8 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
     function testFuzz_Revert_batchProcessDeposit_MaxRecursionReached(uint112 amountToken1, uint112 amountToken2)
         public
     {
-        amountToken1 = uint112(bound(amountToken1, 0, type(uint112).max - 1));
-        amountToken2 = uint112(bound(amountToken2, 0, type(uint112).max - 1));
+        amountToken1 = uint112(bound(amountToken1, 1, type(uint112).max - 1));
+        amountToken2 = uint112(bound(amountToken2, 1, type(uint112).max - 1));
         // Given: Assets
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
@@ -179,6 +179,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint112 newMaxExposure,
         uint112 amount
     ) public {
+        amount = uint112(bound(amount, 1, type(uint112).max));
         vm.assume(newMaxExposure <= amount);
 
         vm.prank(users.riskManager);
@@ -219,6 +220,80 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.stopPrank();
     }
 
+    function testFuzz_Success_batchProcessDeposit_WithoutCreditor_ZeroAmounts(uint8 erc721Id) public {
+        address[] memory assetAddresses = new address[](3);
+        assetAddresses[0] = address(mockERC20.token1);
+        assetAddresses[1] = address(mockERC721.nft1);
+        assetAddresses[2] = address(mockERC1155.sft1);
+
+        uint256[] memory assetIds = new uint256[](3);
+        assetIds[0] = 0;
+        assetIds[1] = erc721Id;
+        assetIds[2] = 1;
+
+        uint256[] memory assetAmounts = new uint256[](3);
+
+        vm.prank(address(proxyAccount));
+        uint256[] memory assetTypes =
+            registryExtension.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
+
+        assertEq(assetTypes[0], 0);
+        assertEq(assetTypes[1], 1);
+        assertEq(assetTypes[2], 2);
+
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
+        (uint112 exposureERC20,,,) = erc20AssetModule.riskParams(address(0), assetKey);
+        assertEq(exposureERC20, 0);
+
+        assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft1)));
+        (uint112 exposureERC721,,,) = floorERC721AssetModule.riskParams(address(0), assetKey);
+        assertEq(exposureERC721, 0);
+
+        assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft1)));
+        (uint112 exposureERC1155,,,) = floorERC1155AssetModule.riskParams(address(0), assetKey);
+        assertEq(exposureERC1155, 0);
+    }
+
+    function testFuzz_Success_batchProcessDeposit_WithCreditor_ZeroAmounts(
+        address erc20,
+        address erc721,
+        uint256 erc721Id,
+        address erc1155,
+        uint256 erc1155Id
+    ) public {
+        address[] memory assetAddresses = new address[](3);
+        assetAddresses[0] = erc20;
+        assetAddresses[1] = erc721;
+        assetAddresses[2] = erc1155;
+
+        uint256[] memory assetIds = new uint256[](3);
+        assetIds[0] = 0;
+        assetIds[1] = erc721Id;
+        assetIds[2] = erc1155Id;
+
+        uint256[] memory assetAmounts = new uint256[](3);
+
+        vm.prank(address(proxyAccount));
+        uint256[] memory assetTypes =
+            registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+
+        assertEq(assetTypes[0], 0);
+        assertEq(assetTypes[1], 0);
+        assertEq(assetTypes[2], 0);
+
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), erc20));
+        (uint112 exposureERC20,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
+        assertEq(exposureERC20, 0);
+
+        assetKey = bytes32(abi.encodePacked(uint96(erc721Id), erc721));
+        (uint112 exposureERC721,,,) = floorERC721AssetModule.riskParams(address(creditorUsd), assetKey);
+        assertEq(exposureERC721, 0);
+
+        assetKey = bytes32(abi.encodePacked(uint96(erc1155Id), erc1155));
+        (uint112 exposureERC1155,,,) = floorERC1155AssetModule.riskParams(address(creditorUsd), assetKey);
+        assertEq(exposureERC1155, 0);
+    }
+
     function testFuzz_Success_batchProcessDeposit_WithoutCreditor_MultipleAssets(
         uint112 amountERC20,
         uint112 amountERC1155
@@ -249,7 +324,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
         (uint112 exposureERC20,,,) = erc20AssetModule.riskParams(address(0), assetKey);
         assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft1)));
-        (uint112 exposureERC1155,,,) = erc20AssetModule.riskParams(address(0), assetKey);
+        (uint112 exposureERC1155,,,) = floorERC1155AssetModule.riskParams(address(0), assetKey);
 
         assertEq(exposureERC20, 0);
         assertEq(exposureERC1155, 0);
