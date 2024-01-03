@@ -350,6 +350,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         bytes calldata signature
     ) public {
         vm.assume(time > 2 days);
+        vm.assume(time > 2 days);
         accountNotInitialised.setMinimumMargin(minimumMargin);
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);

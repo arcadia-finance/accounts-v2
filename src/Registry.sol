@@ -637,6 +637,9 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param assetAmounts Array with the amounts of the assets.
      * @return valuesAndRiskFactors The values of the assets, denominated in USD with 18 Decimals precision
      * and the corresponding risk factors for each asset for the given Creditor.
+     * @dev getValuesInUsd is a function for internal calculations and should NOT be used by external contracts.
+     * The function has a visibility public since it is also called by Derived Asset Modules for recursive pricing of assets.
+     * This function does not check if the sequencer is down or is back up less than the grace period.
      */
     function getValuesInUsd(
         address creditor,
@@ -678,7 +681,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+    ) external view sequencerNotDown(creditor) returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
         valuesAndRiskFactors = getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
         // Convert the USD-values to values in Numeraire if the Numeraire is different from USD (0-address).
@@ -717,7 +720,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (uint256 assetValue) {
+    ) external view sequencerNotDown(creditor) returns (uint256 assetValue) {
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
@@ -750,7 +753,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (uint256 collateralValue) {
+    ) external view sequencerNotDown(creditor) returns (uint256 collateralValue) {
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
@@ -783,7 +786,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (uint256 liquidationValue) {
+    ) external view sequencerNotDown(creditor) returns (uint256 liquidationValue) {
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
