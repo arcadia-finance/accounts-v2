@@ -525,7 +525,7 @@ contract Registry is IRegistry, RegistryGuardian {
     }
 
     /**
-     * @notice Calculates the USD-values of underlying assets.
+     * @notice Calculates the USD values of underlying assets.
      * @param creditor The contract address of the Creditor.
      * @param assets Array of the contract addresses of the assets.
      * @param assetIds Array of the ids of the assets.
