@@ -40,7 +40,6 @@ contract StargateBase_Fork_Test is Fork_Test {
         // Add Asset-Module to the registry and initialize.
         registryExtension.addAssetModule(address(stargateAssetModule));
         stargateAssetModule.initialize();
-
         vm.stopPrank();
 
         // Label contracts
@@ -87,15 +86,5 @@ contract StargateBase_Fork_Test is Fork_Test {
         AccountV1(account).deposit(assetAddresses, assetIds, assetAmounts);
 
         vm.stopPrank();
-    }
-
-    function assertInRange(uint256 actualValue, uint256 expectedValue, uint8 precision) internal {
-        if (expectedValue == 0) {
-            assertEq(actualValue, expectedValue);
-        } else {
-            vm.assume(expectedValue > 10 ** (2 * precision));
-            assertGe(actualValue * (10 ** precision + 1) / 10 ** precision, expectedValue);
-            assertLe(actualValue * (10 ** precision - 1) / 10 ** precision, expectedValue);
-        }
     }
 }
