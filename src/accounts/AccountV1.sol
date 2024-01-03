@@ -168,7 +168,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * Therefore everything is initialised through an init function.
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
      * @dev The Creditor will only be set if it's a non-zero address, in this case the numeraire_ passed as input will be ignored.
-     * @dev initialize has implicitly a nonReentrant guard, since the "locked" has value zero until the end of the function.
+     * @dev initialize has implicitly a nonReentrant guard, since the "locked" variable has value zero until the end of the function.
      */
     function initialize(address owner_, address registry_, address creditor_) external {
         if (registry != address(0)) revert AccountErrors.AlreadyInitialized();

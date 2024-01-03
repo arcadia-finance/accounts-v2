@@ -533,7 +533,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @return valuesAndRiskFactors The values of the assets, denominated in USD with 18 Decimals precision
      * and the corresponding risk factors for each asset for the given Creditor.
      * @dev Function should only be called by Derived Asset Modules, to get USD-values of underlying assets.
-     * no checks on the minimum usd-value are done.
+     * No checks on the minimum usd-value are done.
      */
     function getValuesInUsdRecursive(
         address creditor,
