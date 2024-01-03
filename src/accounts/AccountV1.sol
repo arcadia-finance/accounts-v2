@@ -558,7 +558,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev When an auction is not successful, the Account is considered "Bought In":
      * The whole Account including any remaining assets are transferred to a certain recipient address, set by the Creditor.
      */
-    function auctionBoughtIn(address recipient) external onlyLiquidator {
+    function auctionBoughtIn(address recipient) external onlyLiquidator nonReentrant {
         _transferOwnership(recipient);
     }
 
