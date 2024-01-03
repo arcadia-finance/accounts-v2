@@ -36,12 +36,16 @@ contract AccountExtension is AccountV1 {
         locked_ = locked;
     }
 
-    function setLocked(uint256 locked_) external {
+    function setLocked(uint8 locked_) external {
         locked = locked_;
     }
 
     function setInAuction() external {
         inAuction = true;
+    }
+
+    function setLastActionTimestamp(uint32 lastActionTimestamp_) external {
+        lastActionTimestamp = lastActionTimestamp_;
     }
 
     function getLengths() external view returns (uint256, uint256, uint256, uint256) {
@@ -91,6 +95,10 @@ contract AccountExtension is AccountV1 {
     function getERC1155Balances(address asset, uint256 assetId) public view returns (uint256) {
         return erc1155Balances[asset][assetId];
     }
+
+    function getCoolDownPeriod() public pure returns (uint256 coolDownPeriod) {
+        coolDownPeriod = COOL_DOWN_PERIOD;
+    }
 }
 
 contract BaseGuardianExtension is BaseGuardian {
@@ -121,9 +129,9 @@ contract ChainlinkOracleModuleExtension is ChainlinkOracleModule {
     function getOracleInformation(uint256 oracleId)
         public
         view
-        returns (bool isActive_, uint64 unitCorrection, address oracle)
+        returns (uint32 cutOffTime, uint64 unitCorrection, address oracle)
     {
-        isActive_ = oracleInformation[oracleId].isActive;
+        cutOffTime = oracleInformation[oracleId].cutOffTime;
         unitCorrection = oracleInformation[oracleId].unitCorrection;
         oracle = oracleInformation[oracleId].oracle;
     }
@@ -157,7 +165,15 @@ contract RegistryGuardianExtension is RegistryGuardian {
 contract RegistryExtension is Registry {
     using FixedPointMathLib for uint256;
 
-    constructor(address factory_) Registry(factory_) { }
+    constructor(address factory, address sequencerUptimeOracle_) Registry(factory, sequencerUptimeOracle_) { }
+
+    function isSequencerDown(address creditor) public view returns (bool success, bool sequencerDown) {
+        return _isSequencerDown(creditor);
+    }
+
+    function getSequencerUptimeOracle() public view returns (address sequencerUptimeOracle_) {
+        sequencerUptimeOracle_ = sequencerUptimeOracle;
+    }
 
     function getOracleCounter() public view returns (uint256 oracleCounter_) {
         oracleCounter_ = oracleCounter;

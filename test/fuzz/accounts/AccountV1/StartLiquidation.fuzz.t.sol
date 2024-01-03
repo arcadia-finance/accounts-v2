@@ -75,9 +75,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = depositAmountToken1;
 
         // Initialize Account and set open position on creditor
-        accountExtension2.initialize(
-            users.accountOwner, address(registryExtension), address(mockERC20.token1), address(creditorToken1)
-        );
+        accountExtension2.initialize(users.accountOwner, address(registryExtension), address(creditorToken1));
         accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
@@ -114,9 +112,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256 openDebt = 0;
 
         // Initialize Account and set open position on creditor
-        accountExtension2.initialize(
-            users.accountOwner, address(registryExtension), address(mockERC20.token1), address(creditorToken1)
-        );
+        accountExtension2.initialize(users.accountOwner, address(registryExtension), address(creditorToken1));
         accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
@@ -136,7 +132,8 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint96 fixedLiquidationCost,
         uint256 openDebt,
         uint112 depositAmountToken1,
-        address liquidationInitiator
+        address liquidationInitiator,
+        uint32 time
     ) public {
         // "exposure" is strictly smaller than "maxExposure".
         depositAmountToken1 = uint112(bound(depositAmountToken1, 1, type(uint112).max - 1));
@@ -154,9 +151,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = depositAmountToken1;
 
         // Given: Account is initialized and an open position is set on creditor
-        accountExtension2.initialize(
-            users.accountOwner, address(registryExtension), address(mockERC20.token1), address(creditorToken1)
-        );
+        accountExtension2.initialize(users.accountOwner, address(registryExtension), address(creditorToken1));
         accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
@@ -170,13 +165,21 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(openDebt + fixedLiquidationCost > assetValuationLib.calculateLiquidationValue(assetAndRiskValues));
 
         // Mint and approve stable1 tokens
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.prank(users.tokenCreatorAddress);
         mockERC20.token1.mint(users.accountOwner, depositAmountToken1);
         vm.startPrank(users.accountOwner);
         mockERC20.token1.approve(address(accountExtension2), type(uint256).max);
 
         // Deposit stable1 token in account
         accountExtension2.deposit(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+
+        // Warp time
+        time = uint32(bound(time, 2 days, type(uint32).max));
+        vm.warp(time);
+        // Update updatedAt to avoid InactiveOracle() reverts.
+        vm.prank(users.defaultTransmitter);
+        mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
 
         // When : The liquidator initiates a liquidation
         vm.startPrank(accountExtension2.liquidator());
@@ -200,5 +203,8 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(assetAndRiskValues_[0].assetValue, assetAndRiskValues[0].assetValue);
         assertEq(assetAndRiskValues_[0].collateralFactor, assetAndRiskValues[0].collateralFactor);
         assertEq(assetAndRiskValues_[0].liquidationFactor, assetAndRiskValues[0].liquidationFactor);
+
+        // And: lastActionTimestamp is updated.
+        assertEq(accountExtension2.lastActionTimestamp(), time);
     }
 }

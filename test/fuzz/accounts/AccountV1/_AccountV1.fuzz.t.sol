@@ -42,9 +42,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
         accountExtension = new AccountExtension(address(factory));
 
         // Initiate Account (set owner and numeraire).
-        accountExtension.initialize(
-            users.accountOwner, address(registryExtension), address(mockERC20.stable1), address(creditorStable1)
-        );
+        accountExtension.initialize(users.accountOwner, address(registryExtension), address(creditorStable1));
 
         // Set account in factory.
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension))

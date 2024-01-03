@@ -516,6 +516,11 @@ abstract contract DerivedAssetModule is AssetModule {
      * @return usdExposureAsset The USD value of the exposure of the asset, 18 decimals precision.
      * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
      * Underflows will not revert, but the exposure is instead set to 0.
+     * @dev Due to changing usd-prices of underlying assets, or due to changing compositions of upper assets,
+     * the exposure to a derived asset can increase or decrease over time independent of deposits/withdrawals.
+     * When derived assets are deposited/withdrawn, these changes in exposure since last interaction are also synced.
+     * As such the actual exposure on a withdrawal of a derived asset can exceed the maxExposure, but this should never be blocked,
+     * (the withdrawal actually improves the situation by making the asset less over-exposed).
      */
     function _processWithdrawal(address creditor, bytes32 assetKey, uint256 exposureAsset)
         internal

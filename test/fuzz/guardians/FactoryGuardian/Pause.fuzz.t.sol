@@ -32,29 +32,9 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_pause_TimeNotExpired(uint256 lastPauseTimestamp, uint256 timePassed) public {
-        lastPauseTimestamp = bound(lastPauseTimestamp, 32 days + 1, type(uint32).max);
-        timePassed = bound(timePassed, 0, 32 days);
-
-        // Given: A random "lastPauseTimestamp".
-        vm.warp(lastPauseTimestamp);
-        vm.prank(users.guardian);
-        factoryGuardian.pause();
-
-        // Given: less than 32 days passed
-        vm.warp(lastPauseTimestamp + timePassed);
-
-        // When: Guardian pauses again within 32 days passed from the last pause.
-        // Then: The transaction reverts with "Cannot_Pause".
-        vm.startPrank(users.guardian);
-        vm.expectRevert(GuardianErrors.CoolDownPeriodNotPassed.selector);
-        factoryGuardian.pause();
-        vm.stopPrank();
-    }
-
     function testFuzz_Success_pause(uint256 lastPauseTimestamp, uint256 timePassed, bool flag) public {
-        lastPauseTimestamp = bound(lastPauseTimestamp, 32 days + 1, type(uint32).max - 32 days - 1);
-        timePassed = bound(timePassed, 32 days + 1, type(uint32).max);
+        lastPauseTimestamp = bound(lastPauseTimestamp, 0, type(uint32).max);
+        timePassed = bound(timePassed, 0, type(uint32).max);
 
         // Given: A random "lastPauseTimestamp".
         vm.warp(lastPauseTimestamp);
@@ -64,7 +44,7 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         // And: Flags are in random state.
         setFlags(flag);
 
-        // Given: More than 32 days passed.
+        // Given: a random time passed.
         vm.warp(lastPauseTimestamp + timePassed);
 
         // When: the Guardian pauses.

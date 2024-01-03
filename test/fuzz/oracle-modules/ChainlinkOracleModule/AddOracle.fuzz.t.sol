@@ -30,62 +30,56 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         address unprivilegedAddress,
         address oracle,
         bytes16 baseAsset,
-        bytes16 quoteAsset
+        bytes16 quoteAsset,
+        uint32 cutOffTime
     ) public {
         vm.assume(unprivilegedAddress != users.creatorAddress);
 
         vm.prank(users.unprivilegedAddress);
         vm.expectRevert("UNAUTHORIZED");
-        chainlinkOM.addOracle(oracle, baseAsset, quoteAsset);
+        chainlinkOM.addOracle(oracle, baseAsset, quoteAsset, cutOffTime);
     }
 
-    function testFuzz_Revert_addOracle_OverwriteOracle(bytes16 baseAsset, bytes16 quoteAsset) public {
+    function testFuzz_Revert_addOracle_OverwriteOracle(bytes16 baseAsset, bytes16 quoteAsset, uint32 cutOffTime)
+        public
+    {
         vm.startPrank(users.creatorAddress);
-        chainlinkOM.addOracle(address(mockOracles.token4ToUsd), baseAsset, quoteAsset);
+        chainlinkOM.addOracle(address(mockOracles.token4ToUsd), baseAsset, quoteAsset, cutOffTime);
 
         vm.expectRevert(OracleModule.OracleAlreadyAdded.selector);
-        chainlinkOM.addOracle(address(mockOracles.token4ToUsd), baseAsset, quoteAsset);
+        chainlinkOM.addOracle(address(mockOracles.token4ToUsd), baseAsset, quoteAsset, cutOffTime);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_addOracle_NonOracle(address oracle, bytes16 baseAsset, bytes16 quoteAsset) public {
-        vm.assume(oracle != address(mockOracles.token1ToUsd));
-        vm.assume(oracle != address(mockOracles.token2ToUsd));
-        vm.assume(oracle != address(mockOracles.token3ToToken4));
-        vm.assume(oracle != address(mockOracles.token4ToUsd));
-        vm.assume(oracle != address(mockOracles.stable1ToUsd));
-        vm.assume(oracle != address(mockOracles.stable2ToUsd));
-        vm.assume(oracle != address(mockOracles.nft1ToToken1));
-        vm.assume(oracle != address(mockOracles.nft2ToUsd));
-        vm.assume(oracle != address(mockOracles.nft3ToToken1));
-        vm.assume(oracle != address(mockOracles.sft1ToToken1));
-        vm.assume(oracle != address(mockOracles.sft2ToUsd));
-        vm.assume(oracle != address(mockERC20.stable1));
-        vm.assume(oracle != address(mockERC20.stable2));
-        vm.assume(oracle != address(mockERC20.token1));
-        vm.assume(oracle != address(mockERC20.token2));
-        vm.assume(oracle != address(mockERC20.token3));
-        vm.assume(oracle != address(mockERC20.token4));
-        vm.assume(oracle != address(vm));
-        vm.assume(oracle != address(proxyAccount));
-
+    function testFuzz_Revert_addOracle_NonOracle(
+        address oracle,
+        bytes16 baseAsset,
+        bytes16 quoteAsset,
+        uint32 cutOffTime
+    ) public notTestContracts(oracle) {
         vm.prank(users.creatorAddress);
         vm.expectRevert(bytes(""));
-        chainlinkOM.addOracle(oracle, baseAsset, quoteAsset);
+        chainlinkOM.addOracle(oracle, baseAsset, quoteAsset, cutOffTime);
     }
 
-    function testFuzz_Revert_addOracle_BigOracleUnit(bytes16 baseAsset, bytes16 quoteAsset, uint8 decimals) public {
+    function testFuzz_Revert_addOracle_BigOracleUnit(
+        bytes16 baseAsset,
+        bytes16 quoteAsset,
+        uint32 cutOffTime,
+        uint8 decimals
+    ) public {
         decimals = uint8(bound(decimals, 19, type(uint8).max));
         ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD", address(0));
 
         vm.prank(users.creatorAddress);
         vm.expectRevert(ChainlinkOracleModule.Max18Decimals.selector);
-        chainlinkOM.addOracle(address(oracle), baseAsset, quoteAsset);
+        chainlinkOM.addOracle(address(oracle), baseAsset, quoteAsset, cutOffTime);
     }
 
     function testFuzz_Success_addOracle(
         bytes16 baseAsset,
         bytes16 quoteAsset,
+        uint32 cutOffTime,
         uint8 decimals,
         uint256 oracleCounterLast
     ) public {
@@ -96,14 +90,14 @@ contract AddOracle_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz
         registryExtension.setOracleCounter(oracleCounterLast);
 
         vm.prank(users.creatorAddress);
-        uint256 oracleId = chainlinkOM.addOracle(address(oracle), baseAsset, quoteAsset);
+        uint256 oracleId = chainlinkOM.addOracle(address(oracle), baseAsset, quoteAsset, cutOffTime);
 
         assertEq(oracleId, oracleCounterLast);
 
         assertTrue(chainlinkOM.getInOracleModule(address(oracle)));
         assertEq(chainlinkOM.oracleToOracleId(address(oracle)), oracleId);
-        (bool isActive, uint64 unitCorrection, address oracle_) = chainlinkOM.getOracleInformation(oracleId);
-        assertEq(isActive, true);
+        (uint256 cutOffTime_, uint64 unitCorrection, address oracle_) = chainlinkOM.getOracleInformation(oracleId);
+        assertEq(cutOffTime_, cutOffTime);
         assertEq(unitCorrection, 10 ** (18 - decimals));
         assertEq(oracle_, address(oracle));
         (bytes16 baseAsset_, bytes16 quoteAsset_) = chainlinkOM.assetPair(oracleId);

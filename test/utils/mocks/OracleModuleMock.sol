@@ -20,8 +20,6 @@ contract OracleModuleMock is OracleModule {
         isActive_[oracleId] = active;
     }
 
-    function decommissionOracle(uint256 oracleId) external override returns (bool) { }
-
     function getRate(uint256 oracleId) external view override returns (uint256 rate_) {
         rate_ = rate[oracleId];
     }

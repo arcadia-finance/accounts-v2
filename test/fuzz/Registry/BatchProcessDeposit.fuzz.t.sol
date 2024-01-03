@@ -79,7 +79,6 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
     {
         amountToken1 = uint112(bound(amountToken1, 0, type(uint112).max - 1));
         amountToken2 = uint112(bound(amountToken2, 0, type(uint112).max - 1));
-        // Given: Assets
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC20.token2);
@@ -92,11 +91,9 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = amountToken1;
         assetAmounts[1] = amountToken2;
 
-        // When: guardian pauses registryExtension
         vm.prank(users.riskManager);
-        registryExtension.setMaxRecursiveCalls(address(creditorUsd), 0);
+        registryExtension.setRiskParameters(address(creditorUsd), 0, 15 minutes, 0);
 
-        // Then: batchProcessDeposit should reverted
         vm.prank(address(proxyAccount));
         vm.expectRevert(RegistryErrors.MaxRecursiveCallsReached.selector);
         registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);

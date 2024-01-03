@@ -6,6 +6,7 @@ pragma solidity 0.8.22;
 
 import { BitPackingLib } from "./libraries/BitPackingLib.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
 import { IDerivedAssetModule } from "./interfaces/IDerivedAssetModule.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
@@ -26,7 +27,6 @@ import { RegistryErrors } from "./libraries/Errors.sol";
  *  - It orchestrates the pricing of a basket of assets in a single unit of account.
  *  - It orchestrates deposits and withdrawals of an Account per Creditor.
  *  - It manages the risk parameters of all assets per Creditor.
- *  - It manages the Action Multicall.
  */
 contract Registry is IRegistry, RegistryGuardian {
     using AssetValuationLib for AssetValueAndRiskFactors[];
@@ -47,6 +47,9 @@ contract Registry is IRegistry, RegistryGuardian {
     // Counter with the number of oracles in the Registry.
     uint256 internal oracleCounter;
 
+    // The contract address of the sequencer uptime oracle.
+    address internal sequencerUptimeOracle;
+
     // Map registry => flag.
     mapping(address => bool) public inRegistry;
     // Map assetModule => flag.
@@ -57,10 +60,20 @@ contract Registry is IRegistry, RegistryGuardian {
     mapping(address => address) public assetToAssetModule;
     // Map oracle identifier => oracleModule.
     mapping(uint256 => address) internal oracleToOracleModule;
-    // Map Creditor to minimum USD-value of assets that are taken into account.
-    mapping(address => uint256) public minUsdValue;
-    // Map Creditor to maximum recursion depth of asset pricing.
-    mapping(address => uint256) public maxRecursiveCalls;
+    // Map with the risk parameters for each Creditor.
+    mapping(address creditor => RiskParameters) public riskParams;
+
+    // Struct with the risk parameters for a specific Creditor.
+    struct RiskParameters {
+        // The minimum USD-value of assets that are taken into account, 18 decimals precision.
+        uint128 minUsdValue;
+        // The grace period after the sequencer is back up,
+        // during which no transactions relying on pricing logic can be executed
+        // (increasing open positions, withdrawing collateral and liquidations).
+        uint64 gracePeriod;
+        // The maximum number of recursive calls while processing an asset.
+        uint64 maxRecursiveCalls;
+    }
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
@@ -101,10 +114,22 @@ contract Registry is IRegistry, RegistryGuardian {
     }
 
     /**
+     * @param creditor The contract address of the Creditor.
      * @dev Only the Risk Manager of a Creditor can call functions with this modifier.
      */
     modifier onlyRiskManager(address creditor) {
         if (msg.sender != ICreditor(creditor).riskManager()) revert RegistryErrors.Unauthorized();
+        _;
+    }
+
+    /**
+     * @param creditor The contract address of the Creditor.
+     * @dev Throws if the sequencer is down,
+     * or the Creditor specific grace period after sequencer is back up did not pass.
+     */
+    modifier sequencerNotDown(address creditor) {
+        (, bool sequencerDown) = _isSequencerDown(creditor);
+        if (sequencerDown) revert RegistryErrors.SequencerDown();
         _;
     }
 
@@ -114,9 +139,58 @@ contract Registry is IRegistry, RegistryGuardian {
 
     /**
      * @param factory The contract address of the Arcadia Accounts Factory.
+     * @param sequencerUptimeOracle_ The contract address of the sequencer uptime oracle.
      */
-    constructor(address factory) {
+    constructor(address factory, address sequencerUptimeOracle_) {
         FACTORY = factory;
+        sequencerUptimeOracle = sequencerUptimeOracle_;
+
+        // Check that the sequencer uptime oracle is not reverting.
+        (bool success,) = _isSequencerDown(address(0));
+        if (!success) revert RegistryErrors.OracleReverting();
+    }
+
+    /* ///////////////////////////////////////////////////////////////
+                             L2 LOGIC
+    /////////////////////////////////////////////////////////////// */
+
+    /**
+     * @notice Checks that the sequencer is not down, and that it is back up for longer than the grace period.
+     * @param creditor The contract address of the Creditor.
+     * @return success Boolean indicating whether the sequencer uptime oracle not reverting.
+     * @return sequencerDown Boolean indicating whether the sequencer is down, or is still within the grace period.
+     * @dev This check guarantees that no stale oracles are consumed when the sequencer is down,
+     * and that Account owners have time (the grace period) to bring their Account back in a healthy state.
+     * @dev If the sequencer uptime oracle itself is reverting, the sequencer is assumed to be still up.
+     */
+    function _isSequencerDown(address creditor) internal view returns (bool success, bool sequencerDown) {
+        // This guarantees that no stale oracles are consumed when the sequencer is down,
+        // and that Account owners have time (the grace period) to bring their Account back in a healthy state.
+        try IChainLinkData(sequencerUptimeOracle).latestRoundData() returns (
+            uint80, int256 answer, uint256 startedAt, uint256, uint80
+        ) {
+            success = true;
+            if (answer == 1 || block.timestamp - startedAt < riskParams[creditor].gracePeriod) {
+                sequencerDown = true;
+            }
+        } catch { }
+    }
+
+    /**
+     * @notice Sets a new sequencer uptime oracle in the case the current oracle is reverting.
+     * @param sequencerUptimeOracle_ The contract address of the new sequencer uptime oracle.
+     */
+    function setSequencerUptimeOracle(address sequencerUptimeOracle_) external onlyOwner {
+        // Check that the current sequencer uptime oracle is reverting.
+        (bool success,) = _isSequencerDown(address(0));
+        if (success) revert RegistryErrors.OracleNotReverting();
+
+        // Set the new sequencer uptime oracle.
+        sequencerUptimeOracle = sequencerUptimeOracle_;
+
+        // Check that the new sequencer uptime oracle is not reverting.
+        (success,) = _isSequencerDown(address(0));
+        if (!success) revert RegistryErrors.OracleReverting();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -270,6 +344,26 @@ contract Registry is IRegistry, RegistryGuardian {
     }
 
     /**
+     * @notice Sets the risk parameters for a given Creditor.
+     * @param creditor The contract address of the Creditor.
+     * @param minUsdValue The minimum USD-value of assets that are taken into account for the Creditor,
+     * denominated in USD with 18 decimals precision.
+     * @param gracePeriod The grace period after the sequencer is back up,
+     * during which no transactions relying on pricing logic can be executed
+     * (increasing open positions, withdrawing collateral and liquidations).
+     * @param maxRecursiveCalls The maximum number of calls to different asset modules that are required to process
+     * the deposit/withdrawal/pricing of a single asset.
+     * @dev A minimum USD-value will help to avoid remaining dust amounts in Accounts, which couldn't be liquidated.
+     */
+    function setRiskParameters(address creditor, uint128 minUsdValue, uint64 gracePeriod, uint64 maxRecursiveCalls)
+        external
+        onlyRiskManager(creditor)
+    {
+        riskParams[creditor] =
+            RiskParameters({ minUsdValue: minUsdValue, gracePeriod: gracePeriod, maxRecursiveCalls: maxRecursiveCalls });
+    }
+
+    /**
      * @notice Sets the risk parameters for a Primary Asset for a given Creditor.
      * @param creditor The contract address of the Creditor.
      * @param asset The contract address of the asset.
@@ -308,27 +402,6 @@ contract Registry is IRegistry, RegistryGuardian {
         uint16 riskFactor
     ) external onlyRiskManager(creditor) {
         IDerivedAssetModule(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
-    }
-
-    /**
-     * @notice Sets the minimum USD-value of assets that are taken into account for a given Creditor.
-     * @param creditor The contract address of the Creditor.
-     * @param minUsdValue_ The minimum USD-value of assets that are taken into account for the Creditor,
-     * denominated in USD with 18 decimals precision.
-     * @dev A minimum USD-value will help to avoid remaining dust amounts in Accounts, which couldn't be liquidated.
-     */
-    function setMinUsdValue(address creditor, uint256 minUsdValue_) external onlyRiskManager(creditor) {
-        minUsdValue[creditor] = minUsdValue_;
-    }
-
-    /**
-     * @notice Sets the maximum number of recursive calls while processing an asset for a given Creditor.
-     * @param creditor The contract address of the Creditor for which to set the maximum recursion depth.
-     * @param maxRecursiveCalls_ The maximum number of calls to different asset modules that are required to process
-     * the deposit/withdrawal/pricing of a single asset.
-     */
-    function setMaxRecursiveCalls(address creditor, uint256 maxRecursiveCalls_) external onlyRiskManager(creditor) {
-        maxRecursiveCalls[creditor] = maxRecursiveCalls_;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -372,14 +445,14 @@ contract Registry is IRegistry, RegistryGuardian {
             }
         } else {
             uint256 recursiveCalls;
-            uint256 maxRecursiveCalls_ = maxRecursiveCalls[creditor];
+            uint256 maxRecursiveCalls = riskParams[creditor].maxRecursiveCalls;
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
                 (recursiveCalls, assetTypes[i]) = IAssetModule(assetToAssetModule[assetAddress]).processDirectDeposit(
                     creditor, assetAddress, assetIds[i], amounts[i]
                 );
-                if (recursiveCalls > maxRecursiveCalls_) revert RegistryErrors.MaxRecursiveCallsReached();
+                if (recursiveCalls > maxRecursiveCalls) revert RegistryErrors.MaxRecursiveCallsReached();
             }
         }
     }
@@ -490,7 +563,7 @@ contract Registry is IRegistry, RegistryGuardian {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Returns the rate of a certain asset in USD.
+     * @notice Returns the rate of a certain primary asset in USD.
      * @param oracleSequence The sequence of the oracles to price the asset in USD,
      * packed in a single bytes32 object.
      * @return rate The USD rate of an asset, 18 decimals precision.
@@ -527,6 +600,9 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param assetAmounts Array with the amounts of the assets.
      * @return valuesAndRiskFactors The values of the assets, denominated in USD with 18 Decimals precision
      * and the corresponding risk factors for each asset for the given Creditor.
+     * @dev getValuesInUsd is a function for internal calculations and should NOT be used by external contracts.
+     * The function has a visibility public since it is also called by Derived Asset Modules for recursive pricing of assets.
+     * This function does not check if the sequencer is down or is back up less than the grace period.
      */
     function getValuesInUsd(
         address creditor,
@@ -537,7 +613,7 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 length = assets.length;
         valuesAndRiskFactors = new AssetValueAndRiskFactors[](length);
 
-        uint256 minUsdValue_ = minUsdValue[creditor];
+        uint256 minUsdValue = riskParams[creditor].minUsdValue;
         for (uint256 i; i < length; ++i) {
             (
                 valuesAndRiskFactors[i].assetValue,
@@ -546,7 +622,7 @@ contract Registry is IRegistry, RegistryGuardian {
             ) = IAssetModule(assetToAssetModule[assets[i]]).getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
             // If asset value is too low, set to zero.
             // This is done to prevent dust attacks which may make liquidations unprofitable.
-            if (valuesAndRiskFactors[i].assetValue < minUsdValue_) valuesAndRiskFactors[i].assetValue = 0;
+            if (valuesAndRiskFactors[i].assetValue < minUsdValue) valuesAndRiskFactors[i].assetValue = 0;
         }
     }
 
@@ -568,7 +644,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+    ) external view sequencerNotDown(creditor) returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
         valuesAndRiskFactors = getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
         // Convert the USD-values to values in Numeraire if the Numeraire is different from USD (0-address).
@@ -607,7 +683,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (uint256 assetValue) {
+    ) external view sequencerNotDown(creditor) returns (uint256 assetValue) {
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
@@ -640,7 +716,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (uint256 collateralValue) {
+    ) external view sequencerNotDown(creditor) returns (uint256 collateralValue) {
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
@@ -673,7 +749,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view returns (uint256 liquidationValue) {
+    ) external view sequencerNotDown(creditor) returns (uint256 liquidationValue) {
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 

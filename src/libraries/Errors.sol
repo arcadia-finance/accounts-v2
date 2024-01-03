@@ -9,9 +9,9 @@ library AccountErrors {
     error AccountNotLiquidatable();
     error AccountUnhealthy();
     error AlreadyInitialized();
-    error NumeraireNotFound();
     error CreditorAlreadySet();
     error CreditorNotSet();
+    error CoolDownPeriodNotPassed();
     error InvalidAccountVersion();
     error InvalidERC20Id();
     error InvalidERC721Amount();
@@ -20,6 +20,7 @@ library AccountErrors {
     error NoFallback();
     error NoReentry();
     error NonZeroOpenPosition();
+    error NumeraireNotFound();
     error OnlyFactory();
     error OnlyCreditor();
     error OnlyLiquidator();
@@ -56,6 +57,7 @@ library RegistryErrors {
     error AssetModNotUnique();
     error AssetAlreadyInRegistry();
     error AssetNotAllowed();
+    error SequencerDown();
     error LengthMismatch();
     error MaxRecursiveCallsReached();
     error Min1Oracle();
@@ -63,5 +65,7 @@ library RegistryErrors {
     error OnlyAssetModule();
     error OnlyOracleModule();
     error OracleModNotUnique();
+    error OracleNotReverting();
+    error OracleReverting();
     error Unauthorized();
 }
