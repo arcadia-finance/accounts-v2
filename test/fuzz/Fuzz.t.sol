@@ -65,6 +65,7 @@ abstract contract Fuzz_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     modifier notTestContracts(address fuzzedAddress) {
+        vm.assume(fuzzedAddress != address(sequencerUptimeOracle));
         vm.assume(fuzzedAddress != address(factory));
         vm.assume(fuzzedAddress != address(accountV1Logic));
         vm.assume(fuzzedAddress != address(accountV2Logic));
@@ -197,12 +198,12 @@ abstract contract Fuzz_Test is Base_Test {
 
         // Add Chainlink Oracles to the Chainlink Oracles Module.
         vm.startPrank(users.creatorAddress);
-        chainlinkOM.addOracle(address(mockOracles.stable1ToUsd), "STABLE1", "USD");
-        chainlinkOM.addOracle(address(mockOracles.stable2ToUsd), "STABLE2", "USD");
-        chainlinkOM.addOracle(address(mockOracles.token1ToUsd), "TOKEN1", "USD");
-        chainlinkOM.addOracle(address(mockOracles.token2ToUsd), "TOKEN2", "USD");
-        chainlinkOM.addOracle(address(mockOracles.nft1ToToken1), "NFT1", "TOKEN1");
-        chainlinkOM.addOracle(address(mockOracles.sft1ToToken1), "SFT1", "TOKEN1");
+        chainlinkOM.addOracle(address(mockOracles.stable1ToUsd), "STABLE1", "USD", 2 days);
+        chainlinkOM.addOracle(address(mockOracles.stable2ToUsd), "STABLE2", "USD", 2 days);
+        chainlinkOM.addOracle(address(mockOracles.token1ToUsd), "TOKEN1", "USD", 2 days);
+        chainlinkOM.addOracle(address(mockOracles.token2ToUsd), "TOKEN2", "USD", 2 days);
+        chainlinkOM.addOracle(address(mockOracles.nft1ToToken1), "NFT1", "TOKEN1", 2 days);
+        chainlinkOM.addOracle(address(mockOracles.sft1ToToken1), "SFT1", "TOKEN1", 2 days);
         vm.stopPrank();
 
         vm.startPrank(registryExtension.owner());
@@ -246,9 +247,10 @@ abstract contract Fuzz_Test is Base_Test {
 
         // Set Risk Variables.
         vm.startPrank(users.riskManager);
-        registryExtension.setMaxRecursiveCalls(address(creditorUsd), type(uint256).max);
-        registryExtension.setMaxRecursiveCalls(address(creditorStable1), type(uint256).max);
-        registryExtension.setMaxRecursiveCalls(address(creditorToken1), type(uint256).max);
+        registryExtension.setRiskParameters(address(creditorUsd), 0, 15 minutes, type(uint64).max);
+        registryExtension.setRiskParameters(address(creditorStable1), 0, 15 minutes, type(uint64).max);
+        registryExtension.setRiskParameters(address(creditorToken1), 0, 15 minutes, type(uint64).max);
+
         registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.stable1),

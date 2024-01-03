@@ -82,7 +82,7 @@ contract ArcadiaAccountDeployment is Test {
         wethLendingPool.setRiskManager(deployerAddress);
         usdcLendingPool.setRiskManager(deployerAddress);
 
-        registry = new Registry(address(factory));
+        registry = new Registry(address(factory), DeployAddresses.sequencerUptimeOracle_base);
         standardERC20AssetModule = new StandardERC20AssetModule(address(registry));
         uniswapV3AssetModule = new UniswapV3AssetModule(address(registry), DeployAddresses.uniswapV3PositionMgr_base);
 
@@ -96,12 +96,13 @@ contract ArcadiaAccountDeployment is Test {
 
         registry.addOracleModule(address(chainlinkOM));
 
-        oracleCompToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCompToUsd_base, "COMP", "USD"));
-        oracleDaiToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "DAI", "USD"));
-        oracleEthToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleEthToUsd_base, "ETH", "USD"));
-        oracleUsdcToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleUsdcToUsd_base, "USDC", "USD"));
-        oracleCbethToEthId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCbethToEth_base, "CBETH", "ETH"));
-        oracleRethToEthId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleRethToEth_base, "RETH", "ETH"));
+        oracleCompToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCompToUsd_base, "COMP", "USD", 25 hours));
+        oracleDaiToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "DAI", "USD", 25 hours));
+        oracleEthToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleEthToUsd_base, "ETH", "USD", 1 hours));
+        oracleUsdcToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleUsdcToUsd_base, "USDC", "USD", 25 hours));
+        oracleCbethToEthId =
+            uint80(chainlinkOM.addOracle(DeployAddresses.oracleCbethToEth_base, "CBETH", "ETH", 25 hours));
+        oracleRethToEthId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleRethToEth_base, "RETH", "ETH", 25 hours));
 
         oracleCompToUsdArr[0] = oracleCompToUsdId;
         oracleDaiToUsdArr[0] = oracleDaiToUsdId;
@@ -239,8 +240,8 @@ contract ArcadiaAccountDeployment is Test {
             DeployRiskConstantsBase.reth_liqFact_2
         );
 
-        registry.setMaxRecursiveCalls(address(usdcLendingPool), 5);
-        registry.setMaxRecursiveCalls(address(wethLendingPool), 5);
+        registry.setRiskParameters(address(usdcLendingPool), 0, 15 minutes, 5);
+        registry.setRiskParameters(address(wethLendingPool), 0, 15 minutes, 5);
 
         vm.stopBroadcast();
     }

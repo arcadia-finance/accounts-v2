@@ -5,26 +5,8 @@ pragma solidity 0.8.22;
 interface IChainLinkData {
     function decimals() external view returns (uint8);
 
-    function description() external view returns (string memory);
-
-    function version() external view returns (uint256);
-
-    function getRoundData(uint80 _roundId)
-        external
-        view
-        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
-
     function latestRoundData()
         external
         view
         returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
-
-    // @notice Returns the aggregator, added by arcadia.
-    function aggregator() external view returns (address);
-
-    // @notice Returns the minimum answer, added by arcadia.
-    function minAnswer() external view returns (int192);
-
-    // @notice Returns the minimum answer, added by arcadia.
-    function maxAnswer() external view returns (int192);
 }
