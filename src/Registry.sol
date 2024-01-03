@@ -500,7 +500,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * packed in a single bytes32 object.
      * @return rate The USD rate of an asset, 18 decimals precision.
      * @dev The oracle rate expresses how much USD (18 decimals precision) is required
-     * to buy 1 unit of the asset.
+     * to buy 1 token of the asset.
      */
     function getRateInUsd(bytes32 oracleSequence) external view returns (uint256 rate) {
         (bool[] memory baseToQuoteAsset, uint256[] memory oracles) = oracleSequence.unpack();
@@ -510,14 +510,14 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 length = oracles.length;
         for (uint256 i; i < length; ++i) {
             // Each Oracle has a fixed base asset and quote asset.
-            // The oracle-rate expresses how much units of the quote asset (18 decimals precision) are required
-            // to buy 1 unit of the BaseAsset.
+            // The oracle-rate expresses how much tokens of the quote asset (18 decimals precision) are required
+            // to buy 1 token of the BaseAsset.
             if (baseToQuoteAsset[i]) {
-                // "Normal direction" (how much of the QuoteAsset is required to buy 1 unit of the BaseAsset).
+                // "Normal direction" (how much of the QuoteAsset is required to buy 1 token of the BaseAsset).
                 // -> Multiply with the oracle-rate.
                 rate = rate.mulDivDown(IOracleModule(oracleToOracleModule[oracles[i]]).getRate(oracles[i]), 1e18);
             } else {
-                // "Inverse direction" (how much of the BaseAsset is required to buy 1 unit of the QuoteAsset).
+                // "Inverse direction" (how much of the BaseAsset is required to buy 1 token of the QuoteAsset).
                 // -> Divide by the oracle-rate.
                 rate = rate.mulDivDown(1e18, IOracleModule(oracleToOracleModule[oracles[i]]).getRate(oracles[i]));
             }

@@ -161,14 +161,14 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
 
     function testFuzz_Revert_flashAction_InsufficientReturned(
         uint128 debtAmount,
-        uint32 fixedLiquidationCost,
+        uint32 minimumMargin,
         bytes calldata signature
     ) public {
         vm.assume(debtAmount > 0);
 
         // Init account
         vm.startPrank(users.accountOwner);
-        accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
+        accountNotInitialised.setMinimumMargin(minimumMargin);
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
         accountNotInitialised.setRegistry(address(registryExtension));
@@ -185,8 +185,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
 
         vm.assume(
-            token1AmountForAction + ((uint256(debtAmount) + fixedLiquidationCost) * token1ToToken2Ratio)
-                < type(uint256).max
+            token1AmountForAction + ((uint256(debtAmount) + minimumMargin) * token1ToToken2Ratio) < type(uint256).max
         );
 
         creditorStable1.setOpenPosition(address(accountNotInitialised), debtAmount);
@@ -346,11 +345,11 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
 
     function testFuzz_Success_flashAction_Owner(
         uint128 debtAmount,
-        uint32 fixedLiquidationCost,
+        uint32 minimumMargin,
         uint32 time,
         bytes calldata signature
     ) public {
-        accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
+        accountNotInitialised.setMinimumMargin(minimumMargin);
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
         accountNotInitialised.setRegistry(address(registryExtension));
@@ -370,8 +369,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
 
         vm.assume(
-            token1AmountForAction + ((uint256(debtAmount) + fixedLiquidationCost) * token1ToToken2Ratio)
-                < type(uint256).max
+            token1AmountForAction + ((uint256(debtAmount) + minimumMargin) * token1ToToken2Ratio) < type(uint256).max
         );
 
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
@@ -510,14 +508,14 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
 
     function testFuzz_Success_flashActionByAssetManager_AssetManager(
         uint128 debtAmount,
-        uint32 fixedLiquidationCost,
+        uint32 minimumMargin,
         address assetManager,
         uint32 time,
         bytes calldata signature
     ) public {
         vm.assume(users.accountOwner != assetManager);
         vm.startPrank(users.accountOwner);
-        accountNotInitialised.setFixedLiquidationCost(fixedLiquidationCost);
+        accountNotInitialised.setMinimumMargin(minimumMargin);
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
         accountNotInitialised.setAssetManager(assetManager, true);
@@ -537,8 +535,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
 
         vm.assume(
-            token1AmountForAction + ((uint256(debtAmount) + fixedLiquidationCost) * token1ToToken2Ratio)
-                < type(uint256).max
+            token1AmountForAction + ((uint256(debtAmount) + minimumMargin) * token1ToToken2Ratio) < type(uint256).max
         );
 
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account

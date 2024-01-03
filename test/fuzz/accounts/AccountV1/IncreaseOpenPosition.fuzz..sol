@@ -51,15 +51,15 @@ contract IncreaseOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_increaseOpenPosition_InsufficientMargin(
         uint256 debt,
         uint112 collateralValue,
-        uint256 fixedLiquidationCost
+        uint256 minimumMargin
     ) public {
         // Debt is non-zero.
         debt = bound(debt, 1, type(uint256).max);
 
         // No overflow of Used Margin.
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint256).max - debt);
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
-        uint256 usedMargin = debt + fixedLiquidationCost;
+        minimumMargin = bound(minimumMargin, 0, type(uint256).max - debt);
+        minimumMargin = bound(minimumMargin, 0, type(uint96).max);
+        uint256 usedMargin = debt + minimumMargin;
 
         // test-case: Insufficient margin
         vm.assume(usedMargin > 0);
@@ -67,8 +67,8 @@ contract IncreaseOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // "exposure" is strictly smaller than "maxExposure".
         collateralValue = uint112(bound(collateralValue, 0, type(uint112).max - 1));
 
-        // Set fixedLiquidationCost
-        accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
+        // Set minimumMargin
+        accountExtension.setMinimumMargin(uint96(minimumMargin));
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
@@ -83,18 +83,18 @@ contract IncreaseOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_increaseOpenPosition(
         uint256 debt,
         uint112 collateralValue,
-        uint256 fixedLiquidationCost,
+        uint256 minimumMargin,
         uint32 time
     ) public {
         // "exposure" is strictly smaller than "maxExposure".
         collateralValue = uint112(bound(collateralValue, 0, type(uint112).max - 1));
         // test-case: Sufficient margin
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, collateralValue);
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
-        debt = bound(debt, 0, collateralValue - fixedLiquidationCost);
+        minimumMargin = bound(minimumMargin, 0, collateralValue);
+        minimumMargin = bound(minimumMargin, 0, type(uint96).max);
+        debt = bound(debt, 0, collateralValue - minimumMargin);
 
-        // Set fixedLiquidationCost
-        accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
+        // Set minimumMargin
+        accountExtension.setMinimumMargin(uint96(minimumMargin));
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);

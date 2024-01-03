@@ -76,7 +76,7 @@ abstract contract Creditor is ICreditor {
     function openMarginAccount(uint256 accountVersion)
         external
         virtual
-        returns (bool success, address numeraire, address liquidator, uint256 fixedLiquidationCost);
+        returns (bool success, address numeraire, address liquidator, uint256 minimumMargin);
 
     /**
      * @inheritdoc ICreditor

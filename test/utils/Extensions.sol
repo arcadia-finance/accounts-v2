@@ -54,8 +54,8 @@ contract AccountExtension is AccountV1 {
         creditor = creditor_;
     }
 
-    function setFixedLiquidationCost(uint96 fixedLiquidationCost_) public {
-        fixedLiquidationCost = fixedLiquidationCost_;
+    function setMinimumMargin(uint96 minimumMargin_) public {
+        minimumMargin = minimumMargin_;
     }
 
     function setOwner(address newOwner) public {

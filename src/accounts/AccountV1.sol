@@ -350,11 +350,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param creditor_ The contract address of the Creditor.
      */
     function _openMarginAccount(address creditor_) internal {
-        (bool success, address numeraire_, address liquidator_, uint256 fixedLiquidationCost_) =
+        (bool success, address numeraire_, address liquidator_, uint256 minimumMargin_) =
             ICreditor(creditor_).openMarginAccount(ACCOUNT_VERSION);
         if (!success) revert AccountErrors.InvalidAccountVersion();
 
-        fixedLiquidationCost = uint96(fixedLiquidationCost_);
+        minimumMargin = uint96(minimumMargin_);
         if (numeraire != numeraire_) _setNumeraire(numeraire_);
 
         emit MarginAccountChanged(creditor = creditor_, liquidator = liquidator_);
@@ -371,7 +371,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
         creditor = address(0);
         liquidator = address(0);
-        fixedLiquidationCost = 0;
+        minimumMargin = 0;
 
         // Remove the exposures of the Account for the old Creditor.
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
@@ -452,7 +452,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         if (creditor_ == address(0)) return 0;
 
         // getOpenPosition() is a view function, cannot modify state.
-        usedMargin = ICreditor(creditor_).getOpenPosition(address(this)) + fixedLiquidationCost;
+        usedMargin = ICreditor(creditor_).getOpenPosition(address(this)) + minimumMargin;
     }
 
     /**
@@ -475,10 +475,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @return isUnhealthy Boolean indicating if the Account is unhealthy.
      */
     function isAccountUnhealthy() public view returns (bool isUnhealthy) {
-        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always healthy.
+        // If usedMargin is equal to minimumMargin, the open liabilities are 0 and the Account is always healthy.
         // An Account is unhealthy if the collateral value is smaller than the used margin.
         uint256 usedMargin = getUsedMargin();
-        isUnhealthy = usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin;
+        isUnhealthy = usedMargin > minimumMargin && getCollateralValue() < usedMargin;
     }
 
     /**
@@ -486,10 +486,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @return success Boolean indicating if the Account can be liquidated.
      */
     function isAccountLiquidatable() external view returns (bool success) {
-        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is never liquidatable.
+        // If usedMargin is equal to minimumMargin, the open liabilities are 0 and the Account is never liquidatable.
         // An Account can be liquidated if the liquidation value is smaller than the used margin.
         uint256 usedMargin = getUsedMargin();
-        success = usedMargin > fixedLiquidationCost && getLiquidationValue() < usedMargin;
+        success = usedMargin > minimumMargin && getLiquidationValue() < usedMargin;
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -529,7 +529,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
         // Since the function is only callable by the Liquidator, we know that a liquidator and a Creditor are set.
         openPosition = ICreditor(creditor_).startLiquidation(initiator);
-        uint256 usedMargin = openPosition + fixedLiquidationCost;
+        uint256 usedMargin = openPosition + minimumMargin;
 
         if (openPosition == 0 || assetAndRiskValues._calculateLiquidationValue() >= usedMargin) {
             revert AccountErrors.AccountNotLiquidatable();
@@ -558,7 +558,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev When an auction is not successful, the Account is considered "Bought In":
      * The whole Account including any remaining assets are transferred to a certain recipient address, set by the Creditor.
      */
-    function auctionBoughtIn(address recipient) external onlyLiquidator {
+    function auctionBoughtIn(address recipient) external onlyLiquidator nonReentrant {
         _transferOwnership(recipient);
     }
 
@@ -669,7 +669,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         // If the open position is 0, the Account is always healthy.
         // An Account is unhealthy if the collateral value is smaller than the used margin.
         // The used margin equals the sum of the given amount of openPosition and the gas cost to liquidate.
-        if (openPosition > 0 && getCollateralValue() < openPosition + fixedLiquidationCost) {
+        if (openPosition > 0 && getCollateralValue() < openPosition + minimumMargin) {
             revert AccountErrors.AccountUnhealthy();
         }
 
