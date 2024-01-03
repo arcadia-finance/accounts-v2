@@ -168,15 +168,17 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * Therefore everything is initialised through an init function.
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
      * @dev The Creditor will only be set if it's a non-zero address, in this case the numeraire_ passed as input will be ignored.
+     * @dev initialize has implicitly a nonReentrant guard, since the "locked" variable has value zero until the end of the function.
      */
     function initialize(address owner_, address registry_, address creditor_) external {
         if (registry != address(0)) revert AccountErrors.AlreadyInitialized();
         if (registry_ == address(0)) revert AccountErrors.InvalidRegistry();
         owner = owner_;
-        locked = 1;
         registry = registry_;
 
         if (creditor_ != address(0)) _openMarginAccount(creditor_);
+
+        locked = 1;
     }
 
     /**
@@ -546,7 +548,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256[] memory assetIds,
         uint256[] memory assetAmounts,
         address bidder
-    ) external onlyLiquidator {
+    ) external onlyLiquidator nonReentrant {
         _withdraw(assetAddresses, assetIds, assetAmounts, bidder);
     }
 
@@ -563,7 +565,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /**
      * @notice Sets the "inAuction" flag to false when an auction ends.
      */
-    function endAuction() external onlyLiquidator {
+    function endAuction() external onlyLiquidator nonReentrant {
         inAuction = false;
     }
 
