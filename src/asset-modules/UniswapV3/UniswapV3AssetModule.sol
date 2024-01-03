@@ -181,12 +181,17 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * This approach accommodates scenarios where an underlying asset could be
      * a derived asset itself (e.g., USDC/aUSDC pool), ensuring more versatile and accurate price calculations.
      */
-    function _getUnderlyingAssetsAmounts(address creditor, bytes32 assetKey, uint256, bytes32[] memory)
+    function _getUnderlyingAssetsAmounts(address creditor, bytes32 assetKey, uint256 amount, bytes32[] memory)
         internal
         view
         override
         returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
+        // Amount of a Uniswap V3 LP can only be either 0 or 1.
+        if (amount == 0) {
+            return (new uint256[](2), rateUnderlyingAssetsToUsd);
+        }
+
         (, uint256 assetId) = _getAssetFromKey(assetKey);
 
         (address token0, address token1, int24 tickLower, int24 tickUpper, uint128 liquidity) = _getPosition(assetId);

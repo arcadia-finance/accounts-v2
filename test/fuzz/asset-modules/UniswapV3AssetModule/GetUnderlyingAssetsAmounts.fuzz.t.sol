@@ -196,4 +196,20 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AssetModule_Fuzz_Test is UniswapV3A
         assertEq(underlyingAssetsAmounts[0], expectedUnderlyingAssetsAmount0);
         assertEq(underlyingAssetsAmounts[1], expectedUnderlyingAssetsAmount1);
     }
+
+    function testFuzz_Success_GetUnderlyingAssetsAmounts_AmountIsZero(uint96 tokenId) public {
+        // Given : Zero amount
+        uint256 amount = 0;
+
+        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
+
+        // When: "getUnderlyingAssetsAmounts" is called.
+        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
+            uniV3AssetModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, amount, new bytes32[](0));
+
+        // Then: Values returned should be zero.
+        assertEq(underlyingAssetsAmounts[0], 0);
+        assertEq(underlyingAssetsAmounts[1], 0);
+        assertEq(rateUnderlyingAssetsToUsd.length, 0);
+    }
 }
