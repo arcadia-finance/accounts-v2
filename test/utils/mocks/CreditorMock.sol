@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 contract CreditorMock {
     bool isCallSuccesfull = true;
 
-    uint96 public fixedLiquidationCost;
+    uint96 public minimumMargin;
 
     address public numeraire;
     address public riskManager;
@@ -22,18 +22,18 @@ contract CreditorMock {
     function openMarginAccount(uint256)
         external
         view
-        returns (bool success, address numeraire_, address liquidator_, uint256 fixedLiquidationCost_)
+        returns (bool success, address numeraire_, address liquidator_, uint256 minimumMargin_)
     {
         if (isCallSuccesfull) {
             success = true;
             numeraire_ = numeraire;
             liquidator_ = liquidator;
-            fixedLiquidationCost_ = fixedLiquidationCost;
+            minimumMargin_ = minimumMargin;
         } else {
             success = false;
             numeraire_ = address(0);
             liquidator_ = address(0);
-            fixedLiquidationCost_ = 0;
+            minimumMargin_ = 0;
         }
     }
 
@@ -65,8 +65,8 @@ contract CreditorMock {
         liquidator = liquidator_;
     }
 
-    function setFixedLiquidationCost(uint96 fixedLiquidationCost_) external {
-        fixedLiquidationCost = fixedLiquidationCost_;
+    function setMinimumMargin(uint96 minimumMargin_) external {
+        minimumMargin = minimumMargin_;
     }
 
     function startLiquidation(address) external view returns (uint256 openPosition_) {

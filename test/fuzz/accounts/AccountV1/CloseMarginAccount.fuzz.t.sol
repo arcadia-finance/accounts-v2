@@ -100,7 +100,7 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Then: No creditor has been set and other variables updated
         assertTrue(proxyAccount.creditor() == address(0));
         assertTrue(proxyAccount.liquidator() == address(0));
-        assertEq(proxyAccount.fixedLiquidationCost(), 0);
+        assertEq(proxyAccount.minimumMargin(), 0);
 
         // And: Numeraire is still set.
         assertEq(proxyAccount.numeraire(), address(mockERC20.stable1));

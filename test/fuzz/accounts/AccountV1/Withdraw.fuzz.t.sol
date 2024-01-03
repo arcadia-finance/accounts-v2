@@ -317,15 +317,15 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256 debt,
         uint112 collateralValueInitial,
         uint256 collateralValueDecrease,
-        uint256 fixedLiquidationCost
+        uint256 minimumMargin
     ) public {
         // Test-case: With debt.
         debt = bound(debt, 1, type(uint256).max);
 
         // No overflow of Used Margin.
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint256).max - debt);
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
-        uint256 usedMargin = debt + fixedLiquidationCost;
+        minimumMargin = bound(minimumMargin, 0, type(uint256).max - debt);
+        minimumMargin = bound(minimumMargin, 0, type(uint96).max);
+        uint256 usedMargin = debt + minimumMargin;
 
         // "exposure" is strictly smaller than "maxExposure".
         collateralValueInitial = uint112(bound(collateralValueInitial, 0, type(uint112).max - 1));
@@ -336,8 +336,8 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // test-case: Insufficient collateralValue after withdrawal.
         vm.assume(collateralValueInitial - collateralValueDecrease < usedMargin);
 
-        // Set fixedLiquidationCost
-        accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
+        // Set minimumMargin
+        accountExtension.setMinimumMargin(uint96(minimumMargin));
 
         // Mock initial debt.
         creditorStable1.setOpenPosition(address(accountExtension), debt);
@@ -628,15 +628,15 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256 debt,
         uint112 collateralValueInitial,
         uint256 collateralValueDecrease,
-        uint256 fixedLiquidationCost
+        uint256 minimumMargin
     ) public {
         // Test-case: With debt.
         debt = bound(debt, 1, type(uint256).max);
 
         // No overflow of Used Margin.
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint256).max - debt);
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
-        uint256 usedMargin = debt + fixedLiquidationCost;
+        minimumMargin = bound(minimumMargin, 0, type(uint256).max - debt);
+        minimumMargin = bound(minimumMargin, 0, type(uint96).max);
+        uint256 usedMargin = debt + minimumMargin;
 
         // "exposure" is strictly smaller than "maxExposure".
         collateralValueInitial = uint112(bound(collateralValueInitial, 0, type(uint112).max - 1));
@@ -647,8 +647,8 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // test-case: Insufficient collateralValue after withdrawal.
         vm.assume(collateralValueInitial - collateralValueDecrease >= usedMargin);
 
-        // Set fixedLiquidationCost
-        accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
+        // Set minimumMargin
+        accountExtension.setMinimumMargin(uint96(minimumMargin));
 
         // Mock initial debt.
         creditorStable1.setOpenPosition(address(accountExtension), debt);

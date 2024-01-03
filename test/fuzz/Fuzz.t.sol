@@ -174,7 +174,7 @@ abstract contract Fuzz_Test is Base_Test {
 
         // Initialize the default liquidation cost and liquidator of creditor
         // The numeraire on initialization will depend on the type of test and set at a lower level
-        creditorStable1.setFixedLiquidationCost(Constants.initLiquidationCost);
+        creditorStable1.setMinimumMargin(Constants.initLiquidationCost);
         creditorStable1.setLiquidator(Constants.initLiquidator);
 
         vm.label({ account: address(creditorUsd), newLabel: "USD Creditor" });

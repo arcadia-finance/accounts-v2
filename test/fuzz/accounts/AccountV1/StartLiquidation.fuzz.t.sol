@@ -54,7 +54,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Revert_startLiquidation_notLiquidatable_usedMarginSmallerThanLiquidationValue(
-        uint96 fixedLiquidationCost,
+        uint96 minimumMargin,
         uint256 openDebt,
         uint112 depositAmountToken1,
         address liquidationInitiator
@@ -63,7 +63,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         depositAmountToken1 = uint112(bound(depositAmountToken1, 1, type(uint112).max - 1));
 
         // Given: openDebt > 0
-        openDebt = bound(openDebt, 1, type(uint112).max - fixedLiquidationCost);
+        openDebt = bound(openDebt, 1, type(uint112).max - minimumMargin);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -76,7 +76,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Initialize Account and set open position on creditor
         accountExtension2.initialize(users.accountOwner, address(registryExtension), address(creditorToken1));
-        accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
+        accountExtension2.setMinimumMargin(minimumMargin);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
@@ -86,7 +86,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         );
 
         // Given : Liquidation value is greater than or equal to used margin
-        vm.assume(openDebt + fixedLiquidationCost <= assetValuationLib.calculateLiquidationValue(assetAndRiskValues));
+        vm.assume(openDebt + minimumMargin <= assetValuationLib.calculateLiquidationValue(assetAndRiskValues));
 
         // Mint and approve token1 tokens
         vm.startPrank(users.tokenCreatorAddress);
@@ -105,7 +105,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Revert_startLiquidation_notLiquidatable_zeroOpenDebt(
-        uint96 fixedLiquidationCost,
+        uint96 minimumMargin,
         address liquidationInitiator
     ) public {
         // Given : openDebt = 0
@@ -113,7 +113,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Initialize Account and set open position on creditor
         accountExtension2.initialize(users.accountOwner, address(registryExtension), address(creditorToken1));
-        accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
+        accountExtension2.setMinimumMargin(minimumMargin);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
@@ -129,7 +129,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Success_startLiquidation(
-        uint96 fixedLiquidationCost,
+        uint96 minimumMargin,
         uint256 openDebt,
         uint112 depositAmountToken1,
         address liquidationInitiator,
@@ -139,7 +139,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         depositAmountToken1 = uint112(bound(depositAmountToken1, 1, type(uint112).max - 1));
 
         // Given: openDebt > 0
-        openDebt = bound(openDebt, 1, type(uint112).max - fixedLiquidationCost);
+        openDebt = bound(openDebt, 1, type(uint112).max - minimumMargin);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -152,7 +152,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Given: Account is initialized and an open position is set on creditor
         accountExtension2.initialize(users.accountOwner, address(registryExtension), address(creditorToken1));
-        accountExtension2.setFixedLiquidationCost(fixedLiquidationCost);
+        accountExtension2.setMinimumMargin(minimumMargin);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
@@ -162,7 +162,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         );
 
         // Given : Liquidation value is smaller than used margin
-        vm.assume(openDebt + fixedLiquidationCost > assetValuationLib.calculateLiquidationValue(assetAndRiskValues));
+        vm.assume(openDebt + minimumMargin > assetValuationLib.calculateLiquidationValue(assetAndRiskValues));
 
         // Mint and approve stable1 tokens
         vm.startPrank(users.tokenCreatorAddress);
