@@ -57,6 +57,7 @@ library RegistryErrors {
     error AssetModNotUnique();
     error AssetAlreadyInRegistry();
     error AssetNotAllowed();
+    error SequencerDown();
     error LengthMismatch();
     error MaxRecursiveCallsReached();
     error Min1Oracle();
@@ -64,5 +65,7 @@ library RegistryErrors {
     error OnlyAssetModule();
     error OnlyOracleModule();
     error OracleModNotUnique();
+    error OracleNotReverting();
+    error OracleReverting();
     error Unauthorized();
 }

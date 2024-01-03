@@ -99,7 +99,12 @@ contract IncreaseOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
 
+        // Warp time
+        time = uint32(bound(time, 2 days, type(uint32).max));
         vm.warp(time);
+        // Update updatedAt to avoid InactiveOracle() reverts.
+        vm.prank(users.defaultTransmitter);
+        mockOracles.stable1ToUsd.transmit(int256(rates.stable1ToUsd));
 
         // When: The Creditor tries to take more margin against the Account
         vm.prank(address(creditorStable1));

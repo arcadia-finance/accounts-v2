@@ -28,7 +28,7 @@ contract GetRate_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz_T
         // Given: An oracle not added to the "Registry".
         oracleId = uint80(bound(oracleId, registryExtension.getOracleCounter(), type(uint80).max));
 
-        vm.expectRevert(OracleModule.InactiveOracle.selector);
+        vm.expectRevert(bytes(""));
         chainlinkOM.getRate(oracleId);
     }
 
@@ -36,9 +36,7 @@ contract GetRate_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz_T
         RevertingOracle revertingOracle = new RevertingOracle();
 
         vm.prank(users.creatorAddress);
-        uint256 oracleId = chainlinkOM.addOracle(address(revertingOracle), "REVERT", "USD");
-
-        chainlinkOM.decommissionOracle(oracleId);
+        uint256 oracleId = chainlinkOM.addOracle(address(revertingOracle), "REVERT", "USD", 2 days);
 
         vm.expectRevert(OracleModule.InactiveOracle.selector);
         chainlinkOM.getRate(oracleId);
@@ -55,7 +53,7 @@ contract GetRate_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz_T
         oracle.transmit(int256(rate));
 
         vm.prank(users.creatorAddress);
-        uint256 oracleId = chainlinkOM.addOracle(address(oracle), "STABLE1", "USD");
+        uint256 oracleId = chainlinkOM.addOracle(address(oracle), "STABLE1", "USD", 2 days);
 
         uint256 actualRate = chainlinkOM.getRate(oracleId);
         // Overflows but does not revert.
@@ -73,7 +71,7 @@ contract GetRate_ChainlinkOracleModule_Fuzz_Test is ChainlinkOracleModule_Fuzz_T
         oracle.transmit(int256(rate));
 
         vm.prank(users.creatorAddress);
-        uint256 oracleId = chainlinkOM.addOracle(address(oracle), "STABLE1", "USD");
+        uint256 oracleId = chainlinkOM.addOracle(address(oracle), "STABLE1", "USD", 2 days);
 
         uint256 actualRate = chainlinkOM.getRate(oracleId);
 

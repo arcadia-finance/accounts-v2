@@ -9,6 +9,7 @@ import { Users } from "./utils/Types.sol";
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/accounts/AccountV1.sol";
 import { AccountV2 } from "./utils/mocks/AccountV2.sol";
+import { SequencerUptimeOracle } from "./utils/mocks/SequencerUptimeOracle.sol";
 import { ChainlinkOracleModuleExtension } from "./utils/Extensions.sol";
 import { RegistryExtension } from "./utils/Extensions.sol";
 import { AssetModule } from "../src/asset-modules/AbstractAssetModule.sol";
@@ -44,6 +45,7 @@ abstract contract Base_Test is Test, Events, Errors {
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
     AccountV1 internal proxyAccount;
+    SequencerUptimeOracle internal sequencerUptimeOracle;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    MODIFIERS
@@ -80,10 +82,13 @@ abstract contract Base_Test is Test, Events, Errors {
             riskManager: createUser("riskManager")
         });
 
+        // Deploy the sequencer uptime oracle.
+        sequencerUptimeOracle = new SequencerUptimeOracle();
+
         // Deploy the base test contracts.
         vm.startPrank(users.creatorAddress);
         factory = new Factory();
-        registryExtension = new RegistryExtension(address(factory));
+        registryExtension = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
         chainlinkOM = new ChainlinkOracleModuleExtension(address(registryExtension));
         erc20AssetModule = new StandardERC20AssetModuleExtension(address(registryExtension));
         floorERC721AssetModule = new FloorERC721AssetModuleExtension(address(registryExtension));
@@ -125,6 +130,9 @@ abstract contract Base_Test is Test, Events, Errors {
         address proxyAddress = factory.createAccount(0, 0, address(0));
         proxyAccount = AccountV1(proxyAddress);
         vm.stopPrank();
+
+        // Warp to have a timestamp of at least two days old.
+        vm.warp(2 days);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

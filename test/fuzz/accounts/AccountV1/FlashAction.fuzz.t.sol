@@ -349,6 +349,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         uint32 time,
         bytes calldata signature
     ) public {
+        vm.assume(time > 2 days);
         accountNotInitialised.setMinimumMargin(minimumMargin);
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
@@ -492,6 +493,15 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
 
         vm.warp(time);
 
+        // We transmit prices to oracles in order to have the oracles active
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
+        mockOracles.stable1ToUsd.transmit(int256(rates.stable1ToUsd));
+        mockOracles.nft1ToToken1.transmit(int256(rates.nft1ToToken1));
+        // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
+        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
+        vm.stopPrank();
+
         // Call flashAction() on Account
         vm.prank(users.accountOwner);
         accountNotInitialised.flashAction(address(action), callData);
@@ -513,6 +523,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         uint32 time,
         bytes calldata signature
     ) public {
+        vm.assume(time > 2 days);
         vm.assume(users.accountOwner != assetManager);
         vm.startPrank(users.accountOwner);
         accountNotInitialised.setMinimumMargin(minimumMargin);
@@ -537,11 +548,6 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         vm.assume(
             token1AmountForAction + ((uint256(debtAmount) + minimumMargin) * token1ToToken2Ratio) < type(uint256).max
         );
-
-        // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
-        vm.startPrank(users.defaultTransmitter);
-        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
-        vm.stopPrank();
 
         bytes memory callData;
         {
@@ -613,6 +619,13 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         depositERC20InAccount(
             mockERC20.token1, token1AmountForAction, users.accountOwner, address(accountNotInitialised)
         );
+
+        vm.startPrank(users.defaultTransmitter);
+        // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
+        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
+        // We transmit price to token 1 oracle in order to have the oracle active
+        mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
+        vm.stopPrank();
 
         vm.startPrank(assetManager);
 

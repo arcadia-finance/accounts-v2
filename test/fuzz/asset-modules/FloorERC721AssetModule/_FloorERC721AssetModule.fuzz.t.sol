@@ -27,7 +27,7 @@ abstract contract FloorERC721AssetModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.creatorAddress);
-        chainlinkOM.addOracle(address(mockOracles.nft2ToUsd), "NFT2", "USD");
+        chainlinkOM.addOracle(address(mockOracles.nft2ToUsd), "NFT2", "USD", 2 days);
 
         uint80[] memory oracleNft2ToUsdArr = new uint80[](1);
         oracleNft2ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.nft2ToUsd)));

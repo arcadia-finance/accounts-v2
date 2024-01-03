@@ -51,14 +51,16 @@ contract GetValuesInUsdRecursive_Registry_Fuzz_Test is Registry_Fuzz_Test {
         address asset,
         uint96 assetId,
         uint256 assetAmount,
-        uint256 usdValue,
-        uint256 minUsdValue,
+        uint128 usdValue,
+        uint128 minUsdValue,
         uint112 maxExposure,
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
         collateralFactor = uint16(bound(collateralFactor, 0, AssetValuationLib.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, AssetValuationLib.ONE_4));
+        usdValue = uint128(bound(usdValue, 0, type(uint128).max - 1));
+        minUsdValue = uint128(bound(minUsdValue, usdValue + 1, type(uint128).max));
 
         registryExtension.setAssetToAssetModule(asset, address(primaryAssetModule));
         primaryAssetModule.setUsdValue(usdValue);
@@ -67,7 +69,7 @@ contract GetValuesInUsdRecursive_Registry_Fuzz_Test is Registry_Fuzz_Test {
         registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
-        registryExtension.setMinUsdValue(address(creditorUsd), minUsdValue);
+        registryExtension.setRiskParameters(address(creditorUsd), minUsdValue, 0, type(uint64).max);
         vm.stopPrank();
 
         address[] memory assetAddresses = new address[](1);

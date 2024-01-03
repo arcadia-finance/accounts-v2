@@ -66,20 +66,6 @@ abstract contract OracleModule is Owned {
     function isActive(uint256 oracleId) external view virtual returns (bool);
 
     /*///////////////////////////////////////////////////////////////
-                          ORACLE MANAGEMENT
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Sets an oracle to inactive if it is not properly functioning.
-     * @param oracleId The identifier of the oracle to be checked.
-     * @return oracleIsActive Boolean indicating if the oracle is still in use.
-     * @dev An inactive oracle will revert.
-     * @dev Anyone can call this function as part of an oracle failsafe mechanism.
-     * @dev If the oracle becomes functionally again (all checks pass), anyone can activate the oracle again.
-     */
-    function decommissionOracle(uint256 oracleId) external virtual returns (bool);
-
-    /*///////////////////////////////////////////////////////////////
                           PRICING LOGIC
     ///////////////////////////////////////////////////////////////*/
 

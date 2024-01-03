@@ -384,6 +384,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         bytes calldata signature,
         uint32 time
     ) public {
+        vm.assume(time > 2 days);
         vm.prank(users.accountOwner);
         accountExtension.openMarginAccount(address(creditorToken1));
 
@@ -474,6 +475,13 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         assert(mockERC20.token2.balanceOf(address(accountExtension)) == 0);
 
         vm.warp(time);
+
+        vm.startPrank(users.defaultTransmitter);
+        // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
+        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
+        // We transmit price to token 1 oracle in order to have the oracle active
+        mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
+        vm.stopPrank();
 
         // Call flashActionByCreditor() on Account
         vm.prank(address(creditorToken1));

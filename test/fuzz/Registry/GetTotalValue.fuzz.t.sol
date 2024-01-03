@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../src/libraries/BitPackingLib.sol";
@@ -27,6 +27,69 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_getTotalValue_SequencerDown(
+        address numeraire,
+        address asset,
+        uint96 assetId,
+        uint256 assetAmount,
+        uint64 gracePeriod,
+        uint256 startedAt,
+        uint32 currentTime
+    ) public {
+        // Given: A random time.
+        vm.warp(currentTime);
+
+        // And: Sequencer is down.
+        sequencerUptimeOracle.setLatestRoundData(1, startedAt);
+
+        // And: A random gracePeriod.
+        vm.prank(creditorUsd.riskManager());
+        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = asset;
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = assetId;
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = assetAmount;
+
+        vm.expectRevert(RegistryErrors.SequencerDown.selector);
+        registryExtension.getTotalValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+    }
+
+    function testFuzz_Revert_getTotalValue_GracePeriodNotPassed(
+        address numeraire,
+        address asset,
+        uint96 assetId,
+        uint256 assetAmount,
+        uint32 gracePeriod,
+        uint32 startedAt,
+        uint32 currentTime
+    ) public {
+        // Given: A random time.
+        vm.warp(currentTime);
+
+        // And: Sequencer is online.
+        startedAt = uint32(bound(startedAt, 0, currentTime));
+        sequencerUptimeOracle.setLatestRoundData(0, startedAt);
+
+        // And: Grace period did not pass.
+        vm.assume(currentTime - startedAt < type(uint32).max);
+        gracePeriod = uint32(bound(gracePeriod, currentTime - startedAt + 1, type(uint32).max));
+        vm.prank(creditorUsd.riskManager());
+        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+
+        address[] memory assetAddresses = new address[](1);
+        assetAddresses[0] = asset;
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = assetId;
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = assetAmount;
+
+        vm.expectRevert(RegistryErrors.SequencerDown.selector);
+        registryExtension.getTotalValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+    }
+
     function testFuzz_Revert_getTotalValue_UnknownNumeraire(address numeraire) public {
         vm.assume(numeraire != address(0));
         vm.assume(!registryExtension.inRegistry(numeraire));
@@ -62,10 +125,12 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         );
 
         ArcadiaOracle oracle = initMockedOracle(0, "LINK / USD");
+        vm.prank(users.defaultTransmitter);
+        oracle.transmit(0);
         vm.startPrank(users.creatorAddress);
         mockERC20.token2 = new ERC20Mock("TOKEN2", "T2", token2Decimals);
 
-        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "TOKEN2", "USD"));
+        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "TOKEN2", "USD", 2 days));
         uint80[] memory oracleAssetToUsdArr = new uint80[](1);
         oracleAssetToUsdArr[0] = oracleId;
 
@@ -123,7 +188,28 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         );
     }
 
-    function testFuzz_Success_getTotalValue() public {
+    function testFuzz_Success_getTotalValue(uint32 gracePeriod, uint32 startedAt, uint32 currentTime) public {
+        // Given: startedAt does not underflow.
+        // And: oracle staleness-check does not underflow.
+        currentTime = uint32(bound(currentTime, 2 days, type(uint32).max));
+        vm.warp(currentTime);
+
+        // And: Oracles are not stale.
+        vm.startPrank(users.defaultTransmitter);
+        mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
+        mockOracles.token2ToUsd.transmit(int256(rates.token2ToUsd));
+        mockOracles.nft1ToToken1.transmit(int256(rates.nft1ToToken1));
+        vm.stopPrank();
+
+        // And: Sequencer is online.
+        startedAt = uint32(bound(startedAt, 0, currentTime));
+        sequencerUptimeOracle.setLatestRoundData(0, startedAt);
+
+        // And: Grace period did pass.
+        gracePeriod = uint32(bound(gracePeriod, 0, currentTime - startedAt));
+        vm.prank(creditorToken1.riskManager());
+        registryExtension.setRiskParameters(address(creditorToken1), 0, gracePeriod, type(uint64).max);
+
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = address(mockERC20.token2);
