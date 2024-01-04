@@ -668,7 +668,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     {
         // If the open position is 0, the Account is always healthy.
         // An Account is unhealthy if the collateral value is smaller than the used margin.
-        // The used margin equals the sum of the given amount of openPosition and the gas cost to liquidate.
+        // The used margin equals the sum of the given open position and the minimum margin.
         if (openPosition > 0 && getCollateralValue() < openPosition + minimumMargin) {
             revert AccountErrors.AccountUnhealthy();
         }
