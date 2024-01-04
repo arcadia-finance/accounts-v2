@@ -13,17 +13,18 @@ import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 /**
  * @notice Fork tests for "StargateAssetModule - USDbC Pool".
  */
-contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
+contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
     /*///////////////////////////////////////////////////////////////
                             CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
-    ERC20 USDbC = ERC20(0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA);
-    IPool pool = IPool(0x4c80E24119CFB836cdF0a6b53dc23F04F7e652CA);
-    address oracleUSDC = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
+    ERC20 SGETH = ERC20(0x224D8Fd7aB6AD4c6eb4611Ce56EF35Dec2277F03);
+    IPool pool = IPool(0x28fc411f9e1c480AD312b3d9C60c22b965015c6B);
+    address oracleETH = 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70;
 
+    uint256 poolId = 0;
     // https://stargateprotocol.gitbook.io/stargate/developers/pool-ids
-    uint256 poolId = 1;
+    uint256 routerPoolId = 13;
 
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
@@ -35,26 +36,26 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
         vm.startPrank(users.creatorAddress);
 
         // Warp time to last update of oracle + 1 sec
-        vm.warp(1_703_147_673 + 1);
+        vm.warp(1_703_149_989 + 1);
 
         // Add USDbC and it's Chainlink oracle to the protocol.
         // Here we use USDC oracle as no available oracle for USDbC.
-        uint256 oracleId = chainlinkOM.addOracle(oracleUSDC, "USDbC", "USD", 2 days);
+        uint256 oracleId = chainlinkOM.addOracle(oracleETH, "ETH", "USD", 2 days);
         bool[] memory boolValues = new bool[](1);
         boolValues[0] = true;
         uint80[] memory uintValues = new uint80[](1);
         uintValues[0] = uint80(oracleId);
         bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
 
-        erc20AssetModule.addAsset(address(USDbC), oracleSequence);
+        erc20AssetModule.addAsset(address(SGETH), oracleSequence);
 
         // Add the USDbC pool LP token to the StargateAssetModule.
         stargateAssetModule.addNewStakingToken(address(pool), poolId);
         vm.stopPrank();
 
         // Label contracts
-        vm.label({ account: address(pool), newLabel: "StargateUSDCPool" });
-        vm.label({ account: address(USDbC), newLabel: "USDbC" });
+        vm.label({ account: address(pool), newLabel: "StargateETHPool" });
+        vm.label({ account: address(SGETH), newLabel: "SGETH" });
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -62,15 +63,15 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
     ///////////////////////////////////////////////////////////////*/
 
     function testFork_Success_StakeAndDepositInAccount() public {
-        uint256 initBalance = 1000 * 10 ** USDbC.decimals();
+        uint256 initBalance = 1000 * 10 ** SGETH.decimals();
         assert(pool.balanceOf(users.accountOwner) == 0);
 
         // Given : A user deposits in the Stargate USDbC pool, in exchange of an LP token.
         vm.startPrank(users.accountOwner);
-        deal(address(USDbC), users.accountOwner, initBalance);
+        deal(address(SGETH), users.accountOwner, initBalance);
 
-        USDbC.approve(address(router), initBalance);
-        router.addLiquidity(poolId, initBalance, users.accountOwner);
+        SGETH.approve(address(router), initBalance);
+        router.addLiquidity(13, initBalance, users.accountOwner);
         assert(pool.balanceOf(users.accountOwner) > 0);
 
         // And : The user stakes the LP token via the StargateAssetModule
@@ -100,8 +101,8 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
     // On withdrawal of the ERC1155 token, the corresponding asset (Stargate LP tokens) and accumulated rewards should be transfered to the user.
     function testFork_Success_Withdraw() public {
         // Given : Amount of underlying assets deposited in Stargate pool.
-        uint256 amount1 = 1_000_000 * 10 ** USDbC.decimals();
-        uint256 amount2 = 123_456 * 10 ** USDbC.decimals();
+        uint256 amount1 = 1000 * 10 ** SGETH.decimals();
+        uint256 amount2 = 123 * 10 ** SGETH.decimals();
 
         // And : 2 users deploy a new Arcadia Account.
         address payable user1 = createUser("user1");
@@ -114,9 +115,9 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
         address arcadiaAccount2 = factory.createAccount(101, 0, address(0));
 
         // And : Stake Stargate Pool LP tokens in the Asset Modules and deposit minted ERC1155 in Accounts.
-        uint256 lpBalance1 = stakeInAssetModuleAndDepositInAccount(user1, arcadiaAccount1, USDbC, amount1, poolId, pool);
+        uint256 lpBalance1 = stakeInAssetModuleAndDepositInAccount(user1, arcadiaAccount1, SGETH, amount1, 13, pool);
         (uint256 amBalanceInLpStaking,) = lpStakingTime.userInfo(poolId, address(stargateAssetModule));
-        uint256 lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDbC, amount2, poolId, pool);
+        uint256 lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, SGETH, amount2, 13, pool);
 
         (amBalanceInLpStaking,) = lpStakingTime.userInfo(poolId, address(stargateAssetModule));
         assert(lpBalance1 + lpBalance2 == amBalanceInLpStaking);
@@ -135,7 +136,7 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
         assert(lpStakingTime.eToken().balanceOf(arcadiaAccount2) > 0);
 
         // And : User2 decides to stake again via the AM.
-        lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDbC, amount2, poolId, pool);
+        lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, SGETH, amount2, 13, pool);
 
         // And : We let 30 days pass to accumulate rewards.
         vm.warp(block.timestamp + 30 days);

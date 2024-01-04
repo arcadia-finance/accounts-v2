@@ -69,6 +69,7 @@ contract StargateBase_Fork_Test is Fork_Test {
         // The user stakes the LP token via the StargateAssetModule
         lpBalance = pool.balanceOf(user);
         pool.approve(address(stargateAssetModule), lpBalance);
+
         stargateAssetModule.stake(1, uint128(lpBalance));
 
         // The user deposits the ERC1155 in it's Account.

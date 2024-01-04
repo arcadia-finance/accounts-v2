@@ -32,10 +32,12 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
 
     // Maps this contract's ERC1155 assetKeys to the keys of their underlying asset.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
-    // The specific Stargate pool id relative to the ERC1155 tokenId.
+    // The pool id as referred to in the Stargate "lpStakingTime.sol" contract relative to the underlying asset of the ERC1155 token id.
     mapping(uint256 tokenId => uint256 poolId) public tokenIdToPoolId;
     // Maps this contract's ERC1155 assetKeys to their underlying Stargate pool address.
     mapping(bytes32 assetKey => address pool) internal assetKeyToPool;
+    // Maps a token id to a boolean indicating if the token id is allowed.
+    mapping(uint256 id => bool allowed) public allowedTokenId;
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -74,12 +76,12 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a new asset (Stargate LP Pool) to the StargateAssetModule.
+     * @notice Adds a new asset (ERC1155 tokenId and it's corresponding Stargate Pool LP) to the StargateAssetModule.
      * @param tokenId The ERC1155 token id of this contract.
-     * @param stargatePoolId The Stargate pool id relative to the underlying token of "tokenId".
+     * @param lpStakingPoolId The pool id relative to the underlying asset of "tokenId" in Stargate "lpStakingTime.sol" contract.
      * @param stargatePool The address of the Stargate pool.
      */
-    function _addAsset(uint256 tokenId, uint256 stargatePoolId, address stargatePool) internal {
+    function _addAsset(uint256 tokenId, uint256 lpStakingPoolId, address stargatePool) internal {
         address poolUnderlyingToken = IPool(stargatePool).token();
 
         if (!IRegistry(REGISTRY).isAllowed(poolUnderlyingToken, 0)) revert AssetNotAllowed();
@@ -87,7 +89,8 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         bytes32 assetKey = _getKeyFromAsset(address(this), tokenId);
 
         assetKeyToPool[assetKey] = stargatePool;
-        tokenIdToPoolId[tokenId] = stargatePoolId;
+        tokenIdToPoolId[tokenId] = lpStakingPoolId;
+        allowedTokenId[tokenId] = true;
 
         bytes32[] memory underlyingAssets_ = new bytes32[](1);
         underlyingAssets_[0] = _getKeyFromAsset(poolUnderlyingToken, 0);
@@ -105,7 +108,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @return allowed A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address, uint256 assetId) public view override returns (bool allowed) {
-        if (tokenIdToPoolId[assetId] != 0) return true;
+        allowed = allowedTokenId[assetId];
     }
 
     /**
@@ -168,14 +171,14 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     /**
      * @notice Adds a new staking token with it's corresponding reward token.
      * @param stargatePool The contract address of the Stargate pool.
-     * @param stargatePoolId The Stargate pool id relative to the asset.
+     * @param lpStakingPoolId The pool id relative to the underlying asset of "tokenId" in Stargate "lpStakingTime.sol" contract.
      */
-    function addNewStakingToken(address stargatePool, uint256 stargatePoolId) external onlyOwner {
+    function addNewStakingToken(address stargatePool, uint256 lpStakingPoolId) external onlyOwner {
         // Cache addresses
         address rewardToken_ = address(lpStakingTime.eToken());
 
         uint256 tokenId = _addNewStakingToken(stargatePool, rewardToken_);
-        _addAsset(tokenId, stargatePoolId, stargatePool);
+        _addAsset(tokenId, lpStakingPoolId, stargatePool);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -197,7 +200,10 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      */
     function _stake(uint256 id, uint256 amount) internal override {
         ERC20 asset = underlyingToken[id];
-        asset.approve(address(lpStakingTime), amount);
+
+        if (asset.allowance(address(this), address(lpStakingTime)) < amount) {
+            asset.approve(address(lpStakingTime), type(uint256).max);
+        }
 
         // Stake asset
         lpStakingTime.deposit(tokenIdToPoolId[id], amount);
