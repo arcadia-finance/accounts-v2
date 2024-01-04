@@ -234,15 +234,4 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     function _getCurrentReward(uint256 id) internal view override returns (uint256 currentReward) {
         currentReward = lpStakingTime.pendingEmissionToken(tokenIdToPoolId[id], address(this));
     }
-
-    /*///////////////////////////////////////////////////////////////
-                           ERC1155 LOGIC
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Function that returns the URI as defined in the ERC1155 standard.
-     * @param id The id of the specific staking token.
-     * @return uri The token URI.
-     */
-    function uri(uint256 id) public view override returns (string memory) { }
 }
