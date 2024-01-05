@@ -18,14 +18,19 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    struct StakingModuleStateForId {
+    struct StakingModuleStateForAsset {
         uint128 currentRewardGlobal;
         uint128 lastRewardPerTokenGlobal;
         uint128 lastRewardGlobal;
-        uint128 totalSupply;
-        uint128 lastRewardPerTokenAccount;
-        uint128 lastRewardAccount;
-        uint128 accountBalance;
+        uint128 totalStaked;
+        uint128 amountStakedForId;
+    }
+
+    struct StakingModuleStateForPosition {
+        address asset;
+        uint128 amountStaked;
+        uint128 lastRewardPerTokenPosition;
+        uint128 lastRewardPosition;
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -52,70 +57,92 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
-    function setStakingModuleState(StakingModuleStateForId memory stakingModuleState, uint256 id, address account)
+    function setStakingModuleState(
+        StakingModuleStateForAsset memory stakingModuleStateForAsset,
+        StakingModuleStateForPosition memory stakingModuleStateForPosition,
+        address asset,
+        uint256 id
+    )
         internal
-        returns (StakingModuleStateForId memory stakingModuleState_)
+        returns (
+            StakingModuleStateForId memory stakingModuleStateForAsset_,
+            StakingModuleStateForPosition memory stakingModuleStateForPosition_
+        )
     {
-        stakingModuleState_ = givenValidStakingModuleState(stakingModuleState);
+        (stakingModuleStateForAsset_, stakingModuleStateForPosition_) =
+            givenValidStakingModuleState(stakingModuleStateForAsset, stakingModuleStateForPosition);
 
-        stakingModule.setLastRewardGlobal(id, stakingModuleState_.lastRewardGlobal);
-        stakingModule.setTotalSupply(id, stakingModuleState_.totalSupply);
-        stakingModule.setLastRewardAccount(id, stakingModuleState_.lastRewardAccount, account);
-        stakingModule.setLastRewardPerTokenAccount(id, stakingModuleState_.lastRewardPerTokenAccount, account);
-        stakingModule.setLastRewardPerTokenGlobal(id, stakingModuleState_.lastRewardPerTokenGlobal);
-        stakingModule.setActualRewardBalance(id, stakingModuleState_.currentRewardGlobal);
-        stakingModule.setBalanceOf(id, stakingModuleState_.accountBalance, account);
+        stakingModule.setLastRewardGlobal(asset, stakingModuleState_.lastRewardGlobal);
+        stakingModule.setTotalStaked(asset, stakingModuleState_.totalStaked);
+        stakingModule.setLastRewardPosition(asset, stakingModuleState_.lastRewardPosition, account);
+        stakingModule.setLastRewardPerTokenPosition(asset, stakingModuleState_.lastRewardPerTokenPosition, account);
+        stakingModule.setLastRewardPerTokenGlobal(asset, stakingModuleState_.lastRewardPerTokenGlobal);
+        stakingModule.setActualRewardBalance(asset, stakingModuleState_.currentRewardGlobal);
+        stakingModule.setAmountStakedForPosition(asset, stakingModuleState_.amountStakedForId);
     }
 
-    function givenValidStakingModuleState(StakingModuleStateForId memory stakingModuleState)
+    function givenValidStakingModuleState(
+        StakingModuleStateForAsset memory stakingModuleStateForAsset,
+        StakingModuleStateForPosition memory stakingModuleStateForPosition
+    )
         public
         view
-        returns (StakingModuleStateForId memory stakingModuleState_)
+        returns (
+            StakingModuleStateForAsset memory stakingModuleStateForAsset_,
+            StakingModuleStateForPosition memory stakingModuleStateForPosition_
+        )
     {
         // Given : Actual reward balance should be at least equal to lastRewardGlobal.
-        vm.assume(stakingModuleState.currentRewardGlobal >= stakingModuleState.lastRewardGlobal);
+        vm.assume(stakingModuleStateForAsset.currentRewardGlobal >= stakingModuleStateForAsset.lastRewardGlobal);
 
         // Given : The difference between the actual and previous reward balance should be smaller than type(uint128).max / 1e18.
         vm.assume(
-            stakingModuleState.currentRewardGlobal - stakingModuleState.lastRewardGlobal < type(uint128).max / 1e18
+            stakingModuleStateForAsset.currentRewardGlobal - stakingModuleStateForAsset.lastRewardGlobal
+                < type(uint128).max / 1e18
         );
 
         // Given : lastRewardPerTokenGlobal + rewardPerTokenClaimable should not be over type(uint128).max
-        stakingModuleState.lastRewardPerTokenGlobal = uint128(
+        stakingModuleStateForAsset.lastRewardPerTokenGlobal = uint128(
             bound(
-                stakingModuleState.lastRewardPerTokenGlobal,
+                stakingModuleStateForAsset.lastRewardPerTokenGlobal,
                 0,
                 type(uint128).max
-                    - ((stakingModuleState.currentRewardGlobal - stakingModuleState.lastRewardGlobal) * 1e18)
+                    - (
+                        (stakingModuleStateForAsset.currentRewardGlobal - stakingModuleStateForAsset.lastRewardGlobal)
+                            * 1e18
+                    )
             )
         );
 
-        // Given : lastRewardPerTokenGlobal should always be >= lastRewardPerTokenAccount
-        vm.assume(stakingModuleState.lastRewardPerTokenGlobal >= stakingModuleState.lastRewardPerTokenAccount);
+        // Given : lastRewardPerTokenGlobal should always be >= lastRewardPerTokenPosition
+        vm.assume(
+            stakingModuleStateForAsset.lastRewardPerTokenGlobal
+                >= stakingModuleStateForPosition.lastRewardPerTokenPosition
+        );
 
         // Cache rewardPerTokenClaimable
-        uint128 rewardPerTokenClaimable = stakingModuleState.lastRewardPerTokenGlobal
-            + ((stakingModuleState.currentRewardGlobal - stakingModuleState.lastRewardGlobal) * 1e18);
+        uint128 rewardPerTokenClaimable = stakingModuleStateForAsset.lastRewardPerTokenGlobal
+            + ((stakingModuleStateForAsset.currentRewardGlobal - stakingModuleStateForAsset.lastRewardGlobal) * 1e18);
 
-        // Given : accountBalance * rewardPerTokenClaimable should not be > type(uint128)
-        stakingModuleState.accountBalance =
-            uint128(bound(stakingModuleState.accountBalance, 0, (type(uint128).max) - rewardPerTokenClaimable));
+        // Given : amountStakedForId * rewardPerTokenClaimable should not be > type(uint128)
+        stakingModuleState.amountStakedForId =
+            uint128(bound(stakingModuleState.amountStakedForId, 0, (type(uint128).max) - rewardPerTokenClaimable));
 
         // Extra check for the above
-        vm.assume(uint256(stakingModuleState.accountBalance) * rewardPerTokenClaimable < type(uint128).max);
+        vm.assume(uint256(stakingModuleState.amountStakedForId) * rewardPerTokenClaimable < type(uint128).max);
 
         // Given : previously earned rewards for Account + new rewards should not be > type(uint128).max.
-        stakingModuleState.lastRewardAccount = uint128(
+        stakingModuleState.lastRewardPosition = uint128(
             bound(
-                stakingModuleState.lastRewardAccount,
+                stakingModuleState.lastRewardPosition,
                 0,
-                type(uint128).max - (stakingModuleState.accountBalance * rewardPerTokenClaimable)
+                type(uint128).max - (stakingModuleState.amountStakedForId * rewardPerTokenClaimable)
             )
         );
 
-        // Given : totalSupply should be >= to accountBalance
+        // Given : totalSupply should be >= to amountStakedForId
         stakingModuleState.totalSupply =
-            uint128(bound(stakingModuleState.totalSupply, stakingModuleState.accountBalance, type(uint128).max));
+            uint128(bound(stakingModuleState.totalSupply, stakingModuleState.amountStakedForId, type(uint128).max));
 
         stakingModuleState_ = stakingModuleState;
     }
