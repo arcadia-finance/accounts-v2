@@ -125,7 +125,7 @@ contract ProcessIndirectWithdrawal_UniswapV3AssetModule_Fuzz_Test is UniswapV3As
 
         vm.prank(address(registryExtension));
         uniV3AssetModule.processIndirectWithdrawal(
-            address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0, 1
+            address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0, -1
         );
         assertEq(uniV3AssetModule.getAssetToLiquidity(tokenId), 0);
 

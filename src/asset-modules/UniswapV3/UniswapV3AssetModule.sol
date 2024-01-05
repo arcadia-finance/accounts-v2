@@ -54,6 +54,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
 
     error InvalidId();
     error ZeroLiquidity();
+    error invalidAmount();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -404,18 +405,19 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * 1 = ERC721.
      * 2 = ERC1155
      * ...
-     * @dev super.processDirectDeposit does check that msg.sender is the Registry.
+     * @dev super.processDirectDeposit checks that msg.sender is the Registry.
      */
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         override
-        returns (uint256, uint256)
+        returns (uint256 recursiveCalls, uint256 assetType)
     {
+        // Amount deposited of a Uniswap V3 LP can be either 0 or 1 (checked in the Account).
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Asset Module.
-        _addAsset(assetId);
+        if (amount == 1) _addAsset(assetId);
 
         // Also checks that msg.sender == Registry.
-        return super.processDirectDeposit(creditor, asset, assetId, amount);
+        (recursiveCalls, assetType) = super.processDirectDeposit(creditor, asset, assetId, amount);
     }
 
     /**
@@ -427,7 +429,8 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
-     * @dev super.processIndirectDeposit does check that msg.sender is the Registry.
+     * @dev super.processIndirectDeposit checks that msg.sender is the Registry.
+     * @dev deltaExposureUpperAssetToAsset of a Uniswap V3 LP must be either 0 or 1 for processIndirectDeposit().
      */
     function processIndirectDeposit(
         address creditor,
@@ -436,8 +439,10 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public override returns (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) {
-        // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Asset Module.
-        _addAsset(assetId);
+        // deltaExposureUpperAssetToAsset of a Uniswap V3 LP can be either 0 or 1.
+        // For uniswap V3 every id is a unique asset -> on a deposit, the asset must added to the Asset Module.
+        if (deltaExposureUpperAssetToAsset == 1) _addAsset(assetId);
+        else if (deltaExposureUpperAssetToAsset != 0) revert invalidAmount();
 
         // Also checks that msg.sender == Registry.
         (recursiveCalls, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
@@ -451,21 +456,22 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
-     * @dev The stored liquidity on this contract is removed, otherwise _getUnderlyingAssets
-     * would keep using the liquidity of the asset at the time of deposit even if its liquidity
-     * gets updated outside an Account.
+     * @dev super.processDirectWithdrawal checks that msg.sender is the Registry.
+     * @dev If the asset is withdrawn, remove its liquidity from the mapping.
+     * If we would keep the liquidity of the asset in storage,
+     * _getUnderlyingAssets() would keep using the liquidity of the asset at the time of deposit.
+     * This might result in a wrongly calculated getValue() of the non-deposited asset (for off-chain purposes).
      */
     function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         override
         returns (uint256 assetType)
     {
+        // Also checks that msg.sender == Registry.
         assetType = super.processDirectWithdrawal(creditor, asset, assetId, amount);
 
-        // If the asset is withdrawn, remove its from the mapping.
-        // If we keep the liquidity of the asset in storage,
-        // an offchain getValue of the asset will be calculated with the stored liquidity.
-        delete assetToLiquidity[assetId];
+        // Amount withdrawn of a Uniswap V3 LP can be either 0 or 1 (checked in the Account).
+        if (amount == 1) delete assetToLiquidity[assetId];
     }
 
     /**
@@ -476,9 +482,14 @@ contract UniswapV3AssetModule is DerivedAssetModule {
      * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
-     * @dev The stored liquidity on this contract is removed, otherwise _getUnderlyingAssets
-     * would keep using the liquidity of the asset at the time of deposit even if its liquidity
-     * gets updated outside an Account.
+     * @dev super.processIndirectWithdrawal checks that msg.sender is the Registry.
+     * @dev If the asset is withdrawn, remove its liquidity from the mapping.
+     * If we would keep the liquidity of the asset in storage,
+     * _getUnderlyingAssets() would keep using the liquidity of the asset at the time of deposit.
+     * This might result in a wrongly calculated getValue() of the non-deposited asset (for off-chain purposes).
+     * @dev deltaExposureUpperAssetToAsset of a Uniswap V3 LP must be either 0 or -1 for processIndirectWithdrawal().
+     * But we do NOT revert if the value is different from 0 or -1, since this would block withdrawals and hence liquidations,
+     * which is worse as having wrongly calculated exposures.
      */
     function processIndirectWithdrawal(
         address creditor,
@@ -487,13 +498,12 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public override returns (uint256 usdExposureUpperAssetToAsset) {
+        // Also checks that msg.sender == Registry.
         usdExposureUpperAssetToAsset = super.processIndirectWithdrawal(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 
-        // If the asset is withdrawn, remove its from the mapping.
-        // If we keep the liquidity of the asset in storage,
-        // an offchain getValue of the asset will be calculated with the stored liquidity.
-        delete assetToLiquidity[assetId];
+        // deltaExposureUpperAssetToAsset of a Uniswap V3 LP can be either 0 or -1.
+        if (deltaExposureUpperAssetToAsset == -1) delete assetToLiquidity[assetId];
     }
 }

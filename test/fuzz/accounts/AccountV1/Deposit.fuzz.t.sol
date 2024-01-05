@@ -162,7 +162,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Revert_deposit_ERC721WithAmount(uint8 id, uint112 amount) public {
-        amount = uint112(bound(amount, 2, type(uint112).max));
+        amount = uint112(bound(amount, 2, type(uint112).max - 1));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC721.nft1);
