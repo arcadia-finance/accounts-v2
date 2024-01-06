@@ -258,10 +258,10 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint256[] memory assetTypes =
             registryExtension.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
-        // Then: assetType 0 is returned for all assets.
+        // Then: assetType are returned.
         assertEq(assetTypes[0], 0);
-        assertEq(assetTypes[1], 0);
-        assertEq(assetTypes[2], 0);
+        assertEq(assetTypes[1], 1);
+        assertEq(assetTypes[2], 2);
 
         // And: exposures are not updated.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));

@@ -447,9 +447,6 @@ contract Registry is IRegistry, RegistryGuardian {
             uint256 recursiveCalls;
             uint256 maxRecursiveCalls = riskParams[creditor].maxRecursiveCalls;
             for (uint256 i; i < addrLength; ++i) {
-                // Skip if amount is 0 to prevent transferring 0 balances, these are also skipped in the Account.
-                if (amounts[i] == 0) continue;
-
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
                 (recursiveCalls, assetTypes[i]) = IAssetModule(assetToAssetModule[assetAddress]).processDirectDeposit(
@@ -494,9 +491,6 @@ contract Registry is IRegistry, RegistryGuardian {
             }
         } else {
             for (uint256 i; i < addrLength; ++i) {
-                // Skip if amount is 0 to prevent transferring 0 balances, these are also skipped in the Account.
-                if (amounts[i] == 0) continue;
-
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
                 assetTypes[i] = IAssetModule(assetToAssetModule[assetAddress]).processDirectWithdrawal(

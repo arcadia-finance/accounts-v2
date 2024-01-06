@@ -820,13 +820,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ) internal {
         // If no Creditor is set, batchProcessDeposit only checks if the assets can be priced.
         // If a Creditor is set, batchProcessDeposit will also update the exposures of assets and underlying assets for the Creditor.
-        // Zero amounts are skipped (transaction does not revert) in the latter case and assetType 0 is returned for assets with 0 amount.
         uint256[] memory assetTypes =
             IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
 
         for (uint256 i; i < assetAddresses.length; ++i) {
-            // Skip if amount is 0 to prevent storing addresses that have 0 balance,
-            // these are also skipped during batchProcessDeposit in the Registry.
+            // Skip if amount is 0 to prevent storing addresses that have 0 balance.
             if (assetAmounts[i] == 0) continue;
 
             if (assetTypes[i] == 0) {
@@ -893,13 +891,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
         address to
     ) internal {
         // If a Creditor is set, batchProcessWithdrawal will also update the exposures of assets and underlying assets for the Creditor.
-        // Zero amounts are skipped (transaction does not revert) in the latter case and assetType 0 is returned for assets with 0 amount.
         uint256[] memory assetTypes =
             IRegistry(registry).batchProcessWithdrawal(creditor, assetAddresses, assetIds, assetAmounts);
 
         for (uint256 i; i < assetAddresses.length; ++i) {
-            // Skip if amount is 0 to prevent transferring 0 balances,
-            // these are also skipped during batchProcessWithdrawal in the Registry.
+            // Skip if amount is 0 to prevent transferring 0 balances.
             if (assetAmounts[i] == 0) continue;
 
             if (assetTypes[i] == 0) {
