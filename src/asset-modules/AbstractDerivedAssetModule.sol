@@ -112,7 +112,7 @@ abstract contract DerivedAssetModule is AssetModule {
         }
 
         rateUnderlyingAssetsToUsd =
-            IRegistry(REGISTRY).getValuesInUsd(creditor, underlyingAssets, underlyingAssetIds, amounts);
+            IRegistry(REGISTRY).getValuesInUsdRecursive(creditor, underlyingAssets, underlyingAssetIds, amounts);
     }
 
     /**

@@ -17,7 +17,8 @@ interface ICreditor {
      * @return success Bool indicating if all requirements are met.
      * @return numeraire The Numeraire of the Creditor.
      * @return liquidator The liquidator of the Creditor.
-     * @return fixedLiquidationCost Estimated fixed costs (independent of size of debt) to liquidate a position.
+     * @return minimumMargin The minimum amount of collateral that must be held in the Account before a position can be opened,
+     * denominated in the numeraire.
      */
     function openMarginAccount(uint256 accountVersion) external returns (bool, address, address, uint256);
 

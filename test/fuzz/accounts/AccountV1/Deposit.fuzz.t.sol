@@ -40,6 +40,19 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
     }
 
+    function testFuzz_Revert_deposit_AuctionOngoing(
+        address[] calldata assetAddresses,
+        uint256[] calldata assetIds,
+        uint256[] calldata assetAmounts
+    ) public {
+        accountExtension.setInAuction();
+
+        vm.startPrank(users.accountOwner);
+        vm.expectRevert(AccountErrors.AccountInAuction.selector);
+        accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
+        vm.stopPrank();
+    }
+
     function testFuzz_Revert_deposit_Reentered(
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
@@ -149,7 +162,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Revert_deposit_ERC721WithAmount(uint8 id, uint112 amount) public {
-        amount = uint112(bound(amount, 2, type(uint112).max));
+        amount = uint112(bound(amount, 2, type(uint112).max - 1));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC721.nft1);
@@ -189,6 +202,8 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_deposit_WithCreditor_UnknownAsset(address asset, uint256 id, uint256 amount) public {
         vm.assume(!registryExtension.inRegistry(asset));
+
+        amount = bound(amount, 1, type(uint256).max);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;
@@ -243,7 +258,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         uint256[] memory assetAmounts = new uint256[](3);
         assetAmounts[0] = 0;
-        assetAmounts[1] = 1; // NFT amounts must be 1 in Asset Module.
+        assetAmounts[1] = 0;
         assetAmounts[2] = 0;
 
         mintDepositAssets(0, erc721Id, 0);
@@ -253,19 +268,19 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
 
         // Then: Asset arrays are properly updated.
-        (uint256 erc20Length, uint256 erc721Length,, uint256 erc1155Length) = accountExtension.getLengths();
+        (uint256 erc20Length, uint256 erc721Length, uint256 erc721TokenIdsLength, uint256 erc1155Length) =
+            accountExtension.getLengths();
         assertEq(erc20Length, 0);
         assertEq(
             accountExtension.getERC20Balances(address(mockERC20.token1)),
             mockERC20.token1.balanceOf(address(accountExtension))
         );
         assertEq(accountExtension.getERC20Balances(address(mockERC20.token1)), 0);
-        assertEq(erc721Length, 1);
-        assertEq(accountExtension.getERC721Stored(0), address(mockERC721.nft1));
-        assertEq(accountExtension.getERC721TokenIds(0), erc721Id);
+
+        assertEq(erc721Length, 0);
+        assertEq(erc721TokenIdsLength, 0);
 
         assertEq(erc1155Length, 0);
-
         assertEq(
             accountExtension.getERC1155Balances(address(mockERC1155.sft1), 1),
             mockERC1155.sft1.balanceOf(address(accountExtension), 1)

@@ -54,8 +54,8 @@ contract AccountExtension is AccountV1 {
         creditor = creditor_;
     }
 
-    function setFixedLiquidationCost(uint96 fixedLiquidationCost_) public {
-        fixedLiquidationCost = fixedLiquidationCost_;
+    function setMinimumMargin(uint96 minimumMargin_) public {
+        minimumMargin = minimumMargin_;
     }
 
     function setOwner(address newOwner) public {
@@ -96,6 +96,10 @@ contract AccountExtension is AccountV1 {
 
     function getCoolDownPeriod() public pure returns (uint256 coolDownPeriod) {
         coolDownPeriod = COOL_DOWN_PERIOD;
+    }
+
+    function getApprovedCreditor() public view returns (address approvedCreditor_) {
+        approvedCreditor_ = approvedCreditor;
     }
 }
 
@@ -246,9 +250,9 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
     function getAssetExposureLast(address creditor, bytes32 assetKey)
         external
         view
-        returns (uint128 lastExposureAsset_, uint128 lastUsdExposureAsset)
+        returns (uint128 lastExposureAsset, uint128 lastUsdExposureAsset)
     {
-        lastExposureAsset_ = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
+        lastExposureAsset = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
         lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
     }
 
@@ -458,6 +462,24 @@ contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
     constructor(address registry_, address nonfungiblePositionManager)
         UniswapV3AssetModule(registry_, nonfungiblePositionManager)
     { }
+
+    function getAssetExposureLast(address creditor, bytes32 assetKey)
+        external
+        view
+        returns (uint128 lastExposureAsset, uint128 lastUsdExposureAsset)
+    {
+        lastExposureAsset = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
+        lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
+    }
+
+    function getExposureAssetToUnderlyingAssetsLast(address creditor, bytes32 assetKey, bytes32 underlyingAssetKey)
+        external
+        view
+        returns (uint256 exposureAssetToUnderlyingAssetsLast_)
+    {
+        exposureAssetToUnderlyingAssetsLast_ =
+            lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKey];
+    }
 
     function getNonFungiblePositionManager() public view returns (address nonFungiblePositionManager) {
         nonFungiblePositionManager = address(NON_FUNGIBLE_POSITION_MANAGER);

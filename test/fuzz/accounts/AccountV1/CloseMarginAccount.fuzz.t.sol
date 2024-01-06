@@ -38,10 +38,9 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Reentrancy guard is in locked state.
         accountExtension.setLocked(2);
 
-        vm.startPrank(users.accountOwner);
+        vm.prank(users.accountOwner);
         vm.expectRevert(AccountErrors.NoReentry.selector);
         accountExtension.closeMarginAccount();
-        vm.stopPrank();
     }
 
     function testFuzz_Revert_closeMarginAccount_NotDuringAuction() public {
@@ -101,7 +100,7 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Then: No creditor has been set and other variables updated
         assertTrue(proxyAccount.creditor() == address(0));
         assertTrue(proxyAccount.liquidator() == address(0));
-        assertEq(proxyAccount.fixedLiquidationCost(), 0);
+        assertEq(proxyAccount.minimumMargin(), 0);
 
         // And: Numeraire is still set.
         assertEq(proxyAccount.numeraire(), address(mockERC20.stable1));
