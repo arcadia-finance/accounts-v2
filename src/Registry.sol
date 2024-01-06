@@ -21,7 +21,7 @@ import { RegistryErrors } from "./libraries/Errors.sol";
 /**
  * @title Registry
  * @author Pragma Labs
- * @notice The Registry has a number of responsibilities, all related to the management of Assets and Oracles:
+ * @notice The Registry has several responsibilities, all related to the management of Assets and Oracles:
  *  - It stores the mapping between assets and their respective Asset Modules.
  *  - It stores the mapping between oracles and their respective Oracle Modules.
  *  - It orchestrates the pricing of a basket of assets in a single unit of account.
@@ -101,7 +101,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @dev Only Asset Modules can call functions with this modifier.
      */
     modifier onlyAssetModule() {
-        if (!isAssetModule[msg.sender]) revert RegistryErrors.OnlyAssetModule();
+        _checkAssetModule();
         _;
     }
 
@@ -118,18 +118,17 @@ contract Registry is IRegistry, RegistryGuardian {
      * @dev Only the Risk Manager of a Creditor can call functions with this modifier.
      */
     modifier onlyRiskManager(address creditor) {
-        if (msg.sender != ICreditor(creditor).riskManager()) revert RegistryErrors.Unauthorized();
+        _checkRiskManager(creditor);
         _;
     }
 
     /**
      * @param creditor The contract address of the Creditor.
      * @dev Throws if the sequencer is down,
-     * or the Creditor specific grace period after sequencer is back up did not pass.
+     * or the Creditor specific grace period after the sequencer is back up did not pass.
      */
     modifier sequencerNotDown(address creditor) {
-        (, bool sequencerDown) = _isSequencerDown(creditor);
-        if (sequencerDown) revert RegistryErrors.SequencerDown();
+        _checkSequencerDown(creditor);
         _;
     }
 
@@ -160,7 +159,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @return success Boolean indicating whether the sequencer uptime oracle not reverting.
      * @return sequencerDown Boolean indicating whether the sequencer is down, or is still within the grace period.
      * @dev This check guarantees that no stale oracles are consumed when the sequencer is down,
-     * and that Account owners have time (the grace period) to bring their Account back in a healthy state.
+     * and that Account owners have time (the grace period) to bring their Account back to a healthy state.
      * @dev If the sequencer uptime oracle itself is reverting, the sequencer is assumed to be still up.
      */
     function _isSequencerDown(address creditor) internal view returns (bool success, bool sequencerDown) {
@@ -177,7 +176,7 @@ contract Registry is IRegistry, RegistryGuardian {
     }
 
     /**
-     * @notice Sets a new sequencer uptime oracle in the case the current oracle is reverting.
+     * @notice Sets a new sequencer uptime oracle if the current oracle is reverting.
      * @param sequencerUptimeOracle_ The contract address of the new sequencer uptime oracle.
      */
     function setSequencerUptimeOracle(address sequencerUptimeOracle_) external onlyOwner {
@@ -292,7 +291,7 @@ contract Registry is IRegistry, RegistryGuardian {
         bytes16 baseAsset;
         bytes16 quoteAsset;
         bytes16 lastAsset;
-        for (uint256 i; i < length; ++i) {
+        for (uint256 i; i < length;) {
             oracleModule = oracleToOracleModule[oracles[i]];
 
             if (!IOracleModule(oracleModule).isActive(oracles[i])) return false;
@@ -312,6 +311,10 @@ contract Registry is IRegistry, RegistryGuardian {
             }
             // Last asset in the sequence must end with "USD".
             if (i == length - 1 && lastAsset != "USD") return false;
+
+            unchecked {
+                ++i;
+            }
         }
 
         return true;
@@ -337,9 +340,13 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 length = assetAddresses.length;
         collateralFactors = new uint16[](length);
         liquidationFactors = new uint16[](length);
-        for (uint256 i; i < length; ++i) {
+        for (uint256 i; i < length;) {
             (collateralFactors[i], liquidationFactors[i]) = IAssetModule(assetToAssetModule[assetAddresses[i]])
-                .getRiskFactors(creditor, assetAddresses[i], assetIds[i]);
+                .getRiskFactors(creditor, assetAddresses[i], assetIds[I]);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -353,7 +360,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * (increasing open positions, withdrawing collateral and liquidations).
      * @param maxRecursiveCalls The maximum number of calls to different asset modules that are required to process
      * the deposit/withdrawal/pricing of a single asset.
-     * @dev A minimum USD-value will help to avoid remaining dust amounts in Accounts, which couldn't be liquidated.
+     * @dev A minimum USD-value will help to avoid remaining dust amounts in Accounts, that couldn't be liquidated.
      */
     function setRiskParameters(address creditor, uint128 minUsdValue, uint64 gracePeriod, uint64 maxRecursiveCalls)
         external
@@ -371,7 +378,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param maxExposure The maximum exposure of a Creditor to the asset.
      * @param collateralFactor The collateral factor of the asset for the Creditor, 4 decimals precision.
      * @param liquidationFactor The liquidation factor of the asset for the Creditor, 4 decimals precision.
-     * @dev Any Creditor can set risk parameters for any asset, does not have any influence on risk parameters
+     * @dev Any Creditor can set risk parameters for any asset, and does not have any influence on risk parameters
      * set by other Creditors.
      */
     function setRiskParametersOfPrimaryAsset(
@@ -436,23 +443,31 @@ contract Registry is IRegistry, RegistryGuardian {
         address assetAddress;
         if (creditor == address(0)) {
             bool isAllowed_;
-            for (uint256 i; i < addrLength; ++i) {
+            for (uint256 i; i < addrLength;) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
                 (isAllowed_, assetTypes[i]) =
                     IAssetModule(assetToAssetModule[assetAddress]).processAsset(assetAddress, assetIds[i]);
                 if (!isAllowed_) revert RegistryErrors.AssetNotAllowed();
+
+                unchecked {
+                    ++i;
+                }
             }
         } else {
             uint256 recursiveCalls;
             uint256 maxRecursiveCalls = riskParams[creditor].maxRecursiveCalls;
-            for (uint256 i; i < addrLength; ++i) {
+            for (uint256 i; i < addrLength;) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
                 (recursiveCalls, assetTypes[i]) = IAssetModule(assetToAssetModule[assetAddress]).processDirectDeposit(
                     creditor, assetAddress, assetIds[i], amounts[i]
                 );
                 if (recursiveCalls > maxRecursiveCalls) revert RegistryErrors.MaxRecursiveCallsReached();
+
+                unchecked {
+                    ++i;
+                }
             }
         }
     }
@@ -482,27 +497,35 @@ contract Registry is IRegistry, RegistryGuardian {
         assetTypes = new uint256[](addrLength);
         address assetAddress;
         if (creditor == address(0)) {
-            for (uint256 i; i < addrLength; ++i) {
+            for (uint256 i; i < addrLength;) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
                 // The contract doesn't revert as this might block assets in Accounts.
                 (, assetTypes[i]) =
-                    IAssetModule(assetToAssetModule[assetAddress]).processAsset(assetAddress, assetIds[i]);
+                    IAssetModule(assetToAssetModule[assetAddress]).processAsset(assetAddress, assetIds[I]);
+
+                unchecked {
+                    ++i;
+                }
             }
         } else {
-            for (uint256 i; i < addrLength; ++i) {
+            for (uint256 i; i < addrLength;) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
                 assetTypes[i] = IAssetModule(assetToAssetModule[assetAddress]).processDirectWithdrawal(
-                    creditor, assetAddress, assetIds[i], amounts[i]
+                    creditor, assetAddress, assetIds[i], amounts[I]
                 );
+
+                unchecked {
+                    ++i;
+                }
             }
         }
     }
 
     /**
      * @notice This function is called by Asset Modules of non-primary assets
-     * in order to update the exposure of an underlying asset after a deposit.
+     * to update the exposure of an underlying asset after a deposit.
      * @param creditor The contract address of the Creditor.
      * @param underlyingAsset The underlying asset.
      * @param underlyingAssetId The underlying asset id.
@@ -532,7 +555,7 @@ contract Registry is IRegistry, RegistryGuardian {
 
     /**
      * @notice This function is called by Asset Modules of non-primary assets
-     * in order to update the exposure of an underlying asset after a withdrawal.
+     * to update the exposure of an underlying asset after a withdrawal.
      * @param creditor The contract address of the Creditor.
      * @param underlyingAsset The underlying asset.
      * @param underlyingAssetId The underlying asset id.
@@ -578,7 +601,7 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 length = oracles.length;
         for (uint256 i; i < length; ++i) {
             // Each Oracle has a fixed base asset and quote asset.
-            // The oracle-rate expresses how much units of the quote asset (18 decimals precision) are required
+            // The oracle-rate expresses how many units of the quote asset (18 decimals precision) are required
             // to buy 1 unit of the BaseAsset.
             if (baseToQuoteAsset[i]) {
                 // "Normal direction" (how much of the QuoteAsset is required to buy 1 unit of the BaseAsset).
@@ -614,15 +637,19 @@ contract Registry is IRegistry, RegistryGuardian {
         valuesAndRiskFactors = new AssetValueAndRiskFactors[](length);
 
         uint256 minUsdValue = riskParams[creditor].minUsdValue;
-        for (uint256 i; i < length; ++i) {
+        for (uint256 i; i < length;) {
             (
                 valuesAndRiskFactors[i].assetValue,
                 valuesAndRiskFactors[i].collateralFactor,
                 valuesAndRiskFactors[i].liquidationFactor
             ) = IAssetModule(assetToAssetModule[assets[i]]).getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
-            // If asset value is too low, set to zero.
+            // If asset value is too low, set it to zero.
             // This is done to prevent dust attacks which may make liquidations unprofitable.
             if (valuesAndRiskFactors[i].assetValue < minUsdValue) valuesAndRiskFactors[i].assetValue = 0;
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -633,7 +660,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the ids of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @return valuesAndRiskFactors The array of values per assets, denominated in the Numeraire.
+     * @return valuesAndRiskFactors The array of values per asset, denominated in the Numeraire.
      * @dev No need to check equality of length of arrays, since they are generated by the Account.
      * @dev No need to check the Numeraire, since getValue()-call will revert for unknown assets.
      * @dev Only fungible tokens can be used as Numeraire.
@@ -654,13 +681,17 @@ contract Registry is IRegistry, RegistryGuardian {
                 IAssetModule(assetToAssetModule[numeraire]).getValue(creditor, numeraire, 0, 1e18);
 
             uint256 length = assetAddresses.length;
-            for (uint256 i; i < length; ++i) {
+            for (uint256 i; i < length;) {
                 // "valuesAndRiskFactors.assetValue" is the USD-value of the asset with 18 decimals precision.
                 // "rateNumeraireToUsd" is the USD-value of 10 ** 18 tokens of Numeraire with 18 decimals precision.
                 // To get the asset value denominated in the Numeraire, we have to multiply USD-value of "assetValue" with 10**18
                 // and divide by "rateNumeraireToUsd".
                 valuesAndRiskFactors[i].assetValue =
                     valuesAndRiskFactors[i].assetValue.mulDivDown(1e18, rateNumeraireToUsd);
+
+                unchecked {
+                    ++i;
+                }
             }
         }
     }
@@ -688,8 +719,12 @@ contract Registry is IRegistry, RegistryGuardian {
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
         uint256 length = assetAddresses.length;
-        for (uint256 i = 0; i < length; ++i) {
+        for (uint256 i; i < length;) {
             assetValue += valuesAndRiskFactors[i].assetValue;
+
+            unchecked {
+                ++i;
+            }
         }
 
         // Convert the USD-value to the value in Numeraire if the Numeraire is different from USD (0-address).
@@ -782,5 +817,32 @@ contract Registry is IRegistry, RegistryGuardian {
         // To get the value of the asset denominated in the Numeraire, we have to multiply USD-value of "valueInUsd" with 10**18
         // and divide by "rateNumeraireToUsd".
         valueInNumeraire = valueInUsd.mulDivDown(1e18, rateNumeraireToUsd);
+    }
+
+
+    /* ///////////////////////////////////////////////////////////////
+                    INTERNAL FUNCTIONS (FOR MODIFIERS)
+    /////////////////////////////////////////////////////////////// */
+
+    /**
+     * @dev This internal function is used by modifier 'onlyAssetModule'
+    */
+    function _checkAssetModule() internal view {
+        if (!isAssetModule[msg.sender]) revert RegistryErrors.OnlyAssetModule();
+    }
+
+    /**
+     * @dev This internal function is used by modifier 'onlyRiskManager'
+    */
+    function _checkRiskManager(address creditor) internal view {
+        if (msg.sender != ICreditor(creditor).riskManager()) revert RegistryErrors.Unauthorized();
+    }
+
+    /**
+     * @dev This internal function is used by modifier 'sequencerNotDown'
+    */
+    function _checkSequencerDown(address creditor) internal view {
+        (, bool sequencerDown) = _isSequencerDown(creditor);
+        if (sequencerDown) revert RegistryErrors.SequencerDown();
     }
 }
