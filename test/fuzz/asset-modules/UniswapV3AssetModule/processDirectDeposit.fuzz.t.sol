@@ -616,7 +616,7 @@ contract ProcessDirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetMo
 
         {
             // And: liquidity of the deposited position is increased.
-            increaseLiquidity(pool, tokenId);
+            increaseLiquidity(pool, tokenId, 100, 100, false);
 
             // When: processDirectDeposit is called with amount 0.
             vm.prank(address(registryExtension));
