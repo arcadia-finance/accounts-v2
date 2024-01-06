@@ -54,7 +54,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
 
     error InvalidId();
     error ZeroLiquidity();
-    error invalidAmount();
+    error InvalidAmount();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -442,7 +442,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
         // deltaExposureUpperAssetToAsset of a Uniswap V3 LP can be either 0 or 1.
         // For uniswap V3 every id is a unique asset -> on a deposit, the asset must added to the Asset Module.
         if (deltaExposureUpperAssetToAsset == 1) _addAsset(assetId);
-        else if (deltaExposureUpperAssetToAsset != 0) revert invalidAmount();
+        else if (deltaExposureUpperAssetToAsset != 0) revert InvalidAmount();
 
         // Also checks that msg.sender == Registry.
         (recursiveCalls, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(

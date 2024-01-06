@@ -115,7 +115,7 @@ contract ProcessIndirectDeposit_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asset
         uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         vm.prank(address(registryExtension));
-        vm.expectRevert(UniswapV3AssetModule.invalidAmount.selector);
+        vm.expectRevert(UniswapV3AssetModule.InvalidAmount.selector);
         uniV3AssetModule.processIndirectDeposit(
             address(creditorUsd), address(nonfungiblePositionManager), tokenId, exposureUpperAssetToAsset, amount
         );
