@@ -73,15 +73,11 @@ abstract contract OracleModule is Owned {
      * @notice Returns the rate of the BaseAsset in units of QuoteAsset (BaseAsset/QuoteAsset).
      * @param oracleId The identifier of the oracle.
      * @return oracleRate The rate of the BaseAsset in units of QuoteAsset, with 18 decimals precision.
-     * @dev The oracle rate expresses how much units of the QuoteAsset are required
-     * to buy 1 unit of the BaseAsset, with 18 decimals precision.
-     * Example: If you have an oracle (WBTC/USDC).
-     *  - The BaseAsset is Wrapped Bitcoin (WBTC), which has 8 decimals.
-     *  - The QuoteAsset is USDC, which has 6 decimals.
-     *  - Assume an exchange rate from Bitcoin to USD of $30 000.
-     *  -> You need $30 000 (or 30 000 * 10**6 USDC) to buy 1 Bitcoin (or 1 * 10**8 WBTC).
-     *  -> You need 300 units of USDC to buy one unit of WBT.
-     * Since we use 18 decimals precision, the oracleRate will be 300 * 10**18.
+     * @dev The oracle rate expresses how much tokens of the QuoteAsset are required
+     * to buy 1 token of the BaseAsset, with 18 decimals precision.
+     * Example: If you have an oracle (WBTC/USDC) and assume an exchange rate from Bitcoin to USD of $30 000.
+     *  -> You need 30 000 tokens of USDC to buy one token of WBTC.
+     *  -> Since we use 18 decimals precision, the oracleRate will be 30 000 * 10**18.
      */
     function getRate(uint256 oracleId) external view virtual returns (uint256);
 }

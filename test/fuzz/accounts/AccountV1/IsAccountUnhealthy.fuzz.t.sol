@@ -32,23 +32,23 @@ contract IsAccountUnhealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_isAccountUnhealthy_InsufficientMargin(
         uint256 debtInitial,
         uint112 collateralValue,
-        uint256 fixedLiquidationCost
+        uint256 minimumMargin
     ) public {
         // Account has open position.
         debtInitial = bound(debtInitial, 1, type(uint256).max);
 
         // No overflow of Used Margin.
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint256).max - debtInitial);
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
-        uint256 usedMargin = debtInitial + fixedLiquidationCost;
+        minimumMargin = bound(minimumMargin, 0, type(uint256).max - debtInitial);
+        minimumMargin = bound(minimumMargin, 0, type(uint96).max);
+        uint256 usedMargin = debtInitial + minimumMargin;
 
         // Given: Insufficient margin
         collateralValue = uint112(bound(collateralValue, 0, usedMargin - 1));
         // "exposure" is strictly smaller than "maxExposure".
         collateralValue = uint112(bound(collateralValue, 0, type(uint112).max - 1));
 
-        // Set fixedLiquidationCost
-        accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
+        // Set minimumMargin
+        accountExtension.setMinimumMargin(uint96(minimumMargin));
 
         // Mock initial debt.
         creditorStable1.setOpenPosition(address(accountExtension), debtInitial);
@@ -66,18 +66,18 @@ contract IsAccountUnhealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_isAccountUnhealthy_SufficientMargin(
         uint256 debtInitial,
         uint112 collateralValue,
-        uint256 fixedLiquidationCost
+        uint256 minimumMargin
     ) public {
         // "exposure" is strictly smaller than "maxExposure".
         collateralValue = uint112(bound(collateralValue, 0, type(uint112).max - 1));
 
         // Given: Sufficient margin
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, collateralValue);
-        fixedLiquidationCost = bound(fixedLiquidationCost, 0, type(uint96).max);
-        debtInitial = bound(debtInitial, 0, collateralValue - fixedLiquidationCost);
+        minimumMargin = bound(minimumMargin, 0, collateralValue);
+        minimumMargin = bound(minimumMargin, 0, type(uint96).max);
+        debtInitial = bound(debtInitial, 0, collateralValue - minimumMargin);
 
-        // Set fixedLiquidationCost
-        accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
+        // Set minimumMargin
+        accountExtension.setMinimumMargin(uint96(minimumMargin));
 
         // Mock initial debt.
         creditorStable1.setOpenPosition(address(accountExtension), debtInitial);

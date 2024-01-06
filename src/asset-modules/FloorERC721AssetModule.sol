@@ -151,7 +151,7 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
      * @param creditor The contract address of the creditor.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.
-     * param amount The amount of tokens.
+     * @param amount The amount of tokens.
      * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return assetType Identifier for the type of the asset:
      * 0 = ERC20.
@@ -159,9 +159,9 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
      * 2 = ERC1155
      * ...
      * @dev amount of a deposit in ERC721 asset module must be 1.
-     * @dev super.processDirectDeposit does check that msg.sender is the Registry.
+     * @dev super.processDirectDeposit checks that msg.sender is the Registry.
      */
-    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256)
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         override
         returns (uint256, uint256)
@@ -169,7 +169,7 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
         if (!isAllowed(asset, assetId)) revert AssetNotAllowed();
 
         // Also checks that msg.sender == Registry.
-        return super.processDirectDeposit(creditor, asset, assetId, 1);
+        return super.processDirectDeposit(creditor, asset, assetId, amount);
     }
 
     /**
@@ -181,7 +181,7 @@ contract FloorERC721AssetModule is PrimaryAssetModule {
      * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
      * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
      * @return usdExposureUpperAssetToAsset The Usd value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
-     * @dev super.processIndirectDeposit does check that msg.sender is the Registry.
+     * @dev super.processIndirectDeposit checks that msg.sender is the Registry.
      */
     function processIndirectDeposit(
         address creditor,

@@ -25,6 +25,7 @@ import { StandardERC4626AssetModule } from "../../src/asset-modules/StandardERC4
 import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModule.sol";
 import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
+import { StakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 
 contract AccountExtension is AccountV1 {
     constructor(address factory) AccountV1(factory) { }
@@ -53,16 +54,12 @@ contract AccountExtension is AccountV1 {
         creditor = creditor_;
     }
 
-    function setFixedLiquidationCost(uint96 fixedLiquidationCost_) public {
-        fixedLiquidationCost = fixedLiquidationCost_;
+    function setMinimumMargin(uint96 minimumMargin_) public {
+        minimumMargin = minimumMargin_;
     }
 
     function setOwner(address newOwner) public {
         owner = newOwner;
-    }
-
-    function flashAction(address actionTarget, bytes calldata actionData) public {
-        _flashAction(actionTarget, actionData);
     }
 
     function setRegistry(address registry_) public {
@@ -99,6 +96,10 @@ contract AccountExtension is AccountV1 {
 
     function getCoolDownPeriod() public pure returns (uint256 coolDownPeriod) {
         coolDownPeriod = COOL_DOWN_PERIOD;
+    }
+
+    function getApprovedCreditor() public view returns (address approvedCreditor_) {
+        approvedCreditor_ = approvedCreditor;
     }
 }
 
@@ -249,9 +250,9 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
     function getAssetExposureLast(address creditor, bytes32 assetKey)
         external
         view
-        returns (uint128 lastExposureAsset_, uint128 lastUsdExposureAsset)
+        returns (uint128 lastExposureAsset, uint128 lastUsdExposureAsset)
     {
-        lastExposureAsset_ = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
+        lastExposureAsset = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
         lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
     }
 
@@ -462,6 +463,24 @@ contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
         UniswapV3AssetModule(registry_, nonfungiblePositionManager)
     { }
 
+    function getAssetExposureLast(address creditor, bytes32 assetKey)
+        external
+        view
+        returns (uint128 lastExposureAsset, uint128 lastUsdExposureAsset)
+    {
+        lastExposureAsset = lastExposuresAsset[creditor][assetKey].lastExposureAsset;
+        lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
+    }
+
+    function getExposureAssetToUnderlyingAssetsLast(address creditor, bytes32 assetKey, bytes32 underlyingAssetKey)
+        external
+        view
+        returns (uint256 exposureAssetToUnderlyingAssetsLast_)
+    {
+        exposureAssetToUnderlyingAssetsLast_ =
+            lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKey];
+    }
+
     function getNonFungiblePositionManager() public view returns (address nonFungiblePositionManager) {
         nonFungiblePositionManager = address(NON_FUNGIBLE_POSITION_MANAGER);
     }
@@ -574,5 +593,48 @@ contract MultiCallExtension is ActionMultiCall {
 
     function setMintedIds(uint256[] memory mintedIds_) public {
         mintedIds = mintedIds_;
+    }
+}
+
+abstract contract StakingModuleExtension is StakingModule {
+    function setLastRewardGlobal(uint256 id, uint128 balance) public {
+        tokenState[id].lastRewardGlobal = balance;
+    }
+
+    function setTotalSupply(uint256 id, uint128 totalSupply_) public {
+        tokenState[id].totalSupply = totalSupply_;
+    }
+
+    function setLastRewardAccount(uint256 id, uint128 rewards_, address account) public {
+        accountState[account][id].lastRewardAccount = rewards_;
+    }
+
+    function setLastRewardPerTokenAccount(uint256 id, uint128 rewardPaid, address account) public {
+        accountState[account][id].lastRewardPerTokenAccount = rewardPaid;
+    }
+
+    function setLastRewardPerTokenGlobal(uint256 id, uint128 amount) public {
+        tokenState[id].lastRewardPerTokenGlobal = amount;
+    }
+
+    function setBalanceOf(uint256 id, uint256 amount, address account) public {
+        balanceOf[account][id] = amount;
+    }
+
+    function getIdCounter() public view returns (uint256 lastId_) {
+        lastId_ = lastId;
+    }
+
+    function getCurrentBalances(address account, uint256 id)
+        public
+        view
+        returns (
+            uint256 currentRewardPerToken,
+            uint256 currentRewardGlobal,
+            uint256 totalSupply_,
+            uint256 currentRewardAccount
+        )
+    {
+        return _getCurrentBalances(account, id);
     }
 }

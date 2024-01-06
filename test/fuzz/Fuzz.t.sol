@@ -175,7 +175,7 @@ abstract contract Fuzz_Test is Base_Test {
 
         // Initialize the default liquidation cost and liquidator of creditor
         // The numeraire on initialization will depend on the type of test and set at a lower level
-        creditorStable1.setFixedLiquidationCost(Constants.initLiquidationCost);
+        creditorStable1.setMinimumMargin(Constants.initLiquidationCost);
         creditorStable1.setLiquidator(Constants.initLiquidator);
 
         vm.label({ account: address(creditorUsd), newLabel: "USD Creditor" });
@@ -442,6 +442,31 @@ abstract contract Fuzz_Test is Base_Test {
         vm.startPrank(account_.owner());
         token.approve(address(account_), amount);
         account_.deposit(assets, ids, amounts);
+        vm.stopPrank();
+    }
+
+    function mintERC20TokenTo(address token, address to, uint256 amount) public {
+        ERC20Mock(token).mint(to, amount);
+    }
+
+    function mintERC20TokensTo(address[] memory tokens, address to, uint256[] memory amounts) public {
+        for (uint8 i = 0; i < tokens.length; ++i) {
+            ERC20Mock(tokens[i]).mint(to, amounts[i]);
+        }
+    }
+
+    function approveERC20TokenFor(address token, address spender, uint256 amount, address user) public {
+        vm.prank(user);
+        ERC20Mock(token).approve(spender, amount);
+    }
+
+    function approveERC20TokensFor(address[] memory tokens, address spender, uint256[] memory amounts, address user)
+        public
+    {
+        vm.startPrank(user);
+        for (uint8 i = 0; i < tokens.length; ++i) {
+            ERC20Mock(tokens[i]).approve(spender, amounts[i]);
+        }
         vm.stopPrank();
     }
 }

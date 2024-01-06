@@ -24,7 +24,7 @@ contract AuctionBoughtIn_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_auctionBuyIn_nonLiquidator(address nonLiquidator, address recipient) public {
+    function testFuzz_Revert_auctionBoughtIn_nonLiquidator(address nonLiquidator, address recipient) public {
         vm.assume(nonLiquidator != accountExtension.liquidator());
 
         vm.prank(nonLiquidator);
@@ -32,7 +32,16 @@ contract AuctionBoughtIn_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.auctionBoughtIn(recipient);
     }
 
-    function testFuzz_Success_auctionBuyIn(address recipient) public canReceiveERC721(recipient) {
+    function testFuzz_Revert_auctionBoughtIn_Reentered(address recipient) public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        vm.prank(accountExtension.liquidator());
+        vm.expectRevert(AccountErrors.NoReentry.selector);
+        accountExtension.auctionBoughtIn(recipient);
+    }
+
+    function testFuzz_Success_auctionBoughtIn(address recipient) public canReceiveERC721(recipient) {
         // Given: An Account.
         uint256 id = factory.accountIndex(address(accountExtension));
 
