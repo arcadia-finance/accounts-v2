@@ -577,49 +577,48 @@ contract MultiCallExtension is ActionMultiCall {
 }
 
 abstract contract StakingModuleExtension is StakingModule {
-    function setLastRewardGlobal(uint256 id, uint128 balance) public {
-        tokenState[id].lastRewardGlobal = balance;
+    function setLastRewardGlobal(address asset, uint128 balance) public {
+        assetState[asset].lastRewardGlobal = balance;
     }
 
-    function setTotalSupply(uint256 id, uint128 totalSupply_) public {
-        tokenState[id].totalSupply = totalSupply_;
+    function setTotalStaked(address asset, uint128 totalStaked_) public {
+        assetState[asset].totalStaked = totalStaked_;
     }
 
-    function setLastRewardAccount(uint256 id, uint128 rewards_, address account) public {
-        accountState[account][id].lastRewardAccount = rewards_;
+    function setLastRewardPerTokenGlobal(address asset, uint128 amount) public {
+        assetState[asset].lastRewardPerTokenGlobal = amount;
     }
 
-    function setLastRewardPerTokenAccount(uint256 id, uint128 rewardPaid, address account) public {
-        accountState[account][id].lastRewardPerTokenAccount = rewardPaid;
+    function setLastRewardPosition(uint256 id, uint128 rewards_) public {
+        positionState[id].lastRewardPosition = rewards_;
     }
 
-    function setLastRewardPerTokenGlobal(uint256 id, uint128 amount) public {
-        tokenState[id].lastRewardPerTokenGlobal = amount;
+    function setLastRewardPerTokenPosition(uint256 id, uint128 rewardPaid) public {
+        positionState[id].lastRewardPerTokenPosition = rewardPaid;
     }
 
-    function setBalanceOf(uint256 id, uint256 amount, address account) public {
-        balanceOf[account][id] = amount;
+    function setAmountStakedForPosition(uint256 id, uint256 amount) public {
+        positionState[id].amountStaked = amount;
     }
 
     function getIdCounter() public view returns (uint256 lastId_) {
         lastId_ = lastId;
     }
 
-    function getCurrentBalances(address account, uint256 id)
+    function getCurrentBalances(address asset)
         public
         view
-        returns (
-            uint256 currentRewardPerToken,
-            uint256 currentRewardGlobal,
-            uint256 totalSupply_,
-            uint256 currentRewardAccount
-        )
+        returns (uint256 currentRewardPerToken, uint256 totalStaked, uint256 currentRewardGlobal)
     {
-        return _getCurrentBalances(account, id);
+        return _getCurrentBalances(asset);
     }
 
-    function addNewStakingToken(address asset, address rewardToken) public returns (uint256 tokenId) {
-        tokenId = _addNewStakingToken(asset, rewardToken);
+    function getCurrentBalances(PositionState memory positionState_)
+        public
+        view
+        returns (uint256 currentRewardPerToken, uint256 totalStaked, uint256 currentRewardPosition)
+    {
+        return _getCurrentBalances(positionState_);
     }
 }
 
