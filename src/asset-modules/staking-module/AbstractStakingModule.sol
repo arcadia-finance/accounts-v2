@@ -35,13 +35,13 @@ abstract contract StakingModule is ERC1155, ReentrancyGuard {
 
     // Map underlying token and reward token pair to their corresponding staking token id.
     mapping(address underlyingToken => mapping(address rewardToken => uint256 id)) public tokenToRewardToId;
-    // Map staking token id to it's corresponding underlying token.
+    // Map staking token id to its corresponding underlying token.
     mapping(uint256 id => ERC20 underlyingToken) public underlyingToken;
-    // Map staking token id to it's corresponding reward token.
+    // Map staking token id to its corresponding reward token.
     mapping(uint256 id => ERC20 rewardToken) public rewardToken;
-    // Map staking token id to it's corresponding struct with global state.
+    // Map staking token id to its corresponding struct with global state.
     mapping(uint256 id => TokenState) public tokenState;
-    // Map Account and staking token id to it's corresponding struct with the account specific state.
+    // Map Account and staking token id to its corresponding struct with the account specific state.
     mapping(address account => mapping(uint256 id => AccountState)) public accountState;
 
     // Struct with the global state per staking token.
@@ -85,24 +85,20 @@ abstract contract StakingModule is ERC1155, ReentrancyGuard {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a new staking token with it's corresponding underlying and reward token.
+     * @notice Adds a new staking token with its corresponding underlying and reward token.
      * @param underlyingToken_ The contract address of the underlying token.
      * @param rewardToken_ The contract address of the reward token.
      */
-    function addNewStakingToken(address underlyingToken_, address rewardToken_) public {
+    function _addNewStakingToken(address underlyingToken_, address rewardToken_) internal returns (uint256 newId) {
         if (tokenToRewardToId[underlyingToken_][rewardToken_] != 0) revert TokenToRewardPairAlreadySet();
 
-        // Cache new id
-        uint256 newId;
+        if (ERC20(underlyingToken_).decimals() > 18 || ERC20(rewardToken_).decimals() > 18) {
+            revert InvalidTokenDecimals();
+        }
+
         unchecked {
             newId = ++lastId;
         }
-
-        // Cache tokens decimals
-        uint256 underlyingTokenDecimals_ = ERC20(underlyingToken_).decimals();
-        uint256 rewardTokenDecimals_ = ERC20(rewardToken_).decimals();
-
-        if (underlyingTokenDecimals_ > 18 || rewardTokenDecimals_ > 18) revert InvalidTokenDecimals();
 
         underlyingToken[newId] = ERC20(underlyingToken_);
         rewardToken[newId] = ERC20(rewardToken_);
@@ -193,7 +189,7 @@ abstract contract StakingModule is ERC1155, ReentrancyGuard {
      * @notice Claims the pending reward tokens of the caller.
      * @param id The id of the specific staking token.
      */
-    function claimReward(uint256 id) public nonReentrant {
+    function claimReward(uint256 id) external virtual nonReentrant {
         // Calculate the updated reward balances.
         (uint256 currentRewardPerToken,, uint256 totalSupply_, uint256 currentRewardSender) =
             _getCurrentBalances(msg.sender, id);

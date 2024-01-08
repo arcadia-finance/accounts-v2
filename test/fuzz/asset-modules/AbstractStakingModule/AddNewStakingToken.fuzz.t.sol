@@ -87,20 +87,19 @@ contract AddNewStakingToken_AbstractAbstractStakingModule_Fuzz_Test is AbstractS
         assertEq(stakingModule.getIdCounter(), 0);
 
         // When : We add a new staking token with it's respective reward token
-        stakingModule.addNewStakingToken(address(mockERC20.stable1), address(mockERC20.token1));
+        uint256 newId = stakingModule.addNewStakingToken(address(mockERC20.stable1), address(mockERC20.token1));
 
         // Then : Id counter should increase to 1 and staking and reward token should be added with correct info.
-        uint256 lastId = stakingModule.getIdCounter();
-        assertEq(address(stakingModule.underlyingToken(lastId)), address(mockERC20.stable1));
-        assertEq(address(stakingModule.rewardToken(lastId)), address(mockERC20.token1));
-        assertEq(stakingModule.tokenToRewardToId(address(mockERC20.stable1), address(mockERC20.token1)), lastId);
-        assertEq(lastId, 1);
+
+        assertEq(address(stakingModule.underlyingToken(newId)), address(mockERC20.stable1));
+        assertEq(address(stakingModule.rewardToken(newId)), address(mockERC20.token1));
+        assertEq(stakingModule.tokenToRewardToId(address(mockERC20.stable1), address(mockERC20.token1)), newId);
+        assertEq(newId, 1);
 
         // Repeat the above operation for an additional token
-        stakingModule.addNewStakingToken(address(mockERC20.token1), address(mockERC20.stable1));
+        uint256 newId2 = stakingModule.addNewStakingToken(address(mockERC20.token1), address(mockERC20.stable1));
 
-        uint256 lastId2 = stakingModule.getIdCounter();
-        assertEq(lastId2, 2);
-        assertEq(address(stakingModule.underlyingToken(lastId2)), address(mockERC20.token1));
+        assertEq(newId2, 2);
+        assertEq(address(stakingModule.underlyingToken(newId2)), address(mockERC20.token1));
     }
 }
