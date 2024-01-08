@@ -134,13 +134,13 @@ contract UniswapV3AssetModule is DerivedAssetModule {
             uint24,
             int24,
             int24,
-            uint128,
+            uint128 liquidity,
             uint256,
             uint256,
             uint128,
             uint128
         ) {
-            return IRegistry(REGISTRY).isAllowed(token0, 0) && IRegistry(REGISTRY).isAllowed(token1, 0);
+            return IRegistry(REGISTRY).isAllowed(token0, 0) && IRegistry(REGISTRY).isAllowed(token1, 0) && liquidity > 0;
         } catch {
             return false;
         }
