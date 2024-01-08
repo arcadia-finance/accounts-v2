@@ -654,6 +654,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ///////////////////////////////////////////////////////////////*/
 
     /**
+     * @notice Updates the actionTimestamp.
+     * @dev Used to avoid frontrunning transfers of the account with actions in the Creditor.
+     */
+    function updateActionTimestampByCreditor() external onlyCreditor updateActionTimestamp { }
+
+    /**
      * @notice Checks that the increase of the open position is allowed.
      * @param openPosition The new open position.
      * @return accountVersion The current Account version.
