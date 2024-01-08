@@ -584,8 +584,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * - Automate actions by keeper networks.
      * - Do flash actions (optimistic actions).
      * - Chain multiple interactions together (eg. deposit and trade in one transaction).
+     * @dev Anyone can set the Asset Manager for themselves, this will not impact the current owner of the Account
+     * since the combination of "stored owner -> asset manager" is used in authentication checks.
      */
-    function setAssetManager(address assetManager, bool value) external onlyOwner {
+    function setAssetManager(address assetManager, bool value) external {
         emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = value);
     }
 
