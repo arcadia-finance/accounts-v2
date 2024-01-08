@@ -581,20 +581,20 @@ abstract contract StakingModuleExtension is StakingModule {
         assetState[asset].lastRewardGlobal = balance;
     }
 
-    function setTotalSupply(address asset, uint128 totalStaked_) public {
+    function setTotalStaked(address asset, uint128 totalStaked_) public {
         assetState[asset].totalStaked = totalStaked_;
     }
 
-    function setLastRewardPosition(uint256 id, uint128 rewards_, address account) public {
-        accountState[account][id].lastRewardPosition = rewards_;
+    function setLastRewardPerTokenGlobal(address asset, uint128 amount) public {
+        assetState[asset].lastRewardPerTokenGlobal = amount;
     }
 
-    function setLastRewardPerTokenPosition(uint256 id, uint128 rewardPaid, address account) public {
-        accountState[account][id].lastRewardPerTokenPosition = rewardPaid;
+    function setLastRewardPosition(uint256 id, uint128 rewards_) public {
+        positionState[id].lastRewardPosition = rewards_;
     }
 
-    function setLastRewardPerTokenGlobal(uint256 id, uint128 amount) public {
-        tokenState[id].lastRewardPerTokenGlobal = amount;
+    function setLastRewardPerTokenPosition(uint256 id, uint128 rewardPaid) public {
+        positionState[id].lastRewardPerTokenPosition = rewardPaid;
     }
 
     function setAmountStakedForPosition(uint256 id, uint256 amount) public {
@@ -605,21 +605,20 @@ abstract contract StakingModuleExtension is StakingModule {
         lastId_ = lastId;
     }
 
-    function getCurrentBalances(address account, uint256 id)
+    function getCurrentBalances(address asset)
         public
         view
-        returns (
-            uint256 currentRewardPerToken,
-            uint256 currentRewardGlobal,
-            uint256 totalSupply_,
-            uint256 currentRewardPosition
-        )
+        returns (uint256 currentRewardPerToken, uint256 totalStaked, uint256 currentRewardGlobal)
     {
-        return _getCurrentBalances(account, id);
+        return _getCurrentBalances(asset);
     }
 
-    function addNewStakingToken(address asset, address rewardToken) public returns (uint256 tokenId) {
-        tokenId = _addNewStakingToken(asset, rewardToken);
+    function getCurrentBalances(PositionState memory positionState_)
+        public
+        view
+        returns (uint256 currentRewardPerToken, uint256 totalStaked, uint256 currentRewardPosition)
+    {
+        return _getCurrentBalances(positionState_);
     }
 }
 

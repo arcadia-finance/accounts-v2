@@ -9,7 +9,6 @@ import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { ReentrancyGuard } from "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
 import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
-import { Owned } from "../../../lib/solmate/src/auth/Owned.sol";
 
 /**
  * @title Staking Module
@@ -23,7 +22,7 @@ import { Owned } from "../../../lib/solmate/src/auth/Owned.sol";
  *  - Withdrawing the underlying tokens from staked positions.
  *  - Claiming reward tokens.
  */
-abstract contract StakingModule is ERC721, ReentrancyGuard, Owned {
+abstract contract StakingModule is ERC721, ReentrancyGuard {
     using FixedPointMathLib for uint256;
     using SafeTransferLib for ERC20;
 
@@ -34,8 +33,6 @@ abstract contract StakingModule is ERC721, ReentrancyGuard, Owned {
     // The tokenId of last minted ERC721 token.
     uint256 internal lastId;
 
-    // Map underlying token and reward token pair to their corresponding staking token id.
-    mapping(address underlyingToken => mapping(address rewardToken => uint256 id)) public tokenToRewardToId;
     // Map staking token id to its corresponding reward token.
     mapping(address asset => ERC20 rewardToken) public rewardToken;
     // Map staking token id to its corresponding struct with global state.
@@ -86,10 +83,10 @@ abstract contract StakingModule is ERC721, ReentrancyGuard, Owned {
     error AssetNotMatching();
 
     /* //////////////////////////////////////////////////////////////
-                                CONSTRUCTOR
+                            CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
-    constructor() Owned(msg.sender) { }
+    constructor() ERC721("ArcadiaStargatePositions", "ASP") { }
 
     /*///////////////////////////////////////////////////////////////
                     STAKING MODULE LOGIC

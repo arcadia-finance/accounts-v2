@@ -23,7 +23,6 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         uint128 lastRewardPerTokenGlobal;
         uint128 lastRewardGlobal;
         uint128 totalStaked;
-        uint128 amountStakedForId;
     }
 
     struct StakingModuleStateForPosition {
@@ -72,13 +71,13 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         (stakingModuleStateForAsset_, stakingModuleStateForPosition_) =
             givenValidStakingModuleState(stakingModuleStateForAsset, stakingModuleStateForPosition);
 
-        stakingModule.setLastRewardGlobal(asset, stakingModuleState_.lastRewardGlobal);
-        stakingModule.setTotalStaked(asset, stakingModuleState_.totalStaked);
-        stakingModule.setLastRewardPosition(asset, stakingModuleState_.lastRewardPosition, account);
-        stakingModule.setLastRewardPerTokenPosition(asset, stakingModuleState_.lastRewardPerTokenPosition, account);
-        stakingModule.setLastRewardPerTokenGlobal(asset, stakingModuleState_.lastRewardPerTokenGlobal);
-        stakingModule.setActualRewardBalance(asset, stakingModuleState_.currentRewardGlobal);
-        stakingModule.setAmountStakedForPosition(asset, stakingModuleState_.amountStakedForId);
+        stakingModule.setLastRewardGlobal(asset, stakingModuleStateForAsset_.lastRewardGlobal);
+        stakingModule.setTotalStaked(asset, stakingModuleStateForAsset_.totalStaked);
+        stakingModule.setLastRewardPosition(id, stakingModuleStateForPosition_.lastRewardPosition);
+        stakingModule.setLastRewardPerTokenPosition(id, stakingModuleStateForPosition_.lastRewardPerTokenPosition);
+        stakingModule.setLastRewardPerTokenGlobal(asset, stakingModuleStateForAsset_.lastRewardPerTokenGlobal);
+        stakingModule.setActualRewardBalance(asset, stakingModuleStateForAsset_.currentRewardGlobal);
+        stakingModule.setAmountStakedForPosition(id, stakingModuleStateForPosition_.amountStakedForId);
     }
 
     function givenValidStakingModuleState(
@@ -124,27 +123,29 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         uint128 rewardPerTokenClaimable = stakingModuleStateForAsset.lastRewardPerTokenGlobal
             + ((stakingModuleStateForAsset.currentRewardGlobal - stakingModuleStateForAsset.lastRewardGlobal) * 1e18);
 
-        // Given : amountStakedForId * rewardPerTokenClaimable should not be > type(uint128)
-        stakingModuleState.amountStakedForId =
-            uint128(bound(stakingModuleState.amountStakedForId, 0, (type(uint128).max) - rewardPerTokenClaimable));
+        // Given : amountStaked * rewardPerTokenClaimable should not be > type(uint128)
+        stakingModuleStateForPosition.amountStaked =
+            uint128(bound(stakingModuleStateForPosition.amountStaked, 0, (type(uint128).max) - rewardPerTokenClaimable));
 
         // Extra check for the above
-        vm.assume(uint256(stakingModuleState.amountStakedForId) * rewardPerTokenClaimable < type(uint128).max);
+        vm.assume(uint256(stakingModuleStateForPosition.amountStaked) * rewardPerTokenClaimable < type(uint128).max);
 
         // Given : previously earned rewards for Account + new rewards should not be > type(uint128).max.
-        stakingModuleState.lastRewardPosition = uint128(
+        stakingModuleStateForPosition.lastRewardPosition = uint128(
             bound(
-                stakingModuleState.lastRewardPosition,
+                stakingModuleStateForPosition.lastRewardPosition,
                 0,
-                type(uint128).max - (stakingModuleState.amountStakedForId * rewardPerTokenClaimable)
+                type(uint128).max - (stakingModuleStateForPosition.amountStaked * rewardPerTokenClaimable)
             )
         );
 
         // Given : totalSupply should be >= to amountStakedForId
-        stakingModuleState.totalSupply =
-            uint128(bound(stakingModuleState.totalSupply, stakingModuleState.amountStakedForId, type(uint128).max));
+        stakingModuleStateForAsset.totalStaked = uint128(
+            bound(stakingModuleStateForAsset.totalStaked, stakingModuleStateForPosition.amountStaked, type(uint128).max)
+        );
 
-        stakingModuleState_ = stakingModuleState;
+        stakingModuleStateForAsset_ = stakingModuleStateForAsset;
+        stakingModuleStateForPosition_ = stakingModuleStateForPosition;
     }
 
     function addStakingTokens(uint8 numberOfTokens, uint8 underlyingTokenDecimals, uint8 rewardTokenDecimals)
