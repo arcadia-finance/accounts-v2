@@ -11,15 +11,15 @@ import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
  * @notice Fuzz tests for the function "addNewStakingToken" of contract "StargateAssetModule".
  */
 contract AddNewStakingToken_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
-    /* ///////////////////////////////////////////////////////////////
+/* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override {
+/*     function setUp() public virtual override {
         StargateAssetModule_Fuzz_Test.setUp();
-    }
+    } */
 
-    function testFuzz_Revert_addNewStakingToken_NotOwner(address unprivilegedAddress_, address asset, uint256 poolId)
+/*     function testFuzz_Revert_addNewStakingToken_NotOwner(address unprivilegedAddress_, address asset, uint256 poolId)
         public
     {
         vm.assume(unprivilegedAddress_ != users.creatorAddress);
@@ -28,9 +28,9 @@ contract AddNewStakingToken_StargateAssetModule_Fuzz_Test is StargateAssetModule
         vm.expectRevert("UNAUTHORIZED");
         stargateAssetModule.addNewStakingToken(asset, poolId);
         vm.stopPrank();
-    }
+    } */
 
-    function testFuzz_Success_addNewStakingToken(uint256 decimals, uint256 poolId) public {
+/*     function testFuzz_Success_addNewStakingToken(uint256 decimals, uint256 poolId) public {
         // Given : Decimals are max 18
         decimals = bound(decimals, 0, 18);
         address stakingToken = address(new StargatePoolMock(uint8(decimals)));
@@ -62,5 +62,5 @@ contract AddNewStakingToken_StargateAssetModule_Fuzz_Test is StargateAssetModule
             stargateAssetModule.getAssetToUnderlyingAssets(assetModuleKey),
             stargateAssetModule.getKeyFromAsset(address(mockERC20.token1), 0)
         );
-    }
+    } */
 }

@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, StakingModule } from "./_AbstractStakingModule.fuzz.t.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -28,45 +28,49 @@ contract RewardOf_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModu
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_Success_rewardOf_ZeroBalanceOf(
-        StakingModuleStateForAsset memory moduleState,
-        uint256 id,
-        address account
+        StakingModuleStateForAsset memory assetState,
+        StakingModule.PositionState memory positionState,
+        uint256 tokenId,
+        address account,
+        address asset
     ) public {
         // Given : Valid state
-        moduleState = setStakingModuleState(moduleState, id, account);
+        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
 
         // And: Account balance is zero.
-        stakingModule.setBalanceOf(id, 0, account);
+        stakingModule.setAmountStakedForPosition(tokenId, 0);
 
         // When : Calling rewardOf()
-        uint256 currentRewardAccount = stakingModule.rewardOf(account, id);
+        uint256 currentRewardPosition = stakingModule.rewardOf(tokenId);
 
         // Then : It should return zero.
-        assertEq(currentRewardAccount, 0);
+        assertEq(currentRewardPosition, 0);
     }
 
     function testFuzz_Success_rewardOf_NonZeroBalanceOf(
-        StakingModuleStateForAsset memory moduleState,
-        uint256 id,
-        address account
+        StakingModuleStateForAsset memory assetState,
+        StakingModule.PositionState memory positionState,
+        uint256 tokenId,
+        address account,
+        address asset
     ) public {
         // Given : Valid state
-        moduleState = setStakingModuleState(moduleState, id, account);
+        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
 
         // And: Account balance is non zero.
-        vm.assume(moduleState.accountBalance > 0);
+        vm.assume(positionState.amountStaked > 0);
 
         // When : Calling rewardOf()
-        uint256 currentRewardAccount = stakingModule.rewardOf(account, id);
+        uint256 currentRewardPosition = stakingModule.rewardOf(tokenId);
 
         // Then : It should return the correct value
-        uint256 deltaRewardGlobal = moduleState.currentRewardGlobal - moduleState.lastRewardGlobal;
+        uint256 deltaRewardGlobal = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
         uint256 rewardPerToken =
-            moduleState.lastRewardPerTokenGlobal + deltaRewardGlobal.mulDivDown(1e18, moduleState.totalSupply);
-        uint256 deltaRewardPerToken = rewardPerToken - moduleState.lastRewardPerTokenAccount;
-        uint256 currentRewardAccount_ =
-            moduleState.lastRewardAccount + uint256(moduleState.accountBalance).mulDivDown(deltaRewardPerToken, 1e18);
+            assetState.lastRewardPerTokenGlobal + deltaRewardGlobal.mulDivDown(1e18, assetState.totalStaked);
+        uint256 deltaRewardPerToken = rewardPerToken - positionState.lastRewardPerTokenPosition;
+        uint256 currentRewardPosition_ =
+            positionState.lastRewardPosition + uint256(positionState.amountStaked).mulDivDown(deltaRewardPerToken, 1e18);
 
-        assertEq(currentRewardAccount, currentRewardAccount_);
+        assertEq(currentRewardPosition, currentRewardPosition_);
     }
 }

@@ -581,6 +581,14 @@ abstract contract StakingModuleExtension is StakingModule {
         assetState[asset].lastRewardGlobal = balance;
     }
 
+    function setAssetAndRewardToken(address asset, ERC20 rewardToken) public {
+        assetToRewardToken[asset] = rewardToken;
+    }
+
+    function setAssetInPosition(address asset, uint256 tokenId) public {
+        positionState[tokenId].asset = asset;
+    }
+
     function setTotalStaked(address asset, uint128 totalStaked_) public {
         assetState[asset].totalStaked = totalStaked_;
     }

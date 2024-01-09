@@ -67,9 +67,9 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event RewardPaid(address indexed account, uint256 id, uint256 reward);
-    event Staked(address indexed account, uint256 id, uint128 amount);
-    event Withdrawn(address indexed account, uint256 id, uint128 amount);
+    event RewardPaid(address indexed account, address reward, uint128 amount);
+    event Staked(address indexed account, address asset, uint128 amount);
+    event Withdrawn(address indexed account, address asset, uint128 amount);
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -121,8 +121,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         // Stake asset in external staking contract.
         _stake(asset, amount);
 
-        // Note : check emit data
-        emit Staked(msg.sender, 1, amount);
+        emit Staked(msg.sender, asset, amount);
     }
 
     /**
@@ -166,16 +165,18 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         _claimReward(asset);
         // Pay out the share of the reward owed to the Account.
         if (currentRewardSender > 0) {
-            assetToRewardToken[asset].safeTransfer(msg.sender, currentRewardSender);
+            // Cache reward token
+            ERC20 rewardToken_ = assetToRewardToken[asset];
+            // Transfer reward
+            rewardToken_.safeTransfer(msg.sender, currentRewardSender);
             // Note : check emit data
-            emit RewardPaid(msg.sender, tokenId, currentRewardSender);
+            emit RewardPaid(msg.sender, address(rewardToken_), uint128(currentRewardSender));
         }
 
         // Transfer the underlying tokens back to the Account.
         ERC20(asset).safeTransfer(msg.sender, amount);
 
-        // Note : check emit data
-        emit Withdrawn(msg.sender, tokenId, amount);
+        emit Withdrawn(msg.sender, asset, amount);
     }
 
     /**
@@ -183,7 +184,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      * @param tokenId The id of the specific staking token.
      */
     function claimReward(uint256 tokenId) external virtual nonReentrant {
-        if (ownerOf(tokenId) != msg.sender) revert NotOwner();
+        if (_ownerOf[tokenId] != msg.sender) revert NotOwner();
 
         PositionState memory positionState_ = positionState[tokenId];
 
@@ -206,14 +207,16 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         _claimReward(asset);
         // Pay out the share of the reward owed to the Account.
         if (currentRewardClaimable > 0) {
-            assetToRewardToken[asset].safeTransfer(msg.sender, currentRewardClaimable);
-            // note : check emit data
-            emit RewardPaid(msg.sender, tokenId, currentRewardClaimable);
+            // Cache reward
+            ERC20 rewardToken_ = assetToRewardToken[asset];
+            // Transfer reward
+            rewardToken_.safeTransfer(msg.sender, currentRewardClaimable);
+            emit RewardPaid(msg.sender, address(rewardToken_), uint128(currentRewardClaimable));
         }
     }
 
     function _stakeForExistingPosition(uint256 tokenId, address asset, uint128 amount) internal {
-        if (ownerOf(tokenId) != msg.sender) revert NotOwner();
+        if (_ownerOf[tokenId] != msg.sender) revert NotOwner();
 
         PositionState storage positionState_ = positionState[tokenId];
         AssetState storage assetState_ = assetState[asset];

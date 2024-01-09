@@ -26,6 +26,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
     }
 
     struct StakingModuleStateForPosition {
+        address owner;
         address asset;
         uint128 amountStaked;
         uint128 lastRewardPerTokenPosition;
@@ -58,14 +59,14 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
 
     function setStakingModuleState(
         StakingModuleStateForAsset memory stakingModuleStateForAsset,
-        StakingModuleStateForPosition memory stakingModuleStateForPosition,
+        StakingModule.PositionState memory stakingModuleStateForPosition,
         address asset,
         uint256 id
     )
         internal
         returns (
             StakingModuleStateForAsset memory stakingModuleStateForAsset_,
-            StakingModuleStateForPosition memory stakingModuleStateForPosition_
+            StakingModule.PositionState memory stakingModuleStateForPosition_
         )
     {
         (stakingModuleStateForAsset_, stakingModuleStateForPosition_) =
@@ -78,17 +79,18 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         stakingModule.setLastRewardPerTokenGlobal(asset, stakingModuleStateForAsset_.lastRewardPerTokenGlobal);
         stakingModule.setActualRewardBalance(asset, stakingModuleStateForAsset_.currentRewardGlobal);
         stakingModule.setAmountStakedForPosition(id, stakingModuleStateForPosition_.amountStaked);
+        stakingModule.setAssetInPosition(asset, id);
     }
 
     function givenValidStakingModuleState(
         StakingModuleStateForAsset memory stakingModuleStateForAsset,
-        StakingModuleStateForPosition memory stakingModuleStateForPosition
+        StakingModule.PositionState memory stakingModuleStateForPosition
     )
         public
         view
         returns (
             StakingModuleStateForAsset memory stakingModuleStateForAsset_,
-            StakingModuleStateForPosition memory stakingModuleStateForPosition_
+            StakingModule.PositionState memory stakingModuleStateForPosition_
         )
     {
         // Given : Actual reward balance should be at least equal to lastRewardGlobal.
@@ -146,5 +148,26 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
 
         stakingModuleStateForAsset_ = stakingModuleStateForAsset;
         stakingModuleStateForPosition_ = stakingModuleStateForPosition;
+    }
+
+    function addAssets(uint8 numberOfAssets, uint8 assetDecimals, uint8 rewardTokenDecimals)
+        public
+        returns (address[] memory assets, address[] memory rewardTokens)
+    {
+        assets = new address[](numberOfAssets);
+        rewardTokens = new address[](numberOfAssets);
+
+        assetDecimals = uint8(bound(assetDecimals, 0, 18));
+        rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 18));
+
+        for (uint8 i = 0; i < numberOfAssets; ++i) {
+            ERC20Mock asset = new ERC20Mock("Asset", "AST", assetDecimals);
+            ERC20Mock rewardToken = new ERC20Mock("RewardToken", "RWT", rewardTokenDecimals);
+
+            assets[i] = address(asset);
+            rewardTokens[i] = address(rewardToken);
+
+            stakingModule.setAssetAndRewardToken(address(asset), rewardToken);
+        }
     }
 }
