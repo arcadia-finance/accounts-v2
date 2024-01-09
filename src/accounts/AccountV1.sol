@@ -502,7 +502,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @return assetAddresses Array of the contract addresses of the assets in Account.
      * @return assetIds Array of the IDs of the assets in Account.
      * @return assetAmounts Array with the amounts of the assets in Account.
-     * @return creditor_ The Creditor, address 0 if no active Creditor.
+     * @return creditor_ The contract address of the Creditor.
+     * @return minimumMargin_ The minimum margin.
      * @return openPosition The open position (liabilities) issued against the Account.
      * @return assetAndRiskValues Array of asset values and corresponding collateral and liquidation factors.
      */
@@ -516,12 +517,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
             uint256[] memory assetIds,
             uint256[] memory assetAmounts,
             address creditor_,
+            uint96 minimumMargin_,
             uint256 openPosition,
             AssetValueAndRiskFactors[] memory assetAndRiskValues
         )
     {
         inAuction = true;
         creditor_ = creditor;
+        minimumMargin_ = minimumMargin;
 
         (assetAddresses, assetIds, assetAmounts) = generateAssetData();
         assetAndRiskValues =
