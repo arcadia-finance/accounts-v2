@@ -39,7 +39,7 @@ contract Withdraw_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModu
 
     function testFuzz_Success_Withdraw(
         address account,
-        StakingModuleStateForId memory moduleState,
+        StakingModuleStateForAsset memory moduleState,
         uint8 underlyingTokenDecimals,
         uint8 rewardTokenDecimals
     ) public {
@@ -50,7 +50,7 @@ contract Withdraw_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModu
         uint256 id = 2;
 
         // Given : Valid state
-        StakingModuleStateForId memory moduleState_ = setStakingModuleState(moduleState, id, account);
+        StakingModuleStateForAsset memory moduleState_ = setStakingModuleState(moduleState, id, account);
 
         // Given : Add a staking token + reward token pairs
         (address[] memory underlyingTokens, address[] memory rewardTokens) =

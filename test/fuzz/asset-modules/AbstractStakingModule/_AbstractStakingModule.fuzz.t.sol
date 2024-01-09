@@ -64,7 +64,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
     )
         internal
         returns (
-            StakingModuleStateForId memory stakingModuleStateForAsset_,
+            StakingModuleStateForAsset memory stakingModuleStateForAsset_,
             StakingModuleStateForPosition memory stakingModuleStateForPosition_
         )
     {
@@ -77,7 +77,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         stakingModule.setLastRewardPerTokenPosition(id, stakingModuleStateForPosition_.lastRewardPerTokenPosition);
         stakingModule.setLastRewardPerTokenGlobal(asset, stakingModuleStateForAsset_.lastRewardPerTokenGlobal);
         stakingModule.setActualRewardBalance(asset, stakingModuleStateForAsset_.currentRewardGlobal);
-        stakingModule.setAmountStakedForPosition(id, stakingModuleStateForPosition_.amountStakedForId);
+        stakingModule.setAmountStakedForPosition(id, stakingModuleStateForPosition_.amountStaked);
     }
 
     function givenValidStakingModuleState(
@@ -146,26 +146,5 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
 
         stakingModuleStateForAsset_ = stakingModuleStateForAsset;
         stakingModuleStateForPosition_ = stakingModuleStateForPosition;
-    }
-
-    function addStakingTokens(uint8 numberOfTokens, uint8 underlyingTokenDecimals, uint8 rewardTokenDecimals)
-        public
-        returns (address[] memory underlyingTokens, address[] memory rewardTokens)
-    {
-        underlyingTokens = new address[](numberOfTokens);
-        rewardTokens = new address[](numberOfTokens);
-
-        underlyingTokenDecimals = uint8(bound(underlyingTokenDecimals, 0, 18));
-        rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 18));
-
-        for (uint8 i = 0; i < numberOfTokens; ++i) {
-            ERC20Mock underlyingToken = new ERC20Mock("UnderlyingToken", "UTK", underlyingTokenDecimals);
-            ERC20Mock rewardToken = new ERC20Mock("RewardToken", "RWT", rewardTokenDecimals);
-
-            underlyingTokens[i] = address(underlyingToken);
-            rewardTokens[i] = address(rewardToken);
-
-            stakingModule.addNewStakingToken(address(underlyingToken), address(rewardToken));
-        }
     }
 }

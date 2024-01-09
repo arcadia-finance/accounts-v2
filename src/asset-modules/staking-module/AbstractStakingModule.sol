@@ -34,7 +34,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
     uint256 internal lastId;
 
     // Map staking token id to its corresponding reward token.
-    mapping(address asset => ERC20 rewardToken) public rewardToken;
+    mapping(address asset => ERC20 rewardToken) public assetToRewardToken;
     // Map staking token id to its corresponding struct with global state.
     mapping(address asset => AssetState) public assetState;
     // Map Account and staking token id to its corresponding struct with the account specific state.
@@ -105,7 +105,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         returns (uint256 tokenId_)
     {
         if (amount == 0) revert ZeroAmount();
-        if (address(rewardToken[asset]) == address(0)) revert AssetNotAllowed();
+        if (address(assetToRewardToken[asset]) == address(0)) revert AssetNotAllowed();
 
         // Need to transfer the underlying asset before minting or ERC777s could reenter.
         ERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
@@ -166,7 +166,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         _claimReward(asset);
         // Pay out the share of the reward owed to the Account.
         if (currentRewardSender > 0) {
-            rewardToken[asset].safeTransfer(msg.sender, currentRewardSender);
+            assetToRewardToken[asset].safeTransfer(msg.sender, currentRewardSender);
             // Note : check emit data
             emit RewardPaid(msg.sender, tokenId, currentRewardSender);
         }
@@ -206,7 +206,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         _claimReward(asset);
         // Pay out the share of the reward owed to the Account.
         if (currentRewardClaimable > 0) {
-            rewardToken[asset].safeTransfer(msg.sender, currentRewardClaimable);
+            assetToRewardToken[asset].safeTransfer(msg.sender, currentRewardClaimable);
             // note : check emit data
             emit RewardPaid(msg.sender, tokenId, currentRewardClaimable);
         }

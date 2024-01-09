@@ -28,7 +28,7 @@ contract GetCurrentBalances_AbstractAbstractStakingModule_Fuzz_Test is AbstractS
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_Success_getCurrentBalances_ZeroTotalSupply(
-        StakingModuleStateForId memory moduleState,
+        StakingModuleStateForAsset memory moduleState,
         uint256 id,
         address account
     ) public {
@@ -50,7 +50,7 @@ contract GetCurrentBalances_AbstractAbstractStakingModule_Fuzz_Test is AbstractS
     }
 
     function testFuzz_Success_getCurrentBalances_NonZeroTotalSupply_ZeroBalanceOf(
-        StakingModuleStateForId memory moduleState,
+        StakingModuleStateForAsset memory moduleState,
         uint256 id,
         address account
     ) public {
@@ -79,7 +79,7 @@ contract GetCurrentBalances_AbstractAbstractStakingModule_Fuzz_Test is AbstractS
     }
 
     function testFuzz_Success_getCurrentBalances_NonZeroTotalSupply_NonZeroBalanceOf(
-        StakingModuleStateForId memory moduleState,
+        StakingModuleStateForAsset memory moduleState,
         uint256 id,
         address account
     ) public {

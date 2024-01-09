@@ -28,25 +28,29 @@ contract ClaimReward_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingM
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_Success_claimReward_ZeroReward(
-        uint256 id,
+        address asset,
         address account,
         uint128 lastRewardGlobal,
         uint128 lastRewardPerTokenGlobal,
-        uint128 accountBalance
+        uint128 accountBalance,
+        uint256 tokenId
     ) public {
         // Given : lastRewardGlobal > 0, since we are claiming the rewards of the external staking contract via claimReward() we have to validate that lastRewardGlobal is set to 0 after. currentRewardGlobal should be equal to lastRewardGlobal, as account should not earn over that period.
         vm.assume(lastRewardGlobal > 0);
-        stakingModule.setLastRewardGlobal(id, lastRewardGlobal);
-        stakingModule.setActualRewardBalance(id, lastRewardGlobal);
+        stakingModule.setLastRewardGlobal(asset, lastRewardGlobal);
+        stakingModule.setActualRewardBalance(asset, lastRewardGlobal);
 
         // Given : lastRewardPerTokenGlobal should be equal to lastRewardPerTokenAccount (= no reward currentRewardAccount for Account).
-        stakingModule.setLastRewardPerTokenGlobal(id, lastRewardPerTokenGlobal);
-        stakingModule.setLastRewardPerTokenAccount(id, lastRewardPerTokenGlobal, account);
+        stakingModule.setLastRewardPerTokenGlobal(asset, lastRewardPerTokenGlobal);
+        stakingModule.setLastRewardPerTokenPosition(tokenId, lastRewardPerTokenGlobal);
 
         // Given : Account has a non-zero balance.
-        vm.assume(accountBalance > 0);
-        stakingModule.setBalanceOf(id, accountBalance, account);
-        stakingModule.setTotalSupply(id, accountBalance);
+        vm.assume(positionAmount > 0);
+        stakingModule.setAmountStakedForPosition(tokenId, positionAmount);
+        stakingModule.setTotalStaked(asset, positionAmount);
+
+        // Given : Account is owner of the position.
+        stakingModule.setOwnerOfTokenId(account, tokenId);
 
         // When : Account calls claimReward().
         vm.prank(account);
@@ -61,7 +65,7 @@ contract ClaimReward_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingM
 
     function testFuzz_Success_claimReward_RewardGreaterThanZero(
         address account,
-        StakingModuleStateForId memory moduleState,
+        StakingModuleStateForAsset memory moduleState,
         uint128 rewardIncrease,
         uint8 underlyingTokenDecimals,
         uint8 rewardTokenDecimals
@@ -73,7 +77,7 @@ contract ClaimReward_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingM
         uint256 id = 1;
 
         // Given : Valid state
-        StakingModuleStateForId memory moduleState_ = setStakingModuleState(moduleState, id, account);
+        StakingModuleStateForAsset memory moduleState_ = setStakingModuleState(moduleState, id, account);
 
         // Given : Add a staking token + reward token pair
         addStakingTokens(1, underlyingTokenDecimals, rewardTokenDecimals);

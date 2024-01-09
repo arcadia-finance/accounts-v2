@@ -26,6 +26,9 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     // The Stargate LP tokens staking contract.
     ILpStakingTime public immutable lpStakingTime;
 
+    // The reward token (STG token)
+    ERC20 public constant rewardToken_ = ERC20(0xE3B53AF74a4BF62Ae5511055290838050bf764Df);
+
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
@@ -64,21 +67,20 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     /**
      * @notice Adds a new asset (ERC1155 tokenId and it's corresponding Stargate Pool LP) to the StargateAssetModule.
      * @param stargatePool The ERC1155 token id of this contract.
-     * @param rewardToken_ The pool id relative to the underlying asset of "tokenId" in Stargate "lpStakingTime.sol" contract.
      * @param poolId x
      */
     // Note : discuss if this should be an onlyOwner fct
     // Note : can we do a check on assetToPoolId
-    function addStakingToken(address stargatePool, address rewardToken_, uint256 poolId) internal onlyOwner {
-        if (ERC20(stargatePool).decimals() > 18 || ERC20(rewardToken_).decimals() > 18) revert InvalidTokenDecimals();
+    function addStakingToken(address stargatePool, uint256 poolId) external onlyOwner {
+        if (ERC20(stargatePool).decimals() > 18) revert InvalidTokenDecimals();
 
-        if (address(rewardToken[stargatePool]) != address(0)) revert AssetAndRewardPairAlreadySet();
+        if (address(assetToRewardToken[stargatePool]) != address(0)) revert AssetAndRewardPairAlreadySet();
 
         address poolUnderlyingToken = IPool(stargatePool).token();
 
         if (!IRegistry(REGISTRY).isAllowed(poolUnderlyingToken, 0)) revert AssetNotAllowed();
 
-        rewardToken[stargatePool] = ERC20(rewardToken_);
+        assetToRewardToken[stargatePool] = rewardToken_;
         assetToPoolId[stargatePool] = poolId;
         assetToUnderlyingAsset[stargatePool] = poolUnderlyingToken;
     }
@@ -118,7 +120,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
      * @param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
-     * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
+     * param assetAmount The amount of the asset, in the decimal precision of the Asset.
      * param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
@@ -126,7 +128,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     function _getUnderlyingAssetsAmounts(
         address creditor,
         bytes32 assetKey,
-        uint256 assetAmount,
+        uint256,
         bytes32[] memory underlyingAssetKeys
     )
         internal
@@ -163,7 +165,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
                     STAKING MODULE LOGIC
     ///////////////////////////////////////////////////////////////*/
 
-    function claimReward(uint256 tokenId) external override {
+    function claimReward(uint256) external pure override {
         revert RewardsOnlyClaimableOnWithdrawal();
     }
 
@@ -203,11 +205,13 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     function _claimReward(address asset) internal override { }
 
     /**
-     * @notice Returns the amount of reward tokens that can be claimed by this contract.
+     * @notice Returns the amount of reward tokens that can be claimed by this contract for a specific asset.
      * @param asset The id of the specific staking token.
      * @return currentReward The amount of rewards tokens that can be claimed.
      */
     function _getCurrentReward(address asset) internal view override returns (uint256 currentReward) {
         currentReward = lpStakingTime.pendingEmissionToken(assetToPoolId[asset], address(this));
     }
+
+    function tokenURI(uint256 id) public view virtual override returns (string memory) { }
 }

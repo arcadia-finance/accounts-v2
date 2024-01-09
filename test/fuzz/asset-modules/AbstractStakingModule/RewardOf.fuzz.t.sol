@@ -28,7 +28,7 @@ contract RewardOf_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModu
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_Success_rewardOf_ZeroBalanceOf(
-        StakingModuleStateForId memory moduleState,
+        StakingModuleStateForAsset memory moduleState,
         uint256 id,
         address account
     ) public {
@@ -46,7 +46,7 @@ contract RewardOf_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModu
     }
 
     function testFuzz_Success_rewardOf_NonZeroBalanceOf(
-        StakingModuleStateForId memory moduleState,
+        StakingModuleStateForAsset memory moduleState,
         uint256 id,
         address account
     ) public {

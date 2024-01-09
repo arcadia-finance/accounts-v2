@@ -598,11 +598,15 @@ abstract contract StakingModuleExtension is StakingModule {
     }
 
     function setAmountStakedForPosition(uint256 id, uint256 amount) public {
-        positionState[id].amountStaked = amount;
+        positionState[id].amountStaked = uint128(amount);
     }
 
     function getIdCounter() public view returns (uint256 lastId_) {
         lastId_ = lastId;
+    }
+
+    function setOwnerOfTokenId(address owner, uint256 tokenId) public {
+        _ownerOf[tokenId] = owner;
     }
 
     function getCurrentBalances(address asset)
@@ -625,28 +629,12 @@ abstract contract StakingModuleExtension is StakingModule {
 contract StargateAssetModuleExtension is StargateAssetModule {
     constructor(address registry, address stargateLpStaking_) StargateAssetModule(registry, stargateLpStaking_) { }
 
-    function setUnderlyingTokenForId(uint256 id, address underlyingToken_) public {
-        underlyingToken[id] = ERC20(underlyingToken_);
+    function setAssetToUnderlyingAsset(address asset, address underlyingAsset) public {
+        assetToUnderlyingAsset[asset] = underlyingAsset;
     }
 
-    function setAssetKeyToPool(bytes32 assetKey, address pool) public {
-        assetKeyToPool[assetKey] = pool;
-    }
-
-    function setTokenIdToPoolId(uint256 tokenId, uint256 poolId) public {
-        tokenIdToPoolId[tokenId] = poolId;
-    }
-
-    function getTokenIdToPoolId(uint256 tokenId) public view returns (uint256 poolId) {
-        poolId = tokenIdToPoolId[tokenId];
-    }
-
-    function getAssetToUnderlyingAssets(bytes32 assetKey) public view returns (bytes32 underlyingAssetKey) {
-        underlyingAssetKey = assetToUnderlyingAssets[assetKey][0];
-    }
-
-    function getAssetKeyToPool(bytes32 assetKey) public view returns (address pool) {
-        pool = assetKeyToPool[assetKey];
+    function setAssetToPoolId(address asset, uint256 poolId) public {
+        assetToPoolId[asset] = poolId;
     }
 
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
@@ -679,19 +667,17 @@ contract StargateAssetModuleExtension is StargateAssetModule {
         lastId_ = lastId;
     }
 
-    function stakeExtension(uint256 id, uint256 amount) public {
-        _stake(id, amount);
+    function stakeExtension(address asset, uint256 amount) public {
+        _stake(asset, amount);
     }
 
-    function withdrawExtension(uint256 id, uint256 amount) public {
-        _withdraw(id, amount);
+    function withdrawExtension(address asset, uint256 amount) public {
+        _withdraw(asset, amount);
     }
 
-    function getCurrentReward(uint256 id) public view returns (uint256 currentReward) {
-        currentReward = _getCurrentReward(id);
+    function getCurrentReward(address asset) public view returns (uint256 currentReward) {
+        currentReward = _getCurrentReward(asset);
     }
 
-    function addAsset(uint256 tokenId, uint256 stargatePoolId, address stargatePool) public {
-        _addAsset(tokenId, stargatePoolId, stargatePool);
-    }
+    function tokenURI(uint256 id) public view override returns (string memory) { }
 }
