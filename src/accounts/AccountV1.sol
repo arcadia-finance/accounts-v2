@@ -531,8 +531,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
             IRegistry(registry).getValuesInNumeraire(numeraire, creditor_, assetAddresses, assetIds, assetAmounts);
 
         // Since the function is only callable by the Liquidator, we know that a liquidator and a Creditor are set.
-        openPosition = ICreditor(creditor_).startLiquidation(initiator);
-        uint256 usedMargin = openPosition + minimumMargin;
+        openPosition = ICreditor(creditor_).startLiquidation(initiator, minimumMargin_);
+        uint256 usedMargin = openPosition + minimumMargin_;
 
         if (openPosition == 0 || assetAndRiskValues._calculateLiquidationValue() >= usedMargin) {
             revert AccountErrors.AccountNotLiquidatable();

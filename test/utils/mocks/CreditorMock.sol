@@ -69,7 +69,7 @@ contract CreditorMock {
         minimumMargin = minimumMargin_;
     }
 
-    function startLiquidation(address) external view returns (uint256 openPosition_) {
+    function startLiquidation(address, uint256) external view returns (uint256 openPosition_) {
         openPosition_ = openPosition[msg.sender];
     }
 }
