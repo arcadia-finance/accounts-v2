@@ -48,7 +48,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        stakingModule = new StakingModuleMock();
+        stakingModule = new StakingModuleMock("StakingModuleTest", "SMT");
 
         vm.stopPrank();
     }

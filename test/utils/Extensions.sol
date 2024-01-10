@@ -577,6 +577,8 @@ contract MultiCallExtension is ActionMultiCall {
 }
 
 abstract contract StakingModuleExtension is StakingModule {
+    constructor(string memory name_, string memory symbol_) StakingModule(name_, symbol_) { }
+
     function setLastRewardGlobal(address asset, uint128 balance) public {
         assetState[asset].lastRewardGlobal = balance;
     }

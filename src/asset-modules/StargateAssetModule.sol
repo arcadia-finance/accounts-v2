@@ -56,7 +56,10 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @param lpStakingTime_ The address of the Stargate LP staking contract.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC1155 tokens is 2.
      */
-    constructor(address registry_, address lpStakingTime_) DerivedAssetModule(registry_, 2) {
+    constructor(address registry_, address lpStakingTime_)
+        DerivedAssetModule(registry_, 2)
+        StakingModule("ArcadiaStargatePositions", "ASP")
+    {
         lpStakingTime = ILpStakingTime(lpStakingTime_);
     }
 

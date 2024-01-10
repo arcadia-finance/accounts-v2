@@ -86,7 +86,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
                             CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
-    constructor() ERC721("ArcadiaStargatePositions", "ASP") { }
+    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) { }
 
     /*///////////////////////////////////////////////////////////////
                     STAKING MODULE LOGIC
@@ -166,7 +166,6 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             ERC20 rewardToken_ = assetToRewardToken[asset];
             // Transfer reward
             rewardToken_.safeTransfer(msg.sender, currentRewardPosition);
-
             emit RewardPaid(msg.sender, address(rewardToken_), uint128(currentRewardPosition));
         }
         // Transfer the underlying tokens back to the Account.
@@ -244,22 +243,30 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             newId = ++lastId;
         }
 
-        PositionState storage positionState_ = positionState[newId];
-        AssetState storage assetState_ = assetState[asset];
-
         // Update the state variables.
+        uint256 lastRewardPerTokenGlobal;
+        uint256 lastRewardGlobal;
+        uint256 lastRewardPerTokenPosition;
         if (totalStaked_ > 0) {
-            assetState_.lastRewardPerTokenGlobal = uint128(currentRewardPerToken);
+            lastRewardPerTokenGlobal = currentRewardPerToken;
             // We don't claim any rewards when staking, but minting changes the totalSupply and balance of the account.
             // Therefore we must keep track of the earned global and Account rewards since last interaction or the accounting will be wrong.
-            assetState_.lastRewardGlobal = uint128(currentRewardGlobal);
-            positionState_.lastRewardPerTokenPosition = uint128(currentRewardPerToken);
+            lastRewardGlobal = currentRewardGlobal;
+            lastRewardPerTokenPosition = currentRewardPerToken;
         }
-        positionState_.owner = receiver;
-        positionState_.asset = asset;
-        positionState_.amountStaked = amount;
+        positionState[newId] = PositionState({
+            owner: receiver,
+            asset: asset,
+            amountStaked: amount,
+            lastRewardPerTokenPosition: uint128(lastRewardPerTokenPosition),
+            lastRewardPosition: 0
+        });
 
-        assetState_.totalStaked = uint128(totalStaked_ + amount);
+        assetState[asset] = AssetState({
+            lastRewardPerTokenGlobal: uint128(lastRewardPerTokenGlobal),
+            lastRewardGlobal: uint128(lastRewardGlobal),
+            totalStaked: uint128(totalStaked_ + amount)
+        });
 
         // Mint the new position.
         _safeMint(msg.sender, newId);

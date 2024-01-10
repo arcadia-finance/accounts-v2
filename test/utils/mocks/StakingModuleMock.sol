@@ -7,6 +7,8 @@ pragma solidity 0.8.22;
 import { StakingModuleExtension } from "../Extensions.sol";
 
 contract StakingModuleMock is StakingModuleExtension {
+    constructor(string memory name_, string memory symbol_) StakingModuleExtension(name_, symbol_) { }
+
     mapping(address asset => uint128 rewardBalance) public currentRewardGlobal;
 
     function setActualRewardBalance(address asset, uint128 amount) public {
