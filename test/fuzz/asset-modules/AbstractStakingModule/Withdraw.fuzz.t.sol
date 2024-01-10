@@ -157,9 +157,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // Then : He should receive 4/5 of rewards1 + 1/2 of rewards2
         (,, uint128 totalStakedAsset) = stakingModule.assetState(address(mockERC20.stable1));
         (,, uint128 positionStaked,,) = stakingModule.positionState(2);
-        emit log_named_uint("total staked asset", totalStakedAsset);
-        emit log_named_uint("position staked", positionStaked);
-        emit log_named_uint("amount", user2InitBalance);
+
         vm.prank(user2);
         stakingModule.withdraw(2, user2InitBalance);
 

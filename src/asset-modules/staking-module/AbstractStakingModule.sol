@@ -133,19 +133,16 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         if (amount == 0) revert ZeroAmount();
         if (_ownerOf[tokenId] != msg.sender) revert NotOwner();
 
-        emit RewardPaid(msg.sender, address(0), uint128(0));
-
         PositionState memory positionState_ = positionState[tokenId];
-        emit RewardPaid(msg.sender, address(0), uint128(0));
+
         // Cache variable
         address asset = positionState_.asset;
-        emit RewardPaid(msg.sender, address(0), uint128(0));
         if (positionState_.amountStaked < amount) revert RemainingBalanceTooLow();
 
         // Calculate the updated reward balances.
         (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardPosition) =
             _getCurrentBalances(positionState_);
-        emit RewardPaid(msg.sender, address(0), uint128(0));
+
         // Update the state variables.
         if (totalStaked_ > 0) {
             assetState[asset].lastRewardPerTokenGlobal = uint128(currentRewardPerToken);
@@ -156,15 +153,11 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             positionState[tokenId].lastRewardPerTokenPosition = uint128(currentRewardPerToken);
             positionState[tokenId].lastRewardPosition = 0;
         }
-        emit RewardPaid(msg.sender, address(0), uint128(0));
         positionState[tokenId].amountStaked -= amount;
-        emit RewardPaid(msg.sender, address(0), uint128(0));
         assetState[asset].totalStaked = uint128(totalStaked_ - amount);
-        emit RewardPaid(msg.sender, address(0), uint128(0));
         // Withdraw the underlying tokens from external staking contract.
         if (amount == positionState_.amountStaked) _burn(tokenId);
         _withdraw(asset, amount);
-        emit RewardPaid(msg.sender, address(0), uint128(0));
         // Claim the reward from the external staking contract.
         _claimReward(asset);
         // Pay out the share of the reward owed to the Account.
@@ -172,15 +165,12 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             // Cache reward token
             ERC20 rewardToken_ = assetToRewardToken[asset];
             // Transfer reward
-            emit RewardPaid(msg.sender, address(0), uint128(0));
             rewardToken_.safeTransfer(msg.sender, currentRewardPosition);
-            // Note : check emit data
+
             emit RewardPaid(msg.sender, address(rewardToken_), uint128(currentRewardPosition));
         }
-        emit RewardPaid(msg.sender, address(0), uint128(0));
         // Transfer the underlying tokens back to the Account.
         ERC20(asset).safeTransfer(msg.sender, amount);
-        emit RewardPaid(msg.sender, address(0), uint128(0));
         emit Withdrawn(msg.sender, asset, amount);
     }
 
