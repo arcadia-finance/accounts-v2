@@ -11,7 +11,7 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "stake" of contract "StakingModule".
  */
-contract Stake_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
+contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

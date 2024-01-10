@@ -632,6 +632,10 @@ abstract contract StakingModuleExtension is StakingModule {
     {
         return _getCurrentBalances(positionState_);
     }
+
+    function mint(address to, uint256 tokenId) public {
+        _safeMint(to, tokenId);
+    }
 }
 
 contract StargateAssetModuleExtension is StargateAssetModule {

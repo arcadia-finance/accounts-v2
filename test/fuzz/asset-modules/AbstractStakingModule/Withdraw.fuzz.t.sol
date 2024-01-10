@@ -12,7 +12,7 @@ import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointM
 /**
  * @notice Fuzz tests for the function "withdraw" of contract "StakingModule".
  */
-contract Withdraw_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
+contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
     /* ///////////////////////////////////////////////////////////////
@@ -54,6 +54,9 @@ contract Withdraw_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModu
         // Given : Valid state
         (assetState, positionState) = setStakingModuleState(assetState, positionState, assets[0], tokenId);
 
+        // Given : ERC721 is minted to Account
+        stakingModule.mint(account, tokenId);
+
         // Given : Account has a positive balance
         (,, uint128 amountStaked,,) = stakingModule.positionState(tokenId);
         vm.assume(amountStaked > 0);
@@ -83,6 +86,8 @@ contract Withdraw_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModu
         assertEq(stakingModule.balanceOf(account), 0);
     }
 
+    // Note : add partial withdraw
+
     function testFuzz_Success_Withdraw_ValidAccountingFlow() public {
         // Given : 2 actors and initial staking token amounts
         address user1 = address(0x1);
@@ -111,7 +116,7 @@ contract Withdraw_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModu
         // Given : Mock rewards
         uint128 rewardAmount1 = uint128(1_000_000 * (10 ** Constants.tokenDecimals));
         stakingModule.setActualRewardBalance(asset, rewardAmount1);
-        mintERC20TokenTo(rewardToken, address(stakingModule), rewardAmount1);
+        mintERC20TokenTo(rewardToken, address(stakingModule), type(uint256).max);
 
         // When : User1 claims rewards
         // Then : He should receive 1/5 of the rewardAmount1
@@ -131,7 +136,6 @@ contract Withdraw_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModu
         // Given : Add 1 mio more rewards
         uint128 rewardAmount2 = uint128(1_000_000 * (10 ** Constants.tokenDecimals));
         stakingModule.setActualRewardBalance(asset, rewardAmount2);
-        mintERC20TokenTo(rewardToken, address(stakingModule), rewardAmount2);
 
         // Given : A third user stakes while there is no reward increase (this shouldn't accrue rewards for him and not impact other user rewards)
         address user3 = address(0x3);
@@ -151,6 +155,11 @@ contract Withdraw_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModu
 
         // When : User2 withdraws
         // Then : He should receive 4/5 of rewards1 + 1/2 of rewards2
+        (,, uint128 totalStakedAsset) = stakingModule.assetState(address(mockERC20.stable1));
+        (,, uint128 positionStaked,,) = stakingModule.positionState(2);
+        emit log_named_uint("total staked asset", totalStakedAsset);
+        emit log_named_uint("position staked", positionStaked);
+        emit log_named_uint("amount", user2InitBalance);
         vm.prank(user2);
         stakingModule.withdraw(2, user2InitBalance);
 

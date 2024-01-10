@@ -12,7 +12,7 @@ import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointM
 /**
  * @notice Fuzz tests for the function "rewardOf" of contract "StakingModule".
  */
-contract RewardOf_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
+contract RewardOf_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
     /* ///////////////////////////////////////////////////////////////
@@ -31,9 +31,13 @@ contract RewardOf_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModu
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 tokenId,
-        address account,
-        address asset
+        uint8 assetDecimals,
+        uint8 rewardTokenDecimals
     ) public {
+        // Given : Add an asset and reward token pair
+        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        address asset = assets[0];
+
         // Given : Valid state
         (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
 
@@ -51,9 +55,13 @@ contract RewardOf_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModu
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 tokenId,
-        address account,
-        address asset
+        uint8 assetDecimals,
+        uint8 rewardTokenDecimals
     ) public {
+        // Given : Add an asset and reward token pair
+        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        address asset = assets[0];
+
         // Given : Valid state
         (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
 

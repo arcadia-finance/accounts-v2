@@ -79,6 +79,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         stakingModule.setLastRewardPerTokenGlobal(asset, stakingModuleStateForAsset_.lastRewardPerTokenGlobal);
         stakingModule.setActualRewardBalance(asset, stakingModuleStateForAsset_.currentRewardGlobal);
         stakingModule.setAmountStakedForPosition(id, stakingModuleStateForPosition_.amountStaked);
+        stakingModuleStateForPosition.asset = asset;
         stakingModule.setAssetInPosition(asset, id);
     }
 

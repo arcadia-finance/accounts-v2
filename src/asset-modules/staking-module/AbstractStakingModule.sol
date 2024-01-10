@@ -131,19 +131,21 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      */
     function withdraw(uint256 tokenId, uint128 amount) external nonReentrant {
         if (amount == 0) revert ZeroAmount();
-        if (ownerOf(tokenId) != msg.sender) revert NotOwner();
+        if (_ownerOf[tokenId] != msg.sender) revert NotOwner();
+
+        emit RewardPaid(msg.sender, address(0), uint128(0));
 
         PositionState memory positionState_ = positionState[tokenId];
-
+        emit RewardPaid(msg.sender, address(0), uint128(0));
         // Cache variable
         address asset = positionState_.asset;
-
+        emit RewardPaid(msg.sender, address(0), uint128(0));
         if (positionState_.amountStaked < amount) revert RemainingBalanceTooLow();
 
         // Calculate the updated reward balances.
-        (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardSender) =
+        (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardPosition) =
             _getCurrentBalances(positionState_);
-
+        emit RewardPaid(msg.sender, address(0), uint128(0));
         // Update the state variables.
         if (totalStaked_ > 0) {
             assetState[asset].lastRewardPerTokenGlobal = uint128(currentRewardPerToken);
@@ -154,28 +156,31 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             positionState[tokenId].lastRewardPerTokenPosition = uint128(currentRewardPerToken);
             positionState[tokenId].lastRewardPosition = 0;
         }
+        emit RewardPaid(msg.sender, address(0), uint128(0));
         positionState[tokenId].amountStaked -= amount;
+        emit RewardPaid(msg.sender, address(0), uint128(0));
         assetState[asset].totalStaked = uint128(totalStaked_ - amount);
-
+        emit RewardPaid(msg.sender, address(0), uint128(0));
         // Withdraw the underlying tokens from external staking contract.
         if (amount == positionState_.amountStaked) _burn(tokenId);
         _withdraw(asset, amount);
-
+        emit RewardPaid(msg.sender, address(0), uint128(0));
         // Claim the reward from the external staking contract.
         _claimReward(asset);
         // Pay out the share of the reward owed to the Account.
-        if (currentRewardSender > 0) {
+        if (currentRewardPosition > 0) {
             // Cache reward token
             ERC20 rewardToken_ = assetToRewardToken[asset];
             // Transfer reward
-            rewardToken_.safeTransfer(msg.sender, currentRewardSender);
+            emit RewardPaid(msg.sender, address(0), uint128(0));
+            rewardToken_.safeTransfer(msg.sender, currentRewardPosition);
             // Note : check emit data
-            emit RewardPaid(msg.sender, address(rewardToken_), uint128(currentRewardSender));
+            emit RewardPaid(msg.sender, address(rewardToken_), uint128(currentRewardPosition));
         }
-
+        emit RewardPaid(msg.sender, address(0), uint128(0));
         // Transfer the underlying tokens back to the Account.
         ERC20(asset).safeTransfer(msg.sender, amount);
-
+        emit RewardPaid(msg.sender, address(0), uint128(0));
         emit Withdrawn(msg.sender, asset, amount);
     }
 
@@ -224,7 +229,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         if (positionState_.asset != asset) revert AssetNotMatching();
 
         // Calculate the updated reward balances.
-        (uint256 currentRewardPerToken, uint256 currentRewardGlobal, uint256 totalStaked_) = _getCurrentBalances(asset);
+        (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardGlobal) = _getCurrentBalances(asset);
 
         // Update the state variables.
         if (totalStaked_ > 0) {
@@ -242,7 +247,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
     function _stakeNewPosition(address asset, uint128 amount, address receiver) internal returns (uint256 newId) {
         // Calculate the updated reward balances.
-        (uint256 currentRewardPerToken, uint256 currentRewardGlobal, uint256 totalStaked_) = _getCurrentBalances(asset);
+        (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardGlobal) = _getCurrentBalances(asset);
 
         // Increment tokenId
         unchecked {
@@ -380,8 +385,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             uint256 deltaReward = currentRewardGlobal - assetState_.lastRewardGlobal;
 
             // Calculate the new RewardPerToken.
-            currentRewardPerToken =
-                assetState_.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, assetState_.totalStaked);
+            currentRewardPerToken = assetState_.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, totalStaked_);
         }
     }
 }

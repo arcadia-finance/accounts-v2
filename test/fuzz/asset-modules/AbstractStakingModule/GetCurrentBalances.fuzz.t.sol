@@ -12,7 +12,7 @@ import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointM
 /**
  * @notice Fuzz tests for the function "_getCurrentBalances" of contract "StakingModule".
  */
-contract GetCurrentBalances_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
+contract GetCurrentBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
     /* ///////////////////////////////////////////////////////////////
@@ -31,13 +31,19 @@ contract GetCurrentBalances_AbstractAbstractStakingModule_Fuzz_Test is AbstractS
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 tokenId,
-        address asset
+        uint8 assetDecimals,
+        uint8 rewardTokenDecimals
     ) public {
+        // Given : Add an asset and reward token pair
+        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        address asset = assets[0];
+
         // Given : Valid state
         (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
 
         // And: totalStaked is zero.
         stakingModule.setTotalStaked(asset, 0);
+        assetState.totalStaked = 0;
 
         // When : Calling _getCurrentBalances().
         (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardPosition) =
@@ -53,8 +59,13 @@ contract GetCurrentBalances_AbstractAbstractStakingModule_Fuzz_Test is AbstractS
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 tokenId,
-        address asset
+        uint8 assetDecimals,
+        uint8 rewardTokenDecimals
     ) public {
+        // Given : Add an asset and reward token pair
+        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        address asset = assets[0];
+
         // Given : Valid state
         (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
 
@@ -63,6 +74,7 @@ contract GetCurrentBalances_AbstractAbstractStakingModule_Fuzz_Test is AbstractS
 
         // And: Account balance is zero.
         stakingModule.setAmountStakedForPosition(tokenId, 0);
+        positionState.amountStaked = 0;
 
         // When : Calling _getCurrentBalances()
         (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardPosition) =
@@ -82,8 +94,13 @@ contract GetCurrentBalances_AbstractAbstractStakingModule_Fuzz_Test is AbstractS
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 tokenId,
-        address asset
+        uint8 assetDecimals,
+        uint8 rewardTokenDecimals
     ) public {
+        // Given : Add an asset and reward token pair
+        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        address asset = assets[0];
+
         // Given : Valid state
         (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
 
