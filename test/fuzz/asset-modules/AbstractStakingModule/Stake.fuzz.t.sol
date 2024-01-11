@@ -5,6 +5,7 @@
 pragma solidity 0.8.22;
 
 import { AbstractStakingModule_Fuzz_Test, StakingModule, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
+import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
@@ -12,6 +13,7 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
  * @notice Fuzz tests for the function "stake" of contract "StakingModule".
  */
 contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
+    using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -30,45 +32,73 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         stakingModule.stake(0, asset, 0, receiver);
     }
 
-    function testFuzz_Success_stake(uint128 amount, address staker, uint8 assetDecimals, uint8 rewardTokenDecimals)
-        public
-        notTestContracts(staker)
-    {
+    function testFuzz_Revert_stake_AssetNotAllowed(address asset, address receiver, uint128 amount) public {
+        // Amount is greater than zero
+        vm.assume(amount > 0);
+        // The stake function should revert when trying to stake an asset that has not been added to the Staking Module.
+        vm.expectRevert(StakingModule.AssetNotAllowed.selector);
+        stakingModule.stake(0, asset, amount, receiver);
+    }
+
+    function testFuzz_Success_stake_NewPosition_TotalStakedGreaterThan0(
+        uint8 assetDecimals,
+        uint8 rewardTokenDecimals,
+        StakingModuleStateForAsset memory assetState,
+        StakingModule.PositionState memory positionState,
+        uint256 tokenId,
+        uint128 amount,
+        address account
+    ) public notTestContracts(account) {
         // Given : Can't stake zero amount
         vm.assume(amount > 0);
+        // Given : TokenId is not equal to 1, as by staking we will mint id 1.
+        vm.assume(tokenId != 1);
 
-        // Given : Two staking tokens are added to the stakingModule
-        (address[] memory assets,) = addAssets(2, assetDecimals, rewardTokenDecimals);
-        address asset1 = assets[0];
-        address asset2 = assets[1];
+        // Given : A staking token and reward token pair are added to the stakingModule
+        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        address asset = assets[0];
 
-        uint256[] memory amounts = new uint256[](2);
+        uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
-        amounts[1] = amount;
 
-        mintERC20TokensTo(assets, staker, amounts);
-        approveERC20TokensFor(assets, address(stakingModule), amounts, staker);
+        mintERC20TokensTo(assets, account, amounts);
+        approveERC20TokensFor(assets, address(stakingModule), amounts, account);
+
+        // Given : Valid state
+        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
+
+        // Given : TotalStaked is greater than 0.
+        (,, uint128 totalStaked) = stakingModule.assetState(asset);
+        vm.assume(totalStaked > 0);
 
         // When :  A user is staking via the Staking Module
-        vm.startPrank(staker);
+        vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.Staked(staker, asset1, amount);
-        stakingModule.stake(0, asset1, amount, staker);
-        vm.expectEmit();
-        emit StakingModule.Staked(staker, asset2, amount);
-        stakingModule.stake(0, asset2, amount, staker);
-        vm.stopPrank();
+        emit StakingModule.Staked(account, asset, amount);
+        stakingModule.stake(0, asset, amount, account);
 
-        // Then : Tokens should be transferred to the module and specific ERC1155 minted
-        (,, uint128 amountStakedId1,,) = stakingModule.positionState(1);
-        (,, uint128 amountStakedId2,,) = stakingModule.positionState(2);
-        assertEq(amountStakedId1, amount);
-        assertEq(amountStakedId2, amount);
-        assertEq(ERC20Mock(asset1).balanceOf(address(stakingModule)), amount);
-        assertEq(ERC20Mock(asset2).balanceOf(address(stakingModule)), amount);
-        (,, uint128 totalStakedAsset1) = stakingModule.assetState(asset1);
-        (,, uint128 totalStakedAsset2) = stakingModule.assetState(asset2);
-        assertEq(totalStakedAsset1, amount);
-        assertEq(totalStakedAsset2, amount);
+        // Cache value to avoid stack too deep
+        StakingModuleStateForAsset memory assetStateStack = assetState;
+        uint256 amountStack = amount;
+
+        // Then : Tokens should be transferred to the module and specific positions minted.
+        (
+            address owner,
+            address asset_,
+            uint128 amountStaked,
+            uint128 lastRewardPerTokenPosition,
+            uint128 lastRewardPosition
+        ) = stakingModule.positionState(1);
+
+        // Note: Same for asset
+
+        assertEq(owner, account);
+        assertEq(asset_, asset);
+        assertEq(amountStaked, amountStack);
+        uint256 deltaReward = assetStateStack.currentRewardGlobal - assetStateStack.lastRewardGlobal;
+        uint256 lastRewardPerTokenPosition_ =
+            assetStateStack.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, assetStateStack.totalStaked);
+        assertEq(lastRewardPerTokenPosition, lastRewardPerTokenPosition_);
+        assertEq(lastRewardPosition, 0);
     }
 }
