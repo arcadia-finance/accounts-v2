@@ -235,8 +235,10 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
     }
 
     function _stakeNewPosition(address asset, uint128 amount, address receiver) internal returns (uint256 newId) {
-        // Calculate the updated reward balances.
-        (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardGlobal) = _getCurrentBalances(asset);
+        // Cache assetState.
+        AssetState memory assetState_ = assetState[asset];
+        // Cache totalStaked
+        uint256 totalStaked_ = assetState_.totalStaked;
 
         // Increment tokenId
         unchecked {
@@ -244,14 +246,21 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         }
 
         // Update the state variables.
-        uint256 lastRewardPerTokenGlobal;
-        uint256 lastRewardGlobal;
+        uint256 currentRewardGlobal;
+        uint256 currentRewardPerToken;
         uint256 lastRewardPerTokenPosition;
+        AssetState memory updatedAssetState;
         if (totalStaked_ > 0) {
-            lastRewardPerTokenGlobal = currentRewardPerToken;
+            // Fetch the current reward balance from the staking contract.
+            currentRewardGlobal = _getCurrentReward(asset);
+            // Calculate the increase in rewards since last contract interaction.
+            uint256 deltaReward = currentRewardGlobal - assetState_.lastRewardGlobal;
+            // Calculate the new RewardPerToken.
+            currentRewardPerToken = assetState_.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, totalStaked_);
+            updatedAssetState.lastRewardPerTokenGlobal = uint128(currentRewardPerToken);
             // We don't claim any rewards when staking, but minting changes the totalSupply and balance of the account.
             // Therefore we must keep track of the earned global and Account rewards since last interaction or the accounting will be wrong.
-            lastRewardGlobal = currentRewardGlobal;
+            updatedAssetState.lastRewardGlobal = uint128(currentRewardGlobal);
             lastRewardPerTokenPosition = currentRewardPerToken;
         }
         positionState[newId] = PositionState({
@@ -262,11 +271,8 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             lastRewardPosition: 0
         });
 
-        assetState[asset] = AssetState({
-            lastRewardPerTokenGlobal: uint128(lastRewardPerTokenGlobal),
-            lastRewardGlobal: uint128(lastRewardGlobal),
-            totalStaked: uint128(totalStaked_ + amount)
-        });
+        updatedAssetState.totalStaked = uint128(totalStaked_ + amount);
+        assetState[asset] = updatedAssetState;
 
         // Mint the new position.
         _safeMint(msg.sender, newId);
