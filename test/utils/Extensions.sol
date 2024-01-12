@@ -619,14 +619,6 @@ abstract contract StakingModuleExtension is StakingModule {
         _ownerOf[tokenId] = owner;
     }
 
-    function getCurrentBalances(address asset)
-        public
-        view
-        returns (uint256 currentRewardPerToken, uint256 totalStaked, uint256 currentRewardGlobal)
-    {
-        return _getCurrentBalances(asset);
-    }
-
     function getCurrentBalances(PositionState memory positionState_)
         public
         view
