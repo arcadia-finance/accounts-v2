@@ -77,7 +77,7 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
         // And : The user stakes the LP token via the StargateAssetModule
         uint256 stakedAmount = pool.balanceOf(users.accountOwner);
         pool.approve(address(stargateAssetModule), stakedAmount);
-        uint256 tokenId = stargateAssetModule.stake(0, address(pool), uint128(stakedAmount), msg.sender);
+        uint256 tokenId = stargateAssetModule.stake(0, address(pool), uint128(stakedAmount));
 
         // The user deposits the ERC1155 in it's Account.
         stargateAssetModule.approve(address(proxyAccount), tokenId);
@@ -150,7 +150,7 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
 
         (,, uint128 totalStaked) = stargateAssetModule.assetState(address(pool));
 
-        (,, uint128 remainingBalanceAccount1,,) = stargateAssetModule.positionState(1);
+        (, uint128 remainingBalanceAccount1,,) = stargateAssetModule.positionState(1);
 
         vm.prank(arcadiaAccount1);
         stargateAssetModule.withdraw(1, remainingBalanceAccount1);
@@ -163,8 +163,8 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
 
         assert(rewardsAccount1 > rewardsAccount2);
 
-        (,, remainingBalanceAccount1,,) = stargateAssetModule.positionState(1);
-        (,, uint128 remainingBalanceAccount2,,) = stargateAssetModule.positionState(3);
+        (, remainingBalanceAccount1,,) = stargateAssetModule.positionState(1);
+        (, uint128 remainingBalanceAccount2,,) = stargateAssetModule.positionState(3);
 
         assert(remainingBalanceAccount1 == 0);
         assert(remainingBalanceAccount2 == 0);

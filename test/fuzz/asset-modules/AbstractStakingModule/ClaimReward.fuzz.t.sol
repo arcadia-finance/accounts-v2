@@ -63,7 +63,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         // Then : lastRewardGlobal and rewards of Account should be 0.
         (, uint128 lastRewardGlobal_,) = stakingModule.assetState(asset);
         assertEq(lastRewardGlobal_, 0);
-        (,,,, uint128 lastRewardPosition_) = stakingModule.positionState(tokenId);
+        (,,, uint128 lastRewardPosition_) = stakingModule.positionState(tokenId);
         assertEq(lastRewardPosition_, 0);
     }
 
@@ -117,7 +117,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
 
         // Then : Account should have received the reward tokens.
         assertEq(currentRewardPosition, stakingModule.assetToRewardToken(asset).balanceOf(account));
-        (,,,, currentRewardPosition) = stakingModule.positionState(tokenId);
+        (,,, currentRewardPosition) = stakingModule.positionState(tokenId);
         assertEq(currentRewardPosition, 0);
     }
 }

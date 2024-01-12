@@ -91,7 +91,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         stakingModule.mint(account, tokenId);
 
         // Given : Account has a positive balance
-        (,, uint128 amountStaked,,) = stakingModule.positionState(tokenId);
+        (, uint128 amountStaked,,) = stakingModule.positionState(tokenId);
         vm.assume(amountStaked > 0);
 
         // Given : transfer underlyingToken and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract.
@@ -141,7 +141,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         stakingModule.mint(account, tokenId);
 
         // Given : Account has a positive balance greater than 1 (to be able to withdraw partially)
-        (,, uint128 amountStaked,,) = stakingModule.positionState(tokenId);
+        (, uint128 amountStaked,,) = stakingModule.positionState(tokenId);
         vm.assume(amountStaked > 1);
 
         // Given : transfer underlyingToken and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract.
@@ -169,7 +169,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // And : TokenId should not be burned.
         assertEq(stakingModule.balanceOf(account), 1);
         // And : Amount staked remaining in position should be correct.
-        (,, amountStaked,,) = stakingModule.positionState(tokenId);
+        (, amountStaked,,) = stakingModule.positionState(tokenId);
         assertEq(amountStaked, 1);
     }
 
@@ -194,9 +194,9 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         approveERC20TokenFor(asset, address(stakingModule), user2InitBalance, user2);
 
         vm.prank(user1);
-        stakingModule.stake(0, asset, user1InitBalance, user1);
+        stakingModule.stake(0, asset, user1InitBalance);
         vm.prank(user2);
-        stakingModule.stake(0, asset, user2InitBalance, user2);
+        stakingModule.stake(0, asset, user2InitBalance);
 
         // Given : Mock rewards
         uint128 rewardAmount1 = uint128(1_000_000 * (10 ** Constants.tokenDecimals));
@@ -216,7 +216,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         approveERC20TokenFor(asset, address(stakingModule), user1AddedBalance, user1);
 
         vm.prank(user1);
-        stakingModule.stake(1, asset, user1AddedBalance, user1);
+        stakingModule.stake(1, asset, user1AddedBalance);
 
         // Given : Add 1 mio more rewards
         uint128 rewardAmount2 = uint128(1_000_000 * (10 ** Constants.tokenDecimals));
@@ -228,7 +228,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         approveERC20TokenFor(asset, address(stakingModule), user1AddedBalance, user3);
 
         vm.prank(user3);
-        stakingModule.stake(0, asset, user1AddedBalance, user3);
+        stakingModule.stake(0, asset, user1AddedBalance);
 
         // When : User1 withdraws
         // Then : He should receive half of rewardAmount2

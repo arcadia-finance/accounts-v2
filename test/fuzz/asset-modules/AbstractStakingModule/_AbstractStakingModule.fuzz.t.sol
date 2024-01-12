@@ -26,7 +26,6 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
     }
 
     struct StakingModuleStateForPosition {
-        address owner;
         address asset;
         uint128 amountStaked;
         uint128 lastRewardPerTokenPosition;
