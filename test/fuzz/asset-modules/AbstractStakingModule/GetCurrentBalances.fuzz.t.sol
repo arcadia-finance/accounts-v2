@@ -30,7 +30,7 @@ contract GetCurrentBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
     function testFuzz_Success_getCurrentBalances_ZeroTotalStaked(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint256 tokenId,
+        uint256 positionId,
         uint8 assetDecimals,
         uint8 rewardTokenDecimals
     ) public {
@@ -39,7 +39,7 @@ contract GetCurrentBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
         address asset = assets[0];
 
         // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
+        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
 
         // And: totalStaked is zero.
         stakingModule.setTotalStaked(asset, 0);
@@ -55,10 +55,10 @@ contract GetCurrentBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
         assertEq(currentRewardPosition, 0);
     }
 
-    function testFuzz_Success_getCurrentBalances_NonZeroTotalStaked_ZeroBalanceOf(
+    function testFuzz_Success_getCurrentBalances_TotalStakedGreaterThan0(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint256 tokenId,
+        uint256 positionId,
         uint8 assetDecimals,
         uint8 rewardTokenDecimals
     ) public {
@@ -67,51 +67,16 @@ contract GetCurrentBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
         address asset = assets[0];
 
         // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
+        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
 
-        // And: totalSupply is non-zero.
-        vm.assume(assetState.totalStaked > 0);
-
-        // And: Account balance is zero.
-        stakingModule.setAmountStakedForPosition(tokenId, 0);
-        positionState.amountStaked = 0;
-
-        // When : Calling _getCurrentBalances()
-        (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardPosition) =
-            stakingModule.getCurrentBalances(positionState);
-
-        // Then : It should return the correct value
-        uint256 deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
-        uint256 rewardPerToken =
-            assetState.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, assetState.totalStaked);
-
-        assertEq(currentRewardPerToken, rewardPerToken);
-        assertEq(totalStaked_, assetState.totalStaked);
-        assertEq(currentRewardPosition, 0);
-    }
-
-    function testFuzz_Success_getCurrentBalances_NonZeroTotalStaked_NonZeroBalanceOf(
-        StakingModuleStateForAsset memory assetState,
-        StakingModule.PositionState memory positionState,
-        uint256 tokenId,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
-    ) public {
-        // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
-
-        // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
-
-        // And: Account balance is zero. (-> totalSupply is non-zero)
+        // And: Amount staked for position is > 0. (-> totalStaked is non-zero)
         vm.assume(positionState.amountStaked > 0);
 
         // When : Calling _getCurrentBalances()
         (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardPosition) =
             stakingModule.getCurrentBalances(positionState);
 
-        // Then : It should return the correct value
+        // Then : It should return the correct values
         uint256 deltaRewardGlobal = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
         uint256 rewardPerToken =
             assetState.lastRewardPerTokenGlobal + deltaRewardGlobal.mulDivDown(1e18, assetState.totalStaked);

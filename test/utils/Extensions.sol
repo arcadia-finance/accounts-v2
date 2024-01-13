@@ -615,8 +615,8 @@ abstract contract StakingModuleExtension is StakingModule {
         lastId_ = lastId;
     }
 
-    function setOwnerOfTokenId(address owner, uint256 tokenId) public {
-        _ownerOf[tokenId] = owner;
+    function setOwnerOfPositionId(address owner, uint256 positionId) public {
+        _ownerOf[positionId] = owner;
     }
 
     function getCurrentBalances(PositionState memory positionState_)

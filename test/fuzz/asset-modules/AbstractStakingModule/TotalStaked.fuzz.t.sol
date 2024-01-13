@@ -25,10 +25,10 @@ contract TotalStaked_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_Success_totalStaked(uint128 totalStaked, address asset) public {
-        // Given : Total staked for asset is set in stakingModule.
+        // Given : Total staked for Asset is set in stakingModule.
         stakingModule.setTotalStaked(asset, totalStaked);
 
-        // When : Calling totalStaked() for the specific asset.
+        // When : Calling totalStaked() for the specific Asset.
         // Then : It should return the correct amount.
         assertEq(stakingModule.totalStaked(asset), totalStaked);
     }

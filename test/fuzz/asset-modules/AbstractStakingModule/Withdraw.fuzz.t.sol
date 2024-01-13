@@ -44,8 +44,8 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // Given : Owner is not the caller.
         vm.assume(owner != users.accountOwner);
 
-        // Given : Set owner of the specific tokenId.
-        stakingModule.setOwnerOfTokenId(owner, id);
+        // Given : Set owner of the specific positionId.
+        stakingModule.setOwnerOfPositionId(owner, id);
 
         // When : Trying to withdraw a position not owned by the caller.
         // Then : It should revert.
@@ -59,7 +59,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // Given : Amount is greater than 0.
         vm.assume(amount > 0);
         // Given : Owner is the caller.
-        stakingModule.setOwnerOfTokenId(owner, id);
+        stakingModule.setOwnerOfPositionId(owner, id);
         // Given : Remaining amount in position is smaller than amount to withdraw.
         stakingModule.setAmountStakedForPosition(id, amount - 1);
         // When : Calling withdraw().
@@ -71,7 +71,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
     }
 
     function testFuzz_Success_Withdraw_CurrentRewardPositionGreaterThan0(
-        uint256 tokenId,
+        uint256 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
@@ -81,27 +81,27 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // Given : account != zero address
         vm.assume(account != address(0));
 
-        // Given : Add a staking token + reward token pairs
+        // Given : Add an Asset + reward token pair
         (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
 
         // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, assets[0], tokenId);
+        (assetState, positionState) = setStakingModuleState(assetState, positionState, assets[0], positionId);
 
-        // Given : ERC721 is minted to Account
-        stakingModule.mint(account, tokenId);
+        // Given : Position is minted to the Account
+        stakingModule.mint(account, positionId);
 
         // Given : Account has a positive balance
-        (, uint128 amountStaked,,) = stakingModule.positionState(tokenId);
+        (, uint128 amountStaked,,) = stakingModule.positionState(positionId);
         vm.assume(amountStaked > 0);
 
-        // Given : transfer underlyingToken and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
+        // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
         address[] memory tokens = new address[](2);
         tokens[0] = assets[0];
         tokens[1] = rewardTokens[0];
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = positionState.amountStaked;
-        uint256 currentRewardAccount = stakingModule.rewardOf(tokenId);
+        uint256 currentRewardAccount = stakingModule.rewardOf(positionId);
         amounts[1] = currentRewardAccount;
 
         // Given : CurrentRewardAccount is greater than 0
@@ -113,18 +113,18 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.Withdrawn(account, assets[0], positionState.amountStaked);
-        stakingModule.withdraw(tokenId, positionState.amountStaked);
+        stakingModule.withdraw(positionId, positionState.amountStaked);
         vm.stopPrank();
 
         // Then : Account should get the staking and reward tokens
         assertEq(ERC20Mock(tokens[0]).balanceOf(account), positionState.amountStaked);
         assertEq(ERC20Mock(tokens[1]).balanceOf(account), currentRewardAccount);
-        // And : TokenId should be burned.
+        // And : positionId should be burned.
         assertEq(stakingModule.balanceOf(account), 0);
     }
 
     function testFuzz_Success_Withdraw_ZeroCurrentRewardPosition(
-        uint256 tokenId,
+        uint256 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
@@ -134,35 +134,35 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // Given : account != zero address
         vm.assume(account != address(0));
 
-        // Given : Add a staking token + reward token pairs
+        // Given : Add an Asset + reward token pairs
         (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
         address asset = assets[0];
 
         // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
+        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
 
-        // Given : ERC721 is minted to Account
-        stakingModule.mint(account, tokenId);
+        // Given : Position is minted to the Account
+        stakingModule.mint(account, positionId);
 
         // Given : Account has a positive balance
-        (, uint128 amountStaked,,) = stakingModule.positionState(tokenId);
+        (, uint128 amountStaked,,) = stakingModule.positionState(positionId);
         vm.assume(amountStaked > 0);
 
-        // Given : No rewards have accrued for asset
+        // Given : No rewards have accrued for Asset
         // CurrentRewardGlobal is equal to lastRewardGlobal
         stakingModule.setActualRewardBalance(asset, assetState.lastRewardGlobal);
         // LastRewardPerTokenGlobal is equal to lastRewardPerTokenPosition
         stakingModule.setLastRewardPerTokenGlobal(asset, positionState.lastRewardPerTokenPosition);
         // LastRewardPosition is 0
-        stakingModule.setLastRewardPosition(tokenId, 0);
+        stakingModule.setLastRewardPosition(positionId, 0);
 
-        // Given : transfer underlyingToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
+        // Given : transfer Asset to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
         address[] memory tokens = new address[](1);
         tokens[0] = assets[0];
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = positionState.amountStaked;
-        uint256 currentRewardAccount = stakingModule.rewardOf(tokenId);
+        uint256 currentRewardAccount = stakingModule.rewardOf(positionId);
 
         mintERC20TokensTo(tokens, address(stakingModule), amounts);
 
@@ -172,18 +172,18 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.Withdrawn(account, assets[0], positionState.amountStaked);
-        stakingModule.withdraw(tokenId, positionState.amountStaked);
+        stakingModule.withdraw(positionId, positionState.amountStaked);
         vm.stopPrank();
 
-        // Then : Account should get the staking and reward tokens
+        // Then : Account should get the amount of Asset staked and reward tokens
         assertEq(ERC20Mock(tokens[0]).balanceOf(account), positionState.amountStaked);
         assertEq(ERC20Mock(rewardTokens[0]).balanceOf(account), 0);
-        // And : TokenId should be burned.
+        // And : positionId should be burned.
         assertEq(stakingModule.balanceOf(account), 0);
     }
 
     function testFuzz_Success_Withdraw_PartialWithdraw(
-        uint256 tokenId,
+        uint256 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
@@ -193,27 +193,27 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // Given : account != zero address
         vm.assume(account != address(0));
 
-        // Given : Add a staking token + reward token pairs
+        // Given : Add an Asset + reward token pairs
         (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
 
         // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, assets[0], tokenId);
+        (assetState, positionState) = setStakingModuleState(assetState, positionState, assets[0], positionId);
 
-        // Given : ERC721 is minted to Account
-        stakingModule.mint(account, tokenId);
+        // Given : Position is minted to Account
+        stakingModule.mint(account, positionId);
 
-        // Given : Account has a positive balance greater than 1 (to be able to withdraw partially)
-        (, uint128 amountStaked,,) = stakingModule.positionState(tokenId);
+        // Given : Position has a positive balance greater than 1 (to be able to withdraw partially)
+        (, uint128 amountStaked,,) = stakingModule.positionState(positionId);
         vm.assume(amountStaked > 1);
 
-        // Given : transfer underlyingToken and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract.
+        // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract.
         address[] memory tokens = new address[](2);
         tokens[0] = assets[0];
         tokens[1] = rewardTokens[0];
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = positionState.amountStaked;
-        uint256 currentRewardAccount = stakingModule.rewardOf(tokenId);
+        uint256 currentRewardAccount = stakingModule.rewardOf(positionId);
         amounts[1] = currentRewardAccount;
 
         mintERC20TokensTo(tokens, address(stakingModule), amounts);
@@ -222,27 +222,27 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.Withdrawn(account, assets[0], positionState.amountStaked - 1);
-        stakingModule.withdraw(tokenId, positionState.amountStaked - 1);
+        stakingModule.withdraw(positionId, positionState.amountStaked - 1);
         vm.stopPrank();
 
         // Then : Account should get the withdrawed amount and reward tokens.
         assertEq(ERC20Mock(tokens[0]).balanceOf(account), positionState.amountStaked - 1);
         assertEq(ERC20Mock(tokens[1]).balanceOf(account), currentRewardAccount);
-        // And : TokenId should not be burned.
+        // And : positionId should not be burned.
         assertEq(stakingModule.balanceOf(account), 1);
         // And : Amount staked remaining in position should be correct.
-        (, amountStaked,,) = stakingModule.positionState(tokenId);
+        (, amountStaked,,) = stakingModule.positionState(positionId);
         assertEq(amountStaked, 1);
     }
 
     function testFuzz_Success_Withdraw_ValidAccountingFlow() public {
-        // Given : 2 actors and initial staking token amounts
+        // Given : 2 actors and initial Asset amounts
         address user1 = address(0x1);
         address user2 = address(0x2);
         uint128 user1InitBalance = uint128(1_000_000 * (10 ** Constants.stableDecimals));
         uint128 user2InitBalance = uint128(4_000_000 * (10 ** Constants.stableDecimals));
 
-        // Given : Fund both users with amount of underlyingTokens
+        // Given : Fund both users with amount of Assets
         address asset = address(mockERC20.stable1);
         address rewardToken = address(mockERC20.token1);
         mintERC20TokenTo(asset, user1, user1InitBalance);

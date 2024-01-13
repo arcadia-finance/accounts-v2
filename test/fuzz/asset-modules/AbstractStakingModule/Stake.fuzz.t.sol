@@ -46,16 +46,16 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         uint8 rewardTokenDecimals,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint256 tokenId,
+        uint256 positionId,
         uint128 amount,
         address account
     ) public notTestContracts(account) {
         // Given : Can't stake zero amount
         vm.assume(amount > 0);
-        // Given : TokenId is not equal to 1, as by staking we will mint id 1.
-        vm.assume(tokenId != 1);
+        // Given : positionId is not equal to 1, as by staking we will mint id 1.
+        vm.assume(positionId != 1);
 
-        // Given : A staking token and reward token pair are added to the stakingModule
+        // Given : An Asset and reward token pair are added to the stakingModule
         (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
         address asset = assets[0];
 
@@ -66,7 +66,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         approveERC20TokensFor(assets, address(stakingModule), amounts, account);
 
         // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
+        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
 
         // Given : TotalStaked is greater than 0 and updated totalStake should not be greater than uint128.
         (,, uint128 totalStaked) = stakingModule.assetState(asset);
@@ -77,7 +77,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.Staked(account, asset, amount);
-        uint256 newTokenId = stakingModule.stake(0, asset, amount);
+        uint256 newPositionId = stakingModule.stake(0, asset, amount);
 
         // Cache value to avoid stack too deep
         StakingModuleStateForAsset memory assetStateStack = assetState;
@@ -87,7 +87,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         assertEq(ERC20Mock(asset).balanceOf(address(stakingModule)), amountStack);
 
         // And : New position has been minted to Account
-        assertEq(stakingModule.ownerOf(newTokenId), account);
+        assertEq(stakingModule.ownerOf(newPositionId), account);
 
         // And : Asset and position values should be updated correctly
         StakingModule.PositionState memory newPositionState;
@@ -120,14 +120,14 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         uint8 rewardTokenDecimals,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint256 tokenId,
+        uint256 positionId,
         uint128 amount,
         address account
     ) public notTestContracts(account) {
         // Given : Can't stake zero amount
         vm.assume(amount > 0);
-        // Given : TokenId is not equal to 1, as by staking we will mint id 1.
-        vm.assume(tokenId != 1);
+        // Given : positionId is not equal to 1, as by staking we will mint id 1.
+        vm.assume(positionId != 1);
 
         // Given : A staking token and reward token pair are added to the stakingModule
         (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
@@ -140,7 +140,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         approveERC20TokensFor(assets, address(stakingModule), amounts, account);
 
         // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
+        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
 
         // Given : TotalStaked is 0
         stakingModule.setTotalStaked(asset, 0);
@@ -149,7 +149,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.Staked(account, asset, amount);
-        uint256 newTokenId = stakingModule.stake(0, asset, amount);
+        uint256 newPositionId = stakingModule.stake(0, asset, amount);
 
         // Cache value to avoid stack too deep
         uint256 amountStack = amount;
@@ -158,7 +158,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         assertEq(ERC20Mock(asset).balanceOf(address(stakingModule)), amountStack);
 
         // And : New position has been minted to Account
-        assertEq(stakingModule.ownerOf(newTokenId), account);
+        assertEq(stakingModule.ownerOf(newPositionId), account);
 
         // And : Asset and position values should be updated correctly
         StakingModule.PositionState memory newPositionState;
@@ -191,16 +191,16 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         address account,
         address randomAddress,
         uint128 amount,
-        uint256 tokenId,
+        uint256 positionId,
         uint8 assetDecimals,
         uint8 rewardTokenDecimals
     ) public notTestContracts(account) {
         // Given : Amount is greater than zero
         vm.assume(amount > 0);
-        // Given : TokenId is greater than 0
-        vm.assume(tokenId > 0);
-        // Given : Owner of tokenId is not the Account
-        stakingModule.setOwnerOfTokenId(randomAddress, tokenId);
+        // Given : positionId is greater than 0
+        vm.assume(positionId > 0);
+        // Given : Owner of positionId is not the Account
+        stakingModule.setOwnerOfPositionId(randomAddress, positionId);
         // Given : A staking token and reward token pair are added to the stakingModule
         (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
         address asset = assets[0];
@@ -211,27 +211,27 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         approveERC20TokensFor(assets, address(stakingModule), amounts, account);
 
         // When : Calling Stake
-        // Then : The function should revert as the Account is not the owner of the tokenId.
+        // Then : The function should revert as the Account is not the owner of the positionId.
         vm.startPrank(account);
         vm.expectRevert(StakingModule.NotOwner.selector);
-        stakingModule.stake(tokenId, asset, amount);
+        stakingModule.stake(positionId, asset, amount);
         vm.stopPrank();
     }
 
     function testFuzz_Revert_stake_ExistingPosition_AssetNotMatching(
         address account,
         uint128 amount,
-        uint256 tokenId,
+        uint256 positionId,
         uint8 assetDecimals,
         uint8 rewardTokenDecimals,
         address randomAsset
     ) public notTestContracts(account) {
         // Given : Amount is greater than zero
         vm.assume(amount > 0);
-        // Given : TokenId is greater than 0
-        vm.assume(tokenId > 0);
-        // Given : Owner of tokenId is not the Account
-        stakingModule.setOwnerOfTokenId(account, tokenId);
+        // Given : positionId is greater than 0
+        vm.assume(positionId > 0);
+        // Given : Owner of positionId is not the Account
+        stakingModule.setOwnerOfPositionId(account, positionId);
         // Given : A staking token and reward token pair are added to the stakingModule
         (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
         address asset = assets[0];
@@ -242,13 +242,13 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         approveERC20TokensFor(assets, address(stakingModule), amounts, account);
 
         // Given : The asset in the position is not equal to asset staked.
-        stakingModule.setAssetInPosition(randomAsset, tokenId);
+        stakingModule.setAssetInPosition(randomAsset, positionId);
 
         // When : Calling Stake
-        // Then : The function should revert as the Account is not the owner of the tokenId.
+        // Then : The function should revert as the Account is not the owner of the positionId.
         vm.startPrank(account);
         vm.expectRevert(StakingModule.AssetNotMatching.selector);
-        stakingModule.stake(tokenId, asset, amount);
+        stakingModule.stake(positionId, asset, amount);
         vm.stopPrank();
     }
 
@@ -257,14 +257,14 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         uint8 rewardTokenDecimals,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint256 tokenId,
+        uint256 positionId,
         uint128 amount,
         address account
     ) public notTestContracts(account) {
         // Given : Can't stake zero amount
         vm.assume(amount > 0);
-        // Given : TokenId is not 0
-        vm.assume(tokenId > 0);
+        // Given : positionId is not 0
+        vm.assume(positionId > 0);
 
         // Given : A staking token and reward token pair are added to the stakingModule
         (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
@@ -277,10 +277,10 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         approveERC20TokensFor(assets, address(stakingModule), amounts, account);
 
         // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
+        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
 
-        // Given : Owner of tokenId is Account
-        stakingModule.setOwnerOfTokenId(account, tokenId);
+        // Given : Owner of positionId is Account
+        stakingModule.setOwnerOfPositionId(account, positionId);
 
         // Given : TotalStaked is greater than 0 and updated totalStake should not be greater than uint128.
         (,, uint128 totalStaked) = stakingModule.assetState(asset);
@@ -294,7 +294,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.Staked(account, asset, amount);
-        uint256 tokenId_ = stakingModule.stake(tokenId, asset, amount);
+        uint256 positionId_ = stakingModule.stake(positionId, asset, amount);
 
         // Cache value to avoid stack too deep
         StakingModuleStateForAsset memory assetStateStack = assetState;
@@ -306,8 +306,8 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         // Then : Assets should have been transferred to the Staking Module
         assertEq(ERC20Mock(asset).balanceOf(address(stakingModule)), amountStack);
 
-        // And : Returned tokenId should be equal to the input tokenId
-        assertEq(tokenId, tokenId_);
+        // And : Returned positionId should be equal to the input positionId
+        assertEq(positionId, positionId_);
 
         // And : Position values should be updated correctly
         StakingModule.PositionState memory newPositionState;
@@ -316,7 +316,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
             newPositionState.amountStaked,
             newPositionState.lastRewardPerTokenPosition,
             newPositionState.lastRewardPosition
-        ) = stakingModule.positionState(tokenId_);
+        ) = stakingModule.positionState(positionId_);
 
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, amountStakedStack + amountStack);
@@ -337,14 +337,14 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         uint8 rewardTokenDecimals,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint256 tokenId,
+        uint256 positionId,
         uint128 amount,
         address account
     ) public notTestContracts(account) {
         // Given : Can't stake zero amount
         vm.assume(amount > 0);
-        // Given : TokenId is not 0
-        vm.assume(tokenId > 0);
+        // Given : positionId is not 0
+        vm.assume(positionId > 0);
 
         // Given : A staking token and reward token pair are added to the stakingModule
         (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
@@ -357,10 +357,10 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         approveERC20TokensFor(assets, address(stakingModule), amounts, account);
 
         // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
+        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
 
-        // Given : Owner of tokenId is Account
-        stakingModule.setOwnerOfTokenId(account, tokenId);
+        // Given : Owner of positionId is Account
+        stakingModule.setOwnerOfPositionId(account, positionId);
 
         // Given : TotalStaked is greater than 0 and updated totalStake should not be greater than uint128.
         (,, uint128 totalStaked) = stakingModule.assetState(asset);
@@ -374,7 +374,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.Staked(account, asset, amount);
-        uint256 tokenId_ = stakingModule.stake(tokenId, asset, amount);
+        uint256 positionId_ = stakingModule.stake(positionId, asset, amount);
 
         // Cache value to avoid stack too deep
         StakingModuleStateForAsset memory assetStateStack = assetState;
@@ -383,8 +383,8 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         // Then : Assets should have been transferred to the Staking Module
         assertEq(ERC20Mock(asset).balanceOf(address(stakingModule)), amountStack);
 
-        // And : Returned tokenId should be equal to the input tokenId
-        assertEq(tokenId, tokenId_);
+        // And : Returned positionId should be equal to the input positionId
+        assertEq(positionId, positionId_);
 
         // And : Asset values should be updated correctly
         StakingModule.AssetState memory newAssetState;

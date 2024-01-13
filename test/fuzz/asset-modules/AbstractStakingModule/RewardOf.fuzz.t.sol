@@ -27,10 +27,10 @@ contract RewardOf_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Success_rewardOf_ZeroBalanceOf(
+    function testFuzz_Success_rewardOf(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint256 tokenId,
+        uint256 positionId,
         uint8 assetDecimals,
         uint8 rewardTokenDecimals
     ) public {
@@ -39,37 +39,13 @@ contract RewardOf_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         address asset = assets[0];
 
         // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
+        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
 
-        // And: Account balance is zero.
-        stakingModule.setAmountStakedForPosition(tokenId, 0);
-
-        // When : Calling rewardOf()
-        uint256 currentRewardPosition = stakingModule.rewardOf(tokenId);
-
-        // Then : It should return zero.
-        assertEq(currentRewardPosition, 0);
-    }
-
-    function testFuzz_Success_rewardOf_NonZeroBalanceOf(
-        StakingModuleStateForAsset memory assetState,
-        StakingModule.PositionState memory positionState,
-        uint256 tokenId,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
-    ) public {
-        // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
-
-        // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, tokenId);
-
-        // And: Account balance is non zero.
+        // And: Amount staked in position is non zero.
         vm.assume(positionState.amountStaked > 0);
 
         // When : Calling rewardOf()
-        uint256 currentRewardPosition = stakingModule.rewardOf(tokenId);
+        uint256 currentRewardPosition = stakingModule.rewardOf(positionId);
 
         // Then : It should return the correct value
         uint256 deltaRewardGlobal = assetState.currentRewardGlobal - assetState.lastRewardGlobal;

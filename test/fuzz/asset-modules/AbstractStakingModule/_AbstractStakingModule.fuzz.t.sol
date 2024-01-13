@@ -141,7 +141,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
             )
         );
 
-        // Given : totalSupply should be >= to amountStakedForId
+        // Given : totalStaked should be >= to amountStakedForPosition
         stakingModuleStateForAsset.totalStaked = uint128(
             bound(stakingModuleStateForAsset.totalStaked, stakingModuleStateForPosition.amountStaked, type(uint128).max)
         );
