@@ -27,7 +27,18 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    // Note : add revert scenario for non owner
+    function testFuzz_Revert_claimReward_NotOwner(address owner, address randomAddress, uint256 tokenId) public {
+        // Given : Owner of tokenId is not randomAddress
+        stakingModule.setOwnerOfTokenId(owner, tokenId);
+
+        // When : randomAddress calls claimReward for tokenId
+        // Then : It should revert as randomAddress is not owner of the tokenId
+        vm.startPrank(randomAddress);
+        vm.expectRevert(StakingModule.NotOwner.selector);
+        stakingModule.claimReward(tokenId);
+        vm.stopPrank();
+    }
+
     function testFuzz_Success_claimReward_ZeroReward(
         address asset,
         address account,

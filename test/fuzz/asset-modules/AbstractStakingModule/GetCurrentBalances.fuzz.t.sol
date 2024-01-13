@@ -27,7 +27,7 @@ contract GetCurrentBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Success_getCurrentBalances_ZeroTotalSupply(
+    function testFuzz_Success_getCurrentBalances_ZeroTotalStaked(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 tokenId,
@@ -55,7 +55,7 @@ contract GetCurrentBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
         assertEq(currentRewardPosition, 0);
     }
 
-    function testFuzz_Success_getCurrentBalances_NonZeroTotalSupply_ZeroBalanceOf(
+    function testFuzz_Success_getCurrentBalances_NonZeroTotalStaked_ZeroBalanceOf(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 tokenId,
@@ -90,7 +90,7 @@ contract GetCurrentBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
         assertEq(currentRewardPosition, 0);
     }
 
-    function testFuzz_Success_getCurrentBalances_NonZeroTotalSupply_NonZeroBalanceOf(
+    function testFuzz_Success_getCurrentBalances_NonZeroTotalStaked_NonZeroBalanceOf(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 tokenId,
