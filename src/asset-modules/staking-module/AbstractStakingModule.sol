@@ -74,7 +74,6 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
-    error InvalidTokenDecimals();
     error AssetNotAllowed();
     error ZeroAmount();
     error NotOwner();
@@ -104,7 +103,6 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         // Need to transfer the underlying asset before minting or ERC777s could reenter.
         ERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
 
-        // Note : double check if receiver would be needed in existing position.
         if (tokenId == 0) {
             tokenId_ = _stakeNewPosition(asset, amount);
         } else {
@@ -138,17 +136,18 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             _getCurrentBalances(positionState_);
 
         // Update the state variables.
-        if (totalStaked_ > 0) {
-            assetState[asset].lastRewardPerTokenGlobal = uint128(currentRewardPerToken);
-            // Reset the balances of the pending rewards for the token and Account,
-            // since rewards are claimed and paid out to Account on a withdraw.
-            assetState[asset].lastRewardGlobal = 0;
+        // Reset the balances of the pending rewards for the asset and the position
+        // since rewards are claimed and paid out to Account on a withdraw.
+        assetState[asset] = AssetState({
+            lastRewardPerTokenGlobal: uint128(currentRewardPerToken),
+            lastRewardGlobal: 0,
+            totalStaked: uint128(totalStaked_ - amount)
+        });
 
-            positionState[tokenId].lastRewardPerTokenPosition = uint128(currentRewardPerToken);
-            positionState[tokenId].lastRewardPosition = 0;
-        }
+        positionState[tokenId].lastRewardPerTokenPosition = uint128(currentRewardPerToken);
+        positionState[tokenId].lastRewardPosition = 0;
         positionState[tokenId].amountStaked -= amount;
-        assetState[asset].totalStaked = uint128(totalStaked_ - amount);
+
         // Withdraw the underlying tokens from external staking contract.
         if (amount == positionState_.amountStaked) _burn(tokenId);
         _withdraw(asset, amount);
@@ -177,19 +176,17 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         PositionState memory positionState_ = positionState[tokenId];
 
         // Calculate the updated reward balances.
-        (uint256 currentRewardPerToken, uint256 totalSupply_, uint256 currentRewardClaimable) =
-            _getCurrentBalances(positionState_);
+        (uint256 currentRewardPerToken,, uint256 currentRewardClaimable) = _getCurrentBalances(positionState_);
 
         address asset = positionState[tokenId].asset;
         // Update the state variables.
-        if (totalSupply_ > 0) {
-            assetState[asset].lastRewardPerTokenGlobal = uint128(currentRewardPerToken);
-            // Reset the balances of the pending rewards for the token and Account,
-            // since rewards are claimed and paid out to Account on a claimReward.
-            assetState[asset].lastRewardGlobal = 0;
-            positionState[tokenId].lastRewardPerTokenPosition = uint128(currentRewardPerToken);
-            positionState[tokenId].lastRewardPosition = 0;
-        }
+        // Reset the balances of the pending rewards for the asset and position,
+        // since rewards are claimed and paid out to Account on a claimReward.
+        assetState[asset].lastRewardPerTokenGlobal = uint128(currentRewardPerToken);
+        assetState[asset].lastRewardGlobal = 0;
+
+        positionState[tokenId].lastRewardPerTokenPosition = uint128(currentRewardPerToken);
+        positionState[tokenId].lastRewardPosition = 0;
 
         // Claim the reward from the external staking contract.
         _claimReward(asset);
@@ -209,7 +206,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         PositionState storage positionState_ = positionState[tokenId];
         AssetState storage assetState_ = assetState[asset];
 
-        // Cache totalStaked
+        // Cache totalStaked, will always be > 0 in this scenario.
         uint256 totalStaked_ = assetState_.totalStaked;
 
         if (positionState_.asset != asset) revert AssetNotMatching();

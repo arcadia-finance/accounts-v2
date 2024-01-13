@@ -309,7 +309,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         // And : Returned tokenId should be equal to the input tokenId
         assertEq(tokenId, tokenId_);
 
-        // And : Asset and position values should be updated correctly
+        // And : Position values should be updated correctly
         StakingModule.PositionState memory newPositionState;
         (
             newPositionState.asset,
@@ -386,7 +386,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         // And : Returned tokenId should be equal to the input tokenId
         assertEq(tokenId, tokenId_);
 
-        // And : Asset and position values should be updated correctly
+        // And : Asset values should be updated correctly
         StakingModule.AssetState memory newAssetState;
 
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
