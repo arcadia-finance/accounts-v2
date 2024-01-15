@@ -77,7 +77,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         StakingModule.PositionState memory positionState,
         uint8 assetDecimals,
         uint8 rewardTokenDecimals
-    ) public {
+    ) public notTestContracts(account) {
         // Given : account != zero address
         vm.assume(account != address(0));
 
@@ -130,7 +130,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         StakingModule.PositionState memory positionState,
         uint8 assetDecimals,
         uint8 rewardTokenDecimals
-    ) public {
+    ) public notTestContracts(account) {
         // Given : account != zero address
         vm.assume(account != address(0));
 
@@ -189,7 +189,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         StakingModule.PositionState memory positionState,
         uint8 assetDecimals,
         uint8 rewardTokenDecimals
-    ) public {
+    ) public notTestContracts(account) {
         // Given : account != zero address
         vm.assume(account != address(0));
 
