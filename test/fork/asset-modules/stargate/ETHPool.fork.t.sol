@@ -77,7 +77,7 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
         // And : The user stakes the LP token via the StargateAssetModule
         uint256 stakedAmount = pool.balanceOf(users.accountOwner);
         pool.approve(address(stargateAssetModule), stakedAmount);
-        uint256 tokenId = stargateAssetModule.stake(0, address(pool), uint128(stakedAmount));
+        uint256 tokenId = stargateAssetModule.mint(address(pool), uint128(stakedAmount));
 
         // The user deposits the ERC1155 in it's Account.
         stargateAssetModule.approve(address(proxyAccount), tokenId);

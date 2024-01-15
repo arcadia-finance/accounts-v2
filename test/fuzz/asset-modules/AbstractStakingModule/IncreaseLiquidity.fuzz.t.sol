@@ -10,9 +10,9 @@ import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointM
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "stake" of contract "StakingModule".
+ * @notice Fuzz tests for the function "increaseLiquidity" of contract "StakingModule".
  */
-contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
+contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -23,171 +23,27 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
     }
 
     /*//////////////////////////////////////////////////////////////
-                       TESTS FOR NEW POSITION
+                             TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_stake_ZeroAmount(address asset) public {
+    function testFuzz_Revert_increaseLiquidity_ZeroAmount(uint256 positionId, address asset) public {
         // The stake function should revert when trying to stake 0 amount.
         vm.expectRevert(StakingModule.ZeroAmount.selector);
-        stakingModule.stake(0, asset, 0);
+        stakingModule.increaseLiquidity(positionId, asset, 0);
     }
 
-    function testFuzz_Revert_stake_AssetNotAllowed(address asset, uint128 amount) public {
+    function testFuzz_Revert_increaseLiquidity_AssetNotAllowed(uint256 positionId, address asset, uint128 amount)
+        public
+    {
         // Given : Amount is greater than zero
         vm.assume(amount > 0);
         // When : Calling Stake
         // Then : The function should revert as the asset has not been added to the Staking Module.
         vm.expectRevert(StakingModule.AssetNotAllowed.selector);
-        stakingModule.stake(0, asset, amount);
+        stakingModule.increaseLiquidity(positionId, asset, amount);
     }
 
-    function testFuzz_Success_stake_NewPosition_TotalStakedGreaterThan0(
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals,
-        StakingModuleStateForAsset memory assetState,
-        StakingModule.PositionState memory positionState,
-        uint256 positionId,
-        uint128 amount,
-        address account
-    ) public notTestContracts(account) {
-        // Given : Can't stake zero amount
-        vm.assume(amount > 0);
-        // Given : positionId is not equal to 1, as by staking we will mint id 1.
-        vm.assume(positionId != 1);
-
-        // Given : An Asset and reward token pair are added to the stakingModule
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
-
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
-
-        mintERC20TokensTo(assets, account, amounts);
-        approveERC20TokensFor(assets, address(stakingModule), amounts, account);
-
-        // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
-
-        // Given : TotalStaked is greater than 0 and updated totalStake should not be greater than uint128.
-        (,, uint128 totalStaked) = stakingModule.assetState(asset);
-        vm.assume(totalStaked > 0);
-        vm.assume(totalStaked < type(uint128).max - amount);
-
-        // When :  A user is staking via the Staking Module
-        vm.startPrank(account);
-        vm.expectEmit();
-        emit StakingModule.Staked(account, asset, amount);
-        uint256 newPositionId = stakingModule.stake(0, asset, amount);
-
-        // Cache value to avoid stack too deep
-        StakingModuleStateForAsset memory assetStateStack = assetState;
-        uint256 amountStack = amount;
-
-        // Then : Assets should have been transferred to the Staking Module
-        assertEq(ERC20Mock(asset).balanceOf(address(stakingModule)), amountStack);
-
-        // And : New position has been minted to Account
-        assertEq(stakingModule.ownerOf(newPositionId), account);
-
-        // And : Asset and position values should be updated correctly
-        StakingModule.PositionState memory newPositionState;
-        StakingModule.AssetState memory newAssetState;
-        (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakingModule.positionState(1);
-
-        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
-            stakingModule.assetState(asset);
-
-        assertEq(newPositionState.asset, asset);
-        assertEq(newPositionState.amountStaked, amountStack);
-        uint256 deltaReward = assetStateStack.currentRewardGlobal - assetStateStack.lastRewardGlobal;
-        uint256 currentRewardPerToken =
-            assetStateStack.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, assetStateStack.totalStaked);
-        assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
-        assertEq(newPositionState.lastRewardPosition, 0);
-
-        assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
-        assertEq(newAssetState.lastRewardGlobal, assetStateStack.currentRewardGlobal);
-        assertEq(newAssetState.totalStaked, assetStateStack.totalStaked + amountStack);
-    }
-
-    function testFuzz_Success_stake_NewPosition_TotalStakedIsZero(
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals,
-        StakingModuleStateForAsset memory assetState,
-        StakingModule.PositionState memory positionState,
-        uint256 positionId,
-        uint128 amount,
-        address account
-    ) public notTestContracts(account) {
-        // Given : Can't stake zero amount
-        vm.assume(amount > 0);
-        // Given : positionId is not equal to 1, as by staking we will mint id 1.
-        vm.assume(positionId != 1);
-
-        // Given : A staking token and reward token pair are added to the stakingModule
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
-
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
-
-        mintERC20TokensTo(assets, account, amounts);
-        approveERC20TokensFor(assets, address(stakingModule), amounts, account);
-
-        // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
-
-        // Given : TotalStaked is 0
-        stakingModule.setTotalStaked(asset, 0);
-
-        // When :  A user is staking via the Staking Module
-        vm.startPrank(account);
-        vm.expectEmit();
-        emit StakingModule.Staked(account, asset, amount);
-        uint256 newPositionId = stakingModule.stake(0, asset, amount);
-
-        // Cache value to avoid stack too deep
-        uint256 amountStack = amount;
-
-        // Then : Assets should have been transferred to the Staking Module
-        assertEq(ERC20Mock(asset).balanceOf(address(stakingModule)), amountStack);
-
-        // And : New position has been minted to Account
-        assertEq(stakingModule.ownerOf(newPositionId), account);
-
-        // And : Asset and position values should be updated correctly
-        StakingModule.PositionState memory newPositionState;
-        StakingModule.AssetState memory newAssetState;
-        (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakingModule.positionState(1);
-
-        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
-            stakingModule.assetState(asset);
-
-        assertEq(newPositionState.asset, asset);
-        assertEq(newPositionState.amountStaked, amountStack);
-        assertEq(newPositionState.lastRewardPerTokenPosition, 0);
-        assertEq(newPositionState.lastRewardPosition, 0);
-
-        assertEq(newAssetState.lastRewardPerTokenGlobal, 0);
-        assertEq(newAssetState.lastRewardGlobal, 0);
-        assertEq(newAssetState.totalStaked, amountStack);
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                       TESTS FOR EXISTING POSITION
-    //////////////////////////////////////////////////////////////*/
-
-    function testFuzz_Revert_stake_ExistingPosition_NotOwner(
+    function testFuzz_Revert_increaseLiquidity_NotOwner(
         address account,
         address randomAddress,
         uint128 amount,
@@ -214,11 +70,11 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         // Then : The function should revert as the Account is not the owner of the positionId.
         vm.startPrank(account);
         vm.expectRevert(StakingModule.NotOwner.selector);
-        stakingModule.stake(positionId, asset, amount);
+        stakingModule.increaseLiquidity(positionId, asset, amount);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_stake_ExistingPosition_AssetNotMatching(
+    function testFuzz_Revert_increaseLiquidity_AssetNotMatching(
         address account,
         uint128 amount,
         uint256 positionId,
@@ -248,11 +104,11 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         // Then : The function should revert as the Account is not the owner of the positionId.
         vm.startPrank(account);
         vm.expectRevert(StakingModule.AssetNotMatching.selector);
-        stakingModule.stake(positionId, asset, amount);
+        stakingModule.increaseLiquidity(positionId, asset, amount);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_stake_ExistingPosition_PositionState(
+    function testFuzz_Success_increaseLiquidity_PositionState(
         uint8 assetDecimals,
         uint8 rewardTokenDecimals,
         StakingModuleStateForAsset memory assetState,
@@ -293,8 +149,8 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         // When :  A user is staking via the Staking Module
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.Staked(account, asset, amount);
-        uint256 positionId_ = stakingModule.stake(positionId, asset, amount);
+        emit StakingModule.LiquidityIncreased(account, positionId, asset, amount);
+        stakingModule.increaseLiquidity(positionId, asset, amount);
 
         // Cache value to avoid stack too deep
         StakingModuleStateForAsset memory assetStateStack = assetState;
@@ -306,9 +162,6 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         // Then : Assets should have been transferred to the Staking Module
         assertEq(ERC20Mock(asset).balanceOf(address(stakingModule)), amountStack);
 
-        // And : Returned positionId should be equal to the input positionId
-        assertEq(positionId, positionId_);
-
         // And : Position values should be updated correctly
         StakingModule.PositionState memory newPositionState;
         (
@@ -316,7 +169,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
             newPositionState.amountStaked,
             newPositionState.lastRewardPerTokenPosition,
             newPositionState.lastRewardPosition
-        ) = stakingModule.positionState(positionId_);
+        ) = stakingModule.positionState(positionId);
 
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, amountStakedStack + amountStack);
@@ -332,7 +185,7 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         assertEq(newPositionState.lastRewardPosition, lastRewardPositionStack + accruedRewards);
     }
 
-    function testFuzz_Success_stake_ExistingPosition_AssetState(
+    function testFuzz_Success_increaseLiquidity_AssetState(
         uint8 assetDecimals,
         uint8 rewardTokenDecimals,
         StakingModuleStateForAsset memory assetState,
@@ -373,8 +226,8 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
         // When :  A user is staking via the Staking Module
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.Staked(account, asset, amount);
-        uint256 positionId_ = stakingModule.stake(positionId, asset, amount);
+        emit StakingModule.LiquidityIncreased(account, positionId, asset, amount);
+        stakingModule.increaseLiquidity(positionId, asset, amount);
 
         // Cache value to avoid stack too deep
         StakingModuleStateForAsset memory assetStateStack = assetState;
@@ -382,9 +235,6 @@ contract Stake_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Tes
 
         // Then : Assets should have been transferred to the Staking Module
         assertEq(ERC20Mock(asset).balanceOf(address(stakingModule)), amountStack);
-
-        // And : Returned positionId should be equal to the input positionId
-        assertEq(positionId, positionId_);
 
         // And : Asset values should be updated correctly
         StakingModule.AssetState memory newAssetState;

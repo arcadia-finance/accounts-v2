@@ -612,7 +612,7 @@ abstract contract StakingModuleExtension is StakingModule {
     }
 
     function getIdCounter() public view returns (uint256 lastId_) {
-        lastId_ = lastId;
+        lastId_ = lastPositionId;
     }
 
     function setOwnerOfPositionId(address owner, uint256 positionId) public {
@@ -627,7 +627,7 @@ abstract contract StakingModuleExtension is StakingModule {
         return _getCurrentBalances(positionState_);
     }
 
-    function mint(address to, uint256 tokenId) public {
+    function mintIdTo(address to, uint256 tokenId) public {
         _safeMint(to, tokenId);
     }
 }
@@ -670,7 +670,7 @@ contract StargateAssetModuleExtension is StargateAssetModule {
     }
 
     function getIdCounter() public view returns (uint256 lastId_) {
-        lastId_ = lastId;
+        lastId_ = lastPositionId;
     }
 
     function stakeExtension(address asset, uint256 amount) public {
