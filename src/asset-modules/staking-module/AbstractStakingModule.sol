@@ -84,13 +84,13 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
     error AssetNotMatching();
 
     /* //////////////////////////////////////////////////////////////
-                            CONSTRUCTOR
+                              CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
     constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) { }
 
     /*///////////////////////////////////////////////////////////////
-                    STAKING MODULE LOGIC
+                         STAKING MODULE LOGIC
     ///////////////////////////////////////////////////////////////*/
 
     /**
@@ -291,6 +291,15 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         }
     }
 
+    /**
+     * @notice Returns the total amount of Asset staked via this contract.
+     * @param asset The Asset staked via this contract.
+     * @return totalStaked_ The total amount of Asset staked via this contract.
+     */
+    function totalStaked(address asset) external view returns (uint256 totalStaked_) {
+        return assetState[asset].totalStaked;
+    }
+
     /*///////////////////////////////////////////////////////////////
                     INTERACTIONS STAKING CONTRACT
     ///////////////////////////////////////////////////////////////*/
@@ -323,17 +332,8 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
     function _getCurrentReward(address asset) internal view virtual returns (uint256 currentReward);
 
     /*///////////////////////////////////////////////////////////////
-                        REWARDS ACCOUNTING LOGIC
+                         REWARDS VIEW FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Returns the total amount of Asset staked via this contract.
-     * @param asset The Asset staked via this contract.
-     * @return totalStaked_ The total amount of Asset staked via this contract.
-     */
-    function totalStaked(address asset) external view returns (uint256 totalStaked_) {
-        return assetState[asset].totalStaked;
-    }
 
     /**
      * @notice Returns the amount of reward tokens claimable by a position.
