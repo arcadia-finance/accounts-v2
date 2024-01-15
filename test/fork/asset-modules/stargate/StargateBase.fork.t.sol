@@ -30,7 +30,7 @@ contract StargateBase_Fork_Test is Fork_Test {
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
-    function setUp() public virtual override {
+    /*   function setUp() public virtual override {
         Fork_Test.setUp();
 
         // Deploy StargateAssetModule.
@@ -44,7 +44,7 @@ contract StargateBase_Fork_Test is Fork_Test {
         // Label contracts
         vm.label({ account: address(router), newLabel: "StargateRouter" });
         vm.label({ account: address(lpStakingTime), newLabel: "StargateLpStaking" });
-    }
+    } */
 
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS

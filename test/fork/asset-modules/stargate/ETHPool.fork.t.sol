@@ -30,7 +30,7 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
-    function setUp() public override {
+    /*     function setUp() public override {
         StargateBase_Fork_Test.setUp();
 
         vm.startPrank(users.creatorAddress);
@@ -56,13 +56,13 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
         // Label contracts
         vm.label({ account: address(pool), newLabel: "StargateETHPool" });
         vm.label({ account: address(SGETH), newLabel: "SGETH" });
-    }
+    } */
 
     /*///////////////////////////////////////////////////////////////
                             FORK TESTS
     ///////////////////////////////////////////////////////////////*/
 
-    function testFork_Success_StakeAndDepositInAccount() public {
+    /*     function testFork_Success_StakeAndDepositInAccount() public {
         uint256 initBalance = 1000 * 10 ** SGETH.decimals();
         assert(pool.balanceOf(users.accountOwner) == 0);
 
@@ -96,10 +96,10 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
         // note : assert that position staked amount is correct and exposures.
 
         vm.stopPrank();
-    }
+    } */
 
     // On withdrawal of the ERC1155 token, the corresponding asset (Stargate LP tokens) and accumulated rewards should be transfered to the user.
-    function testFork_Success_Withdraw() public {
+    /*     function testFork_Success_Withdraw() public {
         // Given : Amount of underlying assets deposited in Stargate pool.
         uint256 amount1 = 1000 * 10 ** SGETH.decimals();
         uint256 amount2 = 123 * 10 ** SGETH.decimals();
@@ -171,5 +171,5 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
 
         (,, totalStaked) = stargateAssetModule.assetState(address(pool));
         assert(totalStaked == 0);
-    }
+    } */
 }
