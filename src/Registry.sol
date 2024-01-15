@@ -65,7 +65,6 @@ contract Registry is IRegistry, RegistryGuardian {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event AllowedActionSet(address indexed action, bool allowed);
     event AssetAdded(address indexed assetAddress, address indexed assetModule);
     event AssetModuleAdded(address assetModule);
     event OracleAdded(uint256 indexed oracleId, address indexed oracleModule);
