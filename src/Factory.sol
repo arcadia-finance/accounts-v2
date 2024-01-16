@@ -81,7 +81,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @return account The contract address of the proxy contract of the newly deployed Account.
      * @dev If accountVersion == 0, the newest version will be used.
      */
-    function createAccount(uint256 salt, uint88 accountVersion, address creditor)
+    function createAccount(uint256 salt, uint256 accountVersion, address creditor)
         external
         whenCreateNotPaused
         returns (address account)
@@ -106,7 +106,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
 
         IAccount(account).initialize(msg.sender, versionInformation[accountVersion].registry, creditor);
 
-        emit AccountUpgraded(account, accountVersion);
+        // unsafe cast: accountVersion <= latestAccountVersion, which is a uint88.
+        emit AccountUpgraded(account, uint88(accountVersion));
     }
 
     /**
@@ -137,13 +138,13 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * Checks are done such that only compatible versions can be upgraded to.
      * Merkle proofs and their leaves can be found on https://www.github.com/arcadia-finance.
      */
-    function upgradeAccountVersion(address account, uint88 version, bytes32[] calldata proofs) external {
+    function upgradeAccountVersion(address account, uint256 version, bytes32[] calldata proofs) external {
         if (_ownerOf[accountIndex[account]] != msg.sender) revert FactoryErrors.OnlyAccountOwner();
         if (accountVersionBlocked[version]) revert FactoryErrors.AccountVersionBlocked();
 
         uint256 currentVersion = IAccount(account).ACCOUNT_VERSION();
         bool canUpgrade =
-            MerkleProofLib.verify(proofs, versionRoot, keccak256(abi.encodePacked(currentVersion, uint256(version))));
+            MerkleProofLib.verify(proofs, versionRoot, keccak256(abi.encodePacked(currentVersion, version)));
 
         if (!canUpgrade) revert FactoryErrors.InvalidUpgrade();
 
@@ -154,7 +155,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
             versionInformation[version].data
         );
 
-        emit AccountUpgraded(account, version);
+        // unsafe cast: accountVersion <= latestAccountVersion, which is a uint88.
+        emit AccountUpgraded(account, uint88(version));
     }
 
     /**
@@ -294,6 +296,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         if (version == 0 || version > latestAccountVersion) revert FactoryErrors.InvalidAccountVersion();
         accountVersionBlocked[version] = true;
 
+        // unsafe cast: accountVersion <= latestAccountVersion, which is a uint88.
         emit AccountVersionBlocked(uint88(version));
     }
 

@@ -20,7 +20,6 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     struct Checks {
-        uint88 accountVersion;
         address numeraire;
         address owner;
         address liquidator;
@@ -67,7 +66,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_upgradeAccount_NonFactory(
         address newImplementation,
         address newRegistry,
-        uint88 newVersion,
+        uint256 newVersion,
         address nonFactory,
         bytes calldata data
     ) public {
@@ -83,7 +82,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_upgradeAccount_Reentered(
         address newImplementation,
         address newRegistry,
-        uint88 newVersion,
+        uint256 newVersion,
         bytes calldata data
     ) public {
         // Reentrancy guard is in locked state.
@@ -99,7 +98,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_upgradeAccount_NotDuringAuction(
         address newImplementation,
         address newRegistry,
-        uint88 newVersion,
+        uint256 newVersion,
         bytes calldata data
     ) public {
         // Set "inAuction" to true.
@@ -114,7 +113,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_upgradeAccount_InvalidAccountVersion(
         address newImplementation,
-        uint88 newVersion,
+        uint256 newVersion,
         bytes calldata data
     ) public {
         // Given: Creditor is set.

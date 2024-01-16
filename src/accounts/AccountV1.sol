@@ -41,7 +41,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ////////////////////////////////////////////////////////////// */
 
     // The current Account Version.
-    uint16 public constant ACCOUNT_VERSION = 1;
+    uint256 public constant ACCOUNT_VERSION = 1;
     // The maximum amount of different assets that can be used as collateral within an Arcadia Account.
     uint256 public constant ASSET_LIMIT = 15;
     // The cool-down period after an account action, that might be disadvantageous for a new Owner,
@@ -189,7 +189,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param newVersion The new version of the Account implementation.
      * @dev This function MUST be added to new Account implementations.
      */
-    function upgradeAccount(address newImplementation, address newRegistry, uint88 newVersion, bytes calldata data)
+    function upgradeAccount(address newImplementation, address newRegistry, uint256 newVersion, bytes calldata data)
         external
         onlyFactory
         nonReentrant
@@ -199,7 +199,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         // Cache old parameters.
         address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
-        uint16 oldVersion = ACCOUNT_VERSION;
+        uint256 oldVersion = ACCOUNT_VERSION;
 
         // Store new parameters.
         _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
@@ -243,7 +243,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param data Arbitrary data, can contain instructions to execute in this function.
      * @dev If upgradeHook() is implemented, it MUST verify that msg.sender == address(this).
      */
-    function upgradeHook(address oldImplementation, address oldRegistry, uint16 oldVersion, bytes calldata data)
+    function upgradeHook(address oldImplementation, address oldRegistry, uint256 oldVersion, bytes calldata data)
         external
     { }
 
