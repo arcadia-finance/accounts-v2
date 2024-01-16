@@ -10,9 +10,9 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 /**
- * @notice Fuzz tests for the function "withdraw" of contract "StakingModule".
+ * @notice Fuzz tests for the function "decreaseLiquidity" of contract "StakingModule".
  */
-contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
+contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
     /* ///////////////////////////////////////////////////////////////
@@ -27,17 +27,17 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_Withdraw_ZeroAmount(uint256 id) public {
+    function testFuzz_Revert_decreaseLiquidity_ZeroAmount(uint256 id) public {
         // Given : Amount is 0.
         uint128 amount = 0;
 
         // When : Trying to withdraw zero amount.
         // Then : It should revert.
         vm.expectRevert(StakingModule.ZeroAmount.selector);
-        stakingModule.withdraw(id, amount);
+        stakingModule.decreaseLiquidity(id, amount);
     }
 
-    function testFuzz_Revert_Withdraw_NotOwner(uint256 id, uint128 amount, address owner) public {
+    function testFuzz_Revert_decreaseLiquidity_NotOwner(uint256 id, uint128 amount, address owner) public {
         // Given : Amount is greater than 0.
         vm.assume(amount > 0);
 
@@ -51,11 +51,13 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // Then : It should revert.
         vm.startPrank(users.accountOwner);
         vm.expectRevert(StakingModule.NotOwner.selector);
-        stakingModule.withdraw(id, amount);
+        stakingModule.decreaseLiquidity(id, amount);
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_Withdraw_RemainingBalanceTooLow(uint256 id, uint128 amount, address owner) public {
+    function testFuzz_Revert_decreaseLiquidity_RemainingBalanceTooLow(uint256 id, uint128 amount, address owner)
+        public
+    {
         // Given : Amount is greater than 0.
         vm.assume(amount > 0);
         // Given : Owner is the caller.
@@ -66,11 +68,11 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // Then : It should revert as remaining balance is too low.
         vm.startPrank(owner);
         vm.expectRevert(StakingModule.RemainingBalanceTooLow.selector);
-        stakingModule.withdraw(id, amount);
+        stakingModule.decreaseLiquidity(id, amount);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_Withdraw_CurrentRewardPositionGreaterThan0(
+    function testFuzz_Success_decreaseLiquidity_CurrentRewardPositionGreaterThan0(
         uint256 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
@@ -112,8 +114,8 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.Withdrawn(account, assets[0], positionState.amountStaked);
-        stakingModule.withdraw(positionId, positionState.amountStaked);
+        emit StakingModule.LiquidityDecreased(account, assets[0], positionState.amountStaked);
+        stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
         // Then : Account should get the staking and reward tokens
@@ -123,7 +125,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         assertEq(stakingModule.balanceOf(account), 0);
     }
 
-    function testFuzz_Success_Withdraw_ZeroCurrentRewardPosition(
+    function testFuzz_Success_decreaseLiquidity_ZeroCurrentRewardPosition(
         uint256 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
@@ -171,8 +173,8 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.Withdrawn(account, assets[0], positionState.amountStaked);
-        stakingModule.withdraw(positionId, positionState.amountStaked);
+        emit StakingModule.LiquidityDecreased(account, assets[0], positionState.amountStaked);
+        stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
         // Then : Account should get the amount of Asset staked and reward tokens
@@ -182,7 +184,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         assertEq(stakingModule.balanceOf(account), 0);
     }
 
-    function testFuzz_Success_Withdraw_PartialWithdraw(
+    function testFuzz_Success_decreaseLiquidity_PartialWithdraw(
         uint256 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
@@ -221,8 +223,8 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.Withdrawn(account, assets[0], positionState.amountStaked - 1);
-        stakingModule.withdraw(positionId, positionState.amountStaked - 1);
+        emit StakingModule.LiquidityDecreased(account, assets[0], positionState.amountStaked - 1);
+        stakingModule.decreaseLiquidity(positionId, positionState.amountStaked - 1);
         vm.stopPrank();
 
         // Then : Account should get the withdrawed amount and reward tokens.
@@ -235,7 +237,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         assertEq(amountStaked, 1);
     }
 
-    function testFuzz_Success_Withdraw_ValidAccountingFlow() public {
+    function testFuzz_Success_decreaseLiquidity_ValidAccountingFlow() public {
         // Given : 2 actors and initial Asset amounts
         address user1 = address(0x1);
         address user2 = address(0x2);
@@ -278,7 +280,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         approveERC20TokenFor(asset, address(stakingModule), user1AddedBalance, user1);
 
         vm.prank(user1);
-        stakingModule.increaseLiquidity(1, asset, user1AddedBalance);
+        stakingModule.increaseLiquidity(1, user1AddedBalance);
 
         // Given : Add 1 mio more rewards
         uint128 rewardAmount2 = uint128(1_000_000 * (10 ** Constants.tokenDecimals));
@@ -295,7 +297,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // When : User1 withdraws
         // Then : He should receive half of rewardAmount2
         vm.prank(user1);
-        stakingModule.withdraw(1, user1InitBalance + user1AddedBalance);
+        stakingModule.decreaseLiquidity(1, user1InitBalance + user1AddedBalance);
 
         assertEq(mockERC20.token1.balanceOf(user1), (rewardAmount1 / 5) + (rewardAmount2 / 2));
         assertEq(mockERC20.stable1.balanceOf(user1), user1InitBalance + user1AddedBalance);
@@ -303,7 +305,7 @@ contract Withdraw_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         // When : User2 withdraws
         // Then : He should receive 4/5 of rewards1 + 1/2 of rewards2
         vm.prank(user2);
-        stakingModule.withdraw(2, user2InitBalance);
+        stakingModule.decreaseLiquidity(2, user2InitBalance);
 
         assertEq(mockERC20.token1.balanceOf(user2), ((4 * rewardAmount1) / 5) + (rewardAmount2 / 2));
         assertEq(mockERC20.stable1.balanceOf(user2), user2InitBalance);
