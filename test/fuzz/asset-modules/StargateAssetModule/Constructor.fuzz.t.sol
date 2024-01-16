@@ -10,19 +10,21 @@ import { StargateAssetModule_Fuzz_Test, StargateAssetModule } from "./_StargateA
  * @notice Fuzz tests for the constructor of contract "StargateAssetModule".
  */
 contract Constructor_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
-/* ///////////////////////////////////////////////////////////////
+    /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-/*     function setUp() public virtual override {
+    function setUp() public virtual override {
         StargateAssetModule_Fuzz_Test.setUp();
-    } */
+    }
 
-/*     function testFuzz_success_constructor(address lpStakingContract, address registry) public {
+    function testFuzz_success_constructor(address lpStakingContract, address registry) public {
         StargateAssetModule assetModule = new StargateAssetModule(registry, lpStakingContract);
 
         assertEq(address(assetModule.lpStakingTime()), lpStakingContract);
-        assertEq(assetModule.ASSET_TYPE(), 2);
+        assertEq(assetModule.ASSET_TYPE(), 1);
         assertEq(assetModule.REGISTRY(), registry);
-    } */
+        assertEq(assetModule.symbol(), "ASP");
+        assertEq(assetModule.name(), "ArcadiaStargatePositions");
+    }
 }

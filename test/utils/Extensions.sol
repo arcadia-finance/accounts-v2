@@ -689,5 +689,9 @@ contract StargateAssetModuleExtension is StargateAssetModule {
         currentReward = _getCurrentReward(asset);
     }
 
+    function setAssetInPosition(address asset, uint256 positionId) public {
+        positionState[positionId].asset = asset;
+    }
+
     function tokenURI(uint256 id) public view override returns (string memory) { }
 }

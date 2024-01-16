@@ -129,8 +129,8 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         override
         returns (bytes32[] memory underlyingAssetKeys)
     {
-        (, uint256 tokenId) = _getAssetFromKey(assetKey);
-        address underlyingAsset = assetToUnderlyingAsset[positionState[tokenId].asset];
+        (, uint256 positionId) = _getAssetFromKey(assetKey);
+        address underlyingAsset = assetToUnderlyingAsset[positionState[positionId].asset];
 
         underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = _getKeyFromAsset(underlyingAsset, 0);

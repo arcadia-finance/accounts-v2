@@ -10,25 +10,26 @@ import { StargateAssetModule_Fuzz_Test, StargateAssetModule } from "./_StargateA
  * @notice Fuzz tests for the function "_getCurrentReward" of contract "StargateAssetModule".
  */
 contract GetCurrentReward_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
-/* ///////////////////////////////////////////////////////////////
+    /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-/*    function setUp() public virtual override {
+    function setUp() public virtual override {
         StargateAssetModule_Fuzz_Test.setUp();
-    } */
+    }
 
-/*     function testFuzz_success_getCurrentReward(uint256 poolId, uint256 tokenId, uint256 pendingEmissions) public {
+    // Note : This will mainly be tested via fork testing to ensure pendingEmissionToken() function works as intended in lpStakingTime.sol.
+    function testFuzz_success_getCurrentReward(uint256 poolId, uint256 pendingEmissions) public {
+        // Given : The pool id is set for the Asset in the AM.
+        stargateAssetModule.setAssetToPoolId(address(poolMock), poolId);
+
         // Given : Set available rewards in lpStaking contract.
-        lpStakingTimeMock.setInfoForPoolId(poolId, pendingEmissions, address(0x0));
+        lpStakingTimeMock.setInfoForPoolId(poolId, pendingEmissions, address(poolMock));
 
-        // And : A poolId is set in the AM for the specific tokenId
-        stargateAssetModule.setTokenIdToPoolId(tokenId, poolId);
-
-        // When : _getCurrentReward is called on the tokenId.
-        uint256 currentReward = stargateAssetModule.getCurrentReward(tokenId);
+        // When : _getCurrentReward is called for a specific asset.
+        uint256 currentReward = stargateAssetModule.getCurrentReward(address(poolMock));
 
         // Then : It should return the pending emissions.
         assertEq(currentReward, pendingEmissions);
-    } */
+    }
 }

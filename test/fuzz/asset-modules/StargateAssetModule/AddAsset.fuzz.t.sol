@@ -33,7 +33,7 @@ contract AddAsset_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_addAsset_AssetAndRewardAlreadySet(uint256 tokenId, uint256 poolId) public {
+    function testFuzz_Revert_addAsset_AssetAndRewardAlreadySet(uint256 poolId) public {
         // Given : An Asset and reward token pair are already set.
         ERC20Mock rewardToken = new ERC20Mock("xxx", "xxx", 18);
         stargateAssetModule.setAssetToRewardToken(address(poolMock), rewardToken);
