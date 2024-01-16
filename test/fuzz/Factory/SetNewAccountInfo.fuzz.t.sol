@@ -65,7 +65,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     function testFuzz_Revert_setNewAccountInfo_InvalidAccountContract(address newAssetAddress, address logic) public {
-        vm.assume(logic != address(0));
+        vm.assume(logic > address(10));
         vm.assume(logic != address(factory));
         vm.assume(logic != address(registryExtension));
         vm.assume(logic != address(vm));
@@ -73,6 +73,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(accountV2Logic));
         vm.assume(logic != address(proxyAccount));
         vm.assume(logic != address(sequencerUptimeOracle));
+        vm.assume(logic != address(accountVarVersion));
         vm.assume(newAssetAddress != address(0));
 
         vm.startPrank(users.creatorAddress);
@@ -125,6 +126,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(accountV2Logic));
         vm.assume(logic != address(proxyAccount));
         vm.assume(logic != address(sequencerUptimeOracle));
+        vm.assume(logic != address(accountVarVersion));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();
         bytes memory code = address(accountVarVersion).code;

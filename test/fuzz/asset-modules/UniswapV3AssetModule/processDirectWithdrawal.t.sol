@@ -101,7 +101,7 @@ contract ProcessDirectWithdrawal_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asse
 
             // And: Usd value of underlying assets does not overflow.
             vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-            vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
         }
 
         // Add underlying tokens and its oracles to Arcadia.
@@ -217,7 +217,7 @@ contract ProcessDirectWithdrawal_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asse
 
             // And: Usd value of underlying assets does not overflow.
             vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-            vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
         }
 
         // Add underlying tokens and its oracles to Arcadia.
@@ -330,7 +330,7 @@ contract ProcessDirectWithdrawal_UniswapV3AssetModule_Fuzz_Test is UniswapV3Asse
 
             // And: Usd value of underlying assets does not overflow.
             vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-            vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
         }
 
         // Add underlying tokens and its oracles to Arcadia.
