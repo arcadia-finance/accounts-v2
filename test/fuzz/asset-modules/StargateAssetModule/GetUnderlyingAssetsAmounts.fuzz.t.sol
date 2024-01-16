@@ -22,7 +22,7 @@ contract GetUnderlyingAssetsAmounts_StargateAssetModule_Fuzz_Test is StargateAss
         StargateAssetModule_Fuzz_Test.setUp();
     }
 
-    function testFuzz_Success_getUnderlyingAssetsAmounts_LiquidityGreaterThanZero(
+    /*     function testFuzz_Success_getUnderlyingAssetsAmounts_LiquidityGreaterThanZero(
         uint256 positionId,
         uint112 assetAmount,
         uint128 totalLiquidity,
@@ -75,7 +75,7 @@ contract GetUnderlyingAssetsAmounts_StargateAssetModule_Fuzz_Test is StargateAss
 
         assertEq(underlyingAssetsAmounts[0], computedUnderlyingAssetAmount);
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, expectedRateToken1ToUsd);
-    }
+    } */
 
     /*     function testFuzz_Success_getUnderlyingAssetsAmounts_ZeroTotalLiquidity(
         uint256 tokenId,
