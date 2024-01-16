@@ -114,7 +114,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.Withdrawn(account, assets[0], positionState.amountStaked);
+        emit StakingModule.LiquidityDecreased(account, assets[0], positionState.amountStaked);
         stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
@@ -173,7 +173,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.Withdrawn(account, assets[0], positionState.amountStaked);
+        emit StakingModule.LiquidityDecreased(account, assets[0], positionState.amountStaked);
         stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
@@ -223,7 +223,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.Withdrawn(account, assets[0], positionState.amountStaked - 1);
+        emit StakingModule.LiquidityDecreased(account, assets[0], positionState.amountStaked - 1);
         stakingModule.decreaseLiquidity(positionId, positionState.amountStaked - 1);
         vm.stopPrank();
 
