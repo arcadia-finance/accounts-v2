@@ -14,7 +14,7 @@ import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.
  * @title Staking Module
  * @author Pragma Labs
  * @notice Abstract contract with the minimal implementation of a wrapper contract for Assets staked in an external staking contract.
- * @dev The staking Module is an ERC721 contract that does the accounting per Account and per Asset (staking token) for:
+ * @dev The staking Module is an ERC721 contract that does the accounting per Asset (staking token) and per position owner for:
  *  - The balances of Assets staked through this contract.
  *  - The balances of reward tokens earned for staking the Assets.
  * Next to keeping the accounting of balances, this contract manages the interactions with the external staking contract:
@@ -57,10 +57,10 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         address asset;
         // Total amount of Asset staked for this position.
         uint128 amountStaked;
-        // The growth of reward tokens per Asset staked, at the last interaction of the Account with this contract,
+        // The growth of reward tokens per Asset staked, at the last interaction of the position owner with this contract,
         // with 18 decimals precision.
         uint128 lastRewardPerTokenPosition;
-        // The unclaimed amount of reward tokens of the Account, at the last interaction of the Account with this contract.
+        // The unclaimed amount of reward tokens of the position owner, at the last interaction of the owner with this contract.
         uint128 lastRewardPosition;
     }
 
@@ -68,10 +68,10 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event RewardPaid(address indexed account, address reward, uint128 amount);
-    event Minted(address indexed account, uint256 positionId, address asset, uint128 amount);
-    event LiquidityIncreased(address indexed account, uint256 positionId, address asset, uint128 amount);
-    event Withdrawn(address indexed account, address asset, uint128 amount);
+    event RewardPaid(address indexed owner, address reward, uint128 amount);
+    event Minted(address indexed owner, uint256 positionId, address asset, uint128 amount);
+    event LiquidityIncreased(address indexed owner, uint256 positionId, address asset, uint128 amount);
+    event LiquidityDecreased(address indexed owner, address asset, uint128 amount);
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -81,7 +81,6 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
     error ZeroAmount();
     error NotOwner();
     error RemainingBalanceTooLow();
-    error AssetNotMatching();
 
     /* //////////////////////////////////////////////////////////////
                               CONSTRUCTOR
@@ -95,11 +94,11 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
     /**
      * @notice Stakes an amount of Assets in the external staking contract and mints a new position.
-     * @param asset The id of the specific staking token.
+     * @param asset The contract address of the Asset to stake.
      * @param amount The amount of Assets to stake.
-     * @return positionId_ The id of the minted position.
+     * @return positionId The id of the minted position.
      */
-    function mint(address asset, uint128 amount) external nonReentrant returns (uint256 positionId_) {
+    function mint(address asset, uint128 amount) external nonReentrant returns (uint256 positionId) {
         if (amount == 0) revert ZeroAmount();
         if (address(assetToRewardToken[asset]) == address(0)) revert AssetNotAllowed();
 
@@ -113,7 +112,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
         // Increment positionId
         unchecked {
-            positionId_ = ++lastPositionId;
+            positionId = ++lastPositionId;
         }
 
         // Update the state variables.
@@ -130,11 +129,11 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             currentRewardPerToken = assetState_.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, totalStaked_);
             updatedAssetState.lastRewardPerTokenGlobal = uint128(currentRewardPerToken);
             // We don't claim any rewards when staking, but minting changes the totalStaked and balance of the Asset.
-            // Therefore we must keep track of the earned global and Account rewards since last interaction or the accounting will be wrong.
+            // Therefore we must keep track of the earned global and position owner rewards since last interaction or the accounting will be wrong.
             updatedAssetState.lastRewardGlobal = uint128(currentRewardGlobal);
             lastRewardPerTokenPosition = currentRewardPerToken;
         }
-        positionState[positionId_] = PositionState({
+        positionState[positionId] = PositionState({
             asset: asset,
             amountStaked: amount,
             lastRewardPerTokenPosition: uint128(lastRewardPerTokenPosition),
@@ -145,30 +144,28 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         assetState[asset] = updatedAssetState;
 
         // Mint the new position.
-        _safeMint(msg.sender, positionId_);
+        _safeMint(msg.sender, positionId);
 
         // Stake Asset in external staking contract.
         _stake(asset, amount);
 
-        emit Minted(msg.sender, positionId_, asset, amount);
+        emit Minted(msg.sender, positionId, asset, amount);
     }
 
     /**
      * @notice Increases liquidity for an existing position.
      * @param positionId The id of the position to increase the liquidity for.
-     * @param asset The id of the specific staking token.
      * @param amount The amount of Assets to stake.
      */
-    function increaseLiquidity(uint256 positionId, address asset, uint128 amount) external {
+    function increaseLiquidity(uint256 positionId, uint128 amount) external {
         if (amount == 0) revert ZeroAmount();
-        if (address(assetToRewardToken[asset]) == address(0)) revert AssetNotAllowed();
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
-        PositionState storage positionState_ = positionState[positionId];
+        PositionState memory positionState_ = positionState[positionId];
+        // Cache Asset
+        address asset = positionState_.asset;
 
-        if (positionState_.asset != asset) revert AssetNotMatching();
-
-        AssetState storage assetState_ = assetState[asset];
+        AssetState memory assetState_ = assetState[asset];
 
         // Need to transfer the Asset before minting or ERC777s could reenter.
         ERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
@@ -192,14 +189,14 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         });
 
         // Update position state
-        // Calculate the difference in rewardPerToken since the last interaction of the account with this contract.
+        // Calculate the difference in rewardPerToken since the last interaction of the position owner with this contract.
         uint256 deltaRewardPerToken = currentRewardPerToken - positionState_.lastRewardPerTokenPosition;
-        // Calculate the rewards earned by the Account since its last interaction with this contract.
+        // Calculate the rewards earned by the position owner since its last interaction with this contract.
         uint256 accruedRewards = uint256(positionState_.amountStaked).mulDivDown(deltaRewardPerToken, 1e18);
 
-        positionState_.lastRewardPerTokenPosition = uint128(currentRewardPerToken);
-        positionState_.amountStaked += amount;
-        positionState_.lastRewardPosition += uint128(accruedRewards);
+        positionState[positionId].amountStaked = positionState_.amountStaked + amount;
+        positionState[positionId].lastRewardPerTokenPosition = uint128(currentRewardPerToken);
+        positionState[positionId].lastRewardPosition = positionState_.lastRewardPosition + uint128(accruedRewards);
 
         // Stake Asset in external staking contract.
         _stake(asset, amount);
@@ -208,11 +205,19 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
     }
 
     /**
+     * @notice Unstakes, withdraws and claims rewards for total amount staked of Asset in position.
+     * @param positionId The id of the position to burn.
+     */
+    function burn(uint256 positionId) external {
+        decreaseLiquidity(positionId, positionState[positionId].amountStaked);
+    }
+
+    /**
      * @notice Unstakes and withdraws the Asset from the external staking contract.
      * @param positionId The id of the position to withdraw from.
      * @param amount The amount of Asset to unstake and withdraw.
      */
-    function withdraw(uint256 positionId, uint128 amount) external nonReentrant {
+    function decreaseLiquidity(uint256 positionId, uint128 amount) public nonReentrant {
         if (amount == 0) revert ZeroAmount();
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
@@ -228,7 +233,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
         // Update the state variables.
         // Reset the balances of the pending rewards for the Asset and the position
-        // since rewards are claimed and paid out to Account on a withdraw.
+        // since rewards are claimed and paid out to the position owner on a withdraw.
         assetState[asset] = AssetState({
             lastRewardPerTokenGlobal: uint128(currentRewardPerToken),
             lastRewardGlobal: 0,
@@ -244,7 +249,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         _withdraw(asset, amount);
         // Claim the reward from the external staking contract.
         _claimReward(asset);
-        // Pay out the share of the reward owed to the Account.
+        // Pay out the share of the reward owed to the position owner.
         if (currentRewardPosition > 0) {
             // Cache reward token
             ERC20 rewardToken_ = assetToRewardToken[asset];
@@ -252,9 +257,9 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             rewardToken_.safeTransfer(msg.sender, currentRewardPosition);
             emit RewardPaid(msg.sender, address(rewardToken_), uint128(currentRewardPosition));
         }
-        // Transfer the Asset back to the Account.
+        // Transfer the Asset back to the position owner.
         ERC20(asset).safeTransfer(msg.sender, amount);
-        emit Withdrawn(msg.sender, asset, amount);
+        emit LiquidityDecreased(msg.sender, asset, amount);
     }
 
     /**
@@ -272,7 +277,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         address asset = positionState[positionId].asset;
         // Update the state variables.
         // Reset the balances of the pending rewards for the Asset and position,
-        // since rewards are claimed and paid out to Account on a claimReward.
+        // since rewards are claimed and paid out to position owner on a claimReward.
         assetState[asset].lastRewardPerTokenGlobal = uint128(currentRewardPerToken);
         assetState[asset].lastRewardGlobal = 0;
 
@@ -281,7 +286,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
         // Claim the reward from the external staking contract.
         _claimReward(asset);
-        // Pay out the share of the reward owed to the Account.
+        // Pay out the share of the reward owed to the position owner.
         if (currentRewardClaimable > 0) {
             // Cache reward
             ERC20 rewardToken_ = assetToRewardToken[asset];

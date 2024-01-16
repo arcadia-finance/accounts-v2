@@ -29,18 +29,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
     function testFuzz_Revert_increaseLiquidity_ZeroAmount(uint256 positionId, address asset) public {
         // The stake function should revert when trying to stake 0 amount.
         vm.expectRevert(StakingModule.ZeroAmount.selector);
-        stakingModule.increaseLiquidity(positionId, asset, 0);
-    }
-
-    function testFuzz_Revert_increaseLiquidity_AssetNotAllowed(uint256 positionId, address asset, uint128 amount)
-        public
-    {
-        // Given : Amount is greater than zero
-        vm.assume(amount > 0);
-        // When : Calling Stake
-        // Then : The function should revert as the asset has not been added to the Staking Module.
-        vm.expectRevert(StakingModule.AssetNotAllowed.selector);
-        stakingModule.increaseLiquidity(positionId, asset, amount);
+        stakingModule.increaseLiquidity(positionId, 0);
     }
 
     function testFuzz_Revert_increaseLiquidity_NotOwner(
@@ -59,7 +48,6 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         stakingModule.setOwnerOfPositionId(randomAddress, positionId);
         // Given : A staking token and reward token pair are added to the stakingModule
         (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
@@ -70,41 +58,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // Then : The function should revert as the Account is not the owner of the positionId.
         vm.startPrank(account);
         vm.expectRevert(StakingModule.NotOwner.selector);
-        stakingModule.increaseLiquidity(positionId, asset, amount);
-        vm.stopPrank();
-    }
-
-    function testFuzz_Revert_increaseLiquidity_AssetNotMatching(
-        address account,
-        uint128 amount,
-        uint256 positionId,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals,
-        address randomAsset
-    ) public notTestContracts(account) {
-        // Given : Amount is greater than zero
-        vm.assume(amount > 0);
-        // Given : positionId is greater than 0
-        vm.assume(positionId > 0);
-        // Given : Owner of positionId is not the Account
-        stakingModule.setOwnerOfPositionId(account, positionId);
-        // Given : A staking token and reward token pair are added to the stakingModule
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
-
-        mintERC20TokensTo(assets, account, amounts);
-        approveERC20TokensFor(assets, address(stakingModule), amounts, account);
-
-        // Given : The asset in the position is not equal to asset staked.
-        stakingModule.setAssetInPosition(randomAsset, positionId);
-
-        // When : Calling Stake
-        // Then : The function should revert as the Account is not the owner of the positionId.
-        vm.startPrank(account);
-        vm.expectRevert(StakingModule.AssetNotMatching.selector);
-        stakingModule.increaseLiquidity(positionId, asset, amount);
+        stakingModule.increaseLiquidity(positionId, amount);
         vm.stopPrank();
     }
 
@@ -150,7 +104,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.LiquidityIncreased(account, positionId, asset, amount);
-        stakingModule.increaseLiquidity(positionId, asset, amount);
+        stakingModule.increaseLiquidity(positionId, amount);
 
         // Cache value to avoid stack too deep
         StakingModuleStateForAsset memory assetStateStack = assetState;
@@ -227,7 +181,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.LiquidityIncreased(account, positionId, asset, amount);
-        stakingModule.increaseLiquidity(positionId, asset, amount);
+        stakingModule.increaseLiquidity(positionId, amount);
 
         // Cache value to avoid stack too deep
         StakingModuleStateForAsset memory assetStateStack = assetState;
