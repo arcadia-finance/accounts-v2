@@ -24,4 +24,8 @@ contract StargatePoolMock is ERC20Mock {
     function setToken(address _token) public {
         token = IERC20(_token);
     }
+
+    function setConvertRate(uint256 convertRate_) public {
+        convertRate = convertRate_;
+    }
 }

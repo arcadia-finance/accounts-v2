@@ -643,6 +643,10 @@ contract StargateAssetModuleExtension is StargateAssetModule {
         assetToPoolId[asset] = poolId;
     }
 
+    function setAssetToRewardToken(address asset, ERC20 rewardToken_) public {
+        assetToRewardToken[asset] = rewardToken_;
+    }
+
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
     }
