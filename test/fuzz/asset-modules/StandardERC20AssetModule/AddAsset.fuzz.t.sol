@@ -63,9 +63,11 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
 
     function testFuzz_Revert_addAsset_MoreThan18Decimals() public {
         ArcadiaOracle oracle = initMockedOracle(0, "ASSET / USD");
+        vm.prank(users.defaultTransmitter);
+        oracle.transmit(0);
         vm.startPrank(users.tokenCreatorAddress);
         ERC20Mock asset = new ERC20Mock("ASSET", "ASSET", 19);
-        chainlinkOM.addOracle(address(oracle), "ASSET", "USD");
+        chainlinkOM.addOracle(address(oracle), "ASSET", "USD", 2 days);
         vm.stopPrank();
 
         uint80[] memory oracleAssetToUsdArr = new uint80[](1);

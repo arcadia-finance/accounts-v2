@@ -236,7 +236,7 @@ abstract contract UniswapV3AssetModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixture 
         vm.prank(users.defaultTransmitter);
         oracle.transmit(price);
         vm.startPrank(users.creatorAddress);
-        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD"));
+        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD", 2 days));
         uint80[] memory oracleAssetToUsdArr = new uint80[](1);
         oracleAssetToUsdArr[0] = oracleId;
 

@@ -83,7 +83,7 @@ abstract contract PrimaryAssetModule is AssetModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Sets a new oracle sequence in the case one of the current oracles is decommissioned.
+     * @notice Sets a new oracle sequence in the case one of the current oracles is not active.
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @param newOracles The new sequence of the oracles, to price the asset in USD,
@@ -92,7 +92,7 @@ abstract contract PrimaryAssetModule is AssetModule {
     function setOracles(address asset, uint256 assetId, bytes32 newOracles) external onlyOwner {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
-        // Old oracles must be decommissioned before a new sequence can be set.
+        // At least one of the old oracles must be inactive before a new sequence can be set.
         bytes32 oldOracles = assetToInformation[assetKey].oracleSequence;
         if (IRegistry(REGISTRY).checkOracleSequence(oldOracles)) revert OracleStillActive();
 
@@ -320,6 +320,11 @@ abstract contract PrimaryAssetModule is AssetModule {
      * from which the asset of this Asset Module is an Underlying Asset.
      * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
      * Underflows will not revert, but the exposure is instead set to 0.
+     * @dev Due to changing compositions of derived assets, exposure to a primary asset can increase or decrease over time,
+     * independent of deposits/withdrawals.
+     * When derived assets are deposited/withdrawn, these changes in composition since last interaction are also synced.
+     * As such the actual exposure on an indirect withdrawal of a primary asset can exceed the maxExposure, but this should never be blocked,
+     * (the withdrawal actually improves the situation by making the asset less over-exposed).
      */
     function processIndirectWithdrawal(
         address creditor,
