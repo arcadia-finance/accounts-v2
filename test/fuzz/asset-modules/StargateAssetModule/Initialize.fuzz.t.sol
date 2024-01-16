@@ -10,15 +10,15 @@ import { StargateAssetModule_Fuzz_Test, StargateAssetModule } from "./_StargateA
  * @notice Fuzz tests for the function "initialize" of contract "StargateAssetModule".
  */
 contract Initialize_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
-/* ///////////////////////////////////////////////////////////////
+    /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
-/* 
+
     function setUp() public virtual override {
         StargateAssetModule_Fuzz_Test.setUp();
-    } */
+    }
 
-/*     function testFuzz_revert_initialize_NotOwner(address lpStaking, address _unprivilegedAddress) public {
+    function testFuzz_revert_initialize_NotOwner(address lpStaking, address _unprivilegedAddress) public {
         vm.prank(users.creatorAddress);
         StargateAssetModule assetModule = new StargateAssetModule(address(registryExtension), lpStaking);
 
@@ -31,9 +31,9 @@ contract Initialize_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Te
         vm.expectRevert("UNAUTHORIZED");
         assetModule.initialize();
         vm.stopPrank();
-    } */
+    }
 
-/*     function testFuzz_success_initialize(address lpStaking) public {
+    function testFuzz_success_initialize(address lpStaking) public {
         StargateAssetModule assetModule = new StargateAssetModule(address(registryExtension), lpStaking);
 
         // Given : Asset Module is added to the Registry.
@@ -45,5 +45,5 @@ contract Initialize_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Te
 
         // Then : The Asset Module should be added to the Registry as an asset.
         registryExtension.inRegistry(address(assetModule));
-    } */
+    }
 }
