@@ -166,15 +166,16 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             // Given : Liquidation value is smaller than used margin
             vm.assume(openDebt + minimumMargin > assetValuationLib.calculateLiquidationValue(assetAndRiskValues));
 
-        // Mint and approve stable1 tokens
-        vm.prank(users.tokenCreatorAddress);
-        mockERC20.token1.mint(users.accountOwner, depositAmountToken1);
-        vm.startPrank(users.accountOwner);
-        mockERC20.token1.approve(address(accountExtension2), type(uint256).max);
+            // Mint and approve stable1 tokens
+            vm.prank(users.tokenCreatorAddress);
+            mockERC20.token1.mint(users.accountOwner, depositAmountToken1);
+            vm.startPrank(users.accountOwner);
+            mockERC20.token1.approve(address(accountExtension2), type(uint256).max);
 
-        // Deposit stable1 token in account
-        accountExtension2.deposit(assetAddresses, assetIds, assetAmounts);
-        vm.stopPrank();
+            // Deposit stable1 token in account
+            accountExtension2.deposit(assetAddresses, assetIds, assetAmounts);
+            vm.stopPrank();
+        }
 
         // Warp time
         time = uint32(bound(time, 2 days, type(uint32).max));
