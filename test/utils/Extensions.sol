@@ -693,5 +693,9 @@ contract StargateAssetModuleExtension is StargateAssetModule {
         positionState[positionId].asset = asset;
     }
 
+    function setAmountStakedForPosition(uint256 id, uint256 amount) public {
+        positionState[id].amountStaked = uint128(amount);
+    }
+
     function tokenURI(uint256 id) public view override returns (string memory) { }
 }
