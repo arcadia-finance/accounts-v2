@@ -44,7 +44,7 @@ contract AccountV2 is AccountStorageV2 {
     // The maximum amount of different assets that can be used as collateral within an Arcadia Account.
     uint256 public constant ASSET_LIMIT = 15;
     // The current Account Version.
-    uint16 public constant ACCOUNT_VERSION = 2;
+    uint256 public constant ACCOUNT_VERSION = 2;
     // The contract address of the Arcadia Accounts Factory.
     address public immutable FACTORY;
     // Uniswap Permit2 contract
@@ -179,7 +179,7 @@ contract AccountV2 is AccountStorageV2 {
         // Cache old parameters
         address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
-        uint16 oldVersion = ACCOUNT_VERSION;
+        uint256 oldVersion = ACCOUNT_VERSION;
         _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
 
@@ -1130,7 +1130,7 @@ contract AccountV2 is AccountStorageV2 {
      * param data Arbitrary data, can contain instructions to execute in this function.
      * @dev If upgradeHook() is implemented, it MUST be verify that msg.sender == address(this).
      */
-    function upgradeHook(address, address oldRegistry, uint16, bytes calldata) external {
+    function upgradeHook(address, address oldRegistry, uint256, bytes calldata) external {
         require(msg.sender == address(this), "Not the right address");
         IRegistry(oldRegistry).batchProcessWithdrawal(address(0), new address[](0), new uint256[](0), new uint256[](0));
         IRegistry(registry).batchProcessDeposit(address(0), new address[](0), new uint256[](0), new uint256[](0));
