@@ -44,7 +44,7 @@ contract AccountV2 is AccountStorageV2 {
     // The maximum amount of different assets that can be used as collateral within an Arcadia Account.
     uint256 public constant ASSET_LIMIT = 15;
     // The current Account Version.
-    uint16 public constant ACCOUNT_VERSION = 2;
+    uint256 public constant ACCOUNT_VERSION = 2;
     // The contract address of the Arcadia Accounts Factory.
     address public immutable FACTORY;
     // Uniswap Permit2 contract
@@ -179,7 +179,7 @@ contract AccountV2 is AccountStorageV2 {
         // Cache old parameters
         address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
-        uint16 oldVersion = ACCOUNT_VERSION;
+        uint256 oldVersion = ACCOUNT_VERSION;
         _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
         registry = newRegistry;
 
@@ -278,13 +278,13 @@ contract AccountV2 is AccountStorageV2 {
      */
     function _openMarginAccount(address creditor_) internal {
         // openMarginAccount() is a view function, cannot modify state.
-        (bool success, address numeraire_, address liquidator_, uint256 fixedLiquidationCost_) =
+        (bool success, address numeraire_, address liquidator_, uint256 minimumMargin_) =
             ICreditor(creditor_).openMarginAccount(ACCOUNT_VERSION);
         if (!success) revert AccountErrors.InvalidAccountVersion();
 
         liquidator = liquidator_;
         creditor = creditor_;
-        fixedLiquidationCost = uint96(fixedLiquidationCost_);
+        minimumMargin = uint96(minimumMargin_);
         if (numeraire != numeraire_) {
             _setNumeraire(numeraire_);
         }
@@ -305,7 +305,7 @@ contract AccountV2 is AccountStorageV2 {
 
         creditor = address(0);
         liquidator = address(0);
-        fixedLiquidationCost = 0;
+        minimumMargin = 0;
 
         emit MarginAccountChanged(address(0), address(0));
     }
@@ -333,7 +333,7 @@ contract AccountV2 is AccountStorageV2 {
         if (totalOpenDebt > 0) {
             // Check if Account is healthy for a given amount of openDebt.
             // The total Used margin equals the sum of the given amount of openDebt and the gas cost to liquidate.
-            success = getCollateralValue() >= totalOpenDebt + fixedLiquidationCost;
+            success = getCollateralValue() >= totalOpenDebt + minimumMargin;
         } else {
             // Check if Account is still healthy after an increase of debt.
             // The gas cost to liquidate is already taken into account in getUsedMargin().
@@ -348,9 +348,9 @@ contract AccountV2 is AccountStorageV2 {
      * @return success Boolean indicating if the Account can be liquidated.
      */
     function isAccountLiquidatable() external view returns (bool success) {
-        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is never liquidatable.
+        // If usedMargin is equal to minimumMargin, the open liabilities are 0 and the Account is never liquidatable.
         uint256 usedMargin = getUsedMargin();
-        if (usedMargin > fixedLiquidationCost) {
+        if (usedMargin > minimumMargin) {
             // An Account can be liquidated if the Liquidation value is smaller than the Used Margin.
             success = getLiquidationValue() < usedMargin;
         }
@@ -420,7 +420,7 @@ contract AccountV2 is AccountStorageV2 {
         if (creditor_ == address(0)) return 0;
 
         // getOpenPosition() is a view function, cannot modify state.
-        usedMargin = ICreditor(creditor_).getOpenPosition(address(this)) + fixedLiquidationCost;
+        usedMargin = ICreditor(creditor_).getOpenPosition(address(this)) + minimumMargin;
     }
 
     /**
@@ -475,8 +475,8 @@ contract AccountV2 is AccountStorageV2 {
             IRegistry(registry).getValuesInNumeraire(numeraire, creditor_, assetAddresses, assetIds, assetAmounts);
 
         // Since the function is only callable by the liquidator, a liquidator and a Creditor are set.
-        openDebt = ICreditor(creditor).startLiquidation(liquidationInitiator);
-        uint256 usedMargin = openDebt + fixedLiquidationCost;
+        openDebt = ICreditor(creditor).startLiquidation(liquidationInitiator, minimumMargin);
+        uint256 usedMargin = openDebt + minimumMargin;
 
         if (openDebt == 0 || AssetValuationLib._calculateLiquidationValue(assetAndRiskValues) >= usedMargin) {
             revert AccountErrors.AccountNotLiquidatable();
@@ -576,10 +576,10 @@ contract AccountV2 is AccountStorageV2 {
         // Deposit assets from actionTarget into Account.
         _deposit(depositData.assets, depositData.assetIds, depositData.assetAmounts, actionTarget);
 
-        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always in a healthy state.
+        // If usedMargin is equal to minimumMargin, the open liabilities are 0 and the Account is always in a healthy state.
         uint256 usedMargin = getUsedMargin();
         // Account must be healthy after actions are executed.
-        if (usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin) {
+        if (usedMargin > minimumMargin && getCollateralValue() < usedMargin) {
             revert AccountErrors.AccountUnhealthy();
         }
 
@@ -687,8 +687,8 @@ contract AccountV2 is AccountStorageV2 {
         _withdraw(assetAddresses, assetIds, assetAmounts, msg.sender);
 
         uint256 usedMargin = getUsedMargin();
-        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and all assets can be withdrawn.
-        if (usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin) {
+        // If usedMargin is equal to minimumMargin, the open liabilities are 0 and all assets can be withdrawn.
+        if (usedMargin > minimumMargin && getCollateralValue() < usedMargin) {
             revert AccountErrors.AccountUnhealthy();
         }
     }
@@ -1130,7 +1130,7 @@ contract AccountV2 is AccountStorageV2 {
      * param data Arbitrary data, can contain instructions to execute in this function.
      * @dev If upgradeHook() is implemented, it MUST be verify that msg.sender == address(this).
      */
-    function upgradeHook(address, address oldRegistry, uint16, bytes calldata) external {
+    function upgradeHook(address, address oldRegistry, uint256, bytes calldata) external {
         require(msg.sender == address(this), "Not the right address");
         IRegistry(oldRegistry).batchProcessWithdrawal(address(0), new address[](0), new uint256[](0), new uint256[](0));
         IRegistry(registry).batchProcessDeposit(address(0), new address[](0), new uint256[](0), new uint256[](0));

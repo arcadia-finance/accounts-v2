@@ -86,7 +86,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Assert old creditor has been set.
         assertEq(proxyAccount.creditor(), address(creditorUsd));
         assertEq(proxyAccount.liquidator(), address(0));
-        assertEq(proxyAccount.fixedLiquidationCost(), 0);
+        assertEq(proxyAccount.minimumMargin(), 0);
         assertEq(proxyAccount.numeraire(), address(0)); // USD
 
         // Assert old creditor has exposure.
@@ -130,7 +130,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.creditor(), address(0));
         // Assert no liquidator, numeraire and liquidation costs have been defined on deployment
         assertEq(proxyAccount.liquidator(), address(0));
-        assertEq(proxyAccount.fixedLiquidationCost(), 0);
+        assertEq(proxyAccount.minimumMargin(), 0);
         assertEq(proxyAccount.numeraire(), address(0));
 
         vm.warp(time);
@@ -145,7 +145,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Assert a creditor has been set and other variables updated
         assertEq(proxyAccount.creditor(), address(creditorStable1));
         assertEq(proxyAccount.liquidator(), Constants.initLiquidator);
-        assertEq(proxyAccount.fixedLiquidationCost(), Constants.initLiquidationCost);
+        assertEq(proxyAccount.minimumMargin(), Constants.initLiquidationCost);
         assertEq(proxyAccount.numeraire(), address(mockERC20.stable1));
         assertEq(proxyAccount.lastActionTimestamp(), time);
 
@@ -184,7 +184,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Assert old creditor has been set.
         assertEq(proxyAccount.creditor(), address(creditorUsd));
         assertEq(proxyAccount.liquidator(), address(0));
-        assertEq(proxyAccount.fixedLiquidationCost(), 0);
+        assertEq(proxyAccount.minimumMargin(), 0);
         assertEq(proxyAccount.numeraire(), address(0)); // USD
 
         // Assert old creditor has exposure.
@@ -204,7 +204,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Then: A creditor has been set and other variables updated
         assertEq(proxyAccount.creditor(), address(creditorStable1));
         assertEq(proxyAccount.liquidator(), Constants.initLiquidator);
-        assertEq(proxyAccount.fixedLiquidationCost(), Constants.initLiquidationCost);
+        assertEq(proxyAccount.minimumMargin(), Constants.initLiquidationCost);
         assertEq(proxyAccount.numeraire(), address(mockERC20.stable1));
         assertEq(proxyAccount.lastActionTimestamp(), time);
 
@@ -217,7 +217,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_openMarginAccount_DifferentNumeraire(
         address liquidator,
-        uint96 fixedLiquidationCost,
+        uint96 minimumMargin,
         uint32 time
     ) public {
         // Confirm initial numeraire is not set for the Account
@@ -226,7 +226,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Update numeraire of the creditor to TOKEN1
         creditorStable1.setNumeraire(address(mockERC20.token1));
         // Update liquidation costs in creditor
-        creditorStable1.setFixedLiquidationCost(fixedLiquidationCost);
+        creditorStable1.setMinimumMargin(minimumMargin);
         // Update liquidator in creditor
         creditorStable1.setLiquidator(liquidator);
 
@@ -243,7 +243,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.creditor(), address(creditorStable1));
         assertEq(proxyAccount.liquidator(), liquidator);
         assertEq(proxyAccount.numeraire(), address(mockERC20.token1));
-        assertEq(proxyAccount.fixedLiquidationCost(), fixedLiquidationCost);
+        assertEq(proxyAccount.minimumMargin(), minimumMargin);
         assertEq(proxyAccount.lastActionTimestamp(), time);
     }
 
@@ -263,7 +263,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(AccountV1(deployedAccount).liquidator(), Constants.initLiquidator);
         assertEq(AccountV1(deployedAccount).creditor(), address(creditorStable1));
         assertEq(AccountV1(deployedAccount).numeraire(), address(mockERC20.stable1));
-        assertEq(AccountV1(deployedAccount).fixedLiquidationCost(), Constants.initLiquidationCost);
+        assertEq(AccountV1(deployedAccount).minimumMargin(), Constants.initLiquidationCost);
         assertEq(AccountV1(deployedAccount).lastActionTimestamp(), time);
     }
 }

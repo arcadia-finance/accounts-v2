@@ -57,6 +57,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
         // Given : An Asset and reward token pair are added to the stakingModule
         (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        vm.assume(account != assets[0]);
         address asset = assets[0];
 
         uint256[] memory amounts = new uint256[](1);
@@ -131,6 +132,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
         // Given : A staking token and reward token pair are added to the stakingModule
         (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        vm.assume(account != assets[0]);
         address asset = assets[0];
 
         uint256[] memory amounts = new uint256[](1);

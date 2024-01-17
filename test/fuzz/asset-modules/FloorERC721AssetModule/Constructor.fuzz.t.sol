@@ -25,10 +25,10 @@ contract Constructor_FloorERC721AssetModule_Fuzz_Test is FloorERC721AssetModule_
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.creatorAddress);
-        FloorERC721AssetModuleExtension erc721AssetModule_ = new FloorERC721AssetModuleExtension(registry_);
+        FloorERC721AssetModuleExtension floorERC721AssetModule_ = new FloorERC721AssetModuleExtension(registry_);
         vm.stopPrank();
 
-        assertEq(erc721AssetModule_.REGISTRY(), registry_);
-        assertEq(erc721AssetModule_.ASSET_TYPE(), 1);
+        assertEq(floorERC721AssetModule_.REGISTRY(), registry_);
+        assertEq(floorERC721AssetModule_.ASSET_TYPE(), 1);
     }
 }

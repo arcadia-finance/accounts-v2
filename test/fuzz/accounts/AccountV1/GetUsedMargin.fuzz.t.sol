@@ -24,12 +24,12 @@ contract GetUsedMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getUsedMargin_CreditorNotSet(uint256 openDebt, uint96 fixedLiquidationCost) public {
+    function testFuzz_Success_getUsedMargin_CreditorNotSet(uint256 openDebt, uint96 minimumMargin) public {
         // Test-case: creditor is not set.
         accountExtension.setCreditor(address(0));
 
-        // Set fixedLiquidationCost
-        accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
+        // Set minimumMargin
+        accountExtension.setMinimumMargin(uint96(minimumMargin));
 
         // Mock initial debt.
         creditorStable1.setOpenPosition(address(accountExtension), openDebt);
@@ -37,18 +37,18 @@ contract GetUsedMargin_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(0, accountExtension.getUsedMargin());
     }
 
-    function testFuzz_Success_getUsedMargin_CreditorIsSet(uint256 openDebt, uint96 fixedLiquidationCost) public {
+    function testFuzz_Success_getUsedMargin_CreditorIsSet(uint256 openDebt, uint96 minimumMargin) public {
         // No overflow of Used Margin.
-        vm.assume(openDebt <= type(uint256).max - fixedLiquidationCost);
+        vm.assume(openDebt <= type(uint256).max - minimumMargin);
 
         // Test-case: creditor set.
 
-        // Set fixedLiquidationCost
-        accountExtension.setFixedLiquidationCost(uint96(fixedLiquidationCost));
+        // Set minimumMargin
+        accountExtension.setMinimumMargin(uint96(minimumMargin));
 
         // Mock initial debt.
         creditorStable1.setOpenPosition(address(accountExtension), openDebt);
 
-        assertEq(openDebt + fixedLiquidationCost, accountExtension.getUsedMargin());
+        assertEq(openDebt + minimumMargin, accountExtension.getUsedMargin());
     }
 }

@@ -75,8 +75,9 @@ contract GetValue_AbstractDerivedAssetModule_Fuzz_Test is AbstractDerivedAssetMo
         assets[0] = assetState.underlyingAsset;
         assetIds[0] = assetState.underlyingAssetId;
         assetAmounts[0] = 1e18;
-        bytes memory data =
-            abi.encodeCall(registryExtension.getValuesInUsd, (assetState.creditor, assets, assetIds, assetAmounts));
+        bytes memory data = abi.encodeCall(
+            registryExtension.getValuesInUsdRecursive, (assetState.creditor, assets, assetIds, assetAmounts)
+        );
 
         // When: "getValue" is called.
         // Then: The Function "getUsdValue" on "Registry" is called with correct parameters.

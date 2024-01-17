@@ -79,11 +79,12 @@ contract Registry is IRegistry, RegistryGuardian {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event AllowedActionSet(address indexed action, bool allowed);
     event AssetAdded(address indexed assetAddress, address indexed assetModule);
     event AssetModuleAdded(address assetModule);
+    event Deposit(address account);
     event OracleAdded(uint256 indexed oracleId, address indexed oracleModule);
     event OracleModuleAdded(address oracleModule);
+    event Withdrawal(address account);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -455,6 +456,9 @@ contract Registry is IRegistry, RegistryGuardian {
                 if (recursiveCalls > maxRecursiveCalls) revert RegistryErrors.MaxRecursiveCallsReached();
             }
         }
+
+        // Emit Deposit event for account for indexing purposes.
+        emit Deposit(msg.sender);
     }
 
     /**
@@ -485,7 +489,7 @@ contract Registry is IRegistry, RegistryGuardian {
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
-                // The contract doesn't revert as this might block assets in Accounts.
+                // The function doesn't revert as this might block assets in Accounts.
                 (, assetTypes[i]) =
                     IAssetModule(assetToAssetModule[assetAddress]).processAsset(assetAddress, assetIds[i]);
             }
@@ -498,6 +502,9 @@ contract Registry is IRegistry, RegistryGuardian {
                 );
             }
         }
+
+        // Emit Withdrawal event for account for indexing purposes.
+        emit Withdrawal(msg.sender);
     }
 
     /**
@@ -568,7 +575,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * packed in a single bytes32 object.
      * @return rate The USD rate of an asset, 18 decimals precision.
      * @dev The oracle rate expresses how much USD (18 decimals precision) is required
-     * to buy 1 unit of the asset.
+     * to buy 1 token of the asset.
      */
     function getRateInUsd(bytes32 oracleSequence) external view returns (uint256 rate) {
         (bool[] memory baseToQuoteAsset, uint256[] memory oracles) = oracleSequence.unpack();
@@ -578,17 +585,48 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 length = oracles.length;
         for (uint256 i; i < length; ++i) {
             // Each Oracle has a fixed base asset and quote asset.
-            // The oracle-rate expresses how much units of the quote asset (18 decimals precision) are required
-            // to buy 1 unit of the BaseAsset.
+            // The oracle-rate expresses how much tokens of the quote asset (18 decimals precision) are required
+            // to buy 1 token of the BaseAsset.
             if (baseToQuoteAsset[i]) {
-                // "Normal direction" (how much of the QuoteAsset is required to buy 1 unit of the BaseAsset).
+                // "Normal direction" (how much of the QuoteAsset is required to buy 1 token of the BaseAsset).
                 // -> Multiply with the oracle-rate.
                 rate = rate.mulDivDown(IOracleModule(oracleToOracleModule[oracles[i]]).getRate(oracles[i]), 1e18);
             } else {
-                // "Inverse direction" (how much of the BaseAsset is required to buy 1 unit of the QuoteAsset).
+                // "Inverse direction" (how much of the BaseAsset is required to buy 1 token of the QuoteAsset).
                 // -> Divide by the oracle-rate.
                 rate = rate.mulDivDown(1e18, IOracleModule(oracleToOracleModule[oracles[i]]).getRate(oracles[i]));
             }
+        }
+    }
+
+    /**
+     * @notice Calculates the USD values of underlying assets.
+     * @param creditor The contract address of the Creditor.
+     * @param assets Array of the contract addresses of the assets.
+     * @param assetIds Array of the ids of the assets.
+     * @param assetAmounts Array with the amounts of the assets.
+     * @return valuesAndRiskFactors The values of the assets, denominated in USD with 18 Decimals precision
+     * and the corresponding risk factors for each asset for the given Creditor.
+     * @dev The function getValuesInUsdRecursive should only be called by Derived Asset Modules for recursive pricing of assets
+     * and should NOT be used by external contracts.
+     * This function does not do sanity checks such as:
+     *  - Check if the sequencer is down or is back up less than the grace period.
+     *  - Check if the value of the asset exceeds a minimal value to prevent dust attacks.
+     */
+    function getValuesInUsdRecursive(
+        address creditor,
+        address[] calldata assets,
+        uint256[] calldata assetIds,
+        uint256[] calldata assetAmounts
+    ) external view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+        uint256 length = assets.length;
+        valuesAndRiskFactors = new AssetValueAndRiskFactors[](length);
+        for (uint256 i; i < length; ++i) {
+            (
+                valuesAndRiskFactors[i].assetValue,
+                valuesAndRiskFactors[i].collateralFactor,
+                valuesAndRiskFactors[i].liquidationFactor
+            ) = IAssetModule(assetToAssetModule[assets[i]]).getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
         }
     }
 
@@ -609,7 +647,7 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assets,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) public view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+    ) public view sequencerNotDown(creditor) returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
         uint256 length = assets.length;
         valuesAndRiskFactors = new AssetValueAndRiskFactors[](length);
 
@@ -651,7 +689,7 @@ contract Registry is IRegistry, RegistryGuardian {
         if (numeraire != address(0)) {
             // We use the USD price per 10^18 tokens instead of the price per token to guarantee sufficient precision.
             (uint256 rateNumeraireToUsd,,) =
-                IAssetModule(assetToAssetModule[numeraire]).getValue(creditor, numeraire, 0, 1e18);
+                IAssetModule(assetToAssetModule[numeraire]).getValue(address(0), numeraire, 0, 1e18);
 
             uint256 length = assetAddresses.length;
             for (uint256 i; i < length; ++i) {
