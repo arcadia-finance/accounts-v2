@@ -69,6 +69,7 @@ abstract contract Fuzz_Test is Base_Test {
         vm.assume(fuzzedAddress != address(factory));
         vm.assume(fuzzedAddress != address(accountV1Logic));
         vm.assume(fuzzedAddress != address(accountV2Logic));
+        vm.assume(fuzzedAddress != address(proxyAccount));
         vm.assume(fuzzedAddress != address(registryExtension));
         vm.assume(fuzzedAddress != address(vm));
         vm.assume(fuzzedAddress != address(this));
