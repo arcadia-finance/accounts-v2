@@ -171,4 +171,36 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
         (,, totalStaked) = stargateAssetModule.assetState(address(pool));
         assert(totalStaked == 0);
     }
+
+    // The withdrawal of a zero amount should trigger the claim of the rewards
+    function testFork_Success_claimReward() public {
+        uint256 initBalance = 1000 * 10 ** USDbC.decimals();
+        assert(pool.balanceOf(users.accountOwner) == 0);
+
+        // Given : A user deposits in the Stargate USDbC pool, in exchange of an LP token.
+        vm.startPrank(users.accountOwner);
+        deal(address(USDbC), users.accountOwner, initBalance);
+
+        USDbC.approve(address(router), initBalance);
+        router.addLiquidity(routerPoolId, initBalance, users.accountOwner);
+        assert(pool.balanceOf(users.accountOwner) > 0);
+
+        // And : The user stakes the LP token via the StargateAssetModule
+        uint256 stakedAmount = pool.balanceOf(users.accountOwner);
+        pool.approve(address(stargateAssetModule), stakedAmount);
+        uint256 tokenId = stargateAssetModule.mint(address(pool), uint128(stakedAmount));
+
+        // And : We let 30 days pass to accumulate rewards.
+        vm.warp(block.timestamp + 30 days);
+
+        assert(lpStakingTime.eToken().balanceOf(users.accountOwner) == 0);
+
+        // When : We claim rewards for the position
+        stargateAssetModule.claimReward(tokenId);
+
+        // Then : Reward should have been received
+        assert(lpStakingTime.eToken().balanceOf(users.accountOwner) > 0);
+
+        vm.stopPrank();
+    }
 }

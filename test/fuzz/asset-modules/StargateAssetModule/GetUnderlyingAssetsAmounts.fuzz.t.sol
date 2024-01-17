@@ -14,51 +14,73 @@ import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuati
  */
 contract GetUnderlyingAssetsAmounts_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
     using FixedPointMathLib for uint112;
+    using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    /*     function setUp() public virtual override {
+    function setUp() public virtual override {
         StargateAssetModule_Fuzz_Test.setUp();
-    } */
+    }
 
-    /*     function testFuzz_Success_getUnderlyingAssetsAmounts_LiquidityGreaterThanZero(
-        uint256 positionId,
+    function testFuzz_Success_getUnderlyingAssetsAmounts_amountGreaterThan0(
+        uint96 positionId,
         uint112 assetAmount,
         uint128 totalLiquidity,
         uint256 convertRate,
         uint128 amountStaked,
-        uint256 poolId
+        uint128 totalSupply,
+        uint256 poolId,
+        uint128 pendingEmissions
     ) public {
         // Given : convertRate should be between 1 and 10**18.
         convertRate = bound(convertRate, 0, 18);
         convertRate = 10 ** convertRate;
+        emit log_uint(convertRate);
 
-        uint256 pendingEmissions = 2;
+        // And : assetAmount is 1.
+        assetAmount = 1;
 
-        // And : totalStaked > 0
+        // And : pendingEmissions is smaller than type(uint128).max / 1e18
+        pendingEmissions = uint128(bound(pendingEmissions, 0, type(uint128).max / 1e18));
+
+        // And : totalStaked > 0, thus amountStaked > 0
         vm.assume(amountStaked > 0);
 
         // And : totalLiquidity should be at least equal to amountStaked (invariant)
         totalLiquidity = uint128(bound(totalLiquidity, amountStaked, type(uint128).max));
 
+        // And : totalLiquidity should be >= totalSupply
+        vm.assume(totalLiquidity >= totalSupply);
+
+        // And : totalSupply is greater than 0
+        vm.assume(totalSupply > 0);
+
         // And : Avoid overflow in calculations
-        vm.assume(uint256(assetAmount) * totalLiquidity <= type(uint256).max / convertRate);
+        vm.assume(uint256(amountStaked) * totalLiquidity <= type(uint256).max / convertRate);
 
         // And : Set valid state on the pool.
-        poolMock.setState(address(mockERC20.token1), totalLiquidity, amountStaked, convertRate);
+        poolMock.setState(address(mockERC20.token1), totalLiquidity, totalSupply, convertRate);
 
         // And : Set valid state on lpStakingTime
-        lpStakingTime.setInfoForPoolId(poolId, pendingEmissions, address(poolMock));
+        lpStakingTimeMock.setInfoForPoolId(poolId, pendingEmissions, address(poolMock));
 
-        // Given : Set valid info in position
+        // And : Set valid state in AM
         stargateAssetModule.setAssetInPosition(address(poolMock), positionId);
         stargateAssetModule.setAmountStakedForPosition(positionId, amountStaked);
+
+        stargateAssetModule.setTotalStakedForAsset(address(poolMock), amountStaked);
+
         stargateAssetModule.setAssetToPoolId(address(poolMock), poolId);
+        stargateAssetModule.setAssetToConversionRate(address(poolMock), convertRate);
+
+        // Avoid stack too deep
+        uint96 positionIdStack = positionId;
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = stargateAssetModule.getKeyFromAsset(address(mockERC20.token1), 0);
         underlyingAssetKeys[1] = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule.rewardToken()), 0);
+        bytes32 assetKey = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule), positionId);
 
         // When : Calling getUnderlyingAssetsAmounts.
         (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
@@ -67,55 +89,31 @@ contract GetUnderlyingAssetsAmounts_StargateAssetModule_Fuzz_Test is StargateAss
         );
 
         // Then : Values returned should be correct.
-        uint256 computedUnderlyingAssetAmount = assetAmount.mulDivDown(totalLiquidity, amountStaked);
+        uint256 computedUnderlyingAssetAmount = uint256(amountStaked).mulDivDown(totalLiquidity, totalSupply);
         computedUnderlyingAssetAmount *= convertRate;
 
         // We do not fuzz rates here as returned rate is covered by our testing of _getRateUnderlyingAssetsToUsd() for derivedAssetModule.
         uint256 expectedRateToken1ToUsd = rates.token1ToUsd * 10 ** (18 - Constants.tokenOracleDecimals);
 
         assertEq(underlyingAssetsAmounts[0], computedUnderlyingAssetAmount);
+        assertEq(underlyingAssetsAmounts[1], stargateAssetModule.rewardOf(positionIdStack));
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, expectedRateToken1ToUsd);
-    } */
+        assertEq(rateUnderlyingAssetsToUsd[1].assetValue, expectedRateToken1ToUsd);
+    }
 
-    /*     function testFuzz_Success_getUnderlyingAssetsAmounts_ZeroTotalLiquidity(
-        uint256 tokenId,
-        uint112 assetAmount,
-        uint128 totalLiquidity,
-        uint256 convertRate,
-        uint128 totalSupply
-    ) public {
-        // Given : convertRate should be between 1 and 10**18.
-        convertRate = bound(convertRate, 0, 18);
-        convertRate = 10 ** convertRate;
-
-        // And : totalSupply > 0
-        vm.assume(totalSupply > 0);
-
-        // And : totalLiquidity and totalSupply are 0
-        totalLiquidity = 0;
-        totalSupply = 0;
-
-        // And : Set valid state on the pool.
-        poolMock.setState(address(mockERC20.token1), totalLiquidity, totalSupply, convertRate);
-
-        // Given : The mapping from assetKey to the pool is set.
-        bytes32 assetKey = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule), tokenId);
-        stargateAssetModule.setAssetKeyToPool(assetKey, address(poolMock));
-
-        bytes32[] memory underlyingAssetKeys = new bytes32[](1);
+    function testFuzz_Success_getUnderlyingAssetsAmounts_amountIsZero(uint96 positionId) public {
+        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = stargateAssetModule.getKeyFromAsset(address(mockERC20.token1), 0);
+        underlyingAssetKeys[1] = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule.rewardToken()), 0);
+        bytes32 assetKey = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule), positionId);
 
         // When : Calling getUnderlyingAssetsAmounts.
         (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
-        stargateAssetModule.getUnderlyingAssetsAmounts(
-            address(creditorToken1), assetKey, assetAmount, underlyingAssetKeys
-        );
+            stargateAssetModule.getUnderlyingAssetsAmounts(address(creditorToken1), assetKey, 0, underlyingAssetKeys);
 
         // Then : Values returned should be correct.
-        // We do not fuzz rates here as returned rate is covered by our testing of _getRateUnderlyingAssetsToUsd() for derivedAssetModule.
-        uint256 expectedRateToken1ToUsd = rates.token1ToUsd * 10 ** (18 - Constants.tokenOracleDecimals);
-
         assertEq(underlyingAssetsAmounts[0], 0);
-        assertEq(rateUnderlyingAssetsToUsd[0].assetValue, expectedRateToken1ToUsd);
-    } */
+        assertEq(underlyingAssetsAmounts[1], 0);
+        assertEq(rateUnderlyingAssetsToUsd.length, 0);
+    }
 }

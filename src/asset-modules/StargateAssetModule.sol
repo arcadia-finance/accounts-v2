@@ -72,7 +72,6 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @notice This function will add this contract as an asset in the Registry.
      * @dev Will revert if called more than once.
      */
-    // Note : could be added in constructor ?
     function initialize() external onlyOwner {
         IRegistry(REGISTRY).addAsset(address(this));
     }
@@ -157,6 +156,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         override
         returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
+        // Amount of a Stargate position in the Asset Module can only be either 0 or 1.
         if (amount == 0) return (new uint256[](2), rateUnderlyingAssetsToUsd);
 
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
@@ -172,9 +172,8 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         // Calculate underlyingAssets amounts.
         // "amountSD" is used in Stargate contracts and stands for amount in Shared Decimals, which should be converted to Local Decimals via convertRate().
         // "amountSD" will always be smaller or equal to amount in Local Decimals.
-        uint256 amountSD = totalLiquidity != 0
-            ? uint256(positionState_.amountStaked).mulDivDown(totalLiquidity, IPool(asset).totalSupply())
-            : 0;
+        // For an exisiting assetKey, the totalSupply can not be zero, as a non-zero amount is staked via this contract for the position.
+        uint256 amountSD = uint256(positionState_.amountStaked).mulDivDown(totalLiquidity, IPool(asset).totalSupply());
 
         underlyingAssetsAmounts = new uint256[](2);
         underlyingAssetsAmounts[0] = amountSD * assetToConversionRate[asset];

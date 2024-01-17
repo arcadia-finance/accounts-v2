@@ -639,6 +639,10 @@ contract StargateAssetModuleExtension is StargateAssetModule {
         assetToUnderlyingAsset[asset] = underlyingAsset;
     }
 
+    function setTotalStakedForAsset(address asset, uint128 totalStaked_) public {
+        assetState[asset].totalStaked = totalStaked_;
+    }
+
     function setAssetToPoolId(address asset, uint256 poolId) public {
         assetToPoolId[asset] = poolId;
     }
@@ -695,6 +699,10 @@ contract StargateAssetModuleExtension is StargateAssetModule {
 
     function setAmountStakedForPosition(uint256 id, uint256 amount) public {
         positionState[id].amountStaked = uint128(amount);
+    }
+
+    function setAssetToConversionRate(address asset, uint256 conversionRate) public {
+        assetToConversionRate[asset] = conversionRate;
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) { }
