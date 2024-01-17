@@ -232,7 +232,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit deposit(address(proxyAccount));
+        emit Deposit(address(proxyAccount));
         uint256[] memory assetTypes =
             registryExtension.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
 
@@ -268,7 +268,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit deposit(address(proxyAccount));
+        emit Deposit(address(proxyAccount));
         uint256[] memory assetTypes =
             registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
@@ -311,7 +311,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit deposit(address(proxyAccount));
+        emit Deposit(address(proxyAccount));
         uint256[] memory assetTypes =
             registryExtension.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
 
@@ -342,7 +342,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit deposit(address(proxyAccount));
+        emit Deposit(address(proxyAccount));
         uint256[] memory assetTypes =
             registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
@@ -375,7 +375,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit deposit(address(proxyAccount));
+        emit Deposit(address(proxyAccount));
         uint256[] memory assetTypes =
             registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
@@ -406,7 +406,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.startPrank(address(proxyAccount));
         vm.expectEmit();
-        emit deposit(address(proxyAccount));
+        emit Deposit(address(proxyAccount));
         registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 

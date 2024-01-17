@@ -203,7 +203,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts = new uint256[](3);
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit withdrawal(address(proxyAccount));
+        emit Withdrawal(address(proxyAccount));
         uint256[] memory assetTypes =
             registryExtension.batchProcessWithdrawal(address(0), assetAddresses, assetIds, assetAmounts);
 
@@ -258,7 +258,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts = new uint256[](3);
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit withdrawal(address(proxyAccount));
+        emit Withdrawal(address(proxyAccount));
         uint256[] memory assetTypes =
             registryExtension.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
@@ -309,7 +309,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit withdrawal(address(proxyAccount));
+        emit Withdrawal(address(proxyAccount));
         uint256[] memory assetTypes =
             registryExtension.batchProcessWithdrawal(address(0), assetAddresses, assetIds, assetAmounts);
 
@@ -348,7 +348,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit withdrawal(address(proxyAccount));
+        emit Withdrawal(address(proxyAccount));
         uint256[] memory assetTypes =
             registryExtension.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
@@ -378,7 +378,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.startPrank(address(proxyAccount));
         vm.expectEmit();
-        emit withdrawal(address(proxyAccount));
+        emit Withdrawal(address(proxyAccount));
         registryExtension.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 
