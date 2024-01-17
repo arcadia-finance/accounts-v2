@@ -12,6 +12,7 @@ import { ILpStakingTime } from "../../../../src/asset-modules/interfaces/stargat
 import { IRouter } from "../../../../src/asset-modules/interfaces/stargate/IRouter.sol";
 import { IPool } from "../../../../src/asset-modules/interfaces/stargate/IPool.sol";
 import { StargateAssetModule } from "../../../../src/asset-modules/StargateAssetModule.sol";
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 /**
  * @notice Base test file for Stargate Asset-Module fork tests.
@@ -23,6 +24,7 @@ contract StargateBase_Fork_Test is Fork_Test {
 
     IRouter public router = IRouter(0x45f1A95A4D3f3836523F5c83673c797f4d4d263B);
     ILpStakingTime public lpStakingTime = ILpStakingTime(0x06Eb48763f117c7Be887296CDcdfad2E4092739C);
+    address oracleSTG = 0x63Af8341b62E683B87bB540896bF283D96B4D385;
 
     StargateAssetModule public stargateAssetModule;
 
@@ -30,7 +32,7 @@ contract StargateBase_Fork_Test is Fork_Test {
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
-    /*   function setUp() public virtual override {
+    function setUp() public virtual override {
         Fork_Test.setUp();
 
         // Deploy StargateAssetModule.
@@ -39,12 +41,28 @@ contract StargateBase_Fork_Test is Fork_Test {
 
         // Add Asset-Module to the registry and initialize.
         registryExtension.addAssetModule(address(stargateAssetModule));
+
+        // Initialize stargateAssetModule
+        stargateAssetModule.initialize();
+
+        // Add STG and it's Chainlink oracle to the protocol.
+        vm.warp(1_703_146_389 + 1);
+        vm.startPrank(users.creatorAddress);
+        uint256 oracleId = chainlinkOM.addOracle(oracleSTG, "STG", "USD", 2 days);
+        bool[] memory boolValues = new bool[](1);
+        boolValues[0] = true;
+        uint80[] memory uintValues = new uint80[](1);
+        uintValues[0] = uint80(oracleId);
+        bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
+
+        erc20AssetModule.addAsset(address(lpStakingTime.eToken()), oracleSequence);
+
         vm.stopPrank();
 
         // Label contracts
         vm.label({ account: address(router), newLabel: "StargateRouter" });
         vm.label({ account: address(lpStakingTime), newLabel: "StargateLpStaking" });
-    } */
+    }
 
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS

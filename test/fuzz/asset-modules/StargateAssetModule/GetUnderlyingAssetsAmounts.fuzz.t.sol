@@ -18,9 +18,9 @@ contract GetUnderlyingAssetsAmounts_StargateAssetModule_Fuzz_Test is StargateAss
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override {
+    /*     function setUp() public virtual override {
         StargateAssetModule_Fuzz_Test.setUp();
-    }
+    } */
 
     /*     function testFuzz_Success_getUnderlyingAssetsAmounts_LiquidityGreaterThanZero(
         uint256 positionId,

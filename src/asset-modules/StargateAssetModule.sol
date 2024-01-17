@@ -32,11 +32,11 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Maps this contract's ERC1155 assetKeys to the keys of their underlying asset.
+    // Maps a Stargate pool to it's underlying asset.
     mapping(address asset => address underlyingAsset) public assetToUnderlyingAsset;
-    // The pool id as referred to in the Stargate "lpStakingTime.sol" contract relative to the underlying asset of the ERC1155 token id.
+    // The pool id as referred to in the Stargate "lpStakingTime.sol" contract relative to Stargate pool.
     mapping(address asset => uint256 poolId) public assetToPoolId;
-    // Maps an asset to it's conversion rate, which is used in Stargate Pools to convert from Local to Shared Decimals.
+    // Maps a Stargate Pool to it's conversion rate, which is used in Stargate pools to convert from Local to Shared Decimals.
     mapping(address asset => uint256 conversionRate) public assetToConversionRate;
 
     /* //////////////////////////////////////////////////////////////
@@ -82,9 +82,9 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a new asset (ERC1155 tokenId and it's corresponding Stargate Pool LP) to the StargateAssetModule.
-     * @param stargatePool The ERC1155 token id of this contract.
-     * @param poolId x
+     * @notice Adds a new Stargate Pool to the StargateAssetModule.
+     * @param stargatePool The contract address of the Stargate LP Pool.
+     * @param poolId The id of the stargatePool used in the lpStakingTime contract.
      */
     // Note : discuss if this should be an onlyOwner fct
     function addAsset(address stargatePool, uint256 poolId) external {
@@ -213,7 +213,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
 
     /**
      * @notice Claims the rewards available for this contract.
-     * @param asset The id of the specific staking token.
+     * @param asset The Asset to claim the rewards for.
      * @dev Withdrawing a zero amount will trigger the claim for rewards.
      */
     function _claimReward(address asset) internal override {
@@ -222,8 +222,8 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
 
     /**
      * @notice Returns the amount of reward tokens that can be claimed by this contract for a specific asset.
-     * @param asset The id of the specific staking token.
-     * @return currentReward The amount of rewards tokens that can be claimed.
+     * @param asset The Asset to get the current rewards for.
+     * @return currentReward The amount of reward tokens that can be claimed.
      */
     function _getCurrentReward(address asset) internal view override returns (uint256 currentReward) {
         currentReward = lpStakingTime.pendingEmissionToken(assetToPoolId[asset], address(this));
