@@ -32,11 +32,11 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Maps a Stargate pool to it's underlying asset.
+    // Maps a Stargate pool to its underlying asset.
     mapping(address asset => address underlyingAsset) public assetToUnderlyingAsset;
-    // The pool id as referred to in the Stargate "lpStakingTime.sol" contract relative to Stargate pool.
+    // Maps a Stargate Pool to its specific pool id as referred to in the Stargate "lpStakingTime.sol" contract.
     mapping(address asset => uint256 poolId) public assetToPoolId;
-    // Maps a Stargate Pool to it's conversion rate, which is used in Stargate pools to convert from Local to Shared Decimals.
+    // Maps a Stargate Pool to its conversion rate, which is used in Stargate pools to convert from Local to Shared Decimals.
     mapping(address asset => uint256 conversionRate) public assetToConversionRate;
 
     /* //////////////////////////////////////////////////////////////
@@ -85,7 +85,6 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @param stargatePool The contract address of the Stargate LP Pool.
      * @param poolId The id of the stargatePool used in the lpStakingTime contract.
      */
-    // Note : discuss if this should be an onlyOwner fct
     function addAsset(address stargatePool, uint256 poolId) external {
         if (ERC20(stargatePool).decimals() > 18) revert InvalidTokenDecimals();
         if (address(assetToRewardToken[stargatePool]) != address(0)) revert AssetAndRewardPairAlreadySet();
@@ -140,8 +139,8 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
      * @param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
-     * @param amount The amount of the asset, in the decimal precision of the Asset.
-     * param underlyingAssetKeys The unique identifiers of the underlying assets.
+     * @param amount The amount of the Asset, in the decimal precision of the Asset.
+     * @param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      */
@@ -188,8 +187,8 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
 
     /**
      * @notice Stakes an amount of tokens in the external staking contract.
-     * @param asset The id of the specific staking token.
-     * @param amount The amount of underlying tokens to stake.
+     * @param asset The contract address of the Asset to stake.
+     * @param amount The amount of Asset to stake.
      */
     function _stake(address asset, uint256 amount) internal override {
         if (ERC20(asset).allowance(address(this), address(lpStakingTime)) < amount) {
@@ -201,8 +200,8 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     }
 
     /**
-     * @notice Unstakes and withdraws the staking token from the external contract.
-     * @param asset The id of the specific staking token.
+     * @notice Unstakes and withdraws the Asset from the external contract.
+     * @param asset The contract address of the Asset to unstake and withdraw.
      * @param amount The amount of underlying tokens to unstake and withdraw.
      */
     function _withdraw(address asset, uint256 amount) internal override {
@@ -212,7 +211,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
 
     /**
      * @notice Claims the rewards available for this contract.
-     * @param asset The Asset to claim the rewards for.
+     * @param asset The contract address of the Asset to claim the rewards for.
      * @dev Withdrawing a zero amount will trigger the claim for rewards.
      */
     function _claimReward(address asset) internal override {
