@@ -25,28 +25,22 @@ contract SetAssetManager_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_setAssetManager_NonOwner(address nonOwner, address assetManager, bool value) public {
-        vm.assume(nonOwner != users.accountOwner);
 
-        vm.startPrank(nonOwner);
-        vm.expectRevert(AccountErrors.OnlyOwner.selector);
-        accountExtension.setAssetManager(assetManager, value);
-        vm.stopPrank();
-    }
-
-    function testFuzz_Success_setAssetManager(address assetManager, bool startValue, bool endvalue) public {
-        vm.startPrank(users.accountOwner);
+    function testFuzz_Success_setAssetManager(address assetManager, bool startValue, bool endvalue, address msgSender)
+        public
+    {
+        vm.startPrank(msgSender);
         vm.expectEmit(true, true, true, true);
-        emit AssetManagerSet(users.accountOwner, assetManager, startValue);
+        emit AssetManagerSet(msgSender, assetManager, startValue);
         accountExtension.setAssetManager(assetManager, startValue);
         vm.stopPrank();
-        assertEq(accountExtension.isAssetManager(users.accountOwner, assetManager), startValue);
+        assertEq(accountExtension.isAssetManager(msgSender, assetManager), startValue);
 
-        vm.startPrank(users.accountOwner);
+        vm.startPrank(msgSender);
         vm.expectEmit(true, true, true, true);
-        emit AssetManagerSet(users.accountOwner, assetManager, endvalue);
+        emit AssetManagerSet(msgSender, assetManager, endvalue);
         accountExtension.setAssetManager(assetManager, endvalue);
         vm.stopPrank();
-        assertEq(accountExtension.isAssetManager(users.accountOwner, assetManager), endvalue);
+        assertEq(accountExtension.isAssetManager(msgSender, assetManager), endvalue);
     }
 }

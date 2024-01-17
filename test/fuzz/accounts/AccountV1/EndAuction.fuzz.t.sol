@@ -30,10 +30,18 @@ contract endAuction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_endAuction(address nonLiquidator) public {
         vm.assume(nonLiquidator != accountExtension.liquidator());
 
-        vm.startPrank(nonLiquidator);
+        vm.prank(nonLiquidator);
         vm.expectRevert(AccountErrors.OnlyLiquidator.selector);
         accountExtension.endAuction();
-        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_AuctionBuy_Reentered() public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        vm.prank(accountExtension.liquidator());
+        vm.expectRevert(AccountErrors.NoReentry.selector);
+        accountExtension.endAuction();
     }
 
     function testFuzz_Success_endAuction() public {

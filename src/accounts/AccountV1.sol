@@ -41,7 +41,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ////////////////////////////////////////////////////////////// */
 
     // The current Account Version.
-    uint16 public constant ACCOUNT_VERSION = 1;
+    uint256 public constant ACCOUNT_VERSION = 1;
     // The maximum amount of different assets that can be used as collateral within an Arcadia Account.
     uint256 public constant ASSET_LIMIT = 15;
     // The cool-down period after an account action, that might be disadvantageous for a new Owner,
@@ -168,15 +168,17 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * Therefore everything is initialised through an init function.
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
      * @dev The Creditor will only be set if it's a non-zero address, in this case the numeraire_ passed as input will be ignored.
+     * @dev initialize has implicitly a nonReentrant guard, since the "locked" variable has value zero until the end of the function.
      */
     function initialize(address owner_, address registry_, address creditor_) external {
         if (registry != address(0)) revert AccountErrors.AlreadyInitialized();
         if (registry_ == address(0)) revert AccountErrors.InvalidRegistry();
         owner = owner_;
-        locked = 1;
         registry = registry_;
 
         if (creditor_ != address(0)) _openMarginAccount(creditor_);
+
+        locked = 1;
     }
 
     /**
@@ -187,7 +189,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param newVersion The new version of the Account implementation.
      * @dev This function MUST be added to new Account implementations.
      */
-    function upgradeAccount(address newImplementation, address newRegistry, uint88 newVersion, bytes calldata data)
+    function upgradeAccount(address newImplementation, address newRegistry, uint256 newVersion, bytes calldata data)
         external
         onlyFactory
         nonReentrant
@@ -197,7 +199,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         // Cache old parameters.
         address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
-        uint16 oldVersion = ACCOUNT_VERSION;
+        uint256 oldVersion = ACCOUNT_VERSION;
 
         // Store new parameters.
         _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
@@ -241,7 +243,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param data Arbitrary data, can contain instructions to execute in this function.
      * @dev If upgradeHook() is implemented, it MUST verify that msg.sender == address(this).
      */
-    function upgradeHook(address oldImplementation, address oldRegistry, uint16 oldVersion, bytes calldata data)
+    function upgradeHook(address oldImplementation, address oldRegistry, uint256 oldVersion, bytes calldata data)
         external
     { }
 
@@ -322,14 +324,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
         address oldCreditor = creditor;
         if (oldCreditor == newCreditor) revert AccountErrors.CreditorAlreadySet();
 
-        // Check if all assets in the Account are allowed by the new Creditor
-        // and add the exposure of the account for the new Creditor.
-        IRegistry(registry).batchProcessDeposit(newCreditor, assetAddresses, assetIds, assetAmounts);
-
         // Remove the exposures of the Account for the old Creditor.
         if (oldCreditor != address(0)) {
             IRegistry(registry).batchProcessWithdrawal(oldCreditor, assetAddresses, assetIds, assetAmounts);
         }
+
+        // Check if all assets in the Account are allowed by the new Creditor
+        // and add the exposure of the account for the new Creditor.
+        IRegistry(registry).batchProcessDeposit(newCreditor, assetAddresses, assetIds, assetAmounts);
 
         // Open margin account for the new Creditor.
         _openMarginAccount(newCreditor);
@@ -348,11 +350,11 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param creditor_ The contract address of the Creditor.
      */
     function _openMarginAccount(address creditor_) internal {
-        (bool success, address numeraire_, address liquidator_, uint256 fixedLiquidationCost_) =
+        (bool success, address numeraire_, address liquidator_, uint256 minimumMargin_) =
             ICreditor(creditor_).openMarginAccount(ACCOUNT_VERSION);
         if (!success) revert AccountErrors.InvalidAccountVersion();
 
-        fixedLiquidationCost = uint96(fixedLiquidationCost_);
+        minimumMargin = uint96(minimumMargin_);
         if (numeraire != numeraire_) _setNumeraire(numeraire_);
 
         emit MarginAccountChanged(creditor = creditor_, liquidator = liquidator_);
@@ -369,7 +371,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
         creditor = address(0);
         liquidator = address(0);
-        fixedLiquidationCost = 0;
+        minimumMargin = 0;
 
         // Remove the exposures of the Account for the old Creditor.
         (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
@@ -389,7 +391,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev An approved Creditor is a Creditor for which no margin Account is immediately opened.
      * But the approved Creditor itself can open the margin Account later in time to e.g. refinance liabilities.
      */
-    function setApprovedCreditor(address creditor_) external onlyOwner {
+    function setApprovedCreditor(address creditor_) external onlyOwner updateActionTimestamp {
         approvedCreditor = creditor_;
     }
 
@@ -450,7 +452,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         if (creditor_ == address(0)) return 0;
 
         // getOpenPosition() is a view function, cannot modify state.
-        usedMargin = ICreditor(creditor_).getOpenPosition(address(this)) + fixedLiquidationCost;
+        usedMargin = ICreditor(creditor_).getOpenPosition(address(this)) + minimumMargin;
     }
 
     /**
@@ -473,10 +475,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @return isUnhealthy Boolean indicating if the Account is unhealthy.
      */
     function isAccountUnhealthy() public view returns (bool isUnhealthy) {
-        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is always healthy.
+        // If usedMargin is equal to minimumMargin, the open liabilities are 0 and the Account is always healthy.
         // An Account is unhealthy if the collateral value is smaller than the used margin.
         uint256 usedMargin = getUsedMargin();
-        isUnhealthy = usedMargin > fixedLiquidationCost && getCollateralValue() < usedMargin;
+        isUnhealthy = usedMargin > minimumMargin && getCollateralValue() < usedMargin;
     }
 
     /**
@@ -484,10 +486,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @return success Boolean indicating if the Account can be liquidated.
      */
     function isAccountLiquidatable() external view returns (bool success) {
-        // If usedMargin is equal to fixedLiquidationCost, the open liabilities are 0 and the Account is never liquidatable.
+        // If usedMargin is equal to minimumMargin, the open liabilities are 0 and the Account is never liquidatable.
         // An Account can be liquidated if the liquidation value is smaller than the used margin.
         uint256 usedMargin = getUsedMargin();
-        success = usedMargin > fixedLiquidationCost && getLiquidationValue() < usedMargin;
+        success = usedMargin > minimumMargin && getLiquidationValue() < usedMargin;
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -500,7 +502,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @return assetAddresses Array of the contract addresses of the assets in Account.
      * @return assetIds Array of the IDs of the assets in Account.
      * @return assetAmounts Array with the amounts of the assets in Account.
-     * @return creditor_ The Creditor, address 0 if no active Creditor.
+     * @return creditor_ The contract address of the Creditor.
+     * @return minimumMargin_ The minimum margin.
      * @return openPosition The open position (liabilities) issued against the Account.
      * @return assetAndRiskValues Array of asset values and corresponding collateral and liquidation factors.
      */
@@ -514,20 +517,22 @@ contract AccountV1 is AccountStorageV1, IAccount {
             uint256[] memory assetIds,
             uint256[] memory assetAmounts,
             address creditor_,
+            uint96 minimumMargin_,
             uint256 openPosition,
             AssetValueAndRiskFactors[] memory assetAndRiskValues
         )
     {
         inAuction = true;
         creditor_ = creditor;
+        minimumMargin_ = minimumMargin;
 
         (assetAddresses, assetIds, assetAmounts) = generateAssetData();
         assetAndRiskValues =
             IRegistry(registry).getValuesInNumeraire(numeraire, creditor_, assetAddresses, assetIds, assetAmounts);
 
         // Since the function is only callable by the Liquidator, we know that a liquidator and a Creditor are set.
-        openPosition = ICreditor(creditor_).startLiquidation(initiator);
-        uint256 usedMargin = openPosition + fixedLiquidationCost;
+        openPosition = ICreditor(creditor_).startLiquidation(initiator, minimumMargin_);
+        uint256 usedMargin = openPosition + minimumMargin_;
 
         if (openPosition == 0 || assetAndRiskValues._calculateLiquidationValue() >= usedMargin) {
             revert AccountErrors.AccountNotLiquidatable();
@@ -546,7 +551,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256[] memory assetIds,
         uint256[] memory assetAmounts,
         address bidder
-    ) external onlyLiquidator {
+    ) external onlyLiquidator nonReentrant {
         _withdraw(assetAddresses, assetIds, assetAmounts, bidder);
     }
 
@@ -556,14 +561,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev When an auction is not successful, the Account is considered "Bought In":
      * The whole Account including any remaining assets are transferred to a certain recipient address, set by the Creditor.
      */
-    function auctionBoughtIn(address recipient) external onlyLiquidator {
+    function auctionBoughtIn(address recipient) external onlyLiquidator nonReentrant {
         _transferOwnership(recipient);
     }
 
     /**
      * @notice Sets the "inAuction" flag to false when an auction ends.
      */
-    function endAuction() external onlyLiquidator {
+    function endAuction() external onlyLiquidator nonReentrant {
         inAuction = false;
     }
 
@@ -582,8 +587,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * - Automate actions by keeper networks.
      * - Do flash actions (optimistic actions).
      * - Chain multiple interactions together (eg. deposit and trade in one transaction).
+     * @dev Anyone can set the Asset Manager for themselves, this will not impact the current owner of the Account
+     * since the combination of "stored owner -> asset manager" is used in authentication checks.
      */
-    function setAssetManager(address assetManager, bool value) external onlyOwner {
+    function setAssetManager(address assetManager, bool value) external {
         emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = value);
     }
 
@@ -650,6 +657,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ///////////////////////////////////////////////////////////////*/
 
     /**
+     * @notice Updates the actionTimestamp.
+     * @dev Used to avoid frontrunning transfers of the account with actions in the Creditor.
+     */
+    function updateActionTimestampByCreditor() external onlyCreditor updateActionTimestamp { }
+
+    /**
      * @notice Checks that the increase of the open position is allowed.
      * @param openPosition The new open position.
      * @return accountVersion The current Account version.
@@ -666,8 +679,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
     {
         // If the open position is 0, the Account is always healthy.
         // An Account is unhealthy if the collateral value is smaller than the used margin.
-        // The used margin equals the sum of the given amount of openPosition and the gas cost to liquidate.
-        if (openPosition > 0 && getCollateralValue() < openPosition + fixedLiquidationCost) {
+        // The used margin equals the sum of the given open position and the minimum margin.
+        if (openPosition > 0 && getCollateralValue() < openPosition + minimumMargin) {
             revert AccountErrors.AccountUnhealthy();
         }
 
@@ -731,14 +744,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
             (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
                 generateAssetData();
 
-            // Check if all assets in the Account are allowed by the approved Creditor
-            // and add the exposure of the account for the approved Creditor.
-            IRegistry(registry).batchProcessDeposit(msg.sender, assetAddresses, assetIds, assetAmounts);
-
             // Remove the exposures of the Account for the current Creditor.
             if (currentCreditor != address(0)) {
                 IRegistry(registry).batchProcessWithdrawal(currentCreditor, assetAddresses, assetIds, assetAmounts);
             }
+
+            // Check if all assets in the Account are allowed by the approved Creditor
+            // and add the exposure of the account for the approved Creditor.
+            IRegistry(registry).batchProcessDeposit(msg.sender, assetAddresses, assetIds, assetAmounts);
 
             // Open margin account for the approved Creditor.
             _openMarginAccount(msg.sender);
@@ -797,6 +810,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         external
         onlyOwner
         nonReentrant
+        notDuringAuction
     {
         // No need to check that all arrays have equal length, this check will be done in the Registry.
         _deposit(assetAddresses, assetIds, assetAmounts, msg.sender);
@@ -815,15 +829,14 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256[] memory assetAmounts,
         address from
     ) internal {
-        // Reverts in Registry if input is invalid.
+        // If no Creditor is set, batchProcessDeposit only checks if the assets can be priced.
+        // If a Creditor is set, batchProcessDeposit will also update the exposures of assets and underlying assets for the Creditor.
         uint256[] memory assetTypes =
             IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
 
         for (uint256 i; i < assetAddresses.length; ++i) {
-            if (assetAmounts[i] == 0) {
-                // Skip if amount is 0 to prevent storing addresses that have 0 balance.
-                continue;
-            }
+            // Skip if amount is 0 to prevent storing addresses that have 0 balance.
+            if (assetAmounts[i] == 0) continue;
 
             if (assetTypes[i] == 0) {
                 if (assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
@@ -888,15 +901,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256[] memory assetAmounts,
         address to
     ) internal {
-        // Reverts in Registry if input is invalid.
+        // If a Creditor is set, batchProcessWithdrawal will also update the exposures of assets and underlying assets for the Creditor.
         uint256[] memory assetTypes =
             IRegistry(registry).batchProcessWithdrawal(creditor, assetAddresses, assetIds, assetAmounts);
 
         for (uint256 i; i < assetAddresses.length; ++i) {
-            if (assetAmounts[i] == 0) {
-                // Skip if amount is 0 to prevent transferring 0 balances.
-                continue;
-            }
+            // Skip if amount is 0 to prevent transferring 0 balances.
+            if (assetAmounts[i] == 0) continue;
 
             if (assetTypes[i] == 0) {
                 if (assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();

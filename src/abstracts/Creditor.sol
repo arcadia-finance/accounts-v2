@@ -76,7 +76,7 @@ abstract contract Creditor is ICreditor {
     function openMarginAccount(uint256 accountVersion)
         external
         virtual
-        returns (bool success, address numeraire, address liquidator, uint256 fixedLiquidationCost);
+        returns (bool success, address numeraire, address liquidator, uint256 minimumMargin);
 
     /**
      * @inheritdoc ICreditor
@@ -95,5 +95,8 @@ abstract contract Creditor is ICreditor {
      * @dev Starts the liquidation process in the Creditor.
      * This function should be callable by Arcadia Account.
      */
-    function startLiquidation(address initiator) external virtual returns (uint256 openPosition);
+    function startLiquidation(address initiator, uint256 minimumMargin)
+        external
+        virtual
+        returns (uint256 openPosition);
 }

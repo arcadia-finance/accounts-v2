@@ -64,11 +64,12 @@ abstract contract Events {
                                    REGISTRY
     //////////////////////////////////////////////////////////////////////////*/
 
-    event AllowedActionSet(address indexed action, bool allowed);
     event AssetAdded(address indexed assetAddress, address indexed assetModule);
     event AssetModuleAdded(address assetModule);
+    event Deposit(address account);
     event OracleAdded(uint256 indexed oracleId, address indexed oracleModule);
     event OracleModuleAdded(address oracleModule);
+    event Withdrawal(address account);
 
     /*//////////////////////////////////////////////////////////////////////////
                                 PRICING MODULE
@@ -78,7 +79,6 @@ abstract contract Events {
     event RiskVariablesSet(
         address indexed asset, uint8 indexed numeraireId, uint16 collateralFactor, uint16 liquidationFactor
     );
-    event MaxExposureSet(address indexed asset, uint128 maxExposure);
 
     /*//////////////////////////////////////////////////////////////////////////
                             DERIVED PRICING MODULE
