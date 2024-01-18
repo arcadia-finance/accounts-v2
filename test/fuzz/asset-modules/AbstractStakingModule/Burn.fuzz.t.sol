@@ -36,6 +36,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
         // Given : Add an Asset + reward token pair
         (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        vm.assume(account != assets[0]);
 
         // Given : Valid state
         (assetState, positionState) = setStakingModuleState(assetState, positionState, assets[0], positionId);
