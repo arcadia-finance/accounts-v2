@@ -197,7 +197,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
     function testFuzz_Revert_flashActionByCreditor_Creditor_Unhealthy(
         uint128 debtAmount,
-        uint96 fixedLiquidationCost,
+        uint96 minimumMargin,
         uint112 collateralAmount
     ) public {
         // Given: "exposure" is smaller than "maxExposure".
@@ -205,7 +205,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: Account is unhealthy after flash-action.
         debtAmount = uint128(bound(debtAmount, 1, type(uint128).max));
-        collateralAmount = uint112(bound(collateralAmount, 0, uint256(debtAmount) + fixedLiquidationCost - 1));
+        collateralAmount = uint112(bound(collateralAmount, 0, uint256(debtAmount) + minimumMargin - 1));
 
         // And: The accountExtension has creditorStable1 set.
         assertEq(accountExtension.creditor(), address(creditorStable1));
@@ -214,7 +214,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The Creditor has an open position for the Account.
-        accountExtension.setFixedLiquidationCost(fixedLiquidationCost);
+        accountExtension.setMinimumMargin(minimumMargin);
         creditorStable1.setOpenPosition(address(accountExtension), debtAmount);
 
         // When: The Creditor calls flashAction.
@@ -226,7 +226,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
     function testFuzz_Revert_flashActionByCreditor_NewCreditor_Unhealthy(
         uint128 debtAmount,
-        uint96 fixedLiquidationCost,
+        uint96 minimumMargin,
         uint112 collateralAmount
     ) public {
         // Given: "exposure" is smaller than "maxExposure".
@@ -234,7 +234,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: Account is unhealthy after flash-action.
         debtAmount = uint128(bound(debtAmount, 1, type(uint128).max));
-        collateralAmount = uint112(bound(collateralAmount, 0, uint256(debtAmount) + fixedLiquidationCost - 1));
+        collateralAmount = uint112(bound(collateralAmount, 0, uint256(debtAmount) + minimumMargin - 1));
 
         // And: The accountExtension has creditorToken1 set.
         vm.prank(users.accountOwner);
@@ -248,7 +248,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The new Creditor will have an open position after the flashaction.
-        creditorStable1.setFixedLiquidationCost(fixedLiquidationCost);
+        creditorStable1.setMinimumMargin(minimumMargin);
         creditorStable1.setOpenPosition(address(accountExtension), debtAmount);
 
         // When: The Creditor calls flashAction.
@@ -260,7 +260,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
     function testFuzz_Success_flashActionByCreditor_Creditor(
         uint128 debtAmount,
-        uint96 fixedLiquidationCost,
+        uint96 minimumMargin,
         uint112 collateralAmount
     ) public {
         // Given: "exposure" is smaller than "maxExposure".
@@ -268,7 +268,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: Account is healthy after flash-action.
         debtAmount = uint128(bound(debtAmount, 0, collateralAmount));
-        fixedLiquidationCost = uint96(bound(fixedLiquidationCost, 0, collateralAmount - debtAmount));
+        minimumMargin = uint96(bound(minimumMargin, 0, collateralAmount - debtAmount));
 
         // And: The accountExtension has creditorStable1 set.
         assertEq(accountExtension.creditor(), address(creditorStable1));
@@ -277,7 +277,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The Creditor has an open position for the Account.
-        accountExtension.setFixedLiquidationCost(fixedLiquidationCost);
+        accountExtension.setMinimumMargin(minimumMargin);
         creditorStable1.setOpenPosition(address(accountExtension), debtAmount);
 
         // When: The Creditor calls flashAction.
@@ -290,7 +290,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
     function testFuzz_Success_flashActionByCreditor_NewCreditor_FromCreditor(
         uint128 debtAmount,
-        uint96 fixedLiquidationCost,
+        uint96 minimumMargin,
         uint112 collateralAmount
     ) public {
         // Given: "exposure" is smaller than "maxExposure".
@@ -298,7 +298,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: Account is healthy after flash-action.
         debtAmount = uint128(bound(debtAmount, 0, collateralAmount));
-        fixedLiquidationCost = uint96(bound(fixedLiquidationCost, 0, collateralAmount - debtAmount));
+        minimumMargin = uint96(bound(minimumMargin, 0, collateralAmount - debtAmount));
 
         // And: The accountExtension has creditorToken1 set.
         vm.prank(users.accountOwner);
@@ -312,7 +312,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The new Creditor will have an open position after the flashaction.
-        creditorStable1.setFixedLiquidationCost(fixedLiquidationCost);
+        creditorStable1.setMinimumMargin(minimumMargin);
         creditorStable1.setOpenPosition(address(accountExtension), debtAmount);
 
         // When: The Creditor calls flashAction.
@@ -337,7 +337,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
     function testFuzz_Success_flashActionByCreditor_NewCreditor_FromNoCreditor(
         uint128 debtAmount,
-        uint96 fixedLiquidationCost,
+        uint96 minimumMargin,
         uint112 collateralAmount
     ) public {
         // Given: "exposure" is smaller than "maxExposure".
@@ -345,7 +345,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: Account is healthy after flash-action.
         debtAmount = uint128(bound(debtAmount, 0, collateralAmount));
-        fixedLiquidationCost = uint96(bound(fixedLiquidationCost, 0, collateralAmount - debtAmount));
+        minimumMargin = uint96(bound(minimumMargin, 0, collateralAmount - debtAmount));
 
         // And: No Creditor is set.
         vm.prank(users.accountOwner);
@@ -359,7 +359,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The new Creditor will have an open position after the flashaction.
-        creditorStable1.setFixedLiquidationCost(fixedLiquidationCost);
+        creditorStable1.setMinimumMargin(minimumMargin);
         creditorStable1.setOpenPosition(address(accountExtension), debtAmount);
 
         // When: The Creditor calls flashAction.
@@ -380,7 +380,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
     function testFuzz_Success_flashActionByCreditor_executeAction(
         uint128 debtAmount,
-        uint32 fixedLiquidationCost,
+        uint32 minimumMargin,
         bytes calldata signature,
         uint32 time
     ) public {
@@ -388,7 +388,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         vm.prank(users.accountOwner);
         accountExtension.openMarginAccount(address(creditorToken1));
 
-        accountExtension.setFixedLiquidationCost(fixedLiquidationCost);
+        accountExtension.setMinimumMargin(minimumMargin);
         creditorToken1.setOpenPosition(address(accountExtension), debtAmount);
 
         uint256 token1AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
@@ -396,8 +396,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
 
         vm.assume(
-            token1AmountForAction + ((uint256(debtAmount) + fixedLiquidationCost) * token1ToToken2Ratio)
-                < type(uint256).max
+            token1AmountForAction + ((uint256(debtAmount) + minimumMargin) * token1ToToken2Ratio) < type(uint256).max
         );
 
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of accountExtension

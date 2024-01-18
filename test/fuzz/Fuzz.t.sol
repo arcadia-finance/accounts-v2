@@ -69,6 +69,7 @@ abstract contract Fuzz_Test is Base_Test {
         vm.assume(fuzzedAddress != address(factory));
         vm.assume(fuzzedAddress != address(accountV1Logic));
         vm.assume(fuzzedAddress != address(accountV2Logic));
+        vm.assume(fuzzedAddress != address(proxyAccount));
         vm.assume(fuzzedAddress != address(registryExtension));
         vm.assume(fuzzedAddress != address(vm));
         vm.assume(fuzzedAddress != address(this));
@@ -175,7 +176,7 @@ abstract contract Fuzz_Test is Base_Test {
 
         // Initialize the default liquidation cost and liquidator of creditor
         // The numeraire on initialization will depend on the type of test and set at a lower level
-        creditorStable1.setFixedLiquidationCost(Constants.initLiquidationCost);
+        creditorStable1.setMinimumMargin(Constants.initLiquidationCost);
         creditorStable1.setLiquidator(Constants.initLiquidator);
 
         vm.label({ account: address(creditorUsd), newLabel: "USD Creditor" });

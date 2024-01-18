@@ -26,7 +26,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
                              TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_increaseLiquidity_ZeroAmount(uint256 positionId, address asset) public {
+    function testFuzz_Revert_increaseLiquidity_ZeroAmount(uint256 positionId) public {
         // The stake function should revert when trying to stake 0 amount.
         vm.expectRevert(StakingModule.ZeroAmount.selector);
         stakingModule.increaseLiquidity(positionId, 0);

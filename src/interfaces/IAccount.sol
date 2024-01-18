@@ -9,7 +9,7 @@ interface IAccount {
      * @notice Returns the Account version.
      * @return version The Account version.
      */
-    function ACCOUNT_VERSION() external view returns (uint16);
+    function ACCOUNT_VERSION() external view returns (uint256);
 
     /**
      * @notice Returns the Arcadia Accounts Factory.
@@ -32,7 +32,7 @@ interface IAccount {
      * @param data Arbitrary data, can contain instructions to execute when updating Account to new logic.
      * @param newVersion The new version of the Account logic.
      */
-    function upgradeAccount(address newImplementation, address newRegistry, uint88 newVersion, bytes calldata data)
+    function upgradeAccount(address newImplementation, address newRegistry, uint256 newVersion, bytes calldata data)
         external;
 
     /**

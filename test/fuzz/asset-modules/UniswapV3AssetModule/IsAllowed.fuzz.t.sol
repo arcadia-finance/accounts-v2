@@ -78,6 +78,63 @@ contract IsAllowed_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz_T
         assertFalse(uniV3AssetModule.isAllowed(address(nonfungiblePositionManager), tokenId));
     }
 
+    function testFuzz_Success_isAllowed_Negative_ZeroLiquidity(address lp, uint128 maxExposureA, uint128 maxExposureB)
+        public
+    {
+        vm.assume(lp != address(0));
+        vm.assume(maxExposureA > 0);
+        vm.assume(maxExposureB > 0);
+
+        // Create a LP-position of two underlying assets: token1 and token2.
+        ERC20 tokenA = ERC20(address(mockERC20.token1));
+        ERC20 tokenB = ERC20(address(mockERC20.token2));
+        (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        address pool = nonfungiblePositionManager.createAndInitializePoolIfNecessary(
+            address(tokenA), address(tokenB), 100, 1 << 96
+        );
+
+        vm.assume(lp != pool);
+
+        deal(address(tokenA), lp, 1e8);
+        deal(address(tokenB), lp, 1e8);
+        vm.startPrank(lp);
+        tokenA.approve(address(nonfungiblePositionManager), type(uint256).max);
+        tokenB.approve(address(nonfungiblePositionManager), type(uint256).max);
+        (uint256 tokenId,,,) = nonfungiblePositionManager.mint(
+            INonfungiblePositionManagerExtension.MintParams({
+                token0: address(tokenA),
+                token1: address(tokenB),
+                fee: 100,
+                tickLower: -1,
+                tickUpper: 1,
+                amount0Desired: 1e8,
+                amount1Desired: 1e8,
+                amount0Min: 0,
+                amount1Min: 0,
+                recipient: lp,
+                deadline: type(uint256).max
+            })
+        );
+
+        // Set liquidity to 0
+        (,,,,,,, uint128 liquidity,,,,) = nonfungiblePositionManager.positions(tokenId);
+        nonfungiblePositionManager.decreaseLiquidity(
+            INonfungiblePositionManagerExtension.DecreaseLiquidityParams({
+                tokenId: tokenId,
+                liquidity: liquidity,
+                amount0Min: 0,
+                amount1Min: 0,
+                deadline: type(uint256).max
+            })
+        );
+        vm.stopPrank();
+
+        // Exposures are greater than 0 for both token 1 and token 2, see Fuzz.t.sol
+
+        // Test that Uni V3 LP token with allowed exposure to the underlying assets but with 0 liquidity is not allowed.
+        assertFalse(uniV3AssetModule.isAllowed(address(nonfungiblePositionManager), tokenId));
+    }
+
     function testFuzz_Success_isAllowed_Positive(address lp, uint128 maxExposureA, uint128 maxExposureB) public {
         vm.assume(lp != address(0));
         vm.assume(maxExposureA > 0);
