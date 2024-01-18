@@ -37,7 +37,7 @@ contract Factory_Invariant_Test is Invariant_Test {
     function invariant_latestAccountVersion() public {
         uint256 numberOfAccounts = factory.allAccountsLength();
         address latestDeployedAccount = factory.allAccounts(numberOfAccounts - 1);
-        uint16 latestDeployedAccountVersion = AccountV1(latestDeployedAccount).ACCOUNT_VERSION();
+        uint256 latestDeployedAccountVersion = AccountV1(latestDeployedAccount).ACCOUNT_VERSION();
 
         // Assert that the Account version of latest Account deployed with input
         // accountVersion = 0 is always <= latest Account version in factory

@@ -30,8 +30,9 @@ contract AccountStorageV1 {
     // The contract address of the liquidator, address 0 if no creditor is set.
     address public liquidator;
 
-    // The estimated maximum cost to liquidate an Account, will count as Used Margin when a creditor is set.
-    uint96 public fixedLiquidationCost;
+    // The minimum amount of collateral that must be held in the Account before a position can be opened, denominated in the numeraire.
+    // Will count as Used Margin after a position is opened.
+    uint96 public minimumMargin;
     // The contract address of the Registry.
     address public registry;
 

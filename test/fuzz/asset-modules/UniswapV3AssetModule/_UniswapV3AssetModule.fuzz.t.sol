@@ -176,6 +176,45 @@ abstract contract UniswapV3AssetModule_Fuzz_Test is Fuzz_Test, UniswapV3Fixture 
         vm.stopPrank();
     }
 
+    function increaseLiquidity(
+        IUniswapV3PoolExtension pool,
+        uint256 tokenId,
+        uint256 amount0,
+        uint256 amount1,
+        bool revertsOnZeroLiquidity
+    ) public {
+        // Check if test should revert or be skipped when liquidity is zero.
+        // This is hard to check with assumes of the fuzzed inputs due to rounding errors.
+        (,, address token0, address token1,, int24 tickLower, int24 tickUpper,,,,,) =
+            nonfungiblePositionManager.positions(tokenId);
+        if (!revertsOnZeroLiquidity) {
+            (uint160 sqrtPrice,,,,,,) = pool.slot0();
+            uint256 liquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
+                sqrtPrice,
+                TickMath.getSqrtRatioAtTick(tickLower),
+                TickMath.getSqrtRatioAtTick(tickUpper),
+                amount0,
+                amount1
+            );
+            vm.assume(liquidity > 0);
+        }
+
+        deal(token0, address(this), 100);
+        deal(token1, address(this), 100);
+        ERC20(token0).approve(address(nonfungiblePositionManager), type(uint256).max);
+        ERC20(token1).approve(address(nonfungiblePositionManager), type(uint256).max);
+        nonfungiblePositionManager.increaseLiquidity(
+            INonfungiblePositionManagerExtension.IncreaseLiquidityParams({
+                tokenId: tokenId,
+                amount0Desired: amount0,
+                amount1Desired: amount1,
+                amount0Min: 0,
+                amount1Min: 0,
+                deadline: type(uint256).max
+            })
+        );
+    }
+
     function isWithinAllowedRange(int24 tick) public pure returns (bool) {
         int24 MIN_TICK = -887_272;
         int24 MAX_TICK = -MIN_TICK;

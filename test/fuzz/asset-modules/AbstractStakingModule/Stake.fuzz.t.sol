@@ -41,6 +41,8 @@ contract Stake_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModule_
 
         // Given : Two staking tokens are added to the stakingModule
         (address[] memory underlyingTokens,) = addStakingTokens(2, underlyingTokenDecimals, rewardTokenDecimals);
+        vm.assume(staker != underlyingTokens[0]);
+        vm.assume(staker != underlyingTokens[1]);
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = amount;

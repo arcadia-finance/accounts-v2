@@ -27,9 +27,11 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_upgradeAccountVersion_NonOwner(address nonOwner, uint16 version, bytes32[] calldata proofs)
-        public
-    {
+    function testFuzz_Revert_upgradeAccountVersion_NonOwner(
+        address nonOwner,
+        uint256 version,
+        bytes32[] calldata proofs
+    ) public {
         vm.assume(nonOwner != users.accountOwner);
 
         vm.startPrank(nonOwner);
@@ -48,7 +50,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_upgradeAccountVersion_VersionNotAllowed(uint16 version, bytes32[] calldata proofs)
+    function testFuzz_Revert_upgradeAccountVersion_VersionNotAllowed(uint256 version, bytes32[] calldata proofs)
         public
     {
         vm.assume(version != 1);
