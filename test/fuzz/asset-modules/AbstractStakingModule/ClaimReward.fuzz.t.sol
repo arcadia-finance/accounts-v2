@@ -108,6 +108,12 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         rewardIncrease = uint128(bound(rewardIncrease, 1, type(uint128).max - assetState.lastRewardGlobal));
         stakingModule.setActualRewardBalance(asset, assetState.lastRewardGlobal + rewardIncrease);
 
+        // Calculate currentRewardPerToken before calling claimReward(), used for final check.
+        uint256 currentRewardPerToken =
+            assetState.lastRewardPerTokenGlobal + uint256(rewardIncrease).mulDivDown(1e18, assetState.totalStaked);
+        // As our givenValidState is not valid anymore since we update actualRewardBalance above, we should assume currentRewardPerToken is smaller than max uint128 value.
+        vm.assume(currentRewardPerToken <= type(uint128).max);
+
         // Given : The claim function on the external staking contract is not implemented, thus we fund the stakingModule with reward tokens that should be transferred.
         uint256 currentRewardPosition = stakingModule.rewardOf(positionId);
         mintERC20TokenTo(
@@ -116,12 +122,6 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
 
         // Given : currentRewardPosition > 0, for very small reward increase and high balances, it could return zero.
         vm.assume(currentRewardPosition > 0);
-
-        // Calculate currentRewardPerToken before calling claimReward(), used for final check.
-        uint256 currentRewardPerToken =
-            assetState.lastRewardPerTokenGlobal + uint256(rewardIncrease).mulDivDown(1e18, assetState.totalStaked);
-        // As our givenValidState is not valid anymore since we update actualRewardBalance above, we should assume currentRewardPerToken is smalller than max uint128 value.
-        vm.assume(currentRewardPerToken <= type(uint128).max);
 
         // When : Account calls claimReward()
         vm.startPrank(account);
