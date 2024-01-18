@@ -27,7 +27,7 @@ import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModu
 import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
 import { StakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
-import { StargateAssetModule } from "../../src/asset-modules/StargateAssetModule.sol";
+import { StargateAssetModule } from "../../src/asset-modules/Stargate-Finance/StargateAssetModule.sol";
 
 contract AccountExtension is AccountV1 {
     constructor(address factory) AccountV1(factory) { }

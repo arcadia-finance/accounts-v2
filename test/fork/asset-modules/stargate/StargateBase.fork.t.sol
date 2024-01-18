@@ -8,10 +8,10 @@ import { Fork_Test } from "../../Fork.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
-import { ILpStakingTime } from "../../../../src/asset-modules/interfaces/stargate/ILpStakingTime.sol";
-import { IRouter } from "../../../../src/asset-modules/interfaces/stargate/IRouter.sol";
-import { IPool } from "../../../../src/asset-modules/interfaces/stargate/IPool.sol";
-import { StargateAssetModule } from "../../../../src/asset-modules/StargateAssetModule.sol";
+import { ILpStakingTime } from "../../../../src/asset-modules/Stargate-Finance/interfaces/ILpStakingTime.sol";
+import { IRouter } from "../../../../src/asset-modules/Stargate-Finance/interfaces/IRouter.sol";
+import { IPool } from "../../../../src/asset-modules/Stargate-Finance/interfaces/IPool.sol";
+import { StargateAssetModule } from "../../../../src/asset-modules/Stargate-Finance/StargateAssetModule.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 /**

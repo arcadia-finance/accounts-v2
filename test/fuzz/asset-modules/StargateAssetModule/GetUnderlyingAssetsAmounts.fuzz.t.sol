@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { StargateAssetModule_Fuzz_Test, Constants } from "./_StargateAssetModule.fuzz.t.sol";
 
-import { FixedPointMathLib } from "../../../../src/asset-modules/StargateAssetModule.sol";
+import { FixedPointMathLib } from "../../../../src/asset-modules/Stargate-Finance/StargateAssetModule.sol";
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**

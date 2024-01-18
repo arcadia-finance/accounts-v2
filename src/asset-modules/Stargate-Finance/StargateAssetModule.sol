@@ -4,11 +4,11 @@
  */
 pragma solidity 0.8.22;
 
-import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "./AbstractDerivedAssetModule.sol";
-import { IPool } from "./interfaces/stargate/IPool.sol";
-import { ILpStakingTime } from "./interfaces/stargate/ILpStakingTime.sol";
-import { StakingModule, ERC20 } from "./staking-module/AbstractStakingModule.sol";
-import { AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
+import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "../AbstractDerivedAssetModule.sol";
+import { IPool } from "./interfaces/IPool.sol";
+import { ILpStakingTime } from "./interfaces/ILpStakingTime.sol";
+import { StakingModule, ERC20 } from "../staking-module/AbstractStakingModule.sol";
+import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 
 /**
  * @title Asset-Module for Stargate Finance pools
