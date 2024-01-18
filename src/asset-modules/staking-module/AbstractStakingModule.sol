@@ -8,6 +8,8 @@ import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { ReentrancyGuard } from "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
+
+import { SafeCastLib } from "../../../lib/solmate/src/utils/SafeCastLib.sol";
 import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 
 /**
@@ -35,7 +37,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
     // Map Asset to its corresponding reward token.
     mapping(address asset => ERC20 rewardToken) public assetToRewardToken;
-    // Map Asset id to its corresponding struct with global state.
+    // Map Asset to its corresponding struct with global state.
     mapping(address asset => AssetState) public assetState;
     // Map a position id to its corresponding struct with the position state.
     mapping(uint256 position => PositionState) public positionState;
@@ -68,19 +70,18 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event RewardPaid(address indexed owner, address reward, uint128 amount);
-    event Minted(address indexed owner, uint256 positionId, address asset, uint128 amount);
-    event LiquidityIncreased(address indexed owner, uint256 positionId, address asset, uint128 amount);
     event LiquidityDecreased(address indexed owner, address asset, uint128 amount);
+    event LiquidityIncreased(address indexed owner, uint256 positionId, address asset, uint128 amount);
+    event Minted(address indexed owner, uint256 positionId, address asset, uint128 amount);
+    event RewardPaid(address indexed owner, address reward, uint128 amount);
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
     error AssetNotAllowed();
-    error ZeroAmount();
     error NotOwner();
-    error RemainingBalanceTooLow();
+    error ZeroAmount();
 
     /* //////////////////////////////////////////////////////////////
                               CONSTRUCTOR
@@ -102,106 +103,64 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         if (amount == 0) revert ZeroAmount();
         if (address(assetToRewardToken[asset]) == address(0)) revert AssetNotAllowed();
 
-        // Need to transfer the Asset before minting or ERC777s could reenter.
-        ERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
-
-        // Cache assetState.
+        // Cache the old assetState and a positionState.
         AssetState memory assetState_ = assetState[asset];
-        // Cache totalStaked
-        uint256 totalStaked_ = assetState_.totalStaked;
+        PositionState memory positionState_;
+        positionState_.asset = asset;
 
-        // Increment positionId
+        // Calculate the new reward balances.
+        (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
+
+        // Calculate the new staked amounts.
+        assetState_.totalStaked = assetState_.totalStaked + amount;
+        positionState_.amountStaked = amount;
+
+        // Store the new positionState and assetState.
         unchecked {
             positionId = ++lastPositionId;
         }
-
-        // Update the state variables.
-        uint256 currentRewardGlobal;
-        uint256 currentRewardPerToken;
-        uint256 lastRewardPerTokenPosition;
-        AssetState memory updatedAssetState;
-        if (totalStaked_ > 0) {
-            // Fetch the current reward balance from the staking contract.
-            currentRewardGlobal = _getCurrentReward(asset);
-            // Calculate the increase in rewards since last contract interaction.
-            uint256 deltaReward = currentRewardGlobal - assetState_.lastRewardGlobal;
-            // Calculate the new RewardPerToken.
-            currentRewardPerToken = assetState_.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, totalStaked_);
-            updatedAssetState.lastRewardPerTokenGlobal = uint128(currentRewardPerToken);
-            // We don't claim any rewards when staking, but minting changes the totalStaked and balance of the Asset.
-            // Therefore we must keep track of the earned global and position owner rewards since last interaction or the accounting will be wrong.
-            updatedAssetState.lastRewardGlobal = uint128(currentRewardGlobal);
-            lastRewardPerTokenPosition = currentRewardPerToken;
-        }
-        positionState[positionId] = PositionState({
-            asset: asset,
-            amountStaked: amount,
-            lastRewardPerTokenPosition: uint128(lastRewardPerTokenPosition),
-            lastRewardPosition: 0
-        });
-
-        updatedAssetState.totalStaked = uint128(totalStaked_ + amount);
-        assetState[asset] = updatedAssetState;
+        positionState[positionId] = positionState_;
+        assetState[asset] = assetState_;
 
         // Mint the new position.
         _safeMint(msg.sender, positionId);
 
         // Stake Asset in external staking contract.
+        ERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
         _stake(asset, amount);
 
         emit Minted(msg.sender, positionId, asset, amount);
     }
 
     /**
-     * @notice Increases liquidity for an existing position.
-     * @param positionId The id of the position to increase the liquidity for.
+     * @notice Stakes additional Assets in the external staking contract for an existing position.
+     * @param positionId The id of the position.
      * @param amount The amount of Assets to stake.
      */
-    function increaseLiquidity(uint256 positionId, uint128 amount) external {
+    function increaseLiquidity(uint256 positionId, uint128 amount) external nonReentrant {
         if (amount == 0) revert ZeroAmount();
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
+        // Cache the old positionState and assetState.
         PositionState memory positionState_ = positionState[positionId];
-        // Cache Asset
-        address asset = positionState_.asset;
+        AssetState memory assetState_ = assetState[positionState_.asset];
 
-        AssetState memory assetState_ = assetState[asset];
+        // Calculate the new reward balances.
+        (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
 
-        // Need to transfer the Asset before minting or ERC777s could reenter.
-        ERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
+        // Calculate the new staked amounts.
+        assetState_.totalStaked = assetState_.totalStaked + amount;
+        positionState_.amountStaked = positionState_.amountStaked + amount;
 
-        // Cache totalStaked, will always be > 0 in this scenario.
-        uint256 totalStaked_ = assetState_.totalStaked;
-
-        // Update asset state
-        // Fetch the current reward balance from the staking contract.
-        uint256 currentRewardGlobal = _getCurrentReward(asset);
-        // Calculate the increase in rewards since last contract interaction.
-        uint256 deltaReward = currentRewardGlobal - assetState_.lastRewardGlobal;
-        // Calculate the new RewardPerToken.
-        uint256 currentRewardPerToken =
-            assetState_.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, totalStaked_);
-
-        assetState[asset] = AssetState({
-            lastRewardPerTokenGlobal: uint128(currentRewardPerToken),
-            lastRewardGlobal: uint128(currentRewardGlobal),
-            totalStaked: uint128(totalStaked_ + amount)
-        });
-
-        // Update position state
-        // Calculate the difference in rewardPerToken since the last interaction of the position owner with this contract.
-        uint256 deltaRewardPerToken = currentRewardPerToken - positionState_.lastRewardPerTokenPosition;
-        // Calculate the rewards earned by the position owner since its last interaction with this contract.
-        uint256 accruedRewards = uint256(positionState_.amountStaked).mulDivDown(deltaRewardPerToken, 1e18);
-
-        positionState[positionId].amountStaked = positionState_.amountStaked + amount;
-        positionState[positionId].lastRewardPerTokenPosition = uint128(currentRewardPerToken);
-        positionState[positionId].lastRewardPosition = positionState_.lastRewardPosition + uint128(accruedRewards);
+        // Store the new positionState and assetState.
+        positionState[positionId] = positionState_;
+        assetState[positionState_.asset] = assetState_;
 
         // Stake Asset in external staking contract.
-        _stake(asset, amount);
+        ERC20(positionState_.asset).safeTransferFrom(msg.sender, address(this), amount);
+        _stake(positionState_.asset, amount);
 
-        emit LiquidityIncreased(msg.sender, positionId, asset, amount);
+        emit LiquidityIncreased(msg.sender, positionId, positionState_.asset, amount);
     }
 
     /**
@@ -216,83 +175,91 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      * @notice Unstakes and withdraws the Asset from the external staking contract.
      * @param positionId The id of the position to withdraw from.
      * @param amount The amount of Asset to unstake and withdraw.
+     * @dev Also claims and transfers the staking rewards of the position.
      */
     function decreaseLiquidity(uint256 positionId, uint128 amount) public nonReentrant {
         if (amount == 0) revert ZeroAmount();
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
+        // Cache the old positionState and assetState.
         PositionState memory positionState_ = positionState[positionId];
+        AssetState memory assetState_ = assetState[positionState_.asset];
 
-        // Cache variable
-        address asset = positionState_.asset;
-        if (positionState_.amountStaked < amount) revert RemainingBalanceTooLow();
+        // Calculate the new reward balances.
+        (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
 
-        // Calculate the updated reward balances.
-        (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardPosition) =
-            _getCurrentBalances(positionState_);
+        // Calculate the new staked amounts.
+        assetState_.totalStaked = assetState_.totalStaked - amount;
+        positionState_.amountStaked = positionState_.amountStaked - amount;
 
-        // Update the state variables.
-        // Reset the balances of the pending rewards for the Asset and the position
-        // since rewards are claimed and paid out to the position owner on a withdraw.
-        assetState[asset] = AssetState({
-            lastRewardPerTokenGlobal: uint128(currentRewardPerToken),
-            lastRewardGlobal: 0,
-            totalStaked: uint128(totalStaked_ - amount)
-        });
+        // Rewards are claimed and paid out to the owner on a decreaseLiquidity.
+        // -> Reset the balances of the pending rewards for the Asset and the position.
+        uint256 rewardPosition = positionState_.lastRewardPosition;
+        positionState_.lastRewardPosition = 0;
+        assetState_.lastRewardGlobal = 0;
 
-        positionState[positionId].lastRewardPerTokenPosition = uint128(currentRewardPerToken);
-        positionState[positionId].lastRewardPosition = 0;
-        positionState[positionId].amountStaked -= amount;
+        // Store the new positionState and assetState.
+        if (positionState_.amountStaked > 0) {
+            positionState[positionId] = positionState_;
+        } else {
+            _burn(positionId);
+        }
+        assetState[positionState_.asset] = assetState_;
 
         // Withdraw the Assets from external staking contract.
-        if (amount == positionState_.amountStaked) _burn(positionId);
-        _withdraw(asset, amount);
+        _withdraw(positionState_.asset, amount);
+
         // Claim the reward from the external staking contract.
-        _claimReward(asset);
-        // Pay out the share of the reward owed to the position owner.
-        if (currentRewardPosition > 0) {
+        _claimReward(positionState_.asset);
+
+        // Pay out the rewards to the position owner.
+        if (rewardPosition > 0) {
             // Cache reward token
-            ERC20 rewardToken_ = assetToRewardToken[asset];
+            ERC20 rewardToken_ = assetToRewardToken[positionState_.asset];
             // Transfer reward
-            rewardToken_.safeTransfer(msg.sender, currentRewardPosition);
-            emit RewardPaid(msg.sender, address(rewardToken_), uint128(currentRewardPosition));
+            rewardToken_.safeTransfer(msg.sender, rewardPosition);
+            emit RewardPaid(msg.sender, address(rewardToken_), uint128(rewardPosition));
         }
+
         // Transfer the Asset back to the position owner.
-        ERC20(asset).safeTransfer(msg.sender, amount);
-        emit LiquidityDecreased(msg.sender, asset, amount);
+        ERC20(positionState_.asset).safeTransfer(msg.sender, amount);
+        emit LiquidityDecreased(msg.sender, positionState_.asset, amount);
     }
 
     /**
-     * @notice Claims the pending reward tokens of the caller.
-     * @param positionId The id of the position to claim the rewards for.
+     * @notice Claims and transfers the staking rewards of the position.
+     * @param positionId The id of the position.
      */
     function claimReward(uint256 positionId) external virtual nonReentrant {
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
+        // Cache the old positionState and assetState.
         PositionState memory positionState_ = positionState[positionId];
+        AssetState memory assetState_ = assetState[positionState_.asset];
 
-        // Calculate the updated reward balances.
-        (uint256 currentRewardPerToken,, uint256 currentRewardClaimable) = _getCurrentBalances(positionState_);
+        // Calculate the new reward balances.
+        (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
 
-        address asset = positionState[positionId].asset;
-        // Update the state variables.
-        // Reset the balances of the pending rewards for the Asset and position,
-        // since rewards are claimed and paid out to position owner on a claimReward.
-        assetState[asset].lastRewardPerTokenGlobal = uint128(currentRewardPerToken);
-        assetState[asset].lastRewardGlobal = 0;
+        // Rewards are claimed and paid out to the owner on a claimReward.
+        // -> Reset the balances of the pending rewards for the Asset and the position.
+        uint256 rewardPosition = positionState_.lastRewardPosition;
+        positionState_.lastRewardPosition = 0;
+        assetState_.lastRewardGlobal = 0;
 
-        positionState[positionId].lastRewardPerTokenPosition = uint128(currentRewardPerToken);
-        positionState[positionId].lastRewardPosition = 0;
+        // Store the new positionState and assetState.
+        positionState[positionId] = positionState_;
+        assetState[positionState_.asset] = assetState_;
 
         // Claim the reward from the external staking contract.
-        _claimReward(asset);
+        _claimReward(positionState_.asset);
+
         // Pay out the share of the reward owed to the position owner.
-        if (currentRewardClaimable > 0) {
+        if (rewardPosition > 0) {
             // Cache reward
-            ERC20 rewardToken_ = assetToRewardToken[asset];
+            ERC20 rewardToken_ = assetToRewardToken[positionState_.asset];
             // Transfer reward
-            rewardToken_.safeTransfer(msg.sender, currentRewardClaimable);
-            emit RewardPaid(msg.sender, address(rewardToken_), uint128(currentRewardClaimable));
+            rewardToken_.safeTransfer(msg.sender, rewardPosition);
+            emit RewardPaid(msg.sender, address(rewardToken_), uint128(rewardPosition));
         }
     }
 
@@ -346,45 +313,49 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      * @return currentRewardClaimable The current amount of reward tokens claimable by the owner of the position.
      */
     function rewardOf(uint256 positionId) public view returns (uint256 currentRewardClaimable) {
-        (,, currentRewardClaimable) = _getCurrentBalances(positionState[positionId]);
+        // Cache the old positionState and assetState.
+        PositionState memory positionState_ = positionState[positionId];
+        AssetState memory assetState_ = assetState[positionState_.asset];
+
+        // Calculate the new reward balances.
+        (, positionState_) = _getRewardBalances(assetState_, positionState_);
+
+        currentRewardClaimable = positionState_.lastRewardPosition;
     }
 
     /**
-     * @notice Calculates the current global and position specific reward balances for a given position id.
-     * @param positionState_ The position struct with current state of the position.
-     * @return currentRewardPerToken The growth of reward tokens per Asset staked, with 18 decimals precision.
-     * @return totalStaked_ The total amount of Asset staked.
-     * @return currentRewardPosition The unclaimed amount of reward tokens for the position.
+     * @notice Calculates the current global and position specific reward balances.
+     * @param assetState_ Struct with the old rewards state of the the Asset.
+     * @param positionState_ Struct with the old rewards state of the position.
+     * @return currentAssetState Struct with the current rewards state of the Asset.
+     * @return currentPositionState Struct with the current rewards state of the position.
      */
-    function _getCurrentBalances(PositionState memory positionState_)
+    function _getRewardBalances(AssetState memory assetState_, PositionState memory positionState_)
         internal
         view
-        returns (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardPosition)
+        returns (AssetState memory, PositionState memory)
     {
-        // Cache values
-        address asset = positionState_.asset;
-        uint256 positionAmountStaked = positionState_.amountStaked;
-
-        AssetState memory assetState_ = assetState[asset];
-        totalStaked_ = assetState_.totalStaked;
-
-        if (totalStaked_ > 0) {
+        if (assetState_.totalStaked > 0) {
+            // Calculate the new assetState.
             // Fetch the current reward balance from the staking contract.
-            uint256 currentRewardGlobal = _getCurrentReward(asset);
-
+            uint256 currentRewardGlobal = _getCurrentReward(positionState_.asset);
             // Calculate the increase in rewards since last contract interaction.
             uint256 deltaReward = currentRewardGlobal - assetState_.lastRewardGlobal;
-
             // Calculate the new RewardPerToken.
-            currentRewardPerToken =
-                assetState_.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, assetState_.totalStaked);
+            assetState_.lastRewardPerTokenGlobal =
+                uint128(assetState_.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, assetState_.totalStaked));
+            assetState_.lastRewardGlobal = uint128(currentRewardGlobal);
 
-            // Calculate rewards of the position.
-            // Calculate the difference in rewardPerToken since the last interaction of the position owner with this contract.
-            uint256 deltaRewardPerToken = currentRewardPerToken - positionState_.lastRewardPerTokenPosition;
-            // Calculate the pending rewards earned by the position since its last interaction with this contract.
-            currentRewardPosition =
-                positionState_.lastRewardPosition + positionAmountStaked.mulDivDown(deltaRewardPerToken, 1e18);
+            // Calculate the new positionState.
+            // Calculate the difference in rewardPerToken since the last position interaction.
+            uint256 deltaRewardPerToken =
+                assetState_.lastRewardPerTokenGlobal - positionState_.lastRewardPerTokenPosition;
+            // Calculate the rewards earned by the position since its last interaction.
+            uint256 accruedRewards = deltaRewardPerToken.mulDivDown(positionState_.amountStaked, 1e18);
+            positionState_.lastRewardPosition = uint128(positionState_.lastRewardPosition + accruedRewards);
         }
+        positionState_.lastRewardPerTokenPosition = assetState_.lastRewardPerTokenGlobal;
+
+        return (assetState_, positionState_);
     }
 }

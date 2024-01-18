@@ -8,6 +8,7 @@ import { AbstractStakingModule_Fuzz_Test, StakingModule, ERC20Mock } from "./_Ab
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
 /**
  * @notice Fuzz tests for the function "decreaseLiquidity" of contract "StakingModule".
@@ -67,7 +68,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Calling withdraw().
         // Then : It should revert as remaining balance is too low.
         vm.startPrank(owner);
-        vm.expectRevert(StakingModule.RemainingBalanceTooLow.selector);
+        vm.expectRevert(stdError.arithmeticError);
         stakingModule.decreaseLiquidity(id, amount);
         vm.stopPrank();
     }

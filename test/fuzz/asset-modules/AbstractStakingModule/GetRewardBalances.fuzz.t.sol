@@ -10,9 +10,9 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 /**
- * @notice Fuzz tests for the function "_getCurrentBalances" of contract "StakingModule".
+ * @notice Fuzz tests for the function "_getRewardBalances" of contract "StakingModule".
  */
-contract GetCurrentBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
+contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
     /* ///////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ contract GetCurrentBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Success_getCurrentBalances_ZeroTotalStaked(
+    function testFuzz_Success_getRewardBalances_ZeroTotalStaked(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 positionId,
@@ -45,17 +45,27 @@ contract GetCurrentBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
         stakingModule.setTotalStaked(asset, 0);
         assetState.totalStaked = 0;
 
-        // When : Calling _getCurrentBalances().
-        (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardPosition) =
-            stakingModule.getCurrentBalances(positionState);
+        // When : Calling _getRewardBalances().
+        StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
+            lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
+            lastRewardGlobal: assetState.lastRewardGlobal,
+            totalStaked: assetState.totalStaked
+        });
+        StakingModule.PositionState memory positionState_;
+        (assetState_, positionState_) = stakingModule.getRewardBalances(assetState_, positionState);
 
         // Then : It should return the correct values
-        assertEq(currentRewardPerToken, 0);
-        assertEq(totalStaked_, 0);
-        assertEq(currentRewardPosition, 0);
+        assertEq(positionState_.asset, positionState.asset);
+        assertEq(positionState_.amountStaked, positionState.amountStaked);
+        assertEq(positionState_.lastRewardPerTokenPosition, assetState.lastRewardPerTokenGlobal);
+        assertEq(positionState_.lastRewardPosition, positionState.lastRewardPosition);
+
+        assertEq(assetState_.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
+        assertEq(assetState_.lastRewardGlobal, assetState.lastRewardGlobal);
+        assertEq(assetState_.totalStaked, assetState.totalStaked);
     }
 
-    function testFuzz_Success_getCurrentBalances_TotalStakedGreaterThan0(
+    function testFuzz_Success_getRewardBalances_TotalStakedGreaterThan0(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 positionId,
@@ -72,9 +82,14 @@ contract GetCurrentBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
         // And: Amount staked for position is > 0. (-> totalStaked is non-zero)
         vm.assume(positionState.amountStaked > 0);
 
-        // When : Calling _getCurrentBalances()
-        (uint256 currentRewardPerToken, uint256 totalStaked_, uint256 currentRewardPosition) =
-            stakingModule.getCurrentBalances(positionState);
+        // When : Calling _getRewardBalances().
+        StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
+            lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
+            lastRewardGlobal: assetState.lastRewardGlobal,
+            totalStaked: assetState.totalStaked
+        });
+        StakingModule.PositionState memory positionState_;
+        (assetState_, positionState_) = stakingModule.getRewardBalances(assetState_, positionState);
 
         // Then : It should return the correct values
         uint256 deltaRewardGlobal = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
@@ -84,8 +99,14 @@ contract GetCurrentBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMo
         uint256 currentRewardPosition_ =
             positionState.lastRewardPosition + uint256(positionState.amountStaked).mulDivDown(deltaRewardPerToken, 1e18);
 
-        assertEq(currentRewardPerToken, rewardPerToken);
-        assertEq(totalStaked_, assetState.totalStaked);
-        assertEq(currentRewardPosition, currentRewardPosition_);
+        // Then : It should return the correct values
+        assertEq(positionState_.asset, positionState.asset);
+        assertEq(positionState_.amountStaked, positionState.amountStaked);
+        assertEq(positionState_.lastRewardPerTokenPosition, rewardPerToken);
+        assertEq(positionState_.lastRewardPosition, currentRewardPosition_);
+
+        assertEq(assetState_.lastRewardPerTokenGlobal, rewardPerToken);
+        assertEq(assetState_.lastRewardGlobal, assetState.currentRewardGlobal);
+        assertEq(assetState_.totalStaked, assetState.totalStaked);
     }
 }

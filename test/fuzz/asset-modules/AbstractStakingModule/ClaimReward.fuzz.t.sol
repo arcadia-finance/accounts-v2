@@ -117,8 +117,9 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         // Given : currentRewardPosition > 0, for very small reward increase and high balances, it could return zero.
         vm.assume(currentRewardPosition > 0);
 
-        // Get currentRewardPerToken before calling claimReward(), used for final check.
-        (uint256 currentRewardPerToken,,) = stakingModule.getCurrentBalances(positionState);
+        // Calculate currentRewardPerToken before calling claimReward(), used for final check.
+        uint256 currentRewardPerToken =
+            assetState.lastRewardPerTokenGlobal + uint256(rewardIncrease).mulDivDown(1e18, assetState.totalStaked);
         // As our givenValidState is not valid anymore since we update actualRewardBalance above, we should assume currentRewardPerToken is smalller than max uint128 value.
         vm.assume(currentRewardPerToken <= type(uint128).max);
 

@@ -641,12 +641,12 @@ abstract contract StakingModuleExtension is StakingModule {
         _ownerOf[positionId] = owner;
     }
 
-    function getCurrentBalances(PositionState memory positionState_)
+    function getRewardBalances(AssetState memory assetState_, PositionState memory positionState_)
         public
         view
-        returns (uint256 currentRewardPerToken, uint256 totalStaked, uint256 currentRewardPosition)
+        returns (AssetState memory, PositionState memory)
     {
-        return _getCurrentBalances(positionState_);
+        return _getRewardBalances(assetState_, positionState_);
     }
 
     function mintIdTo(address to, uint256 tokenId) public {
