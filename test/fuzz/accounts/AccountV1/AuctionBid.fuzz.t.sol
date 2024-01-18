@@ -38,6 +38,20 @@ contract AuctionBid_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.auctionBid(assetAddresses, assetIds, assetAmounts, bidder);
     }
 
+    function testFuzz_Revert_AuctionBuy_Reentered(
+        address bidder,
+        address[] calldata assetAddresses,
+        uint256[] calldata assetIds,
+        uint256[] calldata assetAmounts
+    ) public {
+        // Reentrancy guard is in locked state.
+        accountExtension.setLocked(2);
+
+        vm.prank(accountExtension.liquidator());
+        vm.expectRevert(AccountErrors.NoReentry.selector);
+        accountExtension.auctionBid(assetAddresses, assetIds, assetAmounts, bidder);
+    }
+
     function testFuzz_Success_AuctionBuy_PartialBuy(
         uint112 erc20InitialAmount,
         uint112 erc20WithdrawAmount,

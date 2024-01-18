@@ -99,7 +99,7 @@ contract ChainlinkOracleModule is OracleModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Retrieves answer from oracle and does sanity and staleness checks.
+     * @notice Retrieves answer from oracle and does sanity and staleness checks (BaseAsset/QuoteAsset).
      * @param oracleInformation_ Struct will all the necessary information of the oracle.
      * @return success Bool indicating is the oracle is still active and performing as expected.
      * @return answer The latest oracle value.
@@ -129,18 +129,14 @@ contract ChainlinkOracleModule is OracleModule {
     }
 
     /**
-     * @notice Returns the rate of the BaseAsset in units of QuoteAsset.
+     * @notice Returns the rate of the BaseAsset in units of QuoteAsset (BaseAsset/QuoteAsset).
      * @param oracleId The identifier of the oracle.
-     * @return oracleRate The rate of the BaseAsset in units of QuoteAsset, with 18 Decimals precision.
-     * @dev The oracle rate reflects how much units of the QuoteAsset (18 decimals precision) are required,
-     * to buy 1 unit of the BaseAsset.
-     * Example: If you have an oracle (WBTC/USDC).
-     *  - The BaseAsset is Wrapped Bitcoin (WBTC), which has 8 decimals.
-     *  - The QuoteAsset is USDC, which has 6 decimals.
-     *  - Assume an exchange rate from Bitcoin to USD of $30 000.
-     *  -> You need $30 000 (or 30 000 * 10**6 USDC) to buy 1 Bitcoin (or 1 * 10**8 WBTC).
-     *  -> You need 300 units of USDC to buy one unit of WBT.
-     * Since we use 18 decimals precision, the oracleRate will be 300 * 10**18.
+     * @return oracleRate The rate of the BaseAsset in units of QuoteAsset, with 18 decimals precision.
+     * @dev The oracle rate expresses how much tokens of the QuoteAsset are required
+     * to buy 1 token of the BaseAsset, with 18 decimals precision.
+     * Example: If you have an oracle (WBTC/USDC) and assume an exchange rate from Bitcoin to USD of $30 000.
+     *  -> You need 30 000 tokens of USDC to buy one token of WBTC.
+     *  -> Since we use 18 decimals precision, the oracleRate will be 30 000 * 10**18.
      */
     function getRate(uint256 oracleId) external view override returns (uint256 oracleRate) {
         OracleInformation memory oracleInformation_ = oracleInformation[oracleId];

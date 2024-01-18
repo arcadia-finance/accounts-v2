@@ -37,9 +37,9 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         factory.createAccount(salt, 0, address(0));
     }
 
-    function testFuzz_Revert_createAccount_CreateNonExistingAccountVersion(uint16 accountVersion) public {
+    function testFuzz_Revert_createAccount_CreateNonExistingAccountVersion(uint256 accountVersion) public {
         uint256 currentVersion = factory.latestAccountVersion();
-        vm.assume(accountVersion > currentVersion);
+        accountVersion = bound(accountVersion, currentVersion + 1, type(uint256).max);
 
         vm.expectRevert(FactoryErrors.InvalidAccountVersion.selector);
         factory.createAccount(
