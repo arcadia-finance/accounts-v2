@@ -30,6 +30,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         uint8 assetDecimals,
         uint8 rewardTokenDecimals
     ) public notTestContracts(account) {
+        vm.assume(account != address(stakingModule));
         // Given : account != zero address
         vm.assume(account != address(0));
 

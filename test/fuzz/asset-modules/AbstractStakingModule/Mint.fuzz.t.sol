@@ -50,6 +50,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         uint128 amount,
         address account
     ) public notTestContracts(account) {
+        vm.assume(account != address(stakingModule));
         // Given : Can't stake zero amount
         vm.assume(amount > 0);
         // Given : positionId is not equal to 1, as by staking we will mint id 1.
@@ -124,6 +125,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         uint128 amount,
         address account
     ) public notTestContracts(account) {
+        vm.assume(account != address(stakingModule));
         // Given : Can't stake zero amount
         vm.assume(amount > 0);
         // Given : positionId is not equal to 1, as by staking we will mint id 1.
