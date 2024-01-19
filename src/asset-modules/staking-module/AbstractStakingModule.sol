@@ -336,26 +336,32 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         returns (AssetState memory, PositionState memory)
     {
         if (assetState_.totalStaked > 0) {
-            // Calculate the new assetState.
+            // Calculate the new assetState
             // Fetch the current reward balance from the staking contract.
             uint256 currentRewardGlobal = _getCurrentReward(positionState_.asset);
             // Calculate the increase in rewards since last asset interaction.
             uint256 deltaReward = currentRewardGlobal - assetState_.lastRewardGlobal;
             uint256 deltaRewardPerToken = deltaReward.mulDivDown(1e18, assetState_.totalStaked);
             // Calculate and update the new RewardPerToken of the asset.
-            assetState_.lastRewardPerTokenGlobal =
-                assetState_.lastRewardPerTokenGlobal + SafeCastLib.safeCastTo128(deltaRewardPerToken);
+            // unchecked: RewardPerToken can overflow, what matters is the delta in RewardPerToken between two interactions.
+            unchecked {
+                assetState_.lastRewardPerTokenGlobal =
+                    assetState_.lastRewardPerTokenGlobal + SafeCastLib.safeCastTo128(deltaRewardPerToken);
+            }
             // Update the reward balance of the asset.
             assetState_.lastRewardGlobal = uint128(currentRewardGlobal);
 
             // Calculate the new positionState.
             // Calculate the difference in rewardPerToken since the last position interaction.
-            deltaRewardPerToken = assetState_.lastRewardPerTokenGlobal - positionState_.lastRewardPerTokenPosition;
+            // unchecked: RewardPerToken can underflow, what matters is the delta in RewardPerToken between two interactions.
+            unchecked {
+                deltaRewardPerToken = assetState_.lastRewardPerTokenGlobal - positionState_.lastRewardPerTokenPosition;
+            }
             // Calculate the rewards earned by the position since its last interaction.
-            uint256 accruedRewards = deltaRewardPerToken.mulDivDown(positionState_.amountStaked, 1e18);
+            deltaReward = deltaRewardPerToken.mulDivDown(positionState_.amountStaked, 1e18);
             // Update the reward balance of the position.
             positionState_.lastRewardPosition =
-                SafeCastLib.safeCastTo128(positionState_.lastRewardPosition + accruedRewards);
+                SafeCastLib.safeCastTo128(positionState_.lastRewardPosition + deltaReward);
         }
         // Update the RewardPerToken of the position.
         positionState_.lastRewardPerTokenPosition = assetState_.lastRewardPerTokenGlobal;

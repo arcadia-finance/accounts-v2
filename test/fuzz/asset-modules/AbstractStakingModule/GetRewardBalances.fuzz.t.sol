@@ -93,9 +93,15 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
         // Then : It should return the correct values
         uint256 deltaRewardGlobal = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
-        uint256 rewardPerToken =
-            assetState.lastRewardPerTokenGlobal + deltaRewardGlobal.mulDivDown(1e18, assetState.totalStaked);
-        uint256 deltaRewardPerToken = rewardPerToken - positionState.lastRewardPerTokenPosition;
+        uint128 rewardPerToken;
+        unchecked {
+            rewardPerToken = assetState.lastRewardPerTokenGlobal
+                + uint128(deltaRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
+        }
+        uint128 deltaRewardPerToken;
+        unchecked {
+            deltaRewardPerToken = rewardPerToken - positionState.lastRewardPerTokenPosition;
+        }
         uint256 currentRewardPosition_ =
             positionState.lastRewardPosition + uint256(positionState.amountStaked).mulDivDown(deltaRewardPerToken, 1e18);
 

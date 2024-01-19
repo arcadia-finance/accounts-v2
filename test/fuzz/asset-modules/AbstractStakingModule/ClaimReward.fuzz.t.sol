@@ -83,7 +83,6 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         uint256 positionId,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint128 rewardIncrease,
         uint8 assetDecimals,
         uint8 rewardTokenDecimals
     ) public {
@@ -104,15 +103,8 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         vm.assume(positionState.amountStaked > 0);
 
         // Given : Actual rewards from external staking contract are > previous claimable rewards. Thus rewardIncrease > 0.
-        vm.assume(assetState.lastRewardGlobal < type(uint128).max);
-        rewardIncrease = uint128(bound(rewardIncrease, 1, type(uint128).max - assetState.lastRewardGlobal));
-        stakingModule.setActualRewardBalance(asset, assetState.lastRewardGlobal + rewardIncrease);
-
-        // Calculate currentRewardPerToken before calling claimReward(), used for final check.
-        uint256 currentRewardPerToken =
-            assetState.lastRewardPerTokenGlobal + uint256(rewardIncrease).mulDivDown(1e18, assetState.totalStaked);
-        // As our givenValidState is not valid anymore since we update actualRewardBalance above, we should assume currentRewardPerToken is smaller than max uint128 value.
-        vm.assume(currentRewardPerToken <= type(uint128).max);
+        uint256 rewardIncrease = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
+        vm.assume(rewardIncrease > 0);
 
         // Given : The claim function on the external staking contract is not implemented, thus we fund the stakingModule with reward tokens that should be transferred.
         uint256 currentRewardPosition = stakingModule.rewardOf(positionId);
@@ -136,6 +128,11 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         assertEq(currentRewardPosition, stakingModule.assetToRewardToken(asset).balanceOf(account));
 
         // And : positionState should be updated.
+        uint128 currentRewardPerToken;
+        unchecked {
+            currentRewardPerToken =
+                assetState.lastRewardPerTokenGlobal + uint128(rewardIncrease.mulDivDown(1e18, assetState.totalStaked));
+        }
         (,, uint128 lastRewardPerTokenPosition, uint128 lastRewardPosition) = stakingModule.positionState(positionId);
         assertEq(lastRewardPosition, 0);
         // lastRewardPerTokenPosition should be equal to the value of currentRewardPerToken at the time of calling claimReward().

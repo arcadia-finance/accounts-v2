@@ -107,8 +107,11 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, amountStack);
         uint256 deltaReward = assetStateStack.currentRewardGlobal - assetStateStack.lastRewardGlobal;
-        uint256 currentRewardPerToken =
-            assetStateStack.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, assetStateStack.totalStaked);
+        uint128 currentRewardPerToken;
+        unchecked {
+            currentRewardPerToken = assetStateStack.lastRewardPerTokenGlobal
+                + uint128(deltaReward.mulDivDown(1e18, assetStateStack.totalStaked));
+        }
         assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
         assertEq(newPositionState.lastRewardPosition, 0);
 

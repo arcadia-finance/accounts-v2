@@ -129,11 +129,17 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         assertEq(newPositionState.amountStaked, amountStakedStack + amountStack);
 
         uint256 deltaReward = assetStateStack.currentRewardGlobal - assetStateStack.lastRewardGlobal;
-        uint256 currentRewardPerToken =
-            assetStateStack.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, assetStateStack.totalStaked);
+        uint128 currentRewardPerToken;
+        unchecked {
+            currentRewardPerToken = assetStateStack.lastRewardPerTokenGlobal
+                + uint128(deltaReward.mulDivDown(1e18, assetStateStack.totalStaked));
+        }
         assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
 
-        uint256 deltaRewardPerToken = currentRewardPerToken - lastRewardPerTokenPositionStack;
+        uint128 deltaRewardPerToken;
+        unchecked {
+            deltaRewardPerToken = currentRewardPerToken - uint128(lastRewardPerTokenPositionStack);
+        }
         uint256 accruedRewards = amountStakedStack.mulDivDown(deltaRewardPerToken, 1e18);
 
         assertEq(newPositionState.lastRewardPosition, lastRewardPositionStack + accruedRewards);
@@ -197,8 +203,11 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
             stakingModule.assetState(asset);
 
         uint256 deltaReward = assetStateStack.currentRewardGlobal - assetStateStack.lastRewardGlobal;
-        uint256 currentRewardPerToken =
-            assetStateStack.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, assetStateStack.totalStaked);
+        uint128 currentRewardPerToken;
+        unchecked {
+            currentRewardPerToken = assetStateStack.lastRewardPerTokenGlobal
+                + uint128(deltaReward.mulDivDown(1e18, assetStateStack.totalStaked));
+        }
 
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
         assertEq(newAssetState.lastRewardGlobal, assetStateStack.currentRewardGlobal);

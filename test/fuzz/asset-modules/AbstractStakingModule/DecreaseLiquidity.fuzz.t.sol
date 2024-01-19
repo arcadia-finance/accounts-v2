@@ -88,6 +88,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // Given : Add an Asset + reward token pair
         (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
         vm.assume(account != assets[0]);
+        vm.assume(account != rewardTokens[0]);
 
         // Given : Valid state
         (assetState, positionState) = setStakingModuleState(assetState, positionState, assets[0], positionId);
@@ -143,6 +144,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // Given : Add an Asset + reward token pairs
         (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
         vm.assume(account != assets[0]);
+        vm.assume(account != rewardTokens[0]);
         address asset = assets[0];
 
         // Given : Valid state
@@ -204,6 +206,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // Given : Add an Asset + reward token pairs
         (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
         vm.assume(account != assets[0]);
+        vm.assume(account != rewardTokens[0]);
 
         // Given : Valid state
         (assetState, positionState) = setStakingModuleState(assetState, positionState, assets[0], positionId);
