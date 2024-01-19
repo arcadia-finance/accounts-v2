@@ -339,21 +339,25 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             // Calculate the new assetState.
             // Fetch the current reward balance from the staking contract.
             uint256 currentRewardGlobal = _getCurrentReward(positionState_.asset);
-            // Calculate the increase in rewards since last contract interaction.
+            // Calculate the increase in rewards since last asset interaction.
             uint256 deltaReward = currentRewardGlobal - assetState_.lastRewardGlobal;
-            // Calculate the new RewardPerToken.
+            uint256 deltaRewardPerToken = deltaReward.mulDivDown(1e18, assetState_.totalStaked);
+            // Calculate and update the new RewardPerToken of the asset.
             assetState_.lastRewardPerTokenGlobal =
-                uint128(assetState_.lastRewardPerTokenGlobal + deltaReward.mulDivDown(1e18, assetState_.totalStaked));
+                assetState_.lastRewardPerTokenGlobal + SafeCastLib.safeCastTo128(deltaRewardPerToken);
+            // Update the reward balance of the asset.
             assetState_.lastRewardGlobal = uint128(currentRewardGlobal);
 
             // Calculate the new positionState.
             // Calculate the difference in rewardPerToken since the last position interaction.
-            uint256 deltaRewardPerToken =
-                assetState_.lastRewardPerTokenGlobal - positionState_.lastRewardPerTokenPosition;
+            deltaRewardPerToken = assetState_.lastRewardPerTokenGlobal - positionState_.lastRewardPerTokenPosition;
             // Calculate the rewards earned by the position since its last interaction.
             uint256 accruedRewards = deltaRewardPerToken.mulDivDown(positionState_.amountStaked, 1e18);
-            positionState_.lastRewardPosition = uint128(positionState_.lastRewardPosition + accruedRewards);
+            // Update the reward balance of the position.
+            positionState_.lastRewardPosition =
+                SafeCastLib.safeCastTo128(positionState_.lastRewardPosition + accruedRewards);
         }
+        // Update the RewardPerToken of the position.
         positionState_.lastRewardPerTokenPosition = assetState_.lastRewardPerTokenGlobal;
 
         return (assetState_, positionState_);
