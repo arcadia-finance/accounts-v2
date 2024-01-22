@@ -38,10 +38,11 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
-    error AssetAndRewardPairAlreadySet();
+    error AssetAlreadyAdded();
     error InvalidTokenDecimals();
     error PoolIdDoesNotMatch();
     error RewardTokenNotAllowed();
+    error PoolOrGaugeNotValid();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -80,21 +81,20 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
     // note : check for malicious pool that could be done
     // note : Check for reward token (where are extra incentives claimable ?)
     function addAsset(address pool, address gauge) external onlyOwner {
-        if (address(assetToRewardToken[pool]) != address(0)) revert AssetAndRewardPairAlreadySet();
+        if (assetToGauge[pool] != address(0)) revert AssetAlreadyAdded();
+        if (IGauge(gauge).stakingToken() != pool) revert PoolOrGaugeNotValid();
 
-        address token0 = IPool(pool).token0();
-        address token1 = IPool(pool).token1();
+        (address token0, address token1) = IPool(pool).tokens();
 
         if (!IRegistry(REGISTRY).isAllowed(token0, 0)) revert AssetNotAllowed();
         if (!IRegistry(REGISTRY).isAllowed(token1, 0)) revert AssetNotAllowed();
         if (!IRegistry(REGISTRY).isAllowed(address(rewardToken), 0)) revert RewardTokenNotAllowed();
 
-        address[] memory underlyingAssets = new address[](3);
+        address[] memory underlyingAssets = new address[](2);
         underlyingAssets[0] = token0;
         underlyingAssets[1] = token1;
 
         assetToUnderlyingAssets[pool] = underlyingAssets;
-        assetToRewardToken[pool] = ERC20(rewardToken);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -128,7 +128,7 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
         underlyingAssetKeys = new bytes32[](3);
         underlyingAssetKeys[0] = _getKeyFromAsset(assetToUnderlyingAssets[asset][0], 0);
         underlyingAssetKeys[1] = _getKeyFromAsset(assetToUnderlyingAssets[asset][1], 0);
-        underlyingAssetKeys[2] = _getKeyFromAsset(address(assetToRewardToken[asset]), 0);
+        underlyingAssetKeys[2] = _getKeyFromAsset(address(rewardToken), 0);
     }
 
     /**
@@ -151,8 +151,8 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
         override
         returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
-        // Amount of a Stargate position in the Asset Module can only be either 0 or 1.
-        if (amount == 0) return (new uint256[](2), rateUnderlyingAssetsToUsd);
+        // Amount of an Aerodrome position in the Asset Module can only be either 0 or 1.
+        if (amount == 0) return (new uint256[](3), rateUnderlyingAssetsToUsd);
 
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
 
@@ -211,7 +211,7 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
      * @dev Withdrawing a zero amount will trigger the claim for rewards.
      */
     function _claimReward(address asset) internal override {
-        //lpStakingTime.withdraw(assetToPoolId[asset], 0);
+        IGauge(assetToGauge[asset]).getReward(address(this)); 
     }
 
     /**
@@ -220,7 +220,7 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
      * @return currentReward The amount of reward tokens that can be claimed.
      */
     function _getCurrentReward(address asset) internal view override returns (uint256 currentReward) {
-        //currentReward = lpStakingTime.pendingEmissionToken(assetToPoolId[asset], address(this));
+        currentReward = IGauge(assetToGauge[asset]).earned(address(this));
     }
 
     function tokenURI(uint256 id) public view virtual override returns (string memory) { }
