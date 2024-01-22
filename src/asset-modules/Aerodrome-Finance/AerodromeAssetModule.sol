@@ -43,6 +43,7 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
     error PoolIdDoesNotMatch();
     error RewardTokenNotAllowed();
     error PoolOrGaugeNotValid();
+    error ZeroReserves();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -155,22 +156,23 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
         if (amount == 0) return (new uint256[](3), rateUnderlyingAssetsToUsd);
 
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
-
         (, uint256 positionId) = _getAssetFromKey(assetKey);
-        PositionState storage positionState_ = positionState[positionId];
 
-        // Cache Stargate pool address
-        address asset = positionState_.asset;
-        // Cache totalLiquidity
-        uint256 totalLiquidity = IPool(asset).totalLiquidity();
+        // Cache asset
+        address asset = positionState[positionId].asset;
 
-        // Calculate underlyingAssets amounts.
-        // "amountSD" is used in Stargate contracts and stands for amount in Shared Decimals, which should be converted to Local Decimals via convertRate().
-        // "amountSD" will always be smaller or equal to amount in Local Decimals.
-        // For an exisiting assetKey, the totalSupply can not be zero, as a non-zero amount is staked via this contract for the position.
-        uint256 amountSD = uint256(positionState_.amountStaked).mulDivDown(totalLiquidity, IPool(asset).totalSupply());
+        // The untrusted reserves from the pair, these can be manipulated!!!
+        (uint256 reserve0, uint256 reserve1,) = IPool(asset).getReserves();
+
+        // Note : not sure it makes sense since position has a positive amount staked
+        if (reserve0 == 0 || reserve1 == 0) revert ZeroReserves();
+
+        // Cache totalSupply
+        uint256 totalSupply = IPool(asset).totalSupply();
 
         underlyingAssetsAmounts = new uint256[](3);
+        underlyingAssetsAmounts[0] = reserve0.mulDivDown(amount, totalSupply);
+        underlyingAssetsAmounts[1] = reserve1.mulDivDown(amount, totalSupply);
         underlyingAssetsAmounts[2] = rewardOf(positionId);
 
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
@@ -211,7 +213,7 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
      * @dev Withdrawing a zero amount will trigger the claim for rewards.
      */
     function _claimReward(address asset) internal override {
-        IGauge(assetToGauge[asset]).getReward(address(this)); 
+        IGauge(assetToGauge[asset]).getReward(address(this));
     }
 
     /**

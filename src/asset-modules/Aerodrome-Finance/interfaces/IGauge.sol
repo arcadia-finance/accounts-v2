@@ -8,8 +8,9 @@ pragma solidity 0.8.22;
 
 interface IGauge {
     function deposit(uint256) external;
+    function withdraw(uint256) external;
     function rewardToken() external returns (address);
-    function earned(address) external returns (uint256);
+    function earned(address) external view returns (uint256);
     function getReward(address) external;
     function stakingToken() external returns (address);
 }

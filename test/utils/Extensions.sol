@@ -28,6 +28,7 @@ import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
 import { StakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 import { StargateAssetModule } from "../../src/asset-modules/Stargate-Finance/StargateAssetModule.sol";
+import { AerodromeAssetModule } from "../../src/asset-modules/Aerodrome-Finance/AerodromeAssetModule.sol";
 
 contract AccountExtension is AccountV1 {
     constructor(address factory) AccountV1(factory) { }
@@ -634,6 +635,82 @@ abstract contract StakingModuleExtension is StakingModule {
 
 contract StargateAssetModuleExtension is StargateAssetModule {
     constructor(address registry, address stargateLpStaking_) StargateAssetModule(registry, stargateLpStaking_) { }
+
+    function setAssetToUnderlyingAsset(address asset, address underlyingAsset) public {
+        assetToUnderlyingAsset[asset] = underlyingAsset;
+    }
+
+    function setTotalStakedForAsset(address asset, uint128 totalStaked_) public {
+        assetState[asset].totalStaked = totalStaked_;
+    }
+
+    function setAssetToPoolId(address asset, uint256 poolId) public {
+        assetToPoolId[asset] = poolId;
+    }
+
+    function setAssetToRewardToken(address asset, ERC20 rewardToken_) public {
+        assetToRewardToken[asset] = rewardToken_;
+    }
+
+    function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
+        (asset, assetId) = _getAssetFromKey(key);
+    }
+
+    function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
+        (key) = _getKeyFromAsset(asset, assetId);
+    }
+
+    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssetKeys) {
+        underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+    }
+
+    function getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 assetAmount,
+        bytes32[] memory underlyingAssetKeys
+    )
+        public
+        view
+        returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+    {
+        (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(creditor, assetKey, assetAmount, underlyingAssetKeys);
+    }
+
+    function getIdCounter() public view returns (uint256 lastId_) {
+        lastId_ = lastPositionId;
+    }
+
+    function stakeExtension(address asset, uint256 amount) public {
+        _stake(asset, amount);
+    }
+
+    function withdrawExtension(address asset, uint256 amount) public {
+        _withdraw(asset, amount);
+    }
+
+    function getCurrentReward(address asset) public view returns (uint256 currentReward) {
+        currentReward = _getCurrentReward(asset);
+    }
+
+    function setAssetInPosition(address asset, uint256 positionId) public {
+        positionState[positionId].asset = asset;
+    }
+
+    function setAmountStakedForPosition(uint256 id, uint256 amount) public {
+        positionState[id].amountStaked = uint128(amount);
+    }
+
+    function setAssetToConversionRate(address asset, uint256 conversionRate) public {
+        assetToConversionRate[asset] = conversionRate;
+    }
+
+    function tokenURI(uint256 id) public view override returns (string memory) { }
+}
+
+contract AerodromeAssetModuleExtension is AerodromeAssetModule {
+    constructor(address registry) StargateAssetModule(registry) { }
 
     function setAssetToUnderlyingAsset(address asset, address underlyingAsset) public {
         assetToUnderlyingAsset[asset] = underlyingAsset;
