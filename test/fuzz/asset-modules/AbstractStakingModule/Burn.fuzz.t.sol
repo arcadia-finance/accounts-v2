@@ -69,9 +69,9 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.RewardPaid(account, address(rewardTokens[0]), uint128(currentRewardAccount));
+        emit StakingModule.RewardPaid(positionId, address(rewardTokens[0]), uint128(currentRewardAccount));
         vm.expectEmit();
-        emit StakingModule.LiquidityDecreased(account, assets[0], positionState.amountStaked);
+        emit StakingModule.LiquidityDecreased(positionId, assets[0], positionState.amountStaked);
         stakingModule.burn(positionId);
         vm.stopPrank();
 
@@ -144,7 +144,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.LiquidityDecreased(account, assets[0], positionState.amountStaked);
+        emit StakingModule.LiquidityDecreased(positionId, assets[0], positionState.amountStaked);
         stakingModule.burn(positionId);
         vm.stopPrank();
 

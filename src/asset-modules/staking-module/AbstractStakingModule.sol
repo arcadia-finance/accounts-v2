@@ -70,9 +70,9 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event LiquidityDecreased(address indexed owner, address asset, uint128 amount);
-    event LiquidityIncreased(address indexed owner, uint256 positionId, address asset, uint128 amount);
-    event RewardPaid(address indexed owner, address reward, uint128 amount);
+    event LiquidityDecreased(uint256 indexed positionId, address indexed asset, uint128 amount);
+    event LiquidityIncreased(uint256 indexed positionId, address indexed asset, uint128 amount);
+    event RewardPaid(uint256 indexed positionId, address indexed reward, uint128 amount);
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -130,7 +130,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         // Mint the new position.
         _safeMint(msg.sender, positionId);
 
-        emit LiquidityIncreased(msg.sender, positionId, asset, amount);
+        emit LiquidityIncreased(positionId, asset, amount);
     }
 
     /**
@@ -164,7 +164,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         // Stake Asset in external staking contract.
         _stake(asset, amount);
 
-        emit LiquidityIncreased(msg.sender, positionId, asset, amount);
+        emit LiquidityIncreased(positionId, asset, amount);
     }
 
     /**
@@ -223,12 +223,12 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             ERC20 rewardToken_ = assetToRewardToken[asset];
             // Transfer reward
             rewardToken_.safeTransfer(msg.sender, rewardPosition);
-            emit RewardPaid(msg.sender, address(rewardToken_), uint128(rewardPosition));
+            emit RewardPaid(positionId, address(rewardToken_), uint128(rewardPosition));
         }
 
         // Transfer the Asset back to the position owner.
         ERC20(asset).safeTransfer(msg.sender, amount);
-        emit LiquidityDecreased(msg.sender, asset, amount);
+        emit LiquidityDecreased(positionId, asset, amount);
     }
 
     /**
@@ -265,7 +265,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             ERC20 rewardToken_ = assetToRewardToken[asset];
             // Transfer reward
             rewardToken_.safeTransfer(msg.sender, rewardPosition);
-            emit RewardPaid(msg.sender, address(rewardToken_), uint128(rewardPosition));
+            emit RewardPaid(positionId, address(rewardToken_), uint128(rewardPosition));
         }
     }
 

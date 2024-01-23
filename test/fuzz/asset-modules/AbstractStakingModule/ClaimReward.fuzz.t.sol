@@ -77,7 +77,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.RewardPaid(
-            account, address(stakingModule.assetToRewardToken(asset)), uint128(currentRewardPosition)
+            positionId, address(stakingModule.assetToRewardToken(asset)), uint128(currentRewardPosition)
         );
         stakingModule.claimReward(positionId);
         vm.stopPrank();

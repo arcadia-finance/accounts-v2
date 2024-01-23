@@ -140,9 +140,9 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws full position from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.RewardPaid(account, address(rewardTokens[0]), uint128(currentRewardAccount));
+        emit StakingModule.RewardPaid(positionId, address(rewardTokens[0]), uint128(currentRewardAccount));
         vm.expectEmit();
-        emit StakingModule.LiquidityDecreased(account, assets[0], positionState.amountStaked);
+        emit StakingModule.LiquidityDecreased(positionId, assets[0], positionState.amountStaked);
         stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
@@ -226,9 +226,9 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.RewardPaid(account, address(rewardToken), uint128(currentRewardAccount));
+        emit StakingModule.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
         vm.expectEmit();
-        emit StakingModule.LiquidityDecreased(account, asset, amount);
+        emit StakingModule.LiquidityDecreased(positionId, asset, amount);
         stakingModule.decreaseLiquidity(positionId, amount);
         vm.stopPrank();
 
@@ -314,7 +314,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws full position from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.LiquidityDecreased(account, assets[0], positionState.amountStaked);
+        emit StakingModule.LiquidityDecreased(positionId, assets[0], positionState.amountStaked);
         stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
@@ -391,7 +391,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.LiquidityDecreased(account, asset, amount);
+        emit StakingModule.LiquidityDecreased(positionId, asset, amount);
         stakingModule.decreaseLiquidity(positionId, amount);
         vm.stopPrank();
 

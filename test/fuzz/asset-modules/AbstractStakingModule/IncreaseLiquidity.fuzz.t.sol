@@ -104,7 +104,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When :  A user is increasing liquidity via the Staking Module
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.LiquidityIncreased(account, positionId, asset, amount);
+        emit StakingModule.LiquidityIncreased(positionId, asset, amount);
         stakingModule.increaseLiquidity(positionId, amount);
 
         // Then : Assets should have been transferred to the Staking Module

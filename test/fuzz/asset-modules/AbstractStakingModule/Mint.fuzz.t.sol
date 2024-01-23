@@ -76,7 +76,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // When:  A user is staking via the Staking Module.
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.LiquidityIncreased(account, 1, asset, amount);
+        emit StakingModule.LiquidityIncreased(1, asset, amount);
         uint256 positionId = stakingModule.mint(asset, amount);
 
         // Then: Assets should have been transferred to the Staking Module.
@@ -149,7 +149,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // When:  A user is staking via the Staking Module.
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.LiquidityIncreased(account, 1, asset, amount);
+        emit StakingModule.LiquidityIncreased(1, asset, amount);
         uint256 positionId = stakingModule.mint(asset, amount);
 
         // Then: Assets should have been transferred to the Staking Module.
