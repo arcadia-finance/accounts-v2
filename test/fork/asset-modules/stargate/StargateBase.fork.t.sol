@@ -46,7 +46,6 @@ contract StargateBase_Fork_Test is Fork_Test {
         stargateAssetModule.initialize();
 
         // Add STG and it's Chainlink oracle to the protocol.
-        vm.warp(1_703_146_389 + 1);
         vm.startPrank(users.creatorAddress);
         uint256 oracleId = chainlinkOM.addOracle(oracleSTG, "STG", "USD", 2 days);
         bool[] memory boolValues = new bool[](1);

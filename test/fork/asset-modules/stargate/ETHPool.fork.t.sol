@@ -35,9 +35,6 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        // Warp time to last update of oracle + 1 sec
-        vm.warp(1_703_149_989 + 1);
-
         // Add SGETH and it's Chainlink oracle to the protocol.
         // Here we use USDC oracle as no available oracle for USDbC.
         uint256 oracleId = chainlinkOM.addOracle(oracleETH, "ETH", "USD", 2 days);

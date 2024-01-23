@@ -114,6 +114,9 @@ abstract contract Fuzz_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
 
+        // Warp to have a timestamp of at least two days old.
+        vm.warp(2 days);
+
         // Create mock ERC20 tokens for testing
         vm.startPrank(users.tokenCreatorAddress);
 
