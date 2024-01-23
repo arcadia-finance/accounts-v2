@@ -18,6 +18,10 @@ contract Constructor_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_T
         StargateAssetModule_Fuzz_Test.setUp();
     }
 
+    /* ///////////////////////////////////////////////////////////////
+                              TESTS
+    /////////////////////////////////////////////////////////////// */
+
     function testFuzz_success_constructor(address lpStakingContract, address registry) public {
         StargateAssetModule assetModule = new StargateAssetModule(registry, lpStakingContract);
 

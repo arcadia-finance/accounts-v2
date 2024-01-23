@@ -18,6 +18,10 @@ contract GetUnderlyingAssets_StargateAssetModule_Fuzz_Test is StargateAssetModul
         StargateAssetModule_Fuzz_Test.setUp();
     }
 
+    /* ///////////////////////////////////////////////////////////////
+                              TESTS
+    /////////////////////////////////////////////////////////////// */
+
     function testFuzz_Success_getUnderlyingAssets(uint96 positionId, uint256 poolId) public {
         // Given : The underlying token of the pool is an asset added to the Registry
         poolMock.setToken(address(mockERC20.token1));

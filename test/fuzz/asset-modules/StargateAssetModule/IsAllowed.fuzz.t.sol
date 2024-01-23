@@ -18,6 +18,10 @@ contract IsAllowed_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Tes
         StargateAssetModule_Fuzz_Test.setUp();
     }
 
+    /* ///////////////////////////////////////////////////////////////
+                              TESTS
+    /////////////////////////////////////////////////////////////// */
+
     function testFuzz_Success_isAllowed_True(uint256 positionId) public {
         // When : Calling isAllowed()
         bool allowed = stargateAssetModule.isAllowed(address(stargateAssetModule), positionId);

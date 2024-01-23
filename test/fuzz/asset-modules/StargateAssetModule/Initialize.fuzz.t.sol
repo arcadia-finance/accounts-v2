@@ -18,6 +18,10 @@ contract Initialize_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Te
         StargateAssetModule_Fuzz_Test.setUp();
     }
 
+    /* ///////////////////////////////////////////////////////////////
+                              TESTS
+    /////////////////////////////////////////////////////////////// */
+
     function testFuzz_revert_initialize_NotOwner(address lpStaking, address _unprivilegedAddress) public {
         vm.prank(users.creatorAddress);
         StargateAssetModule assetModule = new StargateAssetModule(address(registryExtension), lpStaking);

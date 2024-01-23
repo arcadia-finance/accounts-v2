@@ -20,6 +20,10 @@ contract AddAsset_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test
         StargateAssetModule_Fuzz_Test.setUp();
     }
 
+    /* ///////////////////////////////////////////////////////////////
+                              TESTS
+    /////////////////////////////////////////////////////////////// */
+
     function testFuzz_Revert_addAsset_DecimalsGreaterThan18(uint256 poolId, uint8 decimals) public {
         // Given : Pool lp token decimals is greater than 18
         decimals = uint8(bound(decimals, 19, type(uint8).max));

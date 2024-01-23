@@ -23,6 +23,10 @@ contract GetUnderlyingAssetsAmounts_StargateAssetModule_Fuzz_Test is StargateAss
         StargateAssetModule_Fuzz_Test.setUp();
     }
 
+    /* ///////////////////////////////////////////////////////////////
+                              TESTS
+    /////////////////////////////////////////////////////////////// */
+
     function testFuzz_Success_getUnderlyingAssetsAmounts_amountGreaterThan0(
         uint96 positionId,
         uint112 assetAmount,
