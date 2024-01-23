@@ -61,23 +61,14 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         StakingModule.PositionState memory stakingModuleStateForPosition,
         address asset,
         uint256 id
-    )
-        internal
-        returns (
-            StakingModuleStateForAsset memory stakingModuleStateForAsset_,
-            StakingModule.PositionState memory stakingModuleStateForPosition_
-        )
-    {
-        (stakingModuleStateForAsset_, stakingModuleStateForPosition_) =
-            givenValidStakingModuleState(stakingModuleStateForAsset, stakingModuleStateForPosition);
-
-        stakingModule.setLastRewardGlobal(asset, stakingModuleStateForAsset_.lastRewardGlobal);
-        stakingModule.setTotalStaked(asset, stakingModuleStateForAsset_.totalStaked);
-        stakingModule.setLastRewardPosition(id, stakingModuleStateForPosition_.lastRewardPosition);
-        stakingModule.setLastRewardPerTokenPosition(id, stakingModuleStateForPosition_.lastRewardPerTokenPosition);
-        stakingModule.setLastRewardPerTokenGlobal(asset, stakingModuleStateForAsset_.lastRewardPerTokenGlobal);
-        stakingModule.setActualRewardBalance(asset, stakingModuleStateForAsset_.currentRewardGlobal);
-        stakingModule.setAmountStakedForPosition(id, stakingModuleStateForPosition_.amountStaked);
+    ) internal {
+        stakingModule.setLastRewardGlobal(asset, stakingModuleStateForAsset.lastRewardGlobal);
+        stakingModule.setTotalStaked(asset, stakingModuleStateForAsset.totalStaked);
+        stakingModule.setLastRewardPosition(id, stakingModuleStateForPosition.lastRewardPosition);
+        stakingModule.setLastRewardPerTokenPosition(id, stakingModuleStateForPosition.lastRewardPerTokenPosition);
+        stakingModule.setLastRewardPerTokenGlobal(asset, stakingModuleStateForAsset.lastRewardPerTokenGlobal);
+        stakingModule.setActualRewardBalance(asset, stakingModuleStateForAsset.currentRewardGlobal);
+        stakingModule.setAmountStakedForPosition(id, stakingModuleStateForPosition.amountStaked);
         stakingModuleStateForPosition.asset = asset;
         stakingModule.setAssetInPosition(asset, id);
     }
@@ -118,13 +109,8 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
             deltaRewardPerToken = currentRewardPerTokenGlobal - stakingModuleStateForPosition.lastRewardPerTokenPosition;
         }
         if (stakingModuleStateForPosition.amountStaked > 0) {
-            deltaRewardPerToken = uint128(
-                bound(
-                    deltaRewardPerToken,
-                    0,
-                    uint256(1e18) * type(uint128).max / stakingModuleStateForPosition.amountStaked
-                )
-            );
+            deltaRewardPerToken =
+                uint128(bound(deltaRewardPerToken, 0, type(uint128).max / stakingModuleStateForPosition.amountStaked));
         }
         unchecked {
             stakingModuleStateForPosition.lastRewardPerTokenPosition = currentRewardPerTokenGlobal - deltaRewardPerToken;

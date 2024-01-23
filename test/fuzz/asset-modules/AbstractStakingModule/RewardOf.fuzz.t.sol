@@ -39,10 +39,13 @@ contract RewardOf_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         address asset = assets[0];
 
         // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
+        (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
 
-        // And: Amount staked in position is non zero.
+        // And : Account has a non-zero balance
         vm.assume(positionState.amountStaked > 0);
+
+        // And: State is persisted.
+        setStakingModuleState(assetState, positionState, asset, positionId);
 
         // When : Calling rewardOf()
         uint256 currentRewardPosition = stakingModule.rewardOf(positionId);

@@ -62,7 +62,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         vm.stopPrank();
     }
 
-    function testFuzz_Success_increaseLiquidity_PositionState(
+    function testFuzz_Success_increaseLiquidity(
         uint8 assetDecimals,
         uint8 rewardTokenDecimals,
         StakingModuleStateForAsset memory assetState,
@@ -71,52 +71,46 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint128 amount,
         address account
     ) public notTestContracts(account) {
-        // Given : Can't stake zero amount
-        vm.assume(amount > 0);
         // Given : positionId is not 0
-        vm.assume(positionId > 0);
+        positionId = bound(positionId, 0, type(uint256).max);
 
-        // Given : A staking token and reward token pair are added to the stakingModule
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        address asset;
+        {
+            // Given : A staking token and reward token pair are added to the stakingModule
+            (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
+            asset = assets[0];
 
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
+            // Given : Valid state
+            (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
 
-        mintERC20TokensTo(assets, account, amounts);
-        approveERC20TokensFor(assets, address(stakingModule), amounts, account);
+            // And: State is persisted.
+            setStakingModuleState(assetState, positionState, asset, positionId);
 
-        // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
+            // Given : Owner of positionId is Account
+            stakingModule.setOwnerOfPositionId(account, positionId);
 
-        // Given : Owner of positionId is Account
-        stakingModule.setOwnerOfPositionId(account, positionId);
+            // And: updated totalStake should not be greater than uint128.
+            // And: Amount staked is greater than zero.
+            vm.assume(assetState.totalStaked < type(uint128).max);
+            amount = uint128(bound(amount, 1, type(uint128).max - assetState.totalStaked));
 
-        // Given : TotalStaked is greater than 0 and updated totalStake should not be greater than uint128.
-        (,, uint128 totalStaked) = stakingModule.assetState(asset);
-        vm.assume(totalStaked > 0);
-        vm.assume(totalStaked < type(uint128).max - amount);
+            uint256[] memory amounts = new uint256[](1);
+            amounts[0] = amount;
 
-        // Given : amount staked in position is > 0 (as we are staking in an existing position).
-        vm.assume(positionState.amountStaked > 0);
+            mintERC20TokensTo(assets, account, amounts);
+            approveERC20TokensFor(assets, address(stakingModule), amounts, account);
+        }
 
-        // When :  A user is staking via the Staking Module
+        // When :  A user is increasing liquidity via the Staking Module
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.LiquidityIncreased(account, positionId, asset, amount);
         stakingModule.increaseLiquidity(positionId, amount);
 
-        // Cache value to avoid stack too deep
-        StakingModuleStateForAsset memory assetStateStack = assetState;
-        uint256 amountStack = amount;
-        uint256 amountStakedStack = positionState.amountStaked;
-        uint256 lastRewardPositionStack = positionState.lastRewardPosition;
-        uint256 lastRewardPerTokenPositionStack = positionState.lastRewardPerTokenPosition;
-
         // Then : Assets should have been transferred to the Staking Module
-        assertEq(ERC20Mock(asset).balanceOf(address(stakingModule)), amountStack);
+        assertEq(ERC20Mock(asset).balanceOf(address(stakingModule)), amount);
 
-        // And : Position values should be updated correctly
+        // And: Position state should be updated correctly.
         StakingModule.PositionState memory newPositionState;
         (
             newPositionState.asset,
@@ -124,93 +118,28 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
             newPositionState.lastRewardPerTokenPosition,
             newPositionState.lastRewardPosition
         ) = stakingModule.positionState(positionId);
-
         assertEq(newPositionState.asset, asset);
-        assertEq(newPositionState.amountStaked, amountStakedStack + amountStack);
-
-        uint256 deltaReward = assetStateStack.currentRewardGlobal - assetStateStack.lastRewardGlobal;
+        assertEq(newPositionState.amountStaked, positionState.amountStaked + amount);
+        uint256 deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
         uint128 currentRewardPerToken;
         unchecked {
-            currentRewardPerToken = assetStateStack.lastRewardPerTokenGlobal
-                + uint128(deltaReward.mulDivDown(1e18, assetStateStack.totalStaked));
+            currentRewardPerToken =
+                assetState.lastRewardPerTokenGlobal + uint128(deltaReward.mulDivDown(1e18, assetState.totalStaked));
         }
         assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
-
         uint128 deltaRewardPerToken;
         unchecked {
-            deltaRewardPerToken = currentRewardPerToken - uint128(lastRewardPerTokenPositionStack);
+            deltaRewardPerToken = currentRewardPerToken - positionState.lastRewardPerTokenPosition;
         }
-        uint256 accruedRewards = amountStakedStack.mulDivDown(deltaRewardPerToken, 1e18);
-
-        assertEq(newPositionState.lastRewardPosition, lastRewardPositionStack + accruedRewards);
-    }
-
-    function testFuzz_Success_increaseLiquidity_AssetState(
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals,
-        StakingModuleStateForAsset memory assetState,
-        StakingModule.PositionState memory positionState,
-        uint256 positionId,
-        uint128 amount,
-        address account
-    ) public notTestContracts(account) {
-        // Given : Can't stake zero amount
-        vm.assume(amount > 0);
-        // Given : positionId is not 0
-        vm.assume(positionId > 0);
-
-        // Given : A staking token and reward token pair are added to the stakingModule
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
-
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
-
-        mintERC20TokensTo(assets, account, amounts);
-        approveERC20TokensFor(assets, address(stakingModule), amounts, account);
-
-        // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
-
-        // Given : Owner of positionId is Account
-        stakingModule.setOwnerOfPositionId(account, positionId);
-
-        // Given : TotalStaked is greater than 0 and updated totalStake should not be greater than uint128.
-        (,, uint128 totalStaked) = stakingModule.assetState(asset);
-        vm.assume(totalStaked > 0);
-        vm.assume(totalStaked < type(uint128).max - amount);
-
-        // Given : amount staked in position is > 0 (as we are staking in an existing position).
-        vm.assume(positionState.amountStaked > 0);
-
-        // When :  A user is staking via the Staking Module
-        vm.startPrank(account);
-        vm.expectEmit();
-        emit StakingModule.LiquidityIncreased(account, positionId, asset, amount);
-        stakingModule.increaseLiquidity(positionId, amount);
-
-        // Cache value to avoid stack too deep
-        StakingModuleStateForAsset memory assetStateStack = assetState;
-        uint256 amountStack = amount;
-
-        // Then : Assets should have been transferred to the Staking Module
-        assertEq(ERC20Mock(asset).balanceOf(address(stakingModule)), amountStack);
+        deltaReward = uint256(positionState.amountStaked).mulDivDown(deltaRewardPerToken, 1e18);
+        assertEq(newPositionState.lastRewardPosition, positionState.lastRewardPosition + deltaReward);
 
         // And : Asset values should be updated correctly
         StakingModule.AssetState memory newAssetState;
-
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
-
-        uint256 deltaReward = assetStateStack.currentRewardGlobal - assetStateStack.lastRewardGlobal;
-        uint128 currentRewardPerToken;
-        unchecked {
-            currentRewardPerToken = assetStateStack.lastRewardPerTokenGlobal
-                + uint128(deltaReward.mulDivDown(1e18, assetStateStack.totalStaked));
-        }
-
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
-        assertEq(newAssetState.lastRewardGlobal, assetStateStack.currentRewardGlobal);
-        assertEq(newAssetState.totalStaked, assetStateStack.totalStaked + amountStack);
+        assertEq(newAssetState.lastRewardGlobal, assetState.currentRewardGlobal);
+        assertEq(newAssetState.totalStaked, assetState.totalStaked + amount);
     }
 }
