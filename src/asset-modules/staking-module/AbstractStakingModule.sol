@@ -98,7 +98,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      * @param amount The amount of Assets to stake.
      * @return positionId The id of the minted position.
      */
-    function mint(address asset, uint128 amount) external nonReentrant returns (uint256 positionId) {
+    function mint(address asset, uint128 amount) external virtual nonReentrant returns (uint256 positionId) {
         if (amount == 0) revert ZeroAmount();
         if (address(assetToRewardToken[asset]) == address(0)) revert AssetNotAllowed();
 
@@ -138,7 +138,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      * @param positionId The id of the position.
      * @param amount The amount of Assets to stake.
      */
-    function increaseLiquidity(uint256 positionId, uint128 amount) external nonReentrant {
+    function increaseLiquidity(uint256 positionId, uint128 amount) external virtual nonReentrant {
         if (amount == 0) revert ZeroAmount();
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
@@ -171,7 +171,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      * @notice Unstakes, withdraws and claims rewards for total amount staked of Asset in position.
      * @param positionId The id of the position to burn.
      */
-    function burn(uint256 positionId) external {
+    function burn(uint256 positionId) external virtual {
         decreaseLiquidity(positionId, positionState[positionId].amountStaked);
     }
 
@@ -181,7 +181,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      * @param amount The amount of Asset to unstake and withdraw.
      * @dev Also claims and transfers the staking rewards of the position.
      */
-    function decreaseLiquidity(uint256 positionId, uint128 amount) public nonReentrant {
+    function decreaseLiquidity(uint256 positionId, uint128 amount) public virtual nonReentrant {
         if (amount == 0) revert ZeroAmount();
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
@@ -318,7 +318,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      * @param positionId The id of the position to check the rewards for.
      * @return currentRewardClaimable The current amount of reward tokens claimable by the owner of the position.
      */
-    function rewardOf(uint256 positionId) public view returns (uint256 currentRewardClaimable) {
+    function rewardOf(uint256 positionId) public view virtual returns (uint256 currentRewardClaimable) {
         // Cache the old positionState and assetState.
         PositionState memory positionState_ = positionState[positionId];
         AssetState memory assetState_ = assetState[positionState_.asset];
