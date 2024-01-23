@@ -94,12 +94,12 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
     }
 
     function testFuzz_Success_decreaseLiquidity_NonZeroReward_FullWithdraw(
+        uint8 assetDecimals,
+        uint8 rewardTokenDecimals,
         uint256 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
-        StakingModule.PositionState memory positionState,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
+        StakingModule.PositionState memory positionState
     ) public notTestContracts(account) {
         // Given : account != zero address
         vm.assume(account != address(0));
@@ -152,6 +152,19 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
         // And : positionId should be burned.
         assertEq(stakingModule.balanceOf(account), 0);
+
+        // And: Position state should be updated correctly.
+        StakingModule.PositionState memory newPositionState;
+        (
+            newPositionState.asset,
+            newPositionState.amountStaked,
+            newPositionState.lastRewardPerTokenPosition,
+            newPositionState.lastRewardPosition
+        ) = stakingModule.positionState(positionId);
+        assertEq(newPositionState.asset, address(0));
+        assertEq(newPositionState.amountStaked, 0);
+        assertEq(newPositionState.lastRewardPerTokenPosition, 0);
+        assertEq(newPositionState.lastRewardPosition, 0);
 
         // And: Asset state should be updated correctly.
         StakingModule.AssetState memory newAssetState;
@@ -324,6 +337,19 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
         // And : positionId should be burned.
         assertEq(stakingModule.balanceOf(account), 0);
+
+        // And: Position state should be updated correctly.
+        StakingModule.PositionState memory newPositionState;
+        (
+            newPositionState.asset,
+            newPositionState.amountStaked,
+            newPositionState.lastRewardPerTokenPosition,
+            newPositionState.lastRewardPosition
+        ) = stakingModule.positionState(positionId);
+        assertEq(newPositionState.asset, address(0));
+        assertEq(newPositionState.amountStaked, 0);
+        assertEq(newPositionState.lastRewardPerTokenPosition, 0);
+        assertEq(newPositionState.lastRewardPosition, 0);
 
         // And: Asset state should be updated correctly.
         StakingModule.AssetState memory newAssetState;

@@ -207,6 +207,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         if (positionState_.amountStaked > 0) {
             positionState[positionId] = positionState_;
         } else {
+            delete positionState[positionId];
             _burn(positionId);
         }
         assetState[asset] = assetState_;
