@@ -8,6 +8,7 @@ import { AbstractStakingModule_Fuzz_Test, StakingModule, ERC20Mock } from "./_Ab
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
 /**
  * @notice Fuzz tests for the function "decreaseLiquidity" of contract "StakingModule".
@@ -55,24 +56,44 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_decreaseLiquidity_RemainingBalanceTooLow(uint256 id, uint128 amount, address owner)
-        public
-    {
-        // Given : Amount is greater than 0.
-        vm.assume(amount > 0);
-        // Given : Owner is the caller.
-        stakingModule.setOwnerOfPositionId(owner, id);
-        // Given : Remaining amount in position is smaller than amount to withdraw.
-        stakingModule.setAmountStakedForPosition(id, amount - 1);
-        // When : Calling withdraw().
+    function testFuzz_Revert_decreaseLiquidity_RemainingBalanceTooLow(
+        uint256 positionId,
+        address account,
+        StakingModuleStateForAsset memory assetState,
+        StakingModule.PositionState memory positionState,
+        address asset,
+        uint128 amount
+    ) public notTestContracts(account) {
+        // Given : account != zero address
+        vm.assume(account != address(0));
+        vm.assume(account != address(stakingModule));
+
+        // Given : Valid state
+        (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
+
+        // And : Account has a non-zero balance.
+        vm.assume(positionState.amountStaked > 0);
+        // And : Account has a balance smaller as type(uint128).max.
+        vm.assume(positionState.amountStaked < type(uint128).max);
+
+        // And: State is persisted.
+        setStakingModuleState(assetState, positionState, asset, positionId);
+
+        // Given : Position is minted to the Account
+        stakingModule.mintIdTo(account, positionId);
+
+        // And: amount withdrawn is bigger than the balance.
+        amount = uint128(bound(amount, positionState.amountStaked + 1, type(uint128).max));
+
+        // When : Calling decreaseLiquidity().
         // Then : It should revert as remaining balance is too low.
-        vm.startPrank(owner);
-        vm.expectRevert(StakingModule.RemainingBalanceTooLow.selector);
-        stakingModule.decreaseLiquidity(id, amount);
+        vm.startPrank(account);
+        vm.expectRevert(stdError.arithmeticError);
+        stakingModule.decreaseLiquidity(positionId, amount);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_decreaseLiquidity_CurrentRewardPositionGreaterThan0(
+    function testFuzz_Success_decreaseLiquidity_NonZeroReward_FullWithdraw(
         uint256 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
@@ -86,16 +107,20 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
         // Given : Add an Asset + reward token pair
         (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        vm.assume(account != assets[0]);
+        vm.assume(account != rewardTokens[0]);
 
         // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, assets[0], positionId);
+        (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
+
+        // And : Account has a non-zero balance
+        vm.assume(positionState.amountStaked > 0);
+
+        // And: State is persisted.
+        setStakingModuleState(assetState, positionState, assets[0], positionId);
 
         // Given : Position is minted to the Account
         stakingModule.mintIdTo(account, positionId);
-
-        // Given : Account has a positive balance
-        (, uint128 amountStaked,,) = stakingModule.positionState(positionId);
-        vm.assume(amountStaked > 0);
 
         // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
         address[] memory tokens = new address[](2);
@@ -107,86 +132,142 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint256 currentRewardAccount = stakingModule.rewardOf(positionId);
         amounts[1] = currentRewardAccount;
 
-        // Given : CurrentRewardAccount is greater than 0
+        // And reward is non-zero.
         vm.assume(currentRewardAccount > 0);
 
         mintERC20TokensTo(tokens, address(stakingModule), amounts);
 
-        // When : Account withdraws from stakingModule
+        // When : Account withdraws full position from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.LiquidityDecreased(account, assets[0], positionState.amountStaked);
+        emit StakingModule.RewardPaid(positionId, address(rewardTokens[0]), uint128(currentRewardAccount));
+        vm.expectEmit();
+        emit StakingModule.LiquidityDecreased(positionId, assets[0], positionState.amountStaked);
         stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
         // Then : Account should get the staking and reward tokens
         assertEq(ERC20Mock(tokens[0]).balanceOf(account), positionState.amountStaked);
         assertEq(ERC20Mock(tokens[1]).balanceOf(account), currentRewardAccount);
+
         // And : positionId should be burned.
         assertEq(stakingModule.balanceOf(account), 0);
+
+        // And: Asset state should be updated correctly.
+        StakingModule.AssetState memory newAssetState;
+        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+            stakingModule.assetState(assets[0]);
+        uint256 deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
+        uint128 currentRewardPerToken;
+        unchecked {
+            currentRewardPerToken =
+                assetState.lastRewardPerTokenGlobal + uint128(deltaReward * 1e18 / assetState.totalStaked);
+        }
+        assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
+        assertEq(newAssetState.lastRewardGlobal, 0);
+        assertEq(newAssetState.totalStaked, assetState.totalStaked - positionState.amountStaked);
     }
 
-    function testFuzz_Success_decreaseLiquidity_ZeroCurrentRewardPosition(
+    function testFuzz_Success_decreaseLiquidity_NonZeroReward_PartialWithdraw(
+        uint8 assetDecimals,
+        uint8 rewardTokenDecimals,
         uint256 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
+        uint128 amount
     ) public notTestContracts(account) {
         // Given : account != zero address
         vm.assume(account != address(0));
         vm.assume(account != address(stakingModule));
 
-        // Given : Add an Asset + reward token pairs
-        (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        address asset;
+        address rewardToken;
+        uint256 currentRewardAccount;
+        {
+            // Given : Add an Asset + reward token pair
+            (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
+            vm.assume(account != assets[0]);
+            vm.assume(account != rewardTokens[0]);
+            asset = assets[0];
+            rewardToken = rewardTokens[0];
 
-        // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, asset, positionId);
+            // Given : Valid state
+            (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
 
-        // Given : Position is minted to the Account
-        stakingModule.mintIdTo(account, positionId);
+            // And : Account has a balance bigger as 1.
+            vm.assume(positionState.amountStaked > 1);
 
-        // Given : Account has a positive balance
-        (, uint128 amountStaked,,) = stakingModule.positionState(positionId);
-        vm.assume(amountStaked > 0);
+            // And: State is persisted.
+            setStakingModuleState(assetState, positionState, assets[0], positionId);
 
-        // Given : No rewards have accrued for Asset
-        // CurrentRewardGlobal is equal to lastRewardGlobal
-        stakingModule.setActualRewardBalance(asset, assetState.lastRewardGlobal);
-        // LastRewardPerTokenGlobal is equal to lastRewardPerTokenPosition
-        stakingModule.setLastRewardPerTokenGlobal(asset, positionState.lastRewardPerTokenPosition);
-        // LastRewardPosition is 0
-        stakingModule.setLastRewardPosition(positionId, 0);
+            // Given : Position is minted to the Account
+            stakingModule.mintIdTo(account, positionId);
 
-        // Given : transfer Asset to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
-        address[] memory tokens = new address[](1);
-        tokens[0] = assets[0];
+            // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
+            address[] memory tokens = new address[](2);
+            tokens[0] = assets[0];
+            tokens[1] = rewardTokens[0];
 
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = positionState.amountStaked;
-        uint256 currentRewardAccount = stakingModule.rewardOf(positionId);
+            uint256[] memory amounts = new uint256[](2);
+            amounts[0] = positionState.amountStaked;
+            currentRewardAccount = stakingModule.rewardOf(positionId);
+            amounts[1] = currentRewardAccount;
 
-        mintERC20TokensTo(tokens, address(stakingModule), amounts);
+            // And reward is non-zero.
+            vm.assume(currentRewardAccount > 0);
 
-        assertEq(currentRewardAccount, 0);
+            mintERC20TokensTo(tokens, address(stakingModule), amounts);
+        }
+
+        // And : amount withdrawn is smaller as the staked balance.
+        amount = uint128(bound(amount, 1, positionState.amountStaked - 1));
 
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.LiquidityDecreased(account, assets[0], positionState.amountStaked);
-        stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
+        emit StakingModule.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
+        vm.expectEmit();
+        emit StakingModule.LiquidityDecreased(positionId, asset, amount);
+        stakingModule.decreaseLiquidity(positionId, amount);
         vm.stopPrank();
 
-        // Then : Account should get the amount of Asset staked and reward tokens
-        assertEq(ERC20Mock(tokens[0]).balanceOf(account), positionState.amountStaked);
-        assertEq(ERC20Mock(rewardTokens[0]).balanceOf(account), 0);
-        // And : positionId should be burned.
-        assertEq(stakingModule.balanceOf(account), 0);
+        // Then : Account should get the withdrawed amount and reward tokens.
+        assertEq(ERC20Mock(asset).balanceOf(account), amount);
+        assertEq(ERC20Mock(rewardToken).balanceOf(account), currentRewardAccount);
+
+        // And : positionId should not be burned.
+        assertEq(stakingModule.balanceOf(account), 1);
+
+        // And: Position state should be updated correctly.
+        StakingModule.PositionState memory newPositionState;
+        (
+            newPositionState.asset,
+            newPositionState.amountStaked,
+            newPositionState.lastRewardPerTokenPosition,
+            newPositionState.lastRewardPosition
+        ) = stakingModule.positionState(positionId);
+        assertEq(newPositionState.asset, asset);
+        assertEq(newPositionState.amountStaked, positionState.amountStaked - amount);
+        uint256 deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
+        uint128 currentRewardPerToken;
+        unchecked {
+            currentRewardPerToken =
+                assetState.lastRewardPerTokenGlobal + uint128(deltaReward.mulDivDown(1e18, assetState.totalStaked));
+        }
+        assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
+        assertEq(newPositionState.lastRewardPosition, 0);
+
+        // And : Asset values should be updated correctly
+        StakingModule.AssetState memory newAssetState;
+        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+            stakingModule.assetState(asset);
+        assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
+        assertEq(newAssetState.lastRewardGlobal, 0);
+        assertEq(newAssetState.totalStaked, assetState.totalStaked - amount);
     }
 
-    function testFuzz_Success_decreaseLiquidity_PartialWithdraw(
+    function testFuzz_Success_decreaseLiquidity_ZeroReward_FullWithdraw(
         uint256 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
@@ -198,46 +279,149 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         vm.assume(account != address(0));
         vm.assume(account != address(stakingModule));
 
-        // Given : Add an Asset + reward token pairs
+        // Given : Add an Asset + reward token pair
         (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        vm.assume(account != assets[0]);
+        vm.assume(account != rewardTokens[0]);
 
         // Given : Valid state
-        (assetState, positionState) = setStakingModuleState(assetState, positionState, assets[0], positionId);
+        (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
 
-        // Given : Position is minted to Account
+        // And : Account has a non-zero balance
+        vm.assume(positionState.amountStaked > 0);
+
+        // And reward is zero.
+        positionState.lastRewardPosition = 0;
+        positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
+        assetState.currentRewardGlobal = assetState.lastRewardGlobal;
+
+        // And: State is persisted.
+        setStakingModuleState(assetState, positionState, assets[0], positionId);
+
+        // Given : Position is minted to the Account
         stakingModule.mintIdTo(account, positionId);
 
-        // Given : Position has a positive balance greater than 1 (to be able to withdraw partially)
-        (, uint128 amountStaked,,) = stakingModule.positionState(positionId);
-        vm.assume(amountStaked > 1);
-
-        // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract.
+        // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
         address[] memory tokens = new address[](2);
         tokens[0] = assets[0];
         tokens[1] = rewardTokens[0];
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = positionState.amountStaked;
-        uint256 currentRewardAccount = stakingModule.rewardOf(positionId);
-        amounts[1] = currentRewardAccount;
 
         mintERC20TokensTo(tokens, address(stakingModule), amounts);
+
+        // When : Account withdraws full position from stakingModule
+        vm.startPrank(account);
+        vm.expectEmit();
+        emit StakingModule.LiquidityDecreased(positionId, assets[0], positionState.amountStaked);
+        stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
+        vm.stopPrank();
+
+        // Then : Account should get the staking and reward tokens
+        assertEq(ERC20Mock(tokens[0]).balanceOf(account), positionState.amountStaked);
+        assertEq(ERC20Mock(tokens[1]).balanceOf(account), 0);
+
+        // And : positionId should be burned.
+        assertEq(stakingModule.balanceOf(account), 0);
+
+        // And: Asset state should be updated correctly.
+        StakingModule.AssetState memory newAssetState;
+        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+            stakingModule.assetState(assets[0]);
+        assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
+        assertEq(newAssetState.lastRewardGlobal, 0);
+        assertEq(newAssetState.totalStaked, assetState.totalStaked - positionState.amountStaked);
+    }
+
+    function testFuzz_Success_decreaseLiquidity_ZeroReward_PartialWithdraw(
+        uint8 assetDecimals,
+        uint8 rewardTokenDecimals,
+        uint256 positionId,
+        address account,
+        StakingModuleStateForAsset memory assetState,
+        StakingModule.PositionState memory positionState,
+        uint128 amount
+    ) public notTestContracts(account) {
+        // Given : account != zero address
+        vm.assume(account != address(0));
+        vm.assume(account != address(stakingModule));
+
+        address asset;
+        address rewardToken;
+        {
+            // Given : Add an Asset + reward token pair
+            (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
+            vm.assume(account != assets[0]);
+            vm.assume(account != rewardTokens[0]);
+            asset = assets[0];
+            rewardToken = rewardTokens[0];
+
+            // Given : Valid state
+            (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
+
+            // And : Account has a balance bigger as 1.
+            vm.assume(positionState.amountStaked > 1);
+
+            // And reward is zero.
+            positionState.lastRewardPosition = 0;
+            positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
+            assetState.currentRewardGlobal = assetState.lastRewardGlobal;
+
+            // And: State is persisted.
+            setStakingModuleState(assetState, positionState, assets[0], positionId);
+
+            // Given : Position is minted to the Account
+            stakingModule.mintIdTo(account, positionId);
+
+            // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
+            address[] memory tokens = new address[](2);
+            tokens[0] = assets[0];
+            tokens[1] = rewardTokens[0];
+
+            uint256[] memory amounts = new uint256[](2);
+            amounts[0] = positionState.amountStaked;
+
+            mintERC20TokensTo(tokens, address(stakingModule), amounts);
+        }
+
+        // And : amount withdrawn is smaller as the staked balance.
+        amount = uint128(bound(amount, 1, positionState.amountStaked - 1));
 
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.LiquidityDecreased(account, assets[0], positionState.amountStaked - 1);
-        stakingModule.decreaseLiquidity(positionId, positionState.amountStaked - 1);
+        emit StakingModule.LiquidityDecreased(positionId, asset, amount);
+        stakingModule.decreaseLiquidity(positionId, amount);
         vm.stopPrank();
 
         // Then : Account should get the withdrawed amount and reward tokens.
-        assertEq(ERC20Mock(tokens[0]).balanceOf(account), positionState.amountStaked - 1);
-        assertEq(ERC20Mock(tokens[1]).balanceOf(account), currentRewardAccount);
+        assertEq(ERC20Mock(asset).balanceOf(account), amount);
+        assertEq(ERC20Mock(rewardToken).balanceOf(account), 0);
+
         // And : positionId should not be burned.
         assertEq(stakingModule.balanceOf(account), 1);
-        // And : Amount staked remaining in position should be correct.
-        (, amountStaked,,) = stakingModule.positionState(positionId);
-        assertEq(amountStaked, 1);
+
+        // And: Position state should be updated correctly.
+        StakingModule.PositionState memory newPositionState;
+        (
+            newPositionState.asset,
+            newPositionState.amountStaked,
+            newPositionState.lastRewardPerTokenPosition,
+            newPositionState.lastRewardPosition
+        ) = stakingModule.positionState(positionId);
+        assertEq(newPositionState.asset, asset);
+        assertEq(newPositionState.amountStaked, positionState.amountStaked - amount);
+        assertEq(newPositionState.lastRewardPerTokenPosition, assetState.lastRewardPerTokenGlobal);
+        assertEq(newPositionState.lastRewardPosition, 0);
+
+        // And : Asset values should be updated correctly
+        StakingModule.AssetState memory newAssetState;
+        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+            stakingModule.assetState(asset);
+        assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
+        assertEq(newAssetState.lastRewardGlobal, 0);
+        assertEq(newAssetState.totalStaked, assetState.totalStaked - amount);
     }
 
     function testFuzz_Success_decreaseLiquidity_ValidAccountingFlow() public {
