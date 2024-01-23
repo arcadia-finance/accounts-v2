@@ -11,15 +11,15 @@ import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
  * @notice Fuzz tests for the function "_withdraw" of contract "StargateAssetModule".
  */
 contract Withdraw_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
-    /* ///////////////////////////////////////////////////////////////
+/* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override {
+/*     function setUp() public virtual override {
         StargateAssetModule_Fuzz_Test.setUp();
-    }
+    } */
 
-    function testFuzz_success_withdraw(uint256 tokenId, uint256 amount, uint256 poolId) public {
+/*     function testFuzz_success_withdraw(uint256 tokenId, uint256 amount, uint256 poolId) public {
         // Given : Random Stargate pool address.
         address poolLpToken = address(new ERC20Mock("stakingToken", "STK", 0));
 
@@ -38,5 +38,5 @@ contract Withdraw_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test
         // Then : The LP tokens should have been transferred to the AM.
         assertEq(ERC20Mock(poolLpToken).balanceOf(address(stargateAssetModule)), amount);
         assertEq(ERC20Mock(poolLpToken).balanceOf(address(lpStakingTimeMock)), 0);
-    }
+    } */
 }

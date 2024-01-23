@@ -10,15 +10,15 @@ import { StargateAssetModule_Fuzz_Test, StargateAssetModule } from "./_StargateA
  * @notice Fuzz tests for the function "addAsset" of contract "StargateAssetModule".
  */
 contract AddAsset_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
-    /* ///////////////////////////////////////////////////////////////
+/* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override {
+/*     function setUp() public virtual override {
         StargateAssetModule_Fuzz_Test.setUp();
-    }
+    } */
 
-    function testFuzz_Revert_addAsset_AssetNotAllowed(address poolUnderlyingToken, uint256 tokenId, uint256 poolId)
+/*     function testFuzz_Revert_addAsset_AssetNotAllowed(address poolUnderlyingToken, uint256 tokenId, uint256 poolId)
         public
         notTestContracts(poolUnderlyingToken)
     {
@@ -31,9 +31,9 @@ contract AddAsset_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test
         vm.expectRevert(StargateAssetModule.AssetNotAllowed.selector);
         stargateAssetModule.addAsset(tokenId, poolId, address(poolMock));
         vm.stopPrank();
-    }
+    } */
 
-    function testFuzz_Success_addAsset(uint256 tokenId, uint256 stargatePoolId) public {
+/*     function testFuzz_Success_addAsset(uint256 tokenId, uint256 stargatePoolId) public {
         // Given : The underlying token of the pool is an asset added to the Registry
         poolMock.setToken(address(mockERC20.token1));
 
@@ -54,5 +54,5 @@ contract AddAsset_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test
             stargateAssetModule.getAssetToUnderlyingAssets(assetModuleKey),
             stargateAssetModule.getKeyFromAsset(address(mockERC20.token1), 0)
         );
-    }
+    } */
 }

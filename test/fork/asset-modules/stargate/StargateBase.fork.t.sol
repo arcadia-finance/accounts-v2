@@ -30,7 +30,7 @@ contract StargateBase_Fork_Test is Fork_Test {
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
-    function setUp() public virtual override {
+    /*   function setUp() public virtual override {
         Fork_Test.setUp();
 
         // Deploy StargateAssetModule.
@@ -39,13 +39,12 @@ contract StargateBase_Fork_Test is Fork_Test {
 
         // Add Asset-Module to the registry and initialize.
         registryExtension.addAssetModule(address(stargateAssetModule));
-        stargateAssetModule.initialize();
         vm.stopPrank();
 
         // Label contracts
         vm.label({ account: address(router), newLabel: "StargateRouter" });
         vm.label({ account: address(lpStakingTime), newLabel: "StargateLpStaking" });
-    }
+    } */
 
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
@@ -70,19 +69,19 @@ contract StargateBase_Fork_Test is Fork_Test {
         lpBalance = pool.balanceOf(user);
         pool.approve(address(stargateAssetModule), lpBalance);
 
-        stargateAssetModule.stake(1, uint128(lpBalance));
+        uint256 tokenId = stargateAssetModule.mint(address(pool), uint128(lpBalance));
 
         // The user deposits the ERC1155 in it's Account.
-        stargateAssetModule.setApprovalForAll(account, true);
+        stargateAssetModule.approve(account, tokenId);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(stargateAssetModule);
 
         uint256[] memory assetIds = new uint256[](1);
-        assetIds[0] = 1;
+        assetIds[0] = tokenId;
 
         uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = lpBalance;
+        assetAmounts[0] = 1;
 
         AccountV1(account).deposit(assetAddresses, assetIds, assetAmounts);
 

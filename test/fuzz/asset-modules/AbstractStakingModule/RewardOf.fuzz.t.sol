@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, StakingModule } from "./_AbstractStakingModule.fuzz.t.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -12,7 +12,7 @@ import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointM
 /**
  * @notice Fuzz tests for the function "rewardOf" of contract "StakingModule".
  */
-contract RewardOf_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
+contract RewardOf_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
     /* ///////////////////////////////////////////////////////////////
@@ -27,46 +27,43 @@ contract RewardOf_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModu
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Success_rewardOf_ZeroBalanceOf(
-        StakingModuleStateForId memory moduleState,
-        uint256 id,
-        address account
+    function testFuzz_Success_rewardOf(
+        StakingModuleStateForAsset memory assetState,
+        StakingModule.PositionState memory positionState,
+        uint256 positionId,
+        uint8 assetDecimals,
+        uint8 rewardTokenDecimals
     ) public {
-        // Given : Valid state
-        moduleState = setStakingModuleState(moduleState, id, account);
+        // Given : Add an asset and reward token pair
+        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        address asset = assets[0];
 
-        // And: Account balance is zero.
-        stakingModule.setBalanceOf(id, 0, account);
+        // Given : Valid state
+        (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
+
+        // And : Account has a non-zero balance
+        vm.assume(positionState.amountStaked > 0);
+
+        // And: State is persisted.
+        setStakingModuleState(assetState, positionState, asset, positionId);
 
         // When : Calling rewardOf()
-        uint256 currentRewardAccount = stakingModule.rewardOf(account, id);
-
-        // Then : It should return zero.
-        assertEq(currentRewardAccount, 0);
-    }
-
-    function testFuzz_Success_rewardOf_NonZeroBalanceOf(
-        StakingModuleStateForId memory moduleState,
-        uint256 id,
-        address account
-    ) public {
-        // Given : Valid state
-        moduleState = setStakingModuleState(moduleState, id, account);
-
-        // And: Account balance is non zero.
-        vm.assume(moduleState.accountBalance > 0);
-
-        // When : Calling rewardOf()
-        uint256 currentRewardAccount = stakingModule.rewardOf(account, id);
+        uint256 currentRewardPosition = stakingModule.rewardOf(positionId);
 
         // Then : It should return the correct value
-        uint256 deltaRewardGlobal = moduleState.currentRewardGlobal - moduleState.lastRewardGlobal;
-        uint256 rewardPerToken =
-            moduleState.lastRewardPerTokenGlobal + deltaRewardGlobal.mulDivDown(1e18, moduleState.totalSupply);
-        uint256 deltaRewardPerToken = rewardPerToken - moduleState.lastRewardPerTokenAccount;
-        uint256 currentRewardAccount_ =
-            moduleState.lastRewardAccount + uint256(moduleState.accountBalance).mulDivDown(deltaRewardPerToken, 1e18);
+        uint256 deltaRewardGlobal = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
+        uint128 rewardPerToken;
+        unchecked {
+            rewardPerToken = assetState.lastRewardPerTokenGlobal
+                + uint128(deltaRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
+        }
+        uint128 deltaRewardPerToken;
+        unchecked {
+            deltaRewardPerToken = rewardPerToken - positionState.lastRewardPerTokenPosition;
+        }
+        uint256 currentRewardPosition_ =
+            positionState.lastRewardPosition + uint256(positionState.amountStaked).mulDivDown(deltaRewardPerToken, 1e18);
 
-        assertEq(currentRewardAccount, currentRewardAccount_);
+        assertEq(currentRewardPosition, currentRewardPosition_);
     }
 }

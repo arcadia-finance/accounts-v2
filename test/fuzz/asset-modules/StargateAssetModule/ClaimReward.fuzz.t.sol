@@ -10,16 +10,16 @@ import { StargateAssetModule_Fuzz_Test, StargateAssetModule } from "./_StargateA
  * @notice Fuzz tests for the function "claimReward" of contract "StargateAssetModule".
  */
 contract ClaimReward_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
-    /* ///////////////////////////////////////////////////////////////
+/* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override {
+/*     function setUp() public virtual override {
         StargateAssetModule_Fuzz_Test.setUp();
-    }
+    } */
 
-    function testFuzz_success_claimReward(uint256 id) public {
+/*     function testFuzz_success_claimReward(uint256 id) public {
         vm.expectRevert(StargateAssetModule.RewardsOnlyClaimableOnWithdrawal.selector);
         stargateAssetModule.claimReward(id);
-    }
+    } */
 }

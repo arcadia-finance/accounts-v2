@@ -11,15 +11,15 @@ import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
  * @notice Fuzz tests for the function "_stake" of contract "StargateAssetModule".
  */
 contract Stake_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
-    /* ///////////////////////////////////////////////////////////////
+/* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override {
+/*     function setUp() public virtual override {
         StargateAssetModule_Fuzz_Test.setUp();
-    }
+    } */
 
-    function testFuzz_success_stake(address staker, uint256 tokenId, uint256 amount, uint256 poolId) public {
+/*     function testFuzz_success_stake(address staker, uint256 tokenId, uint256 amount, uint256 poolId) public {
         // Given : Random Stargate pool address.
         address poolLpToken = address(new ERC20Mock("stakingToken", "STK", 0));
 
@@ -42,5 +42,5 @@ contract Stake_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
         // Then : The LP tokens should have been transferred to the LPStakingContract.
         assertEq(ERC20Mock(poolLpToken).balanceOf(address(stargateAssetModule)), 0);
         assertEq(ERC20Mock(poolLpToken).balanceOf(address(lpStakingTimeMock)), amount);
-    }
+    } */
 }

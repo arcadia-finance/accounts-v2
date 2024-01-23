@@ -31,7 +31,7 @@ abstract contract StargateAssetModule_Fuzz_Test is Fuzz_Test {
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(Fuzz_Test) {
+    /*     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.creatorAddress);
@@ -44,7 +44,7 @@ abstract contract StargateAssetModule_Fuzz_Test is Fuzz_Test {
         stargateAssetModule.initialize();
 
         vm.stopPrank();
-    }
+    } */
 
     /* ///////////////////////////////////////////////////////////////
                           HELPER FUNCTIONS

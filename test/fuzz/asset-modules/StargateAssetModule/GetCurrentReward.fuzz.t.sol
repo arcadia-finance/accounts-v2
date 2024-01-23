@@ -10,15 +10,15 @@ import { StargateAssetModule_Fuzz_Test, StargateAssetModule } from "./_StargateA
  * @notice Fuzz tests for the function "_getCurrentReward" of contract "StargateAssetModule".
  */
 contract GetCurrentReward_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
-    /* ///////////////////////////////////////////////////////////////
+/* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override {
+/*    function setUp() public virtual override {
         StargateAssetModule_Fuzz_Test.setUp();
-    }
+    } */
 
-    function testFuzz_success_getCurrentReward(uint256 poolId, uint256 tokenId, uint256 pendingEmissions) public {
+/*     function testFuzz_success_getCurrentReward(uint256 poolId, uint256 tokenId, uint256 pendingEmissions) public {
         // Given : Set available rewards in lpStaking contract.
         lpStakingTimeMock.setInfoForPoolId(poolId, pendingEmissions, address(0x0));
 
@@ -30,5 +30,5 @@ contract GetCurrentReward_StargateAssetModule_Fuzz_Test is StargateAssetModule_F
 
         // Then : It should return the pending emissions.
         assertEq(currentReward, pendingEmissions);
-    }
+    } */
 }

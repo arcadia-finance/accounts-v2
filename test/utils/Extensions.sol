@@ -599,77 +599,70 @@ contract MultiCallExtension is ActionMultiCall {
 }
 
 abstract contract StakingModuleExtension is StakingModule {
-    function setLastRewardGlobal(uint256 id, uint128 balance) public {
-        tokenState[id].lastRewardGlobal = balance;
+    constructor(string memory name_, string memory symbol_) StakingModule(name_, symbol_) { }
+
+    function setLastRewardGlobal(address asset, uint128 balance) public {
+        assetState[asset].lastRewardGlobal = balance;
     }
 
-    function setTotalSupply(uint256 id, uint128 totalSupply_) public {
-        tokenState[id].totalSupply = totalSupply_;
+    function setAssetAndRewardToken(address asset, ERC20 rewardToken) public {
+        assetToRewardToken[asset] = rewardToken;
     }
 
-    function setLastRewardAccount(uint256 id, uint128 rewards_, address account) public {
-        accountState[account][id].lastRewardAccount = rewards_;
+    function setAssetInPosition(address asset, uint256 tokenId) public {
+        positionState[tokenId].asset = asset;
     }
 
-    function setLastRewardPerTokenAccount(uint256 id, uint128 rewardPaid, address account) public {
-        accountState[account][id].lastRewardPerTokenAccount = rewardPaid;
+    function setTotalStaked(address asset, uint128 totalStaked_) public {
+        assetState[asset].totalStaked = totalStaked_;
     }
 
-    function setLastRewardPerTokenGlobal(uint256 id, uint128 amount) public {
-        tokenState[id].lastRewardPerTokenGlobal = amount;
+    function setLastRewardPerTokenGlobal(address asset, uint128 amount) public {
+        assetState[asset].lastRewardPerTokenGlobal = amount;
     }
 
-    function setBalanceOf(uint256 id, uint256 amount, address account) public {
-        balanceOf[account][id] = amount;
+    function setLastRewardPosition(uint256 id, uint128 rewards_) public {
+        positionState[id].lastRewardPosition = rewards_;
+    }
+
+    function setLastRewardPerTokenPosition(uint256 id, uint128 rewardPaid) public {
+        positionState[id].lastRewardPerTokenPosition = rewardPaid;
+    }
+
+    function setAmountStakedForPosition(uint256 id, uint256 amount) public {
+        positionState[id].amountStaked = uint128(amount);
     }
 
     function getIdCounter() public view returns (uint256 lastId_) {
-        lastId_ = lastId;
+        lastId_ = lastPositionId;
     }
 
-    function getCurrentBalances(address account, uint256 id)
+    function setOwnerOfPositionId(address owner, uint256 positionId) public {
+        _ownerOf[positionId] = owner;
+    }
+
+    function getRewardBalances(AssetState memory assetState_, PositionState memory positionState_)
         public
         view
-        returns (
-            uint256 currentRewardPerToken,
-            uint256 currentRewardGlobal,
-            uint256 totalSupply_,
-            uint256 currentRewardAccount
-        )
+        returns (AssetState memory, PositionState memory)
     {
-        return _getCurrentBalances(account, id);
+        return _getRewardBalances(assetState_, positionState_);
     }
 
-    function addNewStakingToken(address asset, address rewardToken) public returns (uint256 tokenId) {
-        tokenId = _addNewStakingToken(asset, rewardToken);
+    function mintIdTo(address to, uint256 tokenId) public {
+        _safeMint(to, tokenId);
     }
 }
 
 contract StargateAssetModuleExtension is StargateAssetModule {
     constructor(address registry, address stargateLpStaking_) StargateAssetModule(registry, stargateLpStaking_) { }
 
-    function setUnderlyingTokenForId(uint256 id, address underlyingToken_) public {
-        underlyingToken[id] = ERC20(underlyingToken_);
+    function setAssetToUnderlyingAsset(address asset, address underlyingAsset) public {
+        assetToUnderlyingAsset[asset] = underlyingAsset;
     }
 
-    function setAssetKeyToPool(bytes32 assetKey, address pool) public {
-        assetKeyToPool[assetKey] = pool;
-    }
-
-    function setTokenIdToPoolId(uint256 tokenId, uint256 poolId) public {
-        tokenIdToPoolId[tokenId] = poolId;
-    }
-
-    function getTokenIdToPoolId(uint256 tokenId) public view returns (uint256 poolId) {
-        poolId = tokenIdToPoolId[tokenId];
-    }
-
-    function getAssetToUnderlyingAssets(bytes32 assetKey) public view returns (bytes32 underlyingAssetKey) {
-        underlyingAssetKey = assetToUnderlyingAssets[assetKey][0];
-    }
-
-    function getAssetKeyToPool(bytes32 assetKey) public view returns (address pool) {
-        pool = assetKeyToPool[assetKey];
+    function setAssetToPoolId(address asset, uint256 poolId) public {
+        assetToPoolId[asset] = poolId;
     }
 
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
@@ -699,22 +692,20 @@ contract StargateAssetModuleExtension is StargateAssetModule {
     }
 
     function getIdCounter() public view returns (uint256 lastId_) {
-        lastId_ = lastId;
+        lastId_ = lastPositionId;
     }
 
-    function stakeExtension(uint256 id, uint256 amount) public {
-        _stake(id, amount);
+    function stakeExtension(address asset, uint256 amount) public {
+        _stake(asset, amount);
     }
 
-    function withdrawExtension(uint256 id, uint256 amount) public {
-        _withdraw(id, amount);
+    function withdrawExtension(address asset, uint256 amount) public {
+        _withdraw(asset, amount);
     }
 
-    function getCurrentReward(uint256 id) public view returns (uint256 currentReward) {
-        currentReward = _getCurrentReward(id);
+    function getCurrentReward(address asset) public view returns (uint256 currentReward) {
+        currentReward = _getCurrentReward(asset);
     }
 
-    function addAsset(uint256 tokenId, uint256 stargatePoolId, address stargatePool) public {
-        _addAsset(tokenId, stargatePoolId, stargatePool);
-    }
+    function tokenURI(uint256 id) public view override returns (string memory) { }
 }
