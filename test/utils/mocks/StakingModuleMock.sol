@@ -9,9 +9,9 @@ import { StakingModuleExtension } from "../Extensions.sol";
 contract StakingModuleMock is StakingModuleExtension {
     constructor(string memory name_, string memory symbol_) StakingModuleExtension(name_, symbol_) { }
 
-    mapping(address asset => uint128 rewardBalance) public currentRewardGlobal;
+    mapping(address asset => uint256 rewardBalance) public currentRewardGlobal;
 
-    function setActualRewardBalance(address asset, uint128 amount) public {
+    function setActualRewardBalance(address asset, uint256 amount) public {
         currentRewardGlobal[asset] = amount;
     }
 
