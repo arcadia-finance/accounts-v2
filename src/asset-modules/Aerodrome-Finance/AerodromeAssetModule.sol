@@ -160,7 +160,7 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
         (, uint256 positionId) = _getAssetFromKey(assetKey);
 
-        // Cache asset
+        // Cache asset and staked balance
         address asset = positionState[positionId].asset;
 
         // The untrusted reserves from the pair, these can be manipulated!!!
@@ -169,12 +169,13 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
         // Note : not sure it makes sense since position has a positive amount staked
         if (reserve0 == 0 || reserve1 == 0) revert ZeroReserves();
 
-        // Cache totalSupply
+        // Cache totalSupply and amountStaked
         uint256 totalSupply = IPool(asset).totalSupply();
+        uint256 amountStaked = positionState[positionId].amountStaked;
 
         underlyingAssetsAmounts = new uint256[](3);
-        underlyingAssetsAmounts[0] = reserve0.mulDivDown(amount, totalSupply);
-        underlyingAssetsAmounts[1] = reserve1.mulDivDown(amount, totalSupply);
+        underlyingAssetsAmounts[0] = reserve0.mulDivDown(amountStaked, totalSupply);
+        underlyingAssetsAmounts[1] = reserve1.mulDivDown(amountStaked, totalSupply);
         underlyingAssetsAmounts[2] = rewardOf(positionId);
 
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
