@@ -39,4 +39,9 @@ contract AerodromePoolMock {
         reserve1 += amount1;
         totalSupply += amount0 + amount1;
     }
+
+    function setTokens(address token0_, address token1_) public {
+        token0 = token0_;
+        token1 = token1_;
+    }
 }

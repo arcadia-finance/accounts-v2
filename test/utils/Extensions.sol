@@ -710,22 +710,26 @@ contract StargateAssetModuleExtension is StargateAssetModule {
 }
 
 contract AerodromeAssetModuleExtension is AerodromeAssetModule {
-    constructor(address registry) StargateAssetModule(registry) { }
+    constructor(address registry) AerodromeAssetModule(registry) { }
 
-    function setAssetToUnderlyingAsset(address asset, address underlyingAsset) public {
-        assetToUnderlyingAsset[asset] = underlyingAsset;
+    function setAssetToUnderlyingAssets(address asset, address token0, address token1, address rewardToken_) public {
+        bytes32[] memory underlyingAssets_ = new bytes32[](3);
+        underlyingAssets_[0] = _getKeyFromAsset(token0, 0);
+        underlyingAssets_[1] = _getKeyFromAsset(token1, 0);
+        underlyingAssets_[2] = _getKeyFromAsset(rewardToken_, 0);
+        assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
+    }
+
+    function claimReward(address asset) public {
+        _claimReward(asset);
     }
 
     function setTotalStakedForAsset(address asset, uint128 totalStaked_) public {
         assetState[asset].totalStaked = totalStaked_;
     }
 
-    function setAssetToPoolId(address asset, uint256 poolId) public {
-        assetToPoolId[asset] = poolId;
-    }
-
-    function setAssetToRewardToken(address asset, ERC20 rewardToken_) public {
-        assetToRewardToken[asset] = rewardToken_;
+    function setAssetToGauge(address asset, address gauge) public {
+        assetToGauge[asset] = gauge;
     }
 
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
@@ -776,10 +780,6 @@ contract AerodromeAssetModuleExtension is AerodromeAssetModule {
 
     function setAmountStakedForPosition(uint256 id, uint256 amount) public {
         positionState[id].amountStaked = uint128(amount);
-    }
-
-    function setAssetToConversionRate(address asset, uint256 conversionRate) public {
-        assetToConversionRate[asset] = conversionRate;
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) { }

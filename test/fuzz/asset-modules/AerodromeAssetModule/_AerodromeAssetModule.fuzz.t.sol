@@ -15,9 +15,9 @@ import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 /**
- * @notice Common logic needed by "StargateAssetModule" fuzz tests.
+ * @notice Common logic needed by "AbstractAssetModule" fuzz tests.
  */
-abstract contract StargateAssetModule_Fuzz_Test is Fuzz_Test {
+abstract contract AerodromeAssetModule_Fuzz_Test is Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -41,6 +41,7 @@ abstract contract StargateAssetModule_Fuzz_Test is Fuzz_Test {
 
         pool = new AerodromePoolMock();
         gauge = new AerodromeGaugeMock();
+        gauge.setStakingToken(address(pool));
         aerodromeAssetModule = new AerodromeAssetModuleExtension(address(registryExtension));
 
         registryExtension.addAssetModule(address(aerodromeAssetModule));

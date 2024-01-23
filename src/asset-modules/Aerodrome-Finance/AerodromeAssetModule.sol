@@ -30,8 +30,8 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Maps a Stargate pool to its underlying asset.
-    mapping(address asset => address[] underlyingAssets) public assetToUnderlyingAssets;
+    // Maps an Aerodrome pool to its underlying assets.
+    mapping(bytes32 asset => bytes32[] underlyingAssets) public assetToUnderlyingAssets;
     mapping(address asset => address gauge) public assetToGauge;
 
     /* //////////////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
      * @param gauge The id of the stargatePool used in the lpStakingTime contract.
      */
     // note : check for malicious pool that could be done
-    // note : Check for reward token (where are extra incentives claimable ?)
+    // note : Check if onlyOwner needed
     function addAsset(address pool, address gauge) external onlyOwner {
         if (assetToGauge[pool] != address(0)) revert AssetAlreadyAdded();
         if (IGauge(gauge).stakingToken() != pool) revert PoolOrGaugeNotValid();
@@ -89,13 +89,20 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
 
         if (!IRegistry(REGISTRY).isAllowed(token0, 0)) revert AssetNotAllowed();
         if (!IRegistry(REGISTRY).isAllowed(token1, 0)) revert AssetNotAllowed();
-        if (!IRegistry(REGISTRY).isAllowed(address(rewardToken), 0)) revert RewardTokenNotAllowed();
 
-        address[] memory underlyingAssets = new address[](2);
-        underlyingAssets[0] = token0;
-        underlyingAssets[1] = token1;
+        // Cache rewardToken
+        address rewardToken_ = address(rewardToken);
+        if (!IRegistry(REGISTRY).isAllowed(rewardToken_, 0)) revert RewardTokenNotAllowed();
 
-        assetToUnderlyingAssets[pool] = underlyingAssets;
+        assetToRewardToken[pool] = rewardToken;
+        assetToGauge[pool] = gauge;
+
+        bytes32[] memory underlyingAssetsKey = new bytes32[](3);
+        underlyingAssetsKey[0] = _getKeyFromAsset(token0, 0);
+        underlyingAssetsKey[1] = _getKeyFromAsset(token1, 0);
+        underlyingAssetsKey[2] = _getKeyFromAsset(rewardToken_, 0);
+
+        assetToUnderlyingAssets[_getKeyFromAsset(pool, 0)] = underlyingAssetsKey;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -123,13 +130,8 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
         returns (bytes32[] memory underlyingAssetKeys)
     {
         (, uint256 positionId) = _getAssetFromKey(assetKey);
-        // Cache Asset
-        address asset = positionState[positionId].asset;
-
-        underlyingAssetKeys = new bytes32[](3);
-        underlyingAssetKeys[0] = _getKeyFromAsset(assetToUnderlyingAssets[asset][0], 0);
-        underlyingAssetKeys[1] = _getKeyFromAsset(assetToUnderlyingAssets[asset][1], 0);
-        underlyingAssetKeys[2] = _getKeyFromAsset(address(rewardToken), 0);
+        bytes32 positionAssetKey = _getKeyFromAsset(positionState[positionId].asset, 0);
+        underlyingAssetKeys = assetToUnderlyingAssets[positionAssetKey];
     }
 
     /**
