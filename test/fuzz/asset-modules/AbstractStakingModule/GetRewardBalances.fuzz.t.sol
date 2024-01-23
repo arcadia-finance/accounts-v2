@@ -112,6 +112,66 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         stakingModule.getRewardBalances(assetState_, positionState);
     }
 
+    function testFuzz_Revert_getRewardBalances_NonZeroTotalStaked_OverflowDeltaRewardPosition(
+        StakingModuleStateForAsset memory assetState,
+        StakingModule.PositionState memory positionState,
+        uint256 positionId,
+        uint8 assetDecimals,
+        uint8 rewardTokenDecimals
+    ) public {
+        // Given : Add an asset and reward token pair
+        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        address asset = assets[0];
+
+        // Given: More than 3 gwei is staked.
+        assetState.totalStaked = uint128(bound(assetState.totalStaked, 1e18 + 1, type(uint128).max));
+
+        // And: totalStaked should be >= to amountStakedForPosition (invariant).
+        positionState.amountStaked = uint128(bound(positionState.amountStaked, 1e18 + 1, assetState.totalStaked));
+
+        // And: deltaRewardPerToken is smaller or equal as type(uint128).max (no overflow safeCastTo128).
+        uint256 deltaReward;
+        unchecked {
+            deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
+        }
+        deltaReward = bound(deltaReward, 1, uint256(type(uint128).max) * assetState.totalStaked / 1e18);
+
+        // And: currentRewardGlobal is smaller or equal than type(uint128).max (no overflow safeCastTo128).
+        assetState.currentRewardGlobal = uint128(bound(assetState.currentRewardGlobal, deltaReward, type(uint128).max));
+        assetState.lastRewardGlobal = uint128(assetState.currentRewardGlobal - deltaReward);
+
+        // Calculate the new rewardPerTokenGlobal.
+        uint256 deltaRewardPerToken = deltaReward * 1e18 / assetState.totalStaked;
+        uint128 currentRewardPerTokenGlobal;
+        unchecked {
+            currentRewardPerTokenGlobal = assetState.lastRewardPerTokenGlobal + uint128(deltaRewardPerToken);
+        }
+
+        // And: deltaReward of the position is bigger than type(uint128).max (overflow).
+        unchecked {
+            deltaRewardPerToken = currentRewardPerTokenGlobal - positionState.lastRewardPerTokenPosition;
+        }
+        deltaRewardPerToken = bound(
+            deltaRewardPerToken, type(uint128).max * uint256(1e18 + 1) / positionState.amountStaked, type(uint128).max
+        );
+        unchecked {
+            positionState.lastRewardPerTokenPosition = currentRewardPerTokenGlobal - uint128(deltaRewardPerToken);
+        }
+
+        // And: State is persisted.
+        setStakingModuleState(assetState, positionState, asset, positionId);
+
+        // When: Calling _getRewardBalances().
+        // Then: transaction reverts in safe cast.
+        StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
+            lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
+            lastRewardGlobal: assetState.lastRewardGlobal,
+            totalStaked: assetState.totalStaked
+        });
+        vm.expectRevert(bytes(""));
+        stakingModule.getRewardBalances(assetState_, positionState);
+    }
+
     function testFuzz_Revert_getRewardBalances_NonZeroTotalStaked_OverflowLastRewardPosition(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
@@ -126,6 +186,9 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // And: more than 1 gwei is staked.
         assetState.totalStaked = uint128(bound(assetState.totalStaked, 1, type(uint128).max));
 
+        // And: totalStaked should be >= to amountStakedForPosition (invariant).
+        positionState.amountStaked = uint128(bound(positionState.amountStaked, 1, assetState.totalStaked));
+
         // And: deltaRewardPerToken is smaller or equal as type(uint128).max (no overflow safeCastTo128).
         uint256 deltaReward;
         unchecked {
@@ -137,23 +200,30 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         assetState.currentRewardGlobal = uint128(bound(assetState.currentRewardGlobal, deltaReward, type(uint128).max));
         assetState.lastRewardGlobal = uint128(assetState.currentRewardGlobal - deltaReward);
 
-        // And: totalStaked should be >= to amountStakedForPosition (invariant).
-        positionState.amountStaked = uint128(bound(positionState.amountStaked, 1, assetState.totalStaked));
-
-        // And: previously earned rewards for Account + new rewards overflow.
-        // -> deltaReward must be greater as 1
+        // Calculate the new rewardPerTokenGlobal.
         uint256 deltaRewardPerToken = deltaReward * 1e18 / assetState.totalStaked;
         uint128 currentRewardPerTokenGlobal;
         unchecked {
             currentRewardPerTokenGlobal = assetState.lastRewardPerTokenGlobal + uint128(deltaRewardPerToken);
+        }
+
+        // And: previously earned rewards for Account + new rewards overflow.
+        // -> deltaReward must be greater as 1
+        unchecked {
+            deltaRewardPerToken = currentRewardPerTokenGlobal - positionState.lastRewardPerTokenPosition;
         }
         deltaRewardPerToken = bound(deltaRewardPerToken, 1e18 / positionState.amountStaked + 1, type(uint128).max);
         unchecked {
             positionState.lastRewardPerTokenPosition = currentRewardPerTokenGlobal - uint128(deltaRewardPerToken);
         }
         deltaReward = deltaRewardPerToken * positionState.amountStaked / 1e18;
-        positionState.lastRewardPosition =
-            uint128(bound(positionState.lastRewardPosition, type(uint128).max - deltaReward + 1, type(uint128).max));
+        positionState.lastRewardPosition = uint128(
+            bound(
+                positionState.lastRewardPosition,
+                deltaReward > type(uint128).max ? 0 : type(uint128).max - deltaReward + 1,
+                type(uint128).max
+            )
+        );
 
         // And: State is persisted.
         setStakingModuleState(assetState, positionState, asset, positionId);

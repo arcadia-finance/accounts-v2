@@ -77,47 +77,58 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         StakingModuleStateForAsset memory stakingModuleStateForAsset,
         StakingModule.PositionState memory stakingModuleStateForPosition
     ) public view returns (StakingModuleStateForAsset memory, StakingModule.PositionState memory) {
-        // Given: Current reward balance should be at least equal to lastRewardGlobal (invariant).
-        stakingModuleStateForAsset.currentRewardGlobal = uint128(
-            bound(
-                stakingModuleStateForAsset.currentRewardGlobal,
-                stakingModuleStateForAsset.lastRewardGlobal,
-                type(uint128).max
-            )
-        );
-        uint256 deltaReward =
-            stakingModuleStateForAsset.currentRewardGlobal - stakingModuleStateForAsset.lastRewardGlobal;
-
-        // And: deltaRewardPerToken is smaller or equal as type(uint128).max (no overflow safeCastTo128).
-        // -> totalStaked is bigger as deltaReward * 1e18 / type(uint128).max (rounded up).
-        stakingModuleStateForAsset.totalStaked = uint128(
-            bound(stakingModuleStateForAsset.totalStaked, 1 + deltaReward * 1e18 / type(uint128).max, type(uint128).max)
-        );
-        uint128 deltaRewardPerToken = uint128(deltaReward * 1e18 / stakingModuleStateForAsset.totalStaked);
-        uint128 currentRewardPerTokenGlobal;
-        unchecked {
-            currentRewardPerTokenGlobal = stakingModuleStateForAsset.lastRewardPerTokenGlobal + deltaRewardPerToken;
-        }
+        // Given: More than 1 gwei is staked.
+        stakingModuleStateForAsset.totalStaked =
+            uint128(bound(stakingModuleStateForAsset.totalStaked, 1, type(uint128).max));
 
         // And: totalStaked should be >= to amountStakedForPosition (invariant).
         stakingModuleStateForPosition.amountStaked =
             uint128(bound(stakingModuleStateForPosition.amountStaked, 0, stakingModuleStateForAsset.totalStaked));
 
-        // And: deltaReward of the position is smaller or equal to type(uint128).max (overflow).
+        // And: deltaRewardPerToken is smaller or equal as type(uint128).max (no overflow safeCastTo128).
+        uint256 deltaReward;
+        unchecked {
+            deltaReward = stakingModuleStateForAsset.currentRewardGlobal - stakingModuleStateForAsset.lastRewardGlobal;
+        }
+        deltaReward = bound(deltaReward, 1, uint256(type(uint128).max) * stakingModuleStateForAsset.totalStaked / 1e18);
+
+        // And: currentRewardGlobal is smaller or equal than type(uint128).max (no overflow safeCastTo128).
+        stakingModuleStateForAsset.currentRewardGlobal =
+            uint128(bound(stakingModuleStateForAsset.currentRewardGlobal, deltaReward, type(uint128).max));
+        stakingModuleStateForAsset.lastRewardGlobal =
+            uint128(stakingModuleStateForAsset.currentRewardGlobal - deltaReward);
+
+        // Calculate the new rewardPerTokenGlobal.
+        uint256 deltaRewardPerToken = deltaReward * 1e18 / stakingModuleStateForAsset.totalStaked;
+        uint128 currentRewardPerTokenGlobal;
+        unchecked {
+            currentRewardPerTokenGlobal =
+                stakingModuleStateForAsset.lastRewardPerTokenGlobal + uint128(deltaRewardPerToken);
+        }
+
+        // And: Previously earned rewards for Account + new rewards does not overflow.
+        // -> deltaReward of the position is smaller or equal to type(uint128).max (overflow).
         // -> deltaRewardPerToken * positionState_.amountStaked / 1e18 <= type(uint128).max;
         unchecked {
             deltaRewardPerToken = currentRewardPerTokenGlobal - stakingModuleStateForPosition.lastRewardPerTokenPosition;
         }
         if (stakingModuleStateForPosition.amountStaked > 0) {
-            deltaRewardPerToken =
-                uint128(bound(deltaRewardPerToken, 0, type(uint128).max / stakingModuleStateForPosition.amountStaked));
+            deltaRewardPerToken = uint128(
+                bound(
+                    deltaRewardPerToken,
+                    0,
+                    type(uint128).max * uint256(1e18) / stakingModuleStateForPosition.amountStaked
+                )
+            );
         }
         unchecked {
-            stakingModuleStateForPosition.lastRewardPerTokenPosition = currentRewardPerTokenGlobal - deltaRewardPerToken;
+            stakingModuleStateForPosition.lastRewardPerTokenPosition =
+                currentRewardPerTokenGlobal - uint128(deltaRewardPerToken);
         }
         deltaReward = deltaRewardPerToken * uint256(stakingModuleStateForPosition.amountStaked) / 1e18;
 
-        // And: previously earned rewards for Account + new rewards should not be > type(uint128).max.
+        // And: Previously earned rewards for Account + new rewards does not overflow.
+        // -> lastRewardPosition + deltaReward <= type(uint128).max;
         stakingModuleStateForPosition.lastRewardPosition =
             uint128(bound(stakingModuleStateForPosition.lastRewardPosition, 0, type(uint128).max - deltaReward));
 

@@ -63,7 +63,11 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         StakingModule.PositionState memory positionState,
         address asset,
         uint128 amount
-    ) public {
+    ) public notTestContracts(account) {
+        // Given : account != zero address
+        vm.assume(account != address(0));
+        vm.assume(account != address(stakingModule));
+
         // Given : Valid state
         (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
 
