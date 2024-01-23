@@ -142,15 +142,13 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         if (amount == 0) revert ZeroAmount();
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
-        // Cache the asset.
-        address asset = positionState[positionId].asset;
+        // Cache the old positionState and assetState.
+        PositionState memory positionState_ = positionState[positionId];
+        address asset = positionState_.asset;
+        AssetState memory assetState_ = assetState[asset];
 
         // Need to transfer before increasing liquidity or ERC777s could reenter.
         ERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
-
-        // Cache the old positionState and assetState.
-        PositionState memory positionState_ = positionState[positionId];
-        AssetState memory assetState_ = assetState[asset];
 
         // Calculate the new reward balances.
         (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
