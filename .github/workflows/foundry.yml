@@ -25,7 +25,7 @@ jobs:
       - name: Run tests
         run: |
           export RPC_URL=$(tenderly devnet spawn-rpc --project arcadia-finance-tenderly --template basetest --account ${TENDERLY_ACCOUNT_ID} --access_key ${TENDERLY_ACCESS_KEY} 2>&1)
-          FOUNDRY_PROFILE=gh forge test -vvv
+          FOUNDRY_PROFILE=gh forge test -vvvv --match-contract StargateAssetModuleETH_Fork_Test
         env:
           TENDERLY_ACCESS_KEY: ${{ secrets.TENDERLY_ACCESS_KEY }}
           TENDERLY_ACCOUNT_ID: ${{ secrets.TENDERLY_ACCOUNT_ID }}

@@ -112,8 +112,8 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @param asset The contract address of the asset.
      * @return allowed A boolean, indicating if the asset is allowed.
      */
-    function isAllowed(address asset, uint256) public view override returns (bool) {
-        if (asset == address(this)) return true;
+    function isAllowed(address asset, uint256) public view override returns (bool allowed) {
+        if (asset == address(this)) allowed = true;
     }
 
     /**
