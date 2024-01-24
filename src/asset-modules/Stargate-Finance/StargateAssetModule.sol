@@ -6,9 +6,9 @@ pragma solidity 0.8.22;
 
 import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "../AbstractDerivedAssetModule.sol";
+import { ERC20, StakingModule } from "../staking-module/AbstractStakingModule.sol";
 import { ILpStakingTime } from "./interfaces/ILpStakingTime.sol";
 import { IPool } from "./interfaces/IPool.sol";
-import { StakingModule, ERC20 } from "../staking-module/AbstractStakingModule.sol";
 
 /**
  * @title Asset-Module for Stargate Finance pools
@@ -32,12 +32,16 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Maps a Stargate pool to its underlying asset.
-    mapping(address asset => address underlyingAsset) public assetToUnderlyingAsset;
-    // Maps a Stargate Pool to its specific pool id as referred to in the Stargate "LP_STAKING_TIME.sol" contract.
-    mapping(address asset => uint256 poolId) public assetToPoolId;
-    // Maps a Stargate Pool to its conversion rate, which is used in Stargate pools to convert from Local to Shared Decimals.
-    mapping(address asset => uint256 conversionRate) public assetToConversionRate;
+    // Maps a Stargate Pool to its pool specific information.
+    mapping(address asset => PoolInformation) public poolInformation;
+
+    // Struct with additional information for a Stargate Pool.
+    struct PoolInformation {
+        // The contract of the underlying asset of the Stargate pool.
+        address underlyingAsset;
+        // The Stargate pool id in the "LP_STAKING_TIME.sol" contract.
+        uint96 poolId;
+    }
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -45,8 +49,6 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
 
     error AssetAndRewardPairAlreadySet();
     error BadPool();
-    error InvalidTokenDecimals();
-    error PoolIdDoesNotMatch();
     error RewardTokenNotAllowed();
 
     /* //////////////////////////////////////////////////////////////
@@ -76,6 +78,8 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @dev Will revert if called more than once.
      */
     function initialize() external onlyOwner {
+        inAssetModule[address(this)] = true;
+
         IRegistry(REGISTRY).addAsset(address(this));
     }
 
@@ -87,21 +91,18 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @notice Adds a new Stargate Pool to the StargateAssetModule.
      * @param poolId The id of the stargatePool used in the LP_STAKING_TIME contract.
      */
-    function addAsset(uint256 poolId) external {
+    function addAsset(uint96 poolId) external {
+        // poolInfo is an array -> will revert on a non-existing poolId.
         (address stargatePool,,,) = LP_STAKING_TIME.poolInfo(poolId);
         if (stargatePool == address(0)) revert BadPool();
 
-        if (ERC20(stargatePool).decimals() > 18) revert InvalidTokenDecimals();
         if (address(assetToRewardToken[stargatePool]) != address(0)) revert AssetAndRewardPairAlreadySet();
 
-        address poolUnderlyingToken = IPool(stargatePool).token();
-
-        if (!IRegistry(REGISTRY).isAllowed(poolUnderlyingToken, 0)) revert AssetNotAllowed();
+        address underlyingAsset = IPool(stargatePool).token();
+        if (!IRegistry(REGISTRY).isAllowed(underlyingAsset, 0)) revert AssetNotAllowed();
 
         assetToRewardToken[stargatePool] = REWARD_TOKEN;
-        assetToPoolId[stargatePool] = poolId;
-        assetToUnderlyingAsset[stargatePool] = poolUnderlyingToken;
-        assetToConversionRate[stargatePool] = IPool(stargatePool).convertRate();
+        poolInformation[stargatePool] = PoolInformation({ underlyingAsset: underlyingAsset, poolId: poolId });
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -111,10 +112,11 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     /**
      * @notice Checks for a token address and the corresponding id if it is allowed.
      * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
      * @return allowed A boolean, indicating if the asset is allowed.
      */
-    function isAllowed(address asset, uint256) public view override returns (bool allowed) {
-        if (asset == address(this)) allowed = true;
+    function isAllowed(address asset, uint256 assetId) public view override returns (bool allowed) {
+        if (asset == address(this) && assetId <= lastPositionId) allowed = true;
     }
 
     /**
@@ -129,10 +131,10 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         returns (bytes32[] memory underlyingAssetKeys)
     {
         (, uint256 positionId) = _getAssetFromKey(assetKey);
-        address underlyingAsset = assetToUnderlyingAsset[positionState[positionId].asset];
+        address pool = positionState[positionId].asset;
 
         underlyingAssetKeys = new bytes32[](2);
-        underlyingAssetKeys[0] = _getKeyFromAsset(underlyingAsset, 0);
+        underlyingAssetKeys[0] = _getKeyFromAsset(poolInformation[pool].underlyingAsset, 0);
         underlyingAssetKeys[1] = _getKeyFromAsset(address(REWARD_TOKEN), 0);
     }
 
@@ -157,19 +159,13 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         (, uint256 positionId) = _getAssetFromKey(assetKey);
         PositionState storage positionState_ = positionState[positionId];
 
-        // Cache Stargate pool address.
-        address pool = positionState_.asset;
-        // Cache totalLiquidity.
-        uint256 totalLiquidity = IPool(pool).totalLiquidity();
-
-        // Calculate underlyingAssets amounts.
-        // "amountSD" is used in Stargate contracts and stands for amount in Shared Decimals, which should be converted to Local Decimals via convertRate().
-        // "amountSD" will always be smaller or equal to amount in Local Decimals.
-        // For an existing assetKey, the totalSupply can not be zero, as a non-zero amount is staked via this contract for the position.
-        uint256 amountSD = uint256(positionState_.amountStaked).mulDivDown(totalLiquidity, IPool(pool).totalSupply());
-
         underlyingAssetsAmounts = new uint256[](2);
-        underlyingAssetsAmounts[0] = amountSD * assetToConversionRate[pool];
+        // Calculate the amount of underlying tokens of the staked LP position.
+        // "amountLPtoLD()" converts an amount of LP tokens into the corresponding amount of underlying tokens (LD stands for Local Decimals).
+        // "amountLPtoLD()" reverts when totalSupply of the pool is zero,
+        // but for an existing assetKey, the totalSupply cannot be zero, as only non-zero amounts can be staked via this contract.
+        underlyingAssetsAmounts[0] = IPool(positionState_.asset).amountLPtoLD(positionState_.amountStaked);
+        // Calculate the amount of reward tokens of the position.
         underlyingAssetsAmounts[1] = rewardOf(positionId);
 
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
@@ -185,12 +181,10 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @param amount The amount of Asset to stake.
      */
     function _stake(address asset, uint256 amount) internal override {
-        if (ERC20(asset).allowance(address(this), address(LP_STAKING_TIME)) < amount) {
-            ERC20(asset).approve(address(LP_STAKING_TIME), type(uint256).max);
-        }
+        ERC20(asset).approve(address(LP_STAKING_TIME), amount);
 
         // Stake asset
-        LP_STAKING_TIME.deposit(assetToPoolId[asset], amount);
+        LP_STAKING_TIME.deposit(poolInformation[asset].poolId, amount);
     }
 
     /**
@@ -200,7 +194,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      */
     function _withdraw(address asset, uint256 amount) internal override {
         // Withdraw asset
-        LP_STAKING_TIME.withdraw(assetToPoolId[asset], amount);
+        LP_STAKING_TIME.withdraw(poolInformation[asset].poolId, amount);
     }
 
     /**
@@ -209,7 +203,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @dev Withdrawing a zero amount will trigger the claim for rewards.
      */
     function _claimReward(address asset) internal override {
-        LP_STAKING_TIME.withdraw(assetToPoolId[asset], 0);
+        LP_STAKING_TIME.withdraw(poolInformation[asset].poolId, 0);
     }
 
     /**
@@ -218,7 +212,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      * @return currentReward The amount of reward tokens that can be claimed.
      */
     function _getCurrentReward(address asset) internal view override returns (uint256 currentReward) {
-        currentReward = LP_STAKING_TIME.pendingEmissionToken(assetToPoolId[asset], address(this));
+        currentReward = LP_STAKING_TIME.pendingEmissionToken(poolInformation[asset].poolId, address(this));
     }
 
     function tokenURI(uint256 id) public view virtual override returns (string memory) { }

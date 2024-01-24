@@ -50,6 +50,9 @@ contract Initialize_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Te
         assetModule.initialize();
 
         // Then : The Asset Module should be added to the Registry as an asset.
-        registryExtension.inRegistry(address(assetModule));
+        assertTrue(registryExtension.inRegistry(address(assetModule)));
+
+        // And : The assetModule is added to itself as an asset.
+        assertTrue(assetModule.inAssetModule(address(assetModule)));
     }
 }

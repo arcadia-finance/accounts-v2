@@ -23,7 +23,7 @@ contract GetCurrentReward_StargateAssetModule_Fuzz_Test is StargateAssetModule_F
     /////////////////////////////////////////////////////////////// */
 
     // Note : This will mainly be tested via fork testing to ensure pendingEmissionToken() function works as intended in lpStakingTime.sol.
-    function testFuzz_success_getCurrentReward(uint256 poolId, uint256 pendingEmissions) public {
+    function testFuzz_success_getCurrentReward(uint96 poolId, uint256 pendingEmissions) public {
         // Given : The pool id is set for the Asset in the AM.
         stargateAssetModule.setAssetToPoolId(address(poolMock), poolId);
 

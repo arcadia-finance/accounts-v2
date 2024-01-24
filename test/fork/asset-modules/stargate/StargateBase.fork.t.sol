@@ -70,7 +70,7 @@ contract StargateBase_Fork_Test is Fork_Test {
         address account,
         ERC20 underlyingAsset,
         uint256 amount,
-        uint256 poolId,
+        uint256 routerPoolId,
         IPool pool
     ) public returns (uint256 lpBalance) {
         // A user deposits in the Stargate USDbC pool.
@@ -78,11 +78,11 @@ contract StargateBase_Fork_Test is Fork_Test {
         deal(address(underlyingAsset), user, amount);
 
         underlyingAsset.approve(address(router), amount);
-        router.addLiquidity(poolId, amount, user);
+        router.addLiquidity(routerPoolId, amount, user);
 
         // The user stakes the LP token via the StargateAssetModule
-        lpBalance = pool.balanceOf(user);
-        pool.approve(address(stargateAssetModule), lpBalance);
+        lpBalance = ERC20(address(pool)).balanceOf(user);
+        ERC20(address(pool)).approve(address(stargateAssetModule), lpBalance);
 
         uint256 tokenId = stargateAssetModule.mint(address(pool), uint128(lpBalance));
 

@@ -658,15 +658,15 @@ contract StargateAssetModuleExtension is StargateAssetModule {
     constructor(address registry, address stargateLpStaking_) StargateAssetModule(registry, stargateLpStaking_) { }
 
     function setAssetToUnderlyingAsset(address asset, address underlyingAsset) public {
-        assetToUnderlyingAsset[asset] = underlyingAsset;
+        poolInformation[asset].underlyingAsset = underlyingAsset;
     }
 
     function setTotalStakedForAsset(address asset, uint128 totalStaked_) public {
         assetState[asset].totalStaked = totalStaked_;
     }
 
-    function setAssetToPoolId(address asset, uint256 poolId) public {
-        assetToPoolId[asset] = poolId;
+    function setAssetToPoolId(address asset, uint96 poolId) public {
+        poolInformation[asset].poolId = poolId;
     }
 
     function setAssetToRewardToken(address asset, ERC20 rewardToken_) public {
@@ -703,6 +703,10 @@ contract StargateAssetModuleExtension is StargateAssetModule {
         lastId_ = lastPositionId;
     }
 
+    function setIdCounter(uint256 lastId_) public {
+        lastPositionId = lastId_;
+    }
+
     function stakeExtension(address asset, uint256 amount) public {
         _stake(asset, amount);
     }
@@ -721,10 +725,6 @@ contract StargateAssetModuleExtension is StargateAssetModule {
 
     function setAmountStakedForPosition(uint256 id, uint256 amount) public {
         positionState[id].amountStaked = uint128(amount);
-    }
-
-    function setAssetToConversionRate(address asset, uint256 conversionRate) public {
-        assetToConversionRate[asset] = conversionRate;
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) { }

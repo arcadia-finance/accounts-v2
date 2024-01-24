@@ -28,6 +28,9 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_Revert_claimReward_NotOwner(address owner, address randomAddress, uint256 positionId) public {
+        // Given: randomAddress is not the owner.
+        vm.assume(owner != randomAddress);
+
         // Given : Owner of positionId is not randomAddress
         stakingModule.setOwnerOfPositionId(owner, positionId);
 

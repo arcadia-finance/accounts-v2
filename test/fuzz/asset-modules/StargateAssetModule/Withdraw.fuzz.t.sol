@@ -23,7 +23,7 @@ contract Withdraw_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_success_withdraw(uint256 amount, uint256 poolId) public {
+    function testFuzz_success_withdraw(uint256 amount, uint96 poolId) public {
         // Given : Random Stargate pool address.
         address poolLpToken = address(new ERC20Mock("stakingToken", "STK", 0));
 

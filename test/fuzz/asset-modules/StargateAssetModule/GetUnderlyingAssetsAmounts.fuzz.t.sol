@@ -34,7 +34,7 @@ contract GetUnderlyingAssetsAmounts_StargateAssetModule_Fuzz_Test is StargateAss
         uint256 convertRate,
         uint128 amountStaked,
         uint128 totalSupply,
-        uint256 poolId,
+        uint96 poolId,
         uint128 pendingEmissions
     ) public {
         // Given : convertRate should be between 1 and 10**18.
@@ -72,11 +72,8 @@ contract GetUnderlyingAssetsAmounts_StargateAssetModule_Fuzz_Test is StargateAss
         // And : Set valid state in AM
         stargateAssetModule.setAssetInPosition(address(poolMock), positionId);
         stargateAssetModule.setAmountStakedForPosition(positionId, amountStaked);
-
         stargateAssetModule.setTotalStakedForAsset(address(poolMock), amountStaked);
-
         stargateAssetModule.setAssetToPoolId(address(poolMock), poolId);
-        stargateAssetModule.setAssetToConversionRate(address(poolMock), convertRate);
 
         // Avoid stack too deep
         uint96 positionIdStack = positionId;

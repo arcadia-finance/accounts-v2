@@ -28,4 +28,17 @@ contract StargatePoolMock is ERC20Mock {
     function setConvertRate(uint256 convertRate_) public {
         convertRate = convertRate_;
     }
+
+    function amountLPtoLD(uint256 _amountLP) external view returns (uint256) {
+        return amountSDtoLD(_amountLPtoSD(_amountLP));
+    }
+
+    function _amountLPtoSD(uint256 _amountLP) internal view returns (uint256) {
+        require(totalSupply > 0, "Stargate: cant convert LPtoSD when totalSupply == 0");
+        return _amountLP * totalLiquidity / totalSupply;
+    }
+
+    function amountSDtoLD(uint256 _amount) internal view returns (uint256) {
+        return _amount * convertRate;
+    }
 }

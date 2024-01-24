@@ -22,18 +22,39 @@ contract IsAllowed_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Tes
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_Success_isAllowed_True(uint256 positionId) public {
+    function testFuzz_Success_isAllowed_False_BadAsset(uint256 positionId, address randomAddress) public {
+        // Given : randomAddress is not the stargateAssetModule.
+        vm.assume(randomAddress != address(stargateAssetModule));
+
+        // When : Calling isAllowed() with the input address not equal to the Stargate AM
+        bool allowed = stargateAssetModule.isAllowed(randomAddress, positionId);
+
+        // Then : It should return false
+        assertFalse(allowed);
+    }
+
+    function testFuzz_Success_isAllowed_False_BadId(uint256 positionId, uint256 lastPositionId) public {
+        // Given: positionId is bigger as lastPositionId.
+        lastPositionId = bound(lastPositionId, 0, type(uint256).max - 1);
+        positionId = bound(positionId, lastPositionId + 1, type(uint256).max);
+        stargateAssetModule.setIdCounter(lastPositionId);
+
         // When : Calling isAllowed()
         bool allowed = stargateAssetModule.isAllowed(address(stargateAssetModule), positionId);
 
         // Then : It should return true
-        assertEq(allowed, true);
+        assertFalse(allowed);
     }
 
-    function testFuzz_Success_isAllowed_False(uint256 positionId, address randomAddress) public {
-        // When : Calling isAllowed() with the input address not equal to the Stargate AM
-        bool allowed = stargateAssetModule.isAllowed(randomAddress, positionId);
-        // Then : It should return false
-        assertEq(allowed, false);
+    function testFuzz_Success_isAllowed_True(uint256 positionId, uint256 lastPositionId) public {
+        // Given: positionId is smaller or equal as lastPositionId.
+        positionId = bound(positionId, 0, lastPositionId);
+        stargateAssetModule.setIdCounter(lastPositionId);
+
+        // When : Calling isAllowed()
+        bool allowed = stargateAssetModule.isAllowed(address(stargateAssetModule), positionId);
+
+        // Then : It should return true
+        assertTrue(allowed);
     }
 }
