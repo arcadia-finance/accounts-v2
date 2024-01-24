@@ -215,5 +215,14 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         currentReward = LP_STAKING_TIME.pendingEmissionToken(poolInformation[asset].poolId, address(this));
     }
 
-    function tokenURI(uint256 id) public view virtual override returns (string memory) { }
+    /*///////////////////////////////////////////////////////////////
+                        ERC-721 LOGIC
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @inheritdoc StakingModule
+     */
+    function setBaseURI(string calldata newBaseURI) external override onlyOwner {
+        baseURI = newBaseURI;
+    }
 }

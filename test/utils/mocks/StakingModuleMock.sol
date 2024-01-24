@@ -26,6 +26,4 @@ contract StakingModuleMock is StakingModuleExtension {
     function _getCurrentReward(address asset) internal view override returns (uint256 earned) {
         earned = currentRewardGlobal[asset];
     }
-
-    function tokenURI(uint256 id) public view override returns (string memory) { }
 }

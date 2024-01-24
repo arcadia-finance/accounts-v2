@@ -8,9 +8,9 @@ import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { ReentrancyGuard } from "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
-
 import { SafeCastLib } from "../../../lib/solmate/src/utils/SafeCastLib.sol";
 import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
+import { Strings } from "../../libraries/Strings.sol";
 
 /**
  * @title Staking Module
@@ -26,6 +26,7 @@ import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.
  */
 abstract contract StakingModule is ERC721, ReentrancyGuard {
     using FixedPointMathLib for uint256;
+    using Strings for uint256;
     using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////
@@ -34,6 +35,9 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
     // The id of last minted position.
     uint256 internal lastPositionId;
+
+    // The baseURI of the ERC721 tokens.
+    string public baseURI;
 
     // Map Asset to its corresponding reward token.
     mapping(address asset => ERC20 rewardToken) public assetToRewardToken;
@@ -377,5 +381,24 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         positionState_.lastRewardPerTokenPosition = assetState_.lastRewardPerTokenGlobal;
 
         return (assetState_, positionState_);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        ERC-721 LOGIC
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Function that stores a new base URI.
+     * @param newBaseURI The new base URI to store.
+     */
+    function setBaseURI(string calldata newBaseURI) external virtual;
+
+    /**
+     * @notice Function that returns the token URI as defined in the ERC721 standard.
+     * @param tokenId The id of the Account.
+     * @return uri The token URI.
+     */
+    function tokenURI(uint256 tokenId) public view override returns (string memory uri) {
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 }

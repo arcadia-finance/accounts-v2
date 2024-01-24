@@ -601,6 +601,8 @@ contract MultiCallExtension is ActionMultiCall {
 abstract contract StakingModuleExtension is StakingModule {
     constructor(string memory name_, string memory symbol_) StakingModule(name_, symbol_) { }
 
+    function setBaseURI(string calldata newBaseURI) external override { }
+
     function setLastRewardGlobal(address asset, uint128 balance) public {
         assetState[asset].lastRewardGlobal = balance;
     }
@@ -726,6 +728,4 @@ contract StargateAssetModuleExtension is StargateAssetModule {
     function setAmountStakedForPosition(uint256 id, uint256 amount) public {
         positionState[id].amountStaked = uint128(amount);
     }
-
-    function tokenURI(uint256 id) public view override returns (string memory) { }
 }
