@@ -166,7 +166,7 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
         // The untrusted reserves from the pair, these can be manipulated!!!
         (uint256 reserve0, uint256 reserve1,) = IPool(asset).getReserves();
 
-        // Note : not sure it makes sense since position has a positive amount staked
+        // Note : not sure it makes sense since position has a positive amount staked (if kept add testing)
         if (reserve0 == 0 || reserve1 == 0) revert ZeroReserves();
 
         // Cache totalSupply and amountStaked

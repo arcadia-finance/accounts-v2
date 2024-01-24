@@ -33,4 +33,8 @@ contract AerodromePoolMock is ERC20Mock {
         token0 = token0_;
         token1 = token1_;
     }
+
+    function setTotalSupply(uint256 totalSupply_) public {
+        totalSupply = totalSupply_;
+    }
 }

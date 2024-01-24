@@ -782,5 +782,13 @@ contract AerodromeAssetModuleExtension is AerodromeAssetModule {
         positionState[id].amountStaked = uint128(amount);
     }
 
+    function getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys)
+        public
+        view
+        returns (AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+    {
+        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
+    }
+
     function tokenURI(uint256 id) public view override returns (string memory) { }
 }

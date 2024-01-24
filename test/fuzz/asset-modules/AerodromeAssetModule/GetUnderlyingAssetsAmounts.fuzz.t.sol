@@ -51,7 +51,8 @@ contract GetUnderlyingAssetsAmounts_AerodromeAssetModule_Fuzz_Test is AerodromeA
         uint128 amountStaked,
         uint256 reserve0,
         uint256 reserve1,
-        uint256 totalSupply
+        uint256 totalSupply,
+        uint128 earned
     ) public {
         // Given : Inputs are valid
         vm.assume(amountStaked > 0);
@@ -69,6 +70,23 @@ contract GetUnderlyingAssetsAmounts_AerodromeAssetModule_Fuzz_Test is AerodromeA
         underlyingAssetKeys[2] = aerodromeAssetModule.getKeyFromAsset(address(aerodromeAssetModule.rewardToken()), 0);
 
         // And : Reserves are set in pool
+        pool.setReserves(reserve0, reserve1);
+
+        // And : TotalSupply is set in pool
+        pool.setTotalSupply(totalSupply);
+
+        // And : Asset to gauge is set in the AM
+        aerodromeAssetModule.setAssetToGauge(address(pool), address(gauge));
+
+        // And : Set info in position
+        aerodromeAssetModule.setAssetInPosition(address(pool), positionId);
+        aerodromeAssetModule.setAmountStakedForPosition(positionId, amountStaked);
+
+        // And : Set info for asset
+        aerodromeAssetModule.setTotalStakedForAsset(address(pool), amountStaked);
+
+        // And : Set earned for address in gauge
+        gauge.setEarnedForAddress(address(aerodromeAssetModule), earned);
 
         bytes32 assetKey = aerodromeAssetModule.getKeyFromAsset(address(aerodromeAssetModule), positionId);
 
@@ -77,8 +95,16 @@ contract GetUnderlyingAssetsAmounts_AerodromeAssetModule_Fuzz_Test is AerodromeA
         aerodromeAssetModule.getUnderlyingAssetsAmounts(address(creditorToken1), assetKey, amount, underlyingAssetKeys);
 
         // Then : Values returned should be correct.
-        assertEq(underlyingAssetsAmounts[0], 0);
-        assertEq(underlyingAssetsAmounts[1], 0);
-        assertEq(rateUnderlyingAssetsToUsd.length, 0);
+        assertEq(underlyingAssetsAmounts[0], reserve0.mulDivDown(amountStaked, totalSupply));
+        assertEq(underlyingAssetsAmounts[1], reserve1.mulDivDown(amountStaked, totalSupply));
+        assertEq(underlyingAssetsAmounts[2], aerodromeAssetModule.rewardOf(positionId));
+
+        // We do not fuzz rates here as returned rate is covered by our testing of _getRateUnderlyingAssetsToUsd() for derivedAssetModule.
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd_ =
+            aerodromeAssetModule.getRateUnderlyingAssetsToUsd(address(creditorToken1), underlyingAssetKeys);
+
+        assertEq(rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd_[0].assetValue);
+        assertEq(rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd_[1].assetValue);
+        assertEq(rateUnderlyingAssetsToUsd[2].assetValue, rateUnderlyingAssetsToUsd_[2].assetValue);
     }
 }
