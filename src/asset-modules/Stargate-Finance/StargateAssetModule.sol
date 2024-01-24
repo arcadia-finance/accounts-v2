@@ -25,8 +25,6 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
 
     // The Stargate LP tokens staking contract.
     ILpStakingTime public immutable LP_STAKING_TIME;
-    // The reward token (STG token)
-    ERC20 public immutable REWARD_TOKEN;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -47,7 +45,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
-    error AssetAndRewardPairAlreadySet();
+    error AssetAlreadySet();
     error BadPool();
     error RewardTokenNotAllowed();
 
@@ -96,12 +94,12 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         (address stargatePool,,,) = LP_STAKING_TIME.poolInfo(poolId);
         if (stargatePool == address(0)) revert BadPool();
 
-        if (address(assetToRewardToken[stargatePool]) != address(0)) revert AssetAndRewardPairAlreadySet();
+        if (assetState[stargatePool].allowed) revert AssetAlreadySet();
 
         address underlyingAsset = IPool(stargatePool).token();
         if (!IRegistry(REGISTRY).isAllowed(underlyingAsset, 0)) revert AssetNotAllowed();
 
-        assetToRewardToken[stargatePool] = REWARD_TOKEN;
+        _addAsset(stargatePool);
         poolInformation[stargatePool] = PoolInformation({ underlyingAsset: underlyingAsset, poolId: poolId });
     }
 

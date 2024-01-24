@@ -146,7 +146,7 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
 
         (amBalanceInLpStaking,) = lpStakingTime.userInfo(poolId, address(stargateAssetModule));
 
-        (,, uint128 totalStaked) = stargateAssetModule.assetState(address(pool));
+        (,,, uint128 totalStaked) = stargateAssetModule.assetState(address(pool));
 
         (, uint128 remainingBalanceAccount1,,) = stargateAssetModule.positionState(1);
 
@@ -167,7 +167,7 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
         assert(remainingBalanceAccount1 == 0);
         assert(remainingBalanceAccount2 == 0);
 
-        (,, totalStaked) = stargateAssetModule.assetState(address(pool));
+        (,,, totalStaked) = stargateAssetModule.assetState(address(pool));
         assert(totalStaked == 0);
     }
 }

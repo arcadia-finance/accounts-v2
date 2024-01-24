@@ -31,11 +31,10 @@ contract RewardOf_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 positionId,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
+        uint8 assetDecimals
     ) public {
-        // Given : Add an asset and reward token pair
-        (address asset,) = addAssets(assetDecimals, rewardTokenDecimals);
+        // Given : Add an asset
+        address asset = addAsset(assetDecimals);
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);

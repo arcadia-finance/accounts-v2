@@ -24,7 +24,6 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
     function testFuzz_Success_burn_NonZeroReward(
         uint8 assetDecimals,
-        uint8 rewardTokenDecimals,
         uint256 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
@@ -33,15 +32,14 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // Given : account != zero address
         vm.assume(account != address(0));
         vm.assume(account != address(stakingModule));
+        vm.assume(account != address(rewardToken));
 
         address asset;
-        address rewardToken;
         uint256 currentRewardAccount;
         {
             // Given : Add an Asset + reward token pair
-            (asset, rewardToken) = addAssets(assetDecimals, rewardTokenDecimals);
+            asset = addAsset(assetDecimals);
             vm.assume(account != asset);
-            vm.assume(account != rewardToken);
 
             // Given: Valid state
             (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -58,7 +56,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
             // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
             address[] memory tokens = new address[](2);
             tokens[0] = asset;
-            tokens[1] = rewardToken;
+            tokens[1] = address(rewardToken);
 
             uint256[] memory amounts = new uint256[](2);
             amounts[0] = positionState.amountStaked;
@@ -74,7 +72,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.RewardPaid(positionId, rewardToken, uint128(currentRewardAccount));
+        emit StakingModule.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
         vm.expectEmit();
         emit StakingModule.LiquidityDecreased(positionId, asset, positionState.amountStaked);
         stakingModule.burn(positionId);
@@ -82,7 +80,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
         // Then : Account should get the staking and reward tokens
         assertEq(ERC20Mock(asset).balanceOf(account), positionState.amountStaked);
-        assertEq(ERC20Mock(rewardToken).balanceOf(account), currentRewardAccount);
+        assertEq(rewardToken.balanceOf(account), currentRewardAccount);
 
         // And : positionId should be burned.
         assertEq(stakingModule.balanceOf(account), 0);
@@ -102,7 +100,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
         // And: Asset state should be updated correctly.
         StakingModule.AssetState memory newAssetState;
-        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         uint256 deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
         uint128 currentRewardPerToken;
@@ -117,7 +115,6 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
     function testFuzz_Success_burn_ZeroReward(
         uint8 assetDecimals,
-        uint8 rewardTokenDecimals,
         uint256 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
@@ -126,14 +123,13 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // Given : account != zero address
         vm.assume(account != address(0));
         vm.assume(account != address(stakingModule));
+        vm.assume(account != address(rewardToken));
 
         address asset;
-        address rewardToken;
         {
             // Given : Add an Asset + reward token pair
-            (asset, rewardToken) = addAssets(assetDecimals, rewardTokenDecimals);
+            asset = addAsset(assetDecimals);
             vm.assume(account != asset);
-            vm.assume(account != rewardToken);
 
             // Given: Valid state
             (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -155,7 +151,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
             // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
             address[] memory tokens = new address[](2);
             tokens[0] = asset;
-            tokens[1] = rewardToken;
+            tokens[1] = address(rewardToken);
 
             uint256[] memory amounts = new uint256[](2);
             amounts[0] = positionState.amountStaked;
@@ -172,7 +168,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
         // Then : Account should get the staking and reward tokens
         assertEq(ERC20Mock(asset).balanceOf(account), positionState.amountStaked);
-        assertEq(ERC20Mock(rewardToken).balanceOf(account), 0);
+        assertEq(rewardToken.balanceOf(account), 0);
 
         // And : positionId should be burned.
         assertEq(stakingModule.balanceOf(account), 0);
@@ -192,7 +188,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
         // And: Asset state should be updated correctly.
         StakingModule.AssetState memory newAssetState;
-        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
         assertEq(newAssetState.lastRewardGlobal, 0);

@@ -30,6 +30,13 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
     using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////
+                                CONSTANTS
+    ////////////////////////////////////////////////////////////// */
+
+    // The reward token.
+    ERC20 public immutable REWARD_TOKEN;
+
+    /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
@@ -39,8 +46,6 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
     // The baseURI of the ERC721 tokens.
     string public baseURI;
 
-    // Map Asset to its corresponding reward token.
-    mapping(address asset => ERC20 rewardToken) public assetToRewardToken;
     // Map Asset to its corresponding struct with global state.
     mapping(address asset => AssetState) public assetState;
     // Map a position id to its corresponding struct with the position state.
@@ -48,6 +53,8 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
     // Struct with the global state per Asset.
     struct AssetState {
+        // Flag indicating if the asset is allowed.
+        bool allowed;
         // The growth of reward tokens per Asset staked, at the last interaction with this contract,
         // with 18 decimals precision.
         uint128 lastRewardPerTokenGlobal;
@@ -104,13 +111,15 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      */
     function mint(address asset, uint128 amount) external virtual nonReentrant returns (uint256 positionId) {
         if (amount == 0) revert ZeroAmount();
-        if (address(assetToRewardToken[asset]) == address(0)) revert AssetNotAllowed();
 
         // Need to transfer before minting or ERC777s could reenter.
         ERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
 
-        // Cache the old assetState and a new positionState.
+        // Cache the old assetState.
         AssetState memory assetState_ = assetState[asset];
+        if (!assetState_.allowed) revert AssetNotAllowed();
+
+        // Create a new positionState.
         PositionState memory positionState_;
         positionState_.asset = asset;
 
@@ -224,11 +233,9 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
         // Pay out the rewards to the position owner.
         if (rewardPosition > 0) {
-            // Cache reward token
-            ERC20 rewardToken_ = assetToRewardToken[asset];
             // Transfer reward
-            rewardToken_.safeTransfer(msg.sender, rewardPosition);
-            emit RewardPaid(positionId, address(rewardToken_), uint128(rewardPosition));
+            REWARD_TOKEN.safeTransfer(msg.sender, rewardPosition);
+            emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewardPosition));
         }
 
         // Transfer the Asset back to the position owner.
@@ -266,11 +273,9 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
         // Pay out the share of the reward owed to the position owner.
         if (rewardPosition > 0) {
-            // Cache reward
-            ERC20 rewardToken_ = assetToRewardToken[asset];
             // Transfer reward
-            rewardToken_.safeTransfer(msg.sender, rewardPosition);
-            emit RewardPaid(positionId, address(rewardToken_), uint128(rewardPosition));
+            REWARD_TOKEN.safeTransfer(msg.sender, rewardPosition);
+            emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewardPosition));
         }
     }
 
@@ -281,6 +286,14 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      */
     function totalStaked(address asset) external view returns (uint256 totalStaked_) {
         return assetState[asset].totalStaked;
+    }
+
+    /**
+     * @notice Adds an asset that can be staked to this contract.
+     * @param asset The contract address of the Asset.
+     */
+    function _addAsset(address asset) internal {
+        assetState[asset].allowed = true;
     }
 
     /*///////////////////////////////////////////////////////////////

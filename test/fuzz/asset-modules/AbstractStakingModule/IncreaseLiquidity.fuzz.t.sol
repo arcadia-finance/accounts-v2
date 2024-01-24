@@ -37,8 +37,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         address randomAddress,
         uint128 amount,
         uint256 positionId,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
+        uint8 assetDecimals
     ) public notTestContracts(account) {
         // Given : Amount is greater than zero
         vm.assume(amount > 0);
@@ -46,8 +45,8 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         vm.assume(positionId > 0);
         // Given : Owner of positionId is not the Account
         stakingModule.setOwnerOfPositionId(randomAddress, positionId);
-        // Given : A staking token and reward token pair are added to the stakingModule
-        (address asset,) = addAssets(assetDecimals, rewardTokenDecimals);
+        // Given : A staking token is added to the stakingModule
+        address asset = addAsset(assetDecimals);
 
         address[] memory tokens = new address[](1);
         tokens[0] = asset;
@@ -68,7 +67,6 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
     function testFuzz_Success_increaseLiquidity(
         uint8 assetDecimals,
-        uint8 rewardTokenDecimals,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 positionId,
@@ -80,8 +78,8 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
         address asset;
         {
-            // Given : A staking token and reward token pair are added to the stakingModule
-            (asset,) = addAssets(assetDecimals, rewardTokenDecimals);
+            // Given : A staking token is added to the stakingModule
+            asset = addAsset(assetDecimals);
 
             // Given : Valid state
             (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -142,7 +140,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
         // And : Asset values should be updated correctly
         StakingModule.AssetState memory newAssetState;
-        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
         assertEq(newAssetState.lastRewardGlobal, assetState.currentRewardGlobal);

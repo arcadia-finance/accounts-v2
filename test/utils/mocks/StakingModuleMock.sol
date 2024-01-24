@@ -4,10 +4,14 @@
  */
 pragma solidity 0.8.22;
 
-import { StakingModuleExtension } from "../Extensions.sol";
+import { ERC20, StakingModuleExtension } from "../Extensions.sol";
 
 contract StakingModuleMock is StakingModuleExtension {
-    constructor(string memory name_, string memory symbol_) StakingModuleExtension(name_, symbol_) { }
+    constructor(string memory name_, string memory symbol_, address rewardToken)
+        StakingModuleExtension(name_, symbol_)
+    {
+        REWARD_TOKEN = ERC20(rewardToken);
+    }
 
     mapping(address asset => uint256 rewardBalance) public currentRewardGlobal;
 

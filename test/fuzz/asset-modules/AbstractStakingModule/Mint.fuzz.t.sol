@@ -32,31 +32,44 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         stakingModule.mint(asset, 0);
     }
 
-    function testFuzz_Revert_mint_AssetNotAllowed(address asset, uint128 amount) public {
+    function testFuzz_Revert_mint_AssetNotAllowed(uint8 assetDecimals, uint128 amount, address account) public {
         // Given : Amount is greater than zero
         vm.assume(amount > 0);
+
+        assetDecimals = uint8(bound(assetDecimals, 0, 18));
+        address asset = address(new ERC20Mock("Asset", "AST", assetDecimals));
+
+        address[] memory tokens = new address[](1);
+        tokens[0] = asset;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amount;
+
+        mintERC20TokensTo(tokens, account, amounts);
+        approveERC20TokensFor(tokens, address(stakingModule), amounts, account);
+
         // When : Calling Stake
         // Then : The function should revert as the asset has not been added to the Staking Module.
+        vm.prank(account);
         vm.expectRevert(StakingModule.AssetNotAllowed.selector);
         stakingModule.mint(asset, amount);
     }
 
     function testFuzz_Success_mint_TotalStakedForAssetGreaterThan0(
         uint8 assetDecimals,
-        uint8 rewardTokenDecimals,
         StakingModuleStateForAsset memory assetState,
         uint128 amount,
         address account
     ) public notTestContracts(account) {
+        vm.assume(account != address(0));
         vm.assume(account != address(stakingModule));
+        vm.assume(account != address(rewardToken));
 
         address asset;
-        address rewardToken;
         {
-            // Given: An Asset and reward token pair are added to the stakingModule.
-            (asset, rewardToken) = addAssets(assetDecimals, rewardTokenDecimals);
+            // Given: An Asset i added to the stakingModule.
+            asset = addAsset(assetDecimals);
             vm.assume(account != asset);
-            vm.assume(account != rewardToken);
 
             // And: Valid state.
             StakingModule.PositionState memory positionState;
@@ -113,7 +126,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
         // And: Asset state should be updated correctly.
         StakingModule.AssetState memory newAssetState;
-        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
         assertEq(newAssetState.lastRewardGlobal, assetState.currentRewardGlobal);
@@ -122,17 +135,17 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
     function testFuzz_Success_mint_TotalStakedForAssetIsZero(
         uint8 assetDecimals,
-        uint8 rewardTokenDecimals,
         StakingModuleStateForAsset memory assetState,
         uint128 amount,
         address account
     ) public notTestContracts(account) {
+        vm.assume(account != address(0));
         vm.assume(account != address(stakingModule));
+        vm.assume(account != address(rewardToken));
 
-        // Given: An Asset and reward token pair are added to the stakingModule.
-        (address asset, address rewardToken) = addAssets(assetDecimals, rewardTokenDecimals);
+        // Given: An Asset is added to the stakingModule.
+        address asset = addAsset(assetDecimals);
         vm.assume(account != asset);
-        vm.assume(account != rewardToken);
 
         // And: Valid state.
         StakingModule.PositionState memory positionState;
@@ -183,7 +196,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
         // And: Asset state should be updated correctly.
         StakingModule.AssetState memory newAssetState;
-        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
         assertEq(newAssetState.lastRewardGlobal, assetState.lastRewardGlobal);

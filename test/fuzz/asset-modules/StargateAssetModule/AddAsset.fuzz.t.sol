@@ -24,17 +24,16 @@ contract AddAsset_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test
                               TESTS
     /////////////////////////////////////////////////////////////// */
     function testFuzz_Revert_addAsset_AssetAndRewardAlreadySet(uint96 poolId) public {
-        // Given : An Asset and reward token pair are already set.
-        ERC20Mock rewardToken = new ERC20Mock("xxx", "xxx", 18);
-        stargateAssetModule.setAssetToRewardToken(address(poolMock), rewardToken);
-
-        // And : poolInfo is correct
+        // Given : An Asset is already set.
+        poolMock.setToken(address(mockERC20.token1));
         lpStakingTimeMock.setInfoForPoolId(poolId, 0, address(poolMock));
+        vm.prank(users.creatorAddress);
+        stargateAssetModule.addAsset(poolId);
 
         // When : An asset is added to the AM.
         // Then : It should revert.
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert(StargateAssetModule.AssetAndRewardPairAlreadySet.selector);
+        vm.expectRevert(StargateAssetModule.AssetAlreadySet.selector);
         stargateAssetModule.addAsset(poolId);
         vm.stopPrank();
     }
@@ -82,10 +81,7 @@ contract AddAsset_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test
         stargateAssetModule.addAsset(poolId);
 
         // Then : Information should be set and correct
-        assertEq(
-            address(stargateAssetModule.assetToRewardToken(address(poolMock))),
-            address(stargateAssetModule.REWARD_TOKEN())
-        );
+        assertEq(address(stargateAssetModule.REWARD_TOKEN()), address(lpStakingTimeMock.eToken()));
         (address underlyingAsset, uint96 poolId_) = stargateAssetModule.poolInformation(address(poolMock));
         assertEq(poolId_, poolId);
         assertEq(underlyingAsset, address(mockERC20.token1));

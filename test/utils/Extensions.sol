@@ -607,8 +607,8 @@ abstract contract StakingModuleExtension is StakingModule {
         assetState[asset].lastRewardGlobal = balance;
     }
 
-    function setAssetAndRewardToken(address asset, ERC20 rewardToken) public {
-        assetToRewardToken[asset] = rewardToken;
+    function addAsset(address asset) public {
+        _addAsset(asset);
     }
 
     function setAssetInPosition(address asset, uint256 tokenId) public {
@@ -669,10 +669,6 @@ contract StargateAssetModuleExtension is StargateAssetModule {
 
     function setAssetToPoolId(address asset, uint96 poolId) public {
         poolInformation[asset].poolId = poolId;
-    }
-
-    function setAssetToRewardToken(address asset, ERC20 rewardToken_) public {
-        assetToRewardToken[asset] = rewardToken_;
     }
 
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
