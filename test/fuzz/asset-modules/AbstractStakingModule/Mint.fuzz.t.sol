@@ -50,28 +50,35 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
     ) public notTestContracts(account) {
         vm.assume(account != address(stakingModule));
 
-        // Given: An Asset and reward token pair are added to the stakingModule.
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        vm.assume(account != assets[0]);
-        address asset = assets[0];
+        address asset;
+        address rewardToken;
+        {
+            // Given: An Asset and reward token pair are added to the stakingModule.
+            (asset, rewardToken) = addAssets(assetDecimals, rewardTokenDecimals);
+            vm.assume(account != asset);
+            vm.assume(account != rewardToken);
 
-        // And: Valid state.
-        StakingModule.PositionState memory positionState;
-        (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
+            // And: Valid state.
+            StakingModule.PositionState memory positionState;
+            (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
 
-        // And: State is persisted.
-        setStakingModuleState(assetState, positionState, asset, 0);
+            // And: State is persisted.
+            setStakingModuleState(assetState, positionState, asset, 0);
 
-        // And: updated totalStake should not be greater than uint128.
-        // And: Amount staked is greater than zero.
-        vm.assume(assetState.totalStaked < type(uint128).max);
-        amount = uint128(bound(amount, 1, type(uint128).max - assetState.totalStaked));
+            // And: updated totalStake should not be greater than uint128.
+            // And: Amount staked is greater than zero.
+            vm.assume(assetState.totalStaked < type(uint128).max);
+            amount = uint128(bound(amount, 1, type(uint128).max - assetState.totalStaked));
 
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
+            address[] memory tokens = new address[](1);
+            tokens[0] = asset;
 
-        mintERC20TokensTo(assets, account, amounts);
-        approveERC20TokensFor(assets, address(stakingModule), amounts, account);
+            uint256[] memory amounts = new uint256[](1);
+            amounts[0] = amount;
+
+            mintERC20TokensTo(tokens, account, amounts);
+            approveERC20TokensFor(tokens, address(stakingModule), amounts, account);
+        }
 
         // When:  A user is staking via the Staking Module.
         vm.startPrank(account);
@@ -123,9 +130,9 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         vm.assume(account != address(stakingModule));
 
         // Given: An Asset and reward token pair are added to the stakingModule.
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        vm.assume(account != assets[0]);
-        address asset = assets[0];
+        (address asset, address rewardToken) = addAssets(assetDecimals, rewardTokenDecimals);
+        vm.assume(account != asset);
+        vm.assume(account != rewardToken);
 
         // And: Valid state.
         StakingModule.PositionState memory positionState;
@@ -140,11 +147,14 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // And: Amount staked is greater than zero.
         amount = uint128(bound(amount, 1, type(uint128).max));
 
+        address[] memory tokens = new address[](1);
+        tokens[0] = asset;
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
-        mintERC20TokensTo(assets, account, amounts);
-        approveERC20TokensFor(assets, address(stakingModule), amounts, account);
+        mintERC20TokensTo(tokens, account, amounts);
+        approveERC20TokensFor(tokens, address(stakingModule), amounts, account);
 
         // When:  A user is staking via the Staking Module.
         vm.startPrank(account);

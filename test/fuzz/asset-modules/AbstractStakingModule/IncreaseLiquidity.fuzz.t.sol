@@ -47,12 +47,16 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // Given : Owner of positionId is not the Account
         stakingModule.setOwnerOfPositionId(randomAddress, positionId);
         // Given : A staking token and reward token pair are added to the stakingModule
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
+        (address asset,) = addAssets(assetDecimals, rewardTokenDecimals);
+
+        address[] memory tokens = new address[](1);
+        tokens[0] = asset;
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
-        mintERC20TokensTo(assets, account, amounts);
-        approveERC20TokensFor(assets, address(stakingModule), amounts, account);
+        mintERC20TokensTo(tokens, account, amounts);
+        approveERC20TokensFor(tokens, address(stakingModule), amounts, account);
 
         // When : Calling Stake
         // Then : The function should revert as the Account is not the owner of the positionId.
@@ -77,8 +81,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         address asset;
         {
             // Given : A staking token and reward token pair are added to the stakingModule
-            (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-            asset = assets[0];
+            (asset,) = addAssets(assetDecimals, rewardTokenDecimals);
 
             // Given : Valid state
             (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -94,11 +97,14 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
             vm.assume(assetState.totalStaked < type(uint128).max);
             amount = uint128(bound(amount, 1, type(uint128).max - assetState.totalStaked));
 
+            address[] memory tokens = new address[](1);
+            tokens[0] = asset;
+
             uint256[] memory amounts = new uint256[](1);
             amounts[0] = amount;
 
-            mintERC20TokensTo(assets, account, amounts);
-            approveERC20TokensFor(assets, address(stakingModule), amounts, account);
+            mintERC20TokensTo(tokens, account, amounts);
+            approveERC20TokensFor(tokens, address(stakingModule), amounts, account);
         }
 
         // When :  A user is increasing liquidity via the Staking Module

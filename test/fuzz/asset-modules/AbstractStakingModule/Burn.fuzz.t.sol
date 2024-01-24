@@ -39,11 +39,9 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         uint256 currentRewardAccount;
         {
             // Given : Add an Asset + reward token pair
-            (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
-            vm.assume(account != assets[0]);
-            vm.assume(account != rewardTokens[0]);
-            asset = assets[0];
-            rewardToken = rewardTokens[0];
+            (asset, rewardToken) = addAssets(assetDecimals, rewardTokenDecimals);
+            vm.assume(account != asset);
+            vm.assume(account != rewardToken);
 
             // Given: Valid state
             (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -52,15 +50,15 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
             vm.assume(positionState.amountStaked > 0);
 
             // And: State is persisted.
-            setStakingModuleState(assetState, positionState, assets[0], positionId);
+            setStakingModuleState(assetState, positionState, asset, positionId);
 
             // Given : Position is minted to the Account
             stakingModule.mintIdTo(account, positionId);
 
             // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
             address[] memory tokens = new address[](2);
-            tokens[0] = assets[0];
-            tokens[1] = rewardTokens[0];
+            tokens[0] = asset;
+            tokens[1] = rewardToken;
 
             uint256[] memory amounts = new uint256[](2);
             amounts[0] = positionState.amountStaked;
@@ -133,11 +131,9 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         address rewardToken;
         {
             // Given : Add an Asset + reward token pair
-            (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
-            vm.assume(account != assets[0]);
-            vm.assume(account != rewardTokens[0]);
-            asset = assets[0];
-            rewardToken = rewardTokens[0];
+            (asset, rewardToken) = addAssets(assetDecimals, rewardTokenDecimals);
+            vm.assume(account != asset);
+            vm.assume(account != rewardToken);
 
             // Given: Valid state
             (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -151,15 +147,15 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
             assetState.currentRewardGlobal = assetState.lastRewardGlobal;
 
             // And: State is persisted.
-            setStakingModuleState(assetState, positionState, assets[0], positionId);
+            setStakingModuleState(assetState, positionState, asset, positionId);
 
             // Given : Position is minted to the Account
             stakingModule.mintIdTo(account, positionId);
 
             // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
             address[] memory tokens = new address[](2);
-            tokens[0] = assets[0];
-            tokens[1] = rewardTokens[0];
+            tokens[0] = asset;
+            tokens[1] = rewardToken;
 
             uint256[] memory amounts = new uint256[](2);
             amounts[0] = positionState.amountStaked;

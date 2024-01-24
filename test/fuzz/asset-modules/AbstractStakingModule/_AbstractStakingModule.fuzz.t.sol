@@ -135,24 +135,16 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         return (stakingModuleStateForAsset, stakingModuleStateForPosition);
     }
 
-    function addAssets(uint8 numberOfAssets, uint8 assetDecimals, uint8 rewardTokenDecimals)
+    function addAssets(uint8 assetDecimals, uint8 rewardTokenDecimals)
         public
-        returns (address[] memory assets, address[] memory rewardTokens)
+        returns (address asset_, address rewardToken)
     {
-        assets = new address[](numberOfAssets);
-        rewardTokens = new address[](numberOfAssets);
-
         assetDecimals = uint8(bound(assetDecimals, 0, 18));
         rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 18));
 
-        for (uint8 i = 0; i < numberOfAssets; ++i) {
-            ERC20Mock asset = new ERC20Mock("Asset", "AST", assetDecimals);
-            ERC20Mock rewardToken = new ERC20Mock("RewardToken", "RWT", rewardTokenDecimals);
+        asset_ = address(new ERC20Mock("Asset", "AST", assetDecimals));
+        rewardToken = address(new ERC20Mock("RewardToken", "RWT", rewardTokenDecimals));
 
-            assets[i] = address(asset);
-            rewardTokens[i] = address(rewardToken);
-
-            stakingModule.setAssetAndRewardToken(address(asset), rewardToken);
-        }
+        stakingModule.setAssetAndRewardToken(asset_, ERC20Mock(rewardToken));
     }
 }

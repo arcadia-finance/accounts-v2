@@ -36,8 +36,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint8 rewardTokenDecimals
     ) public {
         // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        (address asset,) = addAssets(assetDecimals, rewardTokenDecimals);
 
         // more than 1gwei is staked.
         assetState.totalStaked = uint128(bound(assetState.totalStaked, 1, type(uint128).max));
@@ -78,8 +77,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint8 rewardTokenDecimals
     ) public {
         // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        (address asset,) = addAssets(assetDecimals, rewardTokenDecimals);
 
         // more than 1gwei is staked.
         assetState.totalStaked = uint128(bound(assetState.totalStaked, 1, type(uint128).max));
@@ -120,8 +118,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint8 rewardTokenDecimals
     ) public {
         // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        (address asset,) = addAssets(assetDecimals, rewardTokenDecimals);
 
         // Given: More than 3 gwei is staked.
         assetState.totalStaked = uint128(bound(assetState.totalStaked, 1e18 + 1, type(uint128).max));
@@ -180,8 +177,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint8 rewardTokenDecimals
     ) public {
         // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        (address asset,) = addAssets(assetDecimals, rewardTokenDecimals);
 
         // And: more than 1 gwei is staked.
         assetState.totalStaked = uint128(bound(assetState.totalStaked, 1, type(uint128).max));
@@ -247,8 +243,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint8 rewardTokenDecimals
     ) public {
         // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        (address asset,) = addAssets(assetDecimals, rewardTokenDecimals);
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -288,8 +283,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint8 rewardTokenDecimals
     ) public {
         // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        (address asset,) = addAssets(assetDecimals, rewardTokenDecimals);
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);

@@ -106,9 +106,9 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         vm.assume(account != address(stakingModule));
 
         // Given : Add an Asset + reward token pair
-        (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        vm.assume(account != assets[0]);
-        vm.assume(account != rewardTokens[0]);
+        (address asset, address rewardToken) = addAssets(assetDecimals, rewardTokenDecimals);
+        vm.assume(account != asset);
+        vm.assume(account != rewardToken);
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -117,15 +117,15 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         vm.assume(positionState.amountStaked > 0);
 
         // And: State is persisted.
-        setStakingModuleState(assetState, positionState, assets[0], positionId);
+        setStakingModuleState(assetState, positionState, asset, positionId);
 
         // Given : Position is minted to the Account
         stakingModule.mintIdTo(account, positionId);
 
         // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
         address[] memory tokens = new address[](2);
-        tokens[0] = assets[0];
-        tokens[1] = rewardTokens[0];
+        tokens[0] = asset;
+        tokens[1] = rewardToken;
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = positionState.amountStaked;
@@ -140,9 +140,9 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws full position from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.RewardPaid(positionId, address(rewardTokens[0]), uint128(currentRewardAccount));
+        emit StakingModule.RewardPaid(positionId, rewardToken, uint128(currentRewardAccount));
         vm.expectEmit();
-        emit StakingModule.LiquidityDecreased(positionId, assets[0], positionState.amountStaked);
+        emit StakingModule.LiquidityDecreased(positionId, asset, positionState.amountStaked);
         stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
@@ -169,7 +169,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // And: Asset state should be updated correctly.
         StakingModule.AssetState memory newAssetState;
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
-            stakingModule.assetState(assets[0]);
+            stakingModule.assetState(asset);
         uint256 deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
         uint128 currentRewardPerToken;
         unchecked {
@@ -199,11 +199,9 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint256 currentRewardAccount;
         {
             // Given : Add an Asset + reward token pair
-            (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
-            vm.assume(account != assets[0]);
-            vm.assume(account != rewardTokens[0]);
-            asset = assets[0];
-            rewardToken = rewardTokens[0];
+            (asset, rewardToken) = addAssets(assetDecimals, rewardTokenDecimals);
+            vm.assume(account != asset);
+            vm.assume(account != rewardToken);
 
             // Given : Valid state
             (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -212,15 +210,15 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
             vm.assume(positionState.amountStaked > 1);
 
             // And: State is persisted.
-            setStakingModuleState(assetState, positionState, assets[0], positionId);
+            setStakingModuleState(assetState, positionState, asset, positionId);
 
             // Given : Position is minted to the Account
             stakingModule.mintIdTo(account, positionId);
 
             // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
             address[] memory tokens = new address[](2);
-            tokens[0] = assets[0];
-            tokens[1] = rewardTokens[0];
+            tokens[0] = asset;
+            tokens[1] = rewardToken;
 
             uint256[] memory amounts = new uint256[](2);
             amounts[0] = positionState.amountStaked;
@@ -239,7 +237,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
+        emit StakingModule.RewardPaid(positionId, rewardToken, uint128(currentRewardAccount));
         vm.expectEmit();
         emit StakingModule.LiquidityDecreased(positionId, asset, amount);
         stakingModule.decreaseLiquidity(positionId, amount);
@@ -293,9 +291,9 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         vm.assume(account != address(stakingModule));
 
         // Given : Add an Asset + reward token pair
-        (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        vm.assume(account != assets[0]);
-        vm.assume(account != rewardTokens[0]);
+        (address asset, address rewardToken) = addAssets(assetDecimals, rewardTokenDecimals);
+        vm.assume(account != asset);
+        vm.assume(account != rewardToken);
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -309,15 +307,15 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         assetState.currentRewardGlobal = assetState.lastRewardGlobal;
 
         // And: State is persisted.
-        setStakingModuleState(assetState, positionState, assets[0], positionId);
+        setStakingModuleState(assetState, positionState, asset, positionId);
 
         // Given : Position is minted to the Account
         stakingModule.mintIdTo(account, positionId);
 
         // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
         address[] memory tokens = new address[](2);
-        tokens[0] = assets[0];
-        tokens[1] = rewardTokens[0];
+        tokens[0] = asset;
+        tokens[1] = rewardToken;
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = positionState.amountStaked;
@@ -327,7 +325,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws full position from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.LiquidityDecreased(positionId, assets[0], positionState.amountStaked);
+        emit StakingModule.LiquidityDecreased(positionId, asset, positionState.amountStaked);
         stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
@@ -354,7 +352,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // And: Asset state should be updated correctly.
         StakingModule.AssetState memory newAssetState;
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
-            stakingModule.assetState(assets[0]);
+            stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
         assertEq(newAssetState.lastRewardGlobal, 0);
         assertEq(newAssetState.totalStaked, assetState.totalStaked - positionState.amountStaked);
@@ -377,11 +375,9 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         address rewardToken;
         {
             // Given : Add an Asset + reward token pair
-            (address[] memory assets, address[] memory rewardTokens) = addAssets(1, assetDecimals, rewardTokenDecimals);
-            vm.assume(account != assets[0]);
-            vm.assume(account != rewardTokens[0]);
-            asset = assets[0];
-            rewardToken = rewardTokens[0];
+            (asset, rewardToken) = addAssets(assetDecimals, rewardTokenDecimals);
+            vm.assume(account != asset);
+            vm.assume(account != rewardToken);
 
             // Given : Valid state
             (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -395,15 +391,15 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
             assetState.currentRewardGlobal = assetState.lastRewardGlobal;
 
             // And: State is persisted.
-            setStakingModuleState(assetState, positionState, assets[0], positionId);
+            setStakingModuleState(assetState, positionState, asset, positionId);
 
             // Given : Position is minted to the Account
             stakingModule.mintIdTo(account, positionId);
 
             // Given : transfer Asset and rewardToken to stakingModule, as _withdraw and _claimReward are not implemented on external staking contract
             address[] memory tokens = new address[](2);
-            tokens[0] = assets[0];
-            tokens[1] = rewardTokens[0];
+            tokens[0] = asset;
+            tokens[1] = rewardToken;
 
             uint256[] memory amounts = new uint256[](2);
             amounts[0] = positionState.amountStaked;
