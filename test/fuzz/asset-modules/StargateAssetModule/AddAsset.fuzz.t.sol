@@ -73,6 +73,7 @@ contract AddAsset_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test
         notTestContracts(poolUnderlyingToken)
     {
         // Given : The pool underlying token is not allowed in the Registry.
+        vm.assume(poolUnderlyingToken != address(lpStakingTimeMock.eToken()));
         poolMock.setToken(poolUnderlyingToken);
 
         // Given : poolInfo is correct

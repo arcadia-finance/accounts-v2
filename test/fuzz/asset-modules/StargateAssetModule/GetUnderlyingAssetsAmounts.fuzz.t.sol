@@ -92,17 +92,14 @@ contract GetUnderlyingAssetsAmounts_StargateAssetModule_Fuzz_Test is StargateAss
             address(creditorToken1), assetKey, assetAmount, underlyingAssetKeys
         );
 
-        // Then : Values returned should be correct.
+        // Then : Asset amounts returned should be correct.
         uint256 computedUnderlyingAssetAmount = uint256(amountStaked).mulDivDown(totalLiquidity, totalSupply);
         computedUnderlyingAssetAmount *= convertRate;
-
-        // We do not fuzz rates here as returned rate is covered by our testing of _getRateUnderlyingAssetsToUsd() for derivedAssetModule.
-        uint256 expectedRateToken1ToUsd = rates.token1ToUsd * 10 ** (18 - Constants.tokenOracleDecimals);
-
         assertEq(underlyingAssetsAmounts[0], computedUnderlyingAssetAmount);
         assertEq(underlyingAssetsAmounts[1], stargateAssetModule.rewardOf(positionIdStack));
-        assertEq(rateUnderlyingAssetsToUsd[0].assetValue, expectedRateToken1ToUsd);
-        assertEq(rateUnderlyingAssetsToUsd[1].assetValue, expectedRateToken1ToUsd);
+
+        // And: No rateUnderlyingAssetsToUsd are returned.
+        assertEq(rateUnderlyingAssetsToUsd.length, 0);
     }
 
     function testFuzz_Success_getUnderlyingAssetsAmounts_amountIsZero(uint96 positionId) public {
@@ -118,6 +115,8 @@ contract GetUnderlyingAssetsAmounts_StargateAssetModule_Fuzz_Test is StargateAss
         // Then : Values returned should be correct.
         assertEq(underlyingAssetsAmounts[0], 0);
         assertEq(underlyingAssetsAmounts[1], 0);
+
+        // And: No rateUnderlyingAssetsToUsd are returned.
         assertEq(rateUnderlyingAssetsToUsd.length, 0);
     }
 }

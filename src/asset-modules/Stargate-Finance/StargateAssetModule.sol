@@ -138,19 +138,14 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
 
     /**
      * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
-     * @param creditor The contract address of the creditor.
+     * param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
      * @param amount The amount of the Asset, in the decimal precision of the Asset.
-     * @param underlyingAssetKeys The unique identifiers of the underlying assets.
+     * param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      */
-    function _getUnderlyingAssetsAmounts(
-        address creditor,
-        bytes32 assetKey,
-        uint256 amount,
-        bytes32[] memory underlyingAssetKeys
-    )
+    function _getUnderlyingAssetsAmounts(address, bytes32 assetKey, uint256 amount, bytes32[] memory)
         internal
         view
         override
@@ -159,24 +154,22 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
         // Amount of a Stargate position in the Asset Module can only be either 0 or 1.
         if (amount == 0) return (new uint256[](2), rateUnderlyingAssetsToUsd);
 
-        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
-
         (, uint256 positionId) = _getAssetFromKey(assetKey);
         PositionState storage positionState_ = positionState[positionId];
 
-        // Cache Stargate pool address
-        address asset = positionState_.asset;
-        // Cache totalLiquidity
-        uint256 totalLiquidity = IPool(asset).totalLiquidity();
+        // Cache Stargate pool address.
+        address pool = positionState_.asset;
+        // Cache totalLiquidity.
+        uint256 totalLiquidity = IPool(pool).totalLiquidity();
 
         // Calculate underlyingAssets amounts.
         // "amountSD" is used in Stargate contracts and stands for amount in Shared Decimals, which should be converted to Local Decimals via convertRate().
         // "amountSD" will always be smaller or equal to amount in Local Decimals.
-        // For an exisiting assetKey, the totalSupply can not be zero, as a non-zero amount is staked via this contract for the position.
-        uint256 amountSD = uint256(positionState_.amountStaked).mulDivDown(totalLiquidity, IPool(asset).totalSupply());
+        // For an existing assetKey, the totalSupply can not be zero, as a non-zero amount is staked via this contract for the position.
+        uint256 amountSD = uint256(positionState_.amountStaked).mulDivDown(totalLiquidity, IPool(pool).totalSupply());
 
         underlyingAssetsAmounts = new uint256[](2);
-        underlyingAssetsAmounts[0] = amountSD * assetToConversionRate[asset];
+        underlyingAssetsAmounts[0] = amountSD * assetToConversionRate[pool];
         underlyingAssetsAmounts[1] = rewardOf(positionId);
 
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
