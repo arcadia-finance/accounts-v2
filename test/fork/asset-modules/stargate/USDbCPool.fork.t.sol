@@ -47,7 +47,7 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
         erc20AssetModule.addAsset(address(USDbC), oracleSequence);
 
         // Add the USDbC pool LP token to the StargateAssetModule.
-        stargateAssetModule.addAsset(address(pool), poolId);
+        stargateAssetModule.addAsset(poolId);
         vm.stopPrank();
 
         // Label contracts

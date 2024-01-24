@@ -35,6 +35,17 @@ contract StargateBase_Fork_Test is Fork_Test {
     function setUp() public virtual override {
         Fork_Test.setUp();
 
+        // Add STG and it's Chainlink oracle to the protocol.
+        vm.startPrank(users.creatorAddress);
+        uint256 oracleId = chainlinkOM.addOracle(oracleSTG, "STG", "USD", 2 days);
+        bool[] memory boolValues = new bool[](1);
+        boolValues[0] = true;
+        uint80[] memory uintValues = new uint80[](1);
+        uintValues[0] = uint80(oracleId);
+        bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
+        erc20AssetModule.addAsset(address(lpStakingTime.eToken()), oracleSequence);
+        vm.stopPrank();
+
         // Deploy StargateAssetModule.
         vm.startPrank(users.creatorAddress);
         stargateAssetModule = new StargateAssetModule(address(registryExtension), address(lpStakingTime));
@@ -44,19 +55,6 @@ contract StargateBase_Fork_Test is Fork_Test {
 
         // Initialize stargateAssetModule
         stargateAssetModule.initialize();
-
-        // Add STG and it's Chainlink oracle to the protocol.
-        vm.startPrank(users.creatorAddress);
-        uint256 oracleId = chainlinkOM.addOracle(oracleSTG, "STG", "USD", 2 days);
-        bool[] memory boolValues = new bool[](1);
-        boolValues[0] = true;
-        uint80[] memory uintValues = new uint80[](1);
-        uintValues[0] = uint80(oracleId);
-        bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
-
-        erc20AssetModule.addAsset(address(lpStakingTime.eToken()), oracleSequence);
-
-        vm.stopPrank();
 
         // Label contracts
         vm.label({ account: address(router), newLabel: "StargateRouter" });

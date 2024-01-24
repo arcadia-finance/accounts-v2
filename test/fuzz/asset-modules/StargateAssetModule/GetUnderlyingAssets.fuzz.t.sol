@@ -31,7 +31,7 @@ contract GetUnderlyingAssets_StargateAssetModule_Fuzz_Test is StargateAssetModul
 
         // Given : The Asset is added to AM.
         vm.prank(users.creatorAddress);
-        stargateAssetModule.addAsset(address(poolMock), poolId);
+        stargateAssetModule.addAsset(poolId);
 
         // Given : Set Asset for positionId
         stargateAssetModule.setAssetInPosition(address(poolMock), positionId);
@@ -43,7 +43,7 @@ contract GetUnderlyingAssets_StargateAssetModule_Fuzz_Test is StargateAssetModul
         // Then : Underlying assets returned should be correct
         assertEq(underlyingAssetKeys[0], stargateAssetModule.getKeyFromAsset(address(poolMock.token()), 0));
         assertEq(
-            underlyingAssetKeys[1], stargateAssetModule.getKeyFromAsset(address(stargateAssetModule.rewardToken()), 0)
+            underlyingAssetKeys[1], stargateAssetModule.getKeyFromAsset(address(stargateAssetModule.REWARD_TOKEN()), 0)
         );
     }
 }

@@ -83,7 +83,7 @@ contract GetUnderlyingAssetsAmounts_StargateAssetModule_Fuzz_Test is StargateAss
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = stargateAssetModule.getKeyFromAsset(address(mockERC20.token1), 0);
-        underlyingAssetKeys[1] = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule.rewardToken()), 0);
+        underlyingAssetKeys[1] = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule.REWARD_TOKEN()), 0);
         bytes32 assetKey = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule), positionId);
 
         // When : Calling getUnderlyingAssetsAmounts.
@@ -108,7 +108,7 @@ contract GetUnderlyingAssetsAmounts_StargateAssetModule_Fuzz_Test is StargateAss
     function testFuzz_Success_getUnderlyingAssetsAmounts_amountIsZero(uint96 positionId) public {
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = stargateAssetModule.getKeyFromAsset(address(mockERC20.token1), 0);
-        underlyingAssetKeys[1] = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule.rewardToken()), 0);
+        underlyingAssetKeys[1] = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule.REWARD_TOKEN()), 0);
         bytes32 assetKey = stargateAssetModule.getKeyFromAsset(address(stargateAssetModule), positionId);
 
         // When : Calling getUnderlyingAssetsAmounts.

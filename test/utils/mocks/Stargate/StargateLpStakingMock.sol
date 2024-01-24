@@ -8,7 +8,7 @@ pragma solidity 0.8.22;
 import { IERC20 } from "../../../../src/interfaces/IERC20.sol";
 
 contract LPStakingTimeMock {
-    IERC20 public eToken;
+    IERC20 public eToken = IERC20(0xE3B53AF74a4BF62Ae5511055290838050bf764Df);
 
     mapping(uint256 poolId => PoolInfo) public poolInfo;
 

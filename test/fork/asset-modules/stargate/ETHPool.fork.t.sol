@@ -47,7 +47,7 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
         erc20AssetModule.addAsset(address(SGETH), oracleSequence);
 
         // Add the ETH pool LP token to the StargateAssetModule.
-        stargateAssetModule.addAsset(address(pool), poolId);
+        stargateAssetModule.addAsset(poolId);
         vm.stopPrank();
 
         // Label contracts
