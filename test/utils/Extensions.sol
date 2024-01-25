@@ -29,6 +29,7 @@ import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
 import { StakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 import { StargateAssetModule } from "../../src/asset-modules/Stargate-Finance/StargateAssetModule.sol";
 import { NSStargateAssetModule } from "../../src/asset-modules/Stargate-Finance/NSStargateAssetModule.sol";
+import { SStargateAssetModule } from "../../src/asset-modules/Stargate-Finance/SStargateAssetModule.sol";
 
 contract AccountExtension is AccountV1 {
     constructor(address factory) AccountV1(factory) { }
@@ -728,7 +729,7 @@ contract StargateAssetModuleExtension is StargateAssetModule {
 }
 
 contract NSStargateAssetModuleExtension is NSStargateAssetModule {
-    constructor(address registry, address stargateLpStaking_) NSStargateAssetModule(registry, stargateLpStaking_) { }
+    constructor(address registry, address stargateFactory) NSStargateAssetModule(registry, stargateFactory) { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
@@ -757,5 +758,25 @@ contract NSStargateAssetModuleExtension is NSStargateAssetModule {
 
     function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {
         return _getUnderlyingAssets(assetKey);
+    }
+}
+
+contract SStargateAssetModuleExtension is SStargateAssetModule {
+    constructor(address registry, address stargateLpStaking_) SStargateAssetModule(registry, stargateLpStaking_) { }
+
+    function setAssetToPoolId(address asset, uint256 pid) public {
+        assetToPid[asset] = pid;
+    }
+
+    function getCurrentReward(address asset) public view returns (uint256 currentReward) {
+        currentReward = _getCurrentReward(asset);
+    }
+
+    function stake(address asset, uint256 amount) public {
+        _stake(asset, amount);
+    }
+
+    function withdraw(address asset, uint256 amount) public {
+        _withdraw(asset, amount);
     }
 }

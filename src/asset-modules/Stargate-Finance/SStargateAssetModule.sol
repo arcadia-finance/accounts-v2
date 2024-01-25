@@ -41,14 +41,14 @@ contract SStargateAssetModule is StakingModule2 {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param registry_ The address of the Registry.
-     * @param lpStakingTime_ The address of the Stargate LP staking contract.
+     * @param registry The address of the Registry.
+     * @param lpStakingTime The address of the Stargate LP staking contract.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC721 tokens.
      */
-    constructor(address registry_, address lpStakingTime_)
-        StakingModule2(registry_, "Arcadia Stargate Positions", "aSGP")
+    constructor(address registry, address lpStakingTime)
+        StakingModule2(registry, "Arcadia Stargate Positions", "aSGP")
     {
-        LP_STAKING_TIME = ILpStakingTime(lpStakingTime_);
+        LP_STAKING_TIME = ILpStakingTime(lpStakingTime);
         REWARD_TOKEN = ERC20(address(LP_STAKING_TIME.eToken()));
         if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
     }
