@@ -60,7 +60,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
      */
     constructor(address registry_, address lpStakingTime_)
         DerivedAssetModule(registry_, 1)
-        StakingModule("ArcadiaStargatePositions", "ASP")
+        StakingModule("Arcadia Stargate Positions", "ASP")
     {
         LP_STAKING_TIME = ILpStakingTime(lpStakingTime_);
         REWARD_TOKEN = ERC20(address(LP_STAKING_TIME.eToken()));

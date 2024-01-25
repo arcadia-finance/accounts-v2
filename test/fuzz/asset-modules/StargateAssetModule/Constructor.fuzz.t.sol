@@ -43,6 +43,6 @@ contract Constructor_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_T
         assertEq(assetModule.ASSET_TYPE(), 1);
         assertEq(assetModule.REGISTRY(), address(registryExtension));
         assertEq(assetModule.symbol(), "ASP");
-        assertEq(assetModule.name(), "ArcadiaStargatePositions");
+        assertEq(assetModule.name(), "Arcadia Stargate Positions");
     }
 }
