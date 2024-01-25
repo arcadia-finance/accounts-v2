@@ -28,6 +28,9 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_Revert_claimReward_NotOwner(address owner, address randomAddress, uint256 positionId) public {
+        // Given: randomAddress is not the owner.
+        vm.assume(owner != randomAddress);
+
         // Given : Owner of positionId is not randomAddress
         stakingModule.setOwnerOfPositionId(owner, positionId);
 
@@ -44,8 +47,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         uint256 positionId,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
+        uint8 assetDecimals
     ) public {
         // Given : account != zero address
         vm.assume(account != address(0));
@@ -53,9 +55,8 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         // Given : owner of ERC721 positionId is Account
         stakingModule.setOwnerOfPositionId(account, positionId);
 
-        // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        // Given : Add an asset
+        address asset = addAsset(assetDecimals);
 
         // Given: Valid state
         (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -69,21 +70,17 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         // And reward is non-zero.
         vm.assume(currentRewardPosition > 0);
 
-        mintERC20TokenTo(
-            address(stakingModule.assetToRewardToken(asset)), address(stakingModule), currentRewardPosition
-        );
+        mintERC20TokenTo(address(stakingModule.REWARD_TOKEN()), address(stakingModule), currentRewardPosition);
 
         // When : Account calls claimReward()
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.RewardPaid(
-            positionId, address(stakingModule.assetToRewardToken(asset)), uint128(currentRewardPosition)
-        );
+        emit StakingModule.RewardPaid(positionId, address(stakingModule.REWARD_TOKEN()), uint128(currentRewardPosition));
         stakingModule.claimReward(positionId);
         vm.stopPrank();
 
         // Then : Account should have received the reward tokens.
-        assertEq(currentRewardPosition, stakingModule.assetToRewardToken(asset).balanceOf(account));
+        assertEq(currentRewardPosition, stakingModule.REWARD_TOKEN().balanceOf(account));
 
         // And: Position state should be updated correctly.
         StakingModule.PositionState memory newPositionState;
@@ -106,7 +103,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
 
         // And : Asset values should be updated correctly
         StakingModule.AssetState memory newAssetState;
-        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
         assertEq(newAssetState.lastRewardGlobal, 0);
@@ -118,8 +115,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         uint256 positionId,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
+        uint8 assetDecimals
     ) public {
         // Given : account != zero address
         vm.assume(account != address(0));
@@ -127,9 +123,8 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         // Given : owner of ERC721 positionId is Account
         stakingModule.setOwnerOfPositionId(account, positionId);
 
-        // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        // Given : Add an asset
+        address asset = addAsset(assetDecimals);
 
         // Given: Valid state
         (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -148,7 +143,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         vm.stopPrank();
 
         // Then : Account should have not received reward tokens.
-        assertEq(stakingModule.assetToRewardToken(asset).balanceOf(account), 0);
+        assertEq(stakingModule.REWARD_TOKEN().balanceOf(account), 0);
 
         // And: Position state should be updated correctly.
         StakingModule.PositionState memory newPositionState;
@@ -165,7 +160,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
 
         // And : Asset values should be updated correctly
         StakingModule.AssetState memory newAssetState;
-        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
         assertEq(newAssetState.lastRewardGlobal, 0);

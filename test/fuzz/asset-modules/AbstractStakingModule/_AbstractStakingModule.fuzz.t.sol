@@ -36,6 +36,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
+    ERC20Mock internal rewardToken;
     StakingModuleMock internal stakingModule;
 
     /* ///////////////////////////////////////////////////////////////
@@ -46,9 +47,8 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.creatorAddress);
-
-        stakingModule = new StakingModuleMock("StakingModuleTest", "SMT");
-
+        rewardToken = new ERC20Mock("RewardToken", "RWT", 18);
+        stakingModule = new StakingModuleMock("StakingModuleTest", "SMT", address(rewardToken));
         vm.stopPrank();
     }
 
@@ -135,24 +135,9 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         return (stakingModuleStateForAsset, stakingModuleStateForPosition);
     }
 
-    function addAssets(uint8 numberOfAssets, uint8 assetDecimals, uint8 rewardTokenDecimals)
-        public
-        returns (address[] memory assets, address[] memory rewardTokens)
-    {
-        assets = new address[](numberOfAssets);
-        rewardTokens = new address[](numberOfAssets);
-
+    function addAsset(uint8 assetDecimals) public returns (address asset_) {
         assetDecimals = uint8(bound(assetDecimals, 0, 18));
-        rewardTokenDecimals = uint8(bound(rewardTokenDecimals, 0, 18));
-
-        for (uint8 i = 0; i < numberOfAssets; ++i) {
-            ERC20Mock asset = new ERC20Mock("Asset", "AST", assetDecimals);
-            ERC20Mock rewardToken = new ERC20Mock("RewardToken", "RWT", rewardTokenDecimals);
-
-            assets[i] = address(asset);
-            rewardTokens[i] = address(rewardToken);
-
-            stakingModule.setAssetAndRewardToken(address(asset), rewardToken);
-        }
+        asset_ = address(new ERC20Mock("Asset", "AST", assetDecimals));
+        stakingModule.addAsset(asset_);
     }
 }

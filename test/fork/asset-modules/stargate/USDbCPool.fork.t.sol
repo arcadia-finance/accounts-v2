@@ -22,7 +22,7 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
     IPool pool = IPool(0x4c80E24119CFB836cdF0a6b53dc23F04F7e652CA);
     address oracleUSDC = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
 
-    uint256 poolId = 1;
+    uint96 poolId = 1;
     // https://stargateprotocol.gitbook.io/stargate/developers/pool-ids
     uint256 routerPoolId = 1;
 
@@ -47,7 +47,7 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
         erc20AssetModule.addAsset(address(USDbC), oracleSequence);
 
         // Add the USDbC pool LP token to the StargateAssetModule.
-        stargateAssetModule.addAsset(address(pool), poolId);
+        stargateAssetModule.addAsset(poolId);
         vm.stopPrank();
 
         // Label contracts
@@ -61,7 +61,7 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
 
     function testFork_Success_StakeAndDepositInAccount() public {
         uint256 initBalance = 1000 * 10 ** USDbC.decimals();
-        assert(pool.balanceOf(users.accountOwner) == 0);
+        assert(ERC20(address(pool)).balanceOf(users.accountOwner) == 0);
 
         // Given : A user deposits in the Stargate USDbC pool, in exchange of an LP token.
         vm.startPrank(users.accountOwner);
@@ -69,11 +69,11 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
 
         USDbC.approve(address(router), initBalance);
         router.addLiquidity(routerPoolId, initBalance, users.accountOwner);
-        assert(pool.balanceOf(users.accountOwner) > 0);
+        assert(ERC20(address(pool)).balanceOf(users.accountOwner) > 0);
 
         // And : The user stakes the LP token via the StargateAssetModule
-        uint256 stakedAmount = pool.balanceOf(users.accountOwner);
-        pool.approve(address(stargateAssetModule), stakedAmount);
+        uint256 stakedAmount = ERC20(address(pool)).balanceOf(users.accountOwner);
+        ERC20(address(pool)).approve(address(stargateAssetModule), stakedAmount);
         uint256 tokenId = stargateAssetModule.mint(address(pool), uint128(stakedAmount));
 
         // The user deposits the position (ERC721 minted)  in it's Account.
@@ -144,7 +144,7 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
 
         (amBalanceInLpStaking,) = lpStakingTime.userInfo(poolId, address(stargateAssetModule));
 
-        (,, uint128 totalStaked) = stargateAssetModule.assetState(address(pool));
+        (,,, uint128 totalStaked) = stargateAssetModule.assetState(address(pool));
 
         (, uint128 remainingBalanceAccount1,,) = stargateAssetModule.positionState(1);
 
@@ -165,14 +165,14 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
         assert(remainingBalanceAccount1 == 0);
         assert(remainingBalanceAccount2 == 0);
 
-        (,, totalStaked) = stargateAssetModule.assetState(address(pool));
+        (,,, totalStaked) = stargateAssetModule.assetState(address(pool));
         assert(totalStaked == 0);
     }
 
     // The withdrawal of a zero amount should trigger the claim of the rewards
     function testFork_Success_claimReward() public {
         uint256 initBalance = 1000 * 10 ** USDbC.decimals();
-        assert(pool.balanceOf(users.accountOwner) == 0);
+        assert(ERC20(address(pool)).balanceOf(users.accountOwner) == 0);
 
         // Given : A user deposits in the Stargate USDbC pool, in exchange of an LP token.
         vm.startPrank(users.accountOwner);
@@ -180,11 +180,11 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
 
         USDbC.approve(address(router), initBalance);
         router.addLiquidity(routerPoolId, initBalance, users.accountOwner);
-        assert(pool.balanceOf(users.accountOwner) > 0);
+        assert(ERC20(address(pool)).balanceOf(users.accountOwner) > 0);
 
         // And : The user stakes the LP token via the StargateAssetModule
-        uint256 stakedAmount = pool.balanceOf(users.accountOwner);
-        pool.approve(address(stargateAssetModule), stakedAmount);
+        uint256 stakedAmount = ERC20(address(pool)).balanceOf(users.accountOwner);
+        ERC20(address(pool)).approve(address(stargateAssetModule), stakedAmount);
         uint256 tokenId = stargateAssetModule.mint(address(pool), uint128(stakedAmount));
 
         // And : We let 30 days pass to accumulate rewards.

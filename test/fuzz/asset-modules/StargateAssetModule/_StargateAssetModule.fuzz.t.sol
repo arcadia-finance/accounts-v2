@@ -37,33 +37,26 @@ abstract contract StargateAssetModule_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.startPrank(users.creatorAddress);
-
+        // Deploy mocked Stargate.
         poolMock = new StargatePoolMock(18);
         lpStakingTimeMock = new LPStakingTimeMock();
-        stargateAssetModule = new StargateAssetModuleExtension(address(registryExtension), address(lpStakingTimeMock));
-
-        registryExtension.addAssetModule(address(stargateAssetModule));
-        stargateAssetModule.initialize();
-
         ERC20Mock rewardTokenCode = new ERC20Mock("Stargate", "STG", 18);
-
-        vm.etch(address(stargateAssetModule.rewardToken()), address(rewardTokenCode).code);
-
+        vm.etch(address(lpStakingTimeMock.eToken()), address(rewardTokenCode).code);
         ArcadiaOracle stargateOracle = initMockedOracle(8, "STG / USD", rates.token1ToUsd);
 
-        vm.startPrank(registryExtension.owner());
-
+        // Add STG to the standardERC20AssetModule.
+        vm.startPrank(users.creatorAddress);
         chainlinkOM.addOracle(address(stargateOracle), "STG", "USD", 2 days);
-
-        // Add STG to the standardERC20AssetModule
         uint80[] memory oracleStgToUsdArr = new uint80[](1);
         oracleStgToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(stargateOracle)));
-
         erc20AssetModule.addAsset(
-            address(stargateAssetModule.rewardToken()), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStgToUsdArr)
+            address(lpStakingTimeMock.eToken()), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStgToUsdArr)
         );
 
+        // Deploy the Stargate AssetModule.
+        stargateAssetModule = new StargateAssetModuleExtension(address(registryExtension), address(lpStakingTimeMock));
+        registryExtension.addAssetModule(address(stargateAssetModule));
+        stargateAssetModule.initialize();
         vm.stopPrank();
     }
 

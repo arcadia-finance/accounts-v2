@@ -22,7 +22,7 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
     IPool pool = IPool(0x28fc411f9e1c480AD312b3d9C60c22b965015c6B);
     address oracleETH = 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70;
 
-    uint256 poolId = 0;
+    uint96 poolId = 0;
     // https://stargateprotocol.gitbook.io/stargate/developers/pool-ids
     uint256 routerPoolId = 13;
 
@@ -47,7 +47,7 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
         erc20AssetModule.addAsset(address(SGETH), oracleSequence);
 
         // Add the ETH pool LP token to the StargateAssetModule.
-        stargateAssetModule.addAsset(address(pool), poolId);
+        stargateAssetModule.addAsset(poolId);
         vm.stopPrank();
 
         // Label contracts
@@ -61,7 +61,7 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
 
     function testFork_Success_StakeAndDepositInAccount() public {
         uint256 initBalance = 1000 * 10 ** SGETH.decimals();
-        assert(pool.balanceOf(users.accountOwner) == 0);
+        assert(ERC20(address(pool)).balanceOf(users.accountOwner) == 0);
 
         // Given : A user deposits in the Stargate ETH pool, in exchange of an LP token.
         vm.startPrank(users.accountOwner);
@@ -69,11 +69,11 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
 
         SGETH.approve(address(router), initBalance);
         router.addLiquidity(routerPoolId, initBalance, users.accountOwner);
-        assert(pool.balanceOf(users.accountOwner) > 0);
+        assert(ERC20(address(pool)).balanceOf(users.accountOwner) > 0);
 
         // And : The user stakes the LP token via the StargateAssetModule
-        uint256 stakedAmount = pool.balanceOf(users.accountOwner);
-        pool.approve(address(stargateAssetModule), stakedAmount);
+        uint256 stakedAmount = ERC20(address(pool)).balanceOf(users.accountOwner);
+        ERC20(address(pool)).approve(address(stargateAssetModule), stakedAmount);
         uint256 tokenId = stargateAssetModule.mint(address(pool), uint128(stakedAmount));
 
         // The user deposits the newly minted position (ERC721) in its Account.
@@ -146,7 +146,7 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
 
         (amBalanceInLpStaking,) = lpStakingTime.userInfo(poolId, address(stargateAssetModule));
 
-        (,, uint128 totalStaked) = stargateAssetModule.assetState(address(pool));
+        (,,, uint128 totalStaked) = stargateAssetModule.assetState(address(pool));
 
         (, uint128 remainingBalanceAccount1,,) = stargateAssetModule.positionState(1);
 
@@ -167,7 +167,7 @@ contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
         assert(remainingBalanceAccount1 == 0);
         assert(remainingBalanceAccount2 == 0);
 
-        (,, totalStaked) = stargateAssetModule.assetState(address(pool));
+        (,,, totalStaked) = stargateAssetModule.assetState(address(pool));
         assert(totalStaked == 0);
     }
 }

@@ -32,12 +32,10 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         StakingModule.PositionState memory positionState,
         uint256 currentRewardGlobal,
         uint256 positionId,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
+        uint8 assetDecimals
     ) public {
-        // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        // Given : Add an asset
+        address asset = addAsset(assetDecimals);
 
         // more than 1gwei is staked.
         assetState.totalStaked = uint128(bound(assetState.totalStaked, 1, type(uint128).max));
@@ -61,6 +59,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When: Calling _getRewardBalances().
         // Then: transaction reverts in safe cast.
         StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
+            allowed: true,
             lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
             lastRewardGlobal: assetState.lastRewardGlobal,
             totalStaked: assetState.totalStaked
@@ -74,12 +73,10 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         StakingModule.PositionState memory positionState,
         uint256 currentRewardGlobal,
         uint256 positionId,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
+        uint8 assetDecimals
     ) public {
-        // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        // Given : Add an asset
+        address asset = addAsset(assetDecimals);
 
         // more than 1gwei is staked.
         assetState.totalStaked = uint128(bound(assetState.totalStaked, 1, type(uint128).max));
@@ -104,6 +101,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When: Calling _getRewardBalances().
         // Then: transaction reverts in safe cast.
         StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
+            allowed: true,
             lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
             lastRewardGlobal: assetState.lastRewardGlobal,
             totalStaked: assetState.totalStaked
@@ -116,12 +114,10 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 positionId,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
+        uint8 assetDecimals
     ) public {
-        // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        // Given : Add an asset
+        address asset = addAsset(assetDecimals);
 
         // Given: More than 3 gwei is staked.
         assetState.totalStaked = uint128(bound(assetState.totalStaked, 1e18 + 1, type(uint128).max));
@@ -164,6 +160,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When: Calling _getRewardBalances().
         // Then: transaction reverts in safe cast.
         StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
+            allowed: true,
             lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
             lastRewardGlobal: assetState.lastRewardGlobal,
             totalStaked: assetState.totalStaked
@@ -176,12 +173,10 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 positionId,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
+        uint8 assetDecimals
     ) public {
-        // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        // Given : Add an asset
+        address asset = addAsset(assetDecimals);
 
         // And: more than 1 gwei is staked.
         assetState.totalStaked = uint128(bound(assetState.totalStaked, 1, type(uint128).max));
@@ -231,6 +226,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When: Calling _getRewardBalances().
         // Then: transaction reverts in safe cast.
         StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
+            allowed: true,
             lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
             lastRewardGlobal: assetState.lastRewardGlobal,
             totalStaked: assetState.totalStaked
@@ -243,12 +239,10 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 positionId,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
+        uint8 assetDecimals
     ) public {
-        // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        // Given : Add an asset
+        address asset = addAsset(assetDecimals);
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -262,6 +256,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
         // When : Calling _getRewardBalances().
         StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
+            allowed: true,
             lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
             lastRewardGlobal: assetState.lastRewardGlobal,
             totalStaked: assetState.totalStaked
@@ -284,12 +279,10 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 positionId,
-        uint8 assetDecimals,
-        uint8 rewardTokenDecimals
+        uint8 assetDecimals
     ) public {
-        // Given : Add an asset and reward token pair
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        address asset = assets[0];
+        // Given : Add an asset
+        address asset = addAsset(assetDecimals);
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
@@ -299,6 +292,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
         // When : Calling _getRewardBalances().
         StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
+            allowed: true,
             lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
             lastRewardGlobal: assetState.lastRewardGlobal,
             totalStaked: assetState.totalStaked

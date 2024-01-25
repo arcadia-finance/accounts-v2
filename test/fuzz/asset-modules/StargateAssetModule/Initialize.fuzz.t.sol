@@ -22,9 +22,10 @@ contract Initialize_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Te
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_revert_initialize_NotOwner(address lpStaking, address _unprivilegedAddress) public {
+    function testFuzz_revert_initialize_NotOwner(address _unprivilegedAddress) public {
         vm.prank(users.creatorAddress);
-        StargateAssetModule assetModule = new StargateAssetModule(address(registryExtension), lpStaking);
+        StargateAssetModule assetModule =
+            new StargateAssetModule(address(registryExtension), address(lpStakingTimeMock));
 
         // Given : unprivileged address is not the owner of the AM.
         vm.assume(_unprivilegedAddress != users.creatorAddress);
@@ -37,8 +38,9 @@ contract Initialize_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Te
         vm.stopPrank();
     }
 
-    function testFuzz_success_initialize(address lpStaking) public {
-        StargateAssetModule assetModule = new StargateAssetModule(address(registryExtension), lpStaking);
+    function testFuzz_success_initialize() public {
+        StargateAssetModule assetModule =
+            new StargateAssetModule(address(registryExtension), address(lpStakingTimeMock));
 
         // Given : Asset Module is added to the Registry.
         vm.prank(users.creatorAddress);
@@ -48,6 +50,9 @@ contract Initialize_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Te
         assetModule.initialize();
 
         // Then : The Asset Module should be added to the Registry as an asset.
-        registryExtension.inRegistry(address(assetModule));
+        assertTrue(registryExtension.inRegistry(address(assetModule)));
+
+        // And : The assetModule is added to itself as an asset.
+        assertTrue(assetModule.inAssetModule(address(assetModule)));
     }
 }
