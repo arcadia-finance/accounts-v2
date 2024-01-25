@@ -28,7 +28,7 @@ contract StandardERC20AssetModule is PrimaryAssetModule {
 
     /**
      * @param registry_ The contract address of the Registry.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, for ERC20 tokens it is 0.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "0" for ERC20 tokens.
      */
     constructor(address registry_) PrimaryAssetModule(registry_, 0) { }
 

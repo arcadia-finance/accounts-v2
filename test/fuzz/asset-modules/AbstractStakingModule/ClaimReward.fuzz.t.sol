@@ -76,10 +76,13 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.RewardPaid(positionId, address(stakingModule.REWARD_TOKEN()), uint128(currentRewardPosition));
-        stakingModule.claimReward(positionId);
+        uint256 rewards = stakingModule.claimReward(positionId);
         vm.stopPrank();
 
-        // Then : Account should have received the reward tokens.
+        // Then : claimed rewards are returned.
+        assertEq(rewards, currentRewardPosition);
+
+        // And : Account should have received the reward tokens.
         assertEq(currentRewardPosition, stakingModule.REWARD_TOKEN().balanceOf(account));
 
         // And: Position state should be updated correctly.
@@ -139,10 +142,13 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
 
         // When : Account calls claimReward()
         vm.startPrank(account);
-        stakingModule.claimReward(positionId);
+        uint256 rewards = stakingModule.claimReward(positionId);
         vm.stopPrank();
 
-        // Then : Account should have not received reward tokens.
+        // Then : No claimed rewards are returned.
+        assertEq(rewards, 0);
+
+        // And : Account should have not received reward tokens.
         assertEq(stakingModule.REWARD_TOKEN().balanceOf(account), 0);
 
         // And: Position state should be updated correctly.

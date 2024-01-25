@@ -92,7 +92,7 @@ library BitPackingLib {
                 let boolValue := and(shr(add(mul(i, 81), 2), packedData), 0x1)
 
                 // Shift to the right by 3 + i * 81 bits.
-                // Then use bitmask to extract the the uint80 at index i from the rightmost 80 bits.
+                // Then use bitmask to extract the uint80 at index i from the rightmost 80 bits.
                 let uintValue := and(shr(add(mul(i, 81), 3), packedData), 0xFFFFFFFFFFFFFFFFFFFF)
 
                 // Calculate the offset for elements at index i.

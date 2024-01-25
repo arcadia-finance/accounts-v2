@@ -117,7 +117,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
     /**
      * @notice Stakes an amount of Assets in the external staking contract and mints a new position.
-     * @param asset The contract address of the Asset to stake.
+     * @param asset The contract address of the asset to stake.
      * @param amount The amount of Assets to stake.
      * @return positionId The id of the minted position.
      */
@@ -201,12 +201,18 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
     }
 
     /**
-     * @notice Unstakes and withdraws the Asset from the external staking contract.
+     * @notice Unstakes and withdraws the asset from the external staking contract.
      * @param positionId The id of the position to withdraw from.
      * @param amount The amount of Asset to unstake and withdraw.
+     * @return rewards The amount of reward tokens claimed.
      * @dev Also claims and transfers the staking rewards of the position.
      */
-    function decreaseLiquidity(uint256 positionId, uint128 amount) public virtual nonReentrant {
+    function decreaseLiquidity(uint256 positionId, uint128 amount)
+        public
+        virtual
+        nonReentrant
+        returns (uint256 rewards)
+    {
         if (amount == 0) revert ZeroAmount();
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
@@ -223,8 +229,8 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         positionState_.amountStaked = positionState_.amountStaked - amount;
 
         // Rewards are claimed and paid out to the owner on a decreaseLiquidity.
-        // -> Reset the balances of the pending rewards for the Asset and the position.
-        uint256 rewardPosition = positionState_.lastRewardPosition;
+        // -> Reset the balances of the pending rewards for the asset and the position.
+        rewards = positionState_.lastRewardPosition;
         positionState_.lastRewardPosition = 0;
         assetState_.lastRewardGlobal = 0;
 
@@ -244,13 +250,13 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         _claimReward(asset);
 
         // Pay out the rewards to the position owner.
-        if (rewardPosition > 0) {
+        if (rewards > 0) {
             // Transfer reward
-            REWARD_TOKEN.safeTransfer(msg.sender, rewardPosition);
-            emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewardPosition));
+            REWARD_TOKEN.safeTransfer(msg.sender, rewards);
+            emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
         }
 
-        // Transfer the Asset back to the position owner.
+        // Transfer the asset back to the position owner.
         ERC20(asset).safeTransfer(msg.sender, amount);
         emit LiquidityDecreased(positionId, asset, amount);
     }
@@ -258,8 +264,9 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
     /**
      * @notice Claims and transfers the staking rewards of the position.
      * @param positionId The id of the position.
+     * @return rewards The amount of reward tokens claimed.
      */
-    function claimReward(uint256 positionId) external virtual nonReentrant {
+    function claimReward(uint256 positionId) external virtual nonReentrant returns (uint256 rewards) {
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
         // Cache the old positionState and assetState.
@@ -271,8 +278,8 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
 
         // Rewards are claimed and paid out to the owner on a claimReward.
-        // -> Reset the balances of the pending rewards for the Asset and the position.
-        uint256 rewardPosition = positionState_.lastRewardPosition;
+        // -> Reset the balances of the pending rewards for the asset and the position.
+        rewards = positionState_.lastRewardPosition;
         positionState_.lastRewardPosition = 0;
         assetState_.lastRewardGlobal = 0;
 
@@ -284,10 +291,10 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         _claimReward(asset);
 
         // Pay out the share of the reward owed to the position owner.
-        if (rewardPosition > 0) {
+        if (rewards > 0) {
             // Transfer reward
-            REWARD_TOKEN.safeTransfer(msg.sender, rewardPosition);
-            emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewardPosition));
+            REWARD_TOKEN.safeTransfer(msg.sender, rewards);
+            emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
         }
     }
 
@@ -312,7 +319,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
     function _stake(address asset, uint256 amount) internal virtual;
 
     /**
-     * @notice Unstakes and withdraws the Asset from the external contract.
+     * @notice Unstakes and withdraws the asset from the external contract.
      * @param asset The Asset to withdraw.
      * @param amount The amount of Asset to unstake and withdraw.
      */
@@ -320,7 +327,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
     /**
      * @notice Claims the rewards available for this contract.
-     * @param asset The asset for which rewards will be claimed.
+     * @param asset The Asset for which rewards will be claimed.
      */
     function _claimReward(address asset) internal virtual;
 
@@ -353,7 +360,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
     /**
      * @notice Calculates the current global and position specific reward balances.
-     * @param assetState_ Struct with the old rewards state of the the Asset.
+     * @param assetState_ Struct with the old rewards state of the Asset.
      * @param positionState_ Struct with the old rewards state of the position.
      * @return currentAssetState Struct with the current rewards state of the Asset.
      * @return currentPositionState Struct with the current rewards state of the position.
@@ -367,7 +374,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
             // Calculate the new assetState
             // Fetch the current reward balance from the staking contract.
             uint256 currentRewardGlobal = _getCurrentReward(positionState_.asset);
-            // Calculate the increase in rewards since last asset interaction.
+            // Calculate the increase in rewards since last Asset interaction.
             uint256 deltaReward = currentRewardGlobal - assetState_.lastRewardGlobal;
             uint256 deltaRewardPerToken = deltaReward.mulDivDown(1e18, assetState_.totalStaked);
             // Calculate and update the new RewardPerToken of the asset.
