@@ -28,6 +28,7 @@ import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
 import { StakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 import { StargateAssetModule } from "../../src/asset-modules/Stargate-Finance/StargateAssetModule.sol";
+import { NSStargateAssetModule } from "../../src/asset-modules/Stargate-Finance/NSStargateAssetModule.sol";
 
 contract AccountExtension is AccountV1 {
     constructor(address factory) AccountV1(factory) { }
@@ -723,5 +724,38 @@ contract StargateAssetModuleExtension is StargateAssetModule {
 
     function setAmountStakedForPosition(uint256 id, uint256 amount) public {
         positionState[id].amountStaked = uint128(amount);
+    }
+}
+
+contract NSStargateAssetModuleExtension is NSStargateAssetModule {
+    constructor(address registry, address stargateLpStaking_) NSStargateAssetModule(registry, stargateLpStaking_) { }
+
+    function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
+        (asset, assetId) = _getAssetFromKey(key);
+    }
+
+    function getKeyFromAsset(address asset, uint256 assetId) public pure returns (bytes32 key) {
+        (key) = _getKeyFromAsset(asset, assetId);
+    }
+
+    function getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 exposureAsset,
+        bytes32[] memory underlyingAssetKeys
+    )
+        public
+        view
+        returns (
+            uint256[] memory exposureAssetToUnderlyingAssets,
+            AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+        )
+    {
+        (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
+    }
+
+    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {
+        return _getUnderlyingAssets(assetKey);
     }
 }
