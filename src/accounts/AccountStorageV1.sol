@@ -40,9 +40,6 @@ contract AccountStorageV1 {
     address public owner;
     // The contract address of the Creditor.
     address public creditor;
-    // The contract address of an approved Creditor.
-    // This is a Creditor for which a margin Account can be opened later in time to e.g. refinance liabilities.
-    address internal approvedCreditor;
     // The Numeraire (the unit in which prices are measured) of the Account,
     // in which all assets and liabilities are denominated.
     address public numeraire;
@@ -62,6 +59,9 @@ contract AccountStorageV1 {
     mapping(address => uint256) public erc20Balances;
     // Map asset => id => balance.
     mapping(address => mapping(uint256 => uint256)) public erc1155Balances;
+    // Map owner => approved Creditor.
+    // This is a Creditor for which a margin Account can be opened later in time to e.g. refinance liabilities.
+    mapping(address => address) public approvedCreditor;
     // Map owner => assetManager => flag.
     mapping(address => mapping(address => bool)) public isAssetManager;
 }

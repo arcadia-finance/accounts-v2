@@ -24,24 +24,11 @@ contract SetApprovedCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_setApprovedCreditor_NonAuthorized(address unprivilegedAddress_, address creditor_)
-        public
-    {
-        vm.assume(unprivilegedAddress_ != users.accountOwner);
 
-        vm.startPrank(unprivilegedAddress_);
-        vm.expectRevert(AccountErrors.OnlyOwner.selector);
-        accountExtension.setApprovedCreditor(creditor_);
-        vm.stopPrank();
-    }
+    function testFuzz_Success_setApprovedCreditor(address sender, address approvedCreditor) public {
+        vm.prank(sender);
+        accountExtension.setApprovedCreditor(approvedCreditor);
 
-    function testFuzz_Success_setApprovedCreditor(address creditor_, uint32 time) public {
-        vm.warp(time);
-
-        vm.prank(users.accountOwner);
-        accountExtension.setApprovedCreditor(creditor_);
-
-        assertEq(accountExtension.getApprovedCreditor(), creditor_);
-        assertEq(accountExtension.lastActionTimestamp(), time);
+        assertEq(accountExtension.approvedCreditor(sender), approvedCreditor);
     }
 }
