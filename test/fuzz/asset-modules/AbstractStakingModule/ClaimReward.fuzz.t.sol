@@ -12,7 +12,7 @@ import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointM
 /**
  * @notice Fuzz tests for the function "claimReward" of contract "StakingModule".
  */
-contract ClaimReward_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
+contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
     /* ///////////////////////////////////////////////////////////////
@@ -27,82 +27,149 @@ contract ClaimReward_AbstractAbstractStakingModule_Fuzz_Test is AbstractStakingM
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Success_claimReward_ZeroReward(
-        uint256 id,
-        address account,
-        uint128 lastRewardGlobal,
-        uint128 lastRewardPerTokenGlobal,
-        uint128 accountBalance
-    ) public {
-        // Given : lastRewardGlobal > 0, since we are claiming the rewards of the external staking contract via claimReward() we have to validate that lastRewardGlobal is set to 0 after. currentRewardGlobal should be equal to lastRewardGlobal, as account should not earn over that period.
-        vm.assume(lastRewardGlobal > 0);
-        stakingModule.setLastRewardGlobal(id, lastRewardGlobal);
-        stakingModule.setActualRewardBalance(id, lastRewardGlobal);
+    function testFuzz_Revert_claimReward_NotOwner(address owner, address randomAddress, uint256 positionId) public {
+        // Given: randomAddress is not the owner.
+        vm.assume(owner != randomAddress);
 
-        // Given : lastRewardPerTokenGlobal should be equal to lastRewardPerTokenAccount (= no reward currentRewardAccount for Account).
-        stakingModule.setLastRewardPerTokenGlobal(id, lastRewardPerTokenGlobal);
-        stakingModule.setLastRewardPerTokenAccount(id, lastRewardPerTokenGlobal, account);
+        // Given : Owner of positionId is not randomAddress
+        stakingModule.setOwnerOfPositionId(owner, positionId);
 
-        // Given : Account has a non-zero balance.
-        vm.assume(accountBalance > 0);
-        stakingModule.setBalanceOf(id, accountBalance, account);
-        stakingModule.setTotalSupply(id, accountBalance);
-
-        // When : Account calls claimReward().
-        vm.prank(account);
-        stakingModule.claimReward(id);
-
-        // Then : lastRewardGlobal and rewards of Account should be 0.
-        (, uint128 lastRewardsGlobal_,) = stakingModule.tokenState(id);
-        assertEq(lastRewardsGlobal_, 0);
-        (, uint128 lastRewardAccount_) = stakingModule.accountState(account, id);
-        assertEq(lastRewardAccount_, 0);
+        // When : randomAddress calls claimReward for positionId
+        // Then : It should revert as randomAddress is not owner of the positionId
+        vm.startPrank(randomAddress);
+        vm.expectRevert(StakingModule.NotOwner.selector);
+        stakingModule.claimReward(positionId);
+        vm.stopPrank();
     }
 
-    function testFuzz_Success_claimReward_RewardGreaterThanZero(
+    function testFuzz_Success_claimReward_NonZeroReward(
         address account,
-        StakingModuleStateForId memory moduleState,
-        uint128 rewardIncrease,
-        uint8 underlyingTokenDecimals,
-        uint8 rewardTokenDecimals
+        uint256 positionId,
+        StakingModuleStateForAsset memory assetState,
+        StakingModule.PositionState memory positionState,
+        uint8 assetDecimals
     ) public {
         // Given : account != zero address
         vm.assume(account != address(0));
 
-        // Given : id = 1
-        uint256 id = 1;
+        // Given : owner of ERC721 positionId is Account
+        stakingModule.setOwnerOfPositionId(account, positionId);
 
-        // Given : Valid state
-        StakingModuleStateForId memory moduleState_ = setStakingModuleState(moduleState, id, account);
+        // Given : Add an asset
+        address asset = addAsset(assetDecimals);
 
-        // Given : Add a staking token + reward token pair
-        addStakingTokens(1, underlyingTokenDecimals, rewardTokenDecimals);
+        // Given: Valid state
+        (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
 
-        // Given : Account has a positive balance
-        vm.assume(stakingModule.balanceOf(account, id) > 0);
-
-        // Given : Actual rewards from external staking contract are > previous claimable rewards. Thus rewardIncrease > 0.
-        vm.assume(moduleState_.lastRewardGlobal < type(uint128).max);
-        rewardIncrease = uint128(bound(rewardIncrease, 1, type(uint128).max - moduleState_.lastRewardGlobal));
-        stakingModule.setActualRewardBalance(id, moduleState_.lastRewardGlobal + rewardIncrease);
+        // And: State is persisted.
+        setStakingModuleState(assetState, positionState, asset, positionId);
 
         // Given : The claim function on the external staking contract is not implemented, thus we fund the stakingModule with reward tokens that should be transferred.
-        uint256 currentRewardAccount = stakingModule.rewardOf(account, id);
-        mintERC20TokenTo(address(stakingModule.rewardToken(id)), address(stakingModule), currentRewardAccount);
+        uint256 currentRewardPosition = stakingModule.rewardOf(positionId);
 
-        // Given : currentRewardAccount > 0, for very small reward increase and high balances, it could return zero.
-        vm.assume(currentRewardAccount > 0);
+        // And reward is non-zero.
+        vm.assume(currentRewardPosition > 0);
+
+        mintERC20TokenTo(address(stakingModule.REWARD_TOKEN()), address(stakingModule), currentRewardPosition);
 
         // When : Account calls claimReward()
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.RewardPaid(account, id, currentRewardAccount);
-        stakingModule.claimReward(id);
+        emit StakingModule.RewardPaid(positionId, address(stakingModule.REWARD_TOKEN()), uint128(currentRewardPosition));
+        uint256 rewards = stakingModule.claimReward(positionId);
         vm.stopPrank();
 
-        // Then : Account should have received the reward tokens.
-        assertEq(currentRewardAccount, stakingModule.rewardToken(id).balanceOf(account));
-        (, currentRewardAccount) = stakingModule.accountState(account, id);
-        assertEq(currentRewardAccount, 0);
+        // Then : claimed rewards are returned.
+        assertEq(rewards, currentRewardPosition);
+
+        // And : Account should have received the reward tokens.
+        assertEq(currentRewardPosition, stakingModule.REWARD_TOKEN().balanceOf(account));
+
+        // And: Position state should be updated correctly.
+        StakingModule.PositionState memory newPositionState;
+        (
+            newPositionState.asset,
+            newPositionState.amountStaked,
+            newPositionState.lastRewardPerTokenPosition,
+            newPositionState.lastRewardPosition
+        ) = stakingModule.positionState(positionId);
+        assertEq(newPositionState.asset, asset);
+        assertEq(newPositionState.amountStaked, positionState.amountStaked);
+        uint256 deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
+        uint128 currentRewardPerToken;
+        unchecked {
+            currentRewardPerToken =
+                assetState.lastRewardPerTokenGlobal + uint128(deltaReward.mulDivDown(1e18, assetState.totalStaked));
+        }
+        assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
+        assertEq(newPositionState.lastRewardPosition, 0);
+
+        // And : Asset values should be updated correctly
+        StakingModule.AssetState memory newAssetState;
+        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+            stakingModule.assetState(asset);
+        assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
+        assertEq(newAssetState.lastRewardGlobal, 0);
+        assertEq(newAssetState.totalStaked, assetState.totalStaked);
+    }
+
+    function testFuzz_Success_claimReward_ZeroReward(
+        address account,
+        uint256 positionId,
+        StakingModuleStateForAsset memory assetState,
+        StakingModule.PositionState memory positionState,
+        uint8 assetDecimals
+    ) public {
+        // Given : account != zero address
+        vm.assume(account != address(0));
+
+        // Given : owner of ERC721 positionId is Account
+        stakingModule.setOwnerOfPositionId(account, positionId);
+
+        // Given : Add an asset
+        address asset = addAsset(assetDecimals);
+
+        // Given: Valid state
+        (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
+
+        // And reward is zero.
+        positionState.lastRewardPosition = 0;
+        positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
+        assetState.currentRewardGlobal = assetState.lastRewardGlobal;
+
+        // And: State is persisted.
+        setStakingModuleState(assetState, positionState, asset, positionId);
+
+        // When : Account calls claimReward()
+        vm.startPrank(account);
+        uint256 rewards = stakingModule.claimReward(positionId);
+        vm.stopPrank();
+
+        // Then : No claimed rewards are returned.
+        assertEq(rewards, 0);
+
+        // And : Account should have not received reward tokens.
+        assertEq(stakingModule.REWARD_TOKEN().balanceOf(account), 0);
+
+        // And: Position state should be updated correctly.
+        StakingModule.PositionState memory newPositionState;
+        (
+            newPositionState.asset,
+            newPositionState.amountStaked,
+            newPositionState.lastRewardPerTokenPosition,
+            newPositionState.lastRewardPosition
+        ) = stakingModule.positionState(positionId);
+        assertEq(newPositionState.asset, asset);
+        assertEq(newPositionState.amountStaked, positionState.amountStaked);
+        assertEq(newPositionState.lastRewardPerTokenPosition, assetState.lastRewardPerTokenGlobal);
+        assertEq(newPositionState.lastRewardPosition, 0);
+
+        // And : Asset values should be updated correctly
+        StakingModule.AssetState memory newAssetState;
+        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+            stakingModule.assetState(asset);
+        assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
+        assertEq(newAssetState.lastRewardGlobal, 0);
+        assertEq(newAssetState.totalStaked, assetState.totalStaked);
     }
 }

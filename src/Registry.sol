@@ -279,8 +279,8 @@ contract Registry is IRegistry, RegistryGuardian {
      * @return A boolean, indicating if the sequence complies with the set of criteria.
      * @dev The following checks are performed:
      * - The oracle must be previously added to the Registry and must still be active.
-     * - The last asset of oracles (except for the last oracle) must be equal to the first asset of the next oracle.
-     * - The last asset of the last oracle must be USD.
+     * - The last Asset of oracles (except for the last oracle) must be equal to the first asset of the next oracle.
+     * - The last Asset of the last oracle must be USD.
      */
     function checkOracleSequence(bytes32 oracleSequence) external view returns (bool) {
         (bool[] memory baseToQuoteAsset, uint256[] memory oracles) = oracleSequence.unpack();
