@@ -42,7 +42,7 @@ contract Constructor_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_T
         assertEq(address(assetModule.REWARD_TOKEN()), address(lpStakingTimeMock.eToken()));
         assertEq(assetModule.ASSET_TYPE(), 1);
         assertEq(assetModule.REGISTRY(), address(registryExtension));
-        assertEq(assetModule.symbol(), "ASP");
+        assertEq(assetModule.symbol(), "aSGP");
         assertEq(assetModule.name(), "Arcadia Stargate Positions");
     }
 }

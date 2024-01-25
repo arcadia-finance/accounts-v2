@@ -141,12 +141,15 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         emit StakingModule.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
         vm.expectEmit();
         emit StakingModule.LiquidityDecreased(positionId, asset, positionState.amountStaked);
-        stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
+        uint256 rewards = stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
         // Then : Account should get the staking and reward tokens
         assertEq(ERC20Mock(tokens[0]).balanceOf(account), positionState.amountStaked);
         assertEq(ERC20Mock(tokens[1]).balanceOf(account), currentRewardAccount);
+
+        // And : Claimed rewards are returned.
+        assertEq(rewards, currentRewardAccount);
 
         // And : positionId should be burned.
         assertEq(stakingModule.balanceOf(account), 0);
@@ -235,12 +238,15 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         emit StakingModule.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
         vm.expectEmit();
         emit StakingModule.LiquidityDecreased(positionId, asset, amount);
-        stakingModule.decreaseLiquidity(positionId, amount);
+        uint256 rewards = stakingModule.decreaseLiquidity(positionId, amount);
         vm.stopPrank();
 
         // Then : Account should get the withdrawed amount and reward tokens.
         assertEq(ERC20Mock(asset).balanceOf(account), amount);
         assertEq(rewardToken.balanceOf(account), currentRewardAccount);
+
+        // And : Claimed rewards are returned.
+        assertEq(rewards, currentRewardAccount);
 
         // And : positionId should not be burned.
         assertEq(stakingModule.balanceOf(account), 1);
@@ -319,12 +325,15 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.LiquidityDecreased(positionId, asset, positionState.amountStaked);
-        stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
+        uint256 rewards = stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
         // Then : Account should get the staking and reward tokens
         assertEq(ERC20Mock(tokens[0]).balanceOf(account), positionState.amountStaked);
         assertEq(ERC20Mock(tokens[1]).balanceOf(account), 0);
+
+        // And : No claimed rewards are returned.
+        assertEq(rewards, 0);
 
         // And : positionId should be burned.
         assertEq(stakingModule.balanceOf(account), 0);
@@ -404,12 +413,15 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         vm.startPrank(account);
         vm.expectEmit();
         emit StakingModule.LiquidityDecreased(positionId, asset, amount);
-        stakingModule.decreaseLiquidity(positionId, amount);
+        uint256 rewards = stakingModule.decreaseLiquidity(positionId, amount);
         vm.stopPrank();
 
         // Then : Account should get the withdrawed amount and reward tokens.
         assertEq(ERC20Mock(asset).balanceOf(account), amount);
         assertEq(rewardToken.balanceOf(account), 0);
+
+        // And : No claimed rewards are returned.
+        assertEq(rewards, 0);
 
         // And : positionId should not be burned.
         assertEq(stakingModule.balanceOf(account), 1);

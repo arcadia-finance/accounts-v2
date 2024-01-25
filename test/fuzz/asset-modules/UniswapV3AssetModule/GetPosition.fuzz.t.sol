@@ -51,7 +51,7 @@ contract GetPosition_UniswapV3AssetModule_Fuzz_Test is UniswapV3AssetModule_Fuzz
         // And: State is persisted.
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), assetId, position);
 
-        // And: The Uniswap V3 position is added to the asset Module.
+        // And: The Uniswap V3 position is added to the Asset Module.
         uniV3AssetModule.addAsset(assetId);
 
         // And: The Liquidity of the position changes

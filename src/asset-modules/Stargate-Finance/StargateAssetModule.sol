@@ -56,11 +56,11 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     /**
      * @param registry_ The address of the Registry.
      * @param lpStakingTime_ The address of the Stargate LP staking contract.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC721 tokens is 1.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC721 tokens.
      */
     constructor(address registry_, address lpStakingTime_)
         DerivedAssetModule(registry_, 1)
-        StakingModule("Arcadia Stargate Positions", "ASP")
+        StakingModule("Arcadia Stargate Positions", "aSGP")
     {
         LP_STAKING_TIME = ILpStakingTime(lpStakingTime_);
         REWARD_TOKEN = ERC20(address(LP_STAKING_TIME.eToken()));
@@ -175,7 +175,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
 
     /**
      * @notice Stakes an amount of tokens in the external staking contract.
-     * @param asset The contract address of the Asset to stake.
+     * @param asset The contract address of the asset to stake.
      * @param amount The amount of Asset to stake.
      */
     function _stake(address asset, uint256 amount) internal override {
@@ -186,8 +186,8 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
     }
 
     /**
-     * @notice Unstakes and withdraws the Asset from the external contract.
-     * @param asset The contract address of the Asset to unstake and withdraw.
+     * @notice Unstakes and withdraws the asset from the external contract.
+     * @param asset The contract address of the asset to unstake and withdraw.
      * @param amount The amount of underlying tokens to unstake and withdraw.
      */
     function _withdraw(address asset, uint256 amount) internal override {
@@ -197,7 +197,7 @@ contract StargateAssetModule is DerivedAssetModule, StakingModule {
 
     /**
      * @notice Claims the rewards available for this contract.
-     * @param asset The contract address of the Asset to claim the rewards for.
+     * @param asset The contract address of the asset to claim the rewards for.
      * @dev Withdrawing a zero amount will trigger the claim for rewards.
      */
     function _claimReward(address asset) internal override {
