@@ -32,46 +32,66 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         stakingModule.mint(asset, 0);
     }
 
-    function testFuzz_Revert_mint_AssetNotAllowed(address asset, uint128 amount) public {
+    function testFuzz_Revert_mint_AssetNotAllowed(uint8 assetDecimals, uint128 amount, address account) public {
         // Given : Amount is greater than zero
         vm.assume(amount > 0);
+
+        assetDecimals = uint8(bound(assetDecimals, 0, 18));
+        address asset = address(new ERC20Mock("Asset", "AST", assetDecimals));
+
+        address[] memory tokens = new address[](1);
+        tokens[0] = asset;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amount;
+
+        mintERC20TokensTo(tokens, account, amounts);
+        approveERC20TokensFor(tokens, address(stakingModule), amounts, account);
+
         // When : Calling Stake
         // Then : The function should revert as the asset has not been added to the Staking Module.
+        vm.prank(account);
         vm.expectRevert(StakingModule.AssetNotAllowed.selector);
         stakingModule.mint(asset, amount);
     }
 
     function testFuzz_Success_mint_TotalStakedForAssetGreaterThan0(
         uint8 assetDecimals,
-        uint8 rewardTokenDecimals,
         StakingModuleStateForAsset memory assetState,
         uint128 amount,
         address account
     ) public notTestContracts(account) {
+        vm.assume(account != address(0));
         vm.assume(account != address(stakingModule));
+        vm.assume(account != address(rewardToken));
 
-        // Given: An Asset and reward token pair are added to the stakingModule.
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        vm.assume(account != assets[0]);
-        address asset = assets[0];
+        address asset;
+        {
+            // Given: An Asset i added to the stakingModule.
+            asset = addAsset(assetDecimals);
+            vm.assume(account != asset);
 
-        // And: Valid state.
-        StakingModule.PositionState memory positionState;
-        (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
+            // And: Valid state.
+            StakingModule.PositionState memory positionState;
+            (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
 
-        // And: State is persisted.
-        setStakingModuleState(assetState, positionState, asset, 0);
+            // And: State is persisted.
+            setStakingModuleState(assetState, positionState, asset, 0);
 
-        // And: updated totalStake should not be greater than uint128.
-        // And: Amount staked is greater than zero.
-        vm.assume(assetState.totalStaked < type(uint128).max);
-        amount = uint128(bound(amount, 1, type(uint128).max - assetState.totalStaked));
+            // And: updated totalStake should not be greater than uint128.
+            // And: Amount staked is greater than zero.
+            vm.assume(assetState.totalStaked < type(uint128).max);
+            amount = uint128(bound(amount, 1, type(uint128).max - assetState.totalStaked));
 
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
+            address[] memory tokens = new address[](1);
+            tokens[0] = asset;
 
-        mintERC20TokensTo(assets, account, amounts);
-        approveERC20TokensFor(assets, address(stakingModule), amounts, account);
+            uint256[] memory amounts = new uint256[](1);
+            amounts[0] = amount;
+
+            mintERC20TokensTo(tokens, account, amounts);
+            approveERC20TokensFor(tokens, address(stakingModule), amounts, account);
+        }
 
         // When:  A user is staking via the Staking Module.
         vm.startPrank(account);
@@ -106,7 +126,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
         // And: Asset state should be updated correctly.
         StakingModule.AssetState memory newAssetState;
-        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
         assertEq(newAssetState.lastRewardGlobal, assetState.currentRewardGlobal);
@@ -115,17 +135,17 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
     function testFuzz_Success_mint_TotalStakedForAssetIsZero(
         uint8 assetDecimals,
-        uint8 rewardTokenDecimals,
         StakingModuleStateForAsset memory assetState,
         uint128 amount,
         address account
     ) public notTestContracts(account) {
+        vm.assume(account != address(0));
         vm.assume(account != address(stakingModule));
+        vm.assume(account != address(rewardToken));
 
-        // Given: An Asset and reward token pair are added to the stakingModule.
-        (address[] memory assets,) = addAssets(1, assetDecimals, rewardTokenDecimals);
-        vm.assume(account != assets[0]);
-        address asset = assets[0];
+        // Given: An Asset is added to the stakingModule.
+        address asset = addAsset(assetDecimals);
+        vm.assume(account != asset);
 
         // And: Valid state.
         StakingModule.PositionState memory positionState;
@@ -140,11 +160,14 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // And: Amount staked is greater than zero.
         amount = uint128(bound(amount, 1, type(uint128).max));
 
+        address[] memory tokens = new address[](1);
+        tokens[0] = asset;
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
-        mintERC20TokensTo(assets, account, amounts);
-        approveERC20TokensFor(assets, address(stakingModule), amounts, account);
+        mintERC20TokensTo(tokens, account, amounts);
+        approveERC20TokensFor(tokens, address(stakingModule), amounts, account);
 
         // When:  A user is staking via the Staking Module.
         vm.startPrank(account);
@@ -173,7 +196,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
         // And: Asset state should be updated correctly.
         StakingModule.AssetState memory newAssetState;
-        (newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
+        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
         assertEq(newAssetState.lastRewardGlobal, assetState.lastRewardGlobal);

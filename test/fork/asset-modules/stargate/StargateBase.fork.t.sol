@@ -8,10 +8,11 @@ import { Fork_Test } from "../../Fork.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
-import { ILpStakingTime } from "../../../../src/asset-modules/interfaces/stargate/ILpStakingTime.sol";
-import { IRouter } from "../../../../src/asset-modules/interfaces/stargate/IRouter.sol";
-import { IPool } from "../../../../src/asset-modules/interfaces/stargate/IPool.sol";
-import { StargateAssetModule } from "../../../../src/asset-modules/StargateAssetModule.sol";
+import { ILpStakingTime } from "../../../../src/asset-modules/Stargate-Finance/interfaces/ILpStakingTime.sol";
+import { IRouter } from "../../../../src/asset-modules/Stargate-Finance/interfaces/IRouter.sol";
+import { IPool } from "../../../../src/asset-modules/Stargate-Finance/interfaces/IPool.sol";
+import { StargateAssetModule } from "../../../../src/asset-modules/Stargate-Finance/StargateAssetModule.sol";
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 /**
  * @notice Base test file for Stargate Asset-Module fork tests.
@@ -23,6 +24,7 @@ contract StargateBase_Fork_Test is Fork_Test {
 
     IRouter public router = IRouter(0x45f1A95A4D3f3836523F5c83673c797f4d4d263B);
     ILpStakingTime public lpStakingTime = ILpStakingTime(0x06Eb48763f117c7Be887296CDcdfad2E4092739C);
+    address oracleSTG = 0x63Af8341b62E683B87bB540896bF283D96B4D385;
 
     StargateAssetModule public stargateAssetModule;
 
@@ -30,8 +32,19 @@ contract StargateBase_Fork_Test is Fork_Test {
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
-    /*   function setUp() public virtual override {
+    function setUp() public virtual override {
         Fork_Test.setUp();
+
+        // Add STG and it's Chainlink oracle to the protocol.
+        vm.startPrank(users.creatorAddress);
+        uint256 oracleId = chainlinkOM.addOracle(oracleSTG, "STG", "USD", 2 days);
+        bool[] memory boolValues = new bool[](1);
+        boolValues[0] = true;
+        uint80[] memory uintValues = new uint80[](1);
+        uintValues[0] = uint80(oracleId);
+        bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
+        erc20AssetModule.addAsset(address(lpStakingTime.eToken()), oracleSequence);
+        vm.stopPrank();
 
         // Deploy StargateAssetModule.
         vm.startPrank(users.creatorAddress);
@@ -39,12 +52,14 @@ contract StargateBase_Fork_Test is Fork_Test {
 
         // Add Asset-Module to the registry and initialize.
         registryExtension.addAssetModule(address(stargateAssetModule));
-        vm.stopPrank();
+
+        // Initialize stargateAssetModule
+        stargateAssetModule.initialize();
 
         // Label contracts
         vm.label({ account: address(router), newLabel: "StargateRouter" });
         vm.label({ account: address(lpStakingTime), newLabel: "StargateLpStaking" });
-    } */
+    }
 
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
@@ -55,7 +70,7 @@ contract StargateBase_Fork_Test is Fork_Test {
         address account,
         ERC20 underlyingAsset,
         uint256 amount,
-        uint256 poolId,
+        uint256 routerPoolId,
         IPool pool
     ) public returns (uint256 lpBalance) {
         // A user deposits in the Stargate USDbC pool.
@@ -63,11 +78,11 @@ contract StargateBase_Fork_Test is Fork_Test {
         deal(address(underlyingAsset), user, amount);
 
         underlyingAsset.approve(address(router), amount);
-        router.addLiquidity(poolId, amount, user);
+        router.addLiquidity(routerPoolId, amount, user);
 
         // The user stakes the LP token via the StargateAssetModule
-        lpBalance = pool.balanceOf(user);
-        pool.approve(address(stargateAssetModule), lpBalance);
+        lpBalance = ERC20(address(pool)).balanceOf(user);
+        ERC20(address(pool)).approve(address(stargateAssetModule), lpBalance);
 
         uint256 tokenId = stargateAssetModule.mint(address(pool), uint128(lpBalance));
 

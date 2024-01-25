@@ -27,7 +27,7 @@ import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModu
 import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
 import { StakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
-import { StargateAssetModule } from "../../src/asset-modules/StargateAssetModule.sol";
+import { StargateAssetModule } from "../../src/asset-modules/Stargate-Finance/StargateAssetModule.sol";
 
 contract AccountExtension is AccountV1 {
     constructor(address factory) AccountV1(factory) { }
@@ -601,12 +601,14 @@ contract MultiCallExtension is ActionMultiCall {
 abstract contract StakingModuleExtension is StakingModule {
     constructor(string memory name_, string memory symbol_) StakingModule(name_, symbol_) { }
 
+    function setBaseURI(string calldata newBaseURI) external override { }
+
     function setLastRewardGlobal(address asset, uint128 balance) public {
         assetState[asset].lastRewardGlobal = balance;
     }
 
-    function setAssetAndRewardToken(address asset, ERC20 rewardToken) public {
-        assetToRewardToken[asset] = rewardToken;
+    function addAsset(address asset) public {
+        _addAsset(asset);
     }
 
     function setAssetInPosition(address asset, uint256 tokenId) public {
@@ -658,11 +660,15 @@ contract StargateAssetModuleExtension is StargateAssetModule {
     constructor(address registry, address stargateLpStaking_) StargateAssetModule(registry, stargateLpStaking_) { }
 
     function setAssetToUnderlyingAsset(address asset, address underlyingAsset) public {
-        assetToUnderlyingAsset[asset] = underlyingAsset;
+        poolInformation[asset].underlyingAsset = underlyingAsset;
     }
 
-    function setAssetToPoolId(address asset, uint256 poolId) public {
-        assetToPoolId[asset] = poolId;
+    function setTotalStakedForAsset(address asset, uint128 totalStaked_) public {
+        assetState[asset].totalStaked = totalStaked_;
+    }
+
+    function setAssetToPoolId(address asset, uint96 poolId) public {
+        poolInformation[asset].poolId = poolId;
     }
 
     function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
@@ -695,6 +701,10 @@ contract StargateAssetModuleExtension is StargateAssetModule {
         lastId_ = lastPositionId;
     }
 
+    function setIdCounter(uint256 lastId_) public {
+        lastPositionId = lastId_;
+    }
+
     function stakeExtension(address asset, uint256 amount) public {
         _stake(asset, amount);
     }
@@ -707,5 +717,11 @@ contract StargateAssetModuleExtension is StargateAssetModule {
         currentReward = _getCurrentReward(asset);
     }
 
-    function tokenURI(uint256 id) public view override returns (string memory) { }
+    function setAssetInPosition(address asset, uint256 positionId) public {
+        positionState[positionId].asset = asset;
+    }
+
+    function setAmountStakedForPosition(uint256 id, uint256 amount) public {
+        positionState[id].amountStaked = uint128(amount);
+    }
 }

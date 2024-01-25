@@ -8,9 +8,9 @@ import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { ReentrancyGuard } from "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
-
 import { SafeCastLib } from "../../../lib/solmate/src/utils/SafeCastLib.sol";
 import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
+import { Strings } from "../../libraries/Strings.sol";
 
 /**
  * @title Staking Module
@@ -26,7 +26,15 @@ import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.
  */
 abstract contract StakingModule is ERC721, ReentrancyGuard {
     using FixedPointMathLib for uint256;
+    using Strings for uint256;
     using SafeTransferLib for ERC20;
+
+    /* //////////////////////////////////////////////////////////////
+                                CONSTANTS
+    ////////////////////////////////////////////////////////////// */
+
+    // The reward token.
+    ERC20 public immutable REWARD_TOKEN;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -35,8 +43,9 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
     // The id of last minted position.
     uint256 internal lastPositionId;
 
-    // Map Asset to its corresponding reward token.
-    mapping(address asset => ERC20 rewardToken) public assetToRewardToken;
+    // The baseURI of the ERC721 tokens.
+    string public baseURI;
+
     // Map Asset to its corresponding struct with global state.
     mapping(address asset => AssetState) public assetState;
     // Map a position id to its corresponding struct with the position state.
@@ -44,6 +53,8 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
     // Struct with the global state per Asset.
     struct AssetState {
+        // Flag indicating if the asset is allowed.
+        bool allowed;
         // The growth of reward tokens per Asset staked, at the last interaction with this contract,
         // with 18 decimals precision.
         uint128 lastRewardPerTokenGlobal;
@@ -100,13 +111,15 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      */
     function mint(address asset, uint128 amount) external virtual nonReentrant returns (uint256 positionId) {
         if (amount == 0) revert ZeroAmount();
-        if (address(assetToRewardToken[asset]) == address(0)) revert AssetNotAllowed();
 
         // Need to transfer before minting or ERC777s could reenter.
         ERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
 
-        // Cache the old assetState and a new positionState.
+        // Cache the old assetState.
         AssetState memory assetState_ = assetState[asset];
+        if (!assetState_.allowed) revert AssetNotAllowed();
+
+        // Create a new positionState.
         PositionState memory positionState_;
         positionState_.asset = asset;
 
@@ -207,6 +220,7 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         if (positionState_.amountStaked > 0) {
             positionState[positionId] = positionState_;
         } else {
+            delete positionState[positionId];
             _burn(positionId);
         }
         assetState[asset] = assetState_;
@@ -219,11 +233,9 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
         // Pay out the rewards to the position owner.
         if (rewardPosition > 0) {
-            // Cache reward token
-            ERC20 rewardToken_ = assetToRewardToken[asset];
             // Transfer reward
-            rewardToken_.safeTransfer(msg.sender, rewardPosition);
-            emit RewardPaid(positionId, address(rewardToken_), uint128(rewardPosition));
+            REWARD_TOKEN.safeTransfer(msg.sender, rewardPosition);
+            emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewardPosition));
         }
 
         // Transfer the Asset back to the position owner.
@@ -261,11 +273,9 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
 
         // Pay out the share of the reward owed to the position owner.
         if (rewardPosition > 0) {
-            // Cache reward
-            ERC20 rewardToken_ = assetToRewardToken[asset];
             // Transfer reward
-            rewardToken_.safeTransfer(msg.sender, rewardPosition);
-            emit RewardPaid(positionId, address(rewardToken_), uint128(rewardPosition));
+            REWARD_TOKEN.safeTransfer(msg.sender, rewardPosition);
+            emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewardPosition));
         }
     }
 
@@ -276,6 +286,14 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      */
     function totalStaked(address asset) external view returns (uint256 totalStaked_) {
         return assetState[asset].totalStaked;
+    }
+
+    /**
+     * @notice Adds an asset that can be staked to this contract.
+     * @param asset The contract address of the Asset.
+     */
+    function _addAsset(address asset) internal {
+        assetState[asset].allowed = true;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -376,5 +394,24 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         positionState_.lastRewardPerTokenPosition = assetState_.lastRewardPerTokenGlobal;
 
         return (assetState_, positionState_);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        ERC-721 LOGIC
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Function that stores a new base URI.
+     * @param newBaseURI The new base URI to store.
+     */
+    function setBaseURI(string calldata newBaseURI) external virtual;
+
+    /**
+     * @notice Function that returns the token URI as defined in the ERC721 standard.
+     * @param tokenId The id of the Account.
+     * @return uri The token URI.
+     */
+    function tokenURI(uint256 tokenId) public view override returns (string memory uri) {
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 }
