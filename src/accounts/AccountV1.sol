@@ -394,7 +394,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * - Refinance liabilities (change creditor) without having to sell collateral to close the current position first.
      * @dev Anyone can set the approved creditor for themselves, this will not impact the current owner of the Account
      * since the combination of "current owner -> approved creditor" is used in authentication checks.
-     * This guarantees that
+     * This guarantees that when the ownership of the Account is transferred, the approved Creditor of the old owner has no
+     * impact on the new owner. But the new owner can still remove any existing approved Creditors before the transfer.
      */
     function setApprovedCreditor(address creditor_) external {
         approvedCreditor[msg.sender] = creditor_;
@@ -591,6 +592,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * - Chain multiple interactions together (eg. deposit and trade in one transaction).
      * @dev Anyone can set the Asset Manager for themselves, this will not impact the current owner of the Account
      * since the combination of "stored owner -> asset manager" is used in authentication checks.
+     * This guarantees that when the ownership of the Account is transferred, the asset managers of the old owner have no
+     * impact on the new owner. But the new owner can still remove any existing asset managers before the transfer.
      */
     function setAssetManager(address assetManager, bool value) external {
         emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = value);
