@@ -119,6 +119,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(factory));
         vm.assume(logic != address(vm));
         vm.assume(logic != address(registryExtension));
+        vm.assume(logic != address(sequencerUptimeOracle));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();
         bytes memory code = address(accountVarVersion).code;
@@ -128,6 +129,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.prank(users.creatorAddress);
         registry2 = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
+        vm.assume(logic != address(registry2));
 
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
