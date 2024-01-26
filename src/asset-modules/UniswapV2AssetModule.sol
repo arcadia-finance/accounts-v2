@@ -35,7 +35,7 @@ contract UniswapV2AssetModule is DerivedAssetModule {
     // Flag indicating if the protocol swap fees are enabled.
     bool public feeOn;
 
-    // The Unique identifiers of the underlying assets of a Liquidity Position.
+    // The unique identifiers of the underlying assets of a Liquidity Position.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////

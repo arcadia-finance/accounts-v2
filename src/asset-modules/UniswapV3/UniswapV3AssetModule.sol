@@ -45,7 +45,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     // The liquidity of the Liquidity Position when it was deposited.
     mapping(uint256 assetId => uint256 liquidity) internal assetToLiquidity;
 
-    // The Unique identifiers of the Underlying Assets of a Liquidity Position.
+    // The unique identifiers of the Underlying Assets of a Liquidity Position.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////

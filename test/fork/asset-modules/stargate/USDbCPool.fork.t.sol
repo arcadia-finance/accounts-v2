@@ -49,7 +49,7 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
         // Add the USDbC pool LP token to the StargateAssetModule.
         stargateAssetModule.addAsset(poolId);
 
-        // Add the staked ETH pool LP token to the StakedStargateAssetModule.
+        // Add the staked USDbC pool LP token to the StakedStargateAssetModule.
         stakedStargateAM.addAsset(pid);
         vm.stopPrank();
 
@@ -79,7 +79,7 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
         ERC20(address(pool)).approve(address(stakedStargateAM), stakedAmount);
         uint256 tokenId = stakedStargateAM.mint(address(pool), uint128(stakedAmount));
 
-        // The user deposits the position (ERC721 minted)  in it's Account.
+        // The user deposits the position (ERC721 minted) in its Account.
         stakedStargateAM.approve(address(proxyAccount), 1);
 
         address[] memory assetAddresses = new address[](1);
@@ -115,10 +115,9 @@ contract StargateAssetModuleUSDbC_Fork_Test is StargateBase_Fork_Test {
 
         // And : Stake Stargate Pool LP tokens in the Asset Modules and deposit minted ERC721 in Accounts.
         uint256 lpBalance1 = stakeInAssetModuleAndDepositInAccount(user1, arcadiaAccount1, USDbC, amount1, pid, pool);
-        (uint256 amBalanceInLpStaking,) = lpStakingTime.userInfo(pid, address(stakedStargateAM));
         uint256 lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDbC, amount2, pid, pool);
 
-        (amBalanceInLpStaking,) = lpStakingTime.userInfo(pid, address(stakedStargateAM));
+        (uint256 amBalanceInLpStaking,) = lpStakingTime.userInfo(pid, address(stakedStargateAM));
         assert(lpBalance1 + lpBalance2 == amBalanceInLpStaking);
 
         // And : We let 30 days pass to accumulate rewards.

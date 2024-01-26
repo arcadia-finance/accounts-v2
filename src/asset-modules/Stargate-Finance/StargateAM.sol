@@ -10,10 +10,10 @@ import { IPool } from "./interfaces/IPool.sol";
 import { ISGFactory } from "./interfaces/ISGFactory.sol";
 
 /**
- * @title Asset-Module for non-staked Stargate Finance pools
+ * @title Asset Module for non-staked Stargate Finance pools
  * @author Pragma Labs
- * @notice The StargateAssetModule stores pricing logic and basic information for Stargate Finance LP pools
- * @dev No end-user should directly interact with the StargateAssetModule, only the Registry, the contract owner or via the actionHandler
+ * @notice The Stargate Asset Module stores pricing logic and basic information for Stargate Finance LP pools
+ * @dev No end-user should directly interact with the Stargate Asset Module, only the Registry, the contract owner or via the actionHandler
  */
 contract StargateAM is DerivedAssetModule {
     using FixedPointMathLib for uint256;
@@ -29,7 +29,7 @@ contract StargateAM is DerivedAssetModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // The Unique identifiers of the underlying assets of a Liquidity Position.
+    // The unique identifiers of the underlying assets of a Liquidity Position.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ contract StargateAM is DerivedAssetModule {
     /**
      * @param registry_ The address of the Registry.
      * @param stargateFactory The factory for Stargate Pools.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "0" for ERC20 tokens.
      */
     constructor(address registry_, address stargateFactory) DerivedAssetModule(registry_, 0) {
         SG_FACTORY = ISGFactory(stargateFactory);

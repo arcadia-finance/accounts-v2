@@ -19,7 +19,7 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // The Unique identifiers of the underlying assets of a Liquidity Position.
+    // The unique identifiers of the underlying assets of a Liquidity Position.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////

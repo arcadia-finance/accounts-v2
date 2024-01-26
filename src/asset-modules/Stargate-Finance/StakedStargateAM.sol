@@ -8,10 +8,10 @@ import { ERC20, IRegistry, StakingModule } from "../staking-module/AbstractStaki
 import { ILpStakingTime } from "./interfaces/ILpStakingTime.sol";
 
 /**
- * @title Asset-Module for Staked Stargate Finance pools
+ * @title Asset Module for Staked Stargate Finance pools
  * @author Pragma Labs
- * @notice The StargateAssetModule stores pricing logic and basic information for Staked Stargate Finance LP pools
- * @dev No end-user should directly interact with the StargateAssetModule, only the Registry, the contract owner or via the actionHandler
+ * @notice The Staked Stargate Asset Module stores pricing logic and basic information for Staked Stargate Finance LP pools
+ * @dev No end-user should directly interact with the Staked Stargate Asset Module, only the Registry, the contract owner or via the actionHandler
  */
 contract StakedStargateAM is StakingModule {
     /* //////////////////////////////////////////////////////////////
