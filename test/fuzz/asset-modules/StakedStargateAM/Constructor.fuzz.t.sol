@@ -4,19 +4,20 @@
  */
 pragma solidity 0.8.22;
 
-import { StargateAssetModule_Fuzz_Test, StargateAssetModule } from "./_StargateAssetModule.fuzz.t.sol";
-import { StargatePoolMock } from "../../../utils/mocks/Stargate/StargatePoolMock.sol";
+import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
+
+import { StakedStargateAM } from "../../../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
 
 /**
- * @notice Fuzz tests for the constructor of contract "StargateAssetModule".
+ * @notice Fuzz tests for the constructor of contract "StakedStargateAM".
  */
-contract Constructor_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
+contract Constructor_SStargateAssetModule_Fuzz_Test is StakedStargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        StargateAssetModule_Fuzz_Test.setUp();
+        StakedStargateAM_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -30,13 +31,12 @@ contract Constructor_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_T
         // When: An asset is added to the AM.
         // Then: It reverts.
         vm.prank(users.creatorAddress);
-        vm.expectRevert(StargateAssetModule.RewardTokenNotAllowed.selector);
-        new StargateAssetModule(address(registryExtension), address(lpStakingTimeMock));
+        vm.expectRevert(StakedStargateAM.RewardTokenNotAllowed.selector);
+        new StakedStargateAM(address(registryExtension), address(lpStakingTimeMock));
     }
 
     function testFuzz_success_constructor() public {
-        StargateAssetModule assetModule =
-            new StargateAssetModule(address(registryExtension), address(lpStakingTimeMock));
+        StakedStargateAM assetModule = new StakedStargateAM(address(registryExtension), address(lpStakingTimeMock));
 
         assertEq(address(assetModule.LP_STAKING_TIME()), address(lpStakingTimeMock));
         assertEq(address(assetModule.REWARD_TOKEN()), address(lpStakingTimeMock.eToken()));

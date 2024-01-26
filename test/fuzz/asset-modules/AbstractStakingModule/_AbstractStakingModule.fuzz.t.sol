@@ -48,7 +48,8 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         rewardToken = new ERC20Mock("RewardToken", "RWT", 18);
-        stakingModule = new StakingModuleMock("StakingModuleTest", "SMT", address(rewardToken));
+        stakingModule =
+            new StakingModuleMock(address(registryExtension), "StakingModuleTest", "SMT", address(rewardToken));
         vm.stopPrank();
     }
 
@@ -60,7 +61,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
         StakingModuleStateForAsset memory stakingModuleStateForAsset,
         StakingModule.PositionState memory stakingModuleStateForPosition,
         address asset,
-        uint256 id
+        uint96 id
     ) internal {
         stakingModule.setLastRewardGlobal(asset, stakingModuleStateForAsset.lastRewardGlobal);
         stakingModule.setTotalStaked(asset, stakingModuleStateForAsset.totalStaked);

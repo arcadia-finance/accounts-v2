@@ -24,7 +24,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
     function testFuzz_Success_burn_NonZeroReward(
         uint8 assetDecimals,
-        uint256 positionId,
+        uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState
@@ -115,7 +115,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
     function testFuzz_Success_burn_ZeroReward(
         uint8 assetDecimals,
-        uint256 positionId,
+        uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState

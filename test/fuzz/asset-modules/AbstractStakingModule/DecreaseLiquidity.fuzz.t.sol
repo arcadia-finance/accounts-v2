@@ -57,7 +57,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
     }
 
     function testFuzz_Revert_decreaseLiquidity_RemainingBalanceTooLow(
-        uint256 positionId,
+        uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
@@ -95,7 +95,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
     function testFuzz_Success_decreaseLiquidity_NonZeroReward_FullWithdraw(
         uint8 assetDecimals,
-        uint256 positionId,
+        uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState
@@ -184,7 +184,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
     function testFuzz_Success_decreaseLiquidity_NonZeroReward_PartialWithdraw(
         uint8 assetDecimals,
-        uint256 positionId,
+        uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
@@ -280,7 +280,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
     }
 
     function testFuzz_Success_decreaseLiquidity_ZeroReward_FullWithdraw(
-        uint256 positionId,
+        uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
@@ -362,7 +362,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
     function testFuzz_Success_decreaseLiquidity_ZeroReward_PartialWithdraw(
         uint8 assetDecimals,
-        uint256 positionId,
+        uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,

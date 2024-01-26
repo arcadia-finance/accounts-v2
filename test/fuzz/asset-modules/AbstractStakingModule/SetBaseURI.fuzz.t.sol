@@ -4,13 +4,13 @@
  */
 pragma solidity 0.8.22;
 
-import { StargateAssetModule_Fuzz_Test } from "./_StargateAssetModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t.sol";
 import { Strings } from "../../../../src/libraries/Strings.sol";
 
 /**
- * @notice Fuzz tests for the function "setBaseURI" of contract "StargateAssetModule".
+ * @notice Fuzz tests for the function "setBaseURI" of contract "StakingModule".
  */
-contract SetBaseURI_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
+contract SetBaseURI_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using Strings for uint256;
 
     /* ///////////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@ contract SetBaseURI_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Te
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        StargateAssetModule_Fuzz_Test.setUp();
+        AbstractStakingModule_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -29,15 +29,15 @@ contract SetBaseURI_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Te
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
-        stargateAssetModule.setBaseURI(uri);
+        stakingModule.setBaseURI(uri);
         vm.stopPrank();
     }
 
     function testFuzz_Success_setBaseURI(string calldata uri) public {
         vm.prank(users.creatorAddress);
-        stargateAssetModule.setBaseURI(uri);
+        stakingModule.setBaseURI(uri);
 
-        string memory expectedUri = stargateAssetModule.baseURI();
+        string memory expectedUri = stakingModule.baseURI();
 
         assertEq(expectedUri, uri);
     }
@@ -45,9 +45,9 @@ contract SetBaseURI_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Te
     function testFuzz_Success_UriOfId(string calldata uri, uint256 id) public {
         vm.assume(bytes(uri).length > 0);
         vm.prank(users.creatorAddress);
-        stargateAssetModule.setBaseURI(uri);
+        stakingModule.setBaseURI(uri);
 
-        string memory actualUri = stargateAssetModule.tokenURI(id);
+        string memory actualUri = stakingModule.tokenURI(id);
 
         assertEq(actualUri, string(abi.encodePacked(uri, id.toString())));
     }

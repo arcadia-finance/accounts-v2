@@ -26,7 +26,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
                              TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_increaseLiquidity_ZeroAmount(uint256 positionId) public {
+    function testFuzz_Revert_increaseLiquidity_ZeroAmount(uint96 positionId) public {
         // The stake function should revert when trying to stake 0 amount.
         vm.expectRevert(StakingModule.ZeroAmount.selector);
         stakingModule.increaseLiquidity(positionId, 0);
@@ -36,7 +36,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         address account,
         address randomAddress,
         uint128 amount,
-        uint256 positionId,
+        uint96 positionId,
         uint8 assetDecimals
     ) public notTestContracts(account) {
         // Given : Amount is greater than zero
@@ -69,13 +69,10 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint8 assetDecimals,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint256 positionId,
+        uint96 positionId,
         uint128 amount,
         address account
     ) public notTestContracts(account) {
-        // Given : positionId is not 0
-        positionId = bound(positionId, 0, type(uint256).max);
-
         address asset;
         {
             // Given : A staking token is added to the stakingModule

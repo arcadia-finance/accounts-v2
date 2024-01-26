@@ -4,17 +4,27 @@
  */
 pragma solidity 0.8.22;
 
-import { DerivedAssetModule, IRegistry } from "./AbstractDerivedAssetModule.sol";
-import { IERC4626 } from "../interfaces/IERC4626.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
+import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
+import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "../AbstractDerivedAssetModule.sol";
+import { IPool } from "./interfaces/IPool.sol";
+import { ISGFactory } from "./interfaces/ISGFactory.sol";
 
 /**
- * @title Sub-registry for Standard ERC4626 tokens
+ * @title Asset Module for non-staked Stargate Finance pools
  * @author Pragma Labs
- * @notice The StandardERC4626Registry stores pricing logic and basic information for ERC4626 tokens for which the underlying assets have direct price feed.
- * @dev No end-user should directly interact with the StandardERC4626Registry, only the Registry or the contract owner
+ * @notice The Stargate Asset Module stores pricing logic and basic information for Stargate Finance LP pools
+ * @dev No end-user should directly interact with the Stargate Asset Module, only the Registry, the contract owner or via the actionHandler
  */
-contract StandardERC4626AssetModule is DerivedAssetModule {
+contract StargateAM is DerivedAssetModule {
+    using FixedPointMathLib for uint256;
+
+    /* //////////////////////////////////////////////////////////////
+                                CONSTANTS
+    ////////////////////////////////////////////////////////////// */
+
+    // The Stargate Factory.
+    ISGFactory public immutable SG_FACTORY;
+
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
@@ -25,7 +35,9 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
-    error Underlying_Asset_Not_Allowed();
+
+    error InvalidPool();
+    error UnderlyingAssetNotAllowed();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -33,22 +45,28 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
 
     /**
      * @param registry_ The address of the Registry.
+     * @param stargateFactory The factory for Stargate Pools.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "0" for ERC20 tokens.
      */
-    constructor(address registry_) DerivedAssetModule(registry_, 0) { }
+    constructor(address registry_, address stargateFactory) DerivedAssetModule(registry_, 0) {
+        SG_FACTORY = ISGFactory(stargateFactory);
+    }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a new asset to the ERC4626 TokenAssetModule.
-     * @param asset The contract address of the asset
+     * @notice Adds a new Stargate Pool to the StargateAssetModule.
+     * @param poolId The id of the stargatePool used in the LP_STAKING_TIME contract.
      */
-    function addAsset(address asset) external onlyOwner {
-        address underlyingAsset = address(IERC4626(asset).asset());
+    function addAsset(uint256 poolId) external {
+        address asset = address(SG_FACTORY.getPool(poolId));
+        if (asset == address(0)) revert InvalidPool();
 
-        if (!IRegistry(REGISTRY).isAllowed(underlyingAsset, 0)) revert Underlying_Asset_Not_Allowed();
+        address underlyingAsset = IPool(asset).token();
+        if (!IRegistry(REGISTRY).isAllowed(underlyingAsset, 0)) revert UnderlyingAssetNotAllowed();
+
         inAssetModule[asset] = true;
 
         bytes32[] memory underlyingAssets_ = new bytes32[](1);
@@ -67,14 +85,10 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
      * @notice Checks for a token address and the corresponding Id if it is allowed.
      * @param asset The contract address of the asset.
      * param assetId The Id of the asset.
-     * @return A boolean, indicating if the asset is allowed.
+     * @return allowed A boolean, indicating if the asset is allowed.
      */
-    function isAllowed(address asset, uint256) public view override returns (bool) {
-        if (inAssetModule[asset]) {
-            return true;
-        } else {
-            return false;
-        }
+    function isAllowed(address asset, uint256) public view override returns (bool allowed) {
+        if (inAssetModule[asset]) allowed = true;
     }
 
     /**
@@ -117,35 +131,28 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
         returns (bytes32[] memory underlyingAssetKeys)
     {
         underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
-
-        if (underlyingAssetKeys.length == 0) {
-            // Only used as an off-chain view function by getValue() to return the value of a non deposited ERC4626.
-            (address asset,) = _getAssetFromKey(assetKey);
-            address underlyingAsset = address(IERC4626(asset).asset());
-
-            underlyingAssetKeys = new bytes32[](1);
-            underlyingAssetKeys[0] = _getKeyFromAsset(underlyingAsset, 0);
-        }
     }
 
     /**
      * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
      * param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
-     * @param assetAmount The amount of the asset, in the decimal precision of the Asset.
+     * @param amount The amount of the Asset, in the decimal precision of the Asset.
      * param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
      */
-    function _getUnderlyingAssetsAmounts(address, bytes32 assetKey, uint256 assetAmount, bytes32[] memory)
+    function _getUnderlyingAssetsAmounts(address, bytes32 assetKey, uint256 amount, bytes32[] memory)
         internal
         view
         override
         returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
         (address asset,) = _getAssetFromKey(assetKey);
+
+        // "amountLPtoLD()" converts an amount of LP tokens into the corresponding amount of underlying tokens (LD stands for Local Decimals).
         underlyingAssetsAmounts = new uint256[](1);
-        underlyingAssetsAmounts[0] = IERC4626(asset).convertToAssets(assetAmount);
+        underlyingAssetsAmounts[0] = IPool(asset).amountLPtoLD(amount);
 
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }

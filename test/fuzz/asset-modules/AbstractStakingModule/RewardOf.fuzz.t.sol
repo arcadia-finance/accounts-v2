@@ -30,7 +30,7 @@ contract RewardOf_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
     function testFuzz_Success_rewardOf(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint256 positionId,
+        uint96 positionId,
         uint8 assetDecimals
     ) public {
         // Given : Add an asset

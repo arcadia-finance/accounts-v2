@@ -4,9 +4,10 @@
  */
 pragma solidity 0.8.22;
 
+import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
-import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "../AbstractDerivedAssetModule.sol";
 import { ReentrancyGuard } from "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
 import { SafeCastLib } from "../../../lib/solmate/src/utils/SafeCastLib.sol";
 import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
@@ -24,7 +25,7 @@ import { Strings } from "../../libraries/Strings.sol";
  *  - Withdrawing the Assets from staked positions.
  *  - Claiming reward tokens.
  */
-abstract contract StakingModule is ERC721, ReentrancyGuard {
+abstract contract StakingModule is DerivedAssetModule, ERC721, ReentrancyGuard {
     using FixedPointMathLib for uint256;
     using Strings for uint256;
     using SafeTransferLib for ERC20;
@@ -97,7 +98,97 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
                               CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
-    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) { }
+    constructor(address registry, string memory name_, string memory symbol_)
+        DerivedAssetModule(registry, 1)
+        ERC721(name_, symbol_)
+    { }
+
+    /* //////////////////////////////////////////////////////////////
+                               INITIALIZE
+    ////////////////////////////////////////////////////////////// */
+
+    /**
+     * @notice This function will add this contract as an asset in the Registry.
+     * @dev Will revert if called more than once.
+     */
+    function initialize() external onlyOwner {
+        inAssetModule[address(this)] = true;
+
+        IRegistry(REGISTRY).addAsset(address(this));
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        ASSET MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Adds an asset that can be staked to this contract.
+     * @param asset The contract address of the Asset.
+     */
+    function _addAsset(address asset) internal {
+        assetState[asset].allowed = true;
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        ASSET INFORMATION
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Checks for a token address and the corresponding id if it is allowed.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @return allowed A boolean, indicating if the asset is allowed.
+     */
+    function isAllowed(address asset, uint256 assetId) public view override returns (bool allowed) {
+        if (asset == address(this) && assetId <= lastPositionId) allowed = true;
+    }
+
+    /**
+     * @notice Returns the unique identifiers of the underlying assets.
+     * @param assetKey The unique identifier of the asset.
+     * @return underlyingAssetKeys The unique identifiers of the underlying assets.
+     */
+    function _getUnderlyingAssets(bytes32 assetKey)
+        internal
+        view
+        virtual
+        override
+        returns (bytes32[] memory underlyingAssetKeys)
+    {
+        (, uint256 positionId) = _getAssetFromKey(assetKey);
+
+        underlyingAssetKeys = new bytes32[](2);
+        underlyingAssetKeys[0] = _getKeyFromAsset(positionState[positionId].asset, 0);
+        underlyingAssetKeys[1] = _getKeyFromAsset(address(REWARD_TOKEN), 0);
+    }
+
+    /**
+     * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
+     * param creditor The contract address of the creditor.
+     * @param assetKey The unique identifier of the asset.
+     * @param amount The amount of the Asset, in the decimal precision of the Asset.
+     * param underlyingAssetKeys The unique identifiers of the underlying assets.
+     * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
+     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     */
+    function _getUnderlyingAssetsAmounts(address, bytes32 assetKey, uint256 amount, bytes32[] memory)
+        internal
+        view
+        virtual
+        override
+        returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+    {
+        // Amount of a Staked position in the Asset Module can only be either 0 or 1.
+        if (amount == 0) return (new uint256[](2), rateUnderlyingAssetsToUsd);
+
+        (, uint256 positionId) = _getAssetFromKey(assetKey);
+
+        underlyingAssetsAmounts = new uint256[](2);
+        underlyingAssetsAmounts[0] = positionState[positionId].amountStaked;
+        underlyingAssetsAmounts[1] = rewardOf(positionId);
+
+        return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
 
     /*///////////////////////////////////////////////////////////////
                          STAKING MODULE LOGIC
@@ -295,14 +386,6 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
         return assetState[asset].totalStaked;
     }
 
-    /**
-     * @notice Adds an asset that can be staked to this contract.
-     * @param asset The contract address of the Asset.
-     */
-    function _addAsset(address asset) internal {
-        assetState[asset].allowed = true;
-    }
-
     /*///////////////////////////////////////////////////////////////
                     INTERACTIONS STAKING CONTRACT
     ///////////////////////////////////////////////////////////////*/
@@ -411,14 +494,16 @@ abstract contract StakingModule is ERC721, ReentrancyGuard {
      * @notice Function that stores a new base URI.
      * @param newBaseURI The new base URI to store.
      */
-    function setBaseURI(string calldata newBaseURI) external virtual;
+    function setBaseURI(string calldata newBaseURI) external virtual onlyOwner {
+        baseURI = newBaseURI;
+    }
 
     /**
      * @notice Function that returns the token URI as defined in the ERC721 standard.
      * @param tokenId The id of the Account.
      * @return uri The token URI.
      */
-    function tokenURI(uint256 tokenId) public view override returns (string memory uri) {
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory uri) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 }

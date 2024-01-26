@@ -27,7 +27,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_claimReward_NotOwner(address owner, address randomAddress, uint256 positionId) public {
+    function testFuzz_Revert_claimReward_NotOwner(address owner, address randomAddress, uint96 positionId) public {
         // Given: randomAddress is not the owner.
         vm.assume(owner != randomAddress);
 
@@ -44,7 +44,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
 
     function testFuzz_Success_claimReward_NonZeroReward(
         address account,
-        uint256 positionId,
+        uint96 positionId,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint8 assetDecimals
@@ -115,7 +115,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
 
     function testFuzz_Success_claimReward_ZeroReward(
         address account,
-        uint256 positionId,
+        uint96 positionId,
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint8 assetDecimals

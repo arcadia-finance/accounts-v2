@@ -4,9 +4,10 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test, StakingModule } from "./_AbstractStakingModule.fuzz.t.sol";
-
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+
+import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t.sol";
+import { StakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 /**
@@ -31,7 +32,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 currentRewardGlobal,
-        uint256 positionId,
+        uint96 positionId,
         uint8 assetDecimals
     ) public {
         // Given : Add an asset
@@ -72,7 +73,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
         uint256 currentRewardGlobal,
-        uint256 positionId,
+        uint96 positionId,
         uint8 assetDecimals
     ) public {
         // Given : Add an asset
@@ -113,7 +114,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
     function testFuzz_Revert_getRewardBalances_NonZeroTotalStaked_OverflowDeltaRewardPosition(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint256 positionId,
+        uint96 positionId,
         uint8 assetDecimals
     ) public {
         // Given : Add an asset
@@ -172,7 +173,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
     function testFuzz_Revert_getRewardBalances_NonZeroTotalStaked_OverflowLastRewardPosition(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint256 positionId,
+        uint96 positionId,
         uint8 assetDecimals
     ) public {
         // Given : Add an asset
@@ -238,7 +239,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
     function testFuzz_Success_getRewardBalances_ZeroTotalStaked(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint256 positionId,
+        uint96 positionId,
         uint8 assetDecimals
     ) public {
         // Given : Add an asset
@@ -278,7 +279,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
     function testFuzz_Success_getRewardBalances_NonZeroTotalStaked(
         StakingModuleStateForAsset memory assetState,
         StakingModule.PositionState memory positionState,
-        uint256 positionId,
+        uint96 positionId,
         uint8 assetDecimals
     ) public {
         // Given : Add an asset
