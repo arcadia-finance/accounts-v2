@@ -4,19 +4,19 @@
  */
 pragma solidity 0.8.22;
 
-import { NSStargateAssetModule_Fuzz_Test } from "./_NSStargateAssetModule.fuzz.t.sol";
-import { NSStargateAssetModule } from "../../../../src/asset-modules/Stargate-Finance/NSStargateAssetModule.sol";
+import { StargateAM_Fuzz_Test } from "./_StargateAM.fuzz.t.sol";
+import { StargateAM } from "../../../../src/asset-modules/Stargate-Finance/StargateAM.sol";
 
 /**
- * @notice Fuzz tests for the function "addAsset" of contract "NSStargateAssetModule".
+ * @notice Fuzz tests for the function "addAsset" of contract "StargateAM".
  */
-contract AddAsset_NSStargateAssetModule_Fuzz_Test is NSStargateAssetModule_Fuzz_Test {
+contract AddAsset_NSStargateAssetModule_Fuzz_Test is StargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        NSStargateAssetModule_Fuzz_Test.setUp();
+        StargateAM_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ contract AddAsset_NSStargateAssetModule_Fuzz_Test is NSStargateAssetModule_Fuzz_
         // When : An asset is added to the AM.
         // Then : It should revert.
         vm.prank(sender);
-        vm.expectRevert(NSStargateAssetModule.InvalidPool.selector);
+        vm.expectRevert(StargateAM.InvalidPool.selector);
         stargateAssetModule.addAsset(poolId);
         vm.stopPrank();
     }
@@ -46,7 +46,7 @@ contract AddAsset_NSStargateAssetModule_Fuzz_Test is NSStargateAssetModule_Fuzz_
         // When : An asset is added to the AM.
         // Then : It should revert.
         vm.startPrank(sender);
-        vm.expectRevert(NSStargateAssetModule.UnderlyingAssetNotAllowed.selector);
+        vm.expectRevert(StargateAM.UnderlyingAssetNotAllowed.selector);
         stargateAssetModule.addAsset(poolId);
         vm.stopPrank();
     }

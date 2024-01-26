@@ -4,19 +4,19 @@
  */
 pragma solidity 0.8.22;
 
-import { SStargateAssetModule_Fuzz_Test } from "./_SStargateAssetModule.fuzz.t.sol";
-import { SStargateAssetModule } from "../../../../src/asset-modules/Stargate-Finance/SStargateAssetModule.sol";
+import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
+import { StakedStargateAM } from "../../../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
 
 /**
- * @notice Fuzz tests for the function "addAsset" of contract "SStargateAssetModule".
+ * @notice Fuzz tests for the function "addAsset" of contract "StakedStargateAM".
  */
-contract AddAsset_SStargateAssetModule_Fuzz_Test is SStargateAssetModule_Fuzz_Test {
+contract AddAsset_SStargateAssetModule_Fuzz_Test is StakedStargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        SStargateAssetModule_Fuzz_Test.setUp();
+        StakedStargateAM_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@ contract AddAsset_SStargateAssetModule_Fuzz_Test is SStargateAssetModule_Fuzz_Te
         // When : An asset is added to the AM.
         // Then : It should revert.
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert(SStargateAssetModule.PoolNotAllowed.selector);
+        vm.expectRevert(StakedStargateAM.PoolNotAllowed.selector);
         stakedStargateAM.addAsset(pid);
         vm.stopPrank();
     }
@@ -49,7 +49,7 @@ contract AddAsset_SStargateAssetModule_Fuzz_Test is SStargateAssetModule_Fuzz_Te
         // When : An asset is added to the AM.
         // Then : It should revert.
         vm.startPrank(users.creatorAddress);
-        vm.expectRevert(SStargateAssetModule.AssetAlreadySet.selector);
+        vm.expectRevert(StakedStargateAM.AssetAlreadySet.selector);
         stakedStargateAM.addAsset(pid);
         vm.stopPrank();
     }

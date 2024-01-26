@@ -4,20 +4,20 @@
  */
 pragma solidity 0.8.22;
 
-import { NSStargateAssetModule_Fuzz_Test } from "./_NSStargateAssetModule.fuzz.t.sol";
+import { StargateAM_Fuzz_Test } from "./_StargateAM.fuzz.t.sol";
 import { stdStorage, StdStorage } from "../../../../lib/forge-std/src/StdStorage.sol";
 
 /**
- * @notice Fuzz tests for the function "isAllowed" of contract "NSStargateAssetModule".
+ * @notice Fuzz tests for the function "isAllowed" of contract "StargateAM".
  */
-contract IsAllowed_NSStargateAssetModule_Fuzz_Test is NSStargateAssetModule_Fuzz_Test {
+contract IsAllowed_NSStargateAssetModule_Fuzz_Test is StargateAM_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        NSStargateAssetModule_Fuzz_Test.setUp();
+        StargateAM_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////

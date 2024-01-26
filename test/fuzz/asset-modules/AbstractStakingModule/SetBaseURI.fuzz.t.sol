@@ -8,7 +8,7 @@ import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t
 import { Strings } from "../../../../src/libraries/Strings.sol";
 
 /**
- * @notice Fuzz tests for the function "setBaseURI" of contract "StakingModule2".
+ * @notice Fuzz tests for the function "setBaseURI" of contract "StakingModule".
  */
 contract SetBaseURI_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using Strings for uint256;

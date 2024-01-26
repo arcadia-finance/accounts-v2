@@ -15,7 +15,7 @@ import { ISGFactory } from "./interfaces/ISGFactory.sol";
  * @notice The StargateAssetModule stores pricing logic and basic information for Stargate Finance LP pools
  * @dev No end-user should directly interact with the StargateAssetModule, only the Registry, the contract owner or via the actionHandler
  */
-contract NSStargateAssetModule is DerivedAssetModule {
+contract StargateAM is DerivedAssetModule {
     using FixedPointMathLib for uint256;
 
     /* //////////////////////////////////////////////////////////////

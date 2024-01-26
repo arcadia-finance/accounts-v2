@@ -4,13 +4,13 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test, StakingModule2, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, StakingModule, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "mint" of contract "StakingModule2".
+ * @notice Fuzz tests for the function "mint" of contract "StakingModule".
  */
 contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
@@ -28,7 +28,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
     function testFuzz_Revert_mint_ZeroAmount(address asset) public {
         // The stake function should revert when trying to stake 0 amount.
-        vm.expectRevert(StakingModule2.ZeroAmount.selector);
+        vm.expectRevert(StakingModule.ZeroAmount.selector);
         stakingModule.mint(asset, 0);
     }
 
@@ -51,7 +51,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // When : Calling Stake
         // Then : The function should revert as the asset has not been added to the Staking Module.
         vm.prank(account);
-        vm.expectRevert(StakingModule2.AssetNotAllowed.selector);
+        vm.expectRevert(StakingModule.AssetNotAllowed.selector);
         stakingModule.mint(asset, amount);
     }
 
@@ -72,7 +72,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
             vm.assume(account != asset);
 
             // And: Valid state.
-            StakingModule2.PositionState memory positionState;
+            StakingModule.PositionState memory positionState;
             (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
 
             // And: State is persisted.
@@ -96,7 +96,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // When:  A user is staking via the Staking Module.
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule2.LiquidityIncreased(1, asset, amount);
+        emit StakingModule.LiquidityIncreased(1, asset, amount);
         uint256 positionId = stakingModule.mint(asset, amount);
 
         // Then: Assets should have been transferred to the Staking Module.
@@ -106,7 +106,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         assertEq(stakingModule.ownerOf(positionId), account);
 
         // And: Position state should be updated correctly.
-        StakingModule2.PositionState memory newPositionState;
+        StakingModule.PositionState memory newPositionState;
         (
             newPositionState.asset,
             newPositionState.amountStaked,
@@ -125,7 +125,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         assertEq(newPositionState.lastRewardPosition, 0);
 
         // And: Asset state should be updated correctly.
-        StakingModule2.AssetState memory newAssetState;
+        StakingModule.AssetState memory newAssetState;
         (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
@@ -148,7 +148,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         vm.assume(account != asset);
 
         // And: Valid state.
-        StakingModule2.PositionState memory positionState;
+        StakingModule.PositionState memory positionState;
         (assetState, positionState) = givenValidStakingModuleState(assetState, positionState);
 
         // And: TotalStaked is 0.
@@ -172,7 +172,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // When:  A user is staking via the Staking Module.
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule2.LiquidityIncreased(1, asset, amount);
+        emit StakingModule.LiquidityIncreased(1, asset, amount);
         uint256 positionId = stakingModule.mint(asset, amount);
 
         // Then: Assets should have been transferred to the Staking Module.
@@ -182,7 +182,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         assertEq(stakingModule.ownerOf(positionId), account);
 
         // And: Position state should be updated correctly.
-        StakingModule2.PositionState memory newPositionState;
+        StakingModule.PositionState memory newPositionState;
         (
             newPositionState.asset,
             newPositionState.amountStaked,
@@ -195,7 +195,7 @@ contract Mint_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         assertEq(newPositionState.lastRewardPosition, 0);
 
         // And: Asset state should be updated correctly.
-        StakingModule2.AssetState memory newAssetState;
+        StakingModule.AssetState memory newAssetState;
         (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);

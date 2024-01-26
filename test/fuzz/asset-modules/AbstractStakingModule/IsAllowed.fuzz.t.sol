@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "isAllowed" of contract "StakingModule2".
+ * @notice Fuzz tests for the function "isAllowed" of contract "StakingModule".
  */
 contract IsAllowed_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

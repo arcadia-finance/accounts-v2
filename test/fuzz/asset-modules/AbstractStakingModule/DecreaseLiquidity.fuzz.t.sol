@@ -4,14 +4,14 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test, StakingModule2, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, StakingModule, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
 /**
- * @notice Fuzz tests for the function "decreaseLiquidity" of contract "StakingModule2".
+ * @notice Fuzz tests for the function "decreaseLiquidity" of contract "StakingModule".
  */
 contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
@@ -34,7 +34,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
         // When : Trying to withdraw zero amount.
         // Then : It should revert.
-        vm.expectRevert(StakingModule2.ZeroAmount.selector);
+        vm.expectRevert(StakingModule.ZeroAmount.selector);
         stakingModule.decreaseLiquidity(id, amount);
     }
 
@@ -51,7 +51,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Trying to withdraw a position not owned by the caller.
         // Then : It should revert.
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(StakingModule2.NotOwner.selector);
+        vm.expectRevert(StakingModule.NotOwner.selector);
         stakingModule.decreaseLiquidity(id, amount);
         vm.stopPrank();
     }
@@ -60,7 +60,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
-        StakingModule2.PositionState memory positionState,
+        StakingModule.PositionState memory positionState,
         address asset,
         uint128 amount
     ) public notTestContracts(account) {
@@ -98,7 +98,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
-        StakingModule2.PositionState memory positionState
+        StakingModule.PositionState memory positionState
     ) public notTestContracts(account) {
         // Given : account != zero address
         vm.assume(account != address(0));
@@ -138,9 +138,9 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws full position from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule2.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
+        emit StakingModule.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
         vm.expectEmit();
-        emit StakingModule2.LiquidityDecreased(positionId, asset, positionState.amountStaked);
+        emit StakingModule.LiquidityDecreased(positionId, asset, positionState.amountStaked);
         uint256 rewards = stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
@@ -155,7 +155,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         assertEq(stakingModule.balanceOf(account), 0);
 
         // And: Position state should be updated correctly.
-        StakingModule2.PositionState memory newPositionState;
+        StakingModule.PositionState memory newPositionState;
         (
             newPositionState.asset,
             newPositionState.amountStaked,
@@ -168,7 +168,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         assertEq(newPositionState.lastRewardPosition, 0);
 
         // And: Asset state should be updated correctly.
-        StakingModule2.AssetState memory newAssetState;
+        StakingModule.AssetState memory newAssetState;
         (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         uint256 deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
@@ -187,7 +187,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
-        StakingModule2.PositionState memory positionState,
+        StakingModule.PositionState memory positionState,
         uint128 amount
     ) public notTestContracts(account) {
         // Given : account != zero address
@@ -235,9 +235,9 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule2.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
+        emit StakingModule.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
         vm.expectEmit();
-        emit StakingModule2.LiquidityDecreased(positionId, asset, amount);
+        emit StakingModule.LiquidityDecreased(positionId, asset, amount);
         uint256 rewards = stakingModule.decreaseLiquidity(positionId, amount);
         vm.stopPrank();
 
@@ -252,7 +252,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         assertEq(stakingModule.balanceOf(account), 1);
 
         // And: Position state should be updated correctly.
-        StakingModule2.PositionState memory newPositionState;
+        StakingModule.PositionState memory newPositionState;
         (
             newPositionState.asset,
             newPositionState.amountStaked,
@@ -271,7 +271,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         assertEq(newPositionState.lastRewardPosition, 0);
 
         // And : Asset values should be updated correctly
-        StakingModule2.AssetState memory newAssetState;
+        StakingModule.AssetState memory newAssetState;
         (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
@@ -283,7 +283,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
-        StakingModule2.PositionState memory positionState,
+        StakingModule.PositionState memory positionState,
         uint8 assetDecimals
     ) public notTestContracts(account) {
         // Given : account != zero address
@@ -324,7 +324,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws full position from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule2.LiquidityDecreased(positionId, asset, positionState.amountStaked);
+        emit StakingModule.LiquidityDecreased(positionId, asset, positionState.amountStaked);
         uint256 rewards = stakingModule.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
@@ -339,7 +339,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         assertEq(stakingModule.balanceOf(account), 0);
 
         // And: Position state should be updated correctly.
-        StakingModule2.PositionState memory newPositionState;
+        StakingModule.PositionState memory newPositionState;
         (
             newPositionState.asset,
             newPositionState.amountStaked,
@@ -352,7 +352,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         assertEq(newPositionState.lastRewardPosition, 0);
 
         // And: Asset state should be updated correctly.
-        StakingModule2.AssetState memory newAssetState;
+        StakingModule.AssetState memory newAssetState;
         (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
@@ -365,7 +365,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
-        StakingModule2.PositionState memory positionState,
+        StakingModule.PositionState memory positionState,
         uint128 amount
     ) public notTestContracts(account) {
         // Given : account != zero address
@@ -412,7 +412,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule2.LiquidityDecreased(positionId, asset, amount);
+        emit StakingModule.LiquidityDecreased(positionId, asset, amount);
         uint256 rewards = stakingModule.decreaseLiquidity(positionId, amount);
         vm.stopPrank();
 
@@ -427,7 +427,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         assertEq(stakingModule.balanceOf(account), 1);
 
         // And: Position state should be updated correctly.
-        StakingModule2.PositionState memory newPositionState;
+        StakingModule.PositionState memory newPositionState;
         (
             newPositionState.asset,
             newPositionState.amountStaked,
@@ -440,7 +440,7 @@ contract DecreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         assertEq(newPositionState.lastRewardPosition, 0);
 
         // And : Asset values should be updated correctly
-        StakingModule2.AssetState memory newAssetState;
+        StakingModule.AssetState memory newAssetState;
         (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);

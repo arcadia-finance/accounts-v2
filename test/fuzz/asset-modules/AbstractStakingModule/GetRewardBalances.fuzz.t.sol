@@ -7,11 +7,11 @@ pragma solidity 0.8.22;
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t.sol";
-import { StakingModule2 } from "../../../../src/asset-modules/staking-module/AbstractStakingModule2.sol";
+import { StakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 /**
- * @notice Fuzz tests for the function "_getRewardBalances" of contract "StakingModule2".
+ * @notice Fuzz tests for the function "_getRewardBalances" of contract "StakingModule".
  */
 contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
@@ -30,7 +30,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
     function testFuzz_Revert_getRewardBalances_NonZeroTotalStaked_OverflowDeltaRewardPerToken(
         StakingModuleStateForAsset memory assetState,
-        StakingModule2.PositionState memory positionState,
+        StakingModule.PositionState memory positionState,
         uint256 currentRewardGlobal,
         uint96 positionId,
         uint8 assetDecimals
@@ -59,7 +59,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
         // When: Calling _getRewardBalances().
         // Then: transaction reverts in safe cast.
-        StakingModule2.AssetState memory assetState_ = StakingModule2.AssetState({
+        StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
             allowed: true,
             lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
             lastRewardGlobal: assetState.lastRewardGlobal,
@@ -71,7 +71,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
     function testFuzz_Revert_getRewardBalances_NonZeroTotalStaked_OverflowLastRewardGlobal(
         StakingModuleStateForAsset memory assetState,
-        StakingModule2.PositionState memory positionState,
+        StakingModule.PositionState memory positionState,
         uint256 currentRewardGlobal,
         uint96 positionId,
         uint8 assetDecimals
@@ -101,7 +101,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
         // When: Calling _getRewardBalances().
         // Then: transaction reverts in safe cast.
-        StakingModule2.AssetState memory assetState_ = StakingModule2.AssetState({
+        StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
             allowed: true,
             lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
             lastRewardGlobal: assetState.lastRewardGlobal,
@@ -113,7 +113,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
     function testFuzz_Revert_getRewardBalances_NonZeroTotalStaked_OverflowDeltaRewardPosition(
         StakingModuleStateForAsset memory assetState,
-        StakingModule2.PositionState memory positionState,
+        StakingModule.PositionState memory positionState,
         uint96 positionId,
         uint8 assetDecimals
     ) public {
@@ -160,7 +160,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
         // When: Calling _getRewardBalances().
         // Then: transaction reverts in safe cast.
-        StakingModule2.AssetState memory assetState_ = StakingModule2.AssetState({
+        StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
             allowed: true,
             lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
             lastRewardGlobal: assetState.lastRewardGlobal,
@@ -172,7 +172,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
     function testFuzz_Revert_getRewardBalances_NonZeroTotalStaked_OverflowLastRewardPosition(
         StakingModuleStateForAsset memory assetState,
-        StakingModule2.PositionState memory positionState,
+        StakingModule.PositionState memory positionState,
         uint96 positionId,
         uint8 assetDecimals
     ) public {
@@ -226,7 +226,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
         // When: Calling _getRewardBalances().
         // Then: transaction reverts in safe cast.
-        StakingModule2.AssetState memory assetState_ = StakingModule2.AssetState({
+        StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
             allowed: true,
             lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
             lastRewardGlobal: assetState.lastRewardGlobal,
@@ -238,7 +238,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
     function testFuzz_Success_getRewardBalances_ZeroTotalStaked(
         StakingModuleStateForAsset memory assetState,
-        StakingModule2.PositionState memory positionState,
+        StakingModule.PositionState memory positionState,
         uint96 positionId,
         uint8 assetDecimals
     ) public {
@@ -256,13 +256,13 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         assetState.totalStaked = 0;
 
         // When : Calling _getRewardBalances().
-        StakingModule2.AssetState memory assetState_ = StakingModule2.AssetState({
+        StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
             allowed: true,
             lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
             lastRewardGlobal: assetState.lastRewardGlobal,
             totalStaked: assetState.totalStaked
         });
-        StakingModule2.PositionState memory positionState_;
+        StakingModule.PositionState memory positionState_;
         (assetState_, positionState_) = stakingModule.getRewardBalances(assetState_, positionState);
 
         // Then : It should return the correct values
@@ -278,7 +278,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
 
     function testFuzz_Success_getRewardBalances_NonZeroTotalStaked(
         StakingModuleStateForAsset memory assetState,
-        StakingModule2.PositionState memory positionState,
+        StakingModule.PositionState memory positionState,
         uint96 positionId,
         uint8 assetDecimals
     ) public {
@@ -292,13 +292,13 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         setStakingModuleState(assetState, positionState, asset, positionId);
 
         // When : Calling _getRewardBalances().
-        StakingModule2.AssetState memory assetState_ = StakingModule2.AssetState({
+        StakingModule.AssetState memory assetState_ = StakingModule.AssetState({
             allowed: true,
             lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
             lastRewardGlobal: assetState.lastRewardGlobal,
             totalStaked: assetState.totalStaked
         });
-        StakingModule2.PositionState memory positionState_;
+        StakingModule.PositionState memory positionState_;
         (assetState_, positionState_) = stakingModule.getRewardBalances(assetState_, positionState);
 
         // Then : It should return the correct values

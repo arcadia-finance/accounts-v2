@@ -4,20 +4,18 @@
  */
 pragma solidity 0.8.22;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+import { StargateAM_Fuzz_Test } from "../StargateAM/_StargateAM.fuzz.t.sol";
 
-import { StargateAssetModule } from "../../../../src/asset-modules/Stargate-Finance/StargateAssetModule.sol";
-import { StargateAssetModuleExtension } from "../../../utils/Extensions.sol";
+import { StakedStargateAMExtension } from "../../../utils/Extensions.sol";
 import { LPStakingTimeMock } from "../../../utils/mocks/Stargate/StargateLpStakingMock.sol";
-import { StargatePoolMock } from "../../../utils/mocks/Stargate/StargatePoolMock.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 /**
- * @notice Common logic needed by "StargateAssetModule" fuzz tests.
+ * @notice Common logic needed by "StakedStargateAM" fuzz tests.
  */
-abstract contract StargateAssetModule_Fuzz_Test is Fuzz_Test {
+abstract contract StakedStargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -26,20 +24,20 @@ abstract contract StargateAssetModule_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    StargatePoolMock internal poolMock;
-    StargateAssetModuleExtension internal stargateAssetModule;
+    StakedStargateAMExtension internal stakedStargateAM;
     LPStakingTimeMock internal lpStakingTimeMock;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(Fuzz_Test) {
-        Fuzz_Test.setUp();
+    function setUp() public virtual override(StargateAM_Fuzz_Test) {
+        StargateAM_Fuzz_Test.setUp();
 
-        // Deploy mocked Stargate.
-        poolMock = new StargatePoolMock(18);
+        // Deploy mocked Stargate Staking contract.
         lpStakingTimeMock = new LPStakingTimeMock();
+
+        // Deploy reward token.
         ERC20Mock rewardTokenCode = new ERC20Mock("Stargate", "STG", 18);
         vm.etch(address(lpStakingTimeMock.eToken()), address(rewardTokenCode).code);
         ArcadiaOracle stargateOracle = initMockedOracle(8, "STG / USD", rates.token1ToUsd);
@@ -53,10 +51,10 @@ abstract contract StargateAssetModule_Fuzz_Test is Fuzz_Test {
             address(lpStakingTimeMock.eToken()), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStgToUsdArr)
         );
 
-        // Deploy the Stargate AssetModule.
-        stargateAssetModule = new StargateAssetModuleExtension(address(registryExtension), address(lpStakingTimeMock));
-        registryExtension.addAssetModule(address(stargateAssetModule));
-        stargateAssetModule.initialize();
+        // Deploy the Staked Stargate AssetModule.
+        stakedStargateAM = new StakedStargateAMExtension(address(registryExtension), address(lpStakingTimeMock));
+        registryExtension.addAssetModule(address(stakedStargateAM));
+        stakedStargateAM.initialize();
         vm.stopPrank();
     }
 

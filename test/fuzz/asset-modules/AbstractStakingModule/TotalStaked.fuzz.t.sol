@@ -9,7 +9,7 @@ import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "totalStaked" of contract "StakingModule2".
+ * @notice Fuzz tests for the function "totalStaked" of contract "StakingModule".
  */
 contract TotalStaked_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////

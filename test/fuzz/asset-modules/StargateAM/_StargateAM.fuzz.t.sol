@@ -6,14 +6,14 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { NSStargateAssetModuleExtension } from "../../../utils/Extensions.sol";
+import { StargateAMExtension } from "../../../utils/Extensions.sol";
 import { StargateFactoryMock } from "../../../utils/mocks/Stargate/StargateFactoryMock.sol";
 import { StargatePoolMock } from "../../../utils/mocks/Stargate/StargatePoolMock.sol";
 
 /**
- * @notice Common logic needed by "NSStargateAssetModule" fuzz tests.
+ * @notice Common logic needed by "StargateAM" fuzz tests.
  */
-abstract contract NSStargateAssetModule_Fuzz_Test is Fuzz_Test {
+abstract contract StargateAM_Fuzz_Test is Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -22,7 +22,7 @@ abstract contract NSStargateAssetModule_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    NSStargateAssetModuleExtension internal stargateAssetModule;
+    StargateAMExtension internal stargateAssetModule;
     StargateFactoryMock internal sgFactoryMock;
     StargatePoolMock internal poolMock;
 
@@ -39,7 +39,7 @@ abstract contract NSStargateAssetModule_Fuzz_Test is Fuzz_Test {
 
         // Deploy the Stargate AssetModule.
         vm.startPrank(users.creatorAddress);
-        stargateAssetModule = new NSStargateAssetModuleExtension(address(registryExtension), address(sgFactoryMock));
+        stargateAssetModule = new StargateAMExtension(address(registryExtension), address(sgFactoryMock));
         registryExtension.addAssetModule(address(stargateAssetModule));
         vm.stopPrank();
     }

@@ -6,15 +6,12 @@ pragma solidity 0.8.22;
 
 import { AbstractStakingModule_Fuzz_Test, Constants } from "./_AbstractStakingModule.fuzz.t.sol";
 
-import { FixedPointMathLib } from "../../../../src/asset-modules/Stargate-Finance/StargateAssetModule.sol";
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
- * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts" of contract "StakingModule2".
+ * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts" of contract "StakingModule".
  */
 contract GetUnderlyingAssetsAmounts_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
-    using FixedPointMathLib for uint112;
-    using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

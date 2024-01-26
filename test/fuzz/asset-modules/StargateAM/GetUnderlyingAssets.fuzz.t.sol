@@ -4,18 +4,18 @@
  */
 pragma solidity 0.8.22;
 
-import { NSStargateAssetModule_Fuzz_Test } from "./_NSStargateAssetModule.fuzz.t.sol";
+import { StargateAM_Fuzz_Test } from "./_StargateAM.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "NSStargateAssetModule".
+ * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "StargateAM".
  */
-contract GetUnderlyingAssets_NSStargateAssetModule_Fuzz_Test is NSStargateAssetModule_Fuzz_Test {
+contract GetUnderlyingAssets_NSStargateAssetModule_Fuzz_Test is StargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        NSStargateAssetModule_Fuzz_Test.setUp();
+        StargateAM_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////

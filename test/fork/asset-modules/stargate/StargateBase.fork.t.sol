@@ -6,13 +6,15 @@ pragma solidity 0.8.22;
 
 import { Fork_Test } from "../../Fork.t.sol";
 
-import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
-import { ILpStakingTime } from "../../../../src/asset-modules/Stargate-Finance/interfaces/ILpStakingTime.sol";
-import { IRouter } from "../../../../src/asset-modules/Stargate-Finance/interfaces/IRouter.sol";
-import { IPool } from "../../../../src/asset-modules/Stargate-Finance/interfaces/IPool.sol";
-import { StargateAssetModule } from "../../../../src/asset-modules/Stargate-Finance/StargateAssetModule.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
+import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
+import { ILpStakingTime } from "../../../../src/asset-modules/Stargate-Finance/interfaces/ILpStakingTime.sol";
+import { IPool } from "../../../../src/asset-modules/Stargate-Finance/interfaces/IPool.sol";
+import { IRouter } from "../../../../src/asset-modules/Stargate-Finance/interfaces/IRouter.sol";
+import { ISGFactory } from "../../../../src/asset-modules/Stargate-Finance/interfaces/ISGFactory.sol";
+import { StargateAM } from "../../../../src/asset-modules/Stargate-Finance/StargateAM.sol";
+import { StakedStargateAM } from "../../../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
 
 /**
  * @notice Base test file for Stargate Asset-Module fork tests.
@@ -24,9 +26,11 @@ contract StargateBase_Fork_Test is Fork_Test {
 
     IRouter public router = IRouter(0x45f1A95A4D3f3836523F5c83673c797f4d4d263B);
     ILpStakingTime public lpStakingTime = ILpStakingTime(0x06Eb48763f117c7Be887296CDcdfad2E4092739C);
+    ISGFactory public sgFactory = ISGFactory(0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6);
     address oracleSTG = 0x63Af8341b62E683B87bB540896bF283D96B4D385;
 
-    StargateAssetModule public stargateAssetModule;
+    StargateAM public stargateAssetModule;
+    StakedStargateAM public stakedStargateAM;
 
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
@@ -46,19 +50,22 @@ contract StargateBase_Fork_Test is Fork_Test {
         erc20AssetModule.addAsset(address(lpStakingTime.eToken()), oracleSequence);
         vm.stopPrank();
 
-        // Deploy StargateAssetModule.
         vm.startPrank(users.creatorAddress);
-        stargateAssetModule = new StargateAssetModule(address(registryExtension), address(lpStakingTime));
-
-        // Add Asset-Module to the registry and initialize.
+        // Deploy StargateAssetModule.
+        stargateAssetModule = new StargateAM(address(registryExtension), address(sgFactory));
         registryExtension.addAssetModule(address(stargateAssetModule));
 
-        // Initialize stargateAssetModule
-        stargateAssetModule.initialize();
+        // Deploy StakedStargateAssetModule.
+        stakedStargateAM = new StakedStargateAM(address(registryExtension), address(lpStakingTime));
+        registryExtension.addAssetModule(address(stakedStargateAM));
+        stakedStargateAM.initialize();
 
         // Label contracts
-        vm.label({ account: address(router), newLabel: "StargateRouter" });
-        vm.label({ account: address(lpStakingTime), newLabel: "StargateLpStaking" });
+        vm.label({ account: address(router), newLabel: "Stargate Router" });
+        vm.label({ account: address(lpStakingTime), newLabel: "Stargate Lp Staking" });
+        vm.label({ account: address(sgFactory), newLabel: "Stargate Factory" });
+        vm.label({ account: address(stargateAssetModule), newLabel: "Stargate Asset Module" });
+        vm.label({ account: address(stakedStargateAM), newLabel: "Staked Stargate Asset Module" });
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -70,7 +77,7 @@ contract StargateBase_Fork_Test is Fork_Test {
         address account,
         ERC20 underlyingAsset,
         uint256 amount,
-        uint256 routerPoolId,
+        uint256 poolId,
         IPool pool
     ) public returns (uint256 lpBalance) {
         // A user deposits in the Stargate USDbC pool.
@@ -78,19 +85,19 @@ contract StargateBase_Fork_Test is Fork_Test {
         deal(address(underlyingAsset), user, amount);
 
         underlyingAsset.approve(address(router), amount);
-        router.addLiquidity(routerPoolId, amount, user);
+        router.addLiquidity(poolId, amount, user);
 
         // The user stakes the LP token via the StargateAssetModule
         lpBalance = ERC20(address(pool)).balanceOf(user);
-        ERC20(address(pool)).approve(address(stargateAssetModule), lpBalance);
+        ERC20(address(pool)).approve(address(stakedStargateAM), lpBalance);
 
-        uint256 tokenId = stargateAssetModule.mint(address(pool), uint128(lpBalance));
+        uint256 tokenId = stakedStargateAM.mint(address(pool), uint128(lpBalance));
 
         // The user deposits the ERC1155 in it's Account.
-        stargateAssetModule.approve(account, tokenId);
+        stakedStargateAM.approve(account, tokenId);
 
         address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = address(stargateAssetModule);
+        assetAddresses[0] = address(stakedStargateAM);
 
         uint256[] memory assetIds = new uint256[](1);
         assetIds[0] = tokenId;

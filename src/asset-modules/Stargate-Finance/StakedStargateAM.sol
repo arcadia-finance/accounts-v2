@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { ERC20, IRegistry, StakingModule2 } from "../staking-module/AbstractStakingModule2.sol";
+import { ERC20, IRegistry, StakingModule } from "../staking-module/AbstractStakingModule.sol";
 import { ILpStakingTime } from "./interfaces/ILpStakingTime.sol";
 
 /**
@@ -13,7 +13,7 @@ import { ILpStakingTime } from "./interfaces/ILpStakingTime.sol";
  * @notice The StargateAssetModule stores pricing logic and basic information for Staked Stargate Finance LP pools
  * @dev No end-user should directly interact with the StargateAssetModule, only the Registry, the contract owner or via the actionHandler
  */
-contract SStargateAssetModule is StakingModule2 {
+contract StakedStargateAM is StakingModule {
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
@@ -46,7 +46,7 @@ contract SStargateAssetModule is StakingModule2 {
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC721 tokens.
      */
     constructor(address registry, address lpStakingTime)
-        StakingModule2(registry, "Arcadia Stargate Positions", "aSGP")
+        StakingModule(registry, "Arcadia Stargate Positions", "aSGP")
     {
         LP_STAKING_TIME = ILpStakingTime(lpStakingTime);
         REWARD_TOKEN = ERC20(address(LP_STAKING_TIME.eToken()));

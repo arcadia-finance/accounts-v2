@@ -6,12 +6,12 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { StakingModule2 } from "../../../../src/asset-modules/staking-module/AbstractStakingModule2.sol";
+import { StakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
 import { StakingModuleMock } from "../../../utils/mocks/StakingModuleMock.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 
 /**
- * @notice Common logic needed by "StakingModule2" fuzz tests.
+ * @notice Common logic needed by "StakingModule" fuzz tests.
  */
 abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
 
     function setStakingModuleState(
         StakingModuleStateForAsset memory stakingModuleStateForAsset,
-        StakingModule2.PositionState memory stakingModuleStateForPosition,
+        StakingModule.PositionState memory stakingModuleStateForPosition,
         address asset,
         uint96 id
     ) internal {
@@ -76,8 +76,8 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
 
     function givenValidStakingModuleState(
         StakingModuleStateForAsset memory stakingModuleStateForAsset,
-        StakingModule2.PositionState memory stakingModuleStateForPosition
-    ) public view returns (StakingModuleStateForAsset memory, StakingModule2.PositionState memory) {
+        StakingModule.PositionState memory stakingModuleStateForPosition
+    ) public view returns (StakingModuleStateForAsset memory, StakingModule.PositionState memory) {
         // Given: More than 1 gwei is staked.
         stakingModuleStateForAsset.totalStaked =
             uint128(bound(stakingModuleStateForAsset.totalStaked, 1, type(uint128).max));

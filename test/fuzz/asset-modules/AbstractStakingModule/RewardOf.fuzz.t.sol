@@ -4,13 +4,13 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test, StakingModule2 } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, StakingModule } from "./_AbstractStakingModule.fuzz.t.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 /**
- * @notice Fuzz tests for the function "rewardOf" of contract "StakingModule2".
+ * @notice Fuzz tests for the function "rewardOf" of contract "StakingModule".
  */
 contract RewardOf_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
@@ -29,7 +29,7 @@ contract RewardOf_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_
 
     function testFuzz_Success_rewardOf(
         StakingModuleStateForAsset memory assetState,
-        StakingModule2.PositionState memory positionState,
+        StakingModule.PositionState memory positionState,
         uint96 positionId,
         uint8 assetDecimals
     ) public {

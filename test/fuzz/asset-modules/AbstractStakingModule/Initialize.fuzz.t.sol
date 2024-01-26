@@ -9,7 +9,7 @@ import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t
 import { StakingModuleMock } from "../../../utils/mocks/StakingModuleMock.sol";
 
 /**
- * @notice Fuzz tests for the function "initialize" of contract "StakingModule2".
+ * @notice Fuzz tests for the function "initialize" of contract "StakingModule".
  */
 contract Initialize_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
