@@ -80,6 +80,20 @@ contract IncreaseOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.increaseOpenPosition(debt);
     }
 
+    function testFuzz_Revert_increaseOpenPosition_inAuction(uint256 openPosition) public {
+        // Will set "inAuction" to true.
+        accountExtension.setInAuction();
+
+        // Confirm the accountExtension has creditorStable1 set.
+        assertEq(accountExtension.creditor(), address(creditorStable1));
+
+        // Should revert if the Account is in an auction.
+        vm.startPrank(address(creditorStable1));
+        vm.expectRevert(AccountErrors.AccountInAuction.selector);
+        accountExtension.increaseOpenPosition(openPosition);
+        vm.stopPrank();
+    }
+
     function testFuzz_Success_increaseOpenPosition(
         uint256 debt,
         uint112 collateralValue,

@@ -679,6 +679,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         external
         onlyCreditor
         nonReentrant
+        notDuringAuction
         updateActionTimestamp
         returns (uint256 accountVersion)
     {
