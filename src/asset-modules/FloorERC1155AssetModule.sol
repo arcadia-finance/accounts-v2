@@ -29,7 +29,7 @@ contract FloorERC1155AssetModule is PrimaryAssetModule {
 
     /**
      * @param registry_ The address of the Registry.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC1155 tokens is 2.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC1155 tokens.
      */
     constructor(address registry_) PrimaryAssetModule(registry_, 2) { }
 

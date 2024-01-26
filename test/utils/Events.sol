@@ -66,8 +66,10 @@ abstract contract Events {
 
     event AssetAdded(address indexed assetAddress, address indexed assetModule);
     event AssetModuleAdded(address assetModule);
+    event Deposit(address account);
     event OracleAdded(uint256 indexed oracleId, address indexed oracleModule);
     event OracleModuleAdded(address oracleModule);
+    event Withdrawal(address account);
 
     /*//////////////////////////////////////////////////////////////////////////
                                 PRICING MODULE

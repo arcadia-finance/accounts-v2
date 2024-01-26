@@ -1,26 +1,33 @@
-// SPDX-License-Identifier: MIT
+/**
+ * Created by Pragma Labs
+ * SPDX-License-Identifier: BUSL-1.1
+ */
 pragma solidity 0.8.22;
 
-import { StakingModuleExtension } from "../Extensions.sol";
+import { ERC20, StakingModuleExtension } from "../Extensions.sol";
 
 contract StakingModuleMock is StakingModuleExtension {
-    mapping(uint256 id => uint128 rewardBalance) public currentRewardGlobal;
-
-    function setActualRewardBalance(uint256 id, uint128 amount) public {
-        currentRewardGlobal[id] = amount;
+    constructor(address registry, string memory name_, string memory symbol_, address rewardToken)
+        StakingModuleExtension(registry, name_, symbol_)
+    {
+        REWARD_TOKEN = ERC20(rewardToken);
     }
 
-    function _stake(uint256 id, uint256 amount) internal override { }
+    mapping(address asset => uint256 rewardBalance) public currentRewardGlobal;
 
-    function _withdraw(uint256 id, uint256 amount) internal override { }
-
-    function _claimReward(uint256 id) internal override {
-        currentRewardGlobal[id] = 0;
+    function setActualRewardBalance(address asset, uint256 amount) public {
+        currentRewardGlobal[asset] = amount;
     }
 
-    function _getCurrentReward(uint256 id) internal view override returns (uint256 earned) {
-        earned = currentRewardGlobal[id];
+    function _stake(address asset, uint256 amount) internal override { }
+
+    function _withdraw(address asset, uint256 amount) internal override { }
+
+    function _claimReward(address asset) internal override {
+        currentRewardGlobal[asset] = 0;
     }
 
-    function uri(uint256 id) public view virtual override returns (string memory) { }
+    function _getCurrentReward(address asset) internal view override returns (uint256 earned) {
+        earned = currentRewardGlobal[asset];
+    }
 }

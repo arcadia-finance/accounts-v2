@@ -5,6 +5,7 @@
 pragma solidity 0.8.22;
 
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
 
 import { AccountV1 } from "../../src/accounts/AccountV1.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
@@ -26,6 +27,8 @@ import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModu
 import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
 import { StakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
+import { StargateAM } from "../../src/asset-modules/Stargate-Finance/StargateAM.sol";
+import { StakedStargateAM } from "../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
 
 contract AccountExtension is AccountV1 {
     constructor(address factory) AccountV1(factory) { }
@@ -593,44 +596,144 @@ contract MultiCallExtension is ActionMultiCall {
 }
 
 abstract contract StakingModuleExtension is StakingModule {
-    function setLastRewardGlobal(uint256 id, uint128 balance) public {
-        tokenState[id].lastRewardGlobal = balance;
+    constructor(address registry, string memory name_, string memory symbol_) StakingModule(registry, name_, symbol_) { }
+
+    function setLastRewardGlobal(address asset, uint128 balance) public {
+        assetState[asset].lastRewardGlobal = balance;
     }
 
-    function setTotalSupply(uint256 id, uint128 totalSupply_) public {
-        tokenState[id].totalSupply = totalSupply_;
+    function addAsset(address asset) public {
+        _addAsset(asset);
     }
 
-    function setLastRewardAccount(uint256 id, uint128 rewards_, address account) public {
-        accountState[account][id].lastRewardAccount = rewards_;
+    function setAssetInPosition(address asset, uint96 tokenId) public {
+        positionState[tokenId].asset = asset;
     }
 
-    function setLastRewardPerTokenAccount(uint256 id, uint128 rewardPaid, address account) public {
-        accountState[account][id].lastRewardPerTokenAccount = rewardPaid;
+    function setTotalStaked(address asset, uint128 totalStaked_) public {
+        assetState[asset].totalStaked = totalStaked_;
     }
 
-    function setLastRewardPerTokenGlobal(uint256 id, uint128 amount) public {
-        tokenState[id].lastRewardPerTokenGlobal = amount;
+    function setLastRewardPerTokenGlobal(address asset, uint128 amount) public {
+        assetState[asset].lastRewardPerTokenGlobal = amount;
     }
 
-    function setBalanceOf(uint256 id, uint256 amount, address account) public {
-        balanceOf[account][id] = amount;
+    function setLastRewardPosition(uint256 id, uint128 rewards_) public {
+        positionState[id].lastRewardPosition = rewards_;
+    }
+
+    function setLastRewardPerTokenPosition(uint256 id, uint128 rewardPaid) public {
+        positionState[id].lastRewardPerTokenPosition = rewardPaid;
+    }
+
+    function setAmountStakedForPosition(uint256 id, uint256 amount) public {
+        positionState[id].amountStaked = uint128(amount);
     }
 
     function getIdCounter() public view returns (uint256 lastId_) {
-        lastId_ = lastId;
+        lastId_ = lastPositionId;
     }
 
-    function getCurrentBalances(address account, uint256 id)
+    function setIdCounter(uint256 lastId_) public {
+        lastPositionId = lastId_;
+    }
+
+    function setOwnerOfPositionId(address owner_, uint256 positionId) public {
+        _ownerOf[positionId] = owner_;
+    }
+
+    function getRewardBalances(AssetState memory assetState_, PositionState memory positionState_)
+        public
+        view
+        returns (AssetState memory, PositionState memory)
+    {
+        return _getRewardBalances(assetState_, positionState_);
+    }
+
+    function mintIdTo(address to, uint256 tokenId) public {
+        _safeMint(to, tokenId);
+    }
+
+    function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
+        (asset, assetId) = _getAssetFromKey(key);
+    }
+
+    function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
+        (key) = _getKeyFromAsset(asset, assetId);
+    }
+
+    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssetKeys) {
+        underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+    }
+
+    function getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 assetAmount,
+        bytes32[] memory underlyingAssetKeys
+    )
+        public
+        view
+        returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+    {
+        (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(creditor, assetKey, assetAmount, underlyingAssetKeys);
+    }
+
+    function setTotalStakedForAsset(address asset, uint128 totalStaked_) public {
+        assetState[asset].totalStaked = totalStaked_;
+    }
+}
+
+contract StargateAMExtension is StargateAM {
+    constructor(address registry, address stargateFactory) StargateAM(registry, stargateFactory) { }
+
+    function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
+        (asset, assetId) = _getAssetFromKey(key);
+    }
+
+    function getKeyFromAsset(address asset, uint256 assetId) public pure returns (bytes32 key) {
+        (key) = _getKeyFromAsset(asset, assetId);
+    }
+
+    function getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 exposureAsset,
+        bytes32[] memory underlyingAssetKeys
+    )
         public
         view
         returns (
-            uint256 currentRewardPerToken,
-            uint256 currentRewardGlobal,
-            uint256 totalSupply_,
-            uint256 currentRewardAccount
+            uint256[] memory exposureAssetToUnderlyingAssets,
+            AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
         )
     {
-        return _getCurrentBalances(account, id);
+        (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
+    }
+
+    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {
+        return _getUnderlyingAssets(assetKey);
+    }
+}
+
+contract StakedStargateAMExtension is StakedStargateAM {
+    constructor(address registry, address stargateLpStaking_) StakedStargateAM(registry, stargateLpStaking_) { }
+
+    function setAssetToPoolId(address asset, uint256 pid) public {
+        assetToPid[asset] = pid;
+    }
+
+    function getCurrentReward(address asset) public view returns (uint256 currentReward) {
+        currentReward = _getCurrentReward(asset);
+    }
+
+    function stake(address asset, uint256 amount) public {
+        _stake(asset, amount);
+    }
+
+    function withdraw(address asset, uint256 amount) public {
+        _withdraw(asset, amount);
     }
 }

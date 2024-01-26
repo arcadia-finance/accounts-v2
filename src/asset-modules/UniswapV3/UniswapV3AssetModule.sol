@@ -45,7 +45,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     // The liquidity of the Liquidity Position when it was deposited.
     mapping(uint256 assetId => uint256 liquidity) internal assetToLiquidity;
 
-    // The Unique identifiers of the Underlying Assets of a Liquidity Position.
+    // The unique identifiers of the Underlying Assets of a Liquidity Position.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ contract UniswapV3AssetModule is DerivedAssetModule {
     /**
      * @param registry_ The contract address of the Registry.
      * @param nonFungiblePositionManager The contract address of the protocols NonFungiblePositionManager.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for Uniswap V3 Liquidity Positions (ERC721) is 1.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for Uniswap V3 Liquidity Positions (ERC721).
      */
     constructor(address registry_, address nonFungiblePositionManager) DerivedAssetModule(registry_, 1) {
         NON_FUNGIBLE_POSITION_MANAGER = INonfungiblePositionManager(nonFungiblePositionManager);

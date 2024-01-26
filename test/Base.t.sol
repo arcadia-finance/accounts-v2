@@ -52,6 +52,7 @@ abstract contract Base_Test is Test, Events, Errors {
     //////////////////////////////////////////////////////////////////////////*/
 
     modifier canReceiveERC721(address to) {
+        vm.assume(to != address(0));
         if (to.code.length != 0) {
             try ERC721TokenReceiver(to).onERC721Received(to, address(0), 0, "") returns (bytes4 response) {
                 vm.assume(response == ERC721TokenReceiver.onERC721Received.selector);
@@ -130,9 +131,6 @@ abstract contract Base_Test is Test, Events, Errors {
         address proxyAddress = factory.createAccount(0, 0, address(0));
         proxyAccount = AccountV1(proxyAddress);
         vm.stopPrank();
-
-        // Warp to have a timestamp of at least two days old.
-        vm.warp(2 days);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

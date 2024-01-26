@@ -19,7 +19,7 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // The Unique identifiers of the underlying assets of a Liquidity Position.
+    // The unique identifiers of the underlying assets of a Liquidity Position.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@ contract StandardERC4626AssetModule is DerivedAssetModule {
 
     /**
      * @param registry_ The address of the Registry.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "0" for ERC20 tokens.
      */
     constructor(address registry_) DerivedAssetModule(registry_, 0) { }
 

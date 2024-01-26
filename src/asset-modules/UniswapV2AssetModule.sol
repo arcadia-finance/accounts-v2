@@ -35,7 +35,7 @@ contract UniswapV2AssetModule is DerivedAssetModule {
     // Flag indicating if the protocol swap fees are enabled.
     bool public feeOn;
 
-    // The Unique identifiers of the underlying assets of a Liquidity Position.
+    // The unique identifiers of the underlying assets of a Liquidity Position.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ contract UniswapV2AssetModule is DerivedAssetModule {
     /**
      * @param registry_ The address of the Registry.
      * @param uniswapV2Factory_ The factory for Uniswap V2 pairs.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC20 tokens is 0.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "0" for ERC20 tokens.
      */
     constructor(address registry_, address uniswapV2Factory_) DerivedAssetModule(registry_, 0) {
         UNISWAP_V2_FACTORY = uniswapV2Factory_;

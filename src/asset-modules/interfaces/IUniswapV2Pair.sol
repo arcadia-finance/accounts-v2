@@ -1,6 +1,5 @@
 /**
- * Created by Arcadia Finance
- * https://www.arcadia.finance
+ * Created by Pragma Labs
  *
  * SPDX-License-Identifier: MIT
  */
