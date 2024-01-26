@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
-import { AssetModule } from "../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../src/asset-modules/abstracts/AbstractAssetModule.sol";
 
 /**
  * @notice Fuzz tests for the function "batchProcessDeposit" of contract "Registry".

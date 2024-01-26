@@ -4,29 +4,30 @@
  */
 pragma solidity 0.8.22;
 
-import { StandardERC20AssetModule_Fuzz_Test } from "./_StandardERC20AssetModule.fuzz.t.sol";
+import { ERC20PrimaryAssetModule_Fuzz_Test } from "./_ERC20PrimaryAssetModule.fuzz.t.sol";
 
 import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
-import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAssetModule.sol";
 import {
-    PrimaryAssetModule, StandardERC20AssetModule
-} from "../../../../src/asset-modules/StandardERC20AssetModule.sol";
+    PrimaryAssetModule,
+    ERC20PrimaryAssetModule
+} from "../../../../src/asset-modules/ERC20-Primaries/ERC20PrimaryAssetModule.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
- * @notice Fuzz tests for the function "addAsset" of contract "StandardERC20AssetModule".
+ * @notice Fuzz tests for the function "addAsset" of contract "ERC20PrimaryAssetModule".
  */
-contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule_Fuzz_Test {
+contract AddAsset_ERC20PrimaryAssetModule_Fuzz_Test is ERC20PrimaryAssetModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        StandardERC20AssetModule_Fuzz_Test.setUp();
+        ERC20PrimaryAssetModule_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -74,7 +75,7 @@ contract AddAsset_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule
         oracleAssetToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(oracle)));
 
         vm.prank(users.creatorAddress);
-        vm.expectRevert(StandardERC20AssetModule.Max18Decimals.selector);
+        vm.expectRevert(ERC20PrimaryAssetModule.Max18Decimals.selector);
         erc20AssetModule.addAsset(address(asset), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
     }
 

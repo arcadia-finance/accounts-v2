@@ -8,7 +8,7 @@ import { Base_Test, Constants } from "../Base.t.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
 import { Registry } from "../../src/Registry.sol";
-import { AssetModule } from "../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../src/asset-modules/abstracts/AbstractAssetModule.sol";
 import { CreditorMock } from "../utils/mocks/CreditorMock.sol";
 import { ERC20Mock } from "../utils/mocks/ERC20Mock.sol";
 import { ERC721Mock } from "../utils/mocks/ERC721Mock.sol";
@@ -216,7 +216,7 @@ abstract contract Fuzz_Test is Base_Test {
         BA_TO_QA_DOUBLE[0] = true;
         BA_TO_QA_DOUBLE[1] = true;
 
-        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the standardERC20AssetModule.
+        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the ERC20PrimaryAssetModule.
         oracleStable1ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.stable1ToUsd)));
         oracleStable2ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.stable2ToUsd)));
         oracleToken1ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token1ToUsd)));

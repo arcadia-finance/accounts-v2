@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test } from "./_AccountV1.fuzz.t.sol";
 
-import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAssetModule.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**

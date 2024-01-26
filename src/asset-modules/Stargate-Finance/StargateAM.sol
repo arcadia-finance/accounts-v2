@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
-import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "../AbstractDerivedAssetModule.sol";
+import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAssetModule.sol";
 import { IPool } from "./interfaces/IPool.sol";
 import { ISGFactory } from "./interfaces/ISGFactory.sol";
 

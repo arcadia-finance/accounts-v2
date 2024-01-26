@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { ChainlinkOracleModuleExtension } from "../../../utils/Extensions.sol";
-import { OracleModule } from "../../../../src/oracle-modules/AbstractOracleModule.sol";
+import { OracleModule } from "../../../../src/oracle-modules/abstracts/AbstractOracleModule.sol";
 
 /**
  * @notice Common logic needed by all "ChainlinkOracleModule" fuzz tests.

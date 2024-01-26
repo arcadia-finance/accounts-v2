@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { FloorERC721AssetModule_Fuzz_Test, AssetModule } from "./_FloorERC721AssetModule.fuzz.t.sol";
 
-import { FloorERC721AssetModule } from "../../../../src/asset-modules/FloorERC721AssetModule.sol";
+import { FloorERC721AssetModule } from "../../../utils/mocks/asset-modules/FloorERC721AssetModule.sol";
 
 /**
  * @notice Fuzz tests for the function "processDirectDeposit" of contract "FloorERC721AssetModule".

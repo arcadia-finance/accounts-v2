@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { Constants, AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
-import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAssetModule.sol";
 import { IActionBase, ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { MultiActionMock } from "../../.././utils/mocks/MultiActionMock.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";

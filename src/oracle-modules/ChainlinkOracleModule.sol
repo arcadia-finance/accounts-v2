@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { OracleModule } from "./AbstractOracleModule.sol";
+import { OracleModule } from "./abstracts/AbstractOracleModule.sol";
 import { IChainLinkData } from "../interfaces/IChainLinkData.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
 

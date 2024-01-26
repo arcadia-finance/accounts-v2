@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { AbstractPrimaryAssetModule_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAssetModule.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { PrimaryAssetModule } from "../../../../src/asset-modules/AbstractPrimaryAssetModule.sol";
+import { PrimaryAssetModule } from "../../../../src/asset-modules/abstracts/AbstractPrimaryAssetModule.sol";
 import { OracleModuleMock } from "../../../utils/mocks/OracleModuleMock.sol";
 
 /**

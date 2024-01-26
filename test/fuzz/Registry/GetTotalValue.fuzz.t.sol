@@ -10,7 +10,7 @@ import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../src/libraries/BitPackingLib.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { ERC20Mock } from "../../utils/mocks/ERC20Mock.sol";
-import { AssetModule } from "../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../src/asset-modules/abstracts/AbstractAssetModule.sol";
 
 /**
  * @notice Fuzz tests for the function "getTotalValue" of contract "Registry".

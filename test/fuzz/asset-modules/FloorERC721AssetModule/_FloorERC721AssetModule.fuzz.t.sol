@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAssetModule.sol";
 
 /**
  * @notice Common logic needed by all "FloorERC721AssetModule" fuzz tests.

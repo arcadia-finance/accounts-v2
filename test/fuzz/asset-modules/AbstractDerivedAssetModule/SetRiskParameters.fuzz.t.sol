@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { AbstractDerivedAssetModule_Fuzz_Test, AssetModule } from "./_AbstractDerivedAssetModule.fuzz.t.sol";
 
-import { DerivedAssetModule } from "../../../../src/asset-modules/AbstractDerivedAssetModule.sol";
+import { DerivedAssetModule } from "../../../../src/asset-modules/abstracts/AbstractDerivedAssetModule.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**

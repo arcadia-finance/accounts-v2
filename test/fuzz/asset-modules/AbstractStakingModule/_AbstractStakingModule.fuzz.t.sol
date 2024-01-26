@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { StakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
+import { StakingModule } from "../../../../src/asset-modules/abstracts/AbstractStakingModule.sol";
 import { StakingModuleMock } from "../../../utils/mocks/StakingModuleMock.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 

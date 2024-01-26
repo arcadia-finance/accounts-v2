@@ -21,7 +21,7 @@ import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/librar
 import { LiquidityAmountsExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/NonfungiblePositionManager.sol";
-import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAssetModule.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 import { Utils } from "../../../utils/Utils.sol";
 import { UniswapV3AssetModule } from "../../../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";

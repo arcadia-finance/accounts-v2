@@ -4,11 +4,15 @@
  */
 pragma solidity 0.8.22;
 
-import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "./AbstractDerivedAssetModule.sol";
+import {
+    DerivedAssetModule,
+    FixedPointMathLib,
+    IRegistry
+} from "../../../../src/asset-modules/abstracts/AbstractDerivedAssetModule.sol";
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
-import { FullMath } from "./UniswapV3/libraries/FullMath.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
+import { FullMath } from "../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @title Asset-Module for Uniswap V2 LP tokens

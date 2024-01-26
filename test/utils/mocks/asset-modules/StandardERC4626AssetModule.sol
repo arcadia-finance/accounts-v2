@@ -4,9 +4,9 @@
  */
 pragma solidity 0.8.22;
 
-import { DerivedAssetModule, IRegistry } from "./AbstractDerivedAssetModule.sol";
-import { IERC4626 } from "../interfaces/IERC4626.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
+import { DerivedAssetModule, IRegistry } from "../../../../src/asset-modules/abstracts/AbstractDerivedAssetModule.sol";
+import { IERC4626 } from "../../../../src/interfaces/IERC4626.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @title Sub-registry for Standard ERC4626 tokens

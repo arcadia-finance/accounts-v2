@@ -10,20 +10,20 @@ import { ArcadiaAddresses, ArcadiaContractAddresses } from "./Constants/Transfer
 import "../src/Factory.sol";
 import { Registry } from "../src/Registry.sol";
 import { ChainlinkOracleModule } from "../src/oracle-modules/ChainlinkOracleModule.sol";
-import { StandardERC20AssetModule } from "../src/asset-modules/StandardERC20AssetModule.sol";
+import { ERC20PrimaryAssetModule } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAssetModule.sol";
 import { ILiquidator } from "./interfaces/ILiquidator.sol";
 
 contract ArcadiaAccountTransferOwnership is Test {
     Factory internal factory;
     Registry internal registry;
-    StandardERC20AssetModule internal standardERC20AssetModule;
+    ERC20PrimaryAssetModule internal erc20PrimaryAssetModule;
     ChainlinkOracleModule internal chainlinkOM;
     ILiquidator internal liquidator;
 
     constructor() {
         factory = Factory(ArcadiaContractAddresses.factory);
         registry = Registry(ArcadiaContractAddresses.registry);
-        standardERC20AssetModule = StandardERC20AssetModule(ArcadiaContractAddresses.standardERC20AssetModule);
+        erc20PrimaryAssetModule = ERC20PrimaryAssetModule(ArcadiaContractAddresses.erc20PrimaryAssetModule);
         chainlinkOM = ChainlinkOracleModule(ArcadiaContractAddresses.chainlinkOM);
         liquidator = ILiquidator(ArcadiaContractAddresses.liquidator);
     }
@@ -33,7 +33,7 @@ contract ArcadiaAccountTransferOwnership is Test {
         vm.startBroadcast(ownerPrivateKey);
         factory.transferOwnership(ArcadiaAddresses.factoryOwner);
         registry.transferOwnership(ArcadiaAddresses.registryOwner);
-        standardERC20AssetModule.transferOwnership(ArcadiaAddresses.standardERC20AssetModuleOwner);
+        erc20PrimaryAssetModule.transferOwnership(ArcadiaAddresses.erc20PrimaryAssetModuleOwner);
         chainlinkOM.transferOwnership(ArcadiaAddresses.chainlinkOMOwner);
         liquidator.transferOwnership(ArcadiaAddresses.liquidatorOwner);
         vm.stopBroadcast();

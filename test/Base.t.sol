@@ -12,8 +12,8 @@ import { AccountV2 } from "./utils/mocks/AccountV2.sol";
 import { SequencerUptimeOracle } from "./utils/mocks/SequencerUptimeOracle.sol";
 import { ChainlinkOracleModuleExtension } from "./utils/Extensions.sol";
 import { RegistryExtension } from "./utils/Extensions.sol";
-import { AssetModule } from "../src/asset-modules/AbstractAssetModule.sol";
-import { StandardERC20AssetModuleExtension } from "./utils/Extensions.sol";
+import { AssetModule } from "../src/asset-modules/abstracts/AbstractAssetModule.sol";
+import { ERC20PrimaryAssetModuleExtension } from "./utils/Extensions.sol";
 import { FloorERC721AssetModuleExtension } from "./utils/Extensions.sol";
 import { FloorERC1155AssetModuleExtension } from "./utils/Extensions.sol";
 import { UniswapV3AssetModuleExtension } from "./utils/Extensions.sol";
@@ -38,7 +38,7 @@ abstract contract Base_Test is Test, Events, Errors {
     Factory internal factory;
     RegistryExtension internal registryExtension;
     ChainlinkOracleModuleExtension internal chainlinkOM;
-    StandardERC20AssetModuleExtension internal erc20AssetModule;
+    ERC20PrimaryAssetModuleExtension internal erc20AssetModule;
     FloorERC721AssetModuleExtension internal floorERC721AssetModule;
     FloorERC1155AssetModuleExtension internal floorERC1155AssetModule;
     UniswapV3AssetModuleExtension internal uniV3AssetModule;
@@ -91,7 +91,7 @@ abstract contract Base_Test is Test, Events, Errors {
         factory = new Factory();
         registryExtension = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
         chainlinkOM = new ChainlinkOracleModuleExtension(address(registryExtension));
-        erc20AssetModule = new StandardERC20AssetModuleExtension(address(registryExtension));
+        erc20AssetModule = new ERC20PrimaryAssetModuleExtension(address(registryExtension));
         floorERC721AssetModule = new FloorERC721AssetModuleExtension(address(registryExtension));
         floorERC1155AssetModule = new FloorERC1155AssetModuleExtension(address(registryExtension));
 

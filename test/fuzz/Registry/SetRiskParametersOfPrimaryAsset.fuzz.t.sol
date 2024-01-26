@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
-import { PrimaryAssetModule } from "../../../src/asset-modules/AbstractPrimaryAssetModule.sol";
+import { PrimaryAssetModule } from "../../../src/asset-modules/abstracts/AbstractPrimaryAssetModule.sol";
 
 /**
  * @notice Fuzz tests for the function "setRiskParametersOfPrimaryAsset" of contract "Registry".

@@ -11,22 +11,22 @@ import { AccountV1 } from "../../src/accounts/AccountV1.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
 import { ChainlinkOracleModule } from "../../src/oracle-modules/ChainlinkOracleModule.sol";
-import { DerivedAssetModule } from "../../src/asset-modules/AbstractDerivedAssetModule.sol";
+import { DerivedAssetModule } from "../../src/asset-modules/abstracts/AbstractDerivedAssetModule.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
-import { FloorERC721AssetModule } from "../../src/asset-modules/FloorERC721AssetModule.sol";
-import { FloorERC1155AssetModule } from "../../src/asset-modules/FloorERC1155AssetModule.sol";
+import { FloorERC721AssetModule } from "./mocks/asset-modules/FloorERC721AssetModule.sol";
+import { FloorERC1155AssetModule } from "./mocks/asset-modules/FloorERC1155AssetModule.sol";
 import { RegistryGuardian } from "../../src/guardians/RegistryGuardian.sol";
 import { Registry } from "../../src/Registry.sol";
 import { IRegistry } from "../../src/interfaces/IRegistry.sol";
-import { AssetModule } from "../../src/asset-modules/AbstractAssetModule.sol";
-import { PrimaryAssetModule } from "../../src/asset-modules/AbstractPrimaryAssetModule.sol";
+import { AssetModule } from "../../src/asset-modules/abstracts/AbstractAssetModule.sol";
+import { PrimaryAssetModule } from "../../src/asset-modules/abstracts/AbstractPrimaryAssetModule.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../src/libraries/AssetValuationLib.sol";
-import { StandardERC20AssetModule } from "../../src/asset-modules/StandardERC20AssetModule.sol";
-import { StandardERC4626AssetModule } from "../../src/asset-modules/StandardERC4626AssetModule.sol";
-import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModule.sol";
+import { ERC20PrimaryAssetModule } from "../../src/asset-modules/ERC20-Primaries/ERC20PrimaryAssetModule.sol";
+import { StandardERC4626AssetModule } from "./mocks/asset-modules/StandardERC4626AssetModule.sol";
+import { UniswapV2AssetModule } from "./mocks/asset-modules/UniswapV2AssetModule.sol";
 import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
-import { StakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
+import { StakingModule } from "../../src/asset-modules/abstracts/AbstractStakingModule.sol";
 import { StargateAM } from "../../src/asset-modules/Stargate-Finance/StargateAM.sol";
 import { StakedStargateAM } from "../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
 
@@ -326,8 +326,8 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
     }
 }
 
-contract StandardERC20AssetModuleExtension is StandardERC20AssetModule {
-    constructor(address registry_) StandardERC20AssetModule(registry_) { }
+contract ERC20PrimaryAssetModuleExtension is ERC20PrimaryAssetModule {
+    constructor(address registry_) ERC20PrimaryAssetModule(registry_) { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);

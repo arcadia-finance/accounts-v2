@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
-import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "../AbstractDerivedAssetModule.sol";
+import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "./AbstractDerivedAssetModule.sol";
 import { ReentrancyGuard } from "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
 import { SafeCastLib } from "../../../lib/solmate/src/utils/SafeCastLib.sol";
 import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";

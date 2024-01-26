@@ -12,8 +12,8 @@ import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/accounts/AccountV1.sol";
 import { Registry } from "../src/Registry.sol";
 import { ChainlinkOracleModule } from "../src/oracle-modules/ChainlinkOracleModule.sol";
-import { StandardERC20AssetModule } from "../src/asset-modules/StandardERC20AssetModule.sol";
-import { AssetModule } from "../src/asset-modules/AbstractAssetModule.sol";
+import { ERC20PrimaryAssetModule } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAssetModule.sol";
+import { AssetModule } from "../src/asset-modules/abstracts/AbstractAssetModule.sol";
 import { UniswapV3AssetModule } from "../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 
 import { ActionMultiCall } from "../src/actions/MultiCall.sol";
@@ -33,7 +33,7 @@ contract ArcadiaAccountDeployment is Test {
     ERC20 internal reth;
 
     Registry internal registry;
-    StandardERC20AssetModule internal standardERC20AssetModule;
+    ERC20PrimaryAssetModule internal erc20PrimaryAssetModule;
     UniswapV3AssetModule internal uniswapV3AssetModule;
     ChainlinkOracleModule internal chainlinkOM;
     ActionMultiCall internal actionMultiCall;
@@ -83,7 +83,7 @@ contract ArcadiaAccountDeployment is Test {
         usdcLendingPool.setRiskManager(deployerAddress);
 
         registry = new Registry(address(factory), DeployAddresses.sequencerUptimeOracle_base);
-        standardERC20AssetModule = new StandardERC20AssetModule(address(registry));
+        erc20PrimaryAssetModule = new ERC20PrimaryAssetModule(address(registry));
         uniswapV3AssetModule = new UniswapV3AssetModule(address(registry), DeployAddresses.uniswapV3PositionMgr_base);
 
         chainlinkOM = new ChainlinkOracleModule(address(registry));
@@ -91,7 +91,7 @@ contract ArcadiaAccountDeployment is Test {
         account = new AccountV1(address(factory));
         actionMultiCall = new ActionMultiCall();
 
-        registry.addAssetModule(address(standardERC20AssetModule));
+        registry.addAssetModule(address(erc20PrimaryAssetModule));
         registry.addAssetModule(address(uniswapV3AssetModule));
 
         registry.addOracleModule(address(chainlinkOM));
@@ -113,22 +113,22 @@ contract ArcadiaAccountDeployment is Test {
         oracleRethToEthToUsdArr[0] = oracleRethToEthId;
         oracleRethToEthToUsdArr[1] = oracleEthToUsdId;
 
-        standardERC20AssetModule.addAsset(
+        erc20PrimaryAssetModule.addAsset(
             DeployAddresses.comp_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleCompToUsdArr)
         );
-        standardERC20AssetModule.addAsset(
+        erc20PrimaryAssetModule.addAsset(
             DeployAddresses.dai_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleDaiToUsdArr)
         );
-        standardERC20AssetModule.addAsset(
+        erc20PrimaryAssetModule.addAsset(
             DeployAddresses.weth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleEthToUsdArr)
         );
-        standardERC20AssetModule.addAsset(
+        erc20PrimaryAssetModule.addAsset(
             DeployAddresses.usdc_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdcToUsdArr)
         );
-        standardERC20AssetModule.addAsset(
+        erc20PrimaryAssetModule.addAsset(
             DeployAddresses.cbeth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleCbethToEthToUsdArr)
         );
-        standardERC20AssetModule.addAsset(
+        erc20PrimaryAssetModule.addAsset(
             DeployAddresses.reth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleRethToEthToUsdArr)
         );
 

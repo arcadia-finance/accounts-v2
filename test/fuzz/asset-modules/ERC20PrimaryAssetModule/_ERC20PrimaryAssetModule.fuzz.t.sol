@@ -7,12 +7,12 @@ pragma solidity 0.8.22;
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAssetModule.sol";
 
 /**
- * @notice Common logic needed by all "StandardERC20AssetModule" fuzz tests.
+ * @notice Common logic needed by all "ERC20PrimaryAssetModule" fuzz tests.
  */
-abstract contract StandardERC20AssetModule_Fuzz_Test is Fuzz_Test {
+abstract contract ERC20PrimaryAssetModule_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */

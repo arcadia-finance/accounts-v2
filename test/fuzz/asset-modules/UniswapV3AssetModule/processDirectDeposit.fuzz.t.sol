@@ -16,7 +16,7 @@ import { IUniswapV3PoolExtension } from
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
-import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAssetModule.sol";
 
 /**
  * @notice Fuzz tests for the function "processDirectDeposit" of contract "UniswapV3AssetModule".

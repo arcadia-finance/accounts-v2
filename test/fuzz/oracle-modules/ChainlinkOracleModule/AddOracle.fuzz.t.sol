@@ -8,7 +8,7 @@ import { ChainlinkOracleModule_Fuzz_Test } from "./_ChainlinkOracleModule.fuzz.t
 
 import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
 import { ChainlinkOracleModule } from "../../../../src/oracle-modules/ChainlinkOracleModule.sol";
-import { OracleModule } from "../../../../src/oracle-modules/AbstractOracleModule.sol";
+import { OracleModule } from "../../../../src/oracle-modules/abstracts/AbstractOracleModule.sol";
 
 /**
  * @notice Fuzz tests for the function "addOracle" of contract "ChainlinkOracleModule".

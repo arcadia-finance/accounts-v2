@@ -5,10 +5,10 @@
 pragma solidity 0.8.22;
 
 import { AssetModule } from "./AbstractAssetModule.sol";
-import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { SafeCastLib } from "../../lib/solmate/src/utils/SafeCastLib.sol";
-import { IRegistry } from "./interfaces/IRegistry.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
+import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { SafeCastLib } from "../../../lib/solmate/src/utils/SafeCastLib.sol";
+import { IRegistry } from "../interfaces/IRegistry.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 
 /**
  * @title Derived Asset Module

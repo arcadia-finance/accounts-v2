@@ -7,8 +7,8 @@ pragma solidity 0.8.22;
 import { FloorERC721AssetModule_Fuzz_Test } from "./_FloorERC721AssetModule.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { FloorERC721AssetModule } from "../../../../src/asset-modules/FloorERC721AssetModule.sol";
-import { PrimaryAssetModule } from "../../../../src/asset-modules/AbstractPrimaryAssetModule.sol";
+import { FloorERC721AssetModule } from "../../../utils/mocks/asset-modules/FloorERC721AssetModule.sol";
+import { PrimaryAssetModule } from "../../../../src/asset-modules/abstracts/AbstractPrimaryAssetModule.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**

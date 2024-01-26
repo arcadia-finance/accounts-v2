@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { ERC20, IRegistry, StakingModule } from "../staking-module/AbstractStakingModule.sol";
+import { ERC20, IRegistry, StakingModule } from "../abstracts/AbstractStakingModule.sol";
 import { ILpStakingTime } from "./interfaces/ILpStakingTime.sol";
 
 /**

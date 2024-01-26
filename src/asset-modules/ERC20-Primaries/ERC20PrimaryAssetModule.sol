@@ -4,18 +4,18 @@
  */
 pragma solidity 0.8.22;
 
-import { IERC20 } from "../interfaces/IERC20.sol";
-import { IRegistry } from "./interfaces/IRegistry.sol";
-import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
+import { IERC20 } from "../../interfaces/IERC20.sol";
+import { IRegistry } from "../interfaces/IRegistry.sol";
+import { PrimaryAssetModule } from "../abstracts/AbstractPrimaryAssetModule.sol";
 
 /**
  * @title Asset Module for Standard ERC20 tokens
  * @author Pragma Labs
  * @notice The pricing logic and basic information for ERC20 tokens for which a direct price feed exists.
- * @dev No end-user should directly interact with the StandardERC20AssetModule, only the Registry
+ * @dev No end-user should directly interact with the ERC20PrimaryAssetModule, only the Registry
  * or the contract owner.
  */
-contract StandardERC20AssetModule is PrimaryAssetModule {
+contract ERC20PrimaryAssetModule is PrimaryAssetModule {
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
@@ -37,7 +37,7 @@ contract StandardERC20AssetModule is PrimaryAssetModule {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a new asset to the StandardERC20AssetModule.
+     * @notice Adds a new asset to the ERC20PrimaryAssetModule.
      * @param asset The contract address of the asset.
      * @param oracleSequence The sequence of the oracles to price the asset in USD,
      * packed in a single bytes32 object.

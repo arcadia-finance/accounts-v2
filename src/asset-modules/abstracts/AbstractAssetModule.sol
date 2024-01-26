@@ -4,8 +4,8 @@
  */
 pragma solidity 0.8.22;
 
-import { IAssetModule } from "../interfaces/IAssetModule.sol";
-import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
+import { IAssetModule } from "../../interfaces/IAssetModule.sol";
+import { Owned } from "../../../lib/solmate/src/auth/Owned.sol";
 
 /**
  * @title Abstract Asset Module

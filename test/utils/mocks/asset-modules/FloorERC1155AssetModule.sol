@@ -4,8 +4,8 @@
  */
 pragma solidity 0.8.22;
 
-import { IRegistry } from "./interfaces/IRegistry.sol";
-import { PrimaryAssetModule } from "./AbstractPrimaryAssetModule.sol";
+import { IRegistry } from "../../../../src/asset-modules/interfaces/IRegistry.sol";
+import { PrimaryAssetModule } from "../../../../src/asset-modules/abstracts/AbstractPrimaryAssetModule.sol";
 
 /**
  * @title Asset Module for ERC1155 tokens

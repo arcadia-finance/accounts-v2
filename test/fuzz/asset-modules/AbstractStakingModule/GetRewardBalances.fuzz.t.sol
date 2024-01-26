@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t.sol";
-import { StakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
+import { StakingModule } from "../../../../src/asset-modules/abstracts/AbstractStakingModule.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 /**

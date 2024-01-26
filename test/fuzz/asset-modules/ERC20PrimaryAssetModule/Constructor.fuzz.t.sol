@@ -4,20 +4,20 @@
  */
 pragma solidity 0.8.22;
 
-import { StandardERC20AssetModule_Fuzz_Test } from "./_StandardERC20AssetModule.fuzz.t.sol";
+import { ERC20PrimaryAssetModule_Fuzz_Test } from "./_ERC20PrimaryAssetModule.fuzz.t.sol";
 
-import { StandardERC20AssetModuleExtension } from "../../../utils/Extensions.sol";
+import { ERC20PrimaryAssetModuleExtension } from "../../../utils/Extensions.sol";
 
 /**
- * @notice Fuzz tests for the function "constructor" of contract "StandardERC20AssetModule".
+ * @notice Fuzz tests for the function "constructor" of contract "ERC20PrimaryAssetModule".
  */
-contract Constructor_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetModule_Fuzz_Test {
+contract Constructor_ERC20PrimaryAssetModule_Fuzz_Test is ERC20PrimaryAssetModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        StandardERC20AssetModule_Fuzz_Test.setUp();
+        ERC20PrimaryAssetModule_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@ contract Constructor_StandardERC20AssetModule_Fuzz_Test is StandardERC20AssetMod
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.creatorAddress);
-        StandardERC20AssetModuleExtension erc20AssetModule_ = new StandardERC20AssetModuleExtension(registry_);
+        ERC20PrimaryAssetModuleExtension erc20AssetModule_ = new ERC20PrimaryAssetModuleExtension(registry_);
         vm.stopPrank();
 
         assertEq(erc20AssetModule_.REGISTRY(), registry_);

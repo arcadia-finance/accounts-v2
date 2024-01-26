@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "../AbstractDerivedAssetModule.sol";
+import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAssetModule.sol";
 import { FixedPoint96 } from "./libraries/FixedPoint96.sol";
 import { FixedPoint128 } from "./libraries/FixedPoint128.sol";
 import { FullMath } from "./libraries/FullMath.sol";

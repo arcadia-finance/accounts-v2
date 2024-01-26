@@ -11,11 +11,11 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
-import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAssetModule.sol";
 import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2PairMock.sol";
 import { UniswapV2AssetModuleExtension } from "../../../utils/Extensions.sol";
 import { UniswapV2FactoryMock } from "../../../utils/mocks/UniswapV2FactoryMock.sol";
-import { UniswapV2AssetModule } from "../../../../src/asset-modules/UniswapV2AssetModule.sol";
+import { UniswapV2AssetModule } from "../../../utils/mocks/asset-modules/UniswapV2AssetModule.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV2AssetModule" fuzz tests.

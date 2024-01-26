@@ -6,10 +6,10 @@ pragma solidity 0.8.22;
 
 import { FloorERC1155AssetModule_Fuzz_Test } from "./_FloorERC1155AssetModule.fuzz.t.sol";
 
-import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAssetModule.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { FloorERC1155AssetModule } from "../../../../src/asset-modules/FloorERC1155AssetModule.sol";
-import { PrimaryAssetModule } from "../../../../src/asset-modules/AbstractPrimaryAssetModule.sol";
+import { FloorERC1155AssetModule } from "../../../utils/mocks/asset-modules/FloorERC1155AssetModule.sol";
+import { PrimaryAssetModule } from "../../../../src/asset-modules/abstracts/AbstractPrimaryAssetModule.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "FloorERC1155AssetModule".

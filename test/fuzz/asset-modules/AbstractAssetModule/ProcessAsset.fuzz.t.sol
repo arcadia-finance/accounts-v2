@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { AbstractAssetModule_Fuzz_Test } from "./_AbstractAssetModule.fuzz.t.sol";
 
-import { AssetModule } from "../../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAssetModule.sol";
 import { AssetModuleMock } from "../../../utils/mocks/AssetModuleMock.sol";
 
 /**
