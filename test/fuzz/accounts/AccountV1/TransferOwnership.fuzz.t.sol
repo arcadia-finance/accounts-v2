@@ -33,6 +33,16 @@ contract TransferOwnership_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(users.accountOwner, accountExtension.owner());
     }
 
+    function testFuzz_Revert_transferOwnership_AuctionOngoing(address to) public {
+        accountExtension.setInAuction();
+
+        vm.prank(address(factory));
+        vm.expectRevert(AccountErrors.AccountInAuction.selector);
+        accountExtension.transferOwnership(to);
+
+        assertEq(users.accountOwner, accountExtension.owner());
+    }
+
     function testFuzz_Revert_transferOwnership_CoolDownPeriodNotPassed(
         address to,
         uint32 lastActionTimestamp,

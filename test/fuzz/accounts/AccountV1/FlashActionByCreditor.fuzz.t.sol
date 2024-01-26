@@ -69,6 +69,25 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         accountExtension.flashActionByCreditor(address(action), new bytes(0));
     }
 
+    function testFuzz_Revert_flashActionByCreditor_NonApprovedCreditorByOwner(
+        address sender,
+        address creditor,
+        address approvedCreditor
+    ) public {
+        vm.assume(approvedCreditor != address(0));
+        vm.assume(approvedCreditor != creditor);
+
+        vm.prank(users.accountOwner);
+        accountExtension.setCreditor(creditor);
+
+        vm.prank(sender);
+        accountExtension.setApprovedCreditor(approvedCreditor);
+
+        vm.prank(approvedCreditor);
+        vm.expectRevert(AccountErrors.OnlyCreditor.selector);
+        accountExtension.flashActionByCreditor(address(action), new bytes(0));
+    }
+
     function testFuzz_Revert_flashActionByCreditor_Reentered(address actionTarget, bytes calldata actionData) public {
         // Reentrancy guard is in locked state.
         accountExtension.setLocked(2);
@@ -325,6 +344,9 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         // And: New Creditor is set.
         assertEq(accountExtension.creditor(), address(creditorStable1));
 
+        // And: Approved Creditor is reset.
+        assertEq(accountExtension.approvedCreditor(users.accountOwner), address(0));
+
         // And: Exposure of old Creditor is removed.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
         (uint128 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorToken1), assetKey);
@@ -371,6 +393,9 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: New Creditor is set.
         assertEq(accountExtension.creditor(), address(creditorStable1));
+
+        // And: Approved Creditor is reset.
+        assertEq(accountExtension.approvedCreditor(users.accountOwner), address(0));
 
         // And: Exposure of new creditor is increased.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));

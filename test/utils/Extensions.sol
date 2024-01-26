@@ -100,10 +100,6 @@ contract AccountExtension is AccountV1 {
     function getCoolDownPeriod() public pure returns (uint256 coolDownPeriod) {
         coolDownPeriod = COOL_DOWN_PERIOD;
     }
-
-    function getApprovedCreditor() public view returns (address approvedCreditor_) {
-        approvedCreditor_ = approvedCreditor;
-    }
 }
 
 contract BaseGuardianExtension is BaseGuardian {

@@ -136,6 +136,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.prank(users.creatorAddress);
         registry2 = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
+        vm.assume(logic != address(registry2));
 
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);

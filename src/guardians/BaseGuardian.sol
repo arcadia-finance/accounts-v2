@@ -89,7 +89,7 @@ abstract contract BaseGuardian is Owned {
     function pause() external virtual;
 
     /**
-     * @notice This function is used to unpause all flags.
+     * @notice This function is used to unpause flags that could be abused to lock user assets.
      * @dev If the protocol is not unpaused after 30 days, any user can unpause the protocol.
      * This ensures that no rogue owner or guardian can lock user funds for an indefinite amount of time.
      * All users have now at least a two-day window to withdraw assets and close positions before
