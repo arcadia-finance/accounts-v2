@@ -47,7 +47,7 @@ contract GetRewardBalances_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
             deltaReward = currentRewardGlobal - assetState.lastRewardGlobal;
         }
         deltaReward =
-            bound(deltaReward, uint256(type(uint128).max) * assetState.totalStaked / 1e18 + 1, type(uint256).max);
+            bound(deltaReward, uint256(type(uint128).max) * assetState.totalStaked / 1e18 + 1e18, type(uint256).max);
         uint256 lastRewardGlobal_ = bound(assetState.lastRewardGlobal, 0, type(uint256).max - deltaReward);
         assetState.lastRewardGlobal =
             uint128(lastRewardGlobal_ < type(uint128).max ? lastRewardGlobal_ : type(uint128).max);
