@@ -4,18 +4,20 @@
  */
 pragma solidity 0.8.22;
 
-import { StargateAssetModule_Fuzz_Test, StargateAssetModule } from "./_StargateAssetModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t.sol";
+
+import { StakingModuleMock } from "../../../utils/mocks/StakingModuleMock.sol";
 
 /**
- * @notice Fuzz tests for the function "initialize" of contract "StargateAssetModule".
+ * @notice Fuzz tests for the function "initialize" of contract "StakingModule2".
  */
-contract Initialize_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
+contract Initialize_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        StargateAssetModule_Fuzz_Test.setUp();
+        AbstractStakingModule_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -24,8 +26,8 @@ contract Initialize_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Te
 
     function testFuzz_revert_initialize_NotOwner(address _unprivilegedAddress) public {
         vm.prank(users.creatorAddress);
-        StargateAssetModule assetModule =
-            new StargateAssetModule(address(registryExtension), address(lpStakingTimeMock));
+        StakingModuleMock assetModule =
+            new StakingModuleMock(address(registryExtension), "StakingModuleTest", "SMT", address(rewardToken));
 
         // Given : unprivileged address is not the owner of the AM.
         vm.assume(_unprivilegedAddress != users.creatorAddress);
@@ -39,8 +41,8 @@ contract Initialize_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Te
     }
 
     function testFuzz_success_initialize() public {
-        StargateAssetModule assetModule =
-            new StargateAssetModule(address(registryExtension), address(lpStakingTimeMock));
+        StakingModuleMock assetModule =
+            new StakingModuleMock(address(registryExtension), "StakingModuleTest", "SMT", address(rewardToken));
 
         // Given : Asset Module is added to the Registry.
         vm.prank(users.creatorAddress);

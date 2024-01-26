@@ -4,18 +4,18 @@
  */
 pragma solidity 0.8.22;
 
-import { StargateAssetModule_Fuzz_Test } from "./_StargateAssetModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test } from "./_AbstractStakingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "isAllowed" of contract "StargateAssetModule".
+ * @notice Fuzz tests for the function "isAllowed" of contract "StakingModule2".
  */
-contract IsAllowed_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Test {
+contract IsAllowed_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        StargateAssetModule_Fuzz_Test.setUp();
+        AbstractStakingModule_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -23,11 +23,11 @@ contract IsAllowed_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Tes
     /////////////////////////////////////////////////////////////// */
 
     function testFuzz_Success_isAllowed_False_BadAsset(uint256 positionId, address randomAddress) public {
-        // Given : randomAddress is not the stargateAssetModule.
-        vm.assume(randomAddress != address(stargateAssetModule));
+        // Given : randomAddress is not the stakingModule.
+        vm.assume(randomAddress != address(stakingModule));
 
         // When : Calling isAllowed() with the input address not equal to the Stargate AM
-        bool allowed = stargateAssetModule.isAllowed(randomAddress, positionId);
+        bool allowed = stakingModule.isAllowed(randomAddress, positionId);
 
         // Then : It should return false
         assertFalse(allowed);
@@ -37,10 +37,10 @@ contract IsAllowed_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Tes
         // Given: positionId is bigger as lastPositionId.
         lastPositionId = bound(lastPositionId, 0, type(uint256).max - 1);
         positionId = bound(positionId, lastPositionId + 1, type(uint256).max);
-        stargateAssetModule.setIdCounter(lastPositionId);
+        stakingModule.setIdCounter(lastPositionId);
 
         // When : Calling isAllowed()
-        bool allowed = stargateAssetModule.isAllowed(address(stargateAssetModule), positionId);
+        bool allowed = stakingModule.isAllowed(address(stakingModule), positionId);
 
         // Then : It should return true
         assertFalse(allowed);
@@ -49,10 +49,10 @@ contract IsAllowed_StargateAssetModule_Fuzz_Test is StargateAssetModule_Fuzz_Tes
     function testFuzz_Success_isAllowed_True(uint256 positionId, uint256 lastPositionId) public {
         // Given: positionId is smaller or equal as lastPositionId.
         positionId = bound(positionId, 0, lastPositionId);
-        stargateAssetModule.setIdCounter(lastPositionId);
+        stakingModule.setIdCounter(lastPositionId);
 
         // When : Calling isAllowed()
-        bool allowed = stargateAssetModule.isAllowed(address(stargateAssetModule), positionId);
+        bool allowed = stakingModule.isAllowed(address(stakingModule), positionId);
 
         // Then : It should return true
         assertTrue(allowed);

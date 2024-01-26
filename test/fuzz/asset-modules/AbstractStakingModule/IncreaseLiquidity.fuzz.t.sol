@@ -4,13 +4,13 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test, StakingModule, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, StakingModule2, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "increaseLiquidity" of contract "StakingModule".
+ * @notice Fuzz tests for the function "increaseLiquidity" of contract "StakingModule2".
  */
 contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
@@ -26,9 +26,9 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
                              TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_increaseLiquidity_ZeroAmount(uint256 positionId) public {
+    function testFuzz_Revert_increaseLiquidity_ZeroAmount(uint96 positionId) public {
         // The stake function should revert when trying to stake 0 amount.
-        vm.expectRevert(StakingModule.ZeroAmount.selector);
+        vm.expectRevert(StakingModule2.ZeroAmount.selector);
         stakingModule.increaseLiquidity(positionId, 0);
     }
 
@@ -36,7 +36,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         address account,
         address randomAddress,
         uint128 amount,
-        uint256 positionId,
+        uint96 positionId,
         uint8 assetDecimals
     ) public notTestContracts(account) {
         // Given : Amount is greater than zero
@@ -60,7 +60,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When : Calling Stake
         // Then : The function should revert as the Account is not the owner of the positionId.
         vm.startPrank(account);
-        vm.expectRevert(StakingModule.NotOwner.selector);
+        vm.expectRevert(StakingModule2.NotOwner.selector);
         stakingModule.increaseLiquidity(positionId, amount);
         vm.stopPrank();
     }
@@ -68,14 +68,11 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
     function testFuzz_Success_increaseLiquidity(
         uint8 assetDecimals,
         StakingModuleStateForAsset memory assetState,
-        StakingModule.PositionState memory positionState,
-        uint256 positionId,
+        StakingModule2.PositionState memory positionState,
+        uint96 positionId,
         uint128 amount,
         address account
     ) public notTestContracts(account) {
-        // Given : positionId is not 0
-        positionId = bound(positionId, 0, type(uint256).max);
-
         address asset;
         {
             // Given : A staking token is added to the stakingModule
@@ -108,14 +105,14 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         // When :  A user is increasing liquidity via the Staking Module
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.LiquidityIncreased(positionId, asset, amount);
+        emit StakingModule2.LiquidityIncreased(positionId, asset, amount);
         stakingModule.increaseLiquidity(positionId, amount);
 
         // Then : Assets should have been transferred to the Staking Module
         assertEq(ERC20Mock(asset).balanceOf(address(stakingModule)), amount);
 
         // And: Position state should be updated correctly.
-        StakingModule.PositionState memory newPositionState;
+        StakingModule2.PositionState memory newPositionState;
         (
             newPositionState.asset,
             newPositionState.amountStaked,
@@ -139,7 +136,7 @@ contract IncreaseLiquidity_AbstractStakingModule_Fuzz_Test is AbstractStakingMod
         assertEq(newPositionState.lastRewardPosition, positionState.lastRewardPosition + deltaReward);
 
         // And : Asset values should be updated correctly
-        StakingModule.AssetState memory newAssetState;
+        StakingModule2.AssetState memory newAssetState;
         (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);

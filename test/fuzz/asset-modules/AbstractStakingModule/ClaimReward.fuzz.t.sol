@@ -4,13 +4,13 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test, StakingModule } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, StakingModule2 } from "./_AbstractStakingModule.fuzz.t.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 /**
- * @notice Fuzz tests for the function "claimReward" of contract "StakingModule".
+ * @notice Fuzz tests for the function "claimReward" of contract "StakingModule2".
  */
 contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     using FixedPointMathLib for uint256;
@@ -27,7 +27,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_claimReward_NotOwner(address owner, address randomAddress, uint256 positionId) public {
+    function testFuzz_Revert_claimReward_NotOwner(address owner, address randomAddress, uint96 positionId) public {
         // Given: randomAddress is not the owner.
         vm.assume(owner != randomAddress);
 
@@ -37,16 +37,16 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         // When : randomAddress calls claimReward for positionId
         // Then : It should revert as randomAddress is not owner of the positionId
         vm.startPrank(randomAddress);
-        vm.expectRevert(StakingModule.NotOwner.selector);
+        vm.expectRevert(StakingModule2.NotOwner.selector);
         stakingModule.claimReward(positionId);
         vm.stopPrank();
     }
 
     function testFuzz_Success_claimReward_NonZeroReward(
         address account,
-        uint256 positionId,
+        uint96 positionId,
         StakingModuleStateForAsset memory assetState,
-        StakingModule.PositionState memory positionState,
+        StakingModule2.PositionState memory positionState,
         uint8 assetDecimals
     ) public {
         // Given : account != zero address
@@ -75,7 +75,9 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         // When : Account calls claimReward()
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.RewardPaid(positionId, address(stakingModule.REWARD_TOKEN()), uint128(currentRewardPosition));
+        emit StakingModule2.RewardPaid(
+            positionId, address(stakingModule.REWARD_TOKEN()), uint128(currentRewardPosition)
+        );
         uint256 rewards = stakingModule.claimReward(positionId);
         vm.stopPrank();
 
@@ -86,7 +88,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         assertEq(currentRewardPosition, stakingModule.REWARD_TOKEN().balanceOf(account));
 
         // And: Position state should be updated correctly.
-        StakingModule.PositionState memory newPositionState;
+        StakingModule2.PositionState memory newPositionState;
         (
             newPositionState.asset,
             newPositionState.amountStaked,
@@ -105,7 +107,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         assertEq(newPositionState.lastRewardPosition, 0);
 
         // And : Asset values should be updated correctly
-        StakingModule.AssetState memory newAssetState;
+        StakingModule2.AssetState memory newAssetState;
         (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
@@ -115,9 +117,9 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
 
     function testFuzz_Success_claimReward_ZeroReward(
         address account,
-        uint256 positionId,
+        uint96 positionId,
         StakingModuleStateForAsset memory assetState,
-        StakingModule.PositionState memory positionState,
+        StakingModule2.PositionState memory positionState,
         uint8 assetDecimals
     ) public {
         // Given : account != zero address
@@ -152,7 +154,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         assertEq(stakingModule.REWARD_TOKEN().balanceOf(account), 0);
 
         // And: Position state should be updated correctly.
-        StakingModule.PositionState memory newPositionState;
+        StakingModule2.PositionState memory newPositionState;
         (
             newPositionState.asset,
             newPositionState.amountStaked,
@@ -165,7 +167,7 @@ contract ClaimReward_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fu
         assertEq(newPositionState.lastRewardPosition, 0);
 
         // And : Asset values should be updated correctly
-        StakingModule.AssetState memory newAssetState;
+        StakingModule2.AssetState memory newAssetState;
         (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);

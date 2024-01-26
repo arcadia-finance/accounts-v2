@@ -7,8 +7,8 @@ pragma solidity 0.8.22;
 import { ERC20, StakingModuleExtension } from "../Extensions.sol";
 
 contract StakingModuleMock is StakingModuleExtension {
-    constructor(string memory name_, string memory symbol_, address rewardToken)
-        StakingModuleExtension(name_, symbol_)
+    constructor(address registry, string memory name_, string memory symbol_, address rewardToken)
+        StakingModuleExtension(registry, name_, symbol_)
     {
         REWARD_TOKEN = ERC20(rewardToken);
     }

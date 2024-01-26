@@ -26,7 +26,7 @@ import { StandardERC4626AssetModule } from "../../src/asset-modules/StandardERC4
 import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModule.sol";
 import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
-import { StakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
+import { StakingModule2 } from "../../src/asset-modules/staking-module/AbstractStakingModule2.sol";
 import { StargateAssetModule } from "../../src/asset-modules/Stargate-Finance/StargateAssetModule.sol";
 import { NSStargateAssetModule } from "../../src/asset-modules/Stargate-Finance/NSStargateAssetModule.sol";
 import { SStargateAssetModule } from "../../src/asset-modules/Stargate-Finance/SStargateAssetModule.sol";
@@ -600,10 +600,10 @@ contract MultiCallExtension is ActionMultiCall {
     }
 }
 
-abstract contract StakingModuleExtension is StakingModule {
-    constructor(string memory name_, string memory symbol_) StakingModule(name_, symbol_) { }
-
-    function setBaseURI(string calldata newBaseURI) external override { }
+abstract contract StakingModuleExtension is StakingModule2 {
+    constructor(address registry, string memory name_, string memory symbol_)
+        StakingModule2(registry, name_, symbol_)
+    { }
 
     function setLastRewardGlobal(address asset, uint128 balance) public {
         assetState[asset].lastRewardGlobal = balance;
@@ -613,7 +613,7 @@ abstract contract StakingModuleExtension is StakingModule {
         _addAsset(asset);
     }
 
-    function setAssetInPosition(address asset, uint256 tokenId) public {
+    function setAssetInPosition(address asset, uint96 tokenId) public {
         positionState[tokenId].asset = asset;
     }
 
@@ -641,8 +641,12 @@ abstract contract StakingModuleExtension is StakingModule {
         lastId_ = lastPositionId;
     }
 
-    function setOwnerOfPositionId(address owner, uint256 positionId) public {
-        _ownerOf[positionId] = owner;
+    function setIdCounter(uint256 lastId_) public {
+        lastPositionId = lastId_;
+    }
+
+    function setOwnerOfPositionId(address owner_, uint256 positionId) public {
+        _ownerOf[positionId] = owner_;
     }
 
     function getRewardBalances(AssetState memory assetState_, PositionState memory positionState_)
@@ -655,6 +659,36 @@ abstract contract StakingModuleExtension is StakingModule {
 
     function mintIdTo(address to, uint256 tokenId) public {
         _safeMint(to, tokenId);
+    }
+
+    function getAssetFromKey(bytes32 key) public view returns (address asset, uint256 assetId) {
+        (asset, assetId) = _getAssetFromKey(key);
+    }
+
+    function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
+        (key) = _getKeyFromAsset(asset, assetId);
+    }
+
+    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssetKeys) {
+        underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+    }
+
+    function getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 assetAmount,
+        bytes32[] memory underlyingAssetKeys
+    )
+        public
+        view
+        returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+    {
+        (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(creditor, assetKey, assetAmount, underlyingAssetKeys);
+    }
+
+    function setTotalStakedForAsset(address asset, uint128 totalStaked_) public {
+        assetState[asset].totalStaked = totalStaked_;
     }
 }
 

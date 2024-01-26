@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractStakingModule_Fuzz_Test, StakingModule, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
+import { AbstractStakingModule_Fuzz_Test, StakingModule2, ERC20Mock } from "./_AbstractStakingModule.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "burn" of contract "StakingModule".
+ * @notice Fuzz tests for the function "burn" of contract "StakingModule2".
  */
 contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -24,10 +24,10 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
     function testFuzz_Success_burn_NonZeroReward(
         uint8 assetDecimals,
-        uint256 positionId,
+        uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
-        StakingModule.PositionState memory positionState
+        StakingModule2.PositionState memory positionState
     ) public notTestContracts(account) {
         // Given : account != zero address
         vm.assume(account != address(0));
@@ -72,9 +72,9 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
+        emit StakingModule2.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
         vm.expectEmit();
-        emit StakingModule.LiquidityDecreased(positionId, asset, positionState.amountStaked);
+        emit StakingModule2.LiquidityDecreased(positionId, asset, positionState.amountStaked);
         stakingModule.burn(positionId);
         vm.stopPrank();
 
@@ -86,7 +86,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         assertEq(stakingModule.balanceOf(account), 0);
 
         // And: Position state should be updated correctly.
-        StakingModule.PositionState memory newPositionState;
+        StakingModule2.PositionState memory newPositionState;
         (
             newPositionState.asset,
             newPositionState.amountStaked,
@@ -99,7 +99,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         assertEq(newPositionState.lastRewardPosition, 0);
 
         // And: Asset state should be updated correctly.
-        StakingModule.AssetState memory newAssetState;
+        StakingModule2.AssetState memory newAssetState;
         (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         uint256 deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
@@ -115,10 +115,10 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
 
     function testFuzz_Success_burn_ZeroReward(
         uint8 assetDecimals,
-        uint256 positionId,
+        uint96 positionId,
         address account,
         StakingModuleStateForAsset memory assetState,
-        StakingModule.PositionState memory positionState
+        StakingModule2.PositionState memory positionState
     ) public notTestContracts(account) {
         // Given : account != zero address
         vm.assume(account != address(0));
@@ -162,7 +162,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         // When : Account withdraws from stakingModule
         vm.startPrank(account);
         vm.expectEmit();
-        emit StakingModule.LiquidityDecreased(positionId, asset, positionState.amountStaked);
+        emit StakingModule2.LiquidityDecreased(positionId, asset, positionState.amountStaked);
         stakingModule.burn(positionId);
         vm.stopPrank();
 
@@ -174,7 +174,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         assertEq(stakingModule.balanceOf(account), 0);
 
         // And: Position state should be updated correctly.
-        StakingModule.PositionState memory newPositionState;
+        StakingModule2.PositionState memory newPositionState;
         (
             newPositionState.asset,
             newPositionState.amountStaked,
@@ -187,7 +187,7 @@ contract Burn_AbstractStakingModule_Fuzz_Test is AbstractStakingModule_Fuzz_Test
         assertEq(newPositionState.lastRewardPosition, 0);
 
         // And: Asset state should be updated correctly.
-        StakingModule.AssetState memory newAssetState;
+        StakingModule2.AssetState memory newAssetState;
         (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
             stakingModule.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);

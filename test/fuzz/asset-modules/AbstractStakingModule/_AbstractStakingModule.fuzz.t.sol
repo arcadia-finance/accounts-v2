@@ -6,12 +6,12 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { StakingModule } from "../../../../src/asset-modules/staking-module/AbstractStakingModule.sol";
+import { StakingModule2 } from "../../../../src/asset-modules/staking-module/AbstractStakingModule2.sol";
 import { StakingModuleMock } from "../../../utils/mocks/StakingModuleMock.sol";
 import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
 
 /**
- * @notice Common logic needed by "StakingModule" fuzz tests.
+ * @notice Common logic needed by "StakingModule2" fuzz tests.
  */
 abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
@@ -48,7 +48,8 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         rewardToken = new ERC20Mock("RewardToken", "RWT", 18);
-        stakingModule = new StakingModuleMock("StakingModuleTest", "SMT", address(rewardToken));
+        stakingModule =
+            new StakingModuleMock(address(registryExtension), "StakingModuleTest", "SMT", address(rewardToken));
         vm.stopPrank();
     }
 
@@ -58,9 +59,9 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
 
     function setStakingModuleState(
         StakingModuleStateForAsset memory stakingModuleStateForAsset,
-        StakingModule.PositionState memory stakingModuleStateForPosition,
+        StakingModule2.PositionState memory stakingModuleStateForPosition,
         address asset,
-        uint256 id
+        uint96 id
     ) internal {
         stakingModule.setLastRewardGlobal(asset, stakingModuleStateForAsset.lastRewardGlobal);
         stakingModule.setTotalStaked(asset, stakingModuleStateForAsset.totalStaked);
@@ -75,8 +76,8 @@ abstract contract AbstractStakingModule_Fuzz_Test is Fuzz_Test {
 
     function givenValidStakingModuleState(
         StakingModuleStateForAsset memory stakingModuleStateForAsset,
-        StakingModule.PositionState memory stakingModuleStateForPosition
-    ) public view returns (StakingModuleStateForAsset memory, StakingModule.PositionState memory) {
+        StakingModule2.PositionState memory stakingModuleStateForPosition
+    ) public view returns (StakingModuleStateForAsset memory, StakingModule2.PositionState memory) {
         // Given: More than 1 gwei is staked.
         stakingModuleStateForAsset.totalStaked =
             uint128(bound(stakingModuleStateForAsset.totalStaked, 1, type(uint128).max));

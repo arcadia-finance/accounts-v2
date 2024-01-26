@@ -98,8 +98,8 @@ abstract contract StakingModule2 is DerivedAssetModule, ERC721, ReentrancyGuard 
                               CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
-    constructor(address registry_, string memory name_, string memory symbol_)
-        DerivedAssetModule(registry_, 1)
+    constructor(address registry, string memory name_, string memory symbol_)
+        DerivedAssetModule(registry, 1)
         ERC721(name_, symbol_)
     { }
 
