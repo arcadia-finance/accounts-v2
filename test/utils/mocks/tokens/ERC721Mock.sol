@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
-import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
-import { Strings } from "../../../src/libraries/Strings.sol";
+import { ERC721 } from "../../../../lib/solmate/src/tokens/ERC721.sol";
+import { Strings } from "../../../../src/libraries/Strings.sol";
 
 contract ERC721Mock is ERC721 {
     using Strings for uint256;

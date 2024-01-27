@@ -6,10 +6,10 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../Fuzz.t.sol";
 
-import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
-import { DerivedAMMock } from "../../utils/mocks/DerivedAMMock.sol";
-import { OracleModuleMock } from "../../utils/mocks/OracleModuleMock.sol";
-import { PrimaryAMMock } from "../../utils/mocks/PrimaryAMMock.sol";
+import { ArcadiaOracle } from "../../utils/mocks/oracles/ArcadiaOracle.sol";
+import { DerivedAMMock } from "../../utils/mocks/asset-modules/DerivedAMMock.sol";
+import { OracleModuleMock } from "../../utils/mocks/oracle-modules/OracleModuleMock.sol";
+import { PrimaryAMMock } from "../../utils/mocks/asset-modules/PrimaryAMMock.sol";
 import { RegistryErrors } from "../../../src/Registry.sol";
 
 /**

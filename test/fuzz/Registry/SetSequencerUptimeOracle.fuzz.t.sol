@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
-import { SequencerUptimeOracle } from "../../utils/mocks/SequencerUptimeOracle.sol";
+import { SequencerUptimeOracle } from "../../utils/mocks/oracles/SequencerUptimeOracle.sol";
 
 /**
  * @notice Fuzz tests for the function "setSequencerUptimeOracle" of contract "Registry".

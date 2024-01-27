@@ -542,6 +542,15 @@ contract UniswapV3AMExtension is UniswapV3AM {
     function getFeeAmounts(uint256 id) public view returns (uint256 amount0, uint256 amount1) {
         (amount0, amount1) = _getFeeAmounts(id);
     }
+
+    function calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    ) public view returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        (valueInUsd, collateralFactor, liquidationFactor) =
+            _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
 }
 
 contract ERC4626AMExtension is StandardERC4626AM {
@@ -683,6 +692,15 @@ abstract contract StakingAMExtension is StakingAM {
     function setTotalStakedForAsset(address asset, uint128 totalStaked_) public {
         assetState[asset].totalStaked = totalStaked_;
     }
+
+    function calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    ) public view returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        (valueInUsd, collateralFactor, liquidationFactor) =
+            _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
 }
 
 contract StargateAMExtension is StargateAM {
@@ -716,6 +734,15 @@ contract StargateAMExtension is StargateAM {
     function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {
         return _getUnderlyingAssets(assetKey);
     }
+
+    function calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    ) public view returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        (valueInUsd, collateralFactor, liquidationFactor) =
+            _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
 }
 
 contract StakedStargateAMExtension is StakedStargateAM {
@@ -735,5 +762,14 @@ contract StakedStargateAMExtension is StakedStargateAM {
 
     function withdraw(address asset, uint256 amount) public {
         _withdraw(asset, amount);
+    }
+
+    function calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    ) public view returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        (valueInUsd, collateralFactor, liquidationFactor) =
+            _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }
 }

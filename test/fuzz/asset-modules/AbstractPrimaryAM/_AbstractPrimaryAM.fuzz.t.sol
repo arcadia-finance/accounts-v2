@@ -6,9 +6,9 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { OracleModuleMock } from "../../../utils/mocks/OracleModuleMock.sol";
+import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
 
-import { PrimaryAMMock } from "../../../utils/mocks/PrimaryAMMock.sol";
+import { PrimaryAMMock } from "../../../utils/mocks/asset-modules/PrimaryAMMock.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 
 /**

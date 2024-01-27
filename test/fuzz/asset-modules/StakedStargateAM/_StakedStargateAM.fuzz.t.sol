@@ -8,8 +8,8 @@ import { StargateAM_Fuzz_Test } from "../StargateAM/_StargateAM.fuzz.t.sol";
 
 import { StakedStargateAMExtension } from "../../../utils/Extensions.sol";
 import { LPStakingTimeMock } from "../../../utils/mocks/Stargate/StargateLpStakingMock.sol";
-import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
-import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 /**
@@ -26,6 +26,7 @@ abstract contract StakedStargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
 
     StakedStargateAMExtension internal stakedStargateAM;
     LPStakingTimeMock internal lpStakingTimeMock;
+    ArcadiaOracle internal stargateOracle;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -40,7 +41,7 @@ abstract contract StakedStargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         // Deploy reward token.
         ERC20Mock rewardTokenCode = new ERC20Mock("Stargate", "STG", 18);
         vm.etch(address(lpStakingTimeMock.eToken()), address(rewardTokenCode).code);
-        ArcadiaOracle stargateOracle = initMockedOracle(8, "STG / USD", rates.token1ToUsd);
+        stargateOracle = initMockedOracle(8, "STG / USD", rates.token1ToUsd);
 
         // Add STG to the ERC20PrimaryAM.
         vm.startPrank(users.creatorAddress);

@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
-import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2PairMock.sol";
+import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2/UniswapV2PairMock.sol";
 
 /**
  * @notice Fuzz tests for the function "getValue" of contract "UniswapV2AM".

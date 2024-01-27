@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { AbstractPrimaryAM_Fuzz_Test } from "./_AbstractPrimaryAM.fuzz.t.sol";
 
-import { PrimaryAMMock } from "../../../utils/mocks/PrimaryAMMock.sol";
+import { PrimaryAMMock } from "../../../utils/mocks/asset-modules/PrimaryAMMock.sol";
 
 /**
  * @notice Fuzz tests for the function "constructor" of contract "AbstractPrimaryAM".

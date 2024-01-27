@@ -173,4 +173,36 @@ contract StargateAM_ETH_Fork_Test is StargateBase_Fork_Test {
         (,,, totalStaked) = stakedStargateAM.assetState(address(pool));
         assert(totalStaked == 0);
     }
+
+    // The withdrawal of a zero amount should trigger the claim of the rewards
+    function testFork_Success_claimReward() public {
+        uint256 initBalance = 1000 * 10 ** SGETH.decimals();
+        assert(ERC20(address(pool)).balanceOf(users.accountOwner) == 0);
+
+        // Given : A user deposits in the Stargate SGETH pool, in exchange of an LP token.
+        vm.startPrank(users.accountOwner);
+        deal(address(SGETH), users.accountOwner, initBalance);
+
+        SGETH.approve(address(router), initBalance);
+        router.addLiquidity(poolId, initBalance, users.accountOwner);
+        assert(ERC20(address(pool)).balanceOf(users.accountOwner) > 0);
+
+        // And : The user stakes the LP token via the StargateAssetModule
+        uint256 stakedAmount = ERC20(address(pool)).balanceOf(users.accountOwner);
+        ERC20(address(pool)).approve(address(stakedStargateAM), stakedAmount);
+        uint256 tokenId = stakedStargateAM.mint(address(pool), uint128(stakedAmount));
+
+        // And : We let 30 days pass to accumulate rewards.
+        vm.warp(block.timestamp + 30 days);
+
+        assert(lpStakingTime.eToken().balanceOf(users.accountOwner) == 0);
+
+        // When : We claim rewards for the position
+        stakedStargateAM.claimReward(tokenId);
+
+        // Then : Reward should have been received
+        assert(lpStakingTime.eToken().balanceOf(users.accountOwner) > 0);
+
+        vm.stopPrank();
+    }
 }

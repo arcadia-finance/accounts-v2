@@ -7,8 +7,8 @@ pragma solidity 0.8.22;
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
-import { DerivedAMMock } from "../../../utils/mocks/DerivedAMMock.sol";
-import { PrimaryAMMock } from "../../../utils/mocks/PrimaryAMMock.sol";
+import { DerivedAMMock } from "../../../utils/mocks/asset-modules/DerivedAMMock.sol";
+import { PrimaryAMMock } from "../../../utils/mocks/asset-modules/PrimaryAMMock.sol";
 
 /**
  * @notice Common logic needed by all "DerivedAM" fuzz tests.

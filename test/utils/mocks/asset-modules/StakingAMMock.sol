@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { ERC20, StakingAMExtension } from "../Extensions.sol";
+import { ERC20, StakingAMExtension } from "../../Extensions.sol";
 
 contract StakingAMMock is StakingAMExtension {
     constructor(address registry, string memory name_, string memory symbol_, address rewardToken)

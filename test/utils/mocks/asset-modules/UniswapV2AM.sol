@@ -20,7 +20,6 @@ import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/lib
  */
 contract UniswapV2AM is DerivedAM {
     using FixedPointMathLib for uint256;
-
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
@@ -386,5 +385,89 @@ contract UniswapV2AM is DerivedAM {
         uint256 numerator = amountInWithFee * reserveOut;
         uint256 denominator = reserveIn * 1000 + amountInWithFee;
         amountOut = numerator / denominator;
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                    RISK VARIABLES MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Returns the risk factors of an asset for a Creditor.
+     * @param creditor The contract address of the Creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @return collateralFactor The collateral factor of the asset for the Creditor, 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the Creditor, 4 decimals precision.
+     */
+    function getRiskFactors(address creditor, address asset, uint256 assetId)
+        external
+        view
+        override
+        returns (uint16 collateralFactor, uint16 liquidationFactor)
+    {
+        bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(_getKeyFromAsset(asset, assetId));
+
+        address[] memory assets = new address[](2);
+        uint256[] memory assetIds = new uint256[](2);
+
+        (assets[0], assetIds[0]) = _getAssetFromKey(underlyingAssetKeys[0]);
+        (assets[1], assetIds[1]) = _getAssetFromKey(underlyingAssetKeys[1]);
+
+        (uint16[] memory collateralFactors, uint16[] memory liquidationFactors) =
+            IRegistry(REGISTRY).getRiskFactors(creditor, assets, assetIds);
+
+        // Lower risk factors with the protocol wide risk factor.
+        uint256 riskFactor = riskParams[creditor].riskFactor;
+
+        // Keep the lowest risk factor of all underlying assets.
+        // Unsafe cast: collateralFactor and liquidationFactor are smaller than or equal to 1e4.
+        collateralFactor = uint16(
+            collateralFactors[0] < collateralFactors[1]
+                ? riskFactor.mulDivDown(collateralFactors[0], AssetValuationLib.ONE_4)
+                : riskFactor.mulDivDown(collateralFactors[1], AssetValuationLib.ONE_4)
+        );
+        liquidationFactor = uint16(
+            liquidationFactors[0] < liquidationFactors[1]
+                ? riskFactor.mulDivDown(liquidationFactors[0], AssetValuationLib.ONE_4)
+                : riskFactor.mulDivDown(liquidationFactors[1], AssetValuationLib.ONE_4)
+        );
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                          PRICING LOGIC
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Returns the USD value of an asset.
+     * @param creditor The contract address of the Creditor.
+     * @param underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
+     * @param rateUnderlyingAssetsToUsd The USD rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given Creditor, with 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given Creditor, with 4 decimals precision.
+     * @dev We take the most conservative (lowest) risk factor of all underlying assets.
+     */
+    function _calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    ) internal view override returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        // "rateUnderlyingAssetsToUsd" is the USD value with 18 decimals precision for 10**18 tokens of Underlying Asset.
+        // To get the USD value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
+        // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
+        valueInUsd = underlyingAssetsAmounts[0].mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, 1e18)
+            + underlyingAssetsAmounts[1].mulDivDown(rateUnderlyingAssetsToUsd[1].assetValue, 1e18);
+
+        // Lower risk factors with the protocol wide risk factor.
+        uint256 riskFactor = riskParams[creditor].riskFactor;
+
+        // Keep the lowest risk factor of all underlying assets.
+        collateralFactor = rateUnderlyingAssetsToUsd[0].collateralFactor < rateUnderlyingAssetsToUsd[1].collateralFactor
+            ? riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].collateralFactor, AssetValuationLib.ONE_4)
+            : riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[1].collateralFactor, AssetValuationLib.ONE_4);
+        liquidationFactor = rateUnderlyingAssetsToUsd[0].liquidationFactor
+            < rateUnderlyingAssetsToUsd[1].liquidationFactor
+            ? riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].liquidationFactor, AssetValuationLib.ONE_4)
+            : riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[1].liquidationFactor, AssetValuationLib.ONE_4);
     }
 }

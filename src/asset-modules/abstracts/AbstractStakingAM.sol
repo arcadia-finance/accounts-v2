@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
 import { DerivedAM, FixedPointMathLib, IRegistry } from "./AbstractDerivedAM.sol";
@@ -188,6 +188,88 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         underlyingAssetsAmounts[1] = rewardOf(positionId);
 
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                          PRICING LOGIC
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Returns the risk factors of an asset for a Creditor.
+     * @param creditor The contract address of the Creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @return collateralFactor The collateral factor of the asset for the Creditor, 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the Creditor, 4 decimals precision.
+     */
+    function getRiskFactors(address creditor, address asset, uint256 assetId)
+        external
+        view
+        virtual
+        override
+        returns (uint16 collateralFactor, uint16 liquidationFactor)
+    {
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+        bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+
+        uint256[] memory underlyingAssetsAmounts;
+        (underlyingAssetsAmounts,) = _getUnderlyingAssetsAmounts(creditor, assetKey, 1, underlyingAssetKeys);
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd =
+            _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
+
+        (, uint256 collateralFactor_, uint256 liquidationFactor_) =
+            _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+
+        // Unsafe cast: collateralFactor_ and liquidationFactor_ are smaller than or equal to 1e4.
+        return (uint16(collateralFactor_), uint16(liquidationFactor_));
+    }
+
+    /**
+     * @notice Returns the USD value of an asset.
+     * @param creditor The contract address of the Creditor.
+     * @param underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
+     * @param rateUnderlyingAssetsToUsd The USD rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given Creditor, with 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given Creditor, with 4 decimals precision.
+     * @dev We take a weighted risk factor of both underlying assets.
+     */
+    function _calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    )
+        internal
+        view
+        virtual
+        override
+        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
+    {
+        // "rateUnderlyingAssetsToUsd" is the USD value with 18 decimals precision for 10**18 tokens of Underlying Asset.
+        // To get the USD value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
+        // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
+        uint256 valueStakedAsset = underlyingAssetsAmounts[0].mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, 1e18);
+        uint256 valueRewardAsset = underlyingAssetsAmounts[1].mulDivDown(rateUnderlyingAssetsToUsd[1].assetValue, 1e18);
+        valueInUsd = valueStakedAsset + valueRewardAsset;
+
+        // Calculate weighted risk factors.
+        if (valueInUsd > 0) {
+            unchecked {
+                collateralFactor = (
+                    valueStakedAsset * rateUnderlyingAssetsToUsd[0].collateralFactor
+                        + valueRewardAsset * rateUnderlyingAssetsToUsd[1].collateralFactor
+                ) / valueInUsd;
+                liquidationFactor = (
+                    valueStakedAsset * rateUnderlyingAssetsToUsd[0].liquidationFactor
+                        + valueRewardAsset * rateUnderlyingAssetsToUsd[1].liquidationFactor
+                ) / valueInUsd;
+            }
+        }
+
+        // Lower risk factors with the protocol wide risk factor.
+        uint256 riskFactor = riskParams[creditor].riskFactor;
+        collateralFactor = riskFactor.mulDivDown(collateralFactor, AssetValuationLib.ONE_4);
+        liquidationFactor = riskFactor.mulDivDown(liquidationFactor, AssetValuationLib.ONE_4);
     }
 
     /*///////////////////////////////////////////////////////////////

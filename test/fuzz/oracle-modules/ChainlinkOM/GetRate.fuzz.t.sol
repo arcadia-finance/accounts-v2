@@ -6,8 +6,8 @@ pragma solidity 0.8.22;
 
 import { ChainlinkOM_Fuzz_Test, OracleModule } from "./_ChainlinkOM.fuzz.t.sol";
 
-import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
-import { RevertingOracle } from "../../../utils/mocks/RevertingOracle.sol";
+import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
+import { RevertingOracle } from "../../../utils/mocks/oracles/RevertingOracle.sol";
 
 /**
  * @notice Fuzz tests for the function "getRate" of contract "ChainlinkOM".

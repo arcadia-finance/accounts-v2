@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 
-import { ERC4626Mock } from "../../../utils/mocks/ERC4626Mock.sol";
+import { ERC4626Mock } from "../../../utils/mocks/tokens/ERC4626Mock.sol";
 import { ERC4626AMExtension } from "../../../utils/Extensions.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { StandardERC4626AM } from "../../../utils/mocks/asset-modules/StandardERC4626AM.sol";

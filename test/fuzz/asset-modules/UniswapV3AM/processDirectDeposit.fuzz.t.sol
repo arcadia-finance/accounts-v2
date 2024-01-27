@@ -8,7 +8,7 @@ import { UniswapV3AM_Fuzz_Test, UniswapV3AM } from "./_UniswapV3AM.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
-import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { INonfungiblePositionManagerExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { IUniswapV3PoolExtension } from

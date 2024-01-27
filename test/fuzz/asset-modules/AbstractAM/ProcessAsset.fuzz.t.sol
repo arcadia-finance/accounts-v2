@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { AbstractAM_Fuzz_Test } from "./_AbstractAM.fuzz.t.sol";
 
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
-import { AssetModuleMock } from "../../../utils/mocks/AssetModuleMock.sol";
+import { AssetModuleMock } from "../../../utils/mocks/asset-modules/AssetModuleMock.sol";
 
 /**
  * @notice Fuzz tests for the function "processAsset" of contract "AbstractAssetModule".

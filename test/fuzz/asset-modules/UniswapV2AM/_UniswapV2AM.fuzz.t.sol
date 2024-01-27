@@ -8,13 +8,13 @@ import { Fuzz_Test } from "../../Fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
-import { ArcadiaOracle } from "../../../utils/mocks/ArcadiaOracle.sol";
+import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
-import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2PairMock.sol";
+import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2/UniswapV2PairMock.sol";
 import { UniswapV2AMExtension } from "../../../utils/Extensions.sol";
-import { UniswapV2FactoryMock } from "../../../utils/mocks/UniswapV2FactoryMock.sol";
+import { UniswapV2FactoryMock } from "../../../utils/mocks/UniswapV2/UniswapV2FactoryMock.sol";
 import { UniswapV2AM } from "../../../utils/mocks/asset-modules/UniswapV2AM.sol";
 
 /**

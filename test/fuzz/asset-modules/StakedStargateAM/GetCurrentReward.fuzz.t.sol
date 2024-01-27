@@ -9,7 +9,7 @@ import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "_getCurrentReward" of contract "StakedStargateAM".
  */
-contract GetCurrentReward_SStargateAssetModule_Fuzz_Test is StakedStargateAM_Fuzz_Test {
+contract GetCurrentReward_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

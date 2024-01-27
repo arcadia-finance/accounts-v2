@@ -10,7 +10,7 @@ import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { AccountExtension } from "../../../utils/Extensions.sol";
-import { AssetModuleMock } from "../../../utils/mocks/AssetModuleMock.sol";
+import { AssetModuleMock } from "../../../utils/mocks/asset-modules/AssetModuleMock.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
