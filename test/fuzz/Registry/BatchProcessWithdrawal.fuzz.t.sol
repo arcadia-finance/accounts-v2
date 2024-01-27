@@ -218,11 +218,11 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assertEq(exposureERC20, 0);
 
         assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft1)));
-        (uint112 exposureERC721,,,) = floorERC721AssetModule.riskParams(address(0), assetKey);
+        (uint112 exposureERC721,,,) = floorERC721AM.riskParams(address(0), assetKey);
         assertEq(exposureERC721, 0);
 
         assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft1)));
-        (uint112 exposureERC1155,,,) = floorERC1155AssetModule.riskParams(address(0), assetKey);
+        (uint112 exposureERC1155,,,) = floorERC1155AM.riskParams(address(0), assetKey);
         assertEq(exposureERC1155, 0);
     }
 
@@ -273,11 +273,11 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assertEq(exposureERC20, erc20Amount);
 
         assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft1)));
-        (uint112 exposureERC721,,,) = floorERC721AssetModule.riskParams(address(creditorUsd), assetKey);
+        (uint112 exposureERC721,,,) = floorERC721AM.riskParams(address(creditorUsd), assetKey);
         assertEq(exposureERC721, 1);
 
         assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft1)));
-        (uint112 exposureERC1155,,,) = floorERC1155AssetModule.riskParams(address(creditorUsd), assetKey);
+        (uint112 exposureERC1155,,,) = floorERC1155AM.riskParams(address(creditorUsd), assetKey);
         assertEq(exposureERC1155, erc1155Amount);
     }
 

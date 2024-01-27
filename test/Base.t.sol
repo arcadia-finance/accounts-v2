@@ -10,13 +10,13 @@ import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/accounts/AccountV1.sol";
 import { AccountV2 } from "./utils/mocks/AccountV2.sol";
 import { SequencerUptimeOracle } from "./utils/mocks/SequencerUptimeOracle.sol";
-import { ChainlinkOracleModuleExtension } from "./utils/Extensions.sol";
+import { ChainlinkOMExtension } from "./utils/Extensions.sol";
 import { RegistryExtension } from "./utils/Extensions.sol";
-import { AssetModule } from "../src/asset-modules/abstracts/AbstractAssetModule.sol";
-import { ERC20PrimaryAssetModuleExtension } from "./utils/Extensions.sol";
-import { FloorERC721AssetModuleExtension } from "./utils/Extensions.sol";
-import { FloorERC1155AssetModuleExtension } from "./utils/Extensions.sol";
-import { UniswapV3AssetModuleExtension } from "./utils/Extensions.sol";
+import { AssetModule } from "../src/asset-modules/abstracts/AbstractAM.sol";
+import { ERC20PrimaryAMExtension } from "./utils/Extensions.sol";
+import { FloorERC721AMExtension } from "./utils/Extensions.sol";
+import { FloorERC1155AMExtension } from "./utils/Extensions.sol";
+import { UniswapV3AMExtension } from "./utils/Extensions.sol";
 import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Errors } from "./utils/Errors.sol";
@@ -37,11 +37,11 @@ abstract contract Base_Test is Test, Events, Errors {
 
     Factory internal factory;
     RegistryExtension internal registryExtension;
-    ChainlinkOracleModuleExtension internal chainlinkOM;
-    ERC20PrimaryAssetModuleExtension internal erc20AssetModule;
-    FloorERC721AssetModuleExtension internal floorERC721AssetModule;
-    FloorERC1155AssetModuleExtension internal floorERC1155AssetModule;
-    UniswapV3AssetModuleExtension internal uniV3AssetModule;
+    ChainlinkOMExtension internal chainlinkOM;
+    ERC20PrimaryAMExtension internal erc20AssetModule;
+    FloorERC721AMExtension internal floorERC721AM;
+    FloorERC1155AMExtension internal floorERC1155AM;
+    UniswapV3AMExtension internal uniV3AssetModule;
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
     AccountV1 internal proxyAccount;
@@ -90,10 +90,10 @@ abstract contract Base_Test is Test, Events, Errors {
         vm.startPrank(users.creatorAddress);
         factory = new Factory();
         registryExtension = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
-        chainlinkOM = new ChainlinkOracleModuleExtension(address(registryExtension));
-        erc20AssetModule = new ERC20PrimaryAssetModuleExtension(address(registryExtension));
-        floorERC721AssetModule = new FloorERC721AssetModuleExtension(address(registryExtension));
-        floorERC1155AssetModule = new FloorERC1155AssetModuleExtension(address(registryExtension));
+        chainlinkOM = new ChainlinkOMExtension(address(registryExtension));
+        erc20AssetModule = new ERC20PrimaryAMExtension(address(registryExtension));
+        floorERC721AM = new FloorERC721AMExtension(address(registryExtension));
+        floorERC1155AM = new FloorERC1155AMExtension(address(registryExtension));
 
         accountV1Logic = new AccountV1(address(factory));
         accountV2Logic = new AccountV2(address(factory));
@@ -107,8 +107,8 @@ abstract contract Base_Test is Test, Events, Errors {
         // Add Asset Modules to the Registry.
         vm.startPrank(users.creatorAddress);
         registryExtension.addAssetModule(address(erc20AssetModule));
-        registryExtension.addAssetModule(address(floorERC721AssetModule));
-        registryExtension.addAssetModule(address(floorERC1155AssetModule));
+        registryExtension.addAssetModule(address(floorERC721AM));
+        registryExtension.addAssetModule(address(floorERC1155AM));
         vm.stopPrank();
 
         // Add Oracle Modules to the Registry.
@@ -121,8 +121,8 @@ abstract contract Base_Test is Test, Events, Errors {
         vm.label({ account: address(registryExtension), newLabel: "Registry" });
         vm.label({ account: address(chainlinkOM), newLabel: "Chainlink Oracle Module" });
         vm.label({ account: address(erc20AssetModule), newLabel: "Standard ERC20 Asset Module" });
-        vm.label({ account: address(floorERC721AssetModule), newLabel: "ERC721 Asset Module" });
-        vm.label({ account: address(floorERC1155AssetModule), newLabel: "ERC1155 Asset Module" });
+        vm.label({ account: address(floorERC721AM), newLabel: "ERC721 Asset Module" });
+        vm.label({ account: address(floorERC1155AM), newLabel: "ERC1155 Asset Module" });
         vm.label({ account: address(accountV1Logic), newLabel: "Account V1 Logic" });
         vm.label({ account: address(accountV2Logic), newLabel: "Account V2 Logic" });
 
@@ -144,15 +144,15 @@ abstract contract Base_Test is Test, Events, Errors {
         return user;
     }
 
-    function deployUniswapV3AssetModule(address nonfungiblePositionManager_) internal {
+    function deployUniswapV3AM(address nonfungiblePositionManager_) internal {
         // Get the bytecode of the UniswapV3PoolExtension.
         bytes memory args = abi.encode();
         bytes memory bytecode = abi.encodePacked(vm.getCode("UniswapV3PoolExtension.sol"), args);
         bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
 
-        // Get the bytecode of UniswapV3AssetModuleExtension.
+        // Get the bytecode of UniswapV3AMExtension.
         args = abi.encode(address(registryExtension), nonfungiblePositionManager_);
-        bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3AssetModuleExtension"), args);
+        bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3AMExtension"), args);
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.
         // -> Replace the code hash of UniswapV3Pool.sol with the code hash of UniswapV3PoolExtension.sol
@@ -162,7 +162,7 @@ abstract contract Base_Test is Test, Events, Errors {
         // Deploy UniswapV3PoolExtension with modified bytecode.
         vm.prank(users.creatorAddress);
         address uniV3AssetModule_ = Utils.deployBytecode(bytecode);
-        uniV3AssetModule = UniswapV3AssetModuleExtension(uniV3AssetModule_);
+        uniV3AssetModule = UniswapV3AMExtension(uniV3AssetModule_);
 
         vm.label({ account: address(uniV3AssetModule), newLabel: "Uniswap V3 Asset Module" });
 

@@ -13,7 +13,7 @@ import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 /**
  * @notice Fork tests for "StargateAssetModule - USDbC Pool".
  */
-contract StargateAssetModuleETH_Fork_Test is StargateBase_Fork_Test {
+contract StargateAM_ETH_Fork_Test is StargateBase_Fork_Test {
     /*///////////////////////////////////////////////////////////////
                             CONSTANTS
     ///////////////////////////////////////////////////////////////*/

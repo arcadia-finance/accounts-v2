@@ -10,7 +10,7 @@ library ArcadiaContractAddresses {
     address public constant factory = address(0);
     address public constant liquidator = address(0);
     address public constant riskModule = address(0);
-    address public constant erc20PrimaryAssetModule = address(0);
+    address public constant erc20PrimaryAM = address(0);
     address public constant chainlinkOM = address(0);
 }
 
@@ -23,6 +23,6 @@ library ArcadiaAddresses {
     address public constant registryOwner = multiSig1;
     address public constant factoryOwner = multiSig1;
     address public constant liquidatorOwner = multiSig1;
-    address public constant erc20PrimaryAssetModuleOwner = multiSig1;
+    address public constant erc20PrimaryAMOwner = multiSig1;
     address public constant chainlinkOMOwner = multiSig1;
 }

@@ -22,12 +22,12 @@ contract AddAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_addAsset_NonAssetModule(address unprivilegedAddress_, address asset) public {
-        // Given: unprivilegedAddress_ is not address(erc20AssetModule), address(floorERC721AssetModule) or address(floorERC1155AssetModule)
+        // Given: unprivilegedAddress_ is not address(erc20AssetModule), address(floorERC721AM) or address(floorERC1155AM)
         vm.assume(unprivilegedAddress_ != address(erc20AssetModule));
-        vm.assume(unprivilegedAddress_ != address(floorERC721AssetModule));
-        vm.assume(unprivilegedAddress_ != address(floorERC1155AssetModule));
-        vm.assume(unprivilegedAddress_ != address(primaryAssetModule));
-        vm.assume(unprivilegedAddress_ != address(derivedAssetModule));
+        vm.assume(unprivilegedAddress_ != address(floorERC721AM));
+        vm.assume(unprivilegedAddress_ != address(floorERC1155AM));
+        vm.assume(unprivilegedAddress_ != address(primaryAM));
+        vm.assume(unprivilegedAddress_ != address(derivedAM));
 
         vm.startPrank(unprivilegedAddress_);
         // When: unprivilegedAddress_ calls addAsset
@@ -40,8 +40,8 @@ contract AddAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
     function testFuzz_Revert_addAsset_OverwriteAsset() public {
         // Given: erc20AssetModule has token1 added as asset
 
-        vm.startPrank(address(floorERC721AssetModule));
-        // When: floorERC721AssetModule calls addAsset
+        vm.startPrank(address(floorERC721AM));
+        // When: floorERC721AM calls addAsset
         // Then: addAsset should revert with RegistryErrors.AssetAlreadyInRegistry.selector
         vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
         registryExtension.addAsset(address(mockERC20.token1));

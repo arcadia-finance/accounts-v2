@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
-import { DerivedAssetModule, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAssetModule.sol";
+import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
 import { IPool } from "./interfaces/IPool.sol";
 import { ISGFactory } from "./interfaces/ISGFactory.sol";
 
@@ -15,7 +15,7 @@ import { ISGFactory } from "./interfaces/ISGFactory.sol";
  * @notice The Stargate Asset Module stores pricing logic and basic information for Stargate Finance LP pools
  * @dev No end-user should directly interact with the Stargate Asset Module, only the Registry, the contract owner or via the actionHandler
  */
-contract StargateAM is DerivedAssetModule {
+contract StargateAM is DerivedAM {
     using FixedPointMathLib for uint256;
 
     /* //////////////////////////////////////////////////////////////
@@ -48,7 +48,7 @@ contract StargateAM is DerivedAssetModule {
      * @param stargateFactory The factory for Stargate Pools.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "0" for ERC20 tokens.
      */
-    constructor(address registry_, address stargateFactory) DerivedAssetModule(registry_, 0) {
+    constructor(address registry_, address stargateFactory) DerivedAM(registry_, 0) {
         SG_FACTORY = ISGFactory(stargateFactory);
     }
 

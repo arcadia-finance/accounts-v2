@@ -42,7 +42,7 @@ abstract contract StakedStargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         vm.etch(address(lpStakingTimeMock.eToken()), address(rewardTokenCode).code);
         ArcadiaOracle stargateOracle = initMockedOracle(8, "STG / USD", rates.token1ToUsd);
 
-        // Add STG to the ERC20PrimaryAssetModule.
+        // Add STG to the ERC20PrimaryAM.
         vm.startPrank(users.creatorAddress);
         chainlinkOM.addOracle(address(stargateOracle), "STG", "USD", 2 days);
         uint80[] memory oracleStgToUsdArr = new uint80[](1);

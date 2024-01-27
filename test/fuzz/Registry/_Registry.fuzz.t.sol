@@ -7,9 +7,9 @@ pragma solidity 0.8.22;
 import { Fuzz_Test, Constants } from "../Fuzz.t.sol";
 
 import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
-import { DerivedAssetModuleMock } from "../../utils/mocks/DerivedAssetModuleMock.sol";
+import { DerivedAMMock } from "../../utils/mocks/DerivedAMMock.sol";
 import { OracleModuleMock } from "../../utils/mocks/OracleModuleMock.sol";
-import { PrimaryAssetModuleMock } from "../../utils/mocks/PrimaryAssetModuleMock.sol";
+import { PrimaryAMMock } from "../../utils/mocks/PrimaryAMMock.sol";
 import { RegistryErrors } from "../../../src/Registry.sol";
 
 /**
@@ -24,8 +24,8 @@ abstract contract Registry_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    PrimaryAssetModuleMock internal primaryAssetModule;
-    DerivedAssetModuleMock internal derivedAssetModule;
+    PrimaryAMMock internal primaryAM;
+    DerivedAMMock internal derivedAM;
 
     OracleModuleMock internal oracleModule;
 
@@ -37,11 +37,11 @@ abstract contract Registry_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.creatorAddress);
-        primaryAssetModule = new PrimaryAssetModuleMock(address(registryExtension), 0);
-        registryExtension.addAssetModule(address(primaryAssetModule));
+        primaryAM = new PrimaryAMMock(address(registryExtension), 0);
+        registryExtension.addAssetModule(address(primaryAM));
 
-        derivedAssetModule = new DerivedAssetModuleMock(address(registryExtension), 0);
-        registryExtension.addAssetModule(address(derivedAssetModule));
+        derivedAM = new DerivedAMMock(address(registryExtension), 0);
+        registryExtension.addAssetModule(address(derivedAM));
         vm.stopPrank();
     }
 

@@ -11,10 +11,10 @@ import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/accounts/AccountV1.sol";
 import { Registry } from "../src/Registry.sol";
-import { ChainlinkOracleModule } from "../src/oracle-modules/ChainlinkOracleModule.sol";
-import { ERC20PrimaryAssetModule } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAssetModule.sol";
-import { AssetModule } from "../src/asset-modules/abstracts/AbstractAssetModule.sol";
-import { UniswapV3AssetModule } from "../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
+import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
+import { ERC20PrimaryAM } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
+import { AssetModule } from "../src/asset-modules/abstracts/AbstractAM.sol";
+import { UniswapV3AM } from "../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 
 import { ActionMultiCall } from "../src/actions/MultiCall.sol";
 
@@ -33,9 +33,9 @@ contract ArcadiaAccountDeployment is Test {
     ERC20 internal reth;
 
     Registry internal registry;
-    ERC20PrimaryAssetModule internal erc20PrimaryAssetModule;
-    UniswapV3AssetModule internal uniswapV3AssetModule;
-    ChainlinkOracleModule internal chainlinkOM;
+    ERC20PrimaryAM internal erc20PrimaryAM;
+    UniswapV3AM internal uniswapV3AM;
+    ChainlinkOM internal chainlinkOM;
     ActionMultiCall internal actionMultiCall;
 
     ILendingPool internal wethLendingPool;
@@ -83,16 +83,16 @@ contract ArcadiaAccountDeployment is Test {
         usdcLendingPool.setRiskManager(deployerAddress);
 
         registry = new Registry(address(factory), DeployAddresses.sequencerUptimeOracle_base);
-        erc20PrimaryAssetModule = new ERC20PrimaryAssetModule(address(registry));
-        uniswapV3AssetModule = new UniswapV3AssetModule(address(registry), DeployAddresses.uniswapV3PositionMgr_base);
+        erc20PrimaryAM = new ERC20PrimaryAM(address(registry));
+        uniswapV3AM = new UniswapV3AM(address(registry), DeployAddresses.uniswapV3PositionMgr_base);
 
-        chainlinkOM = new ChainlinkOracleModule(address(registry));
+        chainlinkOM = new ChainlinkOM(address(registry));
 
         account = new AccountV1(address(factory));
         actionMultiCall = new ActionMultiCall();
 
-        registry.addAssetModule(address(erc20PrimaryAssetModule));
-        registry.addAssetModule(address(uniswapV3AssetModule));
+        registry.addAssetModule(address(erc20PrimaryAM));
+        registry.addAssetModule(address(uniswapV3AM));
 
         registry.addOracleModule(address(chainlinkOM));
 
@@ -113,26 +113,16 @@ contract ArcadiaAccountDeployment is Test {
         oracleRethToEthToUsdArr[0] = oracleRethToEthId;
         oracleRethToEthToUsdArr[1] = oracleEthToUsdId;
 
-        erc20PrimaryAssetModule.addAsset(
-            DeployAddresses.comp_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleCompToUsdArr)
-        );
-        erc20PrimaryAssetModule.addAsset(
-            DeployAddresses.dai_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleDaiToUsdArr)
-        );
-        erc20PrimaryAssetModule.addAsset(
-            DeployAddresses.weth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleEthToUsdArr)
-        );
-        erc20PrimaryAssetModule.addAsset(
-            DeployAddresses.usdc_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdcToUsdArr)
-        );
-        erc20PrimaryAssetModule.addAsset(
+        erc20PrimaryAM.addAsset(DeployAddresses.comp_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleCompToUsdArr));
+        erc20PrimaryAM.addAsset(DeployAddresses.dai_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleDaiToUsdArr));
+        erc20PrimaryAM.addAsset(DeployAddresses.weth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleEthToUsdArr));
+        erc20PrimaryAM.addAsset(DeployAddresses.usdc_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdcToUsdArr));
+        erc20PrimaryAM.addAsset(
             DeployAddresses.cbeth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleCbethToEthToUsdArr)
         );
-        erc20PrimaryAssetModule.addAsset(
-            DeployAddresses.reth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleRethToEthToUsdArr)
-        );
+        erc20PrimaryAM.addAsset(DeployAddresses.reth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleRethToEthToUsdArr));
 
-        uniswapV3AssetModule.setProtocol();
+        uniswapV3AM.setProtocol();
 
         factory.setNewAccountInfo(address(registry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);

@@ -62,8 +62,8 @@ contract GetValuesInUsdRecursive_Registry_Fuzz_Test is Registry_Fuzz_Test {
         usdValue = uint128(bound(usdValue, 0, type(uint128).max - 1));
         minUsdValue = uint128(bound(minUsdValue, usdValue + 1, type(uint128).max));
 
-        registryExtension.setAssetToAssetModule(asset, address(primaryAssetModule));
-        primaryAssetModule.setUsdValue(usdValue);
+        registryExtension.setAssetToAssetModule(asset, address(primaryAM));
+        primaryAM.setUsdValue(usdValue);
 
         vm.startPrank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(

@@ -8,7 +8,7 @@ import { Base_Test, Constants } from "../Base.t.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
 import { Registry } from "../../src/Registry.sol";
-import { AssetModule } from "../../src/asset-modules/abstracts/AbstractAssetModule.sol";
+import { AssetModule } from "../../src/asset-modules/abstracts/AbstractAM.sol";
 import { CreditorMock } from "../utils/mocks/CreditorMock.sol";
 import { ERC20Mock } from "../utils/mocks/ERC20Mock.sol";
 import { ERC721Mock } from "../utils/mocks/ERC721Mock.sol";
@@ -75,8 +75,8 @@ abstract contract Fuzz_Test is Base_Test {
         vm.assume(fuzzedAddress != address(this));
         vm.assume(fuzzedAddress != address(chainlinkOM));
         vm.assume(fuzzedAddress != address(erc20AssetModule));
-        vm.assume(fuzzedAddress != address(floorERC1155AssetModule));
-        vm.assume(fuzzedAddress != address(floorERC721AssetModule));
+        vm.assume(fuzzedAddress != address(floorERC1155AM));
+        vm.assume(fuzzedAddress != address(floorERC721AM));
         vm.assume(fuzzedAddress != address(uniV3AssetModule));
         vm.assume(fuzzedAddress != address(creditorUsd));
         vm.assume(fuzzedAddress != address(creditorStable1));
@@ -216,7 +216,7 @@ abstract contract Fuzz_Test is Base_Test {
         BA_TO_QA_DOUBLE[0] = true;
         BA_TO_QA_DOUBLE[1] = true;
 
-        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the ERC20PrimaryAssetModule.
+        // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the ERC20PrimaryAM.
         oracleStable1ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.stable1ToUsd)));
         oracleStable2ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.stable2ToUsd)));
         oracleToken1ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token1ToUsd)));
@@ -231,19 +231,19 @@ abstract contract Fuzz_Test is Base_Test {
         erc20AssetModule.addAsset(address(mockERC20.token1), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleToken1ToUsdArr));
         erc20AssetModule.addAsset(address(mockERC20.token2), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleToken2ToUsdArr));
 
-        // Add NFT1 to the floorERC721AssetModule.
+        // Add NFT1 to the floorERC721AM.
         oracleNft1ToToken1ToUsd[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.nft1ToToken1)));
         oracleNft1ToToken1ToUsd[1] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token1ToUsd)));
 
-        floorERC721AssetModule.addAsset(
+        floorERC721AM.addAsset(
             address(mockERC721.nft1), 0, 999, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleNft1ToToken1ToUsd)
         );
 
-        // Add ERC1155 contract to the floorERC1155AssetModule
+        // Add ERC1155 contract to the floorERC1155AM
         oracleSft1ToToken1ToUsd[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.sft1ToToken1)));
         oracleSft1ToToken1ToUsd[1] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token1ToUsd)));
 
-        floorERC1155AssetModule.addAsset(
+        floorERC1155AM.addAsset(
             address(mockERC1155.sft1), 1, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleSft1ToToken1ToUsd)
         );
 

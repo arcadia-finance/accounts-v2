@@ -7,12 +7,12 @@ pragma solidity 0.8.22;
 import { BitPackingLib } from "./libraries/BitPackingLib.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
-import { IDerivedAssetModule } from "./interfaces/IDerivedAssetModule.sol";
+import { IDerivedAM } from "./interfaces/IDerivedAM.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
 import { IOracleModule } from "./interfaces/IOracleModule.sol";
 import { IAssetModule } from "./interfaces/IAssetModule.sol";
-import { IPrimaryAssetModule } from "./interfaces/IPrimaryAssetModule.sol";
+import { IPrimaryAM } from "./interfaces/IPrimaryAM.sol";
 import { ICreditor } from "./interfaces/ICreditor.sol";
 import { RegistryGuardian } from "./guardians/RegistryGuardian.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "./libraries/AssetValuationLib.sol";
@@ -383,7 +383,7 @@ contract Registry is IRegistry, RegistryGuardian {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external onlyRiskManager(creditor) {
-        IPrimaryAssetModule(assetToAssetModule[asset]).setRiskParameters(
+        IPrimaryAM(assetToAssetModule[asset]).setRiskParameters(
             creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
     }
@@ -396,13 +396,13 @@ contract Registry is IRegistry, RegistryGuardian {
      * denominated in USD with 18 decimals precision.
      * @param riskFactor The risk factor of the asset for the Creditor, 4 decimals precision.
      */
-    function setRiskParametersOfDerivedAssetModule(
+    function setRiskParametersOfDerivedAM(
         address creditor,
         address assetModule,
         uint112 maxUsdExposureProtocol,
         uint16 riskFactor
     ) external onlyRiskManager(creditor) {
-        IDerivedAssetModule(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
+        IDerivedAM(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
     }
 
     /*///////////////////////////////////////////////////////////////

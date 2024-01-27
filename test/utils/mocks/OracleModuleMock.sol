@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
-import { OracleModule } from "../../../src/oracle-modules/abstracts/AbstractOracleModule.sol";
+import { OracleModule } from "../../../src/oracle-modules/abstracts/AbstractOM.sol";
 
 contract OracleModuleMock is OracleModule {
     mapping(address => bool) public inOracleModule;

@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
-import { PrimaryAssetModule } from "../../../src/asset-modules/abstracts/AbstractPrimaryAssetModule.sol";
+import { PrimaryAM } from "../../../src/asset-modules/abstracts/AbstractPrimaryAM.sol";
 
 /**
  * @notice Fuzz tests for the function "setRiskParametersOfPrimaryAsset" of contract "Registry".
@@ -52,10 +52,10 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         collateralFactor = uint16(bound(collateralFactor, 1, AssetValuationLib.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, 0, collateralFactor - 1));
 
-        registryExtension.setAssetToAssetModule(asset, address(primaryAssetModule));
+        registryExtension.setAssetToAssetModule(asset, address(primaryAM));
 
         vm.prank(users.riskManager);
-        vm.expectRevert(PrimaryAssetModule.CollFactorExceedsLiqFactor.selector);
+        vm.expectRevert(PrimaryAM.CollFactorExceedsLiqFactor.selector);
         registryExtension.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
@@ -71,7 +71,7 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         collateralFactor = uint16(bound(collateralFactor, 0, AssetValuationLib.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, AssetValuationLib.ONE_4));
 
-        registryExtension.setAssetToAssetModule(asset, address(primaryAssetModule));
+        registryExtension.setAssetToAssetModule(asset, address(primaryAM));
 
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
@@ -80,7 +80,7 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
 
         bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));
         (, uint112 actualMaxExposure, uint16 actualCollateralFactor, uint16 actualLiquidationFactor) =
-            primaryAssetModule.riskParams(address(creditorUsd), assetKey);
+            primaryAM.riskParams(address(creditorUsd), assetKey);
         assertEq(actualMaxExposure, maxExposure);
         assertEq(actualCollateralFactor, collateralFactor);
         assertEq(actualLiquidationFactor, liquidationFactor);
