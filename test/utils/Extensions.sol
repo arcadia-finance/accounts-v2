@@ -683,6 +683,15 @@ abstract contract StakingModuleExtension is StakingModule {
     function setTotalStakedForAsset(address asset, uint128 totalStaked_) public {
         assetState[asset].totalStaked = totalStaked_;
     }
+
+    function calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    ) public view returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        (valueInUsd, collateralFactor, liquidationFactor) =
+            _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
 }
 
 contract StargateAMExtension is StargateAM {

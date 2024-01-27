@@ -114,7 +114,7 @@ abstract contract PrimaryAssetModule is AssetModule {
      * @param assetAmount The amount of assets.
      * @return valueInUsd The value of the asset denominated in USD, with 18 decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given Creditor, with 4 decimals precision.
-     * @return liquidationFactor The liquidation factor of the asset for a given Creditor, with 4 decimals precision.x
+     * @return liquidationFactor The liquidation factor of the asset for a given Creditor, with 4 decimals precision.
      * @dev If the asset is not added to AssetModule, this function will return value 0 without throwing an error.
      * However check in here is not necessary,
      * since the check if the asset is added to the AssetModule is already done in the Registry.
