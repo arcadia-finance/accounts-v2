@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { StandardERC4626AM_Fuzz_Test, AssetModule, StandardERC4626AM } from "./_StandardERC4626AM.fuzz.t.sol";
 
-import { ERC4626Mock } from "../../../utils/mocks/ERC4626Mock.sol";
+import { ERC4626Mock } from "../../../utils/mocks/tokens/ERC4626Mock.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**

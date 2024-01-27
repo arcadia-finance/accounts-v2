@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { UniswapV3AM_Fuzz_Test, AssetModule, UniswapV3AM } from "./_UniswapV3AM.fuzz.t.sol";
 
-import { NonfungiblePositionManagerMock } from "../../../utils/mocks/NonfungiblePositionManager.sol";
+import { NonfungiblePositionManagerMock } from "../../../utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "UniswapV3AM".

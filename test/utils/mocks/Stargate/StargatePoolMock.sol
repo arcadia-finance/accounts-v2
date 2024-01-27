@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import { IERC20 } from "../../../../src/interfaces/IERC20.sol";
-import { ERC20Mock } from "../ERC20Mock.sol";
+import { ERC20Mock } from "../tokens/ERC20Mock.sol";
 
 contract StargatePoolMock is ERC20Mock {
     IERC20 public token;

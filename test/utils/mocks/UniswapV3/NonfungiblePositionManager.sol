@@ -4,14 +4,14 @@
  */
 pragma solidity 0.8.22;
 
-import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
+import { ERC721 } from "../../../../lib/solmate/src/tokens/ERC721.sol";
 
 import { IUniswapV3PoolExtension } from
-    "../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
+    "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import {
     PoolAddress,
     PoolAddressExtension
-} from "../../utils/fixtures/uniswap-v3/extensions/libraries/PoolAddressExtension.sol";
+} from "../../../utils/fixtures/uniswap-v3/extensions/libraries/PoolAddressExtension.sol";
 
 contract NonfungiblePositionManagerMock is ERC721 {
     uint256 public id;

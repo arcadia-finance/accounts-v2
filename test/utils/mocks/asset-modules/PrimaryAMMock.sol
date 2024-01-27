@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
-import { AbstractPrimaryAMExtension } from "../Extensions.sol";
+import { AbstractPrimaryAMExtension } from "../../Extensions.sol";
 
 contract PrimaryAMMock is AbstractPrimaryAMExtension {
     // Price is 1 by default

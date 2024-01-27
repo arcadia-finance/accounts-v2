@@ -9,7 +9,7 @@ import { StargateAM_Fuzz_Test } from "./_StargateAM.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "StargateAM".
  */
-contract GetUnderlyingAssets_NSStargateAssetModule_Fuzz_Test is StargateAM_Fuzz_Test {
+contract GetUnderlyingAssets_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

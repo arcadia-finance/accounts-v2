@@ -8,7 +8,7 @@ import { AbstractPrimaryAM_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAM.f
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { PrimaryAM } from "../../../../src/asset-modules/abstracts/AbstractPrimaryAM.sol";
-import { OracleModuleMock } from "../../../utils/mocks/OracleModuleMock.sol";
+import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
 
 /**
  * @notice Fuzz tests for the function "checkOracleSequence" of contract "AbstractPrimaryAM".

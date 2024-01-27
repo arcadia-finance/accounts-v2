@@ -220,7 +220,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         (, uint256 collateralFactor_, uint256 liquidationFactor_) =
             _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
 
-        // collateralFactor_ and liquidationFactor_ are smaller than or equal to 1e4.
+        // Unsafe cast: collateralFactor_ and liquidationFactor_ are smaller than or equal to 1e4.
         return (uint16(collateralFactor_), uint16(liquidationFactor_));
     }
 

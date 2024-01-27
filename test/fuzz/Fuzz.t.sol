@@ -9,11 +9,11 @@ import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
 import { Registry } from "../../src/Registry.sol";
 import { AssetModule } from "../../src/asset-modules/abstracts/AbstractAM.sol";
-import { CreditorMock } from "../utils/mocks/CreditorMock.sol";
-import { ERC20Mock } from "../utils/mocks/ERC20Mock.sol";
-import { ERC721Mock } from "../utils/mocks/ERC721Mock.sol";
-import { ERC1155Mock } from "../utils/mocks/ERC1155Mock.sol";
-import { ArcadiaOracle } from "../utils/mocks/ArcadiaOracle.sol";
+import { CreditorMock } from "../utils/mocks/creditors/CreditorMock.sol";
+import { ERC20Mock } from "../utils/mocks/tokens/ERC20Mock.sol";
+import { ERC721Mock } from "../utils/mocks/tokens/ERC721Mock.sol";
+import { ERC1155Mock } from "../utils/mocks/tokens/ERC1155Mock.sol";
+import { ArcadiaOracle } from "../utils/mocks/oracles/ArcadiaOracle.sol";
 import { AccountV1 } from "../../src/accounts/AccountV1.sol";
 
 /**

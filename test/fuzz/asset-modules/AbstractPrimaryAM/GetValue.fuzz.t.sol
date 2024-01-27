@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { AbstractPrimaryAM_Fuzz_Test } from "./_AbstractPrimaryAM.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { OracleModuleMock } from "../../../utils/mocks/OracleModuleMock.sol";
+import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
 
 /**
  * @notice Fuzz tests for the function "getValue" of contract "AbstractPrimaryAM".

@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { AbstractStakingAM_Fuzz_Test } from "./_AbstractStakingAM.fuzz.t.sol";
 
-import { StakingAMMock } from "../../../utils/mocks/StakingAMMock.sol";
+import { StakingAMMock } from "../../../utils/mocks/asset-modules/StakingAMMock.sol";
 
 /**
  * @notice Fuzz tests for the function "initialize" of contract "StakingAM".

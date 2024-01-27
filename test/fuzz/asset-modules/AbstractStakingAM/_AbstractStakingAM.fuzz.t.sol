@@ -7,8 +7,8 @@ pragma solidity 0.8.22;
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { StakingAM } from "../../../../src/asset-modules/abstracts/AbstractStakingAM.sol";
-import { StakingAMMock } from "../../../utils/mocks/StakingAMMock.sol";
-import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
+import { StakingAMMock } from "../../../utils/mocks/asset-modules/StakingAMMock.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 
 /**
  * @notice Common logic needed by "StakingAM" fuzz tests.

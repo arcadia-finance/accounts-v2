@@ -5,12 +5,12 @@
 pragma solidity 0.8.22;
 
 import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
-import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 
 /**
  * @notice Fuzz tests for the function "_stake" of contract "StakedStargateAM".
  */
-contract Stake_SStargateAssetModule_Fuzz_Test is StakedStargateAM_Fuzz_Test {
+contract Stake_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

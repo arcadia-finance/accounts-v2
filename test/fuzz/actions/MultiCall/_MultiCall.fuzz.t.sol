@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 
-import { MultiActionMock } from "../../../utils/mocks/MultiActionMock.sol";
+import { MultiActionMock } from "../../../utils/mocks/actions/MultiActionMock.sol";
 import { MultiCallExtension } from "../../../utils/Extensions.sol";
 
 /**

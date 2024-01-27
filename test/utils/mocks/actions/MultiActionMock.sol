@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { IERC20 } from "../../../src/interfaces/IERC20.sol";
+import { IERC20 } from "../../../../src/interfaces/IERC20.sol";
 
 contract MultiActionMock {
     function swapAssets(address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut) public {

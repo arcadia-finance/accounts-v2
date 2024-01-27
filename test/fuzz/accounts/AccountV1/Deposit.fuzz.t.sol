@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
-import { AssetModuleMock } from "../../../utils/mocks/AssetModuleMock.sol";
+import { AssetModuleMock } from "../../../utils/mocks/asset-modules/AssetModuleMock.sol";
 
 /**
  * @notice Fuzz tests for the function "deposit" of contract "AccountV1".

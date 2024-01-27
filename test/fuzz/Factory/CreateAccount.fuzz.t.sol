@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
 import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
-import { AccountVariableVersion } from "../../utils/mocks/AccountVariableVersion.sol";
+import { AccountVariableVersion } from "../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../utils/Constants.sol";
 
 /**

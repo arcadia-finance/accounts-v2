@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { ChainlinkOM_Fuzz_Test } from "./_ChainlinkOM.fuzz.t.sol";
 
-import { RevertingOracle } from "../../../utils/mocks/RevertingOracle.sol";
+import { RevertingOracle } from "../../../utils/mocks/oracles/RevertingOracle.sol";
 
 /**
  * @notice Fuzz tests for the function "isActive" of contract "ChainlinkOM".

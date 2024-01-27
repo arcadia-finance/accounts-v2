@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
-import { OracleModuleMock } from "../../../utils/mocks/OracleModuleMock.sol";
+import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
 
 /**
  * @notice Common logic needed by all "AbstractOM" fuzz tests.

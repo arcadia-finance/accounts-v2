@@ -6,8 +6,8 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
-import { AccountV2 } from "../../../utils/mocks/AccountV2.sol";
-import { AccountVariableVersion } from "../../../utils/mocks/AccountVariableVersion.sol";
+import { AccountV2 } from "../../../utils/mocks/accounts/AccountV2.sol";
+import { AccountVariableVersion } from "../../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { RegistryExtension } from "../../../utils/Extensions.sol";
 

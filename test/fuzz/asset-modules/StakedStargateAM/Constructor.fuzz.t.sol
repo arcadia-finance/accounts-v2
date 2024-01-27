@@ -11,7 +11,7 @@ import { StakedStargateAM } from "../../../../src/asset-modules/Stargate-Finance
 /**
  * @notice Fuzz tests for the constructor of contract "StakedStargateAM".
  */
-contract Constructor_SStargateAssetModule_Fuzz_Test is StakedStargateAM_Fuzz_Test {
+contract Constructor_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

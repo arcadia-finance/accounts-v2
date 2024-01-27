@@ -10,7 +10,7 @@ import { StargateAM } from "../../../../src/asset-modules/Stargate-Finance/Starg
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "StargateAM".
  */
-contract AddAsset_NSStargateAssetModule_Fuzz_Test is StargateAM_Fuzz_Test {
+contract AddAsset_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
