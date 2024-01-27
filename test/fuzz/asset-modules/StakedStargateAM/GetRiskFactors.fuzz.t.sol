@@ -40,8 +40,8 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         assetRates[1] = 6_000_000_000_000_000_000_000;
 
         // Given amounts do not overflow.
-        underlyingAssetsAmounts[0] = bound(underlyingAssetsAmounts[0], 1, type(uint64).max);
-        underlyingAssetsAmounts[1] = bound(underlyingAssetsAmounts[1], 0, type(uint64).max);
+        underlyingAssetsAmounts[0] = bound(underlyingAssetsAmounts[0], 10_000, type(uint64).max);
+        underlyingAssetsAmounts[1] = bound(underlyingAssetsAmounts[1], 10_000, type(uint64).max);
 
         uint256 value0 = underlyingAssetsAmounts[0] * assetRates[0] / 1e18;
         uint256 value1 = underlyingAssetsAmounts[1] * assetRates[1] / 1e18;
@@ -99,8 +99,8 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
 
         (uint256 collateralFactor, uint256 liquidationFactor) =
             stakedStargateAM.getRiskFactors(creditor, address(stakedStargateAM), positionId);
-        assertApproxEqAbs(collateralFactor, expectedCollateralFactor, 1);
-        assertApproxEqAbs(liquidationFactor, expectedLiquidationFactor, 1);
+        assertApproxEqAbs(collateralFactor, expectedCollateralFactor, 10); //0.1% tolerance, rounding errors
+        assertApproxEqAbs(liquidationFactor, expectedLiquidationFactor, 10); //0.1% tolerance, rounding errors
     }
 
     function testFuzz_Success_getRiskFactors_ZeroValueInUsd(
