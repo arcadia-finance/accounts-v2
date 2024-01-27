@@ -10,7 +10,7 @@ import { stdStorage, StdStorage } from "../../../../lib/forge-std/src/StdStorage
 /**
  * @notice Fuzz tests for the function "isAllowed" of contract "StargateAM".
  */
-contract IsAllowed_NSStargateAssetModule_Fuzz_Test is StargateAM_Fuzz_Test {
+contract IsAllowed_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                               SETUP

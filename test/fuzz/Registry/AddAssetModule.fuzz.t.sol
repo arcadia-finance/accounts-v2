@@ -46,11 +46,11 @@ contract AddAssetModule_Registry_Fuzz_Test is Registry_Fuzz_Test {
     function testFuzz_Success_addAssetModule(address assetModule) public {
         // Given: assetModule is different from previously deployed asset modules.
         vm.assume(assetModule != address(erc20AssetModule));
-        vm.assume(assetModule != address(floorERC721AssetModule));
-        vm.assume(assetModule != address(floorERC1155AssetModule));
+        vm.assume(assetModule != address(floorERC721AM));
+        vm.assume(assetModule != address(floorERC1155AM));
         vm.assume(assetModule != address(uniV3AssetModule));
-        vm.assume(assetModule != address(derivedAssetModule));
-        vm.assume(assetModule != address(primaryAssetModule));
+        vm.assume(assetModule != address(derivedAM));
+        vm.assume(assetModule != address(primaryAM));
 
         // When: users.creatorAddress calls addAssetModule for address(erc20AssetModule)
         vm.startPrank(users.creatorAddress);

@@ -10,8 +10,8 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { AccountExtension } from "../../../utils/Extensions.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
-import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
-import { MultiActionMock } from "../../../utils/mocks/MultiActionMock.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { MultiActionMock } from "../../../utils/mocks/actions/MultiActionMock.sol";
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 
 /**

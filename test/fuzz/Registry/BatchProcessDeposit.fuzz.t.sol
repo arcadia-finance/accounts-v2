@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
-import { AssetModule } from "../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../src/asset-modules/abstracts/AbstractAM.sol";
 
 /**
  * @notice Fuzz tests for the function "batchProcessDeposit" of contract "Registry".
@@ -245,11 +245,11 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assertEq(exposureERC20, 0);
 
         assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft1)));
-        (uint112 exposureERC721,,,) = floorERC721AssetModule.riskParams(address(0), assetKey);
+        (uint112 exposureERC721,,,) = floorERC721AM.riskParams(address(0), assetKey);
         assertEq(exposureERC721, 0);
 
         assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft1)));
-        (uint112 exposureERC1155,,,) = floorERC1155AssetModule.riskParams(address(0), assetKey);
+        (uint112 exposureERC1155,,,) = floorERC1155AM.riskParams(address(0), assetKey);
         assertEq(exposureERC1155, 0);
     }
 
@@ -281,11 +281,11 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assertEq(exposureERC20, 0);
 
         assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft1)));
-        (uint112 exposureERC721,,,) = floorERC721AssetModule.riskParams(address(0), assetKey);
+        (uint112 exposureERC721,,,) = floorERC721AM.riskParams(address(0), assetKey);
         assertEq(exposureERC721, 0);
 
         assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft1)));
-        (uint112 exposureERC1155,,,) = floorERC1155AssetModule.riskParams(address(0), assetKey);
+        (uint112 exposureERC1155,,,) = floorERC1155AM.riskParams(address(0), assetKey);
         assertEq(exposureERC1155, 0);
     }
 
@@ -321,7 +321,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
         (uint112 exposureERC20,,,) = erc20AssetModule.riskParams(address(0), assetKey);
         assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft1)));
-        (uint112 exposureERC1155,,,) = floorERC1155AssetModule.riskParams(address(0), assetKey);
+        (uint112 exposureERC1155,,,) = floorERC1155AM.riskParams(address(0), assetKey);
 
         assertEq(exposureERC20, 0);
         assertEq(exposureERC1155, 0);

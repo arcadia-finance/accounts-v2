@@ -11,7 +11,7 @@ import { StargateAMExtension } from "../../../utils/Extensions.sol";
 /**
  * @notice Fuzz tests for the constructor of contract "StargateAM".
  */
-contract Constructor_NSStargateAssetModule_Fuzz_Test is StargateAM_Fuzz_Test {
+contract Constructor_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

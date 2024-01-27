@@ -10,23 +10,23 @@ import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
 import { AccountV1 } from "../../src/accounts/AccountV1.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { BaseGuardian } from "../../src/guardians/BaseGuardian.sol";
-import { ChainlinkOracleModule } from "../../src/oracle-modules/ChainlinkOracleModule.sol";
-import { DerivedAssetModule } from "../../src/asset-modules/AbstractDerivedAssetModule.sol";
+import { ChainlinkOM } from "../../src/oracle-modules/ChainlinkOM.sol";
+import { DerivedAM } from "../../src/asset-modules/abstracts/AbstractDerivedAM.sol";
 import { FactoryGuardian } from "../../src/guardians/FactoryGuardian.sol";
-import { FloorERC721AssetModule } from "../../src/asset-modules/FloorERC721AssetModule.sol";
-import { FloorERC1155AssetModule } from "../../src/asset-modules/FloorERC1155AssetModule.sol";
+import { FloorERC721AM } from "./mocks/asset-modules/FloorERC721AM.sol";
+import { FloorERC1155AM } from "./mocks/asset-modules/FloorERC1155AM.sol";
 import { RegistryGuardian } from "../../src/guardians/RegistryGuardian.sol";
 import { Registry } from "../../src/Registry.sol";
 import { IRegistry } from "../../src/interfaces/IRegistry.sol";
-import { AssetModule } from "../../src/asset-modules/AbstractAssetModule.sol";
-import { PrimaryAssetModule } from "../../src/asset-modules/AbstractPrimaryAssetModule.sol";
+import { AssetModule } from "../../src/asset-modules/abstracts/AbstractAM.sol";
+import { PrimaryAM } from "../../src/asset-modules/abstracts/AbstractPrimaryAM.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../src/libraries/AssetValuationLib.sol";
-import { StandardERC20AssetModule } from "../../src/asset-modules/StandardERC20AssetModule.sol";
-import { StandardERC4626AssetModule } from "../../src/asset-modules/StandardERC4626AssetModule.sol";
-import { UniswapV2AssetModule } from "../../src/asset-modules/UniswapV2AssetModule.sol";
-import { UniswapV3AssetModule } from "../../src/asset-modules/UniswapV3/UniswapV3AssetModule.sol";
+import { ERC20PrimaryAM } from "../../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
+import { StandardERC4626AM } from "./mocks/asset-modules/StandardERC4626AM.sol";
+import { UniswapV2AM } from "./mocks/asset-modules/UniswapV2AM.sol";
+import { UniswapV3AM } from "../../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
-import { StakingModule } from "../../src/asset-modules/staking-module/AbstractStakingModule.sol";
+import { StakingAM } from "../../src/asset-modules/abstracts/AbstractStakingAM.sol";
 import { StargateAM } from "../../src/asset-modules/Stargate-Finance/StargateAM.sol";
 import { StakedStargateAM } from "../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
 
@@ -120,8 +120,8 @@ contract BitPackingLibExtension {
     }
 }
 
-contract ChainlinkOracleModuleExtension is ChainlinkOracleModule {
-    constructor(address registry_) ChainlinkOracleModule(registry_) { }
+contract ChainlinkOMExtension is ChainlinkOM {
+    constructor(address registry_) ChainlinkOM(registry_) { }
 
     function getInOracleModule(address oracle) public view returns (bool) {
         return inOracleModule[oracle];
@@ -227,8 +227,8 @@ abstract contract AbstractAssetModuleExtension is AssetModule {
     }
 }
 
-abstract contract AbstractPrimaryAssetModuleExtension is PrimaryAssetModule {
-    constructor(address registry_, uint256 assetType_) PrimaryAssetModule(registry_, assetType_) { }
+abstract contract AbstractPrimaryAMExtension is PrimaryAM {
+    constructor(address registry_, uint256 assetType_) PrimaryAM(registry_, assetType_) { }
 
     function setExposure(
         address creditor,
@@ -243,8 +243,8 @@ abstract contract AbstractPrimaryAssetModuleExtension is PrimaryAssetModule {
     }
 }
 
-abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
-    constructor(address registry_, uint256 assetType_) DerivedAssetModule(registry_, assetType_) { }
+abstract contract AbstractDerivedAMExtension is DerivedAM {
+    constructor(address registry_, uint256 assetType_) DerivedAM(registry_, assetType_) { }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)
         external
@@ -326,8 +326,8 @@ abstract contract AbstractDerivedAssetModuleExtension is DerivedAssetModule {
     }
 }
 
-contract StandardERC20AssetModuleExtension is StandardERC20AssetModule {
-    constructor(address registry_) StandardERC20AssetModule(registry_) { }
+contract ERC20PrimaryAMExtension is ERC20PrimaryAM {
+    constructor(address registry_) ERC20PrimaryAM(registry_) { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
@@ -344,8 +344,8 @@ contract StandardERC20AssetModuleExtension is StandardERC20AssetModule {
     }
 }
 
-contract FloorERC721AssetModuleExtension is FloorERC721AssetModule {
-    constructor(address registry_) FloorERC721AssetModule(registry_) { }
+contract FloorERC721AMExtension is FloorERC721AM {
+    constructor(address registry_) FloorERC721AM(registry_) { }
 
     function getIdRange(address asset) public view returns (uint256 start, uint256 end) {
         start = idRange[asset].start;
@@ -361,12 +361,12 @@ contract FloorERC721AssetModuleExtension is FloorERC721AssetModule {
     }
 }
 
-contract FloorERC1155AssetModuleExtension is FloorERC1155AssetModule {
-    constructor(address registry_) FloorERC1155AssetModule(registry_) { }
+contract FloorERC1155AMExtension is FloorERC1155AM {
+    constructor(address registry_) FloorERC1155AM(registry_) { }
 }
 
-contract UniswapV2AssetModuleExtension is UniswapV2AssetModule {
-    constructor(address registry_, address uniswapV2Factory_) UniswapV2AssetModule(registry_, uniswapV2Factory_) { }
+contract UniswapV2AMExtension is UniswapV2AM {
+    constructor(address registry_, address uniswapV2Factory_) UniswapV2AM(registry_, uniswapV2Factory_) { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
@@ -457,9 +457,9 @@ contract UniswapV2AssetModuleExtension is UniswapV2AssetModule {
     }
 }
 
-contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
+contract UniswapV3AMExtension is UniswapV3AM {
     constructor(address registry_, address nonfungiblePositionManager)
-        UniswapV3AssetModule(registry_, nonfungiblePositionManager)
+        UniswapV3AM(registry_, nonfungiblePositionManager)
     { }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)
@@ -542,10 +542,19 @@ contract UniswapV3AssetModuleExtension is UniswapV3AssetModule {
     function getFeeAmounts(uint256 id) public view returns (uint256 amount0, uint256 amount1) {
         (amount0, amount1) = _getFeeAmounts(id);
     }
+
+    function calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    ) public view returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        (valueInUsd, collateralFactor, liquidationFactor) =
+            _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
 }
 
-contract ERC4626AssetModuleExtension is StandardERC4626AssetModule {
-    constructor(address registry_) StandardERC4626AssetModule(registry_) { }
+contract ERC4626AMExtension is StandardERC4626AM {
+    constructor(address registry_) StandardERC4626AM(registry_) { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);
@@ -595,8 +604,8 @@ contract MultiCallExtension is ActionMultiCall {
     }
 }
 
-abstract contract StakingModuleExtension is StakingModule {
-    constructor(address registry, string memory name_, string memory symbol_) StakingModule(registry, name_, symbol_) { }
+abstract contract StakingAMExtension is StakingAM {
+    constructor(address registry, string memory name_, string memory symbol_) StakingAM(registry, name_, symbol_) { }
 
     function setLastRewardGlobal(address asset, uint128 balance) public {
         assetState[asset].lastRewardGlobal = balance;
@@ -683,6 +692,15 @@ abstract contract StakingModuleExtension is StakingModule {
     function setTotalStakedForAsset(address asset, uint128 totalStaked_) public {
         assetState[asset].totalStaked = totalStaked_;
     }
+
+    function calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    ) public view returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        (valueInUsd, collateralFactor, liquidationFactor) =
+            _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
 }
 
 contract StargateAMExtension is StargateAM {
@@ -716,6 +734,15 @@ contract StargateAMExtension is StargateAM {
     function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {
         return _getUnderlyingAssets(assetKey);
     }
+
+    function calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    ) public view returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        (valueInUsd, collateralFactor, liquidationFactor) =
+            _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
 }
 
 contract StakedStargateAMExtension is StakedStargateAM {
@@ -735,5 +762,14 @@ contract StakedStargateAMExtension is StakedStargateAM {
 
     function withdraw(address asset, uint256 amount) public {
         _withdraw(asset, amount);
+    }
+
+    function calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    ) public view returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        (valueInUsd, collateralFactor, liquidationFactor) =
+            _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }
 }

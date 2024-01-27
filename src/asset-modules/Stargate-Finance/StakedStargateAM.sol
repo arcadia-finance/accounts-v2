@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { ERC20, IRegistry, StakingModule } from "../staking-module/AbstractStakingModule.sol";
+import { ERC20, IRegistry, StakingAM } from "../abstracts/AbstractStakingAM.sol";
 import { ILpStakingTime } from "./interfaces/ILpStakingTime.sol";
 
 /**
@@ -13,7 +13,7 @@ import { ILpStakingTime } from "./interfaces/ILpStakingTime.sol";
  * @notice The Staked Stargate Asset Module stores pricing logic and basic information for Staked Stargate Finance LP pools
  * @dev No end-user should directly interact with the Staked Stargate Asset Module, only the Registry, the contract owner or via the actionHandler
  */
-contract StakedStargateAM is StakingModule {
+contract StakedStargateAM is StakingAM {
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
@@ -45,9 +45,7 @@ contract StakedStargateAM is StakingModule {
      * @param lpStakingTime The address of the Stargate LP staking contract.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC721 tokens.
      */
-    constructor(address registry, address lpStakingTime)
-        StakingModule(registry, "Arcadia Stargate Positions", "aSGP")
-    {
+    constructor(address registry, address lpStakingTime) StakingAM(registry, "Arcadia Stargate Positions", "aSGP") {
         LP_STAKING_TIME = ILpStakingTime(lpStakingTime);
         REWARD_TOKEN = ERC20(address(LP_STAKING_TIME.eToken()));
         if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();

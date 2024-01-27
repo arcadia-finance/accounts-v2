@@ -6,8 +6,8 @@ pragma solidity 0.8.22;
 
 import { MultiCall_Fuzz_Test } from "./_MultiCall.fuzz.t.sol";
 
-import { ERC20Mock } from "../../.././utils/mocks/ERC20Mock.sol";
-import { NonfungiblePositionManagerMock } from "../../.././utils/mocks/NonfungiblePositionManager.sol";
+import { ERC20Mock } from "../../.././utils/mocks/tokens/ERC20Mock.sol";
+import { NonfungiblePositionManagerMock } from "../../.././utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
 
 /**
  * @notice Fuzz tests for the "mintUniV3LP" function of contract "MultiCall".
@@ -31,7 +31,7 @@ contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         MultiCall_Fuzz_Test.setUp();
         univ3PosMgr = new NonfungiblePositionManagerMock(address(factory));
 
-        deployUniswapV3AssetModule(address(univ3PosMgr));
+        deployUniswapV3AM(address(univ3PosMgr));
 
         token0 = new ERC20Mock("Token 0", "TOK0", 18);
         token1 = new ERC20Mock("Token 1", "TOK1", 18);

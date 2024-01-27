@@ -55,8 +55,8 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_Registry_Fuzz_Test is 
         vm.assume(deltaExposureAssetToUnderlyingAsset <= type(int112).max); // MaxExposure.
         vm.assume(deltaExposureAssetToUnderlyingAsset > type(int256).min); // Overflows on inversion.
 
-        registryExtension.setAssetToAssetModule(underlyingAsset, address(primaryAssetModule));
-        primaryAssetModule.setUsdValue(usdValue);
+        registryExtension.setAssetToAssetModule(underlyingAsset, address(primaryAM));
+        primaryAM.setUsdValue(usdValue);
 
         vm.prank(users.riskManager);
         registryExtension.setRiskParametersOfPrimaryAsset(
@@ -69,7 +69,7 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_Registry_Fuzz_Test is 
 
         // Prepare expected internal call.
         bytes memory data = abi.encodeCall(
-            primaryAssetModule.processIndirectDeposit,
+            primaryAM.processIndirectDeposit,
             (
                 address(creditorUsd),
                 underlyingAsset,
@@ -80,7 +80,7 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_Registry_Fuzz_Test is 
         );
 
         vm.prank(upperAssetModule);
-        vm.expectCall(address(primaryAssetModule), data);
+        vm.expectCall(address(primaryAM), data);
         (, uint256 usdExposureAssetToUnderlyingAsset) = registryExtension
             .getUsdValueExposureToUnderlyingAssetAfterDeposit(
             address(creditorUsd),

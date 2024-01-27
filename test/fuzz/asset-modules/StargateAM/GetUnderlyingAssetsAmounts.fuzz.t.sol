@@ -11,7 +11,7 @@ import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuati
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts" of contract "StargateAM".
  */
-contract GetUnderlyingAssetsAmounts_NSStargateAssetModule_Fuzz_Test is StargateAM_Fuzz_Test {
+contract GetUnderlyingAssetsAmounts_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

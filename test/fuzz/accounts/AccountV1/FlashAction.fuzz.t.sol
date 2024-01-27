@@ -9,7 +9,7 @@ import { Constants, AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 import { IActionBase, ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
-import { MultiActionMock } from "../../.././utils/mocks/MultiActionMock.sol";
+import { MultiActionMock } from "../../.././utils/mocks/actions/MultiActionMock.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { IPermit2 } from "../../../utils/Interfaces.sol";
 import { Utils } from "../../../utils/Utils.sol";
