@@ -775,7 +775,7 @@ contract StakedStargateAMExtension is StakedStargateAM {
     }
 }
 
-contract AerodromeAMExtension is AerodromeAM {
+contract AerodromeVolatileAMExtension is AerodromeAM {
     constructor(address registry, address aerodromeFactory) AerodromeAM(registry, aerodromeFactory) { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {

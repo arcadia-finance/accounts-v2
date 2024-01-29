@@ -13,4 +13,5 @@ interface IAeroPool {
     function totalSupply() external view returns (uint256);
     function balanceOf(address) external view returns (uint256);
     function approve(address, uint256) external returns (bool);
+    function stable() external returns (bool);
 }

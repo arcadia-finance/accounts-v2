@@ -10,12 +10,12 @@ import { IAeroPool } from "./interfaces/IAeroPool.sol";
 import { IAeroFactory } from "./interfaces/IAeroFactory.sol";
 
 /**
- * @title Asset-Module for Aerodrome Finance pools
+ * @title Asset-Module for Aerodrome Finance Volatile pools
  * @author Pragma Labs
  * @notice The AerodromeAssetModule stores pricing logic and basic information for Aerodrome Finance LP pools.
  * @dev No end-user should directly interact with the AerodromeAssetModule, only the Registry, the contract owner or via the actionHandler
  */
-contract AerodromeAM is DerivedAM {
+contract AerodromeVolatileAM is DerivedAM {
     using FixedPointMathLib for uint256;
 
     /* //////////////////////////////////////////////////////////////
@@ -38,6 +38,7 @@ contract AerodromeAM is DerivedAM {
 
     error InvalidPool();
     error AssetNotAllowed();
+    error IsNotAVolatilePool();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -45,6 +46,7 @@ contract AerodromeAM is DerivedAM {
 
     /**
      * @param registry_ The address of the Registry.
+     * @param aerodromeFactory The contract address of the pool factory of Aerodrome Finance.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC721 tokens is 1.
      */
     constructor(address registry_, address aerodromeFactory) DerivedAM(registry_, 0) {
@@ -57,10 +59,11 @@ contract AerodromeAM is DerivedAM {
 
     /**
      * @notice Adds a new Aerodrome Pool to the AerodromeAssetModule.
-     * @param pool The contract address of the Aerodrome LP Pool.
+     * @param pool The contract address of the Aerodrome Volatile Pool.
      */
-    function addAsset(address pool) external {
+    function addAsset(address pool) external virtual {
         if (AERO_FACTORY.isPool(pool) != true) revert InvalidPool();
+        if (IAeroPool(pool).stable() != false) revert IsNotAVolatilePool();
 
         (address token0, address token1) = IAeroPool(pool).tokens();
 
@@ -151,6 +154,7 @@ contract AerodromeAM is DerivedAM {
     )
         internal
         view
+        virtual
         override
         returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {

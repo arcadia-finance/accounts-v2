@@ -6,14 +6,14 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { AerodromeAMExtension } from "../../../utils/Extensions.sol";
+import { AerodromeVolatileAMExtension } from "../../../utils/Extensions.sol";
 import { AerodromeFactoryMock } from "../../../utils/mocks/Aerodrome/AerodromeFactoryMock.sol";
 import { AerodromePoolMock } from "../../../utils/mocks/Aerodrome/AerodromePoolMock.sol";
 
 /**
- * @notice Common logic needed by "StargateAM" fuzz tests.
+ * @notice Common logic needed by "AerodromeVolatileAM" fuzz tests.
  */
-abstract contract AerodromeAM_Fuzz_Test is Fuzz_Test {
+abstract contract AerodromeVolatileAM_Fuzz_Test is Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -22,7 +22,7 @@ abstract contract AerodromeAM_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AerodromeAMExtension internal aerodromeAssetModule;
+    AerodromeAMExtension internal aerodromeVolatileAM;
     AerodromeFactoryMock internal aerodromeFactoryMock;
     AerodromePoolMock internal poolMock;
 
@@ -33,14 +33,14 @@ abstract contract AerodromeAM_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        // Deploy mocked Stargate.
-        sgFactoryMock = new StargateFactoryMock();
-        poolMock = new StargatePoolMock(18);
+        // Deploy mocked AerodromeAM
+        aeroFactoryMock = new AerodromeFactoryMock();
+        poolMock = new AerodromePoolMock(18);
 
         // Deploy the Stargate AssetModule.
         vm.startPrank(users.creatorAddress);
-        stargateAssetModule = new StargateAMExtension(address(registryExtension), address(sgFactoryMock));
-        registryExtension.addAssetModule(address(stargateAssetModule));
+        aerodromeVolatileAM = new AerodromeVoaltileAMExtension(address(registryExtension), address(aeroFactoryMock));
+        registryExtension.addAssetModule(address(aerodromeVolatileAM));
         vm.stopPrank();
     }
 
