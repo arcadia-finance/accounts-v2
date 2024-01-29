@@ -163,6 +163,11 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
         // Cache asset and staked balance
         address asset = positionState[positionId].asset;
 
+        underlyingAssetsAmounts = new uint256[](3);
+        (underlyingAssetsAmounts[0], underlyingAssetsAmounts[1]) = _getTrustedTokenAmounts(
+            asset, rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue, assetAmount
+        );
+/* 
         // The untrusted reserves from the pair, these can be manipulated!!!
         (uint256 reserve0, uint256 reserve1,) = IPool(asset).getReserves();
 
@@ -176,9 +181,44 @@ contract AerodromeAssetModule is DerivedAssetModule, StakingModule {
         underlyingAssetsAmounts = new uint256[](3);
         underlyingAssetsAmounts[0] = reserve0.mulDivDown(amountStaked, totalSupply);
         underlyingAssetsAmounts[1] = reserve1.mulDivDown(amountStaked, totalSupply);
-        underlyingAssetsAmounts[2] = rewardOf(positionId);
+        underlyingAssetsAmounts[2] = rewardOf(positionId); */
 
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
+
+    /**
+     * @notice Returns the trusted amount of token0 provided as liquidity, given two trusted prices of token0 and token1
+     * @param pair Address of the Uniswap V2 Liquidity pool
+     * @param trustedPriceToken0 Trusted price of an amount of Token0 in a given Numeraire
+     * @param trustedPriceToken1 Trusted price of an amount of Token1 in a given Numeraire
+     * @param liquidityAmount The amount of LP tokens (ERC20)
+     * @return token0Amount The trusted amount of token0 provided as liquidity
+     * @return token1Amount The trusted amount of token1 provided as liquidity
+     * @dev Both trusted prices must be for the same Numeraire, and for an equal amount of tokens
+     *      e.g. if trustedPriceToken0 is the USD price for 10**18 tokens of token0,
+     *      than trustedPriceToken2 must be the USD price for 10**18 tokens of token1.
+     *      The amount of tokens should be big enough to guarantee enough precision for tokens with small unit-prices
+     * @dev The trusted amount of liquidity is calculated by first bringing the liquidity pool in equilibrium,
+     *      by calculating what the reserves of the pool would be if a profit-maximizing trade is done.
+     *      As such flash-loan attacks are mitigated, where an attacker swaps a large amount of the higher priced token,
+     *      to bring the pool out of equilibrium, resulting in liquidity positions with a higher share of the most valuable token.
+     * @dev Modification of https://github.com/Uniswap/v2-periphery/blob/master/contracts/libraries/UniswapV2LiquidityMathLibrary.sol#L23
+     */
+    function _getTrustedTokenAmounts(
+        address pair,
+        uint256 trustedPriceToken0,
+        uint256 trustedPriceToken1,
+        uint256 liquidityAmount
+    ) internal view returns (uint256 token0Amount, uint256 token1Amount) {
+        uint256 kLast = feeOn ? IUniswapV2Pair(pair).kLast() : 0;
+        uint256 totalSupply = IUniswapV2Pair(pair).totalSupply();
+
+        // this also checks that totalSupply > 0
+        if (totalSupply == 0) revert Zero_Supply();
+
+        (uint256 reserve0, uint256 reserve1) = _getTrustedReserves(pair, trustedPriceToken0, trustedPriceToken1);
+
+        return _computeTokenAmounts(reserve0, reserve1, totalSupply, liquidityAmount, kLast);
     }
 
     /*///////////////////////////////////////////////////////////////
