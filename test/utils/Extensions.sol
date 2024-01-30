@@ -29,7 +29,7 @@ import { ActionMultiCall } from "../../src/actions/MultiCall.sol";
 import { StakingAM } from "../../src/asset-modules/abstracts/AbstractStakingAM.sol";
 import { StargateAM } from "../../src/asset-modules/Stargate-Finance/StargateAM.sol";
 import { StakedStargateAM } from "../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
-import { AerodromeAM } from "../../src/asset-modules/Aerodrome-Finance/AerodromeAM.sol";
+import { AerodromeVolatileAM } from "../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
 
 contract AccountExtension is AccountV1 {
     constructor(address factory) AccountV1(factory) { }
@@ -775,8 +775,8 @@ contract StakedStargateAMExtension is StakedStargateAM {
     }
 }
 
-contract AerodromeVolatileAMExtension is AerodromeAM {
-    constructor(address registry, address aerodromeFactory) AerodromeAM(registry, aerodromeFactory) { }
+contract AerodromeVolatileAMExtension is AerodromeVolatileAM {
+    constructor(address registry, address aerodromeFactory) AerodromeVolatileAM(registry, aerodromeFactory) { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);

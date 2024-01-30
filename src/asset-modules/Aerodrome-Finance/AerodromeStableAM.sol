@@ -26,8 +26,6 @@ contract AerodromeStableAM is AerodromeVolatileAM {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
-    error InvalidPool();
-    error AssetNotAllowed();
     error IsNotAStablePool();
 
     /* //////////////////////////////////////////////////////////////

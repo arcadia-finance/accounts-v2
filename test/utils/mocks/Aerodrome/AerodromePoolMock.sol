@@ -126,4 +126,8 @@ contract AerodromePoolMock is ERC20 {
         uint256 denominator = reserveIn * 1000 + amountInWithFee;
         amountOut = numerator / denominator;
     }
+
+    function tokens() public view returns (address token0_, address token1_) {
+        return (token0, token1);
+    }
 }

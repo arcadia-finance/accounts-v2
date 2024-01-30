@@ -22,9 +22,9 @@ abstract contract AerodromeVolatileAM_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AerodromeAMExtension internal aerodromeVolatileAM;
-    AerodromeFactoryMock internal aerodromeFactoryMock;
-    AerodromePoolMock internal poolMock;
+    AerodromeVolatileAMExtension internal aeroVolatileAM;
+    AerodromeFactoryMock internal aeroFactoryMock;
+    AerodromePoolMock internal aeroPoolMock;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -35,16 +35,27 @@ abstract contract AerodromeVolatileAM_Fuzz_Test is Fuzz_Test {
 
         // Deploy mocked AerodromeAM
         aeroFactoryMock = new AerodromeFactoryMock();
-        poolMock = new AerodromePoolMock(18);
+        aeroPoolMock = new AerodromePoolMock();
 
         // Deploy the Stargate AssetModule.
         vm.startPrank(users.creatorAddress);
-        aerodromeVolatileAM = new AerodromeVoaltileAMExtension(address(registryExtension), address(aeroFactoryMock));
-        registryExtension.addAssetModule(address(aerodromeVolatileAM));
+        aeroVolatileAM = new AerodromeVolatileAMExtension(address(registryExtension), address(aeroFactoryMock));
+        registryExtension.addAssetModule(address(aeroVolatileAM));
         vm.stopPrank();
     }
 
     /* ///////////////////////////////////////////////////////////////
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
+
+    function setInitialState() public {
+        // Given : The asset is a pool in the the Aerodrome Factory.
+        aeroFactoryMock.setPool(address(aeroPoolMock));
+
+        // Given : The asset is an Aerodrome Volatile pool.
+        aeroPoolMock.setStable(false);
+
+        // Given : Token0 and token1 are added to the Registry
+        aeroPoolMock.setTokens(address(mockERC20.token1), address(mockERC20.stable1));
+    }
 }

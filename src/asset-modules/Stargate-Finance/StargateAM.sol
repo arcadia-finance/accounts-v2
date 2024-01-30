@@ -148,11 +148,7 @@ contract StargateAM is DerivedAM {
         returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
         (address asset,) = _getAssetFromKey(assetKey);
-
-        // "amountLPtoLD()" converts an amount of LP tokens into the corresponding amount of underlying tokens (LD stands for Local Decimals).
-        underlyingAssetsAmounts = new uint256[](1);
-        underlyingAssetsAmounts[0] = IPool(asset).amountLPtoLD(amount);
-
+        // Note : to implement
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }
 
