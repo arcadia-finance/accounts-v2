@@ -33,11 +33,11 @@ abstract contract AerodromeVolatileAM_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        // Deploy mocked AerodromeAM
+        // Deploy mocked Aerodrome contracts
         aeroFactoryMock = new AerodromeFactoryMock();
         aeroPoolMock = new AerodromePoolMock();
 
-        // Deploy the Stargate AssetModule.
+        // Deploy the Aerodrome AssetModule.
         vm.startPrank(users.creatorAddress);
         aeroVolatileAM = new AerodromeVolatileAMExtension(address(registryExtension), address(aeroFactoryMock));
         registryExtension.addAssetModule(address(aeroVolatileAM));

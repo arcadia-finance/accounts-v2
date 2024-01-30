@@ -30,6 +30,7 @@ import { StakingAM } from "../../src/asset-modules/abstracts/AbstractStakingAM.s
 import { StargateAM } from "../../src/asset-modules/Stargate-Finance/StargateAM.sol";
 import { StakedStargateAM } from "../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
 import { AerodromeVolatileAM } from "../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
+import { AerodromeStableAM } from "../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
 
 contract AccountExtension is AccountV1 {
     constructor(address factory) AccountV1(factory) { }
@@ -814,5 +815,38 @@ contract AerodromeVolatileAMExtension is AerodromeVolatileAM {
     ) public view returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
         (valueInUsd, collateralFactor, liquidationFactor) =
             _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
+}
+
+contract AerodromeStableAMExtension is AerodromeStableAM {
+    constructor(address registry, address aerodromeFactory) AerodromeStableAM(registry, aerodromeFactory) { }
+
+    function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
+        (asset, assetId) = _getAssetFromKey(key);
+    }
+
+    function getKeyFromAsset(address asset, uint256 assetId) public pure returns (bytes32 key) {
+        (key) = _getKeyFromAsset(asset, assetId);
+    }
+
+    function getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 exposureAsset,
+        bytes32[] memory underlyingAssetKeys
+    )
+        public
+        view
+        returns (
+            uint256[] memory exposureAssetToUnderlyingAssets,
+            AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+        )
+    {
+        (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
+    }
+
+    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {
+        return _getUnderlyingAssets(assetKey);
     }
 }
