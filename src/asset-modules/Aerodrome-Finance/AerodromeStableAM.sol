@@ -9,8 +9,7 @@ import {
     FixedPointMathLib,
     IRegistry,
     AssetValueAndRiskFactors,
-    IAeroPool,
-    IAeroFactory
+    IAeroPool
 } from "./AerodromeVolatileAM.sol";
 
 /**

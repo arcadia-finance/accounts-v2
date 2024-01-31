@@ -132,6 +132,15 @@ contract StargateAM is DerivedAM {
         underlyingAssetKeys = assetToUnderlyingAssets[assetKey];
     }
 
+    /**
+     * @notice Calculates for a given amount of Asset the corresponding amount(s) of underlying asset(s).
+     * param creditor The contract address of the creditor.
+     * @param assetKey The unique identifier of the asset.
+     * @param amount The amount of the Asset, in the decimal precision of the Asset.
+     * param underlyingAssetKeys The unique identifiers of the underlying assets.
+     * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
+     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     */
     function _getUnderlyingAssetsAmounts(address, bytes32 assetKey, uint256 amount, bytes32[] memory)
         internal
         view
