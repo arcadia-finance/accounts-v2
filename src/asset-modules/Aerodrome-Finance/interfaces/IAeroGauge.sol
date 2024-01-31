@@ -6,7 +6,7 @@
  */
 pragma solidity 0.8.22;
 
-interface IGauge {
+interface IAeroGauge {
     function deposit(uint256) external;
     function withdraw(uint256) external;
     function rewardToken() external returns (address);

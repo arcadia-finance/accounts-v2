@@ -5,24 +5,21 @@
 pragma solidity 0.8.22;
 
 import { ERC20, IRegistry, StakingAM } from "../abstracts/AbstractStakingAM.sol";
-import { ILpStakingTime } from "./interfaces/ILpStakingTime.sol";
+import { IAeroGauge } from "./interfaces/IAeroGauge.sol";
+import { IAeroPool } from "./interfaces/IAeroPool.sol";
 
 /**
- * @title Asset Module for Staked Stargate Finance pools
+ * @title Asset Module for Staked Aerodrome Finance pools
  * @author Pragma Labs
- * @notice The Staked Stargate Asset Module stores pricing logic and basic information for Staked Stargate Finance LP pools
- * @dev No end-user should directly interact with the Staked Stargate Asset Module, only the Registry, the contract owner or via the actionHandler
+ * @notice The Staked Aerodrome Finance Asset Module stores pricing logic and basic information for Staked Aerodrome Finance LP pools
+ * @dev No end-user should directly interact with the Staked Aerodrome Finance Asset Module, only the Registry, the contract owner or via the actionHandler
  */
-contract StakedStargateAM is StakingAM {
-    /* //////////////////////////////////////////////////////////////
-                                CONSTANTS
-    ////////////////////////////////////////////////////////////// */
-
+contract StakedAerodromeAM is StakingAM {
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Maps an Aerodrome Pool to its gauge.
+    // Maps an Aerodrome Finance Pool to its gauge.
     mapping(address asset => address gauge) public assetToGauge;
 
     /* //////////////////////////////////////////////////////////////
@@ -32,6 +29,8 @@ contract StakedStargateAM is StakingAM {
     error AssetAlreadySet();
     error PoolNotAllowed();
     error RewardTokenNotAllowed();
+    error RewardTokenNotValid();
+    error PoolOrGaugeNotValid();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -47,31 +46,26 @@ contract StakedStargateAM is StakingAM {
     }
 
     /*///////////////////////////////////////////////////////////////
-                        ASSET MANAGEMENT
+                            ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a new Staked Stargate Pool to the StargateAssetModule.
-     * @param pid The id of the stargatePool used in the LP_STAKING_TIME contract.
+     * @notice Adds a new Staked Aerodrome Finance pool to the StakedAerodromeAM.
+     * @param pool The contract address of the Aerodrome Finance pool.
+     * @param gauge The contract address of the gauge to stake the Aerodrome Finance LP.
      */
     function addAsset(address pool, address gauge) external {
         if (!IRegistry(REGISTRY).isAllowed(pool, 0)) revert PoolNotAllowed();
-        if (assetToGauge[pool] != address(0)) revert AssetAlreadyAdded();
-        if (IGauge(gauge).stakingToken() != pool) revert PoolOrGaugeNotValid();
-        if (IGauge(gauge).rewardToken() != address(REWARD_TOKEN)) revert RewardTokenNotValid();
+        if (assetState[pool].allowed) revert AssetAlreadySet();
+        if (IAeroGauge(gauge).stakingToken() != pool) revert PoolOrGaugeNotValid();
+        if (IAeroGauge(gauge).rewardToken() != address(REWARD_TOKEN)) revert RewardTokenNotValid();
 
         assetToGauge[pool] = gauge;
-
-        bytes32[] memory underlyingAssetsKey = new bytes32[](3);
-        underlyingAssetsKey[0] = _getKeyFromAsset(token0, 0);
-        underlyingAssetsKey[1] = _getKeyFromAsset(token1, 0);
-        underlyingAssetsKey[2] = _getKeyFromAsset(rewardToken_, 0);
-
-        assetToUnderlyingAssets[_getKeyFromAsset(pool, 0)] = underlyingAssetsKey;
+        _addAsset(pool);
     }
 
     /*///////////////////////////////////////////////////////////////
-                    INTERACTIONS STAKING CONTRACT
+                     INTERACTIONS STAKING CONTRACT
     ///////////////////////////////////////////////////////////////*/
 
     /**
@@ -80,10 +74,11 @@ contract StakedStargateAM is StakingAM {
      * @param amount The amount of Asset to stake.
      */
     function _stake(address asset, uint256 amount) internal override {
-        ERC20(asset).approve(address(LP_STAKING_TIME), amount);
+        address gauge = assetToGauge[asset];
+        ERC20(asset).approve(gauge, amount);
 
         // Stake asset
-        LP_STAKING_TIME.deposit(assetToPid[asset], amount);
+        IAeroGauge(gauge).deposit(amount);
     }
 
     /**
@@ -93,7 +88,7 @@ contract StakedStargateAM is StakingAM {
      */
     function _withdraw(address asset, uint256 amount) internal override {
         // Withdraw asset
-        LP_STAKING_TIME.withdraw(assetToPid[asset], amount);
+        IAeroGauge(assetToGauge[asset]).withdraw(amount);
     }
 
     /**
@@ -102,7 +97,7 @@ contract StakedStargateAM is StakingAM {
      * @dev Withdrawing a zero amount will trigger the claim for rewards.
      */
     function _claimReward(address asset) internal override {
-        LP_STAKING_TIME.withdraw(assetToPid[asset], 0);
+        IAeroGauge(assetToGauge[asset]).getReward(address(this));
     }
 
     /**
@@ -111,6 +106,6 @@ contract StakedStargateAM is StakingAM {
      * @return currentReward The amount of reward tokens that can be claimed.
      */
     function _getCurrentReward(address asset) internal view override returns (uint256 currentReward) {
-        currentReward = LP_STAKING_TIME.pendingEmissionToken(assetToPid[asset], address(this));
+        currentReward = IAeroGauge(assetToGauge[asset]).earned(address(this));
     }
 }
