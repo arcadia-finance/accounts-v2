@@ -10,10 +10,10 @@ import { IAeroPool } from "./interfaces/IAeroPool.sol";
 import { IAeroFactory } from "./interfaces/IAeroFactory.sol";
 
 /**
- * @title Asset-Module for Aerodrome Finance Volatile pools
+ * @title Asset-Module for Aerodrome Finance volatile pools
  * @author Pragma Labs
- * @notice The AerodromeAssetModule stores pricing logic and basic information for Aerodrome Finance LP pools.
- * @dev No end-user should directly interact with the AerodromeAssetModule, only the Registry, the contract owner or via the actionHandler
+ * @notice The AerodromeVolatileAM stores pricing logic and basic information for Aerodrome Finance volatile pools
+ * @dev No end-user should directly interact with the AerodromeVolatileAM, only the Registry, the contract owner or via the actionHandler
  */
 contract AerodromeVolatileAM is DerivedAM {
     using FixedPointMathLib for uint256;
@@ -22,14 +22,14 @@ contract AerodromeVolatileAM is DerivedAM {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
-    // The Aerodrome Factory
+    // The Aerodrome Finance Factory
     IAeroFactory public immutable AERO_FACTORY;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Maps an Aerodrome pool to its underlying assets.
+    // Maps an Aerodrome Finance pool to its underlying assets.
     mapping(bytes32 asset => bytes32[] underlyingAssets) public assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////
@@ -58,8 +58,8 @@ contract AerodromeVolatileAM is DerivedAM {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a new Aerodrome Pool to the AerodromeAssetModule.
-     * @param pool The contract address of the Aerodrome Volatile Pool.
+     * @notice Adds a new Aerodrome volatile pool to the AerodromeVolatileAM.
+     * @param pool The contract address of the Aerodrome Finance volatile pool.
      */
     function addAsset(address pool) external virtual {
         if (AERO_FACTORY.isPool(pool) != true) revert InvalidPool();
@@ -78,7 +78,7 @@ contract AerodromeVolatileAM is DerivedAM {
 
         assetToUnderlyingAssets[_getKeyFromAsset(pool, 0)] = underlyingAssetsKey;
 
-        // Will revert in Registry if Aerodrome pool was already added.
+        // Will revert in Registry if Aerodrome Finance pool was already added.
         IRegistry(REGISTRY).addAsset(pool);
     }
 

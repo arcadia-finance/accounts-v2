@@ -15,8 +15,8 @@ import {
 /**
  * @title Asset-Module for Aerodrome Finance stable pools
  * @author Pragma Labs
- * @notice The AerodromeAssetModule stores pricing logic and basic information for Aerodrome Finance LP pools.
- * @dev No end-user should directly interact with the AerodromeAssetModule, only the Registry, the contract owner or via the actionHandler
+ * @notice The AerodromeStableAM stores pricing logic and basic information for Aerodrome Finance stable pools.
+ * @dev No end-user should directly interact with the AerodromeStableAM, only the Registry, the contract owner or via the actionHandler
  */
 contract AerodromeStableAM is AerodromeVolatileAM {
     using FixedPointMathLib for uint256;
@@ -42,8 +42,8 @@ contract AerodromeStableAM is AerodromeVolatileAM {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a new Aerodrome Pool to the AerodromeAssetModule.
-     * @param pool The contract address of the Aerodrome Stable Pool.
+     * @notice Adds a new Aerodrome stable pool to the AerodromeStableAM.
+     * @param pool The contract address of the Aerodrome stable pool.
      */
     function addAsset(address pool) external override {
         if (AERO_FACTORY.isPool(pool) != true) revert InvalidPool();
