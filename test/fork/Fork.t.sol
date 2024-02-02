@@ -7,6 +7,7 @@ pragma solidity 0.8.22;
 import { Base_Test } from "../Base.t.sol";
 
 import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 /**
  * @notice Common logic needed by all fork tests.
@@ -19,9 +20,15 @@ abstract contract Fork_Test is Base_Test {
                             CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
-    ERC20 internal constant USDC = ERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-    ERC20 internal constant DAI = ERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-    ERC20 internal constant WETH = ERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+    ERC20 internal constant USDC = ERC20(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
+    ERC20 internal constant USDBC = ERC20(0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA);
+    ERC20 internal constant DAI = ERC20(0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb);
+    ERC20 internal constant WETH = ERC20(0x4200000000000000000000000000000000000006);
+
+    // The Chainlink USDC oracle on Base
+    address oracleUSDC = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
+    // The Chainlink DAI oracle on Base
+    address oracleDAI = 0x591e79239a7d679378eC8c847e5038150364C78F;
 
     string internal RPC_URL = vm.envString("RPC_URL");
 
@@ -39,5 +46,31 @@ abstract contract Fork_Test is Base_Test {
         vm.selectFork(fork);
 
         Base_Test.setUp();
+
+        vm.startPrank(users.creatorAddress);
+        // Add USDC oracle to the protocol
+        uint256 oracleId = chainlinkOM.addOracle(oracleUSDC, "USDC", "USD", 2 days);
+        bool[] memory boolValues = new bool[](1);
+        boolValues[0] = true;
+        uint80[] memory uintValues = new uint80[](1);
+        uintValues[0] = uint80(oracleId);
+        bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
+        erc20AssetModule.addAsset(address(USDC), oracleSequence);
+
+        oracleId = chainlinkOM.addOracle(oracleDAI, "DAI", "USD", 2 days);
+        uintValues[0] = uint80(oracleId);
+        oracleSequence = BitPackingLib.pack(boolValues, uintValues);
+        erc20AssetModule.addAsset(address(DAI), oracleSequence);
+
+        oracleId = chainlinkOM.addOracle(oracleUSDC, "USDbC", "USD", 2 days);
+        uintValues[0] = uint80(oracleId);
+        oracleSequence = BitPackingLib.pack(boolValues, uintValues);
+        erc20AssetModule.addAsset(address(USDBC), oracleSequence);
+
+        vm.stopPrank();
+
+        vm.label({ account: address(USDC), newLabel: "USDC" });
+        vm.label({ account: address(DAI), newLabel: "DAI" });
+        vm.label({ account: address(USDBC), newLabel: "USDbC" });
     }
 }

@@ -15,23 +15,30 @@ import { IAeroFactory } from "../../../../src/asset-modules/Aerodrome-Finance/in
 import { AerodromeVolatileAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
 import { AerodromeStableAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
 import { StakedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
+import { StakedAerodromeAMExtension } from "../../../utils/Extensions.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 
 /**
  * @notice Base test file for Aerodrome Asset-Module fork tests.
  */
-contract AerodromeBase_Fork_Test is Fork_Test {
+contract StakedAerodromeAM_Fork_Test is Fork_Test {
     /*///////////////////////////////////////////////////////////////
                             CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
     IAeroRouter public router = IAeroRouter(0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43);
-    IAeroFactory public aeroFactory = IAeroFactory(0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6);
+    IAeroFactory public aeroFactory = IAeroFactory(0x420DD381b31aEf6683db6B902084cB0FFECe40Da);
+
+    // The AERO contract address on Base
     address AERO = 0x940181a94A35A4569E4529A3CDfB74e38FD98631;
+    // The address of the DAI/USDC Aerodrome Stable pool
+    address stablePool = 0x67b00B46FA4f4F24c03855c5C8013C0B938B3eEc;
+    // The gauge of the DAI/USDC Aerodrome Stable pool
+    address stableGauge = 0x640e9ef68e1353112fF18826c4eDa844E1dC5eD0;
 
     AerodromeVolatileAM public aerodromeVolatileAM;
     AerodromeStableAM public aerodromeStableAM;
-    StakedAerodromeAM public stakedAerodromeAM;
+    StakedAerodromeAMExtension public stakedAerodromeAM;
 
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
@@ -67,9 +74,12 @@ contract AerodromeBase_Fork_Test is Fork_Test {
         registryExtension.addAssetModule(address(aerodromeStableAM));
 
         // Deploy StakedAerodromeAM.
-        stakedAerodromeAM = new StakedAerodromeAM(address(registryExtension));
+        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registryExtension));
         registryExtension.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
+
+        // Add stablePool to the AerodromeStableAM
+        aerodromeStableAM.addAsset(stablePool);
 
         // Label contracts
         vm.label({ account: address(router), newLabel: "Aerodrome Router" });
@@ -93,7 +103,7 @@ contract AerodromeBase_Fork_Test is Fork_Test {
         uint256 amount0,
         uint256 amount1,
         address user,
-        IAeroPool pool
+        address pool
     ) public returns (uint256 lpBalance) {
         // A user deposits in the Stargate USDbC pool.
         vm.startPrank(user);
@@ -105,10 +115,10 @@ contract AerodromeBase_Fork_Test is Fork_Test {
         router.addLiquidity(address(token0), address(token1), stable, amount0, amount1, 0, 0, user, block.timestamp);
 
         // The user stakes the LP token via the Staked Aerodrome Asset Module
-        lpBalance = ERC20(address(pool)).balanceOf(user);
-        ERC20(address(pool)).approve(address(stakedAerodromeAM), lpBalance);
+        lpBalance = ERC20(pool).balanceOf(user);
+        ERC20(pool).approve(address(stakedAerodromeAM), lpBalance);
 
-        uint256 tokenId = stakedAerodromeAM.mint(address(pool), uint128(lpBalance));
+        uint256 tokenId = stakedAerodromeAM.mint(pool, uint128(lpBalance));
 
         // The user deposits the ERC721 in its Account.
         stakedAerodromeAM.approve(account, tokenId);
@@ -125,5 +135,52 @@ contract AerodromeBase_Fork_Test is Fork_Test {
         AccountV1(account).deposit(assetAddresses, assetIds, assetAmounts);
 
         vm.stopPrank();
+    }
+
+    // Deal method does not work anymore with USDC.
+    // We prank the DOLA/USDC pool to transfer USDC from it.
+    function addLiquidityUSDC(
+        ERC20 token0,
+        ERC20 token1,
+        bool stable,
+        uint256 amount0,
+        uint256 amount1,
+        address user,
+        address pool
+    ) public returns (uint256 lpBalance) {
+        // A user adds liquidity in the pool.
+        address DOLA_USDC_POOL = 0xf213F2D02837012dC0236cC105061e121bB03e37;
+        vm.startPrank(DOLA_USDC_POOL);
+        USDC.transfer(user, amount0);
+
+        deal(address(token1), user, amount1);
+
+        vm.startPrank(user);
+        token0.approve(address(router), amount0);
+        token1.approve(address(router), amount1);
+        router.addLiquidity(address(token0), address(token1), stable, amount0, amount1, 0, 0, user, block.timestamp);
+
+        lpBalance = ERC20(pool).balanceOf(user);
+    }
+
+    function addLiquidity(
+        ERC20 token0,
+        ERC20 token1,
+        bool stable,
+        uint256 amount0,
+        uint256 amount1,
+        address user,
+        address pool
+    ) public returns (uint256 lpBalance) {
+        // A user adds liquidity in the pool.
+        deal(address(token0), user, amount0);
+        deal(address(token1), user, amount1);
+
+        vm.startPrank(user);
+        token0.approve(address(router), amount0);
+        token1.approve(address(router), amount1);
+        router.addLiquidity(address(token0), address(token1), stable, amount0, amount1, 0, 0, user, block.timestamp);
+
+        lpBalance = ERC20(pool).balanceOf(user);
     }
 }

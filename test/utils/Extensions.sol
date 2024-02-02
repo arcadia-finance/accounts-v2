@@ -31,6 +31,7 @@ import { StargateAM } from "../../src/asset-modules/Stargate-Finance/StargateAM.
 import { StakedStargateAM } from "../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
 import { AerodromeVolatileAM } from "../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
 import { AerodromeStableAM } from "../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
+import { StakedAerodromeAM } from "../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
 
 contract AccountExtension is AccountV1 {
     constructor(address factory) AccountV1(factory) { }
@@ -848,5 +849,25 @@ contract AerodromeStableAMExtension is AerodromeStableAM {
 
     function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {
         return _getUnderlyingAssets(assetKey);
+    }
+}
+
+contract StakedAerodromeAMExtension is StakedAerodromeAM {
+    constructor(address registry) StakedAerodromeAM(registry) { }
+
+    function stake(address asset, uint256 amount) public {
+        _stake(asset, amount);
+    }
+
+    function withdraw(address asset, uint256 amount) public {
+        _withdraw(asset, amount);
+    }
+
+    function claimReward(address asset) public {
+        _claimReward(asset);
+    }
+
+    function getCurrentReward(address asset) public view returns (uint256 currentReward) {
+        currentReward = _getCurrentReward(asset);
     }
 }
