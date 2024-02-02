@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { ERC20, IRegistry, StakingAM } from "../abstracts/AbstractStakingAM.sol";
 import { IAeroGauge } from "./interfaces/IAeroGauge.sol";
-import { IAeroPool } from "./interfaces/IAeroPool.sol";
+import { IAeroVoter } from "./interfaces/IAeroVoter.sol";
 
 /**
  * @title Asset Module for Staked Aerodrome Finance pools
@@ -15,6 +15,12 @@ import { IAeroPool } from "./interfaces/IAeroPool.sol";
  * @dev No end-user should directly interact with the Staked Aerodrome Finance Asset Module, only the Registry, the contract owner or via the actionHandler
  */
 contract StakedAerodromeAM is StakingAM {
+    /* //////////////////////////////////////////////////////////////
+                                CONSTANTS
+    ////////////////////////////////////////////////////////////// */
+
+    IAeroVoter public immutable AERO_VOTER;
+
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
@@ -31,6 +37,7 @@ contract StakedAerodromeAM is StakingAM {
     error RewardTokenNotAllowed();
     error RewardTokenNotValid();
     error PoolOrGaugeNotValid();
+    error GaugeNotValid();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -38,11 +45,15 @@ contract StakedAerodromeAM is StakingAM {
 
     /**
      * @param registry The address of the Registry.
+     * @param aerodromeVoter The address of the Aerodrome Finance Voter contract.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC721 tokens.
      */
-    constructor(address registry) StakingAM(registry, "Arcadia Aerodrome Positions", "aAEROP") {
+    constructor(address registry, address aerodromeVoter)
+        StakingAM(registry, "Arcadia Aerodrome Positions", "aAEROP")
+    {
         REWARD_TOKEN = ERC20(0x940181a94A35A4569E4529A3CDfB74e38FD98631);
         if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
+        AERO_VOTER = IAeroVoter(aerodromeVoter);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -57,6 +68,8 @@ contract StakedAerodromeAM is StakingAM {
     function addAsset(address pool, address gauge) external {
         if (!IRegistry(REGISTRY).isAllowed(pool, 0)) revert PoolNotAllowed();
         if (assetState[pool].allowed) revert AssetAlreadySet();
+
+        if (AERO_VOTER.isGauge(gauge) != true) revert GaugeNotValid();
         if (IAeroGauge(gauge).stakingToken() != pool) revert PoolOrGaugeNotValid();
         if (IAeroGauge(gauge).rewardToken() != address(REWARD_TOKEN)) revert RewardTokenNotValid();
 

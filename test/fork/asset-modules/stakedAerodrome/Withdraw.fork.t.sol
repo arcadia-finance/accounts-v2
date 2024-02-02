@@ -7,8 +7,6 @@ pragma solidity 0.8.22;
 import { StakedAerodromeAM_Fork_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fork.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
-import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { IAeroPool } from "../../../../src/asset-modules/Aerodrome-Finance/interfaces/IAeroPool.sol";
 
 /**
  * @notice Fork tests for the "withdraw" function of contract "StakedAerodromeAM".

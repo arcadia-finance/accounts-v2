@@ -853,7 +853,7 @@ contract AerodromeStableAMExtension is AerodromeStableAM {
 }
 
 contract StakedAerodromeAMExtension is StakedAerodromeAM {
-    constructor(address registry) StakedAerodromeAM(registry) { }
+    constructor(address registry, address aerodromeVoter) StakedAerodromeAM(registry, aerodromeVoter) { }
 
     function stake(address asset, uint256 amount) public {
         _stake(asset, amount);
@@ -869,5 +869,9 @@ contract StakedAerodromeAMExtension is StakedAerodromeAM {
 
     function getCurrentReward(address asset) public view returns (uint256 currentReward) {
         currentReward = _getCurrentReward(asset);
+    }
+
+    function setAllowed(address asset, bool allowed) public {
+        assetState[asset].allowed = allowed;
     }
 }

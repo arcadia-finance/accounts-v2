@@ -10,7 +10,7 @@ import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { IAeroPool } from "../../../../src/asset-modules/Aerodrome-Finance/interfaces/IAeroPool.sol";
-import { IAeroRouter } from "../../../../src/asset-modules/Aerodrome-Finance/interfaces/IAeroRouter.sol";
+import { IAeroRouter } from "../../../utils/Interfaces.sol";
 import { IAeroFactory } from "../../../../src/asset-modules/Aerodrome-Finance/interfaces/IAeroFactory.sol";
 import { AerodromeVolatileAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
 import { AerodromeStableAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
@@ -31,10 +31,16 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
 
     // The AERO contract address on Base
     address AERO = 0x940181a94A35A4569E4529A3CDfB74e38FD98631;
+    // The address of the Aerodrome Voter contract
+    address aeroVoter = 0x16613524e02ad97eDfeF371bC883F2F5d6C480A5;
     // The address of the DAI/USDC Aerodrome Stable pool
     address stablePool = 0x67b00B46FA4f4F24c03855c5C8013C0B938B3eEc;
     // The gauge of the DAI/USDC Aerodrome Stable pool
     address stableGauge = 0x640e9ef68e1353112fF18826c4eDa844E1dC5eD0;
+    // The address of the WETH/USDC Aerodrome Volatile pool
+    address volatilePool = 0xcDAC0d6c6C59727a65F871236188350531885C43;
+    // The gauge of the WETH/USDC Aerodrome Volatile pool
+    address volatileGauge = 0x519BBD1Dd8C6A94C46080E24f316c14Ee758C025;
 
     AerodromeVolatileAM public aerodromeVolatileAM;
     AerodromeStableAM public aerodromeStableAM;
@@ -74,7 +80,7 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
         registryExtension.addAssetModule(address(aerodromeStableAM));
 
         // Deploy StakedAerodromeAM.
-        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registryExtension));
+        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registryExtension), aeroVoter);
         registryExtension.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
 

@@ -7,7 +7,6 @@ pragma solidity 0.8.22;
 import { StakedAerodromeAM_Fork_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fork.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
-import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 /**
  * @notice Fork tests for the constructor of contract "StakedAerodromeAM".
@@ -33,16 +32,17 @@ contract Constructor_StakedAerodromeAM_Fork_Test is StakedAerodromeAM_Fork_Test 
         // Then: It reverts.
         vm.prank(users.creatorAddress);
         vm.expectRevert(StakedAerodromeAM.RewardTokenNotAllowed.selector);
-        new StakedAerodromeAM(address(registryExtension));
+        new StakedAerodromeAM(address(registryExtension), aeroVoter);
     }
 
     function testFork_success_constructor() public {
-        StakedAerodromeAM assetModule = new StakedAerodromeAM(address(registryExtension));
+        StakedAerodromeAM assetModule = new StakedAerodromeAM(address(registryExtension), aeroVoter);
 
         assertEq(address(assetModule.REWARD_TOKEN()), AERO);
         assertEq(assetModule.ASSET_TYPE(), 1);
         assertEq(assetModule.REGISTRY(), address(registryExtension));
         assertEq(assetModule.symbol(), "aAEROP");
         assertEq(assetModule.name(), "Arcadia Aerodrome Positions");
+        assertEq(address(assetModule.AERO_VOTER()), aeroVoter);
     }
 }
