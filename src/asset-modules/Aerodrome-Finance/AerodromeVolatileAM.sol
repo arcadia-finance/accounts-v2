@@ -158,7 +158,7 @@ contract AerodromeVolatileAM is DerivedAM {
         override
         returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
-        (address asset,) = _getAssetFromKey(assetKey);
+        //(address asset,) = _getAssetFromKey(assetKey);
         // Note : to implement
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }

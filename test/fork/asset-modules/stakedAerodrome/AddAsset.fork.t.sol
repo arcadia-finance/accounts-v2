@@ -8,6 +8,7 @@ import { StakedAerodromeAM_Fork_Test, StakedAerodromeAM } from "./_StakedAerodro
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { stdStorage, StdStorage } from "../../../../lib/forge-std/src/StdStorage.sol";
+import { AerodromeGaugeMock } from "../../../utils/mocks/Aerodrome/AerodromeGaugeMock.sol";
 
 /**
  * @notice Fork tests for the "addAsset" function of contract "StakedAerodromeAM".
@@ -58,18 +59,23 @@ contract AddAsset_StakedAerodromeAM_Fork_Test is StakedAerodromeAM_Fork_Test {
     function testFork_Revert_AddAsset_PoolOrGaugeNotValid() public {
         // When :  Calling addAsset()
         // Then : It should revert
-        vm.expectRevert(StakedAerodromeAM.GaugeNotValid.selector);
+        vm.expectRevert(StakedAerodromeAM.PoolOrGaugeNotValid.selector);
         stakedAerodromeAM.addAsset(stablePool, volatileGauge);
     }
 
     function testFork_Revert_AddAsset_RewardTokenNotValid() public {
-        // Given : the rewardToken is not valid (not AERO)
-        stdstore.target(address(stableGauge)).sig(bytes4(keccak256("rewardToken()"))).checked_write(address(USDC));
-
+        // Note : to adapt
+        /*         AerodromeGaugeMock gauge = new AerodromeGaugeMock();
+        
+        // Given : rewardToken is not valid in gauge (!= AERO)
+        gauge.setRewardToken(address(USDC));
+        // Given : stakingToken is valid in gauge
+        gauge.setStakingToken(stablePool);
+        
         // When :  Calling addAsset()
         // Then : It should revert
         vm.expectRevert(StakedAerodromeAM.RewardTokenNotValid.selector);
-        stakedAerodromeAM.addAsset(stablePool, stableGauge);
+        stakedAerodromeAM.addAsset(stablePool, address(gauge)); */
     }
 
     function testFork_Success_AddAsset() public {

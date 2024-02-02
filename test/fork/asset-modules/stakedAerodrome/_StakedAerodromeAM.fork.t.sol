@@ -101,48 +101,6 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
 
-    function stakeInAssetModuleAndDepositInAccount(
-        address account,
-        ERC20 token0,
-        ERC20 token1,
-        bool stable,
-        uint256 amount0,
-        uint256 amount1,
-        address user,
-        address pool
-    ) public returns (uint256 lpBalance) {
-        // A user deposits in the Stargate USDbC pool.
-        vm.startPrank(user);
-        deal(address(token0), user, amount0);
-        deal(address(token1), user, amount1);
-
-        token0.approve(address(router), amount0);
-        token1.approve(address(router), amount1);
-        router.addLiquidity(address(token0), address(token1), stable, amount0, amount1, 0, 0, user, block.timestamp);
-
-        // The user stakes the LP token via the Staked Aerodrome Asset Module
-        lpBalance = ERC20(pool).balanceOf(user);
-        ERC20(pool).approve(address(stakedAerodromeAM), lpBalance);
-
-        uint256 tokenId = stakedAerodromeAM.mint(pool, uint128(lpBalance));
-
-        // The user deposits the ERC721 in its Account.
-        stakedAerodromeAM.approve(account, tokenId);
-
-        address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = address(stakedAerodromeAM);
-
-        uint256[] memory assetIds = new uint256[](1);
-        assetIds[0] = tokenId;
-
-        uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = 1;
-
-        AccountV1(account).deposit(assetAddresses, assetIds, assetAmounts);
-
-        vm.stopPrank();
-    }
-
     // Deal method does not work anymore with USDC.
     // We prank the DOLA/USDC pool to transfer USDC from it.
     function addLiquidityUSDC(
