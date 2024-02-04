@@ -155,6 +155,9 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
 
         (,,, totalStaked) = stakedStargateAM.assetState(address(pool));
         assert(totalStaked == 0);
+        emit log_named_uint(
+            "reamining reward in SM", stakedStargateAM.REWARD_TOKEN().balanceOf(address(stakedStargateAM))
+        );
     }
 
     // The withdrawal of a zero amount should trigger the claim of the rewards
@@ -187,5 +190,65 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
         assert(lpStakingTime.eToken().balanceOf(users.accountOwner) > 0);
 
         vm.stopPrank();
+    }
+
+    function testFork_Success_Withdraw_sherlock() public {
+        // Given : Amount of underlying assets deposited in Stargate pool.
+        uint256 amount1 = 500_000 * 10 ** USDBC.decimals();
+        uint256 amount2 = 200_000 * 10 ** USDBC.decimals();
+
+        // And : 2 users deploy a new Arcadia Account.
+        address payable user1 = createUser("user1");
+        address payable user2 = createUser("user2");
+
+        vm.prank(user1);
+        address arcadiaAccount1 = factory.createAccount(100, 0, address(0));
+
+        vm.prank(user2);
+        address arcadiaAccount2 = factory.createAccount(101, 0, address(0));
+
+        // And : Stake Stargate Pool LP tokens in the Asset Modules and deposit minted ERC721 in Accounts.
+        uint256 lpBalance1 = stakeInAssetModuleAndDepositInAccount(user1, arcadiaAccount1, USDBC, amount1, pid, pool);
+
+        vm.warp(block.timestamp + 1 days);
+
+        emit log_named_uint("current reward 1_1", stakedStargateAM.rewardOf(1));
+
+        // And : Stake Stargate Pool LP tokens in the Asset Modules and deposit minted ERC721 in Accounts.
+        uint256 lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDBC, amount2, pid, pool);
+
+        vm.warp(block.timestamp + 1 days);
+
+        emit log_named_uint("current reward 2_1", stakedStargateAM.rewardOf(2));
+
+        emit log_named_uint("current reward 1_2", stakedStargateAM.rewardOf(1));
+
+        vm.prank(arcadiaAccount1);
+        stakedStargateAM.burn(1);
+
+        emit log_named_uint(
+            "rewards transfered to account1", stakedStargateAM.REWARD_TOKEN().balanceOf(arcadiaAccount1)
+        );
+
+        emit log_named_uint("current reward 1_end", stakedStargateAM.rewardOf(1));
+        emit log_named_uint(
+            "reamining reward in SM", stakedStargateAM.REWARD_TOKEN().balanceOf(address(stakedStargateAM))
+        );
+
+        vm.warp(block.timestamp + 1 days);
+
+        emit log_named_uint("current reward 2_2", stakedStargateAM.rewardOf(2));
+
+        vm.prank(arcadiaAccount2);
+        stakedStargateAM.burn(2);
+
+        emit log_named_uint("current reward 2_end", stakedStargateAM.rewardOf(2));
+        emit log_named_uint(
+            "rewards transfered to account2", stakedStargateAM.REWARD_TOKEN().balanceOf(arcadiaAccount2)
+        );
+
+        emit log_named_uint(
+            "reamining reward in SM", stakedStargateAM.REWARD_TOKEN().balanceOf(address(stakedStargateAM))
+        );
     }
 }

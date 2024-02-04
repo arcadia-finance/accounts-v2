@@ -5,6 +5,7 @@
 pragma solidity 0.8.22;
 
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
+//import { FullMath } from "../../../lib/v3-core/contracts/libraries/FullMath.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { IAeroPool } from "./interfaces/IAeroPool.sol";
 import { IAeroFactory } from "./interfaces/IAeroFactory.sol";
@@ -17,6 +18,7 @@ import { IAeroFactory } from "./interfaces/IAeroFactory.sol";
  */
 contract AerodromeVolatileAM is DerivedAM {
     using FixedPointMathLib for uint256;
+    //using FullMath for uint256;
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
@@ -158,8 +160,23 @@ contract AerodromeVolatileAM is DerivedAM {
         override
         returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
-        //(address asset,) = _getAssetFromKey(assetKey);
-        // Note : to implement
+        /*         (address pool,) = _getAssetFromKey(assetKey);
+        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
+        uint256 kLast = IPool(pool).getK();
+
+        // r0' = sqrt((p1 * k) / p0)
+        trustedReserve0 = FixedPointMathLib.sqrt(
+            FullMath.mulDiv(rateUnderlyingAssetsToUsd[1].assetValue, kLast, rateUnderlyingAssetsToUsd[0].assetValue)
+        );
+        // r1' = sqrt((p0 * k) / p1)
+        trustedReserve1 = FixedPointMathLib.sqrt(
+            FullMath.mulDiv(rateUnderlyingAssetsToUsd[0].assetValue, kLast, rateUnderlyingAssetsToUsd[1].assetValue)
+        );
+
+        underlyingAssetsAmounts = new uint256[](2);
+        underlyingAssetsAmounts[0] = trustedReserve0;
+        underlyingAssetsAmounts[1] = trustedReserve1; */
+
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }
 
