@@ -18,9 +18,7 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
                             CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
-    ERC20 USDbC = ERC20(0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA);
     IPool pool = IPool(0x4c80E24119CFB836cdF0a6b53dc23F04F7e652CA);
-    address oracleUSDC = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
 
     uint256 pid = 1;
     // https://stargateprotocol.gitbook.io/stargate/developers/pool-ids
@@ -34,17 +32,6 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
         StargateBase_Fork_Test.setUp();
 
         vm.startPrank(users.creatorAddress);
-
-        // Add USDbC and it's Chainlink oracle to the protocol.
-        // Here we use USDC oracle as no available oracle for USDbC.
-        uint256 oracleId = chainlinkOM.addOracle(oracleUSDC, "USDbC", "USD", 2 days);
-        bool[] memory boolValues = new bool[](1);
-        boolValues[0] = true;
-        uint80[] memory uintValues = new uint80[](1);
-        uintValues[0] = uint80(oracleId);
-        bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
-
-        erc20AssetModule.addAsset(address(USDbC), oracleSequence);
 
         // Add the USDbC pool LP token to the StargateAssetModule.
         stargateAssetModule.addAsset(poolId);

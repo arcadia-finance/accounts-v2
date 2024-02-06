@@ -20,7 +20,6 @@ contract StargateAM_ETH_Fork_Test is StargateBase_Fork_Test {
 
     ERC20 SGETH = ERC20(0x224D8Fd7aB6AD4c6eb4611Ce56EF35Dec2277F03);
     IPool pool = IPool(0x28fc411f9e1c480AD312b3d9C60c22b965015c6B);
-    address oracleETH = 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70;
 
     uint256 pid = 0;
     // https://stargateprotocol.gitbook.io/stargate/developers/pool-ids
@@ -35,9 +34,9 @@ contract StargateAM_ETH_Fork_Test is StargateBase_Fork_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        // Add SGETH and it's Chainlink oracle to the protocol.
+        // Add SGETH to the protocol.
         // Here we use WETH oracle as no available oracle for SGETH.
-        uint256 oracleId = chainlinkOM.addOracle(oracleETH, "ETH", "USD", 2 days);
+        uint256 oracleId = chainlinkOM.oracleToOracleId(address(oracleETH));
         bool[] memory boolValues = new bool[](1);
         boolValues[0] = true;
         uint80[] memory uintValues = new uint80[](1);

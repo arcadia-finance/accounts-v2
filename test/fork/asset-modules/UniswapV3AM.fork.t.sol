@@ -19,6 +19,7 @@ import { IUniswapV3Factory } from "../../utils/fixtures/uniswap-v3/extensions/in
 import { IUniswapV3PoolExtension } from
     "../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { TickMath } from "../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
+import { UniswapV3AM } from "../../../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 
 /**
  * @notice Fork tests for "UniswapV3AM".
@@ -28,10 +29,16 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
                             CONSTANTS
     ///////////////////////////////////////////////////////////////*/
     INonfungiblePositionManagerExtension internal constant NONFUNGIBLE_POSITION_MANAGER =
-        INonfungiblePositionManagerExtension(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
-    ISwapRouter internal constant SWAP_ROUTER = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
+        INonfungiblePositionManagerExtension(0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1);
+    ISwapRouter internal constant SWAP_ROUTER = ISwapRouter(0x2626664c2603336E57B271c5C0b26F421741e481);
     IUniswapV3Factory internal constant UNISWAP_V3_FACTORY =
-        IUniswapV3Factory(0x1F98431c8aD98523631AE4a59f267346ea31F984);
+        IUniswapV3Factory(0x33128a8fC17869897dcE68Ed026d694621f6FDfD);
+
+    /*///////////////////////////////////////////////////////////////
+                            TEST CONTRACTS
+    ///////////////////////////////////////////////////////////////*/
+
+    UniswapV3AM internal uniV3AM_;
 
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
@@ -40,14 +47,14 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
     function setUp() public override {
         Fork_Test.setUp();
 
-        // Deploy uniV3AssetModule.
-        //deployUniswapV3AM(address(NONFUNGIBLE_POSITION_MANAGER));
+        // Deploy uniV3AM_.
+        vm.startPrank(users.creatorAddress);
+        uniV3AM_ = new UniswapV3AM(address(registryExtension), address(NONFUNGIBLE_POSITION_MANAGER));
+        registryExtension.addAssetModule(address(uniV3AM_));
+        uniV3AM_.setProtocol();
+        vm.stopPrank();
 
-        // Set max exposure to uniswap V3.
-        //vm.prank(users.riskManager);
-        //registryExtension.setRiskParametersOfDerivedAM(
-        //    address(uniV3AssetModule), address(0), type(uint112).max, 100
-        //);
+        vm.label({ account: address(uniV3AM_), newLabel: "Uniswap V3 Asset Module" });
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -141,11 +148,11 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
                             FORK TESTS
     ///////////////////////////////////////////////////////////////*/
     // ToDO: use actual addresses and oracles etc from deployscript.
-    function testFork_Success_deposit(uint128 liquidity, int24 tickLower, int24 tickUpper) private {
+    function testFork_Success_deposit(uint128 liquidity, int24 tickLower, int24 tickUpper) public {
         vm.assume(liquidity > 10_000);
 
         IUniswapV3PoolExtension pool =
-            IUniswapV3PoolExtension(UNISWAP_V3_FACTORY.getPool(address(USDC), address(WETH), 100));
+            IUniswapV3PoolExtension(UNISWAP_V3_FACTORY.getPool(address(DAI), address(WETH), 100));
         (, int24 tickCurrent,,,,,) = pool.slot0();
 
         // Check that ticks are within allowed ranges.
@@ -165,22 +172,22 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
 
         // Balance pool before mint
-        uint256 amountUsdcBefore = USDC.balanceOf(address(pool));
+        uint256 amountDaiBefore = DAI.balanceOf(address(pool));
         uint256 amountWethBefore = WETH.balanceOf(address(pool));
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.creatorAddress, tickLower, tickUpper, false);
+        uint256 tokenId = addLiquidity(pool, liquidity, users.accountOwner, tickLower, tickUpper, false);
 
         // Balance pool after mint
-        uint256 amountUsdcAfter = USDC.balanceOf(address(pool));
+        uint256 amountDaiAfter = DAI.balanceOf(address(pool));
         uint256 amountWethAfter = WETH.balanceOf(address(pool));
 
         // Amounts deposited in the pool.
-        uint256 amountUsdc = amountUsdcAfter - amountUsdcBefore;
+        uint256 amountDai = amountDaiAfter - amountDaiBefore;
         uint256 amountWeth = amountWethAfter - amountWethBefore;
 
         // Precision oracles up to % -> need to deposit at least 1000 tokens or rounding errors lead to bigger errors.
-        vm.assume(amountUsdc + amountWeth > 100);
+        vm.assume(amountDai + amountWeth > 100);
 
         // Deposit the Liquidity Position.
         {
@@ -192,7 +199,7 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
 
             uint256[] memory assetAmount = new uint256[](1);
             assetAmount[0] = 1;
-            vm.startPrank(users.creatorAddress);
+            vm.startPrank(users.accountOwner);
             ERC721(address(NONFUNGIBLE_POSITION_MANAGER)).approve(address(proxyAccount), tokenId);
             proxyAccount.deposit(assetAddress, assetId, assetAmount);
             vm.stopPrank();
@@ -201,13 +208,13 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
         uint256 actualValue = proxyAccount.getAccountValue(address(0));
 
         address[] memory assetAddresses = new address[](2);
-        assetAddresses[0] = address(USDC);
+        assetAddresses[0] = address(DAI);
         assetAddresses[1] = address(WETH);
 
         uint256[] memory assetIds = new uint256[](2);
 
         uint256[] memory assetAmounts = new uint256[](2);
-        assetAmounts[0] = amountUsdc;
+        assetAmounts[0] = amountDai;
         assetAmounts[1] = amountWeth;
 
         uint256 expectedValue =
