@@ -54,15 +54,13 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
 
     // Struct with the global state per Asset.
     struct AssetState {
-        // Flag indicating if the asset is allowed.
-        bool allowed;
         // The growth of reward tokens per Asset staked, at the last interaction with this contract,
         // with 18 decimals precision.
         uint128 lastRewardPerTokenGlobal;
-        // The unclaimed amount of reward tokens, at the last interaction with this contract.
-        uint128 lastRewardGlobal;
         // The total amount of Assets staked.
         uint128 totalStaked;
+        // Flag indicating if the asset is allowed.
+        bool allowed;
     }
 
     // Struct with the Position specific state.
@@ -310,8 +308,8 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         positionState[positionId] = positionState_;
         assetState[asset] = assetState_;
 
-        // Stake Asset in external staking contract.
-        _stake(asset, amount);
+        // Stake Asset in external staking contract and claim any pending rewards.
+        _stakeAndClaim(asset, amount);
 
         // Mint the new position.
         _safeMint(msg.sender, positionId);
@@ -347,8 +345,8 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         positionState[positionId] = positionState_;
         assetState[asset] = assetState_;
 
-        // Stake Asset in external staking contract.
-        _stake(asset, amount);
+        // Stake Asset in external staking contract and claim any pending rewards.
+        _stakeAndClaim(asset, amount);
 
         emit LiquidityIncreased(positionId, asset, amount);
     }
@@ -389,11 +387,10 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         assetState_.totalStaked = assetState_.totalStaked - amount;
         positionState_.amountStaked = positionState_.amountStaked - amount;
 
-        // Rewards are claimed and paid out to the owner on a decreaseLiquidity.
-        // -> Reset the balances of the pending rewards for the asset and the position.
+        // Rewards are paid out to the owner on a decreaseLiquidity.
+        // -> Reset the balances of the pending rewards.
         rewards = positionState_.lastRewardPosition;
         positionState_.lastRewardPosition = 0;
-        assetState_.lastRewardGlobal = 0;
 
         // Store the new positionState and assetState.
         if (positionState_.amountStaked > 0) {
@@ -404,11 +401,8 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         }
         assetState[asset] = assetState_;
 
-        // Withdraw the Assets from external staking contract.
-        _withdraw(asset, amount);
-
-        // Claim the reward from the external staking contract.
-        _claimReward(asset);
+        // Withdraw the Assets from external staking contract and claim any pending rewards.
+        _withdrawAndClaim(asset, amount);
 
         // Pay out the rewards to the position owner.
         if (rewards > 0) {
@@ -438,17 +432,16 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         // Calculate the new reward balances.
         (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
 
-        // Rewards are claimed and paid out to the owner on a claimReward.
-        // -> Reset the balances of the pending rewards for the asset and the position.
+        // Rewards are paid out to the owner on a claimReward.
+        // -> Reset the balances of the pending rewards.
         rewards = positionState_.lastRewardPosition;
         positionState_.lastRewardPosition = 0;
-        assetState_.lastRewardGlobal = 0;
 
         // Store the new positionState and assetState.
         positionState[positionId] = positionState_;
         assetState[asset] = assetState_;
 
-        // Claim the reward from the external staking contract.
+        // Claim the pending rewards from the external staking contract.
         _claimReward(asset);
 
         // Pay out the share of the reward owed to the position owner.
@@ -473,18 +466,18 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Stakes an amount of tokens in the external staking contract.
+     * @notice Stakes an amount of Asset in the external staking contract and claims pending rewards.
      * @param asset The Asset to stake.
      * @param amount The amount of Asset to stake.
      */
-    function _stake(address asset, uint256 amount) internal virtual;
+    function _stakeAndClaim(address asset, uint256 amount) internal virtual;
 
     /**
-     * @notice Unstakes and withdraws the asset from the external contract.
+     * @notice Unstakes and withdraws the Asset from the external contract and claims pending rewards.
      * @param asset The Asset to withdraw.
      * @param amount The amount of Asset to unstake and withdraw.
      */
-    function _withdraw(address asset, uint256 amount) internal virtual;
+    function _withdrawAndClaim(address asset, uint256 amount) internal virtual;
 
     /**
      * @notice Claims the rewards available for this contract.
@@ -533,19 +526,15 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
     {
         if (assetState_.totalStaked > 0) {
             // Calculate the new assetState
-            // Fetch the current reward balance from the staking contract.
-            uint256 currentRewardGlobal = _getCurrentReward(positionState_.asset);
-            // Calculate the increase in rewards since last Asset interaction.
-            uint256 deltaReward = currentRewardGlobal - assetState_.lastRewardGlobal;
-            uint256 deltaRewardPerToken = deltaReward.mulDivDown(1e18, assetState_.totalStaked);
+            // Fetch the current reward balance from the staking contract and calculate the change in RewardPerToken.
+            uint256 deltaRewardPerToken =
+                _getCurrentReward(positionState_.asset).mulDivDown(1e18, assetState_.totalStaked);
             // Calculate and update the new RewardPerToken of the asset.
             // unchecked: RewardPerToken can overflow, what matters is the delta in RewardPerToken between two interactions.
             unchecked {
                 assetState_.lastRewardPerTokenGlobal =
                     assetState_.lastRewardPerTokenGlobal + SafeCastLib.safeCastTo128(deltaRewardPerToken);
             }
-            // Update the reward balance of the asset.
-            assetState_.lastRewardGlobal = SafeCastLib.safeCastTo128(currentRewardGlobal);
 
             // Calculate the new positionState.
             // Calculate the difference in rewardPerToken since the last position interaction.
@@ -555,6 +544,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
             }
             // Calculate the rewards earned by the position since its last interaction.
             // unchecked: deltaRewardPerToken and positionState_.amountStaked are smaller than type(uint128).max.
+            uint256 deltaReward;
             unchecked {
                 deltaReward = deltaRewardPerToken * positionState_.amountStaked / 1e18;
             }
