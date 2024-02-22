@@ -109,6 +109,9 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
         // And : We let 30 days pass to accumulate rewards.
         vm.warp(block.timestamp + 30 days);
 
+        // And: There are enough rewards in the contract.
+        deal(address(lpStakingTime.eToken()), address(lpStakingTime), 1e36, true);
+
         // And : User1 withdraws 1/2 position.
         vm.prank(arcadiaAccount1);
         stakedStargateAM.decreaseLiquidity(1, uint128(lpBalance1 / 2));
@@ -176,6 +179,9 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
 
         // And : We let 30 days pass to accumulate rewards.
         vm.warp(block.timestamp + 30 days);
+
+        // And: There are enough rewards in the contract.
+        deal(address(lpStakingTime.eToken()), address(lpStakingTime), 1e36, true);
 
         assert(lpStakingTime.eToken().balanceOf(users.accountOwner) == 0);
 
