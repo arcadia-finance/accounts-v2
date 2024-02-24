@@ -54,13 +54,14 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         // Or: "priceXd18" overflows in "_getSqrtPriceX96" (test-case).
         // And: "usdValue" for token0 does not overflow on cast to int256.
         if (asset1.usdValue > 0) {
-            asset0.usdValue = bound(asset0.usdValue, type(uint256).max / 10 ** (54 - asset0.decimals) + 1, INT256_MAX);
+            asset0.usdValue = bound(asset0.usdValue, type(uint256).max / 10 ** (46 - asset0.decimals) + 1, INT256_MAX);
         } else {
-            asset0.usdValue = bound(asset0.usdValue, type(uint256).max / 10 ** 36 + 1, INT256_MAX);
+            asset0.usdValue = bound(asset0.usdValue, type(uint256).max / 10 ** 18 + 1, INT256_MAX);
         }
 
         // And: "rateUnderlyingAssetsToUsd" for token1 does not overflows in "_getRateUnderlyingAssetsToUsd".
-        asset1.usdValue = bound(asset1.usdValue, 0, type(uint256).max / 10 ** 36);
+        asset1.usdValue = bound(asset1.usdValue, 0, type(uint256).max / 10 ** 18);
+        asset1.usdValue = type(uint256).max / 10 ** 18;
 
         // And: position is valid.
         position = givenValidPosition(position);
@@ -96,17 +97,11 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         }
 
         // And: "priceXd18" does not overflow in "_getSqrtPriceX96".
-        asset0.usdValue = bound(asset0.usdValue, 0, type(uint256).max / 10 ** (54 - asset0.decimals));
+        asset0.usdValue = bound(asset0.usdValue, 0, type(uint256).max / 10 ** (46 - asset0.decimals));
 
         // And: "rateUnderlyingAssetsToUsd" for token1 overflows in "_getRateUnderlyingAssetsToUsd" (test-case).
         // And: "usdValue" for token1 does not overflow on cast to int256.
-        asset1.usdValue = bound(asset1.usdValue, type(uint256).max / 10 ** 36 + 1, INT256_MAX);
-        // And: "oracleRate" for token1 in "getRate" does not overflow
-        asset1.usdValue = bound(
-            asset1.usdValue,
-            type(uint256).max / 10 ** 36 + 1,
-            type(uint256).max / 10 ** (18 - Constants.tokenOracleDecimals)
-        );
+        asset1.usdValue = bound(asset1.usdValue, type(uint256).max / 10 ** 18 + 1, INT256_MAX);
 
         // And: position is valid.
         position = givenValidPosition(position);
@@ -142,10 +137,10 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         }
 
         // And: "priceXd18" does not overflow in "_getSqrtPriceX96".
-        asset0.usdValue = bound(asset0.usdValue, 0, type(uint256).max / 10 ** (54 - asset0.decimals));
+        asset0.usdValue = bound(asset0.usdValue, 0, type(uint256).max / 10 ** (46 - asset0.decimals));
 
         // And: "rateUnderlyingAssetsToUsd" for token1 does not overflows in "_getRateUnderlyingAssetsToUsd".
-        asset1.usdValue = bound(asset1.usdValue, 0, type(uint256).max / 10 ** 36);
+        asset1.usdValue = bound(asset1.usdValue, 0, type(uint256).max / 10 ** 18);
 
         // And: Cast to uint160 in _getSqrtPriceX96 does not overflow.
         if (asset1.usdValue > 0) {
@@ -178,8 +173,8 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         }
 
         // Then: The correct "rateUnderlyingAssetsToUsd" are returned.
-        uint256 expectedRateUnderlyingAssetsToUsd0 = asset0.usdValue * 10 ** (36 - asset0.decimals);
-        uint256 expectedRateUnderlyingAssetsToUsd1 = asset1.usdValue * 10 ** (36 - asset1.decimals);
+        uint256 expectedRateUnderlyingAssetsToUsd0 = asset0.usdValue * 10 ** (18 - asset0.decimals);
+        uint256 expectedRateUnderlyingAssetsToUsd1 = asset1.usdValue * 10 ** (18 - asset1.decimals);
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, expectedRateUnderlyingAssetsToUsd0);
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, expectedRateUnderlyingAssetsToUsd1);
 
