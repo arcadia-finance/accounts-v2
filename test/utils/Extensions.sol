@@ -192,8 +192,13 @@ contract RegistryExtension is Registry {
         oracleToOracleModule[oracleId] = oracleModule;
     }
 
-    function setAssetToAssetModule(address asset, address assetModule) public {
-        assetToAssetModule[asset] = assetModule;
+    function setAssetModule(address asset, address assetModule) public {
+        assetToAssetInformation[asset].assetModule = assetModule;
+    }
+
+    function setAssetInformation(address asset, uint96 assetType, address assetModule) public {
+        assetToAssetInformation[asset].assetType = assetType;
+        assetToAssetInformation[asset].assetModule = assetModule;
     }
 }
 

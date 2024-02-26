@@ -24,6 +24,8 @@ contract Constructor_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test 
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_, uint256 assetType_) public {
+        vm.assume(assetType_ > 0);
+
         vm.startPrank(users.creatorAddress);
         DerivedAMMock assetModule_ = new DerivedAMMock(registry_, assetType_);
         vm.stopPrank();

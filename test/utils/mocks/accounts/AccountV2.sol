@@ -618,7 +618,7 @@ contract AccountV2 is AccountStorageV2 {
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
-     * @param from The address to withdraw the assets from.
+     * @param from The assets deposited into the Account will come from this address.
      */
     function _deposit(
         address[] memory assetAddresses,
@@ -626,20 +626,11 @@ contract AccountV2 is AccountStorageV2 {
         uint256[] memory assetAmounts,
         address from
     ) internal {
-        // Reverts in registry if input is invalid.
-        uint256[] memory assetTypes =
-            IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
-
-        uint256 assetAddressesLength = assetAddresses.length;
-        for (uint256 i; i < assetAddressesLength;) {
-            if (assetAmounts[i] == 0) {
-                // Skip if amount is 0 to prevent storing addresses that have 0 balance.
-                // ToDo silent fail or should we revert here?
-                unchecked {
-                    ++i;
-                }
-                continue;
-            }
+        // Transfer assets to Account before processing them.
+        uint256[] memory assetTypes = IRegistry(registry).batchGetAssetTypes(assetAddresses);
+        for (uint256 i; i < assetAddresses.length; ++i) {
+            // Skip if amount is 0 to prevent storing addresses that have 0 balance.
+            if (assetAmounts[i] == 0) continue;
 
             if (assetTypes[i] == 0) {
                 if (assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
@@ -652,14 +643,15 @@ contract AccountV2 is AccountStorageV2 {
             } else {
                 revert AccountErrors.UnknownAssetType();
             }
-            unchecked {
-                ++i;
-            }
         }
 
         if (erc20Stored.length + erc721Stored.length + erc1155Stored.length > ASSET_LIMIT) {
             revert AccountErrors.TooManyAssets();
         }
+
+        // If no Creditor is set, batchProcessDeposit only checks if the assets can be priced.
+        // If a Creditor is set, batchProcessDeposit will also update the exposures of assets and underlying assets for the Creditor.
+        IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**

@@ -64,9 +64,10 @@ abstract contract DerivedAM is AssetModule {
     /**
      * @param registry_ The contract address of the Registry.
      * @param assetType_ Identifier for the token standard of the asset.
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155.
+     * 0 = Unknown asset.
+     * 1 = ERC20.
+     * 2 = ERC721.
+     * 3 = ERC1155.
      * ...
      */
     constructor(address registry_, uint256 assetType_) AssetModule(registry_, assetType_) { }
@@ -235,18 +236,13 @@ abstract contract DerivedAM is AssetModule {
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
      * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
-     * @return assetType Identifier for the type of the asset:
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155
-     * ...
      */
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         virtual
         override
         onlyRegistry
-        returns (uint256 recursiveCalls, uint256 assetType)
+        returns (uint256 recursiveCalls)
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -258,7 +254,6 @@ abstract contract DerivedAM is AssetModule {
         unchecked {
             recursiveCalls = underlyingCalls + 1;
         }
-        assetType = ASSET_TYPE;
     }
 
     /**
@@ -305,18 +300,12 @@ abstract contract DerivedAM is AssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
-     * @return assetType Identifier for the type of the asset:
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155
-     * ...
      */
     function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         virtual
         override
         onlyRegistry
-        returns (uint256 assetType)
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -324,8 +313,6 @@ abstract contract DerivedAM is AssetModule {
         uint256 exposureAsset = _getAndUpdateExposureAsset(creditor, assetKey, -int256(amount));
 
         _processWithdrawal(creditor, assetKey, exposureAsset);
-
-        assetType = ASSET_TYPE;
     }
 
     /**

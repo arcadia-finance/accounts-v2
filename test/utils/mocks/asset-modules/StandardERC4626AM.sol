@@ -34,9 +34,9 @@ contract StandardERC4626AM is DerivedAM {
 
     /**
      * @param registry_ The address of the Registry.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "0" for ERC20 tokens.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC20 tokens.
      */
-    constructor(address registry_) DerivedAM(registry_, 0) { }
+    constructor(address registry_) DerivedAM(registry_, 1) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -57,7 +57,7 @@ contract StandardERC4626AM is DerivedAM {
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(asset);
+        IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), asset);
     }
 
     /*///////////////////////////////////////////////////////////////

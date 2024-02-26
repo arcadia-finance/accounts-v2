@@ -98,8 +98,14 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
                               CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
+    /**
+     * @param registry The contract address of the Registry.
+     * @param name_ Name of the Staking Module.
+     * @param symbol_ Symbol of the Staking Module.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
+     */
     constructor(address registry, string memory name_, string memory symbol_)
-        DerivedAM(registry, 1)
+        DerivedAM(registry, 2)
         ERC721(name_, symbol_)
     { }
 
@@ -114,7 +120,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
     function initialize() external onlyOwner {
         inAssetModule[address(this)] = true;
 
-        IRegistry(REGISTRY).addAsset(address(this));
+        IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), address(this));
     }
 
     /*///////////////////////////////////////////////////////////////

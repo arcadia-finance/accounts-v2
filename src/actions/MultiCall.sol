@@ -56,9 +56,9 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
         }
 
         for (uint256 i; i < depositData.assets.length; ++i) {
-            if (depositData.assetTypes[i] == 0) {
+            if (depositData.assetTypes[i] == 1) {
                 depositData.assetAmounts[i] = IERC20(depositData.assets[i]).balanceOf(address(this));
-            } else if (depositData.assetTypes[i] == 1) {
+            } else if (depositData.assetTypes[i] == 2) {
                 // If the amount is 0, we minted a new NFT.
                 if (depositData.assetAmounts[i] == 0) {
                     depositData.assetAmounts[i] = 1;
@@ -71,7 +71,7 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
                     mintedIds.pop();
                     mintedAssets.pop();
                 }
-            } else if (depositData.assetTypes[i] == 2) {
+            } else if (depositData.assetTypes[i] == 3) {
                 depositData.assetAmounts[i] =
                     IERC1155(depositData.assets[i]).balanceOf(address(this), depositData.assetIds[i]);
             }
