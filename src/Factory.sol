@@ -80,8 +80,12 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param creditor The contract address of the creditor.
      * @return account The contract address of the proxy contract of the newly deployed Account.
      * @dev If accountVersion == 0, the newest version will be used.
+     * @dev createAccount() uses the CREATE2 opcode, which can lead to address collision vulnerabilities,
+     * as described in: https://eips.ethereum.org/EIPS/eip-3607.
+     * To decrease the probability of finding an address collision, the number of possible account addresses is limited to 2**64.
+     * We use a salt with 64 bits, the 32 right most bits of the address of the tx.origin, and 32 bits provided by the user.
      */
-    function createAccount(uint256 salt, uint256 accountVersion, address creditor)
+    function createAccount(uint32 salt, uint256 accountVersion, address creditor)
         external
         whenCreateNotPaused
         returns (address account)
@@ -94,7 +98,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         // Hash tx.origin with the user provided salt to avoid front-running Account deployment with an identical salt.
         // We use tx.origin instead of msg.sender so that deployments through a third party contract are not vulnerable to front-running.
         account = address(
-            new Proxy{ salt: keccak256(abi.encodePacked(salt, tx.origin)) }(
+            // 64 bit salt: 32 bits from tx.origin and 32 bits provided by the user.
+            new Proxy{ salt: keccak256(abi.encodePacked(salt, uint32(uint160(tx.origin)))) }(
                 versionInformation[accountVersion].implementation
             )
         );

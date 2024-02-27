@@ -45,7 +45,7 @@ contract FactoryHandler is BaseHandler {
     /*//////////////////////////////////////////////////////////////////////////
                                     FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
-    function createAccount(uint256 salt) public {
+    function createAccount(uint32 salt) public {
         address creditor = address(0);
         uint16 accountVersion = 0;
         factory.createAccount(salt, accountVersion, creditor);
