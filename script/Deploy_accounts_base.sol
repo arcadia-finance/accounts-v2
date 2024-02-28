@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import "../lib/forge-std/src/Test.sol";
-import { DeployAddresses, DeployBytes, DeployRiskConstantsBase } from "./Constants/DeployConstants.sol";
+import { DeployAddresses, DeployNumbers, DeployBytes, DeployRiskConstantsBase } from "./Constants/DeployConstants.sol";
 
 import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
 import { Factory } from "../src/Factory.sol";
@@ -15,6 +15,8 @@ import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
 import { ERC20PrimaryAM } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
 import { AssetModule } from "../src/asset-modules/abstracts/AbstractAM.sol";
 import { UniswapV3AM } from "../src/asset-modules/UniswapV3/UniswapV3AM.sol";
+import { StargateAM } from "./../src/asset-modules/Stargate-Finance/StargateAM.sol";
+import { StakedStargateAM } from "./../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
 
 import { ActionMultiCall } from "../src/actions/MultiCall.sol";
 
@@ -29,12 +31,18 @@ contract ArcadiaAccountDeployment is Test {
     ERC20 internal dai;
     ERC20 internal weth;
     ERC20 internal usdc;
+    ERC20 internal usdbc;
     ERC20 internal cbeth;
     ERC20 internal reth;
+    ERC20 internal stg;
 
     Registry internal registry;
+
     ERC20PrimaryAM internal erc20PrimaryAM;
     UniswapV3AM internal uniswapV3AM;
+    StargateAM internal stargateAM;
+    StakedStargateAM internal stakedStargateAM;
+
     ChainlinkOM internal chainlinkOM;
     ActionMultiCall internal actionMultiCall;
 
@@ -48,15 +56,19 @@ contract ArcadiaAccountDeployment is Test {
     uint80[] internal oracleDaiToUsdArr = new uint80[](1);
     uint80[] internal oracleEthToUsdArr = new uint80[](1);
     uint80[] internal oracleUsdcToUsdArr = new uint80[](1);
+    uint80[] internal oracleUsdbcToUsdArr = new uint80[](1);
     uint80[] internal oracleCbethToEthToUsdArr = new uint80[](2);
     uint80[] internal oracleRethToEthToUsdArr = new uint80[](2);
+    uint80[] internal oracleStgToUsdArr = new uint80[](1);
 
     uint80 internal oracleCompToUsdId;
     uint80 internal oracleDaiToUsdId;
     uint80 internal oracleEthToUsdId;
     uint80 internal oracleUsdcToUsdId;
+    uint80 internal oracleUsdbcToUsdId;
     uint80 internal oracleCbethToEthId;
     uint80 internal oracleRethToEthId;
+    uint80 internal oracleStgToUsdId;
 
     constructor() {
         // /*///////////////////////////////////////////////////////////////
@@ -67,8 +79,14 @@ contract ArcadiaAccountDeployment is Test {
         dai = ERC20(DeployAddresses.dai_base);
         weth = ERC20(DeployAddresses.weth_base);
         usdc = ERC20(DeployAddresses.usdc_base);
+        usdbc = ERC20(DeployAddresses.usdbc_base);
         cbeth = ERC20(DeployAddresses.cbeth_base);
         reth = ERC20(DeployAddresses.reth_base);
+        stg = ERC20(DeployAddresses.stg_base);
+
+        BA_TO_QA_SINGLE[0] = true;
+        BA_TO_QA_DOUBLE[0] = true;
+        BA_TO_QA_DOUBLE[1] = true;
     }
 
     function run() public {
@@ -78,51 +96,68 @@ contract ArcadiaAccountDeployment is Test {
         vm.startBroadcast(deployerPrivateKey);
         factory = Factory(0x38dB790e1894A5863387B43290c8340121e7Cd48); //todo: change after factory deploy
         wethLendingPool = ILendingPool(0xA04B08324745AEc82De30c3581c407BE63E764c8); //todo: change after LP deploy
-        usdcLendingPool = ILendingPool(0x4d39409993dBe365c9AcaAe7c7e259C06FBFFa4A); //todo: change after LP deploy
+        usdcLendingPool = ILendingPool(0xEda73DA39Aae3282DDC2Dc924c740574567FFabc); //todo: change after LP deploy
         wethLendingPool.setRiskManager(deployerAddress);
         usdcLendingPool.setRiskManager(deployerAddress);
 
         registry = new Registry(address(factory), DeployAddresses.sequencerUptimeOracle_base);
-        erc20PrimaryAM = new ERC20PrimaryAM(address(registry));
-        uniswapV3AM = new UniswapV3AM(address(registry), DeployAddresses.uniswapV3PositionMgr_base);
 
         chainlinkOM = new ChainlinkOM(address(registry));
 
         account = new AccountV1(address(factory));
         actionMultiCall = new ActionMultiCall();
 
+        erc20PrimaryAM = new ERC20PrimaryAM(address(registry));
+
         registry.addAssetModule(address(erc20PrimaryAM));
-        registry.addAssetModule(address(uniswapV3AM));
 
         registry.addOracleModule(address(chainlinkOM));
 
         oracleCompToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCompToUsd_base, "COMP", "USD", 25 hours));
         oracleDaiToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "DAI", "USD", 25 hours));
-        oracleEthToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleEthToUsd_base, "ETH", "USD", 1 hours));
+        oracleEthToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleEthToUsd_base, "ETH", "USD", 25 hours));
         oracleUsdcToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleUsdcToUsd_base, "USDC", "USD", 25 hours));
         oracleCbethToEthId =
             uint80(chainlinkOM.addOracle(DeployAddresses.oracleCbethToEth_base, "CBETH", "ETH", 25 hours));
         oracleRethToEthId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleRethToEth_base, "RETH", "ETH", 25 hours));
+        oracleStgToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleStgToUsd_base, "STG", "USD", 25 hours));
 
         oracleCompToUsdArr[0] = oracleCompToUsdId;
         oracleDaiToUsdArr[0] = oracleDaiToUsdId;
         oracleEthToUsdArr[0] = oracleEthToUsdId;
         oracleUsdcToUsdArr[0] = oracleUsdcToUsdId;
+        oracleUsdbcToUsdArr[0] = oracleUsdcToUsdId;
         oracleCbethToEthToUsdArr[0] = oracleCbethToEthId;
         oracleCbethToEthToUsdArr[1] = oracleEthToUsdId;
         oracleRethToEthToUsdArr[0] = oracleRethToEthId;
         oracleRethToEthToUsdArr[1] = oracleEthToUsdId;
+        oracleStgToUsdArr[0] = oracleStgToUsdId;
 
         erc20PrimaryAM.addAsset(DeployAddresses.comp_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleCompToUsdArr));
         erc20PrimaryAM.addAsset(DeployAddresses.dai_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleDaiToUsdArr));
         erc20PrimaryAM.addAsset(DeployAddresses.weth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleEthToUsdArr));
         erc20PrimaryAM.addAsset(DeployAddresses.usdc_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdcToUsdArr));
+        erc20PrimaryAM.addAsset(DeployAddresses.usdbc_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdbcToUsdArr));
         erc20PrimaryAM.addAsset(
             DeployAddresses.cbeth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleCbethToEthToUsdArr)
         );
         erc20PrimaryAM.addAsset(DeployAddresses.reth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleRethToEthToUsdArr));
+        erc20PrimaryAM.addAsset(DeployAddresses.stg_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStgToUsdArr));
+
+        uniswapV3AM = new UniswapV3AM(address(registry), DeployAddresses.uniswapV3PositionMgr_base);
+
+        stargateAM = new StargateAM(address(registry), DeployAddresses.stargateFactory_base);
+        stakedStargateAM = new StakedStargateAM(address(registry), DeployAddresses.stargateLpStakingTime_base);
+
+        registry.addAssetModule(address(uniswapV3AM));
+        registry.addAssetModule(address(stargateAM));
+        registry.addAssetModule(address(stakedStargateAM));
 
         uniswapV3AM.setProtocol();
+
+        stargateAM.addAsset(DeployNumbers.stargateUsdbcPoolId);
+
+        stakedStargateAM.initialize();
 
         factory.setNewAccountInfo(address(registry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(deployerAddress);
@@ -166,6 +201,14 @@ contract ArcadiaAccountDeployment is Test {
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
+            DeployAddresses.usdbc_base,
+            0,
+            type(uint112).max,
+            DeployRiskConstantsBase.usdbc_collFact_1,
+            DeployRiskConstantsBase.usdbc_liqFact_1
+        );
+        registry.setRiskParametersOfPrimaryAsset(
+            address(wethLendingPool),
             DeployAddresses.cbeth_base,
             0,
             type(uint112).max,
@@ -179,6 +222,14 @@ contract ArcadiaAccountDeployment is Test {
             type(uint112).max,
             DeployRiskConstantsBase.reth_collFact_1,
             DeployRiskConstantsBase.reth_liqFact_1
+        );
+        registry.setRiskParametersOfPrimaryAsset(
+            address(wethLendingPool),
+            DeployAddresses.stg_base,
+            0,
+            type(uint112).max,
+            DeployRiskConstantsBase.stg_collFact_1,
+            DeployRiskConstantsBase.stg_liqFact_1
         );
 
         registry.setRiskParametersOfPrimaryAsset(
@@ -215,6 +266,14 @@ contract ArcadiaAccountDeployment is Test {
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
+            DeployAddresses.usdbc_base,
+            0,
+            type(uint112).max,
+            DeployRiskConstantsBase.usdbc_collFact_2,
+            DeployRiskConstantsBase.usdbc_liqFact_2
+        );
+        registry.setRiskParametersOfPrimaryAsset(
+            address(usdcLendingPool),
             DeployAddresses.cbeth_base,
             0,
             type(uint112).max,
@@ -228,6 +287,33 @@ contract ArcadiaAccountDeployment is Test {
             type(uint112).max,
             DeployRiskConstantsBase.reth_collFact_2,
             DeployRiskConstantsBase.reth_liqFact_2
+        );
+        registry.setRiskParametersOfPrimaryAsset(
+            address(usdcLendingPool),
+            DeployAddresses.stg_base,
+            0,
+            type(uint112).max,
+            DeployRiskConstantsBase.stg_collFact_2,
+            DeployRiskConstantsBase.stg_liqFact_2
+        );
+
+        registry.setRiskParametersOfDerivedAM(
+            address(usdcLendingPool), address(uniswapV3AM), 15 * 10 ** 6 * 10 ** 18, 9800
+        );
+        registry.setRiskParametersOfDerivedAM(
+            address(wethLendingPool), address(uniswapV3AM), 15 * 10 ** 6 * 10 ** 18, 9800
+        );
+        registry.setRiskParametersOfDerivedAM(
+            address(usdcLendingPool), address(stargateAM), 15 * 10 ** 6 * 10 ** 18, 9700
+        );
+        registry.setRiskParametersOfDerivedAM(
+            address(wethLendingPool), address(stargateAM), 15 * 10 ** 6 * 10 ** 18, 9700
+        );
+        registry.setRiskParametersOfDerivedAM(
+            address(usdcLendingPool), address(stakedStargateAM), 15 * 10 ** 6 * 10 ** 18, 9800
+        );
+        registry.setRiskParametersOfDerivedAM(
+            address(wethLendingPool), address(stakedStargateAM), 15 * 10 ** 6 * 10 ** 18, 9800
         );
 
         registry.setRiskParameters(address(usdcLendingPool), 0, 15 minutes, 5);
