@@ -58,7 +58,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_SFT1_InvalidRecipient(
         address newAccountOwner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
@@ -75,7 +75,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Revert_SFT1_CallerNotOwner(
         address newAccountOwner,
         address nonOwner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
@@ -91,7 +91,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Revert_SFT2_InvalidRecipient(
         address newAccountOwner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
@@ -109,7 +109,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Revert_SFT2_CallerNotOwner(
         address newAccountOwner,
         address nonOwner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
@@ -126,7 +126,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Revert_SFT3_InvalidRecipient(
         address newAccountOwner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
@@ -144,7 +144,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Revert_SFT3_CallerNotOwner(
         address newAccountOwner,
         address nonOwner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
@@ -161,7 +161,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Revert_TransferFrom_InvalidRecipient(
         address newAccountOwner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
@@ -179,7 +179,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Revert_TransferFrom_CallerNotOwner(
         address newAccountOwner,
         address nonOwner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) {
@@ -197,7 +197,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_STF1(
         address newAccountOwner,
         address nonOwner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) notTestContracts(nonOwner) {
@@ -213,7 +213,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_SFT2(
         address newAccountOwner,
         address nonOwner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) notTestContracts(nonOwner) {
@@ -229,7 +229,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_SFT3(
         address newAccountOwner,
         address nonOwner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) notTestContracts(nonOwner) {
@@ -246,7 +246,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_TransferFrom(
         address newAccountOwner,
         address nonOwner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notAccountOwner(newAccountOwner) notTestContracts(nonOwner) {
