@@ -229,7 +229,7 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
     }
 
     function addUnderlyingTokenToArcadia(address token, int256 price) internal {
-        ArcadiaOracle oracle = initMockedOracle(0, "Token / USD");
+        ArcadiaOracle oracle = initMockedOracle(18, "Token / USD");
         address[] memory oracleArr = new address[](1);
         oracleArr[0] = address(oracle);
 
@@ -255,15 +255,15 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
         // Avoid divide by 0, which is already checked in earlier in function.
         vm.assume(priceToken1 > 0);
         // Function will overFlow, not realistic.
-        vm.assume(priceToken0 <= type(uint256).max / 10 ** 36);
-        vm.assume(priceToken1 <= type(uint256).max / 10 ** 36);
+        vm.assume(priceToken0 <= type(uint256).max / 10 ** 28);
+        vm.assume(priceToken1 <= type(uint256).max / 10 ** 18);
         // Cast to uint160 will overflow, not realistic.
         vm.assume(priceToken0 / priceToken1 < 2 ** 128);
 
         // sqrtPriceX96 must be within ranges, or TickMath reverts.
-        uint256 priceXd18 = priceToken0 * 1e18 / priceToken1;
-        uint256 sqrtPriceXd9 = FixedPointMathLib.sqrt(priceXd18);
-        sqrtPriceX96 = sqrtPriceXd9 * 2 ** 96 / 1e9;
+        uint256 priceXd28 = priceToken0 * 1e28 / priceToken1;
+        uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
+        sqrtPriceX96 = sqrtPriceXd14 * 2 ** 96 / 1e14;
         vm.assume(sqrtPriceX96 >= 4_295_128_739);
         vm.assume(sqrtPriceX96 <= 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342);
     }
