@@ -52,7 +52,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_SFT1_ToZeroAddress(
         address owner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public {
@@ -68,7 +68,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         factory.safeTransferFrom(owner, address(0), newAccount);
     }
 
-    function testFuzz_Revert_SFT1_ToAccount(address owner, uint256 salt, uint32 lastActionTimestamp, uint32 timePassed)
+    function testFuzz_Revert_SFT1_ToAccount(address owner, uint32 salt, uint32 lastActionTimestamp, uint32 timePassed)
         public
     {
         vm.assume(owner != address(0));
@@ -87,7 +87,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         address owner,
         address caller,
         address to,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public {
@@ -108,7 +108,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Revert_SFT2_ToZeroAddress(
         address owner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public {
@@ -127,7 +127,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Revert_SFT2_InvalidRecipient(
         address owner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public {
@@ -148,7 +148,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         address owner,
         address caller,
         address to,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public {
@@ -170,7 +170,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Revert_SFT3_ToZeroAddress(
         address owner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public {
@@ -187,7 +187,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         factory.safeTransferFrom(owner, address(0), latestId, "");
     }
 
-    function testFuzz_Revert_SFT3_ToAccount(address owner, uint256 salt, uint32 lastActionTimestamp, uint32 timePassed)
+    function testFuzz_Revert_SFT3_ToAccount(address owner, uint32 salt, uint32 lastActionTimestamp, uint32 timePassed)
         public
     {
         vm.assume(owner != address(0));
@@ -207,7 +207,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         address owner,
         address caller,
         address to,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public {
@@ -229,7 +229,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Revert_TransferFrom_ToZeroAddress(
         address owner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public {
@@ -248,7 +248,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Revert_TransferFrom_ToAccount(
         address owner,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public {
@@ -269,7 +269,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         address owner,
         address caller,
         address to,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public {
@@ -292,7 +292,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_STF1(
         address owner,
         address to,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notTestContracts(to) {
@@ -312,7 +312,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_SFT2(
         address owner,
         address to,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notTestContracts(to) {
@@ -335,7 +335,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_SFT3(
         address owner,
         address to,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notTestContracts(to) {
@@ -358,7 +358,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_TransferFrom(
         address owner,
         address to,
-        uint256 salt,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
     ) public notTestContracts(to) {

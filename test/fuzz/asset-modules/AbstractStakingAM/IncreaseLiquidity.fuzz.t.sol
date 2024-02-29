@@ -121,26 +121,23 @@ contract IncreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, positionState.amountStaked + amount);
-        uint256 deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
         uint128 currentRewardPerToken;
         unchecked {
-            currentRewardPerToken =
-                assetState.lastRewardPerTokenGlobal + uint128(deltaReward.mulDivDown(1e18, assetState.totalStaked));
+            currentRewardPerToken = assetState.lastRewardPerTokenGlobal
+                + uint128(assetState.currentRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
         }
         assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
         uint128 deltaRewardPerToken;
         unchecked {
             deltaRewardPerToken = currentRewardPerToken - positionState.lastRewardPerTokenPosition;
         }
-        deltaReward = uint256(positionState.amountStaked).mulDivDown(deltaRewardPerToken, 1e18);
+        uint256 deltaReward = uint256(positionState.amountStaked).mulDivDown(deltaRewardPerToken, 1e18);
         assertEq(newPositionState.lastRewardPosition, positionState.lastRewardPosition + deltaReward);
 
         // And : Asset values should be updated correctly
         StakingAM.AssetState memory newAssetState;
-        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
-            stakingAM.assetState(asset);
+        (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
-        assertEq(newAssetState.lastRewardGlobal, assetState.currentRewardGlobal);
         assertEq(newAssetState.totalStaked, assetState.totalStaked + amount);
     }
 }
