@@ -166,7 +166,7 @@ contract Registry is IRegistry, RegistryGuardian {
     /**
      * @notice Checks that the sequencer is not down, and that it is back up for longer than the grace period.
      * @param creditor The contract address of the Creditor.
-     * @return success Boolean indicating whether the sequencer uptime oracle not reverting.
+     * @return success Boolean indicating whether the sequencer uptime oracle is not reverting.
      * @return sequencerDown Boolean indicating whether the sequencer is down, or is still within the grace period.
      * @dev This check guarantees that no stale oracles are consumed when the sequencer is down,
      * and that Account owners have time (the grace period) to bring their Account back in a healthy state.
@@ -718,7 +718,8 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view sequencerNotDown(creditor) returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+    ) external view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+        // getValuesInUsd() checks if the sequencer is down.
         valuesAndRiskFactors = getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
         // Convert the USD-values to values in Numeraire if the Numeraire is different from USD (0-address).
@@ -757,7 +758,8 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view sequencerNotDown(creditor) returns (uint256 assetValue) {
+    ) external view returns (uint256 assetValue) {
+        // getValuesInUsd() checks if the sequencer is down.
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
@@ -790,7 +792,8 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view sequencerNotDown(creditor) returns (uint256 collateralValue) {
+    ) external view returns (uint256 collateralValue) {
+        // getValuesInUsd() checks if the sequencer is down.
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
@@ -823,7 +826,8 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view sequencerNotDown(creditor) returns (uint256 liquidationValue) {
+    ) external view returns (uint256 liquidationValue) {
+        // getValuesInUsd() checks if the sequencer is down.
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 

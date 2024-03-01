@@ -297,15 +297,17 @@ contract UniswapV3AM is DerivedAM {
     function _getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) internal pure returns (uint160 sqrtPriceX96) {
         if (priceToken1 == 0) return TickMath.MAX_SQRT_RATIO;
 
-        // Both priceTokens have 18 decimals precision and result of division should also have 18 decimals precision.
-        // -> multiply by 1e18
-        uint256 priceXd18 = priceToken0.mulDivDown(1e18, priceToken1);
-        // Square root of a number with 18 decimals precision has 9 decimals precision.
-        uint256 sqrtPriceXd9 = FixedPointMathLib.sqrt(priceXd18);
+        // Both priceTokens have 18 decimals precision and result of division should have 28 decimals precision.
+        // -> multiply by 1e28
+        // priceXd28 will overflow if priceToken0 is greater than 1.158e+49.
+        // For WBTC (which only has 8 decimals) this would require a bitcoin price greater than 115 792 089 237 316 198 989 824 USD/BTC.
+        uint256 priceXd28 = priceToken0.mulDivDown(1e28, priceToken1);
+        // Square root of a number with 28 decimals precision has 14 decimals precision.
+        uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
 
-        // Change sqrtPrice from a decimal fixed point number with 9 digits to a binary fixed point number with 96 digits.
+        // Change sqrtPrice from a decimal fixed point number with 14 digits to a binary fixed point number with 96 digits.
         // Unsafe cast: Cast will only overflow when priceToken0/priceToken1 >= 2^128.
-        sqrtPriceX96 = uint160((sqrtPriceXd9 << FixedPoint96.RESOLUTION) / 1e9);
+        sqrtPriceX96 = uint160((sqrtPriceXd14 << FixedPoint96.RESOLUTION) / 1e14);
     }
 
     /**

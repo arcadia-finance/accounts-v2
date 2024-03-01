@@ -19,9 +19,13 @@ contract StakingAMMock is StakingAMExtension {
         currentRewardGlobal[asset] = amount;
     }
 
-    function _stake(address asset, uint256 amount) internal override { }
+    function _stakeAndClaim(address asset, uint256) internal override {
+        _claimReward(asset);
+    }
 
-    function _withdraw(address asset, uint256 amount) internal override { }
+    function _withdrawAndClaim(address asset, uint256) internal override {
+        _claimReward(asset);
+    }
 
     function _claimReward(address asset) internal override {
         currentRewardGlobal[asset] = 0;

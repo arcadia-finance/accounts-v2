@@ -95,21 +95,18 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, positionState.amountStaked);
-        uint256 deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
         uint128 currentRewardPerToken;
         unchecked {
-            currentRewardPerToken =
-                assetState.lastRewardPerTokenGlobal + uint128(deltaReward.mulDivDown(1e18, assetState.totalStaked));
+            currentRewardPerToken = assetState.lastRewardPerTokenGlobal
+                + uint128(assetState.currentRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
         }
         assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
         assertEq(newPositionState.lastRewardPosition, 0);
 
         // And : Asset values should be updated correctly
         StakingAM.AssetState memory newAssetState;
-        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
-            stakingAM.assetState(asset);
+        (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
-        assertEq(newAssetState.lastRewardGlobal, 0);
         assertEq(newAssetState.totalStaked, assetState.totalStaked);
     }
 
@@ -135,7 +132,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         // And reward is zero.
         positionState.lastRewardPosition = 0;
         positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
-        assetState.currentRewardGlobal = assetState.lastRewardGlobal;
+        assetState.currentRewardGlobal = 0;
 
         // And: State is persisted.
         setStakingAMState(assetState, positionState, asset, positionId);
@@ -166,10 +163,8 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
 
         // And : Asset values should be updated correctly
         StakingAM.AssetState memory newAssetState;
-        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
-            stakingAM.assetState(asset);
+        (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
-        assertEq(newAssetState.lastRewardGlobal, 0);
         assertEq(newAssetState.totalStaked, assetState.totalStaked);
     }
 }
