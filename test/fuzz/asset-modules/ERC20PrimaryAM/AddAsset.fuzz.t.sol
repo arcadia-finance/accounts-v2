@@ -88,7 +88,8 @@ contract AddAsset_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
         assertEq(oracles, oraclesToken4ToUsd);
 
         assertTrue(registryExtension.inRegistry(address(mockERC20.token4)));
-        address assetModule = registryExtension.assetToAssetModule(address(mockERC20.token4));
+        (uint256 assetType, address assetModule) = registryExtension.assetToAssetInformation(address(mockERC20.token4));
+        assertEq(assetType, 1);
         assertEq(assetModule, address(erc20AssetModule));
     }
 }

@@ -233,12 +233,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.prank(address(proxyAccount));
         vm.expectEmit();
         emit Deposit(address(proxyAccount));
-        uint256[] memory assetTypes =
-            registryExtension.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
-
-        assertEq(assetTypes[0], 0);
-        assertEq(assetTypes[1], 1);
-        assertEq(assetTypes[2], 2);
+        registryExtension.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
         (uint112 exposureERC20,,,) = erc20AssetModule.riskParams(address(0), assetKey);
@@ -269,12 +264,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.prank(address(proxyAccount));
         vm.expectEmit();
         emit Deposit(address(proxyAccount));
-        uint256[] memory assetTypes =
-            registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
-
-        assertEq(assetTypes[0], 0);
-        assertEq(assetTypes[1], 1);
-        assertEq(assetTypes[2], 2);
+        registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
         (uint112 exposureERC20,,,) = erc20AssetModule.riskParams(address(0), assetKey);
@@ -312,11 +302,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.prank(address(proxyAccount));
         vm.expectEmit();
         emit Deposit(address(proxyAccount));
-        uint256[] memory assetTypes =
-            registryExtension.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
-
-        assertEq(assetTypes[0], 0);
-        assertEq(assetTypes[1], 2);
+        registryExtension.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
         (uint112 exposureERC20,,,) = erc20AssetModule.riskParams(address(0), assetKey);
@@ -343,10 +329,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.prank(address(proxyAccount));
         vm.expectEmit();
         emit Deposit(address(proxyAccount));
-        uint256[] memory assetTypes =
-            registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
-
-        assertEq(assetTypes[0], 0);
+        registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
         (uint112 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
@@ -376,11 +359,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.prank(address(proxyAccount));
         vm.expectEmit();
         emit Deposit(address(proxyAccount));
-        uint256[] memory assetTypes =
-            registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
-
-        assertEq(assetTypes[0], 0);
-        assertEq(assetTypes[1], 0);
+        registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
         (uint112 exposureToken1,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);

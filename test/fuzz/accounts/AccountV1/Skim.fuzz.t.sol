@@ -63,7 +63,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.skim(address(0), 0, 0);
     }
 
-    function testFuzz_Success_skim_Type0_NonZeroSkim(uint256 depositAmount, uint256 transferAmount, uint32 time)
+    function testFuzz_Success_skim_Type1_NonZeroSkim(uint256 depositAmount, uint256 transferAmount, uint32 time)
         public
     {
         // Deposit ERC20.
@@ -81,7 +81,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Can't check Transfer of both ERC20 and ERC721 in same test-file.
         //vm.expectEmit(true, true, true, true);
         //emit Transfer(address(accountExtension), users.accountOwner, transferAmount);
-        accountExtension.skim(address(mockERC20.token1), 0, 0);
+        accountExtension.skim(address(mockERC20.token1), 0, 1);
         vm.stopPrank();
 
         assertEq(
@@ -94,7 +94,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(accountExtension.lastActionTimestamp(), time);
     }
 
-    function testFuzz_Success_skim_Type0_NothingToSkim(uint256 depositAmount, uint32 time) public {
+    function testFuzz_Success_skim_Type1_NothingToSkim(uint256 depositAmount, uint32 time) public {
         // Deposit ERC20.
         depositAmount = bound(depositAmount, 1, type(uint112).max - 1);
 
@@ -103,7 +103,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.warp(time);
 
         vm.prank(users.accountOwner);
-        accountExtension.skim(address(mockERC20.token1), 0, 0);
+        accountExtension.skim(address(mockERC20.token1), 0, 1);
 
         assertEq(
             accountExtension.getERC20Balances(address(mockERC20.token1)),
@@ -115,7 +115,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(accountExtension.lastActionTimestamp(), time);
     }
 
-    function testFuzz_Success_skim_Type1_NonZeroSkim(uint256 arrLength, uint32 time) public {
+    function testFuzz_Success_skim_Type2_NonZeroSkim(uint256 arrLength, uint32 time) public {
         // Deposit number of nfts.
         arrLength = bound(arrLength, 1, accountExtension.ASSET_LIMIT());
 
@@ -137,7 +137,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
         emit Transfer(address(accountExtension), users.accountOwner, 100);
-        accountExtension.skim(address(mockERC721.nft1), 100, 1);
+        accountExtension.skim(address(mockERC721.nft1), 100, 2);
         vm.stopPrank();
 
         (, uint256 erc721Length,,) = accountExtension.getLengths();
@@ -147,7 +147,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(accountExtension.lastActionTimestamp(), time);
     }
 
-    function testFuzz_Success_skim_Type1_NothingToSkim(uint256 arrLength, uint32 time) public {
+    function testFuzz_Success_skim_Type2_NothingToSkim(uint256 arrLength, uint32 time) public {
         // Deposit number of nfts.
         arrLength = bound(arrLength, 1, accountExtension.ASSET_LIMIT());
 
@@ -164,7 +164,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.warp(time);
 
         vm.prank(users.accountOwner);
-        accountExtension.skim(address(mockERC721.nft1), 10, 1);
+        accountExtension.skim(address(mockERC721.nft1), 10, 2);
 
         (, uint256 erc721Length,,) = accountExtension.getLengths();
         assertEq(erc721Length, arrLength);
@@ -172,7 +172,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(accountExtension.lastActionTimestamp(), time);
     }
 
-    function testFuzz_Success_skim_Type2_NonZeroSkim(uint256 depositAmount, uint256 transferAmount, uint32 time)
+    function testFuzz_Success_skim_Type3_NonZeroSkim(uint256 depositAmount, uint256 transferAmount, uint32 time)
         public
     {
         // Deposit ERC1155.
@@ -202,7 +202,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
         emit TransferSingle(address(accountExtension), address(accountExtension), users.accountOwner, 1, transferAmount);
-        accountExtension.skim(address(mockERC1155.sft1), 1, 2);
+        accountExtension.skim(address(mockERC1155.sft1), 1, 3);
         vm.stopPrank();
 
         (,,, uint256 erc1155Length) = accountExtension.getLengths();
@@ -217,7 +217,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(accountExtension.lastActionTimestamp(), time);
     }
 
-    function testFuzz_Success_skim_Type2_NothingToSkim(uint256 depositAmount, uint32 time) public {
+    function testFuzz_Success_skim_Type3_NothingToSkim(uint256 depositAmount, uint32 time) public {
         // Deposit ERC1155.
         depositAmount = bound(depositAmount, 1, type(uint112).max - 1);
 
@@ -239,7 +239,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.warp(time);
 
         vm.prank(users.accountOwner);
-        accountExtension.skim(address(mockERC1155.sft1), 1, 2);
+        accountExtension.skim(address(mockERC1155.sft1), 1, 3);
 
         (,,, uint256 erc1155Length) = accountExtension.getLengths();
         assertEq(erc1155Length, 1);

@@ -124,14 +124,8 @@ contract ProcessDirectWithdrawal_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test 
         vm.prank(address(registryExtension));
         uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
 
-        {
-            vm.prank(address(registryExtension));
-            uint256 assetType = uniV3AssetModule.processDirectWithdrawal(
-                address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1
-            );
-
-            assertEq(assetType, 1);
-        }
+        vm.prank(address(registryExtension));
+        uniV3AssetModule.processDirectWithdrawal(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
 
         assertEq(uniV3AssetModule.getAssetToLiquidity(tokenId), 0);
 
@@ -237,14 +231,8 @@ contract ProcessDirectWithdrawal_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test 
             address(creditorUsd), address(uniV3AssetModule), maxUsdExposureProtocol, 100
         );
 
-        {
-            vm.prank(address(registryExtension));
-            uint256 assetType = uniV3AssetModule.processDirectWithdrawal(
-                address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0
-            );
-
-            assertEq(assetType, 1);
-        }
+        vm.prank(address(registryExtension));
+        uniV3AssetModule.processDirectWithdrawal(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0);
 
         assertEq(uniV3AssetModule.getAssetToLiquidity(tokenId), 0);
 
@@ -353,14 +341,8 @@ contract ProcessDirectWithdrawal_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test 
         vm.prank(address(registryExtension));
         uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
 
-        {
-            vm.prank(address(registryExtension));
-            uint256 assetType = uniV3AssetModule.processDirectWithdrawal(
-                address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0
-            );
-
-            assertEq(assetType, 1);
-        }
+        vm.prank(address(registryExtension));
+        uniV3AssetModule.processDirectWithdrawal(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0);
 
         {
             // And: Exposure of the asset is one.

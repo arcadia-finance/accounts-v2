@@ -56,12 +56,20 @@ contract Registry is IRegistry, RegistryGuardian {
     mapping(address => bool) public isAssetModule;
     // Map oracleModule => flag.
     mapping(address => bool) public isOracleModule;
-    // Map asset => Asset Module.
-    mapping(address => address) public assetToAssetModule;
     // Map oracle identifier => oracleModule.
     mapping(uint256 => address) internal oracleToOracleModule;
+    // Map asset => Asset Information.
+    mapping(address => AssetInformation) public assetToAssetInformation;
     // Map with the risk parameters for each Creditor.
     mapping(address creditor => RiskParameters) public riskParams;
+
+    // Struct with asset specific information.
+    struct AssetInformation {
+        // Identifier for the type of the asset.
+        uint96 assetType;
+        // The contract address of the Asset Module of the asset.
+        address assetModule;
+    }
 
     // Struct with the risk parameters for a specific Creditor.
     struct RiskParameters {
@@ -231,7 +239,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @return A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address asset, uint256 assetId) external view returns (bool) {
-        address assetModule = assetToAssetModule[asset];
+        address assetModule = assetToAssetInformation[asset].assetModule;
 
         // For unknown assets, assetModule will equal the zero-address.
         if (assetModule == address(0)) return false;
@@ -241,16 +249,19 @@ contract Registry is IRegistry, RegistryGuardian {
 
     /**
      * @notice Adds a new asset to the Registry.
+     * @param assetType Identifier for the type of the asset.
      * @param assetAddress The contract address of the asset.
      * @dev Assets that are already in the registry cannot be overwritten,
      * as that would make it possible for devs to change the asset pricing.
      */
-    function addAsset(address assetAddress) external onlyAssetModule {
+    function addAsset(uint96 assetType, address assetAddress) external onlyAssetModule {
+        if (assetType == 0) revert RegistryErrors.InvalidAssetType();
         if (inRegistry[assetAddress]) revert RegistryErrors.AssetAlreadyInRegistry();
 
         inRegistry[assetAddress] = true;
+        assetToAssetInformation[assetAddress] = AssetInformation({ assetType: assetType, assetModule: msg.sender });
 
-        emit AssetAdded(assetAddress, assetToAssetModule[assetAddress] = msg.sender);
+        emit AssetAdded(assetAddress, msg.sender);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -339,8 +350,9 @@ contract Registry is IRegistry, RegistryGuardian {
         collateralFactors = new uint16[](length);
         liquidationFactors = new uint16[](length);
         for (uint256 i; i < length; ++i) {
-            (collateralFactors[i], liquidationFactors[i]) = IAssetModule(assetToAssetModule[assetAddresses[i]])
-                .getRiskFactors(creditor, assetAddresses[i], assetIds[i]);
+            (collateralFactors[i], liquidationFactors[i]) = IAssetModule(
+                assetToAssetInformation[assetAddresses[i]].assetModule
+            ).getRiskFactors(creditor, assetAddresses[i], assetIds[i]);
         }
     }
 
@@ -383,7 +395,7 @@ contract Registry is IRegistry, RegistryGuardian {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external onlyRiskManager(creditor) {
-        IPrimaryAM(assetToAssetModule[asset]).setRiskParameters(
+        IPrimaryAM(assetToAssetInformation[asset].assetModule).setRiskParameters(
             creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
     }
@@ -410,16 +422,36 @@ contract Registry is IRegistry, RegistryGuardian {
     ///////////////////////////////////////////////////////////////*/
 
     /**
+     * @notice Batch retrieves the asset types.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @return assetTypes Array with the types of the assets.
+     * 0 = Unknown asset.
+     * 1 = ERC20.
+     * 2 = ERC721.
+     * 3 = ERC1155.
+     * ...
+     */
+    function batchGetAssetTypes(address[] calldata assetAddresses)
+        external
+        view
+        returns (uint256[] memory assetTypes)
+    {
+        uint256 addrLength = assetAddresses.length;
+        assetTypes = new uint256[](addrLength);
+
+        for (uint256 i; i < addrLength; ++i) {
+            assetTypes[i] = assetToAssetInformation[assetAddresses[i]].assetType;
+
+            if (assetTypes[i] == 0) revert RegistryErrors.UnknownAsset();
+        }
+    }
+
+    /**
      * @notice Batch deposits multiple assets.
      * @param creditor The contract address of the Creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the ids of the assets.
      * @param amounts Array with the amounts of the assets.
-     * @return assetTypes Array with the types of the assets.
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155.
-     * ...
      * @dev If no Creditor is set, only check that the assets are allowed (= can be priced).
      * @dev If a Creditor is set, processDirectDeposit in the Asset Module checks and updates the exposure for each asset
      * and if applicable, its underlying asset(s).
@@ -429,20 +461,18 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata amounts
-    ) external whenDepositNotPaused onlyAccount returns (uint256[] memory assetTypes) {
+    ) external whenDepositNotPaused onlyAccount {
         uint256 addrLength = assetAddresses.length;
         if (addrLength != assetIds.length || addrLength != amounts.length) revert RegistryErrors.LengthMismatch();
 
-        assetTypes = new uint256[](addrLength);
         address assetAddress;
         if (creditor == address(0)) {
-            bool isAllowed_;
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
-                (isAllowed_, assetTypes[i]) =
-                    IAssetModule(assetToAssetModule[assetAddress]).processAsset(assetAddress, assetIds[i]);
-                if (!isAllowed_) revert RegistryErrors.AssetNotAllowed();
+                if (
+                    !IAssetModule(assetToAssetInformation[assetAddress].assetModule).isAllowed(assetAddress, assetIds[i])
+                ) revert RegistryErrors.AssetNotAllowed();
             }
         } else {
             uint256 recursiveCalls;
@@ -450,7 +480,7 @@ contract Registry is IRegistry, RegistryGuardian {
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
-                (recursiveCalls, assetTypes[i]) = IAssetModule(assetToAssetModule[assetAddress]).processDirectDeposit(
+                recursiveCalls = IAssetModule(assetToAssetInformation[assetAddress].assetModule).processDirectDeposit(
                     creditor, assetAddress, assetIds[i], amounts[i]
                 );
                 if (recursiveCalls > maxRecursiveCalls) revert RegistryErrors.MaxRecursiveCallsReached();
@@ -468,9 +498,10 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param assetIds Array of the ids of the assets.
      * @param amounts Array with the amounts of the assets.
      * @return assetTypes Array with the types of the assets.
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155.
+     * 0 = Unknown asset.
+     * 1 = ERC20.
+     * 2 = ERC721.
+     * 3 = ERC1155.
      * ...
      * @dev If a Creditor is set, processDirectWithdrawal in the Asset Module updates the exposure for each asset and underlying asset.
      */
@@ -487,17 +518,16 @@ contract Registry is IRegistry, RegistryGuardian {
         address assetAddress;
         if (creditor == address(0)) {
             for (uint256 i; i < addrLength; ++i) {
-                assetAddress = assetAddresses[i];
-                // For unknown assets, assetModule will equal the zero-address and call reverts.
-                // The function doesn't revert as this might block assets in Accounts.
-                (, assetTypes[i]) =
-                    IAssetModule(assetToAssetModule[assetAddress]).processAsset(assetAddress, assetIds[i]);
+                assetTypes[i] = assetToAssetInformation[assetAddresses[i]].assetType;
+
+                if (assetTypes[i] == 0) revert RegistryErrors.UnknownAsset();
             }
         } else {
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
-                assetTypes[i] = IAssetModule(assetToAssetModule[assetAddress]).processDirectWithdrawal(
+                assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
+                IAssetModule(assetToAssetInformation[assetAddress].assetModule).processDirectWithdrawal(
                     creditor, assetAddress, assetIds[i], amounts[i]
                 );
             }
@@ -527,8 +557,9 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
     ) external onlyAssetModule returns (uint256 recursiveCalls, uint256 usdExposureAssetToUnderlyingAsset) {
-        (recursiveCalls, usdExposureAssetToUnderlyingAsset) = IAssetModule(assetToAssetModule[underlyingAsset])
-            .processIndirectDeposit(
+        (recursiveCalls, usdExposureAssetToUnderlyingAsset) = IAssetModule(
+            assetToAssetInformation[underlyingAsset].assetModule
+        ).processIndirectDeposit(
             creditor,
             underlyingAsset,
             underlyingAssetId,
@@ -556,7 +587,8 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
     ) external onlyAssetModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
-        usdExposureAssetToUnderlyingAsset = IAssetModule(assetToAssetModule[underlyingAsset]).processIndirectWithdrawal(
+        usdExposureAssetToUnderlyingAsset = IAssetModule(assetToAssetInformation[underlyingAsset].assetModule)
+            .processIndirectWithdrawal(
             creditor,
             underlyingAsset,
             underlyingAssetId,
@@ -626,7 +658,9 @@ contract Registry is IRegistry, RegistryGuardian {
                 valuesAndRiskFactors[i].assetValue,
                 valuesAndRiskFactors[i].collateralFactor,
                 valuesAndRiskFactors[i].liquidationFactor
-            ) = IAssetModule(assetToAssetModule[assets[i]]).getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
+            ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule).getValue(
+                creditor, assets[i], assetIds[i], assetAmounts[i]
+            );
         }
     }
 
@@ -657,7 +691,9 @@ contract Registry is IRegistry, RegistryGuardian {
                 valuesAndRiskFactors[i].assetValue,
                 valuesAndRiskFactors[i].collateralFactor,
                 valuesAndRiskFactors[i].liquidationFactor
-            ) = IAssetModule(assetToAssetModule[assets[i]]).getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
+            ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule).getValue(
+                creditor, assets[i], assetIds[i], assetAmounts[i]
+            );
             // If asset value is too low, set to zero.
             // This is done to prevent dust attacks which may make liquidations unprofitable.
             if (valuesAndRiskFactors[i].assetValue < minUsdValue) valuesAndRiskFactors[i].assetValue = 0;
@@ -690,7 +726,7 @@ contract Registry is IRegistry, RegistryGuardian {
         if (numeraire != address(0)) {
             // We use the USD price per 10^18 tokens instead of the price per token to guarantee sufficient precision.
             (uint256 rateNumeraireToUsd,,) =
-                IAssetModule(assetToAssetModule[numeraire]).getValue(address(0), numeraire, 0, 1e18);
+                IAssetModule(assetToAssetInformation[numeraire].assetModule).getValue(address(0), numeraire, 0, 1e18);
 
             uint256 length = assetAddresses.length;
             for (uint256 i; i < length; ++i) {
@@ -817,7 +853,7 @@ contract Registry is IRegistry, RegistryGuardian {
     {
         // We use the USD price per 10^18 tokens instead of the price per token to guarantee sufficient precision.
         (uint256 rateNumeraireToUsd,,) =
-            IAssetModule(assetToAssetModule[numeraire]).getValue(address(0), numeraire, 0, 1e18);
+            IAssetModule(assetToAssetInformation[numeraire].assetModule).getValue(address(0), numeraire, 0, 1e18);
 
         // "valueInUsd" is the USD-value of the assets with 18 decimals precision.
         // "rateNumeraireToUsd" is the USD-value of 10 ** 18 tokens of Numeraire with 18 decimals precision.

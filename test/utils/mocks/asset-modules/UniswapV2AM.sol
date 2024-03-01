@@ -52,9 +52,9 @@ contract UniswapV2AM is DerivedAM {
     /**
      * @param registry_ The address of the Registry.
      * @param uniswapV2Factory_ The factory for Uniswap V2 pairs.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "0" for ERC20 tokens.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC20 tokens.
      */
-    constructor(address registry_, address uniswapV2Factory_) DerivedAM(registry_, 0) {
+    constructor(address registry_, address uniswapV2Factory_) DerivedAM(registry_, 1) {
         UNISWAP_V2_FACTORY = uniswapV2Factory_;
     }
 
@@ -93,7 +93,7 @@ contract UniswapV2AM is DerivedAM {
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(asset);
+        IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), asset);
     }
 
     /*///////////////////////////////////////////////////////////////

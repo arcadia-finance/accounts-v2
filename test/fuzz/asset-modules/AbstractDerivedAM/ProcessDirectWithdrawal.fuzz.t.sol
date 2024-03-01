@@ -58,10 +58,6 @@ contract ProcessDirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedA
 
         // When: "Registry" calls "processDirectWithdrawal".
         vm.prank(address(registryExtension));
-        uint256 assetType = derivedAM.processDirectWithdrawal(
-            assetState.creditor, assetState.asset, assetState.assetId, uint256(-amount)
-        );
-
-        assertEq(assetType, 0);
+        derivedAM.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, uint256(-amount));
     }
 }

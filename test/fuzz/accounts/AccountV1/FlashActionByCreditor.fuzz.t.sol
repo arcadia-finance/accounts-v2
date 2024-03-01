@@ -514,7 +514,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
             });
 
             assetDataOut.assets[0] = address(mockERC20.token1);
-            assetDataOut.assetTypes[0] = 0;
+            assetDataOut.assetTypes[0] = 1;
             assetDataOut.assetIds[0] = 0;
             assetDataOut.assetAmounts[0] = token1AmountForAction;
 
@@ -526,7 +526,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
             });
 
             assetDataIn.assets[0] = address(mockERC20.token2);
-            assetDataIn.assetTypes[0] = 0;
+            assetDataIn.assetTypes[0] = 1;
             assetDataIn.assetIds[0] = 0;
 
             ActionData memory transferFromOwner;

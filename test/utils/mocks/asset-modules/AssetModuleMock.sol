@@ -33,12 +33,11 @@ contract AssetModuleMock is AbstractAssetModuleExtension {
 
     function processDirectDeposit(address, address, uint256, uint256)
         public
-        view
+        pure
         override
-        returns (uint256 recursiveCalls, uint256 assetType)
+        returns (uint256 recursiveCalls)
     {
         recursiveCalls = 1;
-        assetType = ASSET_TYPE;
     }
 
     function processIndirectDeposit(
@@ -49,14 +48,7 @@ contract AssetModuleMock is AbstractAssetModuleExtension {
         int256 deltaExposureUpperAssetToAsset
     ) public override returns (uint256, uint256) { }
 
-    function processDirectWithdrawal(address, address, uint256, uint256)
-        public
-        view
-        override
-        returns (uint256 assetType)
-    {
-        assetType = ASSET_TYPE;
-    }
+    function processDirectWithdrawal(address, address, uint256, uint256) public view override { }
 
     function processIndirectWithdrawal(
         address creditor,
