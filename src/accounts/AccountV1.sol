@@ -568,7 +568,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             if (assetTypes[i] == 1) {
                 balance = erc20Balances[assetAddresses[i]];
             } else if (assetTypes[i] == 2) {
-                if (address(this) == IERC721(assetAddresses[i]).ownerOf(assetIds[i])) balance = 1;
+                balance = (address(this) == IERC721(assetAddresses[i]).ownerOf(assetIds[i])) ? 1 : 0;
             } else if (assetTypes[i] == 3) {
                 balance = erc1155Balances[assetAddresses[i]][assetIds[i]];
             } else {

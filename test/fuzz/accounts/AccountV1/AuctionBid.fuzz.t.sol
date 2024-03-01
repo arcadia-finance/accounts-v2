@@ -367,8 +367,8 @@ contract AuctionBid_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
 
             address[] memory bidAssetAddresses = new address[](7);
-            bidAssetAddresses[0] = address(mockERC20.token1);
-            bidAssetAddresses[1] = address(mockERC20.token2);
+            bidAssetAddresses[0] = address(mockERC20.token2);
+            bidAssetAddresses[1] = address(mockERC20.token1);
             bidAssetAddresses[2] = address(mockERC721.nft1);
             bidAssetAddresses[3] = address(mockERC721.nft2);
             bidAssetAddresses[4] = address(mockERC1155.sft1);
@@ -404,8 +404,8 @@ contract AuctionBid_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
                 vm.prank(accountExtension.liquidator());
                 uint256[] memory actualAmounts =
                     accountExtension.auctionBid(bidAssetAddresses, bidAssetIds, bidAssetAmounts, bidder);
-                assertEq(actualAmounts[0], assetAmounts[0]);
-                assertEq(actualAmounts[1], 0);
+                assertEq(actualAmounts[0], 0);
+                assertEq(actualAmounts[1], assetAmounts[0]);
                 assertEq(actualAmounts[3], 0);
                 assertEq(actualAmounts[4], assetAmounts[2]);
                 assertEq(actualAmounts[5], 0);
