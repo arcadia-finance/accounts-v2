@@ -665,12 +665,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Updates the actionTimestamp.
-     * @dev Used to avoid frontrunning transfers of the account with actions in the Creditor.
-     */
-    function updateActionTimestampByCreditor() external onlyCreditor updateActionTimestamp { }
-
-    /**
      * @notice Checks that the increase of the open position is allowed.
      * @param openPosition The new open position.
      * @return accountVersion The current Account version.
@@ -698,7 +692,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Executes a flash action initiated by a Creditor.
-     * @param actionTarget actionTarget The contract address of the actionTarget to execute external logic.
+     * @param callbackData A bytes object containing the data to execute arbitrary logic on the Creditor.
+     * @param actionTarget The contract address of the actionTarget to execute external logic.
      * @param actionData A bytes object containing three structs and two bytes objects.
      * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
      * The second struct contains the info about the owner's assets that need to be transferred from the owner to the actionTarget.
@@ -707,8 +702,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The second bytes object contains the encoded input for the actionTarget.
      * @return accountVersion The current Account version.
      * @dev This function optimistically chains multiple actions together (= do a flash action):
-     * - Before calling this function, a Creditor can execute arbitrary logic (e.g. give a flashloan to the actionTarget).
      * - A margin Account can be opened for a new Creditor, if the new Creditor is approved by the Account Owner.
+     * - It can execute arbitrary logic on the Creditor (e.g. give a flashloan to the actionTarget).
      * - It can optimistically withdraw assets from the Account to the actionTarget.
      * - It can transfer assets directly from the owner to the actionTarget.
      * - It can execute external logic on the actionTarget, and interact with any DeFi protocol to swap, stake, claim...
@@ -720,7 +715,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev This function can be used to refinance liabilities between different Creditors,
      * without the need to first sell collateral to close the open position of the old Creditor.
      */
-    function flashActionByCreditor(address actionTarget, bytes calldata actionData)
+    function flashActionByCreditor(bytes calldata callbackData, address actionTarget, bytes calldata actionData)
         external
         nonReentrant
         notDuringAuction
@@ -741,6 +736,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
             bytes memory signature,
             bytes memory actionTargetData
         ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes, bytes));
+
+        // Callback to execute external logic on the Creditor.
+        ICreditor(msg.sender).flashActionCallback(callbackData);
 
         // Withdraw assets to the actionTarget.
         _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);

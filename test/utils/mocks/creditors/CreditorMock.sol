@@ -4,24 +4,41 @@
  */
 pragma solidity 0.8.22;
 
-contract CreditorMock {
+import { Creditor } from "../../../../src/abstracts/Creditor.sol";
+
+contract CreditorMock is Creditor {
+    /* //////////////////////////////////////////////////////////////
+                                STORAGE
+    ////////////////////////////////////////////////////////////// */
     bool isCallSuccesfull = true;
 
     uint96 public minimumMargin;
 
     address public numeraire;
-    address public riskManager;
     address public liquidator;
-
-    error OpenPositionNonZero();
 
     mapping(address => uint256) openPosition;
 
-    constructor() { }
+    /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    error OpenPositionNonZero();
+
+    /* //////////////////////////////////////////////////////////////
+                                CONSTRUCTOR
+    ////////////////////////////////////////////////////////////// */
+
+    constructor() Creditor(address(0)) { }
+
+    /* //////////////////////////////////////////////////////////////
+                            ACCOUNT LOGIC
+    ////////////////////////////////////////////////////////////// */
 
     function openMarginAccount(uint256)
         external
         view
+        override
         returns (bool success, address numeraire_, address liquidator_, uint256 minimumMargin_)
     {
         if (isCallSuccesfull) {
@@ -37,16 +54,26 @@ contract CreditorMock {
         }
     }
 
-    function closeMarginAccount(address account) external view {
+    function closeMarginAccount(address account) external view override {
         if (openPosition[account] != 0) revert OpenPositionNonZero();
     }
 
-    function getOpenPosition(address account) external view returns (uint256 openPosition_) {
+    function getOpenPosition(address account) external view override returns (uint256 openPosition_) {
         openPosition_ = openPosition[account];
     }
 
+    function _flashActionCallback(address, bytes calldata) internal override { }
+
     function setOpenPosition(address account, uint256 openPosition_) external {
         openPosition[account] = openPosition_;
+    }
+
+    function getCallbackAccount() public view returns (address callbackAccount_) {
+        callbackAccount_ = callbackAccount;
+    }
+
+    function setCallbackAccount(address callbackAccount_) public {
+        callbackAccount = callbackAccount_;
     }
 
     function setCallResult(bool success) external {
@@ -69,7 +96,7 @@ contract CreditorMock {
         minimumMargin = minimumMargin_;
     }
 
-    function startLiquidation(address, uint256) external view returns (uint256 openPosition_) {
+    function startLiquidation(address, uint256) external view override returns (uint256 openPosition_) {
         openPosition_ = openPosition[msg.sender];
     }
 }
