@@ -171,8 +171,11 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param account The address of the Account that is transferred.
      * @dev This method transfers an Account on Account address instead of id and
      * also transfers the Account proxy contract to the new owner.
+     * @dev The Account itself cannot become its owner.
      */
     function safeTransferFrom(address from, address to, address account) public {
+        if (to == account) revert FactoryErrors.InvalidRecipient();
+
         uint256 id = accountIndex[account];
         IAccount(allAccounts[id - 1]).transferOwnership(to);
         super.safeTransferFrom(from, to, id);
@@ -185,9 +188,13 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param id The id of the Account that is about to be transferred.
      * @dev This method overwrites the safeTransferFrom function in ERC721.sol to
      * also transfer the Account proxy contract to the new owner.
+     * @dev The Account itself cannot become its owner.
      */
     function safeTransferFrom(address from, address to, uint256 id) public override {
-        IAccount(allAccounts[id - 1]).transferOwnership(to);
+        address account = allAccounts[id - 1];
+        if (to == account) revert FactoryErrors.InvalidRecipient();
+
+        IAccount(account).transferOwnership(to);
         super.safeTransferFrom(from, to, id);
     }
 
@@ -199,9 +206,13 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param data additional data, only used for onERC721Received.
      * @dev This method overwrites the safeTransferFrom function in ERC721.sol to
      * also transfer the Account proxy contract to the new owner.
+     * @dev The Account itself cannot become its owner.
      */
     function safeTransferFrom(address from, address to, uint256 id, bytes calldata data) public override {
-        IAccount(allAccounts[id - 1]).transferOwnership(to);
+        address account = allAccounts[id - 1];
+        if (to == account) revert FactoryErrors.InvalidRecipient();
+
+        IAccount(account).transferOwnership(to);
         super.safeTransferFrom(from, to, id, data);
     }
 
@@ -212,9 +223,13 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param id The id of the Account that is about to be transferred.
      * @dev This method overwrites the transferFrom function in ERC721.sol to
      * also transfer the Account proxy contract to the new owner.
+     * @dev The Account itself cannot become its owner.
      */
     function transferFrom(address from, address to, uint256 id) public override {
-        IAccount(allAccounts[id - 1]).transferOwnership(to);
+        address account = allAccounts[id - 1];
+        if (to == account) revert FactoryErrors.InvalidRecipient();
+
+        IAccount(account).transferOwnership(to);
         super.transferFrom(from, to, id);
     }
 
@@ -223,9 +238,11 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param to The target.
      * @dev Adaptation of safeTransferFrom from the ERC-721 standard, where the Account itself triggers the transfer.
      * @dev The Account must do the transferOwnership() before calling this function.
+     * @dev The Account itself cannot become its owner.
      */
     function safeTransferAccount(address to) public {
         if (to == address(0)) revert FactoryErrors.InvalidRecipient();
+        if (to == msg.sender) revert FactoryErrors.InvalidRecipient();
 
         uint256 id = accountIndex[msg.sender];
         if (id == 0) revert FactoryErrors.OnlyAccount();
