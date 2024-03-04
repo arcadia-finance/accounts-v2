@@ -55,7 +55,7 @@ contract GetRiskFactors_AerodromeVolatileAM_Fuzz_Test is AerodromeVolatileAM_Fuz
         aeroVolatileAM.setRiskParameters(creditor, 0, riskFactor);
 
         // And: pool is added
-        setInitialState();
+        setMockState();
         aeroVolatileAM.addAsset(address(aeroPoolMock));
 
         // And riskFactors are set for token0.

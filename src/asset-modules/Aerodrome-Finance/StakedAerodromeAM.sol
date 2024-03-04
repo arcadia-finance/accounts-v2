@@ -86,11 +86,14 @@ contract StakedAerodromeAM is StakingAM {
      * @param asset The contract address of the Asset to stake.
      * @param amount The amount of Asset to stake.
      */
-    function _stake(address asset, uint256 amount) internal override {
+    function _stakeAndClaim(address asset, uint256 amount) internal override {
         address gauge = assetToGauge[asset];
-        ERC20(asset).approve(gauge, amount);
+
+        // Claim rewards
+        IAeroGauge(gauge).getReward(address(this));
 
         // Stake asset
+        ERC20(asset).approve(gauge, amount);
         IAeroGauge(gauge).deposit(amount);
     }
 
@@ -99,9 +102,14 @@ contract StakedAerodromeAM is StakingAM {
      * @param asset The contract address of the Asset to unstake and withdraw.
      * @param amount The amount of underlying tokens to unstake and withdraw.
      */
-    function _withdraw(address asset, uint256 amount) internal override {
+    function _withdrawAndClaim(address asset, uint256 amount) internal override {
+        address gauge = assetToGauge[asset];
+
+        // Claim rewards
+        IAeroGauge(gauge).getReward(address(this));
+
         // Withdraw asset
-        IAeroGauge(assetToGauge[asset]).withdraw(amount);
+        IAeroGauge(gauge).withdraw(amount);
     }
 
     /**

@@ -4,45 +4,44 @@
  */
 pragma solidity 0.8.22;
 
-import { StakedAerodromeAM_Fork_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fork.t.sol";
+import { StakedAerodromeAM_Fuzz_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 /**
- * @notice Fork tests for the constructor of contract "StakedAerodromeAM".
+ * @notice Fuzz tests for the constructor of contract "StakedAerodromeAM".
  */
-contract Constructor_StakedAerodromeAM_Fork_Test is StakedAerodromeAM_Fork_Test {
+contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        StakedAerodromeAM_Fork_Test.setUp();
+        StakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////
-                            FORK TESTS
+                            FUZZ TESTS
     ///////////////////////////////////////////////////////////////*/
 
-    function testFork_Revert_constructor_RewardTokenNotAllowed() public {
+    function testFuzz_Revert_constructor_RewardTokenNotAllowed() public {
         // Given: No asset module is set for the rewardToken
         registryExtension.setAssetToAssetModule(AERO, address(0));
 
         // When: An asset is added to the AM.
         // Then: It reverts.
-        vm.prank(users.creatorAddress);
         vm.expectRevert(StakedAerodromeAM.RewardTokenNotAllowed.selector);
-        new StakedAerodromeAM(address(registryExtension), aeroVoter);
+        new StakedAerodromeAM(address(registryExtension), address(voter));
     }
 
-    function testFork_success_constructor() public {
-        StakedAerodromeAM assetModule = new StakedAerodromeAM(address(registryExtension), aeroVoter);
+    function testFuzz_success_constructor() public {
+        StakedAerodromeAM assetModule = new StakedAerodromeAM(address(registryExtension), address(voter));
 
         assertEq(address(assetModule.REWARD_TOKEN()), AERO);
         assertEq(assetModule.ASSET_TYPE(), 1);
         assertEq(assetModule.REGISTRY(), address(registryExtension));
         assertEq(assetModule.symbol(), "aAEROP");
         assertEq(assetModule.name(), "Arcadia Aerodrome Positions");
-        assertEq(address(assetModule.AERO_VOTER()), aeroVoter);
+        assertEq(address(assetModule.AERO_VOTER()), address(voter));
     }
 }

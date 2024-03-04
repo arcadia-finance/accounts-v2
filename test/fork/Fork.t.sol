@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { Base_Test } from "../Base.t.sol";
 
 import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
-import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
+import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 
 /**
  * @notice Common logic needed by all fork tests.

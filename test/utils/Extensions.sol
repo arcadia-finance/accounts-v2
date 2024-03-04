@@ -32,6 +32,8 @@ import { StakedStargateAM } from "../../src/asset-modules/Stargate-Finance/Stake
 import { AerodromeVolatileAM } from "../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
 import { AerodromeStableAM } from "../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
 import { StakedAerodromeAM } from "../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
+import { Pool } from "./fixtures/aerodrome/AeroPoolFixture.f.sol";
+import { Gauge } from "./fixtures/aerodrome/AeroGaugeFixture.f.sol";
 
 contract AccountExtension is AccountV1 {
     constructor(address factory) AccountV1(factory) { }
@@ -610,10 +612,6 @@ contract MultiCallExtension is ActionMultiCall {
 abstract contract StakingAMExtension is StakingAM {
     constructor(address registry, string memory name_, string memory symbol_) StakingAM(registry, name_, symbol_) { }
 
-    function setLastRewardGlobal(address asset, uint128 balance) public {
-        assetState[asset].lastRewardGlobal = balance;
-    }
-
     function addAsset(address asset) public {
         _addAsset(asset);
     }
@@ -760,11 +758,11 @@ contract StakedStargateAMExtension is StakedStargateAM {
     }
 
     function stake(address asset, uint256 amount) public {
-        _stake(asset, amount);
+        _stakeAndClaim(asset, amount);
     }
 
     function withdraw(address asset, uint256 amount) public {
-        _withdraw(asset, amount);
+        _withdrawAndClaim(asset, amount);
     }
 
     function calculateValueAndRiskFactors(
@@ -775,6 +773,36 @@ contract StakedStargateAMExtension is StakedStargateAM {
         (valueInUsd, collateralFactor, liquidationFactor) =
             _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }
+}
+
+contract AerodromePoolExtension is Pool {
+    constructor() { }
+
+    function setTokens(address token0_, address token1_) public {
+        token0 = token0_;
+        token1 = token1_;
+    }
+
+    function setReserves(uint256 reserve0_, uint256 reserve1_) public {
+        reserve0 = reserve0_;
+        reserve1 = reserve1_;
+        blockTimestampLast = block.timestamp;
+    }
+
+    function setStable(bool isStable) public {
+        stable = isStable;
+    }
+}
+
+contract AerodromeGaugeExtensions is Gauge {
+    constructor(
+        address forwarder_,
+        address stakingToken_,
+        address feesVotingReward_,
+        address rewardToken_,
+        address voter_,
+        bool isPool_
+    ) Gauge(forwarder_, stakingToken_, feesVotingReward_, rewardToken_, voter_, isPool_) { }
 }
 
 contract AerodromeVolatileAMExtension is AerodromeVolatileAM {
@@ -855,16 +883,20 @@ contract AerodromeStableAMExtension is AerodromeStableAM {
 contract StakedAerodromeAMExtension is StakedAerodromeAM {
     constructor(address registry, address aerodromeVoter) StakedAerodromeAM(registry, aerodromeVoter) { }
 
-    function stake(address asset, uint256 amount) public {
-        _stake(asset, amount);
+    function stakeAndClaim(address asset, uint256 amount) public {
+        _stakeAndClaim(asset, amount);
     }
 
-    function withdraw(address asset, uint256 amount) public {
-        _withdraw(asset, amount);
+    function withdrawAndClaim(address asset, uint256 amount) public {
+        _withdrawAndClaim(asset, amount);
     }
 
     function claimReward(address asset) public {
         _claimReward(asset);
+    }
+
+    function mintIdTo(address to, uint256 tokenId) public {
+        _safeMint(to, tokenId);
     }
 
     function getCurrentReward(address asset) public view returns (uint256 currentReward) {
@@ -873,5 +905,37 @@ contract StakedAerodromeAMExtension is StakedAerodromeAM {
 
     function setAllowed(address asset, bool allowed) public {
         assetState[asset].allowed = allowed;
+    }
+
+    function setAssetInPosition(address asset, uint96 tokenId) public {
+        positionState[tokenId].asset = asset;
+    }
+
+    function setTotalStaked(address asset, uint128 totalStaked_) public {
+        assetState[asset].totalStaked = totalStaked_;
+    }
+
+    function setLastRewardPerTokenGlobal(address asset, uint128 amount) public {
+        assetState[asset].lastRewardPerTokenGlobal = amount;
+    }
+
+    function setLastRewardPosition(uint256 id, uint128 rewards_) public {
+        positionState[id].lastRewardPosition = rewards_;
+    }
+
+    function setLastRewardPerTokenPosition(uint256 id, uint128 rewardPaid) public {
+        positionState[id].lastRewardPerTokenPosition = rewardPaid;
+    }
+
+    function setAmountStakedForPosition(uint256 id, uint256 amount) public {
+        positionState[id].amountStaked = uint128(amount);
+    }
+
+    function setTotalStakedForAsset(address asset, uint128 totalStaked_) public {
+        assetState[asset].totalStaked = totalStaked_;
+    }
+
+    function setOwnerOfPositionId(address owner_, uint256 positionId) public {
+        _ownerOf[positionId] = owner_;
     }
 }

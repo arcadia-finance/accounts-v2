@@ -78,7 +78,7 @@ contract AddAsset_AerodromeVolatileAM_Fuzz_Test is AerodromeVolatileAM_Fuzz_Test
 
     function testFuzz_Success_addAsset() public {
         // Given : Valid initial state
-        setInitialState();
+        setMockState();
 
         // When : An asset is added to the AM.
         aeroVolatileAM.addAsset(address(aeroPoolMock));

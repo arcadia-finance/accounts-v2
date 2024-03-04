@@ -22,9 +22,9 @@ contract GetUnderlyingAssets_AerodromeVolatileAM_Fuzz_Test is AerodromeVolatileA
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_Success_getUnderlyingAssets_InAssetModule(uint256 poolId) public {
+    function testFuzz_Success_getUnderlyingAssets_InAssetModule() public {
         // Given : Valid initial state
-        setInitialState();
+        setMockState();
 
         // And : Asset has been added to the AM
         aeroVolatileAM.addAsset(address(aeroPoolMock));

@@ -79,7 +79,7 @@ contract AddAsset_AerodromeStableAM_Fuzz_Test is AerodromeStableAM_Fuzz_Test {
 
     function testFuzz_Success_addAsset() public {
         // Given : Valid initial state
-        setInitialState();
+        setMockState();
 
         // When : An asset is added to the AM.
         aeroStableAM.addAsset(address(aeroPoolMock));
@@ -88,8 +88,13 @@ contract AddAsset_AerodromeStableAM_Fuzz_Test is AerodromeStableAM_Fuzz_Test {
         assertTrue(registryExtension.inRegistry(address(aeroPoolMock)));
         assertTrue(aeroStableAM.inAssetModule(address(aeroPoolMock)));
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPoolMock)));
+
         bytes32[] memory underlyingAssetKeys = aeroStableAM.getUnderlyingAssets(assetKey);
         assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1))));
         assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1))));
+
+        (uint64 decimals0, uint64 decimals1) = aeroStableAM.underlyingAssetsDecimals(address(aeroPoolMock));
+        assertEq(decimals0, 10 ** mockERC20.token1.decimals());
+        assertEq(decimals1, 10 ** mockERC20.stable1.decimals());
     }
 }
