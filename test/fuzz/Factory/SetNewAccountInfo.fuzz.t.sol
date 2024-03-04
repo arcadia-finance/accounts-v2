@@ -6,8 +6,8 @@ pragma solidity 0.8.22;
 
 import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
-import { AccountV2 } from "../../utils/mocks/AccountV2.sol";
-import { AccountVariableVersion } from "../../utils/mocks/AccountVariableVersion.sol";
+import { AccountV2 } from "../../utils/mocks/accounts/AccountV2.sol";
+import { AccountVariableVersion } from "../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { Factory } from "../../../src/Factory.sol";
 import { Registry, RegistryExtension } from "../../utils/Extensions.sol";
@@ -65,12 +65,15 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     function testFuzz_Revert_setNewAccountInfo_InvalidAccountContract(address newAssetAddress, address logic) public {
-        vm.assume(logic != address(0));
+        vm.assume(logic > address(10));
+        vm.assume(logic != address(factory));
         vm.assume(logic != address(registryExtension));
         vm.assume(logic != address(vm));
         vm.assume(logic != address(accountV1Logic));
         vm.assume(logic != address(accountV2Logic));
         vm.assume(logic != address(proxyAccount));
+        vm.assume(logic != address(sequencerUptimeOracle));
+        vm.assume(logic != address(accountVarVersion));
         vm.assume(newAssetAddress != address(0));
 
         vm.startPrank(users.creatorAddress);
@@ -117,8 +120,13 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_setNewAccountInfo(address logic, bytes calldata data) public {
         vm.assume(logic > address(10));
         vm.assume(logic != address(factory));
-        vm.assume(logic != address(vm));
         vm.assume(logic != address(registryExtension));
+        vm.assume(logic != address(vm));
+        vm.assume(logic != address(accountV1Logic));
+        vm.assume(logic != address(accountV2Logic));
+        vm.assume(logic != address(proxyAccount));
+        vm.assume(logic != address(sequencerUptimeOracle));
+        vm.assume(logic != address(accountVarVersion));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();
         bytes memory code = address(accountVarVersion).code;
@@ -128,6 +136,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.prank(users.creatorAddress);
         registry2 = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
+        vm.assume(logic != address(registry2));
 
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);

@@ -41,7 +41,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ////////////////////////////////////////////////////////////// */
 
     // The current Account Version.
-    uint16 public constant ACCOUNT_VERSION = 1;
+    uint256 public constant ACCOUNT_VERSION = 1;
     // The maximum amount of different assets that can be used as collateral within an Arcadia Account.
     uint256 public constant ASSET_LIMIT = 15;
     // The cool-down period after an account action, that might be disadvantageous for a new Owner,
@@ -189,7 +189,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param newVersion The new version of the Account implementation.
      * @dev This function MUST be added to new Account implementations.
      */
-    function upgradeAccount(address newImplementation, address newRegistry, uint88 newVersion, bytes calldata data)
+    function upgradeAccount(address newImplementation, address newRegistry, uint256 newVersion, bytes calldata data)
         external
         onlyFactory
         nonReentrant
@@ -199,7 +199,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         // Cache old parameters.
         address oldImplementation = _getAddressSlot(IMPLEMENTATION_SLOT).value;
         address oldRegistry = registry;
-        uint16 oldVersion = ACCOUNT_VERSION;
+        uint256 oldVersion = ACCOUNT_VERSION;
 
         // Store new parameters.
         _getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;
@@ -243,7 +243,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param data Arbitrary data, can contain instructions to execute in this function.
      * @dev If upgradeHook() is implemented, it MUST verify that msg.sender == address(this).
      */
-    function upgradeHook(address oldImplementation, address oldRegistry, uint16 oldVersion, bytes calldata data)
+    function upgradeHook(address oldImplementation, address oldRegistry, uint256 oldVersion, bytes calldata data)
         external
     { }
 
@@ -262,7 +262,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * Cool-down period is triggered after any account action, that might be disadvantageous for a new Owner.
      * This prevents the old Owner from frontrunning a transferFrom().
      */
-    function transferOwnership(address newOwner) external onlyFactory {
+    function transferOwnership(address newOwner) external onlyFactory notDuringAuction {
         if (block.timestamp <= lastActionTimestamp + COOL_DOWN_PERIOD) revert AccountErrors.CoolDownPeriodNotPassed();
 
         // The Factory will check that the new owner is not address(0).
@@ -390,9 +390,15 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param creditor_ The contract address of the approved Creditor.
      * @dev An approved Creditor is a Creditor for which no margin Account is immediately opened.
      * But the approved Creditor itself can open the margin Account later in time to e.g. refinance liabilities.
+     * @dev Potential use-cases of the approved Creditor might be to:
+     * - Refinance liabilities (change creditor) without having to sell collateral to close the current position first.
+     * @dev Anyone can set the approved creditor for themselves, this will not impact the current owner of the Account
+     * since the combination of "current owner -> approved creditor" is used in authentication checks.
+     * This guarantees that when the ownership of the Account is transferred, the approved Creditor of the old owner has no
+     * impact on the new owner. But the new owner can still remove any existing approved Creditors before the transfer.
      */
-    function setApprovedCreditor(address creditor_) external onlyOwner updateActionTimestamp {
-        approvedCreditor = creditor_;
+    function setApprovedCreditor(address creditor_) external {
+        approvedCreditor[msg.sender] = creditor_;
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -502,7 +508,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @return assetAddresses Array of the contract addresses of the assets in Account.
      * @return assetIds Array of the IDs of the assets in Account.
      * @return assetAmounts Array with the amounts of the assets in Account.
-     * @return creditor_ The Creditor, address 0 if no active Creditor.
+     * @return creditor_ The contract address of the Creditor.
+     * @return minimumMargin_ The minimum margin.
      * @return openPosition The open position (liabilities) issued against the Account.
      * @return assetAndRiskValues Array of asset values and corresponding collateral and liquidation factors.
      */
@@ -516,20 +523,22 @@ contract AccountV1 is AccountStorageV1, IAccount {
             uint256[] memory assetIds,
             uint256[] memory assetAmounts,
             address creditor_,
+            uint96 minimumMargin_,
             uint256 openPosition,
             AssetValueAndRiskFactors[] memory assetAndRiskValues
         )
     {
         inAuction = true;
         creditor_ = creditor;
+        minimumMargin_ = minimumMargin;
 
         (assetAddresses, assetIds, assetAmounts) = generateAssetData();
         assetAndRiskValues =
             IRegistry(registry).getValuesInNumeraire(numeraire, creditor_, assetAddresses, assetIds, assetAmounts);
 
         // Since the function is only callable by the Liquidator, we know that a liquidator and a Creditor are set.
-        openPosition = ICreditor(creditor_).startLiquidation(initiator);
-        uint256 usedMargin = openPosition + minimumMargin;
+        openPosition = ICreditor(creditor_).startLiquidation(initiator, minimumMargin_);
+        uint256 usedMargin = openPosition + minimumMargin_;
 
         if (openPosition == 0 || assetAndRiskValues._calculateLiquidationValue() >= usedMargin) {
             revert AccountErrors.AccountNotLiquidatable();
@@ -542,14 +551,36 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param assetIds Array of the IDs of the assets.
      * @param assetAmounts Array with the amounts of the assets.
      * @param bidder The address of the bidder.
+     * @return assetAmounts_ Array with the actual transferred amounts of assets.
      */
     function auctionBid(
         address[] memory assetAddresses,
         uint256[] memory assetIds,
         uint256[] memory assetAmounts,
         address bidder
-    ) external onlyLiquidator nonReentrant {
+    ) external onlyLiquidator nonReentrant returns (uint256[] memory assetAmounts_) {
+        uint256[] memory assetTypes = IRegistry(registry).batchGetAssetTypes(assetAddresses);
+        uint256 balance;
+        for (uint256 i; i < assetAddresses.length; ++i) {
+            // Skip if amount is 0.
+            if (assetAmounts[i] == 0) continue;
+
+            if (assetTypes[i] == 1) {
+                balance = erc20Balances[assetAddresses[i]];
+            } else if (assetTypes[i] == 2) {
+                balance = (address(this) == IERC721(assetAddresses[i]).ownerOf(assetIds[i])) ? 1 : 0;
+            } else if (assetTypes[i] == 3) {
+                balance = erc1155Balances[assetAddresses[i]][assetIds[i]];
+            } else {
+                revert AccountErrors.UnknownAssetType();
+            }
+            if (assetAmounts[i] > balance) assetAmounts[i] = balance;
+        }
+
         _withdraw(assetAddresses, assetIds, assetAmounts, bidder);
+
+        // Return the actual withdrawn amounts.
+        assetAmounts_ = assetAmounts;
     }
 
     /**
@@ -584,8 +615,12 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * - Automate actions by keeper networks.
      * - Do flash actions (optimistic actions).
      * - Chain multiple interactions together (eg. deposit and trade in one transaction).
+     * @dev Anyone can set the Asset Manager for themselves, this will not impact the current owner of the Account
+     * since the combination of "stored owner -> asset manager" is used in authentication checks.
+     * This guarantees that when the ownership of the Account is transferred, the asset managers of the old owner have no
+     * impact on the new owner. But the new owner can still remove any existing asset managers before the transfer.
      */
-    function setAssetManager(address assetManager, bool value) external onlyOwner {
+    function setAssetManager(address assetManager, bool value) external {
         emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = value);
     }
 
@@ -663,6 +698,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         external
         onlyCreditor
         nonReentrant
+        notDuringAuction
         updateActionTimestamp
         returns (uint256 accountVersion)
     {
@@ -678,7 +714,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
 
     /**
      * @notice Executes a flash action initiated by a Creditor.
-     * @param actionTarget actionTarget The contract address of the actionTarget to execute external logic.
+     * @param callbackData A bytes object containing the data to execute arbitrary logic on the Creditor.
+     * @param actionTarget The contract address of the actionTarget to execute external logic.
      * @param actionData A bytes object containing three structs and two bytes objects.
      * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
      * The second struct contains the info about the owner's assets that need to be transferred from the owner to the actionTarget.
@@ -687,8 +724,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * The second bytes object contains the encoded input for the actionTarget.
      * @return accountVersion The current Account version.
      * @dev This function optimistically chains multiple actions together (= do a flash action):
-     * - Before calling this function, a Creditor can execute arbitrary logic (e.g. give a flashloan to the actionTarget).
      * - A margin Account can be opened for a new Creditor, if the new Creditor is approved by the Account Owner.
+     * - It can execute arbitrary logic on the Creditor (e.g. give a flashloan to the actionTarget).
      * - It can optimistically withdraw assets from the Account to the actionTarget.
      * - It can transfer assets directly from the owner to the actionTarget.
      * - It can execute external logic on the actionTarget, and interact with any DeFi protocol to swap, stake, claim...
@@ -700,7 +737,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev This function can be used to refinance liabilities between different Creditors,
      * without the need to first sell collateral to close the open position of the old Creditor.
      */
-    function flashActionByCreditor(address actionTarget, bytes calldata actionData)
+    function flashActionByCreditor(bytes calldata callbackData, address actionTarget, bytes calldata actionData)
         external
         nonReentrant
         notDuringAuction
@@ -711,7 +748,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         address currentCreditor = creditor;
 
         // The caller has to be or the Creditor of the Account, or an approved Creditor.
-        if (msg.sender != currentCreditor && msg.sender != approvedCreditor) revert AccountErrors.OnlyCreditor();
+        if (msg.sender != currentCreditor && msg.sender != approvedCreditor[owner]) revert AccountErrors.OnlyCreditor();
 
         // Decode flash action data.
         (
@@ -722,13 +759,16 @@ contract AccountV1 is AccountStorageV1, IAccount {
             bytes memory actionTargetData
         ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes, bytes));
 
+        // Callback to execute external logic on the Creditor.
+        ICreditor(msg.sender).flashActionCallback(callbackData);
+
         // Withdraw assets to the actionTarget.
         _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);
 
         if (msg.sender != currentCreditor) {
             // If the caller is the approved Creditor, a margin Account must be opened for the approved Creditor.
             // And the exposures for the current and approved Creditors need to be updated.
-            approvedCreditor = address(0);
+            approvedCreditor[owner] = address(0);
 
             (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts) =
                 generateAssetData();
@@ -792,8 +832,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * to the same asset that will get deposited. If multiple asset IDs of the same contract address
      * are deposited, the assetAddress must be repeated in assetAddresses.
      * Example inputs:
-     * [wETH, DAI, BAYC, SandboxASSET], [0, 0, 15, 2], [10**18, 10**18, 1, 100], [0, 0, 1, 2]
-     * [SandboxASSET, SandboxASSET, BAYC, BAYC, wETH], [3, 5, 16, 17, 0], [123, 456, 1, 1, 10**18], [2, 2, 1, 1, 0]
+     * [wETH, DAI, BAYC, SandboxASSET], [0, 0, 15, 2], [10**18, 10**18, 1, 100]
+     * [SandboxASSET, SandboxASSET, BAYC, BAYC, wETH], [3, 5, 16, 17, 0], [123, 456, 1, 1, 10**18]
      */
     function deposit(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
@@ -818,22 +858,19 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256[] memory assetAmounts,
         address from
     ) internal {
-        // If no Creditor is set, batchProcessDeposit only checks if the assets can be priced.
-        // If a Creditor is set, batchProcessDeposit will also update the exposures of assets and underlying assets for the Creditor.
-        uint256[] memory assetTypes =
-            IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
-
+        // Transfer assets to Account before processing them.
+        uint256[] memory assetTypes = IRegistry(registry).batchGetAssetTypes(assetAddresses);
         for (uint256 i; i < assetAddresses.length; ++i) {
             // Skip if amount is 0 to prevent storing addresses that have 0 balance.
             if (assetAmounts[i] == 0) continue;
 
-            if (assetTypes[i] == 0) {
+            if (assetTypes[i] == 1) {
                 if (assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
                 _depositERC20(from, assetAddresses[i], assetAmounts[i]);
-            } else if (assetTypes[i] == 1) {
+            } else if (assetTypes[i] == 2) {
                 if (assetAmounts[i] != 1) revert AccountErrors.InvalidERC721Amount();
                 _depositERC721(from, assetAddresses[i], assetIds[i]);
-            } else if (assetTypes[i] == 2) {
+            } else if (assetTypes[i] == 3) {
                 _depositERC1155(from, assetAddresses[i], assetIds[i], assetAmounts[i]);
             } else {
                 revert AccountErrors.UnknownAssetType();
@@ -843,6 +880,10 @@ contract AccountV1 is AccountStorageV1, IAccount {
         if (erc20Stored.length + erc721Stored.length + erc1155Stored.length > ASSET_LIMIT) {
             revert AccountErrors.TooManyAssets();
         }
+
+        // If no Creditor is set, batchProcessDeposit only checks if the assets can be priced.
+        // If a Creditor is set, batchProcessDeposit will also update the exposures of assets and underlying assets for the Creditor.
+        IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     /**
@@ -857,8 +898,8 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * to the same asset that will get withdrawn. If multiple asset IDs of the same contract address
      * are to be withdrawn, the assetAddress must be repeated in assetAddresses.
      * Example inputs:
-     * [wETH, DAI, BAYC, SandboxASSET], [0, 0, 15, 2], [10**18, 10**18, 1, 100], [0, 0, 1, 2]
-     * [SandboxASSET, SandboxASSET, BAYC, BAYC, wETH], [3, 5, 16, 17, 0], [123, 456, 1, 1, 10**18], [2, 2, 1, 1, 0]
+     * [wETH, DAI, BAYC, SandboxASSET], [0, 0, 15, 2], [10**18, 10**18, 1, 100]
+     * [SandboxASSET, SandboxASSET, BAYC, BAYC, wETH], [3, 5, 16, 17, 0], [123, 456, 1, 1, 10**18]
      * @dev Will fail if the Account is in an unhealthy state after withdrawal (collateral value is smaller than the used margin).
      * If the Account has no open position (liabilities), users are free to withdraw any asset at any time.
      */
@@ -890,6 +931,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         uint256[] memory assetAmounts,
         address to
     ) internal {
+        // Process assets before transferring them out of the Account.
         // If a Creditor is set, batchProcessWithdrawal will also update the exposures of assets and underlying assets for the Creditor.
         uint256[] memory assetTypes =
             IRegistry(registry).batchProcessWithdrawal(creditor, assetAddresses, assetIds, assetAmounts);
@@ -898,13 +940,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
             // Skip if amount is 0 to prevent transferring 0 balances.
             if (assetAmounts[i] == 0) continue;
 
-            if (assetTypes[i] == 0) {
+            if (assetTypes[i] == 1) {
                 if (assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
                 _withdrawERC20(to, assetAddresses[i], assetAmounts[i]);
-            } else if (assetTypes[i] == 1) {
+            } else if (assetTypes[i] == 2) {
                 if (assetAmounts[i] != 1) revert AccountErrors.InvalidERC721Amount();
                 _withdrawERC721(to, assetAddresses[i], assetIds[i]);
-            } else if (assetTypes[i] == 2) {
+            } else if (assetTypes[i] == 3) {
                 _withdrawERC1155(to, assetAddresses[i], assetIds[i], assetAmounts[i]);
             } else {
                 revert AccountErrors.UnknownAssetType();
@@ -917,7 +959,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param from Address the tokens should be transferred from. This address must have approved the Account.
      * @param ERC20Address The contract address of the asset.
      * @param amount The amount of ERC20 assets.
-     * @dev Used for all asset type == 0.
+     * @dev Used for all asset type == 1.
      * @dev If the token has not yet been deposited, the ERC20 token address is stored.
      */
     function _depositERC20(address from, address ERC20Address, uint256 amount) internal {
@@ -939,7 +981,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param from Address the tokens should be transferred from. This address must have approved the Account.
      * @param ERC721Address The contract address of the asset.
      * @param id The ID of the ERC721 token.
-     * @dev Used for all asset type == 1.
+     * @dev Used for all asset type == 2.
      * @dev After successful transfer, the function pushes the ERC721 address to the stored token and stored ID array.
      * This may cause duplicates in the ERC721 stored addresses array, but this is intended.
      */
@@ -956,7 +998,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param ERC1155Address The contract address of the asset.
      * @param id The ID of the ERC1155 tokens.
      * @param amount The amount of ERC1155 tokens.
-     * @dev Used for all asset type == 2.
+     * @dev Used for all asset type == 3.
      * @dev After successful transfer, the function checks whether the combination of address & ID has already been stored.
      * If not, the function pushes the new address and ID to the stored arrays.
      * This may cause duplicates in the ERC1155 stored addresses array, this is intended.
@@ -981,7 +1023,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param to Address the tokens should be sent to.
      * @param ERC20Address The contract address of the asset.
      * @param amount The amount of ERC20 assets.
-     * @dev Used for all asset type == 0.
+     * @dev Used for all asset type == 1.
      * @dev The function checks whether the Account has any leftover balance of said asset.
      * If not, it will pop() the ERC20 asset address from the stored addresses array.
      * Note: this shifts the order of erc20Stored!
@@ -1016,7 +1058,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param to Address the tokens should be sent to.
      * @param ERC721Address The contract address of the asset.
      * @param id The ID of the ERC721 token.
-     * @dev Used for all asset type == 1.
+     * @dev Used for all asset type == 2.
      * @dev The function checks whether any other ERC721 is deposited in the Account.
      * If not, it pops the stored addresses and stored IDs (pop() of two arrays is 180 gas cheaper than deleting).
      * If there are, it loops through the stored arrays and searches the ID that's withdrawn,
@@ -1057,7 +1099,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param ERC1155Address The contract address of the asset.
      * @param id The ID of the ERC1155 tokens.
      * @param amount The amount of ERC1155 tokens.
-     * @dev Used for all asset types = 2.
+     * @dev Used for all asset types = 3.
      * @dev After successful transfer, the function checks whether there is any balance left for that ERC1155.
      * If there is, it simply transfers the tokens.
      * If not, it checks whether it can pop() (used for gas savings vs delete) the stored arrays.
@@ -1106,13 +1148,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
                 continue;
             }
 
-            if (transferFromOwnerData.assetTypes[i] == 0) {
+            if (transferFromOwnerData.assetTypes[i] == 1) {
                 ERC20(transferFromOwnerData.assets[i]).safeTransferFrom(
                     owner_, to, transferFromOwnerData.assetAmounts[i]
                 );
-            } else if (transferFromOwnerData.assetTypes[i] == 1) {
-                IERC721(transferFromOwnerData.assets[i]).safeTransferFrom(owner_, to, transferFromOwnerData.assetIds[i]);
             } else if (transferFromOwnerData.assetTypes[i] == 2) {
+                IERC721(transferFromOwnerData.assets[i]).safeTransferFrom(owner_, to, transferFromOwnerData.assetIds[i]);
+            } else if (transferFromOwnerData.assetTypes[i] == 3) {
                 IERC1155(transferFromOwnerData.assets[i]).safeTransferFrom(
                     owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
                 );
@@ -1160,13 +1202,13 @@ contract AccountV1 is AccountStorageV1, IAccount {
             return;
         }
 
-        if (type_ == 0) {
+        if (type_ == 1) {
             uint256 balance = ERC20(token).balanceOf(address(this));
             uint256 balanceStored = erc20Balances[token];
             if (balance > balanceStored) {
                 ERC20(token).safeTransfer(msg.sender, balance - balanceStored);
             }
-        } else if (type_ == 1) {
+        } else if (type_ == 2) {
             bool isStored;
             uint256 erc721StoredLength = erc721Stored.length;
             for (uint256 i; i < erc721StoredLength; ++i) {
@@ -1179,7 +1221,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             if (!isStored) {
                 IERC721(token).safeTransferFrom(address(this), msg.sender, id);
             }
-        } else if (type_ == 2) {
+        } else if (type_ == 3) {
             uint256 balance = IERC1155(token).balanceOf(address(this), id);
             uint256 balanceStored = erc1155Balances[token][id];
 

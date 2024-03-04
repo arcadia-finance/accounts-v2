@@ -42,9 +42,16 @@ interface ICreditor {
     function riskManager() external view returns (address riskManager);
 
     /**
+     * @notice Callback of the Account during a flashAction.
+     * @param callbackData The data for the actions that have to be executed by the Creditor during a flashAction.
+     */
+    function flashActionCallback(bytes calldata callbackData) external;
+
+    /**
      * @notice Starts the liquidation of an account and returns the open position of the Account.
      * @param initiator The address of the liquidation initiator.
+     * @param minimumMargin The minimum margin of the Account.
      * @return openPosition the open position of the Account.
      */
-    function startLiquidation(address initiator) external returns (uint256);
+    function startLiquidation(address initiator, uint256 minimumMargin) external returns (uint256);
 }

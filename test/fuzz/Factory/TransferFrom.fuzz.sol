@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
 import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
 import { AccountExtension } from "../../utils/Extensions.sol";
@@ -34,12 +34,6 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
                           HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    modifier notAccountOwner(address accountOwner) {
-        vm.assume(accountOwner != address(0));
-        vm.assume(accountOwner != users.accountOwner);
-        _;
-    }
-
     function coolDownPeriodPassed(address account, uint32 lastActionTimestamp, uint32 timePassed) public {
         AccountV1 account_ = AccountV1(account);
         timePassed = uint32(bound(timePassed, coolDownPeriod + 1, type(uint32).max));
@@ -56,207 +50,331 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_SFT1_InvalidRecipient(
-        address newAccountOwner,
-        uint256 salt,
+    function testFuzz_Revert_SFT1_ToZeroAddress(
+        address owner,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notAccountOwner(newAccountOwner) {
-        vm.broadcast(newAccountOwner);
+    ) public {
+        vm.assume(owner != address(0));
+
+        vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
-        vm.prank(newAccountOwner);
+        vm.prank(owner);
         vm.expectRevert("INVALID_RECIPIENT");
-        factory.safeTransferFrom(newAccountOwner, address(0), newAccount);
+        factory.safeTransferFrom(owner, address(0), newAccount);
+    }
+
+    function testFuzz_Revert_SFT1_ToAccount(address owner, uint32 salt, uint32 lastActionTimestamp, uint32 timePassed)
+        public
+    {
+        vm.assume(owner != address(0));
+
+        vm.broadcast(owner);
+        address newAccount = factory.createAccount(salt, 0, address(0));
+
+        coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
+
+        vm.prank(owner);
+        vm.expectRevert(FactoryErrors.InvalidRecipient.selector);
+        factory.safeTransferFrom(owner, newAccount, newAccount);
     }
 
     function testFuzz_Revert_SFT1_CallerNotOwner(
-        address newAccountOwner,
-        address nonOwner,
-        uint256 salt,
+        address owner,
+        address caller,
+        address to,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notAccountOwner(newAccountOwner) {
-        vm.broadcast(newAccountOwner);
+    ) public {
+        vm.assume(owner != address(0));
+        vm.assume(owner != caller);
+
+        vm.broadcast(owner);
+        address newAccount = factory.createAccount(salt, 0, address(0));
+
+        vm.assume(to != newAccount);
+
+        coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
+
+        vm.prank(caller);
+        vm.expectRevert("NOT_AUTHORIZED");
+        factory.safeTransferFrom(owner, to, newAccount);
+    }
+
+    function testFuzz_Revert_SFT2_ToZeroAddress(
+        address owner,
+        uint32 salt,
+        uint32 lastActionTimestamp,
+        uint32 timePassed
+    ) public {
+        vm.assume(owner != address(0));
+
+        vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
-        vm.prank(nonOwner);
-        vm.expectRevert("WRONG_FROM");
-        factory.safeTransferFrom(users.accountOwner, nonOwner, newAccount);
+        uint256 latestId = factory.allAccountsLength();
+        vm.prank(owner);
+        vm.expectRevert("INVALID_RECIPIENT");
+        factory.safeTransferFrom(owner, address(0), latestId);
     }
 
     function testFuzz_Revert_SFT2_InvalidRecipient(
-        address newAccountOwner,
-        uint256 salt,
+        address owner,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notAccountOwner(newAccountOwner) {
-        vm.broadcast(newAccountOwner);
+    ) public {
+        vm.assume(owner != address(0));
+
+        vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
         uint256 latestId = factory.allAccountsLength();
-        vm.prank(newAccountOwner);
-        vm.expectRevert("INVALID_RECIPIENT");
-        factory.safeTransferFrom(newAccountOwner, address(0), latestId);
+        vm.prank(owner);
+        vm.expectRevert(FactoryErrors.InvalidRecipient.selector);
+        factory.safeTransferFrom(owner, newAccount, latestId);
     }
 
     function testFuzz_Revert_SFT2_CallerNotOwner(
-        address newAccountOwner,
-        address nonOwner,
-        uint256 salt,
+        address owner,
+        address caller,
+        address to,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notAccountOwner(newAccountOwner) {
-        vm.broadcast(newAccountOwner);
+    ) public {
+        vm.assume(owner != address(0));
+        vm.assume(owner != caller);
+
+        vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
+
+        vm.assume(to != newAccount);
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
         uint256 latestId = factory.allAccountsLength();
-        vm.prank(nonOwner);
-        vm.expectRevert("WRONG_FROM");
-        factory.safeTransferFrom(users.accountOwner, nonOwner, latestId);
+        vm.prank(caller);
+        vm.expectRevert("NOT_AUTHORIZED");
+        factory.safeTransferFrom(owner, to, latestId);
     }
 
-    function testFuzz_Revert_SFT3_InvalidRecipient(
-        address newAccountOwner,
-        uint256 salt,
+    function testFuzz_Revert_SFT3_ToZeroAddress(
+        address owner,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notAccountOwner(newAccountOwner) {
-        vm.broadcast(newAccountOwner);
+    ) public {
+        vm.assume(owner != address(0));
+
+        vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
         uint256 latestId = factory.allAccountsLength();
-        vm.prank(newAccountOwner);
+        vm.prank(owner);
         vm.expectRevert("INVALID_RECIPIENT");
-        factory.safeTransferFrom(newAccountOwner, address(0), latestId, "");
+        factory.safeTransferFrom(owner, address(0), latestId, "");
+    }
+
+    function testFuzz_Revert_SFT3_ToAccount(address owner, uint32 salt, uint32 lastActionTimestamp, uint32 timePassed)
+        public
+    {
+        vm.assume(owner != address(0));
+
+        vm.broadcast(owner);
+        address newAccount = factory.createAccount(salt, 0, address(0));
+
+        coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
+
+        uint256 latestId = factory.allAccountsLength();
+        vm.prank(owner);
+        vm.expectRevert(FactoryErrors.InvalidRecipient.selector);
+        factory.safeTransferFrom(owner, newAccount, latestId, "");
     }
 
     function testFuzz_Revert_SFT3_CallerNotOwner(
-        address newAccountOwner,
-        address nonOwner,
-        uint256 salt,
+        address owner,
+        address caller,
+        address to,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notAccountOwner(newAccountOwner) {
-        vm.broadcast(newAccountOwner);
+    ) public {
+        vm.assume(owner != address(0));
+        vm.assume(owner != caller);
+
+        vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
+
+        vm.assume(to != newAccount);
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
         uint256 latestId = factory.allAccountsLength();
-        vm.prank(nonOwner);
-        vm.expectRevert("WRONG_FROM");
-        factory.safeTransferFrom(users.accountOwner, nonOwner, latestId, "");
+        vm.prank(caller);
+        vm.expectRevert("NOT_AUTHORIZED");
+        factory.safeTransferFrom(owner, to, latestId, "");
     }
 
-    function testFuzz_Revert_TransferFrom_InvalidRecipient(
-        address newAccountOwner,
-        uint256 salt,
+    function testFuzz_Revert_TransferFrom_ToZeroAddress(
+        address owner,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notAccountOwner(newAccountOwner) {
-        vm.broadcast(newAccountOwner);
+    ) public {
+        vm.assume(owner != address(0));
+
+        vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
         uint256 latestId = factory.allAccountsLength();
-        vm.prank(newAccountOwner);
+        vm.prank(owner);
         vm.expectRevert("INVALID_RECIPIENT");
-        factory.transferFrom(newAccountOwner, address(0), latestId);
+        factory.transferFrom(owner, address(0), latestId);
+    }
+
+    function testFuzz_Revert_TransferFrom_ToAccount(
+        address owner,
+        uint32 salt,
+        uint32 lastActionTimestamp,
+        uint32 timePassed
+    ) public {
+        vm.assume(owner != address(0));
+
+        vm.broadcast(owner);
+        address newAccount = factory.createAccount(salt, 0, address(0));
+
+        coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
+
+        uint256 latestId = factory.allAccountsLength();
+        vm.prank(owner);
+        vm.expectRevert(FactoryErrors.InvalidRecipient.selector);
+        factory.transferFrom(owner, newAccount, latestId);
     }
 
     function testFuzz_Revert_TransferFrom_CallerNotOwner(
-        address newAccountOwner,
-        address nonOwner,
-        uint256 salt,
+        address owner,
+        address caller,
+        address to,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notAccountOwner(newAccountOwner) {
-        vm.broadcast(newAccountOwner);
+    ) public {
+        vm.assume(owner != address(0));
+        vm.assume(owner != caller);
+
+        vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
+
+        vm.assume(to != newAccount);
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
         uint256 latestId = factory.allAccountsLength();
-        vm.prank(nonOwner);
-        vm.expectRevert("WRONG_FROM");
-        factory.transferFrom(users.accountOwner, nonOwner, latestId);
+        vm.prank(caller);
+        vm.expectRevert("NOT_AUTHORIZED");
+        factory.transferFrom(owner, to, latestId);
     }
 
     function testFuzz_Success_STF1(
-        address newAccountOwner,
-        address nonOwner,
-        uint256 salt,
+        address owner,
+        address to,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notAccountOwner(newAccountOwner) notTestContracts(nonOwner) {
-        vm.broadcast(newAccountOwner);
+    ) public notTestContracts(to) {
+        vm.assume(owner != address(0));
+
+        vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
-        vm.prank(newAccountOwner);
-        factory.safeTransferFrom(newAccountOwner, nonOwner, newAccount);
+        vm.prank(owner);
+        factory.safeTransferFrom(owner, to, newAccount);
+
+        assertEq(factory.ownerOfAccount(newAccount), to);
     }
 
     function testFuzz_Success_SFT2(
-        address newAccountOwner,
-        address nonOwner,
-        uint256 salt,
+        address owner,
+        address to,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notAccountOwner(newAccountOwner) notTestContracts(nonOwner) {
-        vm.broadcast(newAccountOwner);
+    ) public notTestContracts(to) {
+        vm.assume(owner != address(0));
+
+        vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
+
+        vm.assume(to != newAccount);
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
-        vm.prank(newAccountOwner);
-        factory.safeTransferFrom(newAccountOwner, nonOwner, newAccount);
+        uint256 latestId = factory.allAccountsLength();
+        vm.prank(owner);
+        factory.safeTransferFrom(owner, to, latestId);
+
+        assertEq(factory.ownerOfAccount(newAccount), to);
     }
 
     function testFuzz_Success_SFT3(
-        address newAccountOwner,
-        address nonOwner,
-        uint256 salt,
+        address owner,
+        address to,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notAccountOwner(newAccountOwner) notTestContracts(nonOwner) {
-        vm.broadcast(newAccountOwner);
+    ) public notTestContracts(to) {
+        vm.assume(owner != address(0));
+
+        vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
+
+        vm.assume(to != newAccount);
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
         uint256 latestId = factory.allAccountsLength();
-        vm.prank(newAccountOwner);
-        factory.safeTransferFrom(newAccountOwner, nonOwner, latestId, "");
+        vm.prank(owner);
+        factory.safeTransferFrom(owner, to, latestId, "");
+
+        assertEq(factory.ownerOfAccount(newAccount), to);
     }
 
     function testFuzz_Success_TransferFrom(
-        address newAccountOwner,
-        address nonOwner,
-        uint256 salt,
+        address owner,
+        address to,
+        uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notAccountOwner(newAccountOwner) notTestContracts(nonOwner) {
-        vm.broadcast(newAccountOwner);
+    ) public notTestContracts(to) {
+        vm.assume(owner != address(0));
+
+        vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
+
+        vm.assume(to != newAccount);
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
         uint256 latestId = factory.allAccountsLength();
-        vm.prank(newAccountOwner);
-        factory.transferFrom(newAccountOwner, nonOwner, latestId);
+        vm.prank(owner);
+        factory.transferFrom(owner, to, latestId);
+
+        assertEq(factory.ownerOfAccount(newAccount), to);
     }
 }

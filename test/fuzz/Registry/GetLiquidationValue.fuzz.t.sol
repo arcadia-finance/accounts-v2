@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
 import { Constants } from "../../utils/Constants.sol";
-import { AssetModule } from "../../../src/asset-modules/AbstractAssetModule.sol";
+import { AssetModule } from "../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 
 /**

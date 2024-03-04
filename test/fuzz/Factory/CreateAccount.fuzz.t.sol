@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
 import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
-import { AccountVariableVersion } from "../../utils/mocks/AccountVariableVersion.sol";
+import { AccountVariableVersion } from "../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../utils/Constants.sol";
 
 /**
@@ -25,7 +25,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_createAccount_Paused(uint256 salt, address sender) public {
+    function testFuzz_Revert_createAccount_Paused(uint32 salt, address sender) public {
         // When: guardian pauses the contract
         vm.warp(35 days);
         vm.prank(users.guardian);
@@ -37,13 +37,13 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         factory.createAccount(salt, 0, address(0));
     }
 
-    function testFuzz_Revert_createAccount_CreateNonExistingAccountVersion(uint16 accountVersion) public {
+    function testFuzz_Revert_createAccount_CreateNonExistingAccountVersion(uint256 accountVersion) public {
         uint256 currentVersion = factory.latestAccountVersion();
-        vm.assume(accountVersion > currentVersion);
+        accountVersion = bound(accountVersion, currentVersion + 1, type(uint256).max);
 
         vm.expectRevert(FactoryErrors.InvalidAccountVersion.selector);
         factory.createAccount(
-            uint256(keccak256(abi.encodePacked(accountVersion, block.timestamp))), accountVersion, address(0)
+            uint32(uint256(keccak256(abi.encodePacked(accountVersion, block.timestamp)))), accountVersion, address(0)
         );
     }
 
@@ -80,14 +80,14 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
             }
             vm.expectRevert(FactoryErrors.AccountVersionBlocked.selector);
             factory.createAccount(
-                uint256(keccak256(abi.encodePacked(versionsToBlock[z], block.timestamp))),
+                uint32(uint256(keccak256(abi.encodePacked(versionsToBlock[z], block.timestamp)))),
                 versionsToBlock[z],
                 address(0)
             );
         }
     }
 
-    function testFuzz_Success_createAccount_DeployAccountWithNoCreditor(uint256 salt) public {
+    function testFuzz_Success_createAccount_DeployAccountWithNoCreditor(uint32 salt) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
         vm.assume(salt > 0);
         uint256 amountBefore = factory.allAccountsLength();
@@ -107,7 +107,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         assertEq(AccountV1(actualDeployed).owner(), address(this));
     }
 
-    function testFuzz_Success_createAccount_DeployAccountWithCreditor(uint256 salt) public {
+    function testFuzz_Success_createAccount_DeployAccountWithCreditor(uint32 salt) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
         vm.assume(salt > 0);
         uint256 amountBefore = factory.allAccountsLength();
@@ -128,7 +128,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         assertEq(AccountV1(actualDeployed).creditor(), address(creditorStable1));
     }
 
-    function testFuzz_Success_createAccount_DeployNewProxyWithLogicOwner(uint256 salt, address sender) public {
+    function testFuzz_Success_createAccount_DeployNewProxyWithLogicOwner(uint32 salt, address sender) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
         vm.assume(salt > 0);
         vm.assume(sender != address(0));
@@ -140,7 +140,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     function testFuzz_Success_createAccount_CreationCannotBeFrontRunnedWithIdenticalSalt(
-        uint256 salt,
+        uint32 salt,
         address sender0,
         address sender1
     ) public {

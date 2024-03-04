@@ -10,8 +10,8 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { AccountExtension } from "../../../utils/Extensions.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
-import { ERC20Mock } from "../../../utils/mocks/ERC20Mock.sol";
-import { MultiActionMock } from "../../../utils/mocks/MultiActionMock.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { MultiActionMock } from "../../../utils/mocks/actions/MultiActionMock.sol";
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
@@ -125,7 +125,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
             assetAddresses[i] = address(mockERC721.nft1);
             assetIds[i] = id;
             assetAmounts[i] = 1;
-            assetTypes[i] = 1;
+            assetTypes[i] = 2;
             ++id;
         }
     }

@@ -7,12 +7,12 @@ pragma solidity 0.8.22;
 import { BitPackingLib } from "./libraries/BitPackingLib.sol";
 import { FixedPointMathLib } from "../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IChainLinkData } from "./interfaces/IChainLinkData.sol";
-import { IDerivedAssetModule } from "./interfaces/IDerivedAssetModule.sol";
+import { IDerivedAM } from "./interfaces/IDerivedAM.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
 import { IOracleModule } from "./interfaces/IOracleModule.sol";
 import { IAssetModule } from "./interfaces/IAssetModule.sol";
-import { IPrimaryAssetModule } from "./interfaces/IPrimaryAssetModule.sol";
+import { IPrimaryAM } from "./interfaces/IPrimaryAM.sol";
 import { ICreditor } from "./interfaces/ICreditor.sol";
 import { RegistryGuardian } from "./guardians/RegistryGuardian.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "./libraries/AssetValuationLib.sol";
@@ -56,12 +56,20 @@ contract Registry is IRegistry, RegistryGuardian {
     mapping(address => bool) public isAssetModule;
     // Map oracleModule => flag.
     mapping(address => bool) public isOracleModule;
-    // Map asset => Asset Module.
-    mapping(address => address) public assetToAssetModule;
     // Map oracle identifier => oracleModule.
     mapping(uint256 => address) internal oracleToOracleModule;
+    // Map asset => Asset Information.
+    mapping(address => AssetInformation) public assetToAssetInformation;
     // Map with the risk parameters for each Creditor.
     mapping(address creditor => RiskParameters) public riskParams;
+
+    // Struct with asset specific information.
+    struct AssetInformation {
+        // Identifier for the type of the asset.
+        uint96 assetType;
+        // The contract address of the Asset Module of the asset.
+        address assetModule;
+    }
 
     // Struct with the risk parameters for a specific Creditor.
     struct RiskParameters {
@@ -79,11 +87,12 @@ contract Registry is IRegistry, RegistryGuardian {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event AllowedActionSet(address indexed action, bool allowed);
     event AssetAdded(address indexed assetAddress, address indexed assetModule);
     event AssetModuleAdded(address assetModule);
+    event Deposit(address account);
     event OracleAdded(uint256 indexed oracleId, address indexed oracleModule);
     event OracleModuleAdded(address oracleModule);
+    event Withdrawal(address account);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -157,7 +166,7 @@ contract Registry is IRegistry, RegistryGuardian {
     /**
      * @notice Checks that the sequencer is not down, and that it is back up for longer than the grace period.
      * @param creditor The contract address of the Creditor.
-     * @return success Boolean indicating whether the sequencer uptime oracle not reverting.
+     * @return success Boolean indicating whether the sequencer uptime oracle is not reverting.
      * @return sequencerDown Boolean indicating whether the sequencer is down, or is still within the grace period.
      * @dev This check guarantees that no stale oracles are consumed when the sequencer is down,
      * and that Account owners have time (the grace period) to bring their Account back in a healthy state.
@@ -230,7 +239,7 @@ contract Registry is IRegistry, RegistryGuardian {
      * @return A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address asset, uint256 assetId) external view returns (bool) {
-        address assetModule = assetToAssetModule[asset];
+        address assetModule = assetToAssetInformation[asset].assetModule;
 
         // For unknown assets, assetModule will equal the zero-address.
         if (assetModule == address(0)) return false;
@@ -240,16 +249,19 @@ contract Registry is IRegistry, RegistryGuardian {
 
     /**
      * @notice Adds a new asset to the Registry.
+     * @param assetType Identifier for the type of the asset.
      * @param assetAddress The contract address of the asset.
      * @dev Assets that are already in the registry cannot be overwritten,
      * as that would make it possible for devs to change the asset pricing.
      */
-    function addAsset(address assetAddress) external onlyAssetModule {
+    function addAsset(uint96 assetType, address assetAddress) external onlyAssetModule {
+        if (assetType == 0) revert RegistryErrors.InvalidAssetType();
         if (inRegistry[assetAddress]) revert RegistryErrors.AssetAlreadyInRegistry();
 
         inRegistry[assetAddress] = true;
+        assetToAssetInformation[assetAddress] = AssetInformation({ assetType: assetType, assetModule: msg.sender });
 
-        emit AssetAdded(assetAddress, assetToAssetModule[assetAddress] = msg.sender);
+        emit AssetAdded(assetAddress, msg.sender);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -278,8 +290,8 @@ contract Registry is IRegistry, RegistryGuardian {
      * @return A boolean, indicating if the sequence complies with the set of criteria.
      * @dev The following checks are performed:
      * - The oracle must be previously added to the Registry and must still be active.
-     * - The last asset of oracles (except for the last oracle) must be equal to the first asset of the next oracle.
-     * - The last asset of the last oracle must be USD.
+     * - The last Asset of oracles (except for the last oracle) must be equal to the first asset of the next oracle.
+     * - The last Asset of the last oracle must be USD.
      */
     function checkOracleSequence(bytes32 oracleSequence) external view returns (bool) {
         (bool[] memory baseToQuoteAsset, uint256[] memory oracles) = oracleSequence.unpack();
@@ -338,8 +350,9 @@ contract Registry is IRegistry, RegistryGuardian {
         collateralFactors = new uint16[](length);
         liquidationFactors = new uint16[](length);
         for (uint256 i; i < length; ++i) {
-            (collateralFactors[i], liquidationFactors[i]) = IAssetModule(assetToAssetModule[assetAddresses[i]])
-                .getRiskFactors(creditor, assetAddresses[i], assetIds[i]);
+            (collateralFactors[i], liquidationFactors[i]) = IAssetModule(
+                assetToAssetInformation[assetAddresses[i]].assetModule
+            ).getRiskFactors(creditor, assetAddresses[i], assetIds[i]);
         }
     }
 
@@ -382,7 +395,7 @@ contract Registry is IRegistry, RegistryGuardian {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external onlyRiskManager(creditor) {
-        IPrimaryAssetModule(assetToAssetModule[asset]).setRiskParameters(
+        IPrimaryAM(assetToAssetInformation[asset].assetModule).setRiskParameters(
             creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
     }
@@ -395,13 +408,13 @@ contract Registry is IRegistry, RegistryGuardian {
      * denominated in USD with 18 decimals precision.
      * @param riskFactor The risk factor of the asset for the Creditor, 4 decimals precision.
      */
-    function setRiskParametersOfDerivedAssetModule(
+    function setRiskParametersOfDerivedAM(
         address creditor,
         address assetModule,
         uint112 maxUsdExposureProtocol,
         uint16 riskFactor
     ) external onlyRiskManager(creditor) {
-        IDerivedAssetModule(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
+        IDerivedAM(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -409,16 +422,36 @@ contract Registry is IRegistry, RegistryGuardian {
     ///////////////////////////////////////////////////////////////*/
 
     /**
+     * @notice Batch retrieves the asset types.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @return assetTypes Array with the types of the assets.
+     * 0 = Unknown asset.
+     * 1 = ERC20.
+     * 2 = ERC721.
+     * 3 = ERC1155.
+     * ...
+     */
+    function batchGetAssetTypes(address[] calldata assetAddresses)
+        external
+        view
+        returns (uint256[] memory assetTypes)
+    {
+        uint256 addrLength = assetAddresses.length;
+        assetTypes = new uint256[](addrLength);
+
+        for (uint256 i; i < addrLength; ++i) {
+            assetTypes[i] = assetToAssetInformation[assetAddresses[i]].assetType;
+
+            if (assetTypes[i] == 0) revert RegistryErrors.UnknownAsset();
+        }
+    }
+
+    /**
      * @notice Batch deposits multiple assets.
      * @param creditor The contract address of the Creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the ids of the assets.
      * @param amounts Array with the amounts of the assets.
-     * @return assetTypes Array with the types of the assets.
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155.
-     * ...
      * @dev If no Creditor is set, only check that the assets are allowed (= can be priced).
      * @dev If a Creditor is set, processDirectDeposit in the Asset Module checks and updates the exposure for each asset
      * and if applicable, its underlying asset(s).
@@ -428,20 +461,18 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata amounts
-    ) external whenDepositNotPaused onlyAccount returns (uint256[] memory assetTypes) {
+    ) external whenDepositNotPaused onlyAccount {
         uint256 addrLength = assetAddresses.length;
         if (addrLength != assetIds.length || addrLength != amounts.length) revert RegistryErrors.LengthMismatch();
 
-        assetTypes = new uint256[](addrLength);
         address assetAddress;
         if (creditor == address(0)) {
-            bool isAllowed_;
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
-                (isAllowed_, assetTypes[i]) =
-                    IAssetModule(assetToAssetModule[assetAddress]).processAsset(assetAddress, assetIds[i]);
-                if (!isAllowed_) revert RegistryErrors.AssetNotAllowed();
+                if (
+                    !IAssetModule(assetToAssetInformation[assetAddress].assetModule).isAllowed(assetAddress, assetIds[i])
+                ) revert RegistryErrors.AssetNotAllowed();
             }
         } else {
             uint256 recursiveCalls;
@@ -449,12 +480,15 @@ contract Registry is IRegistry, RegistryGuardian {
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
-                (recursiveCalls, assetTypes[i]) = IAssetModule(assetToAssetModule[assetAddress]).processDirectDeposit(
+                recursiveCalls = IAssetModule(assetToAssetInformation[assetAddress].assetModule).processDirectDeposit(
                     creditor, assetAddress, assetIds[i], amounts[i]
                 );
                 if (recursiveCalls > maxRecursiveCalls) revert RegistryErrors.MaxRecursiveCallsReached();
             }
         }
+
+        // Emit Deposit event for account for indexing purposes.
+        emit Deposit(msg.sender);
     }
 
     /**
@@ -464,9 +498,10 @@ contract Registry is IRegistry, RegistryGuardian {
      * @param assetIds Array of the ids of the assets.
      * @param amounts Array with the amounts of the assets.
      * @return assetTypes Array with the types of the assets.
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155.
+     * 0 = Unknown asset.
+     * 1 = ERC20.
+     * 2 = ERC721.
+     * 3 = ERC1155.
      * ...
      * @dev If a Creditor is set, processDirectWithdrawal in the Asset Module updates the exposure for each asset and underlying asset.
      */
@@ -483,21 +518,23 @@ contract Registry is IRegistry, RegistryGuardian {
         address assetAddress;
         if (creditor == address(0)) {
             for (uint256 i; i < addrLength; ++i) {
-                assetAddress = assetAddresses[i];
-                // For unknown assets, assetModule will equal the zero-address and call reverts.
-                // The function doesn't revert as this might block assets in Accounts.
-                (, assetTypes[i]) =
-                    IAssetModule(assetToAssetModule[assetAddress]).processAsset(assetAddress, assetIds[i]);
+                assetTypes[i] = assetToAssetInformation[assetAddresses[i]].assetType;
+
+                if (assetTypes[i] == 0) revert RegistryErrors.UnknownAsset();
             }
         } else {
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
-                assetTypes[i] = IAssetModule(assetToAssetModule[assetAddress]).processDirectWithdrawal(
+                assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
+                IAssetModule(assetToAssetInformation[assetAddress].assetModule).processDirectWithdrawal(
                     creditor, assetAddress, assetIds[i], amounts[i]
                 );
             }
         }
+
+        // Emit Withdrawal event for account for indexing purposes.
+        emit Withdrawal(msg.sender);
     }
 
     /**
@@ -520,8 +557,9 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
     ) external onlyAssetModule returns (uint256 recursiveCalls, uint256 usdExposureAssetToUnderlyingAsset) {
-        (recursiveCalls, usdExposureAssetToUnderlyingAsset) = IAssetModule(assetToAssetModule[underlyingAsset])
-            .processIndirectDeposit(
+        (recursiveCalls, usdExposureAssetToUnderlyingAsset) = IAssetModule(
+            assetToAssetInformation[underlyingAsset].assetModule
+        ).processIndirectDeposit(
             creditor,
             underlyingAsset,
             underlyingAssetId,
@@ -549,7 +587,8 @@ contract Registry is IRegistry, RegistryGuardian {
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
     ) external onlyAssetModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
-        usdExposureAssetToUnderlyingAsset = IAssetModule(assetToAssetModule[underlyingAsset]).processIndirectWithdrawal(
+        usdExposureAssetToUnderlyingAsset = IAssetModule(assetToAssetInformation[underlyingAsset].assetModule)
+            .processIndirectWithdrawal(
             creditor,
             underlyingAsset,
             underlyingAssetId,
@@ -619,7 +658,9 @@ contract Registry is IRegistry, RegistryGuardian {
                 valuesAndRiskFactors[i].assetValue,
                 valuesAndRiskFactors[i].collateralFactor,
                 valuesAndRiskFactors[i].liquidationFactor
-            ) = IAssetModule(assetToAssetModule[assets[i]]).getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
+            ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule).getValue(
+                creditor, assets[i], assetIds[i], assetAmounts[i]
+            );
         }
     }
 
@@ -650,7 +691,9 @@ contract Registry is IRegistry, RegistryGuardian {
                 valuesAndRiskFactors[i].assetValue,
                 valuesAndRiskFactors[i].collateralFactor,
                 valuesAndRiskFactors[i].liquidationFactor
-            ) = IAssetModule(assetToAssetModule[assets[i]]).getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
+            ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule).getValue(
+                creditor, assets[i], assetIds[i], assetAmounts[i]
+            );
             // If asset value is too low, set to zero.
             // This is done to prevent dust attacks which may make liquidations unprofitable.
             if (valuesAndRiskFactors[i].assetValue < minUsdValue) valuesAndRiskFactors[i].assetValue = 0;
@@ -675,14 +718,15 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view sequencerNotDown(creditor) returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+    ) external view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+        // getValuesInUsd() checks if the sequencer is down.
         valuesAndRiskFactors = getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
         // Convert the USD-values to values in Numeraire if the Numeraire is different from USD (0-address).
         if (numeraire != address(0)) {
             // We use the USD price per 10^18 tokens instead of the price per token to guarantee sufficient precision.
             (uint256 rateNumeraireToUsd,,) =
-                IAssetModule(assetToAssetModule[numeraire]).getValue(address(0), numeraire, 0, 1e18);
+                IAssetModule(assetToAssetInformation[numeraire].assetModule).getValue(address(0), numeraire, 0, 1e18);
 
             uint256 length = assetAddresses.length;
             for (uint256 i; i < length; ++i) {
@@ -714,7 +758,8 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view sequencerNotDown(creditor) returns (uint256 assetValue) {
+    ) external view returns (uint256 assetValue) {
+        // getValuesInUsd() checks if the sequencer is down.
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
@@ -747,7 +792,8 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view sequencerNotDown(creditor) returns (uint256 collateralValue) {
+    ) external view returns (uint256 collateralValue) {
+        // getValuesInUsd() checks if the sequencer is down.
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
@@ -780,7 +826,8 @@ contract Registry is IRegistry, RegistryGuardian {
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata assetAmounts
-    ) external view sequencerNotDown(creditor) returns (uint256 liquidationValue) {
+    ) external view returns (uint256 liquidationValue) {
+        // getValuesInUsd() checks if the sequencer is down.
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             getValuesInUsd(creditor, assetAddresses, assetIds, assetAmounts);
 
@@ -806,7 +853,7 @@ contract Registry is IRegistry, RegistryGuardian {
     {
         // We use the USD price per 10^18 tokens instead of the price per token to guarantee sufficient precision.
         (uint256 rateNumeraireToUsd,,) =
-            IAssetModule(assetToAssetModule[numeraire]).getValue(address(0), numeraire, 0, 1e18);
+            IAssetModule(assetToAssetInformation[numeraire].assetModule).getValue(address(0), numeraire, 0, 1e18);
 
         // "valueInUsd" is the USD-value of the assets with 18 decimals precision.
         // "rateNumeraireToUsd" is the USD-value of 10 ** 18 tokens of Numeraire with 18 decimals precision.

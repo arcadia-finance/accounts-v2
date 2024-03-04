@@ -19,6 +19,9 @@ abstract contract Creditor is ICreditor {
     // The address of the riskManager.
     address public riskManager;
 
+    // The Account for which a flashAction is called.
+    address internal callbackAccount;
+
     // Map accountVersion => status.
     mapping(uint256 => bool) public isValidVersion;
 
@@ -28,6 +31,13 @@ abstract contract Creditor is ICreditor {
 
     event RiskManagerUpdated(address riskManager);
     event ValidAccountVersionsUpdated(uint256 indexed accountVersion, bool valid);
+
+    /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    // Thrown when caller is not authorized.
+    error Unauthorized();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -92,8 +102,33 @@ abstract contract Creditor is ICreditor {
 
     /**
      * @inheritdoc ICreditor
+     * @dev During the callback, the Account cannot be reentered and the actionTimestamp is updated.
+     */
+    function flashActionCallback(bytes calldata callbackData) external virtual {
+        // Only the Account for which the flashAction is initiated is allowed to callback.
+        if (callbackAccount != msg.sender) revert Unauthorized();
+
+        // Reset callbackAccount, the Account should only callback once during a flashAction.
+        callbackAccount = address(0);
+
+        _flashActionCallback(msg.sender, callbackData);
+    }
+
+    /**
+     * @notice Callback of the Account during a flashAction.
+     * @param account The contract address of the Arcadia Account.
+     * @param callbackData The data for the actions that have to be executed by the Creditor during a flashAction.
+     * @dev During the callback, the Account cannot be reentered and the actionTimestamp is updated.
+     */
+    function _flashActionCallback(address account, bytes calldata callbackData) internal virtual;
+
+    /**
+     * @inheritdoc ICreditor
      * @dev Starts the liquidation process in the Creditor.
      * This function should be callable by Arcadia Account.
      */
-    function startLiquidation(address initiator) external virtual returns (uint256 openPosition);
+    function startLiquidation(address initiator, uint256 minimumMargin)
+        external
+        virtual
+        returns (uint256 openPosition);
 }

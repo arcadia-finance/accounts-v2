@@ -83,9 +83,8 @@ abstract contract RegistryGuardian is BaseGuardian {
      * @inheritdoc BaseGuardian
      * @dev This function will unpause the functionality to:
      * - Withdraw assets.
-     * - Deposit assets.
      */
     function unpause() external override afterCoolDownOf(30 days) {
-        emit PauseFlagsUpdated(withdrawPaused = false, depositPaused = false);
+        emit PauseFlagsUpdated(withdrawPaused = false, depositPaused);
     }
 }

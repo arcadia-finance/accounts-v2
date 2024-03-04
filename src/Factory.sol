@@ -80,8 +80,12 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param creditor The contract address of the creditor.
      * @return account The contract address of the proxy contract of the newly deployed Account.
      * @dev If accountVersion == 0, the newest version will be used.
+     * @dev createAccount() uses the CREATE2 opcode, which can lead to address collision vulnerabilities,
+     * as described in: https://eips.ethereum.org/EIPS/eip-3607.
+     * To decrease the probability of finding an address collision, the number of possible account addresses is limited to 2**64.
+     * We use a salt with 64 bits, the 32 right most bits of the address of the tx.origin, and 32 bits provided by the user.
      */
-    function createAccount(uint256 salt, uint88 accountVersion, address creditor)
+    function createAccount(uint32 salt, uint256 accountVersion, address creditor)
         external
         whenCreateNotPaused
         returns (address account)
@@ -94,7 +98,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         // Hash tx.origin with the user provided salt to avoid front-running Account deployment with an identical salt.
         // We use tx.origin instead of msg.sender so that deployments through a third party contract are not vulnerable to front-running.
         account = address(
-            new Proxy{ salt: keccak256(abi.encodePacked(salt, tx.origin)) }(
+            // 64 bit salt: 32 bits from tx.origin and 32 bits provided by the user.
+            new Proxy{ salt: keccak256(abi.encodePacked(salt, uint32(uint160(tx.origin)))) }(
                 versionInformation[accountVersion].implementation
             )
         );
@@ -106,7 +111,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
 
         IAccount(account).initialize(msg.sender, versionInformation[accountVersion].registry, creditor);
 
-        emit AccountUpgraded(account, accountVersion);
+        // unsafe cast: accountVersion <= latestAccountVersion, which is a uint88.
+        emit AccountUpgraded(account, uint88(accountVersion));
     }
 
     /**
@@ -137,13 +143,13 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * Checks are done such that only compatible versions can be upgraded to.
      * Merkle proofs and their leaves can be found on https://www.github.com/arcadia-finance.
      */
-    function upgradeAccountVersion(address account, uint88 version, bytes32[] calldata proofs) external {
+    function upgradeAccountVersion(address account, uint256 version, bytes32[] calldata proofs) external {
         if (_ownerOf[accountIndex[account]] != msg.sender) revert FactoryErrors.OnlyAccountOwner();
         if (accountVersionBlocked[version]) revert FactoryErrors.AccountVersionBlocked();
 
         uint256 currentVersion = IAccount(account).ACCOUNT_VERSION();
         bool canUpgrade =
-            MerkleProofLib.verify(proofs, versionRoot, keccak256(abi.encodePacked(currentVersion, uint256(version))));
+            MerkleProofLib.verify(proofs, versionRoot, keccak256(abi.encodePacked(currentVersion, version)));
 
         if (!canUpgrade) revert FactoryErrors.InvalidUpgrade();
 
@@ -154,7 +160,8 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
             versionInformation[version].data
         );
 
-        emit AccountUpgraded(account, version);
+        // unsafe cast: accountVersion <= latestAccountVersion, which is a uint88.
+        emit AccountUpgraded(account, uint88(version));
     }
 
     /**
@@ -164,8 +171,11 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param account The address of the Account that is transferred.
      * @dev This method transfers an Account on Account address instead of id and
      * also transfers the Account proxy contract to the new owner.
+     * @dev The Account itself cannot become its owner.
      */
     function safeTransferFrom(address from, address to, address account) public {
+        if (to == account) revert FactoryErrors.InvalidRecipient();
+
         uint256 id = accountIndex[account];
         IAccount(allAccounts[id - 1]).transferOwnership(to);
         super.safeTransferFrom(from, to, id);
@@ -178,9 +188,13 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param id The id of the Account that is about to be transferred.
      * @dev This method overwrites the safeTransferFrom function in ERC721.sol to
      * also transfer the Account proxy contract to the new owner.
+     * @dev The Account itself cannot become its owner.
      */
     function safeTransferFrom(address from, address to, uint256 id) public override {
-        IAccount(allAccounts[id - 1]).transferOwnership(to);
+        address account = allAccounts[id - 1];
+        if (to == account) revert FactoryErrors.InvalidRecipient();
+
+        IAccount(account).transferOwnership(to);
         super.safeTransferFrom(from, to, id);
     }
 
@@ -192,9 +206,13 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param data additional data, only used for onERC721Received.
      * @dev This method overwrites the safeTransferFrom function in ERC721.sol to
      * also transfer the Account proxy contract to the new owner.
+     * @dev The Account itself cannot become its owner.
      */
     function safeTransferFrom(address from, address to, uint256 id, bytes calldata data) public override {
-        IAccount(allAccounts[id - 1]).transferOwnership(to);
+        address account = allAccounts[id - 1];
+        if (to == account) revert FactoryErrors.InvalidRecipient();
+
+        IAccount(account).transferOwnership(to);
         super.safeTransferFrom(from, to, id, data);
     }
 
@@ -205,9 +223,13 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param id The id of the Account that is about to be transferred.
      * @dev This method overwrites the transferFrom function in ERC721.sol to
      * also transfer the Account proxy contract to the new owner.
+     * @dev The Account itself cannot become its owner.
      */
     function transferFrom(address from, address to, uint256 id) public override {
-        IAccount(allAccounts[id - 1]).transferOwnership(to);
+        address account = allAccounts[id - 1];
+        if (to == account) revert FactoryErrors.InvalidRecipient();
+
+        IAccount(account).transferOwnership(to);
         super.transferFrom(from, to, id);
     }
 
@@ -216,9 +238,11 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param to The target.
      * @dev Adaptation of safeTransferFrom from the ERC-721 standard, where the Account itself triggers the transfer.
      * @dev The Account must do the transferOwnership() before calling this function.
+     * @dev The Account itself cannot become its owner.
      */
     function safeTransferAccount(address to) public {
         if (to == address(0)) revert FactoryErrors.InvalidRecipient();
+        if (to == msg.sender) revert FactoryErrors.InvalidRecipient();
 
         uint256 id = accountIndex[msg.sender];
         if (id == 0) revert FactoryErrors.OnlyAccount();
@@ -294,6 +318,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         if (version == 0 || version > latestAccountVersion) revert FactoryErrors.InvalidAccountVersion();
         accountVersionBlocked[version] = true;
 
+        // unsafe cast: accountVersion <= latestAccountVersion, which is a uint88.
         emit AccountVersionBlocked(uint88(version));
     }
 

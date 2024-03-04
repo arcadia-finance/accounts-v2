@@ -9,7 +9,7 @@ import { Constants, AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz
 import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
 import { IActionBase, ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
-import { MultiActionMock } from "../../.././utils/mocks/MultiActionMock.sol";
+import { MultiActionMock } from "../../.././utils/mocks/actions/MultiActionMock.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { IPermit2 } from "../../../utils/Interfaces.sol";
 import { Utils } from "../../../utils/Utils.sol";
@@ -224,7 +224,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         });
 
         assetDataOut.assets[0] = address(mockERC20.token1);
-        assetDataOut.assetTypes[0] = 0;
+        assetDataOut.assetTypes[0] = 1;
         assetDataOut.assetIds[0] = 0;
         assetDataOut.assetAmounts[0] = token1AmountForAction;
 
@@ -236,7 +236,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         });
 
         assetDataIn.assets[0] = address(mockERC20.token2);
-        assetDataIn.assetTypes[0] = 0;
+        assetDataOut.assetTypes[0] = 1;
         assetDataOut.assetIds[0] = 0;
 
         ActionData memory transferFromOwner;
@@ -426,7 +426,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
             });
 
             assetDataOut.assets[0] = address(mockERC20.token1);
-            assetDataOut.assetTypes[0] = 0;
+            assetDataOut.assetTypes[0] = 1;
             assetDataOut.assetIds[0] = 0;
             assetDataOut.assetAmounts[0] = token1AmountForAction;
 
@@ -442,9 +442,9 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
             assetDataIn.assets[1] = address(mockERC20.stable1);
             // Add nft1 that will be sent from owner wallet to action contract
             assetDataIn.assets[2] = address(mockERC721.nft1);
-            assetDataIn.assetTypes[0] = 0;
-            assetDataIn.assetTypes[1] = 0;
-            assetDataIn.assetTypes[2] = 1;
+            assetDataIn.assetTypes[0] = 1;
+            assetDataIn.assetTypes[1] = 1;
+            assetDataIn.assetTypes[2] = 2;
             assetDataIn.assetIds[0] = 0;
             assetDataIn.assetIds[1] = 0;
             assetDataIn.assetIds[2] = 1;
@@ -461,8 +461,8 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
             transferFromOwner.assets[1] = address(mockERC721.nft1);
             transferFromOwner.assetAmounts[0] = stable1AmountForAction;
             transferFromOwner.assetAmounts[1] = 1;
-            transferFromOwner.assetTypes[0] = 0;
-            transferFromOwner.assetTypes[1] = 1;
+            transferFromOwner.assetTypes[0] = 1;
+            transferFromOwner.assetTypes[1] = 2;
             transferFromOwner.assetIds[0] = 0;
             transferFromOwner.assetIds[1] = 1;
 
@@ -591,7 +591,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
             });
 
             assetDataOut.assets[0] = address(mockERC20.token1);
-            assetDataOut.assetTypes[0] = 0;
+            assetDataOut.assetTypes[0] = 1;
             assetDataOut.assetIds[0] = 0;
             assetDataOut.assetAmounts[0] = token1AmountForAction;
 
@@ -603,7 +603,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
             });
 
             assetDataIn.assets[0] = address(mockERC20.token2);
-            assetDataIn.assetTypes[0] = 0;
+            assetDataIn.assetTypes[0] = 1;
             assetDataIn.assetIds[0] = 0;
 
             ActionData memory transferFromOwner;

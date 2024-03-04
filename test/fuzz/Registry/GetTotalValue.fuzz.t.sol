@@ -6,11 +6,11 @@ pragma solidity 0.8.22;
 
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
-import { ArcadiaOracle } from "../../utils/mocks/ArcadiaOracle.sol";
+import { ArcadiaOracle } from "../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../src/libraries/BitPackingLib.sol";
 import { Constants } from "../../utils/Constants.sol";
-import { ERC20Mock } from "../../utils/mocks/ERC20Mock.sol";
-import { AssetModule } from "../../../src/asset-modules/AbstractAssetModule.sol";
+import { ERC20Mock } from "../../utils/mocks/tokens/ERC20Mock.sol";
+import { AssetModule } from "../../../src/asset-modules/abstracts/AbstractAM.sol";
 
 /**
  * @notice Fuzz tests for the function "getTotalValue" of contract "Registry".

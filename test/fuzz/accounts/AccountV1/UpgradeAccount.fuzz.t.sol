@@ -6,8 +6,8 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
-import { AccountV2 } from "../../../utils/mocks/AccountV2.sol";
-import { AccountVariableVersion } from "../../../utils/mocks/AccountVariableVersion.sol";
+import { AccountV2 } from "../../../utils/mocks/accounts/AccountV2.sol";
+import { AccountVariableVersion } from "../../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { RegistryExtension } from "../../../utils/Extensions.sol";
 
@@ -20,7 +20,6 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     struct Checks {
-        uint88 accountVersion;
         address numeraire;
         address owner;
         address liquidator;
@@ -67,7 +66,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_upgradeAccount_NonFactory(
         address newImplementation,
         address newRegistry,
-        uint88 newVersion,
+        uint256 newVersion,
         address nonFactory,
         bytes calldata data
     ) public {
@@ -83,7 +82,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_upgradeAccount_Reentered(
         address newImplementation,
         address newRegistry,
-        uint88 newVersion,
+        uint256 newVersion,
         bytes calldata data
     ) public {
         // Reentrancy guard is in locked state.
@@ -99,7 +98,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_upgradeAccount_NotDuringAuction(
         address newImplementation,
         address newRegistry,
-        uint88 newVersion,
+        uint256 newVersion,
         bytes calldata data
     ) public {
         // Set "inAuction" to true.
@@ -114,7 +113,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_upgradeAccount_InvalidAccountVersion(
         address newImplementation,
-        uint88 newVersion,
+        uint256 newVersion,
         bytes calldata data
     ) public {
         // Given: Creditor is set.
@@ -149,6 +148,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         RegistryExtension registry2 = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
+        vm.assume(newImplementation != address(registry2));
         factory.setNewAccountInfo(address(registry2), newImplementation, Constants.upgradeRoot1To2, data);
         vm.stopPrank();
 
