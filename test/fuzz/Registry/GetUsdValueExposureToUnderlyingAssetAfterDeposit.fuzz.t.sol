@@ -55,7 +55,7 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_Registry_Fuzz_Test is 
         vm.assume(deltaExposureAssetToUnderlyingAsset <= type(int112).max); // MaxExposure.
         vm.assume(deltaExposureAssetToUnderlyingAsset > type(int256).min); // Overflows on inversion.
 
-        registryExtension.setAssetToAssetModule(underlyingAsset, address(primaryAM));
+        registryExtension.setAssetModule(underlyingAsset, address(primaryAM));
         primaryAM.setUsdValue(usdValue);
 
         vm.prank(users.riskManager);

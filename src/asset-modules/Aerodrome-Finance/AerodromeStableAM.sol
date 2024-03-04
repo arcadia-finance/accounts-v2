@@ -84,7 +84,7 @@ contract AerodromeStableAM is AerodromeVolatileAM {
         assetToUnderlyingAssets[_getKeyFromAsset(pool, 0)] = underlyingAssetsKey;
 
         // Will revert in Registry if Aerodrome pool was already added.
-        IRegistry(REGISTRY).addAsset(pool);
+        IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), pool);
     }
 
     /*///////////////////////////////////////////////////////////////

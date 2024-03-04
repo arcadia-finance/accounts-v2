@@ -109,6 +109,9 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
         // And : We let 30 days pass to accumulate rewards.
         vm.warp(block.timestamp + 30 days);
 
+        // And: There are enough rewards in the contract.
+        deal(address(lpStakingTime.eToken()), address(lpStakingTime), 1e36, true);
+
         // And : User1 withdraws 1/2 position.
         vm.prank(arcadiaAccount1);
         stakedStargateAM.decreaseLiquidity(1, uint128(lpBalance1 / 2));
@@ -124,7 +127,6 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
 
         // And : We let 30 days pass to accumulate rewards.
         vm.warp(block.timestamp + 30 days);
-        emit log_named_uint("pendingEmissions", lpStakingTime.pendingEmissionToken(1, address(stakedStargateAM)));
 
         // When : Both users withdraw fully (withdraw and claim rewards).
         vm.prank(arcadiaAccount2);
@@ -132,7 +134,7 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
 
         (amBalanceInLpStaking,) = lpStakingTime.userInfo(pid, address(stakedStargateAM));
 
-        (,,, uint128 totalStaked) = stakedStargateAM.assetState(address(pool));
+        (, uint128 totalStaked,) = stakedStargateAM.assetState(address(pool));
 
         (, uint128 remainingBalanceAccount1,,) = stakedStargateAM.positionState(1);
 
@@ -142,9 +144,6 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
         // Then : Values should be correct
         uint256 rewardsAccount1 = lpStakingTime.eToken().balanceOf(arcadiaAccount1);
         uint256 rewardsAccount2 = lpStakingTime.eToken().balanceOf(arcadiaAccount2);
-        emit log_named_uint("STG rewards Account 1", rewardsAccount1);
-        emit log_named_uint("STG rewards Account 2", rewardsAccount2);
-
         assert(rewardsAccount1 > rewardsAccount2);
 
         (, remainingBalanceAccount1,,) = stakedStargateAM.positionState(1);
@@ -153,7 +152,7 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
         assert(remainingBalanceAccount1 == 0);
         assert(remainingBalanceAccount2 == 0);
 
-        (,,, totalStaked) = stakedStargateAM.assetState(address(pool));
+        (, totalStaked,) = stakedStargateAM.assetState(address(pool));
         assert(totalStaked == 0);
         emit log_named_uint(
             "reamining reward in SM", stakedStargateAM.REWARD_TOKEN().balanceOf(address(stakedStargateAM))
@@ -180,6 +179,9 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
 
         // And : We let 30 days pass to accumulate rewards.
         vm.warp(block.timestamp + 30 days);
+
+        // And: There are enough rewards in the contract.
+        deal(address(lpStakingTime.eToken()), address(lpStakingTime), 1e36, true);
 
         assert(lpStakingTime.eToken().balanceOf(users.accountOwner) == 0);
 
@@ -208,14 +210,14 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
         address arcadiaAccount2 = factory.createAccount(101, 0, address(0));
 
         // And : Stake Stargate Pool LP tokens in the Asset Modules and deposit minted ERC721 in Accounts.
-        uint256 lpBalance1 = stakeInAssetModuleAndDepositInAccount(user1, arcadiaAccount1, USDBC, amount1, pid, pool);
+        stakeInAssetModuleAndDepositInAccount(user1, arcadiaAccount1, USDBC, amount1, pid, pool);
 
         vm.warp(block.timestamp + 1 days);
 
         emit log_named_uint("current reward 1_1", stakedStargateAM.rewardOf(1));
 
         // And : Stake Stargate Pool LP tokens in the Asset Modules and deposit minted ERC721 in Accounts.
-        uint256 lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDBC, amount2, pid, pool);
+        stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDBC, amount2, pid, pool);
 
         vm.warp(block.timestamp + 1 days);
 

@@ -26,7 +26,7 @@ contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test 
 
     function testFuzz_Revert_constructor_RewardTokenNotAllowed() public {
         // Given: No asset module is set for the rewardToken
-        registryExtension.setAssetToAssetModule(AERO, address(0));
+        registryExtension.setAssetModule(AERO, address(0));
 
         // When: An asset is added to the AM.
         // Then: It reverts.
@@ -38,7 +38,7 @@ contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test 
         StakedAerodromeAM assetModule = new StakedAerodromeAM(address(registryExtension), address(voter));
 
         assertEq(address(assetModule.REWARD_TOKEN()), AERO);
-        assertEq(assetModule.ASSET_TYPE(), 1);
+        assertEq(assetModule.ASSET_TYPE(), 2);
         assertEq(assetModule.REGISTRY(), address(registryExtension));
         assertEq(assetModule.symbol(), "aAEROP");
         assertEq(assetModule.name(), "Arcadia Aerodrome Positions");

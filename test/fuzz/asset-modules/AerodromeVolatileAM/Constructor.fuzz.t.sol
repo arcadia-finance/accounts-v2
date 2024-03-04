@@ -29,7 +29,7 @@ contract Constructor_AerodromeVolatileAM_Fuzz_Test is AerodromeVolatileAM_Fuzz_T
             new AerodromeVolatileAMExtension(address(registryExtension), aerodromeFactory);
 
         assertEq(address(assetModule.AERO_FACTORY()), aerodromeFactory);
-        assertEq(assetModule.ASSET_TYPE(), 0);
+        assertEq(assetModule.ASSET_TYPE(), 1);
         assertEq(assetModule.REGISTRY(), address(registryExtension));
     }
 }

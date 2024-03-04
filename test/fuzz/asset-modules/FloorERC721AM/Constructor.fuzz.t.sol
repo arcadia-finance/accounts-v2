@@ -29,6 +29,6 @@ contract Constructor_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
         vm.stopPrank();
 
         assertEq(floorERC721AM_.REGISTRY(), registry_);
-        assertEq(floorERC721AM_.ASSET_TYPE(), 1);
+        assertEq(floorERC721AM_.ASSET_TYPE(), 2);
     }
 }

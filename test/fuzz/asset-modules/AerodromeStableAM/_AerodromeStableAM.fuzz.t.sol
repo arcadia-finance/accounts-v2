@@ -9,6 +9,7 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { AerodromeStableAMExtension } from "../../../utils/Extensions.sol";
 import { AerodromeFactoryMock } from "../../../utils/mocks/Aerodrome/AerodromeFactoryMock.sol";
 import { AerodromePoolExtension } from "../../../utils/Extensions.sol";
+import { FullMath } from "../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
 import {
     Pool,
     PoolFactory,
@@ -22,6 +23,7 @@ import {
  * @notice Common logic needed by "AerodromeStableAM" fuzz tests.
  */
 abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
+    using FixedPointMathLib for uint256;
     /*////////////////////////////////////////////////////////////////
                             CONSTANTS
     /////////////////////////////////////////////////////////////// */
@@ -122,8 +124,6 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
 
         // And : assetAmount is greater than 0 and maximum equal to pool totalSupply.
         testVars_.assetAmount = bound(testVars_.assetAmount, 1, pool.totalSupply());
-        // And : assetAmount is smaller or equal to uint112 max value (which is max value we can deposit in AM)
-        testVars_.assetAmount = bound(testVars_.assetAmount, 1, type(uint112).max);
 
         testVars_.token0 = address(token0);
         testVars_.token1 = address(token1);
@@ -134,10 +134,6 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         testVars.decimals0 = bound(testVars.decimals0, 0, 18);
         testVars.decimals1 = bound(testVars.decimals1, 0, 18);
 
-        // And : "rateUnderlyingAssetsToUsd" for token0 and token1 does not overflows in "_getRateUnderlyingAssetsToUsd".
-        testVars.priceToken0 = bound(testVars.priceToken0, 1, type(uint256).max / 10 ** 36);
-        testVars.priceToken1 = bound(testVars.priceToken1, 1, type(uint256).max / 10 ** 36);
-
         // And : Reserves should not be zero and they should be deposited in same proportion.
         bool d0BiggerD1 = testVars.decimals0 > testVars.decimals1;
         uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
@@ -147,15 +143,43 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         // And : Reserves should be deposited in same proportion for first mint.
         testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
         testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
-        emit log_named_uint("reserve1", testVars.reserve1);
 
         // root (reserve0 * reserve1) should be greater than minimum liquidty
         vm.assume(testVars.reserve0 * testVars.reserve1 > MINIMUM_LIQUIDITY ** 2);
 
-        uint256 k = _k(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
+        uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
 
         // k should be greater than minimum liquidity
-        vm.assume(k > MINIMUM_K);
+        vm.assume(k / 1e18 > MINIMUM_K);
+
+        // And: d does not overflow.
+        testVars.priceToken0 = bound(testVars.priceToken0, 1, type(uint128).max / 10 ** (18 - testVars.decimals0));
+        testVars.priceToken1 = bound(testVars.priceToken1, 1, type(uint128).max / 10 ** (18 - testVars.decimals1));
+        uint256 p0 = 10 ** (18 - testVars.decimals0) * testVars.priceToken0;
+        uint256 p1 = 10 ** (18 - testVars.decimals1) * testVars.priceToken1;
+        emit log_named_uint("p0", p0);
+        emit log_named_uint("p1", p1);
+        uint256 d = p0.mulDivUp(p0, 1e18) + p1.mulDivUp(p1, 1e18);
+
+        // And: c does not overflow
+        vm.assume(k / p0 <= type(uint256).max / p1);
+        uint256 c = FullMath.mulDiv(k, p1, p0);
+
+        // And : assetAmount is smaller or equal to uint112 max value (which is max value we can deposit in AM)
+        testVars.assetAmount = bound(testVars.assetAmount, 1, type(uint112).max);
+
+        // And: underlyingAssetsAmounts does not overflow.
+        vm.assume(c / d <= type(uint256).max / 1e18);
+        uint256 trustedReserve0 = FixedPointMathLib.sqrt(p1 * FixedPointMathLib.sqrt(FullMath.mulDiv(1e18, c, d)));
+        uint256 trustedReserve1 = FullMath.mulDiv(trustedReserve0, p0, p1);
+        trustedReserve0 = trustedReserve0 / 10 ** (18 - testVars.decimals0);
+        trustedReserve1 = trustedReserve1 / 10 ** (18 - testVars.decimals1);
+        if (trustedReserve0 > 0) {
+            testVars.assetAmount = bound(testVars.assetAmount, 1, type(uint256).max / trustedReserve0);
+        }
+        if (trustedReserve1 > 0) {
+            testVars.assetAmount = bound(testVars.assetAmount, 1, type(uint256).max / trustedReserve1);
+        }
 
         testVars_ = testVars;
     }
@@ -210,10 +234,6 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         pure
         returns (uint256 k)
     {
-        uint256 _x = reserve0 * 1e18 / decimals0;
-        uint256 _y = reserve1 * 1e18 / decimals1;
-        uint256 _a = _x * _y / 1e18;
-        uint256 _b = _x * _x / 1e18 + _y * _y / 1e18;
-        k = _a * _b / 1e18;
+        k = getK(reserve0, reserve1, decimals0, decimals1) / 1e18;
     }
 }

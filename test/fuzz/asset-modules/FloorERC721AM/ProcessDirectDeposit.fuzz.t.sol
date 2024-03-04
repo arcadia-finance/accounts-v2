@@ -73,11 +73,10 @@ contract ProcessDirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test
         registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC721.nft2), 0, 2, 0, 0);
 
         vm.prank(address(registryExtension));
-        (uint256 recursiveCalls, uint256 assetType) =
+        uint256 recursiveCalls =
             floorERC721AM.processDirectDeposit(address(creditorUsd), address(mockERC721.nft2), assetId, 1);
 
         assertEq(recursiveCalls, 1);
-        assertEq(assetType, 1);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft2)));
         (uint128 actualExposure,,,) = floorERC721AM.riskParams(address(creditorUsd), assetKey);

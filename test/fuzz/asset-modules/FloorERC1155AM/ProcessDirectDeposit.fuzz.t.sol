@@ -82,11 +82,10 @@ contract ProcessDirectDeposit_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Te
         );
 
         vm.prank(address(registryExtension));
-        (uint256 recursiveCalls, uint256 assetType) =
+        uint256 recursiveCalls =
             floorERC1155AM.processDirectDeposit(address(creditorUsd), address(mockERC1155.sft2), 1, amount);
 
         assertEq(recursiveCalls, 1);
-        assertEq(assetType, 2);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft2)));
         (uint112 actualExposure,,,) = floorERC1155AM.riskParams(address(creditorUsd), assetKey);

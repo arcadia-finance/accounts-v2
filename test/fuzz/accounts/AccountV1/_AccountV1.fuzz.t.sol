@@ -125,7 +125,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
             assetAddresses[i] = address(mockERC721.nft1);
             assetIds[i] = id;
             assetAmounts[i] = 1;
-            assetTypes[i] = 1;
+            assetTypes[i] = 2;
             ++id;
         }
     }

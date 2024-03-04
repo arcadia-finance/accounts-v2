@@ -41,7 +41,7 @@ contract GetPrincipalAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // Avoid divide by 0, which is already checked in earlier in function.
         vm.assume(priceToken1 > 0);
         // Function will overFlow, not realistic.
-        vm.assume(priceToken0 <= type(uint256).max / 1e18);
+        vm.assume(priceToken0 <= type(uint256).max / 1e28);
         // Cast to uint160 will overflow, not realistic.
         vm.assume(priceToken0 / priceToken1 < 2 ** 128);
 

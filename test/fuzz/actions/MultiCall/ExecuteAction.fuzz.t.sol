@@ -69,7 +69,7 @@ contract ExecuteAction_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         // create semi random ids
         // create semi random alternation of amount == 0 or 1
         for (uint256 i; i < assets.length; i++) {
-            types[i] = 1;
+            types[i] = 2;
             ids[i] = uint256(uint160(assets[i]));
             amounts[i] = bound(ids[i] % 4, 0, 1);
             assets_[i] = assets[i];

@@ -17,9 +17,10 @@ interface IRegistry {
 
     /**
      * @notice Adds a new asset to the Registry.
+     * @param assetType Identifier for the type of the asset.
      * @param asset The contract address of the asset.
      */
-    function addAsset(address asset) external;
+    function addAsset(uint96 assetType, address asset) external;
 
     /**
      * @notice Verifies whether a sequence of oracles complies with a predetermined set of criteria.

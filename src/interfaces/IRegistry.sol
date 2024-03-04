@@ -21,22 +21,30 @@ interface IRegistry {
     function inRegistry(address asset) external view returns (bool);
 
     /**
+     * @notice Batch retrieves the asset types.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @return assetTypes Array with the types of the assets.
+     * 0 = Unknown asset.
+     * 1 = ERC20.
+     * 2 = ERC721.
+     * 3 = ERC1155.
+     * ...
+     */
+    function batchGetAssetTypes(address[] calldata assetAddresses) external view returns (uint256[] memory);
+
+    /**
      * @notice Batch deposit multiple assets.
      * @param creditor The contract address of the creditor.
      * @param assetAddresses Array of the contract addresses of the assets.
      * @param assetIds Array of the IDs of the assets.
      * @param amounts Array with the amounts of the assets.
-     * @return assetTypes Array with the types of the assets.
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155.
      */
     function batchProcessDeposit(
         address creditor,
         address[] calldata assetAddresses,
         uint256[] calldata assetIds,
         uint256[] calldata amounts
-    ) external returns (uint256[] memory);
+    ) external;
 
     /**
      * @notice Batch withdraw multiple assets.
@@ -45,9 +53,10 @@ interface IRegistry {
      * @param assetIds Array of the IDs of the assets.
      * @param amounts Array with the amounts of the assets.
      * @return assetTypes Array with the types of the assets.
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155.
+     * 0 = Unknown asset.
+     * 1 = ERC20.
+     * 2 = ERC721.
+     * 3 = ERC1155.
      */
     function batchProcessWithdrawal(
         address creditor,

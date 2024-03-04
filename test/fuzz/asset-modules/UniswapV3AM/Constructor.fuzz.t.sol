@@ -30,7 +30,7 @@ contract Constructor_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.stopPrank();
 
         assertEq(uniV3AssetModule_.REGISTRY(), registry_);
-        assertEq(uniV3AssetModule_.ASSET_TYPE(), 1);
+        assertEq(uniV3AssetModule_.ASSET_TYPE(), 2);
         assertEq(uniV3AssetModule_.getNonFungiblePositionManager(), address(nonfungiblePositionManager));
         assertEq(uniV3AssetModule_.getUniswapV3Factory(), address(uniswapV3Factory));
     }

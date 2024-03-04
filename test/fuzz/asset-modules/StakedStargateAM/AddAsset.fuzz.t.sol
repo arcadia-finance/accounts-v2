@@ -70,7 +70,7 @@ contract AddAsset_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test {
         // Then : Information should be set and correct
         assertEq(stakedStargateAM.assetToPid(address(poolMock)), pid);
 
-        (bool allowed,,,) = stakedStargateAM.assetState(address(poolMock));
+        (,, bool allowed) = stakedStargateAM.assetState(address(poolMock));
         assertTrue(allowed);
     }
 }

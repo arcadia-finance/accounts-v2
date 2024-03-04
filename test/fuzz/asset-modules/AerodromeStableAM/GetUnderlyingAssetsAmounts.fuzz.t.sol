@@ -85,17 +85,16 @@ contract GetUnderlyingAssetsAmounts_AerodromeStableAM_Fuzz_Test is AerodromeStab
 
             uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
 
+            p0 = rateUnderlyingAssetsToUsd[0].assetValue;
+            p1 = rateUnderlyingAssetsToUsd[1].assetValue;
+
             uint256 c = FullMath.mulDiv(k, p1, p0); // 18 decimals
             uint256 d = p0.mulDivUp(p0, 1e18) + p1.mulDivUp(p1, 1e18); // 18 decimals
 
             trustedReserve0 = FixedPointMathLib.sqrt(p1 * FixedPointMathLib.sqrt(FullMath.mulDiv(1e18, c, d)));
-
-            p0 = rateUnderlyingAssetsToUsd[0].assetValue;
-            p1 = rateUnderlyingAssetsToUsd[1].assetValue;
-
-            trustedReserve0 = FixedPointMathLib.sqrt(p1 * FixedPointMathLib.sqrt(FullMath.mulDiv(1e18, c, d)));
-
             trustedReserve1 = FullMath.mulDiv(trustedReserve0, p0, p1);
+            trustedReserve0 = trustedReserve0 / 10 ** (18 - testVars.decimals0);
+            trustedReserve1 = trustedReserve1 / 10 ** (18 - testVars.decimals1);
         }
 
         // Then : It should return the correct values

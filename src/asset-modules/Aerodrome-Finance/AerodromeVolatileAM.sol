@@ -49,9 +49,9 @@ contract AerodromeVolatileAM is DerivedAM {
     /**
      * @param registry_ The address of the Registry.
      * @param aerodromeFactory The contract address of the pool factory of Aerodrome Finance.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts for ERC721 tokens is 1.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC20 tokens.
      */
-    constructor(address registry_, address aerodromeFactory) DerivedAM(registry_, 0) {
+    constructor(address registry_, address aerodromeFactory) DerivedAM(registry_, 1) {
         AERO_FACTORY = IAeroFactory(aerodromeFactory);
     }
 
@@ -81,7 +81,7 @@ contract AerodromeVolatileAM is DerivedAM {
         assetToUnderlyingAssets[_getKeyFromAsset(pool, 0)] = underlyingAssetsKey;
 
         // Will revert in Registry if Aerodrome Finance pool was already added.
-        IRegistry(REGISTRY).addAsset(pool);
+        IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), pool);
     }
 
     /*///////////////////////////////////////////////////////////////

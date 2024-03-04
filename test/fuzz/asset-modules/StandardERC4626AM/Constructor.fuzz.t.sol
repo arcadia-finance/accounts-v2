@@ -29,6 +29,6 @@ contract Constructor_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test 
         vm.stopPrank();
 
         assertEq(erc4626AM_.REGISTRY(), registry_);
-        assertEq(erc4626AM_.ASSET_TYPE(), 0);
+        assertEq(erc4626AM_.ASSET_TYPE(), 1);
     }
 }
