@@ -113,14 +113,14 @@ contract ArcadiaAccountDeployment is Test {
 
         registry.addOracleModule(address(chainlinkOM));
 
-        oracleCompToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCompToUsd_base, "COMP", "USD", 25 hours));
-        oracleDaiToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "DAI", "USD", 25 hours));
-        oracleEthToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleEthToUsd_base, "ETH", "USD", 25 hours));
-        oracleUsdcToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleUsdcToUsd_base, "USDC", "USD", 25 hours));
+        oracleCompToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCompToUsd_base, "COMP", "USD", 100 days));
+        oracleDaiToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "DAI", "USD", 100 days));
+        oracleEthToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleEthToUsd_base, "ETH", "USD", 100 days));
+        oracleUsdcToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleUsdcToUsd_base, "USDC", "USD", 100 days));
         oracleCbethToEthId =
-            uint80(chainlinkOM.addOracle(DeployAddresses.oracleCbethToEth_base, "CBETH", "ETH", 25 hours));
-        oracleRethToEthId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleRethToEth_base, "RETH", "ETH", 25 hours));
-        oracleStgToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleStgToUsd_base, "STG", "USD", 25 hours));
+            uint80(chainlinkOM.addOracle(DeployAddresses.oracleCbethToEth_base, "CBETH", "ETH", 100 days));
+        oracleRethToEthId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleRethToEth_base, "RETH", "ETH", 100 days));
+        oracleStgToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleStgToUsd_base, "STG", "USD", 100 days));
 
         oracleCompToUsdArr[0] = oracleCompToUsdId;
         oracleDaiToUsdArr[0] = oracleDaiToUsdId;
