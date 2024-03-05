@@ -21,17 +21,21 @@ library DeployAddresses {
     address public constant axlusdt_base = 0x7f5373AE26c3E8FfC4c77b7255DF7eC1A9aF52a6;
     address public constant axl_base = 0x23ee2343B892b1BB63503a4FAbc840E0e2C6810f;
     address public constant crv_base = 0x8Ee73c484A26e0A5df2Ee2a4960B789967dd0415;
+    address public constant stg_base = 0xE3B53AF74a4BF62Ae5511055290838050bf764Df;
 
     address public constant oracleCompToUsd_base = 0x9DDa783DE64A9d1A60c49ca761EbE528C35BA428;
     address public constant oracleDaiToUsd_base = 0x591e79239a7d679378eC8c847e5038150364C78F;
     address public constant oracleEthToUsd_base = 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70;
     address public constant oracleUsdcToUsd_base = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
+    address public constant oracleUsdbcToUsd_base = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
     address public constant oracleWbtcToUsd_base = 0xCCADC697c55bbB68dc5bCdf8d3CBe83CdD4E071E;
     address public constant oracleCbethToEth_base = 0x868a501e68F3D1E89CfC0D22F6b22E8dabce5F04;
     address public constant oracleRethToEth_base = 0xf397bF97280B488cA19ee3093E81C0a77F02e9a5;
+    address public constant oracleStgToUsd_base = 0x63Af8341b62E683B87bB540896bF283D96B4D385;
 
     address public constant uniswapV3PositionMgr_base = 0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1;
-
+    address public constant stargateFactory_base = 0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6;
+    address public constant stargateLpStakingTime_base = 0x06Eb48763f117c7Be887296CDcdfad2E4092739C;
     address public constant sequencerUptimeOracle_base = 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433;
 
     // to do: change to gnosis
@@ -46,6 +50,7 @@ library DeployNumbers {
     uint256 public constant oracleWbtcToUsdUnit = 1e8;
     uint256 public constant oracleCbethToEthUnit = 1e18;
     uint256 public constant oracleRethToEthUnit = 1e18;
+    uint256 public constant oracleStgToUsdUnit = 1e8;
 
     uint256 public constant wethDecimals = 18;
     uint256 public constant daiDecimals = 18;
@@ -62,6 +67,10 @@ library DeployNumbers {
     uint256 public constant axlusdtDecimals = 6;
     uint256 public constant axlDecimals = 6;
     uint256 public constant crvDecimals = 18;
+    uint256 public constant stgDecimals = 18;
+
+    uint256 public constant stargateWethPoolId = 13;
+    uint256 public constant stargateUsdbcPoolId = 1;
 }
 
 library DeployBytes {
@@ -88,6 +97,11 @@ library DeployRiskConstantsBase {
     uint16 public constant usdc_collFact_2 = 9000; //usdc
     uint16 public constant usdc_liqFact_1 = 8500; //eth
     uint16 public constant usdc_liqFact_2 = 9400; //usdc
+
+    uint16 public constant usdbc_collFact_1 = 8000; //eth
+    uint16 public constant usdbc_collFact_2 = 9000; //usdc
+    uint16 public constant usdbc_liqFact_1 = 8500; //eth
+    uint16 public constant usdbc_liqFact_2 = 9400; //usdc
 
     uint16 public constant wbtc_collFact_1 = 7600; //eth
     uint16 public constant wbtc_collFact_2 = 8600; //usdc
@@ -139,13 +153,13 @@ library DeployRiskConstantsBase {
     uint16 public constant tbtc_liqFact_1 = 8400; //eth
     uint16 public constant tbtc_liqFact_2 = 9400; //usdc
 
-    uint16 public constant usdbc_collFact_1 = 7600; //eth
-    uint16 public constant usdbc_collFact_2 = 8600; //usdc
-    uint16 public constant usdbc_liqFact_1 = 8400; //eth
-    uint16 public constant usdbc_liqFact_2 = 9400; //usdc
-
     uint16 public constant crvusd_collFact_1 = 7600; //eth
     uint16 public constant crvusd_collFact_2 = 8600; //usdc
     uint16 public constant crvusd_liqFact_1 = 8400; //eth
     uint16 public constant crvusd_liqFact_2 = 9400; //usdc
+
+    uint16 public constant stg_collFact_1 = 7000; //eth
+    uint16 public constant stg_collFact_2 = 7500; //usdc
+    uint16 public constant stg_liqFact_1 = 7800; //eth
+    uint16 public constant stg_liqFact_2 = 8200; //usdc
 }
