@@ -20,6 +20,14 @@ import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
  * @notice Common logic needed by "AerodromeVolatileAM" fuzz tests.
  */
 abstract contract AerodromeVolatileAM_Fuzz_Test is Fuzz_Test {
+    using FixedPointMathLib for uint256;
+    /*////////////////////////////////////////////////////////////////
+                            CONSTANTS
+    /////////////////////////////////////////////////////////////// */
+
+    uint256 internal constant MINIMUM_LIQUIDITY = 10 ** 3;
+    uint256 internal constant MINIMUM_K = 10 ** 10;
+
     /*////////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -122,46 +130,37 @@ abstract contract AerodromeVolatileAM_Fuzz_Test is Fuzz_Test {
 
     function givenValidTestVars(TestVariables memory testVars) public view returns (TestVariables memory testVars_) {
         // Given : decimals should be max equal to 18
-        // And : in order to avoid overflows we will assume no tokens with decimals lower than 4
-        testVars.decimals0 = bound(testVars.decimals0, 4, 18);
-        testVars.decimals1 = bound(testVars.decimals1, 4, 18);
+        testVars.decimals0 = bound(testVars.decimals0, 0, 18);
+        testVars.decimals1 = bound(testVars.decimals1, 0, 18);
 
         // And : "rateUnderlyingAssetsToUsd" for token0 and token1 does not overflows in "_getRateUnderlyingAssetsToUsd"
-        // And : Avoid overflow and in fair reserves as described below
-        testVars.priceToken1 = bound(testVars.priceToken1, 1, type(uint88).max);
-        testVars.priceToken0 = bound(testVars.priceToken0, 1, type(uint88).max);
-
-        vm.assume(testVars.priceToken0 != testVars.priceToken1);
+        testVars.priceToken0 = bound(testVars.priceToken0, 1, type(uint256).max / 1e18);
+        testVars.priceToken1 = bound(testVars.priceToken1, 1, type(uint256).max / 1e18);
+        uint256 p0 = 10 ** (18 - testVars.decimals0) * testVars.priceToken0;
+        uint256 p1 = 10 ** (18 - testVars.decimals1) * testVars.priceToken1;
 
         // And : Reserves should not be zero
-        testVars.reserve1 = bound(testVars.reserve1, 4, type(uint112).max);
-        testVars.reserve0 = bound(testVars.reserve1, 4, type(uint112).max);
+        // And: k should be greater than minimum liquidity
+        testVars.reserve0 = bound(testVars.reserve0, 1, type(uint112).max);
+        testVars.reserve1 = bound(testVars.reserve1, 1, type(uint112).max);
+        testVars.reserve1 = bound(testVars.reserve1, MINIMUM_K / testVars.reserve0, type(uint112).max);
+        uint256 k = testVars.reserve0 * testVars.reserve1;
 
-        // And : In order to calculate the fair reserve 0, we have the following formula: r0' = sqrt((p1 * k) / p0).
-        // Here we should avoid the highly unlikely situation where the division of p1 * k / p0 results in a number bigger than uint256.max.
-        // In our case we should avoid that : assetValue1 * reserve0 * reserve1 / assetValue0 would end up bigger than uint256.max.
-        // Therefore we are taking some assumptions, in order to be able to fuzz the max possible values.
-        // In a normal situation if the price of an asset is higher than the other, the reserves of that asset should be lower than the other.
-        // We will ensure the opposite in this test, as we would like to test for unbalanced pools (with reserves not representing actual price and ensuring that the faire reserves returns correct values).
-        // That's why if the price of an asset is higher than the other we will set the reserves of the other, cheapest asset, equal to the sqrt of the reserves of the highest priced asset.
-        // Also for big values, over uint72.max we will take the quadratic root, as when one value grows we would like the other to decrease to avoid overflows.
+        // And: trustedReserve0 does not overflow
+        vm.assume(k / p0 <= type(uint256).max / p1);
+        uint256 trustedReserve0 = FixedPointMathLib.sqrt(FullMath.mulDiv(k, p1, p0));
 
-        // Note : Double check for situation with high price difference in favor of p1 and asset1 that has low decimals (and lower than asset0), which could lead to a result higher than uint256.max. Could this be a likely scenario ?
+        // And: trustedReserve1 does not overflow
+        vm.assume(trustedReserve0 / p1 <= type(uint256).max / p0);
+        uint256 trustedReserve1 = FullMath.mulDiv(trustedReserve0, p0, p1);
 
-        if (testVars.priceToken1 > testVars.priceToken0) {
-            testVars.reserve0 = testVars.reserve0 > type(uint72).max
-                ? FixedPointMathLib.sqrt(FixedPointMathLib.sqrt(testVars.reserve0))
-                : FixedPointMathLib.sqrt(testVars.reserve1);
-        } else {
-            testVars.reserve1 = testVars.reserve1 > type(uint72).max
-                ? FixedPointMathLib.sqrt(FixedPointMathLib.sqrt(testVars.reserve1))
-                : FixedPointMathLib.sqrt(testVars.reserve0);
+        // And: underlyingAssetsAmounts does not overflow.
+        if (trustedReserve0 > 0) {
+            testVars.assetAmount = bound(testVars.assetAmount, 1, type(uint256).max / trustedReserve0);
         }
-
-        // And : Sqrt of k should be greater than minimum liquidity
-        // Note : check how we could keep the below
-        //testVars.reserve1 = bound(testVars.reserve1, 10 ** 6 / testVars.reserve0, type(uint112).max);
-        vm.assume(FixedPointMathLib.sqrt(testVars.reserve1 * testVars.reserve0) > 10 ** 3);
+        if (trustedReserve1 > 0) {
+            testVars.assetAmount = bound(testVars.assetAmount, 1, type(uint256).max / trustedReserve1);
+        }
 
         testVars_ = testVars;
     }
