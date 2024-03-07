@@ -29,28 +29,6 @@ contract GetUnderlyingAssetsAmounts_AerodromeStableAM_Fuzz_Test is AerodromeStab
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_Revert_getUnderlyingAssetsAmounts_SupplyIsZero(TestVariables memory testVars) public {
-        // Given : Valid state
-        testVars = initAndSetValidStateInPoolFixture(testVars);
-
-        // And : totalSupply is zero
-        uint256 totalSupply = 0;
-        stdstore.target(address(pool)).sig(pool.totalSupply.selector).checked_write(totalSupply);
-
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
-
-        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
-        underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
-        underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
-
-        // When : Calling getUnderlyingAssetsAmounts
-        // Then : It should revert
-        vm.expectRevert(AerodromeVolatileAM.ZeroSupply.selector);
-        aeroStableAM.getUnderlyingAssetsAmounts(
-            address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys
-        );
-    }
-
     function testFuzz_Success_getUnderlyingAssetsAmounts_SupplyGreaterThan0_Stable(TestVariables memory testVars)
         public
     {

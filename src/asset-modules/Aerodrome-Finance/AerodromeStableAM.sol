@@ -113,10 +113,6 @@ contract AerodromeStableAM is AerodromeVolatileAM {
     {
         (address pool,) = _getAssetFromKey(assetKey);
 
-        // Cache totalSupply
-        uint256 totalSupply = IAeroPool(pool).totalSupply();
-        if (totalSupply == 0) revert ZeroSupply();
-
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
 
         underlyingAssetsAmounts = new uint256[](2);
@@ -151,6 +147,9 @@ contract AerodromeStableAM is AerodromeVolatileAM {
         // Bring amount back from 18 decimals to actual decimals?
         trustedReserve0 = trustedReserve0 / (1e18 / underlyingAssetsDecimals[pool].decimals0);
         trustedReserve1 = trustedReserve1 / (1e18 / underlyingAssetsDecimals[pool].decimals1);
+
+        // Cache totalSupply
+        uint256 totalSupply = IAeroPool(pool).totalSupply();
 
         underlyingAssetsAmounts[0] = trustedReserve0.mulDivDown(amount, totalSupply);
         underlyingAssetsAmounts[1] = trustedReserve1.mulDivDown(amount, totalSupply);

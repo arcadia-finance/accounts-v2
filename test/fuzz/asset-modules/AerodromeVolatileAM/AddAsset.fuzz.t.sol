@@ -44,22 +44,6 @@ contract AddAsset_AerodromeVolatileAM_Fuzz_Test is AerodromeVolatileAM_Fuzz_Test
         aeroVolatileAM.addAsset(address(aeroPoolMock));
     }
 
-    function testFuzz_Revert_addAsset_Token1NotAllowed(address token1) public notTestContracts(token1) {
-        // Given : The asset is a pool in the the Aerodrome Factory.
-        aeroFactoryMock.setPool(address(aeroPoolMock));
-
-        // Given : The asset is an Aerodrome Volatile pool.
-        aeroPoolMock.setStable(false);
-
-        // Given : Token0 is added to the Registry, token1 is not.
-        aeroPoolMock.setTokens(address(mockERC20.token1), token1);
-
-        // When : An asset is added to the AM.
-        // Then : It should revert.
-        vm.expectRevert(AerodromeVolatileAM.AssetNotAllowed.selector);
-        aeroVolatileAM.addAsset(address(aeroPoolMock));
-    }
-
     function testFuzz_Revert_addAsset_Token0NotAllowed(address token0) public notTestContracts(token0) {
         // Given : The asset is a pool in the the Aerodrome Factory.
         aeroFactoryMock.setPool(address(aeroPoolMock));
@@ -69,6 +53,22 @@ contract AddAsset_AerodromeVolatileAM_Fuzz_Test is AerodromeVolatileAM_Fuzz_Test
 
         // Given : Token1 is added to the Registry, token0 is not.
         aeroPoolMock.setTokens(token0, address(mockERC20.token1));
+
+        // When : An asset is added to the AM.
+        // Then : It should revert.
+        vm.expectRevert(AerodromeVolatileAM.AssetNotAllowed.selector);
+        aeroVolatileAM.addAsset(address(aeroPoolMock));
+    }
+
+    function testFuzz_Revert_addAsset_Token1NotAllowed(address token1) public notTestContracts(token1) {
+        // Given : The asset is a pool in the the Aerodrome Factory.
+        aeroFactoryMock.setPool(address(aeroPoolMock));
+
+        // Given : The asset is an Aerodrome Volatile pool.
+        aeroPoolMock.setStable(false);
+
+        // Given : Token0 is added to the Registry, token1 is not.
+        aeroPoolMock.setTokens(address(mockERC20.token1), token1);
 
         // When : An asset is added to the AM.
         // Then : It should revert.

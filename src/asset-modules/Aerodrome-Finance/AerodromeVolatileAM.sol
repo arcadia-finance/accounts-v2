@@ -37,10 +37,9 @@ contract AerodromeVolatileAM is DerivedAM {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
-    error InvalidPool();
     error AssetNotAllowed();
+    error InvalidPool();
     error IsNotAVolatilePool();
-    error ZeroSupply();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -95,6 +94,8 @@ contract AerodromeVolatileAM is DerivedAM {
      */
     function isAllowed(address asset, uint256) public view override returns (bool allowed) {
         if (inAssetModule[asset]) allowed = true;
+
+        // ToDo: what about assets that can be added, but are not yet added?
     }
 
     /**
@@ -160,14 +161,16 @@ contract AerodromeVolatileAM is DerivedAM {
         override
         returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
-        (address pool,) = _getAssetFromKey(assetKey);
-
-        // Cache totalSupply
-        uint256 totalSupply = IAeroPool(pool).totalSupply();
-        if (totalSupply == 0) revert ZeroSupply();
-
+        underlyingAssetsAmounts = new uint256[](2);
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
 
+        // If one of the assets has a rate of 0, the whole LP positions will have a value of zero.
+        if (rateUnderlyingAssetsToUsd[0].assetValue == 0 || rateUnderlyingAssetsToUsd[1].assetValue == 0) {
+            return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+        }
+
+        // Get current invariant (k) from the Aerodrome Pool.
+        (address pool,) = _getAssetFromKey(assetKey);
         (uint256 reserve0, uint256 reserve1,) = IAeroPool(pool).getReserves();
         uint256 k = reserve0 * reserve1;
 
@@ -181,7 +184,9 @@ contract AerodromeVolatileAM is DerivedAM {
             trustedReserve0, rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue
         );
 
-        underlyingAssetsAmounts = new uint256[](2);
+        // Cache totalSupply
+        uint256 totalSupply = IAeroPool(pool).totalSupply();
+
         underlyingAssetsAmounts[0] = trustedReserve0.mulDivDown(amount, totalSupply);
         underlyingAssetsAmounts[1] = trustedReserve1.mulDivDown(amount, totalSupply);
 
@@ -209,13 +214,11 @@ contract AerodromeVolatileAM is DerivedAM {
         bytes32[] memory underlyingAssetKeys = _getUnderlyingAssets(_getKeyFromAsset(asset, assetId));
 
         address[] memory assets = new address[](2);
-        uint256[] memory assetIds = new uint256[](2);
-
-        (assets[0], assetIds[0]) = _getAssetFromKey(underlyingAssetKeys[0]);
-        (assets[1], assetIds[1]) = _getAssetFromKey(underlyingAssetKeys[1]);
+        (assets[0],) = _getAssetFromKey(underlyingAssetKeys[0]);
+        (assets[1],) = _getAssetFromKey(underlyingAssetKeys[1]);
 
         (uint16[] memory collateralFactors, uint16[] memory liquidationFactors) =
-            IRegistry(REGISTRY).getRiskFactors(creditor, assets, assetIds);
+            IRegistry(REGISTRY).getRiskFactors(creditor, assets, new uint256[](2));
 
         // Lower risk factors with the protocol wide risk factor.
         uint256 riskFactor = riskParams[creditor].riskFactor;

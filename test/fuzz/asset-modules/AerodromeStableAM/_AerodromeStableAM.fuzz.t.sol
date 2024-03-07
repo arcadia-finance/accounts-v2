@@ -129,7 +129,7 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         testVars_.token1 = address(token1);
     }
 
-    function givenValidTestVars(TestVariables memory testVars) public returns (TestVariables memory testVars_) {
+    function givenValidTestVars(TestVariables memory testVars) public view returns (TestVariables memory testVars_) {
         // Given : decimals should be max equal to 18.
         testVars.decimals0 = bound(testVars.decimals0, 0, 18);
         testVars.decimals1 = bound(testVars.decimals1, 0, 18);
@@ -157,8 +157,6 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         testVars.priceToken1 = bound(testVars.priceToken1, 1, type(uint128).max / 10 ** (18 - testVars.decimals1));
         uint256 p0 = 10 ** (18 - testVars.decimals0) * testVars.priceToken0;
         uint256 p1 = 10 ** (18 - testVars.decimals1) * testVars.priceToken1;
-        emit log_named_uint("p0", p0);
-        emit log_named_uint("p1", p1);
         uint256 d = p0.mulDivUp(p0, 1e18) + p1.mulDivUp(p1, 1e18);
 
         // And: c does not overflow
