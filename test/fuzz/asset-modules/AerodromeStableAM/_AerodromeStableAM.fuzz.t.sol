@@ -104,29 +104,25 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         public
         returns (TestVariables memory testVars_)
     {
-        // Given : Valid test variables
-        testVars_ = givenValidTestVars(testVars);
-
-        ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(testVars_.decimals0));
-        ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(testVars_.decimals1));
+        ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(testVars.decimals0));
+        ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(testVars.decimals1));
 
         deployAerodromeStableFixture(address(token0), address(token1));
 
         // And : The tokens of the pool are added to the Arcadia protocol
-        addUnderlyingTokenToArcadia(address(token0), int256(testVars_.priceToken0));
-        addUnderlyingTokenToArcadia(address(token1), int256(testVars_.priceToken1));
+        addUnderlyingTokenToArcadia(address(token0), int256(testVars.priceToken0));
+        addUnderlyingTokenToArcadia(address(token1), int256(testVars.priceToken1));
 
-        deal(address(token0), address(pool), testVars_.reserve0);
-        deal(address(token1), address(pool), testVars_.reserve1);
+        deal(address(token0), address(pool), testVars.reserve0);
+        deal(address(token1), address(pool), testVars.reserve1);
 
         // And : A first position is minted
-        testVars_.liquidityAmount = pool.mint(users.accountOwner);
+        testVars.liquidityAmount = pool.mint(users.accountOwner);
 
-        // And : assetAmount is greater than 0 and maximum equal to pool totalSupply.
-        testVars_.assetAmount = bound(testVars_.assetAmount, 1, pool.totalSupply());
+        testVars.token0 = address(token0);
+        testVars.token1 = address(token1);
 
-        testVars_.token0 = address(token0);
-        testVars_.token1 = address(token1);
+        testVars_ = testVars;
     }
 
     function givenValidTestVars(TestVariables memory testVars) public view returns (TestVariables memory testVars_) {
@@ -144,7 +140,7 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
         testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
 
-        // root (reserve0 * reserve1) should be greater than minimum liquidty
+        // Root (reserve0 * reserve1) should be greater than minimum liquidty
         vm.assume(testVars.reserve0 * testVars.reserve1 > MINIMUM_LIQUIDITY ** 2);
 
         uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
@@ -153,31 +149,35 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         vm.assume(k / 1e18 > MINIMUM_K);
 
         // And: d does not overflow.
-        testVars.priceToken0 = bound(testVars.priceToken0, 1, type(uint128).max / 10 ** (18 - testVars.decimals0));
-        testVars.priceToken1 = bound(testVars.priceToken1, 1, type(uint128).max / 10 ** (18 - testVars.decimals1));
-        uint256 p0 = 10 ** (18 - testVars.decimals0) * testVars.priceToken0;
-        uint256 p1 = 10 ** (18 - testVars.decimals1) * testVars.priceToken1;
-        uint256 d = p0.mulDivUp(p0, 1e18) + p1.mulDivUp(p1, 1e18);
+        testVars.priceToken0 = bound(testVars.priceToken0, 1, 2 ** 127 - 1);
+        testVars.priceToken1 = bound(testVars.priceToken1, 1, 2 ** 127 - 1);
+        uint256 p0 = testVars.priceToken0;
+        uint256 p1 = testVars.priceToken1;
+        uint256 d = p0 * p0 + p1 * p1;
 
         // And: c does not overflow
         vm.assume(k / p0 <= type(uint256).max / p1);
         uint256 c = FullMath.mulDiv(k, p1, p0);
 
-        // And : assetAmount is smaller or equal to uint112 max value (which is max value we can deposit in AM)
-        testVars.assetAmount = bound(testVars.assetAmount, 1, type(uint112).max);
-
         // And: underlyingAssetsAmounts does not overflow.
-        vm.assume(c / d <= type(uint256).max / 1e18);
-        uint256 trustedReserve0 = FixedPointMathLib.sqrt(p1 * FixedPointMathLib.sqrt(FullMath.mulDiv(1e18, c, d)));
-        uint256 trustedReserve1 = FullMath.mulDiv(trustedReserve0, p0, p1);
+        vm.assume(c / d <= type(uint256).max / 1e36);
+        uint256 trustedReserve0 = FixedPointMathLib.sqrt(p1 * FixedPointMathLib.sqrt(FullMath.mulDiv(1e36, c, d)));
         trustedReserve0 = trustedReserve0 / 10 ** (18 - testVars.decimals0);
-        trustedReserve1 = trustedReserve1 / 10 ** (18 - testVars.decimals1);
+        uint256 trustedReserve1 = FullMath.mulDiv(
+            trustedReserve0,
+            10 ** (18 - testVars.decimals0) * testVars.priceToken0,
+            10 ** (18 - testVars.decimals1) * testVars.priceToken1
+        );
         if (trustedReserve0 > 0) {
-            testVars.assetAmount = bound(testVars.assetAmount, 1, type(uint256).max / trustedReserve0);
+            testVars.assetAmount = bound(testVars.assetAmount, 0, type(uint256).max / trustedReserve0);
         }
         if (trustedReserve1 > 0) {
-            testVars.assetAmount = bound(testVars.assetAmount, 1, type(uint256).max / trustedReserve1);
+            testVars.assetAmount = bound(testVars.assetAmount, 0, type(uint256).max / trustedReserve1);
         }
+
+        // And : assetAmount is maximum equal to pool totalSupply.
+        uint256 totalSupply = FixedPointMathLib.sqrt(testVars.reserve0 * testVars.reserve1);
+        testVars.assetAmount = bound(testVars.assetAmount, 0, totalSupply);
 
         testVars_ = testVars;
     }
@@ -223,7 +223,7 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         uint256 _x = reserve0 * 1e18 / decimals0;
         uint256 _y = reserve1 * 1e18 / decimals1;
         uint256 _a = _x * _y / 1e18;
-        uint256 _b = _x * _x / 1e18 + _y * _y / 1e18;
+        uint256 _b = (_x * _x + _y * _y) / 1e18;
         k = _a * _b;
     }
 
