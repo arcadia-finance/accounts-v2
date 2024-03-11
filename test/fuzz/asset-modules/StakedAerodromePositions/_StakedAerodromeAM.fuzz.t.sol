@@ -72,8 +72,8 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
 
         // Deploy StakedAerodromeAM.
         // First we need to add the reward token to the Registry
-        ERC20Mock rewardTokenCode = new ERC20Mock("Aerodrome", "AERO", 18);
-        vm.etch(AERO, address(rewardTokenCode).code);
+        rewardToken = new ERC20Mock("Aerodrome", "AERO", 18);
+        vm.etch(AERO, address(rewardToken).code);
         aeroOracle = initMockedOracle(8, "AERO / USD", rates.token1ToUsd);
 
         // Add AERO to the ERC20PrimaryAM.
@@ -106,6 +106,8 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
         vm.assume(fuzzedAddress != address(poolFactory));
         vm.assume(fuzzedAddress != address(gauge));
         vm.assume(fuzzedAddress != address(aeroOracle));
+        vm.assume(fuzzedAddress != address(rewardToken));
+        vm.assume(fuzzedAddress != address(stakingAM));
         _;
     }
 
