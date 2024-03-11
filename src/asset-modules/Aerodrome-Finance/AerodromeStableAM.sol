@@ -169,8 +169,10 @@ contract AerodromeStableAM is AerodromeVolatileAM {
         {
             // USD rates also have to be corrected as shown in 3).
             uint256 p0 = rateUnderlyingAssetsToUsd[0].assetValue / unitCorrection0; // 18 decimals.
-            uint256 p1 = rateUnderlyingAssetsToUsd[1].assetValue / unitCorrection1; // 18 decimals.
-            uint256 c = FullMath.mulDiv(k, p1, p0); // 36 decimals.
+            uint256 p1 = rateUnderlyingAssetsToUsd[1].assetValue / unitCorrection1;
+            // 18 decimals.
+            uint256 c = FullMath.mulDiv(k, p1, p0);
+            // 36 decimals.
             uint256 d = p0 * p0 + p1 * p1; // 36 decimals.
             // Sqrt halves the number of decimals.
             uint256 x = FixedPointMathLib.sqrt(p1 * FixedPointMathLib.sqrt(FullMath.mulDiv(1e36, c, d))); // 18 decimals.

@@ -60,10 +60,8 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
         AbstractStakingAM_Fuzz_Test.StakingAMStateForAsset memory assetState,
         uint128 amount,
         address account
-    ) public notTestContracts(account) {
+    ) public notTestContracts(account) notTestContracts2(account) {
         vm.assume(account != address(0));
-        vm.assume(account != address(stakedAerodromeAM));
-        vm.assume(account != AERO);
 
         // Given : the pool is allowed in the Registry
         deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
@@ -134,10 +132,8 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
         StakingAMStateForAsset memory assetState,
         uint128 amount,
         address account
-    ) public notTestContracts(account) {
+    ) public notTestContracts(account) notTestContracts2(account) {
         vm.assume(account != address(0));
-        vm.assume(account != address(stakedAerodromeAM));
-        vm.assume(account != AERO);
 
         // Given : the pool is allowed in the Registry
         deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);

@@ -159,8 +159,9 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         vm.assume(k / p0 <= type(uint256).max / p1);
         uint256 c = FullMath.mulDiv(k, p1, p0);
 
-        // And: underlyingAssetsAmounts does not overflow.
+        // And: x does not overflow.
         vm.assume(c / d <= type(uint256).max / 1e36);
+
         uint256 trustedReserve0 = FixedPointMathLib.sqrt(p1 * FixedPointMathLib.sqrt(FullMath.mulDiv(1e36, c, d)));
         trustedReserve0 = trustedReserve0 / 10 ** (18 - testVars.decimals0);
         uint256 trustedReserve1 = FullMath.mulDiv(

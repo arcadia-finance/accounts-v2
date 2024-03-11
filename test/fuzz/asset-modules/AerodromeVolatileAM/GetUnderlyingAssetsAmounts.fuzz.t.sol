@@ -333,7 +333,6 @@ contract GetUnderlyingAssetsAmounts_AerodromeVolatileAM_Fuzz_Test is AerodromeVo
 
         uint256 amount0In = 990_999 * 1e18;
         uint256 amount1Out = pool.getAmountOut(amount0In, address(token0));
-        emit log_named_uint("amount1 out", amount1Out);
 
         // And : We swap tokens (but do not change relative price)
         deal(address(token0), users.accountOwner, amount0In);
@@ -343,8 +342,6 @@ contract GetUnderlyingAssetsAmounts_AerodromeVolatileAM_Fuzz_Test is AerodromeVo
         pool.swap(0, amount1Out, users.accountOwner, "");
 
         (uint256 reserve0_, uint256 reserve1_,) = pool.getReserves();
-        emit log_named_uint("untrusted 0", reserve0_);
-        emit log_named_uint("untrusted 1", reserve1_);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
 
@@ -362,14 +359,10 @@ contract GetUnderlyingAssetsAmounts_AerodromeVolatileAM_Fuzz_Test is AerodromeVo
             FullMath.mulDiv(rateUnderlyingAssetsToUsd[1].assetValue, k, rateUnderlyingAssetsToUsd[0].assetValue)
         );
 
-        emit log_named_uint("trusted0", trustedReserve0);
-
         // r1' = (r0' * p0) / p1
         uint256 trustedReserve1 = FullMath.mulDiv(
             trustedReserve0, rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue
         );
-
-        emit log_named_uint("trusted1", trustedReserve1);
 
         // Max diff is less than 1, due to rounding diffs, minor
         // Diff does not increase with increase of amount swapped
