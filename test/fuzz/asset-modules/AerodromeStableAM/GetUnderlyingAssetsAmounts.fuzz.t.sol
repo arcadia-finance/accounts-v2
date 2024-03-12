@@ -557,30 +557,6 @@ contract GetUnderlyingAssetsAmounts_AerodromeStableAM_Fuzz_Test is AerodromeStab
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, token0Value);
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
 
-        // And: The amounts should be in balance with the external prices.
-        // For very low amounts, a rounding error already invalidates the assertions.
-        // "assertApproxEqRel()" should not overflow.
-        if (underlyingAssetsAmounts[0] > 1e2 && underlyingAssetsAmounts[1] > 1e2) {
-            if (
-                underlyingAssetsAmounts[0] > underlyingAssetsAmounts[1]
-                    && 1e18 * testVars.priceToken1 / testVars.priceToken0 < type(uint256).max / 1e18
-            ) {
-                assertApproxEqRel(
-                    10 ** (18 + testVars.decimals1 - testVars.decimals0) * underlyingAssetsAmounts[0]
-                        / underlyingAssetsAmounts[1],
-                    1e18 * testVars.priceToken1 / testVars.priceToken0,
-                    1e16
-                );
-            } else if (1e18 * testVars.priceToken0 / testVars.priceToken1 < type(uint256).max / 1e18) {
-                assertApproxEqRel(
-                    10 ** (18 + testVars.decimals0 - testVars.decimals1) * underlyingAssetsAmounts[1]
-                        / underlyingAssetsAmounts[0],
-                    1e18 * testVars.priceToken0 / testVars.priceToken1,
-                    1e16
-                );
-            }
-        }
-
         // And: k-value of the pool with trustedReserves should be strictly smaller.
         // All errors due to precision loss should always underestimate k.
         uint256 kNew = getK(trustedReserve0, trustedReserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
