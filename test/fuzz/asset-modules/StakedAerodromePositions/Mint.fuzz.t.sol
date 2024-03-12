@@ -65,9 +65,13 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
 
         // Given : the pool is allowed in the Registry
         deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
+        vm.assume(account != address(pool));
+        vm.assume(account != pool.poolFees());
 
         // Given : Valid gauge
         deployAerodromeGaugeFixture(address(pool), AERO);
+        vm.assume(account != address(gauge));
+        vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
         stakedAerodromeAM.addAsset(address(pool), address(gauge));
@@ -137,9 +141,13 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
 
         // Given : the pool is allowed in the Registry
         deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
+        vm.assume(account != address(pool));
+        vm.assume(account != pool.poolFees());
 
         // Given : Valid gauge
         deployAerodromeGaugeFixture(address(pool), AERO);
+        vm.assume(account != address(gauge));
+        vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
         stakedAerodromeAM.addAsset(address(pool), address(gauge));

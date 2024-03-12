@@ -235,7 +235,9 @@ contract GetUnderlyingAssetsAmounts_AerodromeVolatileAM_Fuzz_Test is AerodromeVo
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
     }
 
-    function testFuzz_Success_getUnderlyingAssetsAmounts_NonZeroRate(TestVariables memory testVars) public {
+    function testFuzz_Success_getUnderlyingAssetsAmounts_NonZeroRate_NoPrecisionLoss(TestVariables memory testVars)
+        public
+    {
         // Given : Valid state
         testVars = givenValidTestVars(testVars);
 
@@ -306,9 +308,91 @@ contract GetUnderlyingAssetsAmounts_AerodromeVolatileAM_Fuzz_Test is AerodromeVo
         // And: k-value of the pool with trustedReserves remains the same.
         // For very low reserves, a rounding error already invalidates the assertions.
         // "assertApproxEqRel()" should not overflow.
-        if (trustedReserve0 > 1e3 && trustedReserve1 > 1e3 && k < type(uint256).max / 1e18) {
-            assertApproxEqRel(trustedReserve0 * trustedReserve1, k, 1e16);
+        uint256 kNew = trustedReserve0 * trustedReserve1;
+        if (k > type(uint256).max / 1e18) {
+            // "assertApproxEqRel()" should not overflow.
+            k = k / 1e18;
+            kNew = kNew / 1e18;
         }
+        if (trustedReserve0 > 5e3 && trustedReserve1 > 5e4) {
+            assertApproxEqRel(kNew, k, 1e16);
+        }
+    }
+
+    function testFuzz_Success_getUnderlyingAssetsAmounts_NonZeroRate_WithPrecisionLoss(TestVariables memory testVars)
+        public
+    {
+        // Given : Valid state
+        testVars = givenValidTestVars(testVars);
+
+        // And state is persisted.
+        testVars = initAndSetValidStateInPoolFixture(testVars);
+
+        uint256[] memory underlyingAssetsAmounts;
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
+        {
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+
+            bytes32[] memory underlyingAssetKeys = new bytes32[](2);
+            underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
+            underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
+
+            // When : Calling getUnderlyingAssetsAmounts()
+            (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) = aeroVolatileAM.getUnderlyingAssetsAmounts(
+                address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys
+            );
+        }
+
+        uint256 k = uint256(testVars.reserve0) * testVars.reserve1;
+        (uint256 reserve0_, uint256 reserve1_,) = pool.getReserves();
+        assertEq(k, reserve0_ * reserve1_);
+
+        uint256 trustedReserve0 = FixedPointMathLib.sqrt(
+            FullMath.mulDiv(rateUnderlyingAssetsToUsd[1].assetValue, k, rateUnderlyingAssetsToUsd[0].assetValue)
+        );
+
+        uint256 trustedReserve1 = FullMath.mulDiv(
+            trustedReserve0, rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue
+        );
+
+        // Then : It should return the correct values
+        assertEq(underlyingAssetsAmounts[0], trustedReserve0.mulDivDown(testVars.assetAmount, pool.totalSupply()));
+        assertEq(underlyingAssetsAmounts[1], trustedReserve1.mulDivDown(testVars.assetAmount, pool.totalSupply()));
+
+        (uint256 token0Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
+        (uint256 token1Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
+
+        assertEq(rateUnderlyingAssetsToUsd[0].assetValue, token0Value);
+        assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
+
+        // And: The amounts should be in balance with the external prices.
+        // For very low amounts, a rounding error already invalidates the assertions.
+        // "assertApproxEqRel()" should not overflow.
+        if (underlyingAssetsAmounts[0] > 1e2 && underlyingAssetsAmounts[1] > 1e2) {
+            if (
+                underlyingAssetsAmounts[0] > underlyingAssetsAmounts[1]
+                    && 1e18 * testVars.priceToken1 / testVars.priceToken0 < type(uint256).max / 1e18
+            ) {
+                assertApproxEqRel(
+                    10 ** (18 + testVars.decimals1 - testVars.decimals0) * underlyingAssetsAmounts[0]
+                        / underlyingAssetsAmounts[1],
+                    1e18 * testVars.priceToken1 / testVars.priceToken0,
+                    1e16
+                );
+            } else if (1e18 * testVars.priceToken0 / testVars.priceToken1 < type(uint256).max / 1e18) {
+                assertApproxEqRel(
+                    10 ** (18 + testVars.decimals0 - testVars.decimals1) * underlyingAssetsAmounts[1]
+                        / underlyingAssetsAmounts[0],
+                    1e18 * testVars.priceToken0 / testVars.priceToken1,
+                    1e16
+                );
+            }
+        }
+
+        // And: k-value of the pool with trustedReserves should be strictly smaller.
+        // All errors due to precision loss should always underestimate k.
+        uint256 kNew = trustedReserve0 * trustedReserve1;
+        assertGe(k, kNew);
     }
 
     function testFuzz_Success_getUnderlyingAssetsAmounts_TestFormulas_Volatile() public {

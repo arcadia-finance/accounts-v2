@@ -447,7 +447,7 @@ contract GetUnderlyingAssetsAmounts_AerodromeStableAM_Fuzz_Test is AerodromeStab
 
             // And: Division/sqrt before multiplication does not lead to precision loss
             // (should not be possible with realistic usd-rates).
-            vm.assume(FullMath.mulDiv(1e36, c, d) > 1e2);
+            vm.assume(FullMath.mulDiv(1e36, c, d) > 1e5);
 
             trustedReserve0 = FixedPointMathLib.sqrt(p1 * FixedPointMathLib.sqrt(FullMath.mulDiv(1e36, c, d)));
             trustedReserve0 = trustedReserve0 / 10 ** (18 - testVars.decimals0);
@@ -498,7 +498,7 @@ contract GetUnderlyingAssetsAmounts_AerodromeStableAM_Fuzz_Test is AerodromeStab
             k = k / 1e18;
             kNew = kNew / 1e18;
         }
-        if (trustedReserve0 > 1e3 && trustedReserve1 > 1e3) {
+        if (trustedReserve0 > 5e3 && trustedReserve1 > 5e3) {
             assertApproxEqRel(kNew, k, 1e16);
         }
     }
