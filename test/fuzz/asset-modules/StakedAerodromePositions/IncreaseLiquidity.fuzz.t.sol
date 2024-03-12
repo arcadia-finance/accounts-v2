@@ -43,7 +43,8 @@ contract IncreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         address randomAddress,
         uint128 amount,
         uint96 positionId
-    ) public notTestContracts(account) {
+    ) public notTestContracts(account) notTestContracts2(account) {
+        vm.assume(account != address(0));
         // Given : Amount is greater than zero
         vm.assume(amount > 0);
         // Given : positionId is greater than 0
@@ -53,9 +54,13 @@ contract IncreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
 
         // Given : the pool is allowed in the Registry
         deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
+        vm.assume(account != address(pool));
+        vm.assume(account != pool.poolFees());
 
         // And : Valid gauge
         deployAerodromeGaugeFixture(address(pool), AERO);
+        vm.assume(account != address(gauge));
+        vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
         stakedAerodromeAM.addAsset(address(pool), address(gauge));
@@ -78,13 +83,18 @@ contract IncreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         uint96 positionId,
         uint128 amount,
         address account
-    ) public notTestContracts(account) {
+    ) public notTestContracts(account) notTestContracts2(account) {
+        vm.assume(account != address(0));
         {
             // Given : the pool is allowed in the Registry
             deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
+            vm.assume(account != address(pool));
+            vm.assume(account != pool.poolFees());
 
             // And : Valid gauge
             deployAerodromeGaugeFixture(address(pool), AERO);
+            vm.assume(account != address(gauge));
+            vm.assume(account != address(voter));
 
             // And : Add asset and gauge to the AM
             stakedAerodromeAM.addAsset(address(pool), address(gauge));

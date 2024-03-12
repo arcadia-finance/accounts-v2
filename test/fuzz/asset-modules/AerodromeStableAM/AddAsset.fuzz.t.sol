@@ -93,8 +93,8 @@ contract AddAsset_AerodromeStableAM_Fuzz_Test is AerodromeStableAM_Fuzz_Test {
         assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1))));
         assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1))));
 
-        (uint64 decimals0, uint64 decimals1) = aeroStableAM.underlyingAssetsDecimals(address(aeroPoolMock));
-        assertEq(decimals0, 10 ** mockERC20.token1.decimals());
-        assertEq(decimals1, 10 ** mockERC20.stable1.decimals());
+        (uint64 unitCorrection0, uint64 unitCorrection1) = aeroStableAM.assetToInformation(address(aeroPoolMock));
+        assertEq(unitCorrection0, 10 ** (18 - mockERC20.token1.decimals()));
+        assertEq(unitCorrection1, 10 ** (18 - mockERC20.stable1.decimals()));
     }
 }
