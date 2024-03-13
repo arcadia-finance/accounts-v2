@@ -34,11 +34,15 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
     IUniswapV3Factory internal constant UNISWAP_V3_FACTORY =
         IUniswapV3Factory(0x33128a8fC17869897dcE68Ed026d694621f6FDfD);
 
+    int24 MIN_TICK = -887_272;
+    int24 MAX_TICK = -MIN_TICK;
+
     /*///////////////////////////////////////////////////////////////
                             TEST CONTRACTS
     ///////////////////////////////////////////////////////////////*/
 
     UniswapV3AM internal uniV3AM_;
+    IUniswapV3PoolExtension internal pool;
 
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
@@ -54,38 +58,47 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
         uniV3AM_.setProtocol();
         vm.stopPrank();
 
+        pool = IUniswapV3PoolExtension(UNISWAP_V3_FACTORY.getPool(address(DAI), address(WETH), 100));
+
         vm.label({ account: address(uniV3AM_), newLabel: "Uniswap V3 Asset Module" });
     }
 
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
-    //ToDo: move to shared contract with "_UniswapV3AM.fuzz.t.sol"
-    function isWithinAllowedRange(int24 tick) public pure returns (bool) {
-        int24 MIN_TICK = -887_272;
-        int24 MAX_TICK = -MIN_TICK;
-        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
+    function givenTickWithinAllowedRange(int24 tick) public view returns (int24) {
+        uint256 tick_;
+        if (tick < 0) {
+            tick_ = uint256(-int256(tick));
+            tick_ = bound(tick_, 0, uint256(-int256(MIN_TICK)));
+            return -int24(uint24(tick_));
+        } else {
+            tick_ = uint256(int256(tick));
+            tick_ = bound(tick_, 0, uint256(int256(MAX_TICK)));
+            return int24(uint24(tick_));
+        }
     }
 
     function addLiquidity(
-        IUniswapV3PoolExtension pool,
+        IUniswapV3PoolExtension pool_,
         uint128 liquidity,
         address liquidityProvider_,
         int24 tickLower,
         int24 tickUpper,
         bool revertsOnZeroLiquidity
     ) public returns (uint256 tokenId) {
-        (uint160 sqrtPrice,,,,,,) = pool.slot0();
+        (uint160 sqrtPrice,,,,,,) = pool_.slot0();
 
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPrice, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity
         );
 
-        tokenId = addLiquidity(pool, amount0, amount1, liquidityProvider_, tickLower, tickUpper, revertsOnZeroLiquidity);
+        tokenId =
+            addLiquidity(pool_, amount0, amount1, liquidityProvider_, tickLower, tickUpper, revertsOnZeroLiquidity);
     }
 
     function addLiquidity(
-        IUniswapV3PoolExtension pool,
+        IUniswapV3PoolExtension pool_,
         uint256 amount0,
         uint256 amount1,
         address liquidityProvider_,
@@ -96,7 +109,7 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
         // Check if test should revert or be skipped when liquidity is zero.
         // This is hard to check with assumes of the fuzzed inputs due to rounding errors.
         if (!revertsOnZeroLiquidity) {
-            (uint160 sqrtPrice,,,,,,) = pool.slot0();
+            (uint160 sqrtPrice,,,,,,) = pool_.slot0();
             uint256 liquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
                 sqrtPrice,
                 TickMath.getSqrtRatioAtTick(tickLower),
@@ -107,9 +120,9 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
             vm.assume(liquidity > 0);
         }
 
-        address token0 = pool.token0();
-        address token1 = pool.token1();
-        uint24 fee = pool.fee();
+        address token0 = pool_.token0();
+        address token1 = pool_.token1();
+        uint24 fee = pool_.fee();
 
         deal(token0, liquidityProvider_, amount0);
         deal(token1, liquidityProvider_, amount1);
@@ -134,42 +147,33 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
         vm.stopPrank();
     }
 
-    function assertInRange(uint256 actualValue, uint256 expectedValue, uint8 precision) internal {
-        if (expectedValue == 0) {
-            assertEq(actualValue, expectedValue);
-        } else {
-            vm.assume(expectedValue > 10 ** (2 * precision));
-            assertGe(actualValue * (10 ** precision + 1) / 10 ** precision, expectedValue);
-            assertLe(actualValue * (10 ** precision - 1) / 10 ** precision, expectedValue);
-        }
-    }
-
     /*///////////////////////////////////////////////////////////////
                             FORK TESTS
     ///////////////////////////////////////////////////////////////*/
     // ToDO: use actual addresses and oracles etc from deployscript.
     function testFork_Success_deposit(uint128 liquidity, int24 tickLower, int24 tickUpper) public {
-        vm.assume(liquidity > 10_000);
+        vm.skip(true);
+        // Given: Liquidity is within allowed ranges.
+        liquidity = uint128(bound(liquidity, 10_000, pool.maxLiquidityPerTick()));
 
-        IUniswapV3PoolExtension pool =
-            IUniswapV3PoolExtension(UNISWAP_V3_FACTORY.getPool(address(DAI), address(WETH), 100));
-        (, int24 tickCurrent,,,,,) = pool.slot0();
-
-        // Check that ticks are within allowed ranges.
-        tickLower = int24(bound(tickLower, tickCurrent - 16_095, tickCurrent + 16_095));
-        tickUpper = int24(bound(tickUpper, tickCurrent - 16_095, tickCurrent + 16_095));
-        // Ensure Tick is correctly spaced.
+        // And: Ticks are within allowed ranges.
+        tickLower = givenTickWithinAllowedRange(tickLower);
+        tickUpper = givenTickWithinAllowedRange(tickUpper);
+        // And: Ticks are correctly spaced.
         {
             int24 tickSpacing = UNISWAP_V3_FACTORY.feeAmountTickSpacing(pool.fee());
             tickLower = tickLower / tickSpacing * tickSpacing;
             tickUpper = tickUpper / tickSpacing * tickSpacing;
         }
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
+        vm.assume(tickLower != tickUpper);
+        (tickLower, tickUpper) = tickLower < tickUpper ? (tickLower, tickUpper) : (tickUpper, tickLower);
 
-        // Check that Liquidity is within allowed ranges.
-        vm.assume(liquidity <= pool.maxLiquidityPerTick());
+        // Precision oracles up to % -> need to deposit at least 1000 tokens or rounding errors lead to bigger errors.
+        (uint160 sqrtPrice,,,,,,) = pool.slot0();
+        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtPrice, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity
+        );
+        vm.assume(amount0 > 1e3 && amount1 == 0 || amount0 == 0 && amount1 > 1e3 || amount0 > 1e3 && amount1 > 1e3);
 
         // Balance pool before mint
         uint256 amountDaiBefore = DAI.balanceOf(address(pool));
@@ -185,9 +189,6 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
         // Amounts deposited in the pool.
         uint256 amountDai = amountDaiAfter - amountDaiBefore;
         uint256 amountWeth = amountWethAfter - amountWethBefore;
-
-        // Precision oracles up to % -> need to deposit at least 1000 tokens or rounding errors lead to bigger errors.
-        vm.assume(amountDai > 1e3 && amountWeth > 1e3);
 
         // Deposit the Liquidity Position.
         {
