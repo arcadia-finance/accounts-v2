@@ -74,11 +74,10 @@ contract ProcessDirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_F
 
         // When: "amount" is deposited.
         vm.prank(address(registryExtension));
-        (uint256 recursiveCalls, uint256 assetType) =
+        uint256 recursiveCalls =
             assetModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
 
         assertEq(recursiveCalls, 1);
-        assertEq(assetType, 0);
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));

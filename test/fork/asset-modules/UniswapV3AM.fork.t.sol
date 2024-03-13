@@ -187,7 +187,7 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
         uint256 amountWeth = amountWethAfter - amountWethBefore;
 
         // Precision oracles up to % -> need to deposit at least 1000 tokens or rounding errors lead to bigger errors.
-        vm.assume(amountDai + amountWeth > 100);
+        vm.assume(amountDai > 1e3 && amountWeth > 1e3);
 
         // Deposit the Liquidity Position.
         {
@@ -221,6 +221,6 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
             registryExtension.getTotalValue(address(0), address(0), assetAddresses, assetIds, assetAmounts);
 
         // Precision Chainlink oracles is often in the order of percentages.
-        assertInRange(actualValue, expectedValue, 2);
+        assertApproxEqRel(actualValue, expectedValue, 1e16);
     }
 }

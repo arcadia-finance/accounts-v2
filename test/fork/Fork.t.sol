@@ -21,7 +21,7 @@ abstract contract Fork_Test is Base_Test {
     ///////////////////////////////////////////////////////////////*/
 
     ERC20 internal constant USDC = ERC20(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
-    ERC20 internal constant USDbC = ERC20(0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA);
+    ERC20 internal constant USDBC = ERC20(0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA);
     ERC20 internal constant DAI = ERC20(0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb);
     ERC20 internal constant WETH = ERC20(0x4200000000000000000000000000000000000006);
 
@@ -50,7 +50,7 @@ abstract contract Fork_Test is Base_Test {
         Base_Test.setUp();
 
         vm.startPrank(users.creatorAddress);
-        // Add USDC to the protocol (same oracle will be used for USDbC).
+        // Add USDC to the protocol (same oracle will be used for USDBC).
         uint256 oracleId = chainlinkOM.addOracle(oracleUSDC, "USDC", "USD", 2 days);
         bool[] memory boolValues = new bool[](1);
         boolValues[0] = true;
@@ -58,7 +58,7 @@ abstract contract Fork_Test is Base_Test {
         uintValues[0] = uint80(oracleId);
         bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
         erc20AssetModule.addAsset(address(USDC), oracleSequence);
-        erc20AssetModule.addAsset(address(USDbC), oracleSequence);
+        erc20AssetModule.addAsset(address(USDBC), oracleSequence);
 
         // Add DAI to the protocol.
         oracleId = chainlinkOM.addOracle(oracleDAI, "DAI", "USD", 2 days);
@@ -75,7 +75,7 @@ abstract contract Fork_Test is Base_Test {
         vm.stopPrank();
 
         vm.label({ account: address(USDC), newLabel: "USDC" });
-        vm.label({ account: address(USDbC), newLabel: "USDbC" });
+        vm.label({ account: address(USDBC), newLabel: "USDBC" });
         vm.label({ account: address(DAI), newLabel: "DAI" });
         vm.label({ account: address(WETH), newLabel: "WETH" });
     }

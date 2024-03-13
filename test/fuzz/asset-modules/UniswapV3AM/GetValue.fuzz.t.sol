@@ -96,8 +96,8 @@ contract GetValue_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         addUnderlyingTokenToArcadia(address(token1), int256(uint256(vars.priceToken1)));
 
         // Calculate the expected value
-        uint256 valueToken0 = 1e18 * uint256(vars.priceToken0) * amount0 / 10 ** vars.decimals0;
-        uint256 valueToken1 = 1e18 * uint256(vars.priceToken1) * amount1 / 10 ** vars.decimals1;
+        uint256 valueToken0 = uint256(vars.priceToken0) * amount0 / 10 ** vars.decimals0;
+        uint256 valueToken1 = uint256(vars.priceToken1) * amount1 / 10 ** vars.decimals1;
 
         (uint256 actualValueInUsd,,) =
             uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);

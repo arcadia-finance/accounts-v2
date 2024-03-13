@@ -49,7 +49,7 @@ contract RewardOf_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         uint256 currentRewardPosition = stakingAM.rewardOf(positionId);
 
         // Then : It should return the correct value
-        uint256 deltaRewardGlobal = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
+        uint256 deltaRewardGlobal = assetState.currentRewardGlobal;
         uint128 rewardPerToken;
         unchecked {
             rewardPerToken = assetState.lastRewardPerTokenGlobal

@@ -63,9 +63,9 @@ contract UniswapV3AM is DerivedAM {
     /**
      * @param registry_ The contract address of the Registry.
      * @param nonFungiblePositionManager The contract address of the protocols NonFungiblePositionManager.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for Uniswap V3 Liquidity Positions (ERC721).
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Uniswap V3 Liquidity Positions (ERC721).
      */
-    constructor(address registry_, address nonFungiblePositionManager) DerivedAM(registry_, 1) {
+    constructor(address registry_, address nonFungiblePositionManager) DerivedAM(registry_, 2) {
         NON_FUNGIBLE_POSITION_MANAGER = INonfungiblePositionManager(nonFungiblePositionManager);
         UNISWAP_V3_FACTORY = INonfungiblePositionManager(nonFungiblePositionManager).factory();
     }
@@ -82,7 +82,7 @@ contract UniswapV3AM is DerivedAM {
         inAssetModule[address(NON_FUNGIBLE_POSITION_MANAGER)] = true;
 
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(address(NON_FUNGIBLE_POSITION_MANAGER));
+        IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), address(NON_FUNGIBLE_POSITION_MANAGER));
     }
 
     /**
@@ -297,15 +297,17 @@ contract UniswapV3AM is DerivedAM {
     function _getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) internal pure returns (uint160 sqrtPriceX96) {
         if (priceToken1 == 0) return TickMath.MAX_SQRT_RATIO;
 
-        // Both priceTokens have 18 decimals precision and result of division should also have 18 decimals precision.
-        // -> multiply by 1e18
-        uint256 priceXd18 = priceToken0.mulDivDown(1e18, priceToken1);
-        // Square root of a number with 18 decimals precision has 9 decimals precision.
-        uint256 sqrtPriceXd9 = FixedPointMathLib.sqrt(priceXd18);
+        // Both priceTokens have 18 decimals precision and result of division should have 28 decimals precision.
+        // -> multiply by 1e28
+        // priceXd28 will overflow if priceToken0 is greater than 1.158e+49.
+        // For WBTC (which only has 8 decimals) this would require a bitcoin price greater than 115 792 089 237 316 198 989 824 USD/BTC.
+        uint256 priceXd28 = priceToken0.mulDivDown(1e28, priceToken1);
+        // Square root of a number with 28 decimals precision has 14 decimals precision.
+        uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
 
-        // Change sqrtPrice from a decimal fixed point number with 9 digits to a binary fixed point number with 96 digits.
+        // Change sqrtPrice from a decimal fixed point number with 14 digits to a binary fixed point number with 96 digits.
         // Unsafe cast: Cast will only overflow when priceToken0/priceToken1 >= 2^128.
-        sqrtPriceX96 = uint160((sqrtPriceXd9 << FixedPoint96.RESOLUTION) / 1e9);
+        sqrtPriceX96 = uint160((sqrtPriceXd14 << FixedPoint96.RESOLUTION) / 1e14);
     }
 
     /**
@@ -484,24 +486,19 @@ contract UniswapV3AM is DerivedAM {
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
      * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
-     * @return assetType Identifier for the type of the asset:
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155
-     * ...
      * @dev super.processDirectDeposit checks that msg.sender is the Registry.
      */
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         override
-        returns (uint256 recursiveCalls, uint256 assetType)
+        returns (uint256 recursiveCalls)
     {
         // Amount deposited of a Uniswap V3 LP can be either 0 or 1 (checked in the Account).
         // For uniswap V3 every id is a unique asset -> on every deposit the asset must added to the Asset Module.
         if (amount == 1) _addAsset(assetId);
 
         // Also checks that msg.sender == Registry.
-        (recursiveCalls, assetType) = super.processDirectDeposit(creditor, asset, assetId, amount);
+        recursiveCalls = super.processDirectDeposit(creditor, asset, assetId, amount);
     }
 
     /**
@@ -549,10 +546,9 @@ contract UniswapV3AM is DerivedAM {
     function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         override
-        returns (uint256 assetType)
     {
         // Also checks that msg.sender == Registry.
-        assetType = super.processDirectWithdrawal(creditor, asset, assetId, amount);
+        super.processDirectWithdrawal(creditor, asset, assetId, amount);
 
         // Amount withdrawn of a Uniswap V3 LP can be either 0 or 1 (checked in the Account).
         if (amount == 1) delete assetToLiquidity[assetId];

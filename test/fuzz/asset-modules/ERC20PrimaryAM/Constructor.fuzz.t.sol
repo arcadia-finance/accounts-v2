@@ -29,6 +29,6 @@ contract Constructor_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
         vm.stopPrank();
 
         assertEq(erc20AssetModule_.REGISTRY(), registry_);
-        assertEq(erc20AssetModule_.ASSET_TYPE(), 0);
+        assertEq(erc20AssetModule_.ASSET_TYPE(), 1);
     }
 }

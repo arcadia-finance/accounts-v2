@@ -23,14 +23,21 @@ contract SafeTransferAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_safeTransferAccount_InvalidRecipient(address sender) public {
+    function testFuzz_Revert_safeTransferAccount_ToZeroAddress(address sender) public {
         vm.prank(sender);
         vm.expectRevert(FactoryErrors.InvalidRecipient.selector);
         factory.safeTransferAccount(address(0));
     }
 
+    function testFuzz_Revert_safeTransferAccount_ToAccount() public {
+        vm.prank(address(proxyAccount));
+        vm.expectRevert(FactoryErrors.InvalidRecipient.selector);
+        factory.safeTransferAccount(address(proxyAccount));
+    }
+
     function testFuzz_Revert_safeTransferAccount_NonAccount(address sender, address to) public {
         vm.assume(to != address(0));
+        vm.assume(to != address(proxyAccount));
         vm.assume(sender != address(proxyAccount));
 
         vm.prank(sender);
@@ -52,6 +59,7 @@ contract SafeTransferAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Success_safeTransferAccount(address to) public canReceiveERC721(to) {
         vm.assume(to != users.accountOwner);
         vm.assume(to != address(0));
+        vm.assume(to != address(proxyAccount));
 
         uint256 balanceOwnerBefore = factory.balanceOf(users.accountOwner);
         uint256 balanceToBefore = factory.balanceOf(to);

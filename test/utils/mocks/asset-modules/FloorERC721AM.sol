@@ -43,9 +43,9 @@ contract FloorERC721AM is PrimaryAM {
 
     /**
      * @param registry_ The address of the Registry.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC721 tokens.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
-    constructor(address registry_) PrimaryAM(registry_, 1) { }
+    constructor(address registry_) PrimaryAM(registry_, 2) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -66,7 +66,7 @@ contract FloorERC721AM is PrimaryAM {
         if (idRangeStart > idRangeEnd) revert InvalidRange();
         if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert BadOracleSequence();
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(asset);
+        IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), asset);
 
         inAssetModule[asset] = true;
 
@@ -153,18 +153,13 @@ contract FloorERC721AM is PrimaryAM {
      * @param assetId The Id of the asset.
      * @param amount The amount of tokens.
      * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
-     * @return assetType Identifier for the type of the asset:
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155
-     * ...
      * @dev amount of a deposit in ERC721 asset module must be 1.
      * @dev super.processDirectDeposit checks that msg.sender is the Registry.
      */
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         override
-        returns (uint256, uint256)
+        returns (uint256)
     {
         if (!isAllowed(asset, assetId)) revert AssetNotAllowed();
 

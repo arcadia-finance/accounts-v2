@@ -28,7 +28,7 @@ contract Constructor_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         UniswapV2AMExtension uniswapV2AM_ = new UniswapV2AMExtension(registry_, address(uniswapV2Factory));
         vm.stopPrank();
         assertEq(uniswapV2AM_.REGISTRY(), registry_);
-        assertEq(uniswapV2AM_.ASSET_TYPE(), 0);
+        assertEq(uniswapV2AM_.ASSET_TYPE(), 1);
         assertEq(uniswapV2AM_.getUniswapV2Factory(), address(uniswapV2Factory));
     }
 }

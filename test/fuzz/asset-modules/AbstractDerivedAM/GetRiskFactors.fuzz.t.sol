@@ -49,8 +49,8 @@ contract GetRiskFactors_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Te
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], AssetValuationLib.ONE_4));
 
         // And: Underlying assets are in primaryAM.
-        registryExtension.setAssetToAssetModule(underlyingAssets[0], address(primaryAM));
-        registryExtension.setAssetToAssetModule(underlyingAssets[1], address(primaryAM));
+        registryExtension.setAssetModule(underlyingAssets[0], address(primaryAM));
+        registryExtension.setAssetModule(underlyingAssets[1], address(primaryAM));
         vm.startPrank(address(registryExtension));
         primaryAM.setRiskParameters(
             creditor, underlyingAssets[0], underlyingAssetIds[0], 0, collateralFactors[0], liquidationFactors[0]

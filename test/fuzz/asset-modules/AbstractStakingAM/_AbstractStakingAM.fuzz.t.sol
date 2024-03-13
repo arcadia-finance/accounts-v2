@@ -19,9 +19,8 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     struct StakingAMStateForAsset {
-        uint128 currentRewardGlobal;
+        uint256 currentRewardGlobal;
         uint128 lastRewardPerTokenGlobal;
-        uint128 lastRewardGlobal;
         uint128 totalStaked;
     }
 
@@ -62,7 +61,6 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
         address asset,
         uint96 id
     ) internal {
-        stakingAM.setLastRewardGlobal(asset, stakingAMStateForAsset.lastRewardGlobal);
         stakingAM.setTotalStaked(asset, stakingAMStateForAsset.totalStaked);
         stakingAM.setLastRewardPosition(id, stakingAMStateForPosition.lastRewardPosition);
         stakingAM.setLastRewardPerTokenPosition(id, stakingAMStateForPosition.lastRewardPerTokenPosition);
@@ -85,19 +83,15 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
             uint128(bound(stakingAMStateForPosition.amountStaked, 0, stakingAMStateForAsset.totalStaked));
 
         // And: deltaRewardPerToken is smaller or equal as type(uint128).max (no overflow safeCastTo128).
-        uint256 deltaReward;
-        unchecked {
-            deltaReward = stakingAMStateForAsset.currentRewardGlobal - stakingAMStateForAsset.lastRewardGlobal;
-        }
-        deltaReward = bound(deltaReward, 1, uint256(type(uint128).max) * stakingAMStateForAsset.totalStaked / 1e18);
-
-        // And: currentRewardGlobal is smaller or equal than type(uint128).max (no overflow safeCastTo128).
-        stakingAMStateForAsset.currentRewardGlobal =
-            uint128(bound(stakingAMStateForAsset.currentRewardGlobal, deltaReward, type(uint128).max));
-        stakingAMStateForAsset.lastRewardGlobal = uint128(stakingAMStateForAsset.currentRewardGlobal - deltaReward);
+        stakingAMStateForAsset.currentRewardGlobal = bound(
+            stakingAMStateForAsset.currentRewardGlobal,
+            1,
+            uint256(type(uint128).max) * stakingAMStateForAsset.totalStaked / 1e18
+        );
 
         // Calculate the new rewardPerTokenGlobal.
-        uint256 deltaRewardPerToken = deltaReward * 1e18 / stakingAMStateForAsset.totalStaked;
+        uint256 deltaRewardPerToken =
+            stakingAMStateForAsset.currentRewardGlobal * 1e18 / stakingAMStateForAsset.totalStaked;
         uint128 currentRewardPerTokenGlobal;
         unchecked {
             currentRewardPerTokenGlobal = stakingAMStateForAsset.lastRewardPerTokenGlobal + uint128(deltaRewardPerToken);
@@ -120,7 +114,7 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
             stakingAMStateForPosition.lastRewardPerTokenPosition =
                 currentRewardPerTokenGlobal - uint128(deltaRewardPerToken);
         }
-        deltaReward = deltaRewardPerToken * uint256(stakingAMStateForPosition.amountStaked) / 1e18;
+        uint256 deltaReward = deltaRewardPerToken * uint256(stakingAMStateForPosition.amountStaked) / 1e18;
 
         // And: Previously earned rewards for Account + new rewards does not overflow.
         // -> lastRewardPosition + deltaReward <= type(uint128).max;
