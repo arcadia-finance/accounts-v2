@@ -197,18 +197,13 @@ abstract contract PrimaryAM is AssetModule {
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
      * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
-     * @return assetType Identifier for the type of the asset:
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155
-     * ...
      */
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         virtual
         override
         onlyRegistry
-        returns (uint256, uint256)
+        returns (uint256)
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -223,7 +218,7 @@ abstract contract PrimaryAM is AssetModule {
             riskParams[creditor][assetKey].lastExposureAsset = uint112(lastExposureAsset + amount);
         }
 
-        return (1, ASSET_TYPE);
+        return 1;
     }
 
     /**
@@ -279,11 +274,6 @@ abstract contract PrimaryAM is AssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
-     * @return assetType Identifier for the type of the asset:
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155
-     * ...
      * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
      * Underflows will not revert, but the exposure is instead set to 0.
      */
@@ -292,7 +282,6 @@ abstract contract PrimaryAM is AssetModule {
         virtual
         override
         onlyRegistry
-        returns (uint256 assetType)
     {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
@@ -304,8 +293,6 @@ abstract contract PrimaryAM is AssetModule {
                 ? riskParams[creditor][assetKey].lastExposureAsset = uint112(lastExposureAsset - amount)
                 : riskParams[creditor][assetKey].lastExposureAsset = 0;
         }
-
-        assetType = ASSET_TYPE;
     }
 
     /**

@@ -18,9 +18,7 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
                             CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
-    ERC20 USDbC = ERC20(0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA);
     IPool pool = IPool(0x4c80E24119CFB836cdF0a6b53dc23F04F7e652CA);
-    address oracleUSDC = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
 
     uint256 pid = 1;
     // https://stargateprotocol.gitbook.io/stargate/developers/pool-ids
@@ -35,17 +33,6 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
 
         vm.startPrank(users.creatorAddress);
 
-        // Add USDbC and it's Chainlink oracle to the protocol.
-        // Here we use USDC oracle as no available oracle for USDbC.
-        uint256 oracleId = chainlinkOM.addOracle(oracleUSDC, "USDbC", "USD", 2 days);
-        bool[] memory boolValues = new bool[](1);
-        boolValues[0] = true;
-        uint80[] memory uintValues = new uint80[](1);
-        uintValues[0] = uint80(oracleId);
-        bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
-
-        erc20AssetModule.addAsset(address(USDbC), oracleSequence);
-
         // Add the USDbC pool LP token to the StargateAssetModule.
         stargateAssetModule.addAsset(poolId);
 
@@ -55,7 +42,6 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
 
         // Label contracts
         vm.label({ account: address(pool), newLabel: "StargateUSDCPool" });
-        vm.label({ account: address(USDbC), newLabel: "USDbC" });
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -63,14 +49,14 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
     ///////////////////////////////////////////////////////////////*/
 
     function testFork_Success_StakeAndDepositInAccount() public {
-        uint256 initBalance = 1000 * 10 ** USDbC.decimals();
+        uint256 initBalance = 1000 * 10 ** USDBC.decimals();
         assert(ERC20(address(pool)).balanceOf(users.accountOwner) == 0);
 
-        // Given : A user deposits in the Stargate USDbC pool, in exchange of an LP token.
+        // Given : A user deposits in the Stargate USDBC pool, in exchange of an LP token.
         vm.startPrank(users.accountOwner);
-        deal(address(USDbC), users.accountOwner, initBalance);
+        deal(address(USDBC), users.accountOwner, initBalance);
 
-        USDbC.approve(address(router), initBalance);
+        USDBC.approve(address(router), initBalance);
         router.addLiquidity(poolId, initBalance, users.accountOwner);
         assert(ERC20(address(pool)).balanceOf(users.accountOwner) > 0);
 
@@ -100,8 +86,8 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
     // On withdrawal of the ERC721 token, the corresponding asset (Stargate LP tokens) and accumulated rewards should be transfered to the user.
     function testFork_Success_Withdraw() public {
         // Given : Amount of underlying assets deposited in Stargate pool.
-        uint256 amount1 = 1_000_000 * 10 ** USDbC.decimals();
-        uint256 amount2 = 123_456 * 10 ** USDbC.decimals();
+        uint256 amount1 = 1_000_000 * 10 ** USDBC.decimals();
+        uint256 amount2 = 123_456 * 10 ** USDBC.decimals();
 
         // And : 2 users deploy a new Arcadia Account.
         address payable user1 = createUser("user1");
@@ -114,14 +100,17 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
         address arcadiaAccount2 = factory.createAccount(101, 0, address(0));
 
         // And : Stake Stargate Pool LP tokens in the Asset Modules and deposit minted ERC721 in Accounts.
-        uint256 lpBalance1 = stakeInAssetModuleAndDepositInAccount(user1, arcadiaAccount1, USDbC, amount1, pid, pool);
-        uint256 lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDbC, amount2, pid, pool);
+        uint256 lpBalance1 = stakeInAssetModuleAndDepositInAccount(user1, arcadiaAccount1, USDBC, amount1, pid, pool);
+        uint256 lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDBC, amount2, pid, pool);
 
         (uint256 amBalanceInLpStaking,) = lpStakingTime.userInfo(pid, address(stakedStargateAM));
         assert(lpBalance1 + lpBalance2 == amBalanceInLpStaking);
 
         // And : We let 30 days pass to accumulate rewards.
         vm.warp(block.timestamp + 30 days);
+
+        // And: There are enough rewards in the contract.
+        deal(address(lpStakingTime.eToken()), address(lpStakingTime), 1e36, true);
 
         // And : User1 withdraws 1/2 position.
         vm.prank(arcadiaAccount1);
@@ -134,11 +123,10 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
         assert(lpStakingTime.eToken().balanceOf(arcadiaAccount2) > 0);
 
         // And : User2 decides to stake again via the AM.
-        lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDbC, amount2, pid, pool);
+        lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDBC, amount2, pid, pool);
 
         // And : We let 30 days pass to accumulate rewards.
         vm.warp(block.timestamp + 30 days);
-        emit log_named_uint("pendingEmissions", lpStakingTime.pendingEmissionToken(1, address(stakedStargateAM)));
 
         // When : Both users withdraw fully (withdraw and claim rewards).
         vm.prank(arcadiaAccount2);
@@ -146,7 +134,7 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
 
         (amBalanceInLpStaking,) = lpStakingTime.userInfo(pid, address(stakedStargateAM));
 
-        (,,, uint128 totalStaked) = stakedStargateAM.assetState(address(pool));
+        (, uint128 totalStaked,) = stakedStargateAM.assetState(address(pool));
 
         (, uint128 remainingBalanceAccount1,,) = stakedStargateAM.positionState(1);
 
@@ -156,9 +144,6 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
         // Then : Values should be correct
         uint256 rewardsAccount1 = lpStakingTime.eToken().balanceOf(arcadiaAccount1);
         uint256 rewardsAccount2 = lpStakingTime.eToken().balanceOf(arcadiaAccount2);
-        emit log_named_uint("STG rewards Account 1", rewardsAccount1);
-        emit log_named_uint("STG rewards Account 2", rewardsAccount2);
-
         assert(rewardsAccount1 > rewardsAccount2);
 
         (, remainingBalanceAccount1,,) = stakedStargateAM.positionState(1);
@@ -167,20 +152,23 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
         assert(remainingBalanceAccount1 == 0);
         assert(remainingBalanceAccount2 == 0);
 
-        (,,, totalStaked) = stakedStargateAM.assetState(address(pool));
+        (, totalStaked,) = stakedStargateAM.assetState(address(pool));
         assert(totalStaked == 0);
+        emit log_named_uint(
+            "reamining reward in SM", stakedStargateAM.REWARD_TOKEN().balanceOf(address(stakedStargateAM))
+        );
     }
 
     // The withdrawal of a zero amount should trigger the claim of the rewards
     function testFork_Success_claimReward() public {
-        uint256 initBalance = 1000 * 10 ** USDbC.decimals();
+        uint256 initBalance = 1000 * 10 ** USDBC.decimals();
         assert(ERC20(address(pool)).balanceOf(users.accountOwner) == 0);
 
         // Given : A user deposits in the Stargate USDbC pool, in exchange of an LP token.
         vm.startPrank(users.accountOwner);
-        deal(address(USDbC), users.accountOwner, initBalance);
+        deal(address(USDBC), users.accountOwner, initBalance);
 
-        USDbC.approve(address(router), initBalance);
+        USDBC.approve(address(router), initBalance);
         router.addLiquidity(poolId, initBalance, users.accountOwner);
         assert(ERC20(address(pool)).balanceOf(users.accountOwner) > 0);
 
@@ -191,6 +179,9 @@ contract StargateAM_USDbC_Fork_Test is StargateBase_Fork_Test {
 
         // And : We let 30 days pass to accumulate rewards.
         vm.warp(block.timestamp + 30 days);
+
+        // And: There are enough rewards in the contract.
+        deal(address(lpStakingTime.eToken()), address(lpStakingTime), 1e36, true);
 
         assert(lpStakingTime.eToken().balanceOf(users.accountOwner) == 0);
 

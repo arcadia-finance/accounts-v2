@@ -375,13 +375,12 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         {
             // When: processDirectDeposit is called with amount 1.
             vm.prank(address(registryExtension));
-            (uint256 recursiveCalls, uint256 assetType) = uniV3AssetModule.processDirectDeposit(
+            uint256 recursiveCalls = uniV3AssetModule.processDirectDeposit(
                 address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1
             );
 
             // Then: Correct variables are returned.
             assertEq(recursiveCalls, 3);
-            assertEq(assetType, 1);
         }
 
         {
@@ -493,13 +492,12 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         {
             // When: processDirectDeposit is called with amount 0.
             vm.prank(address(registryExtension));
-            (uint256 recursiveCalls, uint256 assetType) = uniV3AssetModule.processDirectDeposit(
+            uint256 recursiveCalls = uniV3AssetModule.processDirectDeposit(
                 address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0
             );
 
             // Then: Correct variables are returned.
             assertEq(recursiveCalls, 3);
-            assertEq(assetType, 1);
         }
 
         {

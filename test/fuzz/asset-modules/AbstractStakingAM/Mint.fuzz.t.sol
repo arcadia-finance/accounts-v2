@@ -67,7 +67,7 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
 
         address asset;
         {
-            // Given: An Asset i added to the stakingAM.
+            // Given: An Asset is added to the stakingAM.
             asset = addAsset(assetDecimals);
             vm.assume(account != asset);
 
@@ -115,21 +115,18 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, amount);
-        uint256 deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
         uint128 currentRewardPerToken;
         unchecked {
-            currentRewardPerToken =
-                assetState.lastRewardPerTokenGlobal + uint128(deltaReward.mulDivDown(1e18, assetState.totalStaked));
+            currentRewardPerToken = assetState.lastRewardPerTokenGlobal
+                + uint128(assetState.currentRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
         }
         assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
         assertEq(newPositionState.lastRewardPosition, 0);
 
         // And: Asset state should be updated correctly.
         StakingAM.AssetState memory newAssetState;
-        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
-            stakingAM.assetState(asset);
+        (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
-        assertEq(newAssetState.lastRewardGlobal, assetState.currentRewardGlobal);
         assertEq(newAssetState.totalStaked, assetState.totalStaked + amount);
     }
 
@@ -196,10 +193,8 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
 
         // And: Asset state should be updated correctly.
         StakingAM.AssetState memory newAssetState;
-        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
-            stakingAM.assetState(asset);
+        (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
-        assertEq(newAssetState.lastRewardGlobal, assetState.lastRewardGlobal);
         assertEq(newAssetState.totalStaked, amount);
     }
 }

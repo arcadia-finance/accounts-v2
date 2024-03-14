@@ -54,10 +54,10 @@ library GuardianErrors {
 }
 
 library RegistryErrors {
-    error AssetModNotUnique();
     error AssetAlreadyInRegistry();
+    error AssetModNotUnique();
     error AssetNotAllowed();
-    error SequencerDown();
+    error InvalidAssetType();
     error LengthMismatch();
     error MaxRecursiveCallsReached();
     error Min1Oracle();
@@ -67,5 +67,7 @@ library RegistryErrors {
     error OracleModNotUnique();
     error OracleNotReverting();
     error OracleReverting();
+    error SequencerDown();
     error Unauthorized();
+    error UnknownAsset();
 }

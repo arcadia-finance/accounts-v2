@@ -53,7 +53,7 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
             // Given : Position is minted to the Account
             stakingAM.mintIdTo(account, positionId);
 
-            // Given : transfer Asset and rewardToken to stakingAM, as _withdraw and _claimReward are not implemented on external staking contract
+            // Given : transfer Asset and rewardToken to stakingAM, as _withdrawAndClaim and _claimReward are not implemented on external staking contract
             address[] memory tokens = new address[](2);
             tokens[0] = asset;
             tokens[1] = address(rewardToken);
@@ -100,16 +100,14 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
 
         // And: Asset state should be updated correctly.
         StakingAM.AssetState memory newAssetState;
-        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
-            stakingAM.assetState(asset);
-        uint256 deltaReward = assetState.currentRewardGlobal - assetState.lastRewardGlobal;
+        (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
+        uint256 deltaReward = assetState.currentRewardGlobal;
         uint128 currentRewardPerToken;
         unchecked {
             currentRewardPerToken =
                 assetState.lastRewardPerTokenGlobal + uint128(deltaReward * 1e18 / assetState.totalStaked);
         }
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
-        assertEq(newAssetState.lastRewardGlobal, 0);
         assertEq(newAssetState.totalStaked, assetState.totalStaked - positionState.amountStaked);
     }
 
@@ -140,7 +138,7 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
             // And reward is zero.
             positionState.lastRewardPosition = 0;
             positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
-            assetState.currentRewardGlobal = assetState.lastRewardGlobal;
+            assetState.currentRewardGlobal = 0;
 
             // And: State is persisted.
             setStakingAMState(assetState, positionState, asset, positionId);
@@ -148,7 +146,7 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
             // Given : Position is minted to the Account
             stakingAM.mintIdTo(account, positionId);
 
-            // Given : transfer Asset and rewardToken to stakingAM, as _withdraw and _claimReward are not implemented on external staking contract
+            // Given : transfer Asset and rewardToken to stakingAM, as _withdrawAndClaim and _claimReward are not implemented on external staking contract
             address[] memory tokens = new address[](2);
             tokens[0] = asset;
             tokens[1] = address(rewardToken);
@@ -188,10 +186,8 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
 
         // And: Asset state should be updated correctly.
         StakingAM.AssetState memory newAssetState;
-        (, newAssetState.lastRewardPerTokenGlobal, newAssetState.lastRewardGlobal, newAssetState.totalStaked) =
-            stakingAM.assetState(asset);
+        (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
-        assertEq(newAssetState.lastRewardGlobal, 0);
         assertEq(newAssetState.totalStaked, assetState.totalStaked - positionState.amountStaked);
     }
 }

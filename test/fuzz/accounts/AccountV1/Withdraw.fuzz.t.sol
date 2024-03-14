@@ -137,13 +137,13 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Revert_withdraw_UnknownAssetType(uint96 assetType) public {
-        vm.assume(assetType >= 3);
+        vm.assume(assetType > 3);
 
         vm.startPrank(users.creatorAddress);
         AssetModuleMock assetModule = new AssetModuleMock(address(registryExtension), assetType);
         registryExtension.addAssetModule(address(assetModule));
         vm.stopPrank();
-        registryExtension.setAssetToAssetModule(address(mockERC20.token1), address(assetModule));
+        registryExtension.setAssetInformation(address(mockERC20.token1), assetType, address(assetModule));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -199,7 +199,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(bytes(""));
+        vm.expectRevert(RegistryErrors.UnknownAsset.selector);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }

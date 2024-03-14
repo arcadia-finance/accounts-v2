@@ -43,7 +43,7 @@ contract StakedStargateAM is StakingAM {
     /**
      * @param registry The address of the Registry.
      * @param lpStakingTime The address of the Stargate LP staking contract.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC721 tokens.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
     constructor(address registry, address lpStakingTime) StakingAM(registry, "Arcadia Stargate Positions", "aSGP") {
         LP_STAKING_TIME = ILpStakingTime(lpStakingTime);
@@ -75,24 +75,26 @@ contract StakedStargateAM is StakingAM {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Stakes an amount of tokens in the external staking contract.
+     * @notice Stakes an amount of Asset in the external staking contract and claims pending rewards.
      * @param asset The contract address of the Asset to stake.
      * @param amount The amount of Asset to stake.
      */
-    function _stake(address asset, uint256 amount) internal override {
+    function _stakeAndClaim(address asset, uint256 amount) internal override {
         ERC20(asset).approve(address(LP_STAKING_TIME), amount);
 
-        // Stake asset
+        // Stake asset.
+        // deposit() will also claim all pending rewards from the staking contract.
         LP_STAKING_TIME.deposit(assetToPid[asset], amount);
     }
 
     /**
-     * @notice Unstakes and withdraws the Asset from the external contract.
+     * @notice Unstakes and withdraws the Asset from the external contract and claims pending rewards.
      * @param asset The contract address of the Asset to unstake and withdraw.
      * @param amount The amount of underlying tokens to unstake and withdraw.
      */
-    function _withdraw(address asset, uint256 amount) internal override {
-        // Withdraw asset
+    function _withdrawAndClaim(address asset, uint256 amount) internal override {
+        // Withdraw asset.
+        // withdraw() will also claim all pending rewards from the staking contract.
         LP_STAKING_TIME.withdraw(assetToPid[asset], amount);
     }
 

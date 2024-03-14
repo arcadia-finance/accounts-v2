@@ -28,7 +28,7 @@ contract Constructor_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         StargateAMExtension assetModule = new StargateAMExtension(address(registryExtension), stargateFactory);
 
         assertEq(address(assetModule.SG_FACTORY()), stargateFactory);
-        assertEq(assetModule.ASSET_TYPE(), 0);
+        assertEq(assetModule.ASSET_TYPE(), 1);
         assertEq(assetModule.REGISTRY(), address(registryExtension));
     }
 }

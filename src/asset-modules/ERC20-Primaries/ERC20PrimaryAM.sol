@@ -28,9 +28,9 @@ contract ERC20PrimaryAM is PrimaryAM {
 
     /**
      * @param registry_ The contract address of the Registry.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "0" for ERC20 tokens.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC20 tokens.
      */
-    constructor(address registry_) PrimaryAM(registry_, 0) { }
+    constructor(address registry_) PrimaryAM(registry_, 1) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -47,7 +47,7 @@ contract ERC20PrimaryAM is PrimaryAM {
         // View function, reverts in Registry if sequence is not correct.
         if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert BadOracleSequence();
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(asset);
+        IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), asset);
 
         inAssetModule[asset] = true;
 

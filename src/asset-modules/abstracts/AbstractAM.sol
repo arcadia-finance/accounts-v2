@@ -22,7 +22,7 @@ abstract contract AssetModule is Owned, IAssetModule {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
-    // Identifier for the token standard of the asset.
+    // Identifier for the type of the asset.
     uint256 public immutable ASSET_TYPE;
     // The contract address of the Registry.
     address public immutable REGISTRY;
@@ -61,9 +61,10 @@ abstract contract AssetModule is Owned, IAssetModule {
     /**
      * @param registry_ The contract address of the Registry.
      * @param assetType_ Identifier for the token standard of the asset.
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155.
+     * 0 = Unknown asset.
+     * 1 = ERC20.
+     * 2 = ERC721.
+     * 3 = ERC1155.
      */
     constructor(address registry_, uint256 assetType_) Owned(msg.sender) {
         REGISTRY = registry_;
@@ -82,21 +83,6 @@ abstract contract AssetModule is Owned, IAssetModule {
      * @dev For assets without id (ERC20, ERC4626...), the id should be set to 0.
      */
     function isAllowed(address asset, uint256 assetId) public view virtual returns (bool);
-
-    /**
-     * @notice Returns if an asset is allowed and its asset type.
-     * @param asset The contract address of the asset.
-     * @param assetId The id of the asset.
-     * @return A boolean, indicating if the asset is allowed.
-     * @return assetType Identifier for the type of the asset:
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155
-     * ...
-     */
-    function processAsset(address asset, uint256 assetId) external view virtual returns (bool, uint256) {
-        return (isAllowed(asset, assetId), ASSET_TYPE);
-    }
 
     /**
      * @notice Returns the unique identifier of an asset based on the contract address and id.
@@ -180,16 +166,11 @@ abstract contract AssetModule is Owned, IAssetModule {
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
      * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
-     * @return assetType Identifier for the type of the asset:
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155
-     * ...
      */
     function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
         public
         virtual
-        returns (uint256 recursiveCalls, uint256 assetType);
+        returns (uint256 recursiveCalls);
 
     /**
      * @notice Increases the exposure to an asset on an indirect deposit.
@@ -215,16 +196,8 @@ abstract contract AssetModule is Owned, IAssetModule {
      * @param asset The contract address of the asset.
      * @param assetId The id of the asset.
      * @param amount The amount of tokens.
-     * @return assetType Identifier for the type of the asset:
-     * 0 = ERC20.
-     * 1 = ERC721.
-     * 2 = ERC1155
-     * ...
      */
-    function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
-        public
-        virtual
-        returns (uint256 assetType);
+    function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount) public virtual;
 
     /**
      * @notice Decreases the exposure to an asset on an indirect withdrawal.

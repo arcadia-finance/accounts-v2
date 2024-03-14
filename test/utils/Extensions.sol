@@ -192,8 +192,13 @@ contract RegistryExtension is Registry {
         oracleToOracleModule[oracleId] = oracleModule;
     }
 
-    function setAssetToAssetModule(address asset, address assetModule) public {
-        assetToAssetModule[asset] = assetModule;
+    function setAssetModule(address asset, address assetModule) public {
+        assetToAssetInformation[asset].assetModule = assetModule;
+    }
+
+    function setAssetInformation(address asset, uint96 assetType, address assetModule) public {
+        assetToAssetInformation[asset].assetType = assetType;
+        assetToAssetInformation[asset].assetModule = assetModule;
     }
 }
 
@@ -607,10 +612,6 @@ contract MultiCallExtension is ActionMultiCall {
 abstract contract StakingAMExtension is StakingAM {
     constructor(address registry, string memory name_, string memory symbol_) StakingAM(registry, name_, symbol_) { }
 
-    function setLastRewardGlobal(address asset, uint128 balance) public {
-        assetState[asset].lastRewardGlobal = balance;
-    }
-
     function addAsset(address asset) public {
         _addAsset(asset);
     }
@@ -757,11 +758,11 @@ contract StakedStargateAMExtension is StakedStargateAM {
     }
 
     function stake(address asset, uint256 amount) public {
-        _stake(asset, amount);
+        _stakeAndClaim(asset, amount);
     }
 
     function withdraw(address asset, uint256 amount) public {
-        _withdraw(asset, amount);
+        _withdrawAndClaim(asset, amount);
     }
 
     function calculateValueAndRiskFactors(

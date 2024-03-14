@@ -40,15 +40,15 @@ contract GetSqrtPriceX96_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // Avoid divide by 0, which is already checked in earlier in function.
         priceToken1 = bound(priceToken1, 1, type(uint256).max);
         // Function will overFlow, not realistic.
-        priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e18);
+        priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e28);
 
         // Cast to uint160 overflows (test-case).
         vm.assume(priceToken0 / priceToken1 >= 2 ** 128);
 
-        uint256 priceXd18 = priceToken0 * 1e18 / priceToken1;
-        uint256 sqrtPriceXd9 = FixedPointMathLib.sqrt(priceXd18);
+        uint256 priceXd28 = priceToken0 * 1e28 / priceToken1;
+        uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
 
-        uint256 expectedSqrtPriceX96 = sqrtPriceXd9 * 2 ** 96 / 1e9;
+        uint256 expectedSqrtPriceX96 = sqrtPriceXd14 * 2 ** 96 / 1e14;
         uint256 actualSqrtPriceX96 = uniV3AssetModule.getSqrtPriceX96(priceToken0, priceToken1);
 
         assertLt(actualSqrtPriceX96, expectedSqrtPriceX96);
@@ -58,14 +58,14 @@ contract GetSqrtPriceX96_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // Avoid divide by 0, which is already checked in earlier in function.
         priceToken1 = bound(priceToken1, 1, type(uint256).max);
         // Function will overFlow, not realistic.
-        priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e18);
+        priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e28);
         // Cast to uint160 will overflow, not realistic.
         vm.assume(priceToken0 / priceToken1 < 2 ** 128);
 
-        uint256 priceXd18 = priceToken0 * 1e18 / priceToken1;
-        uint256 sqrtPriceXd9 = FixedPointMathLib.sqrt(priceXd18);
+        uint256 priceXd28 = priceToken0 * 1e28 / priceToken1;
+        uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
 
-        uint256 expectedSqrtPriceX96 = sqrtPriceXd9 * 2 ** 96 / 1e9;
+        uint256 expectedSqrtPriceX96 = sqrtPriceXd14 * 2 ** 96 / 1e14;
         uint256 actualSqrtPriceX96 = uniV3AssetModule.getSqrtPriceX96(priceToken0, priceToken1);
 
         assertEq(actualSqrtPriceX96, expectedSqrtPriceX96);
