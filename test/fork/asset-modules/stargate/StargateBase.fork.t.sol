@@ -80,7 +80,7 @@ contract StargateBase_Fork_Test is Fork_Test {
         uint256 poolId,
         IPool pool
     ) public returns (uint256 lpBalance) {
-        // A user deposits in the Stargate USDbC pool.
+        // A user deposits in the Stargate USDBC pool.
         vm.startPrank(user);
         deal(address(underlyingAsset), user, amount);
 
