@@ -250,7 +250,8 @@ contract ArcadiaAccountDeployment is Test {
         assetIds[6] = 0;
         assetIds[7] = 0;
 
-        (uint16[] memory collateralFactors, uint16[] memory liquidationFactors) = registry.getRiskFactors(address(wethLendingPool), assetAddresses, assetIds);
+        (uint16[] memory collateralFactors, uint16[] memory liquidationFactors) =
+            registry.getRiskFactors(address(wethLendingPool), assetAddresses, assetIds);
         assertEq(collateralFactors[0], DeployRiskConstantsBase.comp_collFact_1);
         assertEq(liquidationFactors[0], DeployRiskConstantsBase.comp_liqFact_1);
         assertEq(collateralFactors[1], DeployRiskConstantsBase.dai_collFact_1);
@@ -268,7 +269,8 @@ contract ArcadiaAccountDeployment is Test {
         assertEq(collateralFactors[7], DeployRiskConstantsBase.stg_collFact_1);
         assertEq(liquidationFactors[7], DeployRiskConstantsBase.stg_liqFact_1);
 
-        (uint16[] memory collateralFactors, uint16[] memory liquidationFactors) = registry.getRiskFactors(address(usdcLendingPool), assetAddresses, assetIds);
+        (uint16[] memory collateralFactors, uint16[] memory liquidationFactors) =
+            registry.getRiskFactors(address(usdcLendingPool), assetAddresses, assetIds);
         assertEq(collateralFactors[0], DeployRiskConstantsBase.comp_collFact_2);
         assertEq(liquidationFactors[0], DeployRiskConstantsBase.comp_liqFact_2);
         assertEq(collateralFactors[1], DeployRiskConstantsBase.dai_collFact_2);
@@ -295,7 +297,8 @@ contract ArcadiaAccountDeployment is Test {
         assertEq(riskParameters_.minUsdValue, 5);
         assertEq(riskParameters_.gracePeriod, 15 minutes);
         assertEq(riskParameters_.maxRecursiveCalls, 5);
-        
+
         UniswapV3AM.RiskParameters memory riskParameters_v3AM = uniswapV3AM.riskParams(address(wethLendingPool));
         //todo: continue checks
+    }
 }
