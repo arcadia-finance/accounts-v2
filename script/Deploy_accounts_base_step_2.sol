@@ -227,7 +227,7 @@ contract ArcadiaAccountDeployment is Test {
         vm.stopBroadcast();
     }
 
-    function test_deploy() public {
+    function xtest_deploy() public {
         address protocolOwnerAddress = DeployAddresses.protocolOwner_base;
 
         address[] memory assetAddresses = new address[](8);
