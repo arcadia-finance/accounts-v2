@@ -29,6 +29,8 @@ abstract contract Fork_Test is Base_Test {
     address oracleUSDC = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
     // The Chainlink DAI oracle on Base
     address oracleDAI = 0x591e79239a7d679378eC8c847e5038150364C78F;
+    // The Chainlink WETH oracle on Base
+    address oracleETH = 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70;
 
     string internal RPC_URL = vm.envString("RPC_URL");
 
@@ -48,7 +50,7 @@ abstract contract Fork_Test is Base_Test {
         Base_Test.setUp();
 
         vm.startPrank(users.creatorAddress);
-        // Add USDC oracle to the protocol (same oracle will be used for USDbC)
+        // Add USDC to the protocol (same oracle will be used for USDBC).
         uint256 oracleId = chainlinkOM.addOracle(oracleUSDC, "USDC", "USD", 2 days);
         bool[] memory boolValues = new bool[](1);
         boolValues[0] = true;
@@ -58,16 +60,23 @@ abstract contract Fork_Test is Base_Test {
         erc20AssetModule.addAsset(address(USDC), oracleSequence);
         erc20AssetModule.addAsset(address(USDBC), oracleSequence);
 
-        // Add DAI Oracle to the protocol
+        // Add DAI to the protocol.
         oracleId = chainlinkOM.addOracle(oracleDAI, "DAI", "USD", 2 days);
         uintValues[0] = uint80(oracleId);
         oracleSequence = BitPackingLib.pack(boolValues, uintValues);
         erc20AssetModule.addAsset(address(DAI), oracleSequence);
 
+        // Add WETH to the protocol.
+        oracleId = chainlinkOM.addOracle(oracleETH, "WETH", "USD", 2 days);
+        uintValues[0] = uint80(oracleId);
+        oracleSequence = BitPackingLib.pack(boolValues, uintValues);
+        erc20AssetModule.addAsset(address(WETH), oracleSequence);
+
         vm.stopPrank();
 
         vm.label({ account: address(USDC), newLabel: "USDC" });
+        vm.label({ account: address(USDBC), newLabel: "USDBC" });
         vm.label({ account: address(DAI), newLabel: "DAI" });
-        vm.label({ account: address(USDBC), newLabel: "USDbC" });
+        vm.label({ account: address(WETH), newLabel: "WETH" });
     }
 }
