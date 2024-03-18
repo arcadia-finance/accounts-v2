@@ -45,16 +45,6 @@ library DeployAddresses {
 }
 
 library DeployNumbers {
-    uint256 public constant oracleCompToUsdUnit = 1e8;
-    uint256 public constant oracleDaiToUsdUnit = 1e8;
-    uint256 public constant oracleEthToUsdUnit = 1e8;
-    uint256 public constant oracleCbethToUsdUnit = 1e8;
-    uint256 public constant oracleUsdcToUsdUnit = 1e8;
-    uint256 public constant oracleWbtcToUsdUnit = 1e8;
-    uint256 public constant oracleCbethToEthUnit = 1e18;
-    uint256 public constant oracleRethToEthUnit = 1e18;
-    uint256 public constant oracleStgToUsdUnit = 1e8;
-
     uint256 public constant wethDecimals = 18;
     uint256 public constant daiDecimals = 18;
     uint256 public constant compDecimals = 18;
@@ -74,14 +64,15 @@ library DeployNumbers {
 
     uint256 public constant stargateWethPoolId = 13;
     uint256 public constant stargateUsdbcPoolId = 1;
+    uint256 public constant stargateUsdbcPid = 1;
 
-    uint32 public constant comp_usd_cutOffTime = 2 days;
-    uint32 public constant dai_usd_cutOffTime = 2 days;
-    uint32 public constant eth_usd_cutOffTime = 2 days;
-    uint32 public constant usdc_usd_cutOffTime = 2 days;
-    uint32 public constant cbeth_usd_cutOffTime = 2 days;
-    uint32 public constant reth_eth_cutOffTime = 2 days;
-    uint32 public constant stg_usd_cutOffTime = 2 days;
+    uint32 public constant comp_usd_cutOffTime = 25 hours;
+    uint32 public constant dai_usd_cutOffTime = 25 hours;
+    uint32 public constant eth_usd_cutOffTime = 1 hours;
+    uint32 public constant usdc_usd_cutOffTime = 25 hours;
+    uint32 public constant cbeth_usd_cutOffTime = 1 hours;
+    uint32 public constant reth_eth_cutOffTime = 25 hours;
+    uint32 public constant stg_usd_cutOffTime = 25 hours;
 }
 
 library DeployBytes {

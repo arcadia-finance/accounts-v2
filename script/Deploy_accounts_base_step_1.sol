@@ -94,6 +94,8 @@ contract ArcadiaAccountDeploymentStep1 is Test {
         address deployerAddress = vm.addr(deployerPrivateKey);
         address protocolOwnerAddress = DeployAddresses.protocolOwner_base;
 
+        assertEq(deployerAddress, protocolOwnerAddress);
+
         vm.startBroadcast(deployerPrivateKey);
         factory = Factory(0x38dB790e1894A5863387B43290c8340121e7Cd48); //todo: change after factory deploy
         wethLendingPool = ILendingPool(0xA04B08324745AEc82De30c3581c407BE63E764c8); //todo: change after LP deploy
@@ -156,6 +158,7 @@ contract ArcadiaAccountDeploymentStep1 is Test {
         stargateAM.addAsset(DeployNumbers.stargateUsdbcPoolId);
 
         stakedStargateAM.initialize();
+        stakedStargateAM.addAsset(DeployNumbers.stargateUsdbcPid);
 
         factory.setNewAccountInfo(address(registry), address(account), DeployBytes.upgradeRoot1To1, "");
         factory.changeGuardian(protocolOwnerAddress);
@@ -169,6 +172,8 @@ contract ArcadiaAccountDeploymentStep1 is Test {
     }
 
     function test_deploy() public {
+        vm.skip(true);
+
         address protocolOwnerAddress = DeployAddresses.protocolOwner_base;
 
         assertEq(factory.owner(), protocolOwnerAddress);

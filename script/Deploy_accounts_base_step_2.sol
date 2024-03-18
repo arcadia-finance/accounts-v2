@@ -67,18 +67,20 @@ contract ArcadiaAccountDeployment is Test {
         address deployerAddress = vm.addr(deployerPrivateKey);
         address protocolOwnerAddress = DeployAddresses.protocolOwner_base;
 
+        assertEq(deployerAddress, protocolOwnerAddress);
+
         vm.startBroadcast(deployerPrivateKey);
         factory = Factory(0x38dB790e1894A5863387B43290c8340121e7Cd48); //todo: change after factory deploy
         wethLendingPool = ILendingPool(0xA04B08324745AEc82De30c3581c407BE63E764c8); //todo: change after LP deploy
         usdcLendingPool = ILendingPool(0xEda73DA39Aae3282DDC2Dc924c740574567FFabc); //todo: change after LP deploy
-        registry = Registry(); //todo: change after registry deploy
-        chainlinkOM = ChainlinkOM(); //todo: change after chainlinkOM deploy
-        account = AccountV1(); //todo: change after accountV1 deploy
-        actionMultiCall = ActionMultiCall(); //todo: change after actionMultiCall deploy
-        erc20PrimaryAM = ERC20PrimaryAM(); //todo: change after erc20PrimaryAM deploy
-        uniswapV3AM = UniswapV3AM(); //todo: change after uniswapV3AM deploy
-        stargateAM = StargateAM(); //todo: change after stargateAM deploy
-        stakedStargateAM = StakedStargateAM(); //todo: change after stakedStargateAM deploy
+        // registry = Registry(); //todo: change after registry deploy
+        // chainlinkOM = ChainlinkOM(); //todo: change after chainlinkOM deploy
+        // account = AccountV1(); //todo: change after accountV1 deploy
+        // actionMultiCall = ActionMultiCall(); //todo: change after actionMultiCall deploy
+        // erc20PrimaryAM = ERC20PrimaryAM(); //todo: change after erc20PrimaryAM deploy
+        // uniswapV3AM = UniswapV3AM(); //todo: change after uniswapV3AM deploy
+        // stargateAM = StargateAM(); //todo: change after stargateAM deploy
+        // stakedStargateAM = StakedStargateAM(); //todo: change after stakedStargateAM deploy
 
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
@@ -92,7 +94,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.dai_base,
             0,
-            1000 * 10 ** DeployNumbers.daiDecimals,
+            uint112(1000 * 10 ** DeployNumbers.daiDecimals),
             DeployRiskConstantsBase.dai_collFact_1,
             DeployRiskConstantsBase.dai_liqFact_1
         );
@@ -100,7 +102,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.weth_base,
             0,
-            1000 * 10 ** DeployNumbers.daiDecimals,
+            uint112(1000 * 10 ** DeployNumbers.daiDecimals),
             DeployRiskConstantsBase.eth_collFact_1,
             DeployRiskConstantsBase.eth_liqFact_1
         );
@@ -108,7 +110,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.usdc_base,
             0,
-            1000 * 10 ** DeployNumbers.usdcDecimals,
+            uint112(1000 * 10 ** DeployNumbers.usdcDecimals),
             DeployRiskConstantsBase.usdc_collFact_1,
             DeployRiskConstantsBase.usdc_liqFact_1
         );
@@ -116,7 +118,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.usdbc_base,
             0,
-            1000 * 10 ** DeployNumbers.usdbcDecimals,
+            uint112(1000 * 10 ** DeployNumbers.usdbcDecimals),
             DeployRiskConstantsBase.usdbc_collFact_1,
             DeployRiskConstantsBase.usdbc_liqFact_1
         );
@@ -124,7 +126,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.cbeth_base,
             0,
-            1 * 10 ** DeployNumbers.cbethDecimals,
+            uint112(1 * 10 ** DeployNumbers.cbethDecimals),
             DeployRiskConstantsBase.cbeth_collFact_1,
             DeployRiskConstantsBase.cbeth_liqFact_1
         );
@@ -132,7 +134,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.reth_base,
             0,
-            1 * 10 ** DeployNumbers.rethDecimals,
+            uint112(1 * 10 ** DeployNumbers.rethDecimals),
             DeployRiskConstantsBase.reth_collFact_1,
             DeployRiskConstantsBase.reth_liqFact_1
         );
@@ -140,7 +142,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.stg_base,
             0,
-            1000 * 10 ** DeployNumbers.stgDecimals,
+            uint112(1000 * 10 ** DeployNumbers.stgDecimals),
             DeployRiskConstantsBase.stg_collFact_1,
             DeployRiskConstantsBase.stg_liqFact_1
         );
@@ -157,7 +159,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.dai_base,
             0,
-            1000 * 10 ** DeployNumbers.daiDecimals,
+            uint112(1000 * 10 ** DeployNumbers.daiDecimals),
             DeployRiskConstantsBase.dai_collFact_2,
             DeployRiskConstantsBase.dai_liqFact_2
         );
@@ -165,7 +167,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.weth_base,
             0,
-            1 * 10 ** DeployNumbers.wethDecimals,
+            uint112(1 * 10 ** DeployNumbers.wethDecimals),
             DeployRiskConstantsBase.eth_collFact_2,
             DeployRiskConstantsBase.eth_liqFact_2
         );
@@ -173,7 +175,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.usdc_base,
             0,
-            1000 * 10 ** DeployNumbers.usdcDecimals,
+            uint112(1000 * 10 ** DeployNumbers.usdcDecimals),
             DeployRiskConstantsBase.usdc_collFact_2,
             DeployRiskConstantsBase.usdc_liqFact_2
         );
@@ -181,7 +183,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.usdbc_base,
             0,
-            1000 * 10 ** DeployNumbers.usdbcDecimals,
+            uint112(1000 * 10 ** DeployNumbers.usdbcDecimals),
             DeployRiskConstantsBase.usdbc_collFact_2,
             DeployRiskConstantsBase.usdbc_liqFact_2
         );
@@ -189,7 +191,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.cbeth_base,
             0,
-            1 * 10 ** DeployNumbers.cbethDecimals,
+            uint112(1 * 10 ** DeployNumbers.cbethDecimals),
             DeployRiskConstantsBase.cbeth_collFact_2,
             DeployRiskConstantsBase.cbeth_liqFact_2
         );
@@ -197,7 +199,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.reth_base,
             0,
-            1 * 10 ** DeployNumbers.rethDecimals,
+            uint112(1 * 10 ** DeployNumbers.rethDecimals),
             DeployRiskConstantsBase.reth_collFact_2,
             DeployRiskConstantsBase.reth_liqFact_2
         );
@@ -205,7 +207,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.stg_base,
             0,
-            1000 * 10 ** DeployNumbers.stgDecimals,
+            uint112(1000 * 10 ** DeployNumbers.stgDecimals),
             DeployRiskConstantsBase.stg_collFact_2,
             DeployRiskConstantsBase.stg_liqFact_2
         );
@@ -250,55 +252,62 @@ contract ArcadiaAccountDeployment is Test {
         assetIds[6] = 0;
         assetIds[7] = 0;
 
-        (uint16[] memory collateralFactors, uint16[] memory liquidationFactors) =
+        (uint16[] memory collateralFactors_weth, uint16[] memory liquidationFactors_weth) =
             registry.getRiskFactors(address(wethLendingPool), assetAddresses, assetIds);
-        assertEq(collateralFactors[0], DeployRiskConstantsBase.comp_collFact_1);
-        assertEq(liquidationFactors[0], DeployRiskConstantsBase.comp_liqFact_1);
-        assertEq(collateralFactors[1], DeployRiskConstantsBase.dai_collFact_1);
-        assertEq(liquidationFactors[1], DeployRiskConstantsBase.dai_liqFact_1);
-        assertEq(collateralFactors[2], DeployRiskConstantsBase.weth_collFact_1);
-        assertEq(liquidationFactors[2], DeployRiskConstantsBase.weth_liqFact_1);
-        assertEq(collateralFactors[3], DeployRiskConstantsBase.usdc_collFact_1);
-        assertEq(liquidationFactors[3], DeployRiskConstantsBase.usdc_liqFact_1);
-        assertEq(collateralFactors[4], DeployRiskConstantsBase.usdbc_collFact_1);
-        assertEq(liquidationFactors[4], DeployRiskConstantsBase.usdbc_liqFact_1);
-        assertEq(collateralFactors[5], DeployRiskConstantsBase.cbeth_collFact_1);
-        assertEq(liquidationFactors[5], DeployRiskConstantsBase.cbeth_liqFact_1);
-        assertEq(collateralFactors[6], DeployRiskConstantsBase.reth_collFact_1);
-        assertEq(liquidationFactors[6], DeployRiskConstantsBase.reth_liqFact_1);
-        assertEq(collateralFactors[7], DeployRiskConstantsBase.stg_collFact_1);
-        assertEq(liquidationFactors[7], DeployRiskConstantsBase.stg_liqFact_1);
+        assertEq(collateralFactors_weth[0], DeployRiskConstantsBase.comp_collFact_1);
+        assertEq(liquidationFactors_weth[0], DeployRiskConstantsBase.comp_liqFact_1);
+        assertEq(collateralFactors_weth[1], DeployRiskConstantsBase.dai_collFact_1);
+        assertEq(liquidationFactors_weth[1], DeployRiskConstantsBase.dai_liqFact_1);
+        assertEq(collateralFactors_weth[2], DeployRiskConstantsBase.eth_collFact_1);
+        assertEq(liquidationFactors_weth[2], DeployRiskConstantsBase.eth_liqFact_1);
+        assertEq(collateralFactors_weth[3], DeployRiskConstantsBase.usdc_collFact_1);
+        assertEq(liquidationFactors_weth[3], DeployRiskConstantsBase.usdc_liqFact_1);
+        assertEq(collateralFactors_weth[4], DeployRiskConstantsBase.usdbc_collFact_1);
+        assertEq(liquidationFactors_weth[4], DeployRiskConstantsBase.usdbc_liqFact_1);
+        assertEq(collateralFactors_weth[5], DeployRiskConstantsBase.cbeth_collFact_1);
+        assertEq(liquidationFactors_weth[5], DeployRiskConstantsBase.cbeth_liqFact_1);
+        assertEq(collateralFactors_weth[6], DeployRiskConstantsBase.reth_collFact_1);
+        assertEq(liquidationFactors_weth[6], DeployRiskConstantsBase.reth_liqFact_1);
+        assertEq(collateralFactors_weth[7], DeployRiskConstantsBase.stg_collFact_1);
+        assertEq(liquidationFactors_weth[7], DeployRiskConstantsBase.stg_liqFact_1);
 
-        (uint16[] memory collateralFactors, uint16[] memory liquidationFactors) =
+        (uint16[] memory collateralFactors_usdc, uint16[] memory liquidationFactors_usdc) =
             registry.getRiskFactors(address(usdcLendingPool), assetAddresses, assetIds);
-        assertEq(collateralFactors[0], DeployRiskConstantsBase.comp_collFact_2);
-        assertEq(liquidationFactors[0], DeployRiskConstantsBase.comp_liqFact_2);
-        assertEq(collateralFactors[1], DeployRiskConstantsBase.dai_collFact_2);
-        assertEq(liquidationFactors[1], DeployRiskConstantsBase.dai_liqFact_2);
-        assertEq(collateralFactors[2], DeployRiskConstantsBase.weth_collFact_2);
-        assertEq(liquidationFactors[2], DeployRiskConstantsBase.weth_liqFact_2);
-        assertEq(collateralFactors[3], DeployRiskConstantsBase.usdc_collFact_2);
-        assertEq(liquidationFactors[3], DeployRiskConstantsBase.usdc_liqFact_2);
-        assertEq(collateralFactors[4], DeployRiskConstantsBase.usdbc_collFact_2);
-        assertEq(liquidationFactors[4], DeployRiskConstantsBase.usdbc_liqFact_2);
-        assertEq(collateralFactors[5], DeployRiskConstantsBase.cbeth_collFact_2);
-        assertEq(liquidationFactors[5], DeployRiskConstantsBase.cbeth_liqFact_2);
-        assertEq(collateralFactors[6], DeployRiskConstantsBase.reth_collFact_2);
-        assertEq(liquidationFactors[6], DeployRiskConstantsBase.reth_liqFact_2);
-        assertEq(collateralFactors[7], DeployRiskConstantsBase.stg_collFact_2);
-        assertEq(liquidationFactors[7], DeployRiskConstantsBase.stg_liqFact_2);
+        assertEq(collateralFactors_usdc[0], DeployRiskConstantsBase.comp_collFact_2);
+        assertEq(liquidationFactors_usdc[0], DeployRiskConstantsBase.comp_liqFact_2);
+        assertEq(collateralFactors_usdc[1], DeployRiskConstantsBase.dai_collFact_2);
+        assertEq(liquidationFactors_usdc[1], DeployRiskConstantsBase.dai_liqFact_2);
+        assertEq(collateralFactors_usdc[2], DeployRiskConstantsBase.eth_collFact_2);
+        assertEq(liquidationFactors_usdc[2], DeployRiskConstantsBase.eth_liqFact_2);
+        assertEq(collateralFactors_usdc[3], DeployRiskConstantsBase.usdc_collFact_2);
+        assertEq(liquidationFactors_usdc[3], DeployRiskConstantsBase.usdc_liqFact_2);
+        assertEq(collateralFactors_usdc[4], DeployRiskConstantsBase.usdbc_collFact_2);
+        assertEq(liquidationFactors_usdc[4], DeployRiskConstantsBase.usdbc_liqFact_2);
+        assertEq(collateralFactors_usdc[5], DeployRiskConstantsBase.cbeth_collFact_2);
+        assertEq(liquidationFactors_usdc[5], DeployRiskConstantsBase.cbeth_liqFact_2);
+        assertEq(collateralFactors_usdc[6], DeployRiskConstantsBase.reth_collFact_2);
+        assertEq(liquidationFactors_usdc[6], DeployRiskConstantsBase.reth_liqFact_2);
+        assertEq(collateralFactors_usdc[7], DeployRiskConstantsBase.stg_collFact_2);
+        assertEq(liquidationFactors_usdc[7], DeployRiskConstantsBase.stg_liqFact_2);
 
-        Registry.RiskParameters memory riskParameters = registry.riskParams(address(wethLendingPool));
-        assertEq(riskParameters.minUsdValue, 5);
-        assertEq(riskParameters.gracePeriod, 15 minutes);
-        assertEq(riskParameters.maxRecursiveCalls, 5);
+        (uint128 minUsdValue_weth, uint64 gracePeriod_weth, uint64 maxRecursiveCalls_weth) =
+            registry.riskParams(address(wethLendingPool));
+        assertEq(minUsdValue_weth, 5);
+        assertEq(gracePeriod_weth, 15 minutes);
+        assertEq(maxRecursiveCalls_weth, 5);
 
-        Registry.RiskParameters memory riskParameters_ = registry.riskParams(address(usdcLendingPool));
-        assertEq(riskParameters_.minUsdValue, 5);
-        assertEq(riskParameters_.gracePeriod, 15 minutes);
-        assertEq(riskParameters_.maxRecursiveCalls, 5);
+        (uint128 minUsdValue_usdc, uint64 gracePeriod_usdc, uint64 maxRecursiveCalls_usdc) =
+            registry.riskParams(address(usdcLendingPool));
+        assertEq(minUsdValue_usdc, 5);
+        assertEq(gracePeriod_usdc, 15 minutes);
+        assertEq(maxRecursiveCalls_usdc, 5);
 
-        UniswapV3AM.RiskParameters memory riskParameters_v3AM = uniswapV3AM.riskParams(address(wethLendingPool));
+        // Registry.RiskParameters memory riskParameters_ = registry.riskParams(address(usdcLendingPool));
+        // assertEq(riskParameters_.minUsdValue, 5);
+        // assertEq(riskParameters_.gracePeriod, 15 minutes);
+        // assertEq(riskParameters_.maxRecursiveCalls, 5);
+
+        // UniswapV3AM.RiskParameters memory riskParameters_v3AM = uniswapV3AM.riskParams(address(wethLendingPool));
         //todo: continue checks
     }
 }
