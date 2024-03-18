@@ -10,7 +10,6 @@ import { MultiCall_Fuzz_Test } from "./_MultiCall.fuzz.t.sol";
  * @notice Fuzz tests for the function "checkAmountOut" of contract "MultiCall".
  */
 contract EmitMultiCallEvent_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
-
     /* ///////////////////////////////////////////////////////////////
                               EVENTS
     /////////////////////////////////////////////////////////////// */
