@@ -116,14 +116,35 @@ contract ArcadiaAccountDeploymentStep1 is Test {
 
         registry.addOracleModule(address(chainlinkOM));
 
-        oracleCompToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleCompToUsd_base, "COMP", "USD", 100 days));
-        oracleDaiToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "DAI", "USD", 100 days));
-        oracleEthToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleEthToUsd_base, "ETH", "USD", 100 days));
-        oracleUsdcToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleUsdcToUsd_base, "USDC", "USD", 100 days));
-        oracleCbethToUsdId =
-            uint80(chainlinkOM.addOracle(DeployAddresses.oracleCbethToUsd_base, "CBETH", "USD", 100 days));
-        oracleRethToEthId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleRethToEth_base, "RETH", "ETH", 100 days));
-        oracleStgToUsdId = uint80(chainlinkOM.addOracle(DeployAddresses.oracleStgToUsd_base, "STG", "USD", 100 days));
+        oracleCompToUsdId = uint80(
+            chainlinkOM.addOracle(
+                DeployAddresses.oracleCompToUsd_base, "COMP", "USD", DeployNumbers.comp_usd_cutOffTime
+            )
+        );
+        oracleDaiToUsdId = uint80(
+            chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "DAI", "USD", DeployNumbers.dai_usd_cutOffTime)
+        );
+        oracleEthToUsdId = uint80(
+            chainlinkOM.addOracle(DeployAddresses.oracleEthToUsd_base, "ETH", "USD", DeployNumbers.eth_usd_cutOffTime)
+        );
+        oracleUsdcToUsdId = uint80(
+            chainlinkOM.addOracle(
+                DeployAddresses.oracleUsdcToUsd_base, "USDC", "USD", DeployNumbers.usdc_usd_cutOffTime
+            )
+        );
+        oracleCbethToUsdId = uint80(
+            chainlinkOM.addOracle(
+                DeployAddresses.oracleCbethToUsd_base, "CBETH", "USD", DeployNumbers.cbeth_usd_cutOffTime
+            )
+        );
+        oracleRethToEthId = uint80(
+            chainlinkOM.addOracle(
+                DeployAddresses.oracleRethToEth_base, "RETH", "ETH", DeployNumbers.reth_eth_cutOffTime
+            )
+        );
+        oracleStgToUsdId = uint80(
+            chainlinkOM.addOracle(DeployAddresses.oracleStgToUsd_base, "STG", "USD", DeployNumbers.stg_usd_cutOffTime)
+        );
 
         oracleCompToUsdArr[0] = oracleCompToUsdId;
         oracleDaiToUsdArr[0] = oracleDaiToUsdId;
