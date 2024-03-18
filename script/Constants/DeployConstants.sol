@@ -26,10 +26,10 @@ library DeployAddresses {
     address public constant oracleCompToUsd_base = 0x9DDa783DE64A9d1A60c49ca761EbE528C35BA428;
     address public constant oracleDaiToUsd_base = 0x591e79239a7d679378eC8c847e5038150364C78F;
     address public constant oracleEthToUsd_base = 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70;
+    address public constant oracleCbethToUsd_base = 0xd7818272B9e248357d13057AAb0B417aF31E817d;
     address public constant oracleUsdcToUsd_base = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
     address public constant oracleUsdbcToUsd_base = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
     address public constant oracleWbtcToUsd_base = 0xCCADC697c55bbB68dc5bCdf8d3CBe83CdD4E071E;
-    address public constant oracleCbethToEth_base = 0x868a501e68F3D1E89CfC0D22F6b22E8dabce5F04;
     address public constant oracleRethToEth_base = 0xf397bF97280B488cA19ee3093E81C0a77F02e9a5;
     address public constant oracleStgToUsd_base = 0x63Af8341b62E683B87bB540896bF283D96B4D385;
 
@@ -39,19 +39,12 @@ library DeployAddresses {
     address public constant sequencerUptimeOracle_base = 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433;
 
     // to do: change to gnosis
-    address public constant treasury_base = 0xBEB56fbEf3387af554A554E7DB25830eB7b92e32;
+    address public constant protocolOwner_base = 0x0f518becFC14125F23b8422849f6393D59627ddB;
+    address public constant pauseGuardian_base = 0x0106BBB9a3AAf4ec5fEbC6A1A90A2C2FEacb1087;
+    address public constant riskManager_base = 0x829bc2A98f1D0AFA4C487894a329CF372Ca3337C;
 }
 
 library DeployNumbers {
-    uint256 public constant oracleCompToUsdUnit = 1e8;
-    uint256 public constant oracleDaiToUsdUnit = 1e8;
-    uint256 public constant oracleEthToUsdUnit = 1e8;
-    uint256 public constant oracleUsdcToUsdUnit = 1e8;
-    uint256 public constant oracleWbtcToUsdUnit = 1e8;
-    uint256 public constant oracleCbethToEthUnit = 1e18;
-    uint256 public constant oracleRethToEthUnit = 1e18;
-    uint256 public constant oracleStgToUsdUnit = 1e8;
-
     uint256 public constant wethDecimals = 18;
     uint256 public constant daiDecimals = 18;
     uint256 public constant compDecimals = 18;
@@ -71,6 +64,15 @@ library DeployNumbers {
 
     uint256 public constant stargateWethPoolId = 13;
     uint256 public constant stargateUsdbcPoolId = 1;
+    uint256 public constant stargateUsdbcPid = 1;
+
+    uint32 public constant comp_usd_cutOffTime = 25 hours;
+    uint32 public constant dai_usd_cutOffTime = 25 hours;
+    uint32 public constant eth_usd_cutOffTime = 1 hours;
+    uint32 public constant usdc_usd_cutOffTime = 25 hours;
+    uint32 public constant cbeth_usd_cutOffTime = 1 hours;
+    uint32 public constant reth_eth_cutOffTime = 25 hours;
+    uint32 public constant stg_usd_cutOffTime = 25 hours;
 }
 
 library DeployBytes {
