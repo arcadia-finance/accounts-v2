@@ -97,9 +97,9 @@ contract ArcadiaAccountDeploymentStep1 is Test {
         assertEq(deployerAddress, protocolOwnerAddress);
 
         vm.startBroadcast(deployerPrivateKey);
-        factory = Factory(0x38dB790e1894A5863387B43290c8340121e7Cd48); //todo: change after factory deploy
-        wethLendingPool = ILendingPool(0xA04B08324745AEc82De30c3581c407BE63E764c8); //todo: change after LP deploy
-        usdcLendingPool = ILendingPool(0xEda73DA39Aae3282DDC2Dc924c740574567FFabc); //todo: change after LP deploy
+        factory = Factory(0xDa14Fdd72345c4d2511357214c5B89A919768e59); //todo: change after factory deploy
+        wethLendingPool = ILendingPool(0x803ea69c7e87D1d6C86adeB40CB636cC0E6B98E2); //todo: change after LP deploy
+        usdcLendingPool = ILendingPool(0x3ec4a293Fb906DD2Cd440c20dECB250DeF141dF1); //todo: change after LP deploy
         wethLendingPool.setRiskManager(protocolOwnerAddress);
         usdcLendingPool.setRiskManager(protocolOwnerAddress);
 
@@ -190,6 +190,8 @@ contract ArcadiaAccountDeploymentStep1 is Test {
         usdcLendingPool.setAccountVersion(1, true);
 
         vm.stopBroadcast();
+
+        test_deploy();
     }
 
     function test_deploy() public {
