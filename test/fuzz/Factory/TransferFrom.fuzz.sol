@@ -93,6 +93,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     ) public {
         vm.assume(owner != address(0));
         vm.assume(owner != caller);
+        vm.assume(caller != address(0));
 
         vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
@@ -154,6 +155,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     ) public {
         vm.assume(owner != address(0));
         vm.assume(owner != caller);
+        vm.assume(caller != address(0));
 
         vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
@@ -213,6 +215,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     ) public {
         vm.assume(owner != address(0));
         vm.assume(owner != caller);
+        vm.assume(caller != address(0));
 
         vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
@@ -275,6 +278,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     ) public {
         vm.assume(owner != address(0));
         vm.assume(owner != caller);
+        vm.assume(caller != address(0));
 
         vm.broadcast(owner);
         address newAccount = factory.createAccount(salt, 0, address(0));
