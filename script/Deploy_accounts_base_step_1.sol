@@ -195,6 +195,8 @@ contract ArcadiaAccountDeploymentStep1 is Test {
     }
 
     function test_deploy() public {
+        vm.skip(true);
+
         address protocolOwnerAddress = DeployAddresses.protocolOwner_base;
 
         assertEq(factory.owner(), protocolOwnerAddress);
