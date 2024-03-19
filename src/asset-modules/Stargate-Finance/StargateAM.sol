@@ -29,7 +29,7 @@ contract StargateAM is DerivedAM {
     ////////////////////////////////////////////////////////////// */
 
     // The unique identifiers of the underlying assets of a Liquidity Position.
-    mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
+    mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) public assetToUnderlyingAssets;
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
