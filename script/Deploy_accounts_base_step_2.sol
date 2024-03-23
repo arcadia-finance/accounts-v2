@@ -70,17 +70,17 @@ contract ArcadiaAccountDeployment is Test {
         assertEq(deployerAddress, protocolOwnerAddress);
 
         vm.startBroadcast(deployerPrivateKey);
-        factory = Factory(0x38dB790e1894A5863387B43290c8340121e7Cd48); //todo: change after factory deploy
-        wethLendingPool = ILendingPool(0xA04B08324745AEc82De30c3581c407BE63E764c8); //todo: change after LP deploy
-        usdcLendingPool = ILendingPool(0xEda73DA39Aae3282DDC2Dc924c740574567FFabc); //todo: change after LP deploy
-        // registry = Registry(); //todo: change after registry deploy
-        // chainlinkOM = ChainlinkOM(); //todo: change after chainlinkOM deploy
-        // account = AccountV1(); //todo: change after accountV1 deploy
-        // actionMultiCall = ActionMultiCall(); //todo: change after actionMultiCall deploy
-        // erc20PrimaryAM = ERC20PrimaryAM(); //todo: change after erc20PrimaryAM deploy
-        // uniswapV3AM = UniswapV3AM(); //todo: change after uniswapV3AM deploy
-        // stargateAM = StargateAM(); //todo: change after stargateAM deploy
-        // stakedStargateAM = StakedStargateAM(); //todo: change after stakedStargateAM deploy
+        factory = Factory(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
+        wethLendingPool = ILendingPool(0x803ea69c7e87D1d6C86adeB40CB636cC0E6B98E2);
+        usdcLendingPool = ILendingPool(0x3ec4a293Fb906DD2Cd440c20dECB250DeF141dF1);
+        registry = Registry(0xd0690557600eb8Be8391D1d97346e2aab5300d5f);
+        chainlinkOM = ChainlinkOM(0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31);
+        account = AccountV1(0xbea2B6d45ACaF62385877D835970a0788719cAe1);
+        actionMultiCall = ActionMultiCall(0x05B9aB82e34688ecC87408E0821d9779c3Bfa5A3);
+        erc20PrimaryAM = ERC20PrimaryAM(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
+        uniswapV3AM = UniswapV3AM(0x21bd524cC54CA78A7c48254d4676184f781667dC);
+        stargateAM = StargateAM(0x20f7903290bF98716B62Dc1c9DA634291b8cfeD4);
+        stakedStargateAM = StakedStargateAM(0xae909e19fd13C01c28d5Ee439D403920CF7f9Eea);
 
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
@@ -207,7 +207,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.stg_base,
             0,
-            uint112(0 * 10 ** DeployNumbers.stgDecimals),
+            uint112(1),
             DeployRiskConstantsBase.stg_collFact_2,
             DeployRiskConstantsBase.stg_liqFact_2
         );
@@ -227,8 +227,8 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool), address(stakedStargateAM), 250_000 * 10 ** 18, 9800
         );
 
-        registry.setRiskParameters(address(usdcLendingPool), 5, 15 minutes, 5);
-        registry.setRiskParameters(address(wethLendingPool), 5, 15 minutes, 5);
+        registry.setRiskParameters(address(usdcLendingPool), 1e18, 15 minutes, 5);
+        registry.setRiskParameters(address(wethLendingPool), 1e18, 15 minutes, 5);
 
         vm.stopBroadcast();
     }
