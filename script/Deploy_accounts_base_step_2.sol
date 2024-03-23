@@ -66,7 +66,6 @@ contract ArcadiaAccountDeployment is Test {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_DEPLOYER_BASE");
         address deployerAddress = vm.addr(deployerPrivateKey);
         address protocolOwnerAddress = DeployAddresses.protocolOwner_base;
-
         assertEq(deployerAddress, protocolOwnerAddress);
 
         factory = Factory(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
