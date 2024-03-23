@@ -94,7 +94,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.dai_base,
             0,
-            uint112(1000 * 10 ** DeployNumbers.daiDecimals),
+            uint112(500_000 * 10 ** DeployNumbers.daiDecimals),
             DeployRiskConstantsBase.dai_collFact_1,
             DeployRiskConstantsBase.dai_liqFact_1
         );
@@ -110,7 +110,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.usdc_base,
             0,
-            uint112(1000 * 10 ** DeployNumbers.usdcDecimals),
+            uint112(800_000 * 10 ** DeployNumbers.usdcDecimals),
             DeployRiskConstantsBase.usdc_collFact_1,
             DeployRiskConstantsBase.usdc_liqFact_1
         );
@@ -118,7 +118,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.usdbc_base,
             0,
-            uint112(1000 * 10 ** DeployNumbers.usdbcDecimals),
+            uint112(750_000 * 10 ** DeployNumbers.usdbcDecimals),
             DeployRiskConstantsBase.usdbc_collFact_1,
             DeployRiskConstantsBase.usdbc_liqFact_1
         );
@@ -126,7 +126,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.cbeth_base,
             0,
-            uint112(1 * 10 ** DeployNumbers.cbethDecimals),
+            uint112(400 * 10 ** DeployNumbers.cbethDecimals),
             DeployRiskConstantsBase.cbeth_collFact_1,
             DeployRiskConstantsBase.cbeth_liqFact_1
         );
@@ -134,7 +134,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.reth_base,
             0,
-            uint112(1 * 10 ** DeployNumbers.rethDecimals),
+            uint112(210 * 10 ** DeployNumbers.rethDecimals),
             DeployRiskConstantsBase.reth_collFact_1,
             DeployRiskConstantsBase.reth_liqFact_1
         );
@@ -142,7 +142,7 @@ contract ArcadiaAccountDeployment is Test {
             address(wethLendingPool),
             DeployAddresses.stg_base,
             0,
-            uint112(1000 * 10 ** DeployNumbers.stgDecimals),
+            uint112(0 * 10 ** DeployNumbers.stgDecimals),
             DeployRiskConstantsBase.stg_collFact_1,
             DeployRiskConstantsBase.stg_liqFact_1
         );
@@ -159,7 +159,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.dai_base,
             0,
-            uint112(1000 * 10 ** DeployNumbers.daiDecimals),
+            uint112(500_000 * 10 ** DeployNumbers.daiDecimals),
             DeployRiskConstantsBase.dai_collFact_2,
             DeployRiskConstantsBase.dai_liqFact_2
         );
@@ -167,7 +167,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.weth_base,
             0,
-            uint112(1 * 10 ** DeployNumbers.wethDecimals),
+            uint112(500 * 10 ** DeployNumbers.wethDecimals),
             DeployRiskConstantsBase.eth_collFact_2,
             DeployRiskConstantsBase.eth_liqFact_2
         );
@@ -175,7 +175,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.usdc_base,
             0,
-            uint112(1000 * 10 ** DeployNumbers.usdcDecimals),
+            uint112(1_000_000 * 10 ** DeployNumbers.usdcDecimals),
             DeployRiskConstantsBase.usdc_collFact_2,
             DeployRiskConstantsBase.usdc_liqFact_2
         );
@@ -183,7 +183,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.usdbc_base,
             0,
-            uint112(1000 * 10 ** DeployNumbers.usdbcDecimals),
+            uint112(1_000_000 * 10 ** DeployNumbers.usdbcDecimals),
             DeployRiskConstantsBase.usdbc_collFact_2,
             DeployRiskConstantsBase.usdbc_liqFact_2
         );
@@ -191,7 +191,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.cbeth_base,
             0,
-            uint112(1 * 10 ** DeployNumbers.cbethDecimals),
+            uint112(300 * 10 ** DeployNumbers.cbethDecimals),
             DeployRiskConstantsBase.cbeth_collFact_2,
             DeployRiskConstantsBase.cbeth_liqFact_2
         );
@@ -199,7 +199,7 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.reth_base,
             0,
-            uint112(1 * 10 ** DeployNumbers.rethDecimals),
+            uint112(200 * 10 ** DeployNumbers.rethDecimals),
             DeployRiskConstantsBase.reth_collFact_2,
             DeployRiskConstantsBase.reth_liqFact_2
         );
@@ -207,20 +207,24 @@ contract ArcadiaAccountDeployment is Test {
             address(usdcLendingPool),
             DeployAddresses.stg_base,
             0,
-            uint112(1000 * 10 ** DeployNumbers.stgDecimals),
+            uint112(0 * 10 ** DeployNumbers.stgDecimals),
             DeployRiskConstantsBase.stg_collFact_2,
             DeployRiskConstantsBase.stg_liqFact_2
         );
 
-        registry.setRiskParametersOfDerivedAM(address(usdcLendingPool), address(uniswapV3AM), 10_000 * 10 ** 18, 9800);
-        registry.setRiskParametersOfDerivedAM(address(wethLendingPool), address(uniswapV3AM), 10_000 * 10 ** 18, 9800);
-        registry.setRiskParametersOfDerivedAM(address(usdcLendingPool), address(stargateAM), 5000 * 10 ** 18, 9700);
-        registry.setRiskParametersOfDerivedAM(address(wethLendingPool), address(stargateAM), 5000 * 10 ** 18, 9700);
         registry.setRiskParametersOfDerivedAM(
-            address(usdcLendingPool), address(stakedStargateAM), 5000 * 10 ** 18, 9800
+            address(usdcLendingPool), address(uniswapV3AM), 1_000_000 * 10 ** 18, 9800
         );
         registry.setRiskParametersOfDerivedAM(
-            address(wethLendingPool), address(stakedStargateAM), 5000 * 10 ** 18, 9800
+            address(wethLendingPool), address(uniswapV3AM), 1_000_000 * 10 ** 18, 9800
+        );
+        registry.setRiskParametersOfDerivedAM(address(usdcLendingPool), address(stargateAM), 250_000 * 10 ** 18, 9700);
+        registry.setRiskParametersOfDerivedAM(address(wethLendingPool), address(stargateAM), 250_000 * 10 ** 18, 9700);
+        registry.setRiskParametersOfDerivedAM(
+            address(usdcLendingPool), address(stakedStargateAM), 250_000 * 10 ** 18, 9800
+        );
+        registry.setRiskParametersOfDerivedAM(
+            address(wethLendingPool), address(stakedStargateAM), 250_000 * 10 ** 18, 9800
         );
 
         registry.setRiskParameters(address(usdcLendingPool), 5, 15 minutes, 5);

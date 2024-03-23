@@ -85,24 +85,24 @@ library DeployRiskConstantsBase {
     uint16 public constant comp_liqFact_1 = 7700; //eth
     uint16 public constant comp_liqFact_2 = 7200; //usdc
 
-    uint16 public constant dai_collFact_1 = 8000; //eth
-    uint16 public constant dai_collFact_2 = 8800; //usdc
-    uint16 public constant dai_liqFact_1 = 8500; //eth
-    uint16 public constant dai_liqFact_2 = 9200; //usdc
+    uint16 public constant dai_collFact_1 = 8100; //eth
+    uint16 public constant dai_collFact_2 = 8300; //usdc
+    uint16 public constant dai_liqFact_1 = 8600; //eth
+    uint16 public constant dai_liqFact_2 = 8700; //usdc
 
     uint16 public constant eth_collFact_1 = 9000; //eth
-    uint16 public constant eth_collFact_2 = 8000; //usdc
+    uint16 public constant eth_collFact_2 = 8100; //usdc
     uint16 public constant eth_liqFact_1 = 9400; //eth
     uint16 public constant eth_liqFact_2 = 8500; //usdc
 
-    uint16 public constant usdc_collFact_1 = 8000; //eth
+    uint16 public constant usdc_collFact_1 = 8600; //eth
     uint16 public constant usdc_collFact_2 = 9000; //usdc
-    uint16 public constant usdc_liqFact_1 = 8500; //eth
+    uint16 public constant usdc_liqFact_1 = 9200; //eth
     uint16 public constant usdc_liqFact_2 = 9400; //usdc
 
-    uint16 public constant usdbc_collFact_1 = 8000; //eth
+    uint16 public constant usdbc_collFact_1 = 8600; //eth
     uint16 public constant usdbc_collFact_2 = 9000; //usdc
-    uint16 public constant usdbc_liqFact_1 = 8500; //eth
+    uint16 public constant usdbc_liqFact_1 = 9200; //eth
     uint16 public constant usdbc_liqFact_2 = 9400; //usdc
 
     uint16 public constant wbtc_collFact_1 = 7600; //eth
@@ -110,15 +110,15 @@ library DeployRiskConstantsBase {
     uint16 public constant wbtc_liqFact_1 = 8400; //eth
     uint16 public constant wbtc_liqFact_2 = 9400; //usdc
 
-    uint16 public constant cbeth_collFact_1 = 8500; //eth
-    uint16 public constant cbeth_collFact_2 = 7500; //usdc
-    uint16 public constant cbeth_liqFact_1 = 9200; //eth
-    uint16 public constant cbeth_liqFact_2 = 8200; //usdc
+    uint16 public constant cbeth_collFact_1 = 9100; //eth
+    uint16 public constant cbeth_collFact_2 = 8100; //usdc
+    uint16 public constant cbeth_liqFact_1 = 9500; //eth
+    uint16 public constant cbeth_liqFact_2 = 9400; //usdc
 
     uint16 public constant reth_collFact_1 = 8500; //eth
-    uint16 public constant reth_collFact_2 = 7500; //usdc
+    uint16 public constant reth_collFact_2 = 8100; //usdc
     uint16 public constant reth_liqFact_1 = 9200; //eth
-    uint16 public constant reth_liqFact_2 = 8200; //usdc
+    uint16 public constant reth_liqFact_2 = 9400; //usdc
 
     uint16 public constant sushi_collFact_1 = 7600; //eth
     uint16 public constant sushi_collFact_2 = 8600; //usdc
@@ -145,10 +145,10 @@ library DeployRiskConstantsBase {
     uint16 public constant axl_liqFact_1 = 8400; //eth
     uint16 public constant axl_liqFact_2 = 9400; //usdc
 
-    uint16 public constant crv_collFact_1 = 7600; //eth
-    uint16 public constant crv_collFact_2 = 8600; //usdc
-    uint16 public constant crv_liqFact_1 = 8400; //eth
-    uint16 public constant crv_liqFact_2 = 9400; //usdc
+    uint16 public constant crv_collFact_1 = 5500; //eth
+    uint16 public constant crv_collFact_2 = 5000; //usdc
+    uint16 public constant crv_liqFact_1 = 7000; //eth
+    uint16 public constant crv_liqFact_2 = 6500; //usdc
 
     uint16 public constant tbtc_collFact_1 = 7600; //eth
     uint16 public constant tbtc_collFact_2 = 8600; //usdc
@@ -160,8 +160,8 @@ library DeployRiskConstantsBase {
     uint16 public constant crvusd_liqFact_1 = 8400; //eth
     uint16 public constant crvusd_liqFact_2 = 9400; //usdc
 
-    uint16 public constant stg_collFact_1 = 7000; //eth
-    uint16 public constant stg_collFact_2 = 7500; //usdc
-    uint16 public constant stg_liqFact_1 = 7800; //eth
-    uint16 public constant stg_liqFact_2 = 8200; //usdc
+    uint16 public constant stg_collFact_1 = 6000; //eth
+    uint16 public constant stg_collFact_2 = 5500; //usdc
+    uint16 public constant stg_liqFact_1 = 7200; //eth
+    uint16 public constant stg_liqFact_2 = 7000; //usdc
 }
