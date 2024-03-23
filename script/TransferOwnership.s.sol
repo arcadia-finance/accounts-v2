@@ -37,6 +37,10 @@ contract ArcadiaAccountTransferOwnership is Test {
     function run() public {
         uint256 ownerPrivateKey = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(ownerPrivateKey);
+        // Set guardian
+        factory.changeGuardian(ArcadiaAddresses.guardian);
+        registry.changeGuardian(ArcadiaAddresses.guardian);
+
         // Transfer ownership to respected addresses
         factory.transferOwnership(ArcadiaAddresses.factoryOwner);
         registry.transferOwnership(ArcadiaAddresses.registryOwner);
@@ -45,15 +49,15 @@ contract ArcadiaAccountTransferOwnership is Test {
         uniswapV3AM.transferOwnership(ArcadiaAddresses.uniswapV3AMOwner);
         stargateAM.transferOwnership(ArcadiaAddresses.stargateAMOwner);
         stakedStargateAM.transferOwnership(ArcadiaAddresses.stakedStargateAMOwner);
-
-        // Set guardian
-        factory.changeGuardian(ArcadiaAddresses.guardian);
-        registry.changeGuardian(ArcadiaAddresses.guardian);
         vm.stopBroadcast();
     }
 
     function test_transferOwnership() public {
         vm.skip(true);
+
+        assertEq(registry.guardian(), ArcadiaAddresses.guardian);
+        assertEq(factory.guardian(), ArcadiaAddresses.guardian);
+
         assertEq(registry.owner(), ArcadiaAddresses.registryOwner);
         assertEq(factory.owner(), ArcadiaAddresses.factoryOwner);
         assertEq(erc20PrimaryAM.owner(), ArcadiaAddresses.erc20PrimaryAMOwner);
@@ -61,8 +65,5 @@ contract ArcadiaAccountTransferOwnership is Test {
         assertEq(uniswapV3AM.owner(), ArcadiaAddresses.uniswapV3AMOwner);
         assertEq(stargateAM.owner(), ArcadiaAddresses.stargateAMOwner);
         assertEq(stakedStargateAM.owner(), ArcadiaAddresses.stakedStargateAMOwner);
-
-        assertEq(registry.guardian(), ArcadiaAddresses.guardian);
-        assertEq(factory.guardian(), ArcadiaAddresses.guardian);
     }
 }
