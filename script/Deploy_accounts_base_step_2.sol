@@ -265,7 +265,8 @@ contract ArcadiaAccountDeployment is Test {
         vm.stopBroadcast();
     }
 
-    function xtest_deploy() public {
+    function test_deploy() public {
+        vm.skip(true);
         address[] memory assetAddresses = new address[](8);
         assetAddresses[0] = address(comp);
         assetAddresses[1] = address(dai);
