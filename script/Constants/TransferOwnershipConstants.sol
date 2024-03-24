@@ -16,17 +16,6 @@ library ArcadiaContractAddresses {
 }
 
 library ArcadiaAddresses {
-    // Todo: Update these addresses
-    address public constant multiSig1 = address(0);
-    address public constant multiSig2 = address(0);
-
-    address public constant registryOwner = multiSig1;
-    address public constant factoryOwner = multiSig1;
-    address public constant erc20PrimaryAMOwner = multiSig1;
-    address public constant chainlinkOMOwner = multiSig1;
-    address public constant uniswapV3AMOwner = multiSig1;
-    address public constant stargateAMOwner = multiSig1;
-    address public constant stakedStargateAMOwner = multiSig1;
-
-    address public constant guardian = multiSig2;
+    address public constant owner = address(0xb4d72B1c91e640e4ED7d7397F3244De4D8ACc50B);
+    address public constant guardian = address(0xEdD41f9740b06eCBfe1CE9194Ce2715C28263187);
 }

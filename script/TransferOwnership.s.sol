@@ -42,13 +42,13 @@ contract ArcadiaAccountTransferOwnership is Test {
         registry.changeGuardian(ArcadiaAddresses.guardian);
 
         // Transfer ownership to respected addresses
-        factory.transferOwnership(ArcadiaAddresses.factoryOwner);
-        registry.transferOwnership(ArcadiaAddresses.registryOwner);
-        erc20PrimaryAM.transferOwnership(ArcadiaAddresses.erc20PrimaryAMOwner);
-        chainlinkOM.transferOwnership(ArcadiaAddresses.chainlinkOMOwner);
-        uniswapV3AM.transferOwnership(ArcadiaAddresses.uniswapV3AMOwner);
-        stargateAM.transferOwnership(ArcadiaAddresses.stargateAMOwner);
-        stakedStargateAM.transferOwnership(ArcadiaAddresses.stakedStargateAMOwner);
+        factory.transferOwnership(ArcadiaAddresses.owner);
+        registry.transferOwnership(ArcadiaAddresses.owner);
+        erc20PrimaryAM.transferOwnership(ArcadiaAddresses.owner);
+        chainlinkOM.transferOwnership(ArcadiaAddresses.owner);
+        uniswapV3AM.transferOwnership(ArcadiaAddresses.owner);
+        stargateAM.transferOwnership(ArcadiaAddresses.owner);
+        stakedStargateAM.transferOwnership(ArcadiaAddresses.owner);
         vm.stopBroadcast();
     }
 
@@ -58,12 +58,12 @@ contract ArcadiaAccountTransferOwnership is Test {
         assertEq(registry.guardian(), ArcadiaAddresses.guardian);
         assertEq(factory.guardian(), ArcadiaAddresses.guardian);
 
-        assertEq(registry.owner(), ArcadiaAddresses.registryOwner);
-        assertEq(factory.owner(), ArcadiaAddresses.factoryOwner);
-        assertEq(erc20PrimaryAM.owner(), ArcadiaAddresses.erc20PrimaryAMOwner);
-        assertEq(chainlinkOM.owner(), ArcadiaAddresses.chainlinkOMOwner);
-        assertEq(uniswapV3AM.owner(), ArcadiaAddresses.uniswapV3AMOwner);
-        assertEq(stargateAM.owner(), ArcadiaAddresses.stargateAMOwner);
-        assertEq(stakedStargateAM.owner(), ArcadiaAddresses.stakedStargateAMOwner);
+        assertEq(registry.owner(), ArcadiaAddresses.owner);
+        assertEq(factory.owner(), ArcadiaAddresses.owner);
+        assertEq(erc20PrimaryAM.owner(), ArcadiaAddresses.owner);
+        assertEq(chainlinkOM.owner(), ArcadiaAddresses.owner);
+        assertEq(uniswapV3AM.owner(), ArcadiaAddresses.owner);
+        assertEq(stargateAM.owner(), ArcadiaAddresses.owner);
+        assertEq(stakedStargateAM.owner(), ArcadiaAddresses.owner);
     }
 }
