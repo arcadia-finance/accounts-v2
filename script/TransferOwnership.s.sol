@@ -35,7 +35,7 @@ contract ArcadiaAccountTransferOwnership is Test {
     }
 
     function run() public {
-        uint256 ownerPrivateKey = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 ownerPrivateKey = vm.envUint("PRIVATE_KEY_DEPLOYER_BASE");
         vm.startBroadcast(ownerPrivateKey);
         // Set guardian
         factory.changeGuardian(ArcadiaAddresses.guardian);
