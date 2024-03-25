@@ -201,8 +201,8 @@ library DeployRiskConstantsBase {
 
     uint16 public constant uniswapV3AM_riskFact_eth = 9800;
     uint16 public constant uniswapV3AM_riskFact_usdc = 9800;
-    uint112 public constant uniswapV3AM_exposure_eth = uint112(1_000_000 * 1e18);
-    uint112 public constant uniswapV3AM_exposure_usdc = uint112(1_000_000 * 1e18);
+    uint112 public constant uniswapV3AM_exposure_eth = uint112(2_000_000 * 1e18);
+    uint112 public constant uniswapV3AM_exposure_usdc = uint112(2_000_000 * 1e18);
 
     uint16 public constant stargateAM_riskFact_eth = 9700;
     uint16 public constant stargateAM_riskFact_usdc = 9700;
