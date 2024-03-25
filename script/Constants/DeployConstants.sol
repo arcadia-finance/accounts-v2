@@ -45,22 +45,22 @@ library DeployAddresses {
 }
 
 library DeployNumbers {
-    uint256 public constant wethDecimals = 18;
-    uint256 public constant daiDecimals = 18;
-    uint256 public constant compDecimals = 18;
-    uint256 public constant usdcDecimals = 6;
-    uint256 public constant usdbcDecimals = 6;
-    uint256 public constant tbtcDecimals = 18;
-    uint256 public constant crvusdDecimals = 18;
-    uint256 public constant cbethDecimals = 18;
-    uint256 public constant rethDecimals = 18;
-    uint256 public constant sushiDecimals = 18;
-    uint256 public constant axlusdcDecimals = 6;
-    uint256 public constant axldaiDecimals = 18;
-    uint256 public constant axlusdtDecimals = 6;
-    uint256 public constant axlDecimals = 6;
-    uint256 public constant crvDecimals = 18;
-    uint256 public constant stgDecimals = 18;
+    uint8 public constant wethDecimals = 18;
+    uint8 public constant daiDecimals = 18;
+    uint8 public constant compDecimals = 18;
+    uint8 public constant usdcDecimals = 6;
+    uint8 public constant usdbcDecimals = 6;
+    uint8 public constant tbtcDecimals = 18;
+    uint8 public constant crvusdDecimals = 18;
+    uint8 public constant cbethDecimals = 18;
+    uint8 public constant rethDecimals = 18;
+    uint8 public constant sushiDecimals = 18;
+    uint8 public constant axlusdcDecimals = 6;
+    uint8 public constant axldaiDecimals = 18;
+    uint8 public constant axlusdtDecimals = 6;
+    uint8 public constant axlDecimals = 6;
+    uint8 public constant crvDecimals = 18;
+    uint8 public constant stgDecimals = 18;
 
     uint256 public constant stargateWethPoolId = 13;
     uint256 public constant stargateUsdbcPoolId = 1;
@@ -80,88 +80,145 @@ library DeployBytes {
 }
 
 library DeployRiskConstantsBase {
-    uint16 public constant comp_collFact_1 = 7000; //eth
-    uint16 public constant comp_collFact_2 = 6500; //usdc
-    uint16 public constant comp_liqFact_1 = 7700; //eth
-    uint16 public constant comp_liqFact_2 = 7200; //usdc
+    uint16 public constant comp_collFact_eth = 7000;
+    uint16 public constant comp_collFact_usdc = 6500;
+    uint16 public constant comp_liqFact_eth = 7700;
+    uint16 public constant comp_liqFact_usdc = 7200;
+    uint112 public constant comp_exposure_eth = 0;
+    uint112 public constant comp_exposure_usdc = 0;
 
-    uint16 public constant dai_collFact_1 = 8100; //eth
-    uint16 public constant dai_collFact_2 = 8300; //usdc
-    uint16 public constant dai_liqFact_1 = 8600; //eth
-    uint16 public constant dai_liqFact_2 = 8700; //usdc
+    uint16 public constant dai_collFact_eth = 8100;
+    uint16 public constant dai_collFact_usdc = 8300;
+    uint16 public constant dai_liqFact_eth = 8600;
+    uint16 public constant dai_liqFact_usdc = 8700;
+    uint112 public constant dai_exposure_eth = uint112(500_000 * 10 ** DeployNumbers.daiDecimals);
+    uint112 public constant dai_exposure_usdc = uint112(500_000 * 10 ** DeployNumbers.daiDecimals);
 
-    uint16 public constant eth_collFact_1 = 9000; //eth
-    uint16 public constant eth_collFact_2 = 8100; //usdc
-    uint16 public constant eth_liqFact_1 = 9400; //eth
-    uint16 public constant eth_liqFact_2 = 8500; //usdc
+    uint16 public constant eth_collFact_eth = 9000;
+    uint16 public constant eth_collFact_usdc = 8100;
+    uint16 public constant eth_liqFact_eth = 9400;
+    uint16 public constant eth_liqFact_usdc = 8500;
+    uint112 public constant eth_exposure_eth = uint112(1000 * 10 ** DeployNumbers.wethDecimals);
+    uint112 public constant eth_exposure_usdc = uint112(500 * 10 ** DeployNumbers.wethDecimals);
 
-    uint16 public constant usdc_collFact_1 = 8600; //eth
-    uint16 public constant usdc_collFact_2 = 9000; //usdc
-    uint16 public constant usdc_liqFact_1 = 9200; //eth
-    uint16 public constant usdc_liqFact_2 = 9400; //usdc
+    uint16 public constant usdc_collFact_eth = 8600;
+    uint16 public constant usdc_collFact_usdc = 9000;
+    uint16 public constant usdc_liqFact_eth = 9200;
+    uint16 public constant usdc_liqFact_usdc = 9400;
+    uint112 public constant usdc_exposure_eth = uint112(800_000 * 10 ** DeployNumbers.usdcDecimals);
+    uint112 public constant usdc_exposure_usdc = uint112(1_000_000 * 10 ** DeployNumbers.usdcDecimals);
 
-    uint16 public constant usdbc_collFact_1 = 8600; //eth
-    uint16 public constant usdbc_collFact_2 = 9000; //usdc
-    uint16 public constant usdbc_liqFact_1 = 9200; //eth
-    uint16 public constant usdbc_liqFact_2 = 9400; //usdc
+    uint16 public constant usdbc_collFact_eth = 8600;
+    uint16 public constant usdbc_collFact_usdc = 9000;
+    uint16 public constant usdbc_liqFact_eth = 9200;
+    uint16 public constant usdbc_liqFact_usdc = 9400;
+    uint112 public constant usdbc_exposure_eth = uint112(750_000 * 10 ** DeployNumbers.usdbcDecimals);
+    uint112 public constant usdbc_exposure_usdc = uint112(1_000_000 * 10 ** DeployNumbers.usdbcDecimals);
 
-    uint16 public constant wbtc_collFact_1 = 7600; //eth
-    uint16 public constant wbtc_collFact_2 = 8600; //usdc
-    uint16 public constant wbtc_liqFact_1 = 8400; //eth
-    uint16 public constant wbtc_liqFact_2 = 9400; //usdc
+    uint16 public constant wbtc_collFact_eth = 7600;
+    uint16 public constant wbtc_collFact_usdc = 8600;
+    uint16 public constant wbtc_liqFact_eth = 8400;
+    uint16 public constant wbtc_liqFact_usdc = 9400;
+    uint112 public constant wbtc_exposure_eth = 0;
+    uint112 public constant wbtc_exposure_usdc = 0;
 
-    uint16 public constant cbeth_collFact_1 = 9100; //eth
-    uint16 public constant cbeth_collFact_2 = 8100; //usdc
-    uint16 public constant cbeth_liqFact_1 = 9500; //eth
-    uint16 public constant cbeth_liqFact_2 = 9400; //usdc
+    uint16 public constant cbeth_collFact_eth = 9100;
+    uint16 public constant cbeth_collFact_usdc = 8100;
+    uint16 public constant cbeth_liqFact_eth = 9500;
+    uint16 public constant cbeth_liqFact_usdc = 9400;
+    uint112 public constant cbeth_exposure_eth = uint112(400 * 10 ** DeployNumbers.cbethDecimals);
+    uint112 public constant cbeth_exposure_usdc = uint112(300 * 10 ** DeployNumbers.cbethDecimals);
 
-    uint16 public constant reth_collFact_1 = 8500; //eth
-    uint16 public constant reth_collFact_2 = 8100; //usdc
-    uint16 public constant reth_liqFact_1 = 9200; //eth
-    uint16 public constant reth_liqFact_2 = 9400; //usdc
+    uint16 public constant reth_collFact_eth = 8500;
+    uint16 public constant reth_collFact_usdc = 8100;
+    uint16 public constant reth_liqFact_eth = 9200;
+    uint16 public constant reth_liqFact_usdc = 9400;
+    uint112 public constant reth_exposure_eth = uint112(210 * 10 ** DeployNumbers.rethDecimals);
+    uint112 public constant reth_exposure_usdc = uint112(200 * 10 ** DeployNumbers.rethDecimals);
 
-    uint16 public constant sushi_collFact_1 = 7600; //eth
-    uint16 public constant sushi_collFact_2 = 8600; //usdc
-    uint16 public constant sushi_liqFact_1 = 8400; //eth
-    uint16 public constant sushi_liqFact_2 = 9400; //usdc
+    uint16 public constant sushi_collFact_eth = 7600;
+    uint16 public constant sushi_collFact_usdc = 8600;
+    uint16 public constant sushi_liqFact_eth = 8400;
+    uint16 public constant sushi_liqFact_usdc = 9400;
+    uint112 public constant sushi_exposure_eth = 0;
+    uint112 public constant sushi_exposure_usdc = 0;
 
-    uint16 public constant axlusdc_collFact_1 = 7600; //eth
-    uint16 public constant axlusdc_collFact_2 = 8600; //usdc
-    uint16 public constant axlusdc_liqFact_1 = 8400; //eth
-    uint16 public constant axlusdc_liqFact_2 = 9400; //usdc
+    uint16 public constant axlusdc_collFact_eth = 7600;
+    uint16 public constant axlusdc_collFact_usdc = 8600;
+    uint16 public constant axlusdc_liqFact_eth = 8400;
+    uint16 public constant axlusdc_liqFact_usdc = 9400;
+    uint112 public constant axlusdc_exposure_eth = 0;
+    uint112 public constant axlusdc_exposure_usdc = 0;
 
-    uint16 public constant axldai_collFact_1 = 7600; //eth
-    uint16 public constant axldai_collFact_2 = 8600; //usdc
-    uint16 public constant axldai_liqFact_1 = 8400; //eth
-    uint16 public constant axldai_liqFact_2 = 9400; //usdc
+    uint16 public constant axldai_collFact_eth = 7600;
+    uint16 public constant axldai_collFact_usdc = 8600;
+    uint16 public constant axldai_liqFact_eth = 8400;
+    uint16 public constant axldai_liqFact_usdc = 9400;
+    uint112 public constant axldai_exposure_eth = 0;
+    uint112 public constant axldai_exposure_usdc = 0;
 
-    uint16 public constant axlusdt_collFact_1 = 7600; //eth
-    uint16 public constant axlusdt_collFact_2 = 8600; //usdc
-    uint16 public constant axlusdt_liqFact_1 = 8400; //eth
-    uint16 public constant axlusdt_liqFact_2 = 9400; //usdc
+    uint16 public constant axlusdt_collFact_eth = 7600;
+    uint16 public constant axlusdt_collFact_usdc = 8600;
+    uint16 public constant axlusdt_liqFact_eth = 8400;
+    uint16 public constant axlusdt_liqFact_usdc = 9400;
+    uint112 public constant axlusdt_exposure_eth = 0;
+    uint112 public constant axlusdt_exposure_usdc = 0;
 
-    uint16 public constant axl_collFact_1 = 7600; //eth
-    uint16 public constant axl_collFact_2 = 8600; //usdc
-    uint16 public constant axl_liqFact_1 = 8400; //eth
-    uint16 public constant axl_liqFact_2 = 9400; //usdc
+    uint16 public constant axl_collFact_eth = 7600;
+    uint16 public constant axl_collFact_usdc = 8600;
+    uint16 public constant axl_liqFact_eth = 8400;
+    uint16 public constant axl_liqFact_usdc = 9400;
+    uint112 public constant axl_exposure_eth = 0;
+    uint112 public constant axl_exposure_usdc = 0;
 
-    uint16 public constant crv_collFact_1 = 5500; //eth
-    uint16 public constant crv_collFact_2 = 5000; //usdc
-    uint16 public constant crv_liqFact_1 = 7000; //eth
-    uint16 public constant crv_liqFact_2 = 6500; //usdc
+    uint16 public constant crv_collFact_eth = 5500;
+    uint16 public constant crv_collFact_usdc = 5000;
+    uint16 public constant crv_liqFact_eth = 7000;
+    uint16 public constant crv_liqFact_usdc = 6500;
+    uint112 public constant crv_exposure_eth = 0;
+    uint112 public constant crv_exposure_usdc = 0;
 
-    uint16 public constant tbtc_collFact_1 = 7600; //eth
-    uint16 public constant tbtc_collFact_2 = 8600; //usdc
-    uint16 public constant tbtc_liqFact_1 = 8400; //eth
-    uint16 public constant tbtc_liqFact_2 = 9400; //usdc
+    uint16 public constant tbtc_collFact_eth = 7600;
+    uint16 public constant tbtc_collFact_usdc = 8600;
+    uint16 public constant tbtc_liqFact_eth = 8400;
+    uint16 public constant tbtc_liqFact_usdc = 9400;
+    uint112 public constant tbtc_exposure_eth = 0;
+    uint112 public constant tbtc_exposure_usdc = 0;
 
-    uint16 public constant crvusd_collFact_1 = 7600; //eth
-    uint16 public constant crvusd_collFact_2 = 8600; //usdc
-    uint16 public constant crvusd_liqFact_1 = 8400; //eth
-    uint16 public constant crvusd_liqFact_2 = 9400; //usdc
+    uint16 public constant crvusd_collFact_eth = 7600;
+    uint16 public constant crvusd_collFact_usdc = 8600;
+    uint16 public constant crvusd_liqFact_eth = 8400;
+    uint16 public constant crvusd_liqFact_usdc = 9400;
+    uint112 public constant crvusd_exposure_eth = 0;
+    uint112 public constant crvusd_exposure_usdc = 0;
 
-    uint16 public constant stg_collFact_1 = 6000; //eth
-    uint16 public constant stg_collFact_2 = 5500; //usdc
-    uint16 public constant stg_liqFact_1 = 7200; //eth
-    uint16 public constant stg_liqFact_2 = 7000; //usdc
+    uint16 public constant stg_collFact_eth = 6000;
+    uint16 public constant stg_collFact_usdc = 5500;
+    uint16 public constant stg_liqFact_eth = 7200;
+    uint16 public constant stg_liqFact_usdc = 7000;
+    uint112 public constant stg_exposure_eth = 1; // Cannot be deposited as primary asset, but still as yield source
+    uint112 public constant stg_exposure_usdc = 1; // Cannot be deposited as primary asset, but still as yield source
+
+    uint16 public constant uniswapV3AM_riskFact_eth = 9800;
+    uint16 public constant uniswapV3AM_riskFact_usdc = 9800;
+    uint112 public constant uniswapV3AM_exposure_eth = uint112(2_000_000 * 1e18);
+    uint112 public constant uniswapV3AM_exposure_usdc = uint112(2_000_000 * 1e18);
+
+    uint16 public constant stargateAM_riskFact_eth = 9700;
+    uint16 public constant stargateAM_riskFact_usdc = 9700;
+    uint112 public constant stargateAM_exposure_eth = uint112(250_000 * 1e18);
+    uint112 public constant stargateAM_exposure_usdc = uint112(250_000 * 1e18);
+
+    uint16 public constant stakedStargateAM_riskFact_eth = 9800;
+    uint16 public constant stakedStargateAM_riskFact_usdc = 9800;
+    uint112 public constant stakedStargateAM_exposure_eth = uint112(250_000 * 1e18);
+    uint112 public constant stakedStargateAM_exposure_usdc = uint112(250_000 * 1e18);
+
+    uint128 public constant minUsdValue_eth = 1 * 1e18; // 1 USD?
+    uint64 public constant gracePeriod_eth = 15 minutes;
+    uint64 public constant maxRecursiveCalls_eth = 5;
+
+    uint128 public constant minUsdValue_usdc = 1 * 1e18; // 1 USD?
+    uint64 public constant gracePeriod_usdc = 15 minutes;
+    uint64 public constant maxRecursiveCalls_usdc = 5;
 }
