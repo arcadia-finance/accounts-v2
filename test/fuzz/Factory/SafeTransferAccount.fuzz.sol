@@ -38,6 +38,7 @@ contract SafeTransferAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Revert_safeTransferAccount_NonAccount(address sender, address to) public {
         vm.assume(to != address(0));
         vm.assume(to != address(proxyAccount));
+        vm.assume(to != sender);
         vm.assume(sender != address(proxyAccount));
 
         vm.prank(sender);
