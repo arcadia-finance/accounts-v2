@@ -21,7 +21,7 @@ import { ActionMultiCall } from "../src/actions/MultiCall.sol";
 import { ILendingPool } from "./interfaces/ILendingPool.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
 
-contract ArcadiaAccountDeployment is Test {
+contract ArcadiaAccountDeploymentStep2 is Test {
     Factory internal factory;
     AccountV1 internal account;
 
