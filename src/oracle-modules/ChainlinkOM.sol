@@ -25,7 +25,7 @@ contract ChainlinkOM is OracleModule {
     mapping(address => uint256) public oracleToOracleId;
 
     // Map oracle identifier => oracle information.
-    mapping(uint256 => OracleInformation) internal oracleInformation;
+    mapping(uint256 => OracleInformation) public oracleInformation;
 
     struct OracleInformation {
         // The cutoff time after which an oracle is considered stale.

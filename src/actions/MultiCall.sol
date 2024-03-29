@@ -35,6 +35,12 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
     error LeftoverNfts();
 
     /* //////////////////////////////////////////////////////////////
+                                EVENTS
+    ////////////////////////////////////////////////////////////// */
+
+    event MultiCallExecuted(address account, uint16 actionType);
+
+    /* //////////////////////////////////////////////////////////////
                             ACTION LOGIC
     ////////////////////////////////////////////////////////////// */
 
@@ -127,5 +133,14 @@ contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
         (uint256 tokenId,,,) = abi.decode(result, (uint256, uint128, uint256, uint256));
         mintedAssets.push(to);
         mintedIds.push(tokenId);
+    }
+
+    /**
+     * @notice Emits an event to indicate that the MultiCall has been executed.
+     * @param account The account that executed the MultiCall.
+     * @param actionType The type of the action that was executed.
+     */
+    function emitMultiCallEvent(address account, uint16 actionType) external {
+        emit MultiCallExecuted(account, actionType);
     }
 }
