@@ -31,34 +31,27 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_F
                             FUZZ TESTS
     ///////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_claimReward_Position_NotOwner(address owner, address randomAddress, uint96 positionId)
+    function testFuzz_Revert_claimReward_ownerIsNotAnAccount(address owner, uint96 positionId)
         public
     {
-        // Given: randomAddress is not the owner.
-        vm.assume(owner != randomAddress);
-
-        // Given : Owner of positionId is not randomAddress
+        // Given : Owner is not an Account
         stakedAerodromeAM.setOwnerOfPositionId(owner, positionId);
 
-        // When : randomAddress calls claimReward for positionId
-        // Then : It should revert as randomAddress is not owner of the positionId
-        vm.startPrank(randomAddress);
+        // When : The owner calls claimReward for positionId
+        // Then : It should revert as randomAddress is not an Account
+        vm.startPrank(owner);
         vm.expectRevert(StakingAM.NotOwner.selector);
         stakedAerodromeAM.claimReward(positionId);
         vm.stopPrank();
     }
 
     function testFuzz_Success_claimReward_Position_NonZeroReward(
-        address account,
         uint96 positionId,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState
     ) public {
-        // Given : account != zero address
-        vm.assume(account != address(0));
-
         // Given : owner of ERC721 positionId is Account
-        stakedAerodromeAM.setOwnerOfPositionId(account, positionId);
+        stakedAerodromeAM.setOwnerOfPositionId(address(proxyAccount), positionId);
 
         // Given : the pool is allowed in the Registry
         deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
@@ -83,8 +76,8 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_F
 
         deal(AERO, address(stakedAerodromeAM), currentRewardPosition);
 
-        // When : Account calls claimReward()
-        vm.startPrank(account);
+        // When : Owner of Account calls claimReward()
+        vm.startPrank(factory.ownerOfAccount(address(proxyAccount)));
         vm.expectEmit();
         emit StakingAM.RewardPaid(positionId, address(stakedAerodromeAM.REWARD_TOKEN()), uint128(currentRewardPosition));
         uint256 rewards = stakedAerodromeAM.claimReward(positionId);
@@ -92,6 +85,9 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_F
 
         // Then : claimed rewards are returned.
         assertEq(rewards, currentRewardPosition);
+
+        // And : Account owner should have received reward tokens.
+        assertEq(stakedAerodromeAM.REWARD_TOKEN().balanceOf(factory.ownerOfAccount(address(proxyAccount))), rewards);
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
@@ -120,16 +116,12 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_F
     }
 
     function testFuzz_Success_claimReward_Position_ZeroReward(
-        address account,
         uint96 positionId,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState
     ) public {
-        // Given : account != zero address
-        vm.assume(account != address(0));
-
         // Given : owner of ERC721 positionId is Account
-        stakedAerodromeAM.setOwnerOfPositionId(account, positionId);
+        stakedAerodromeAM.setOwnerOfPositionId(address(proxyAccount), positionId);
 
         // Given : the pool is allowed in the Registry
         deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
@@ -151,16 +143,16 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_F
         // And: State is persisted.
         setStakedAerodromeAMState(assetState, positionState, address(pool), positionId);
 
-        // When : Account calls claimReward()
-        vm.startPrank(account);
+        // When : Owner of Account calls claimReward()
+        vm.startPrank(factory.ownerOfAccount(address(proxyAccount)));
         uint256 rewards = stakedAerodromeAM.claimReward(positionId);
         vm.stopPrank();
 
         // Then : No claimed rewards are returned.
         assertEq(rewards, 0);
 
-        // And : Account should have not received reward tokens.
-        assertEq(stakedAerodromeAM.REWARD_TOKEN().balanceOf(account), 0);
+        // And : Owner of account should have not received reward tokens.
+        assertEq(stakedAerodromeAM.REWARD_TOKEN().balanceOf(factory.ownerOfAccount(address(proxyAccount))), 0);
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;

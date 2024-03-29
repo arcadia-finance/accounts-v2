@@ -25,7 +25,7 @@ contract StakedAerodromeAM is StakingAM {
     ////////////////////////////////////////////////////////////// */
 
     IAeroVoter public immutable AERO_VOTER;
-    IFactory internal immutable FACTORY;
+    IFactory public immutable FACTORY;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
