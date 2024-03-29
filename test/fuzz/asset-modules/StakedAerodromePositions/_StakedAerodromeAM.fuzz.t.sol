@@ -72,8 +72,8 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
 
         // Deploy StakedAerodromeAM.
         // First we need to add the reward token to the Registry
-        ERC20Mock rewardTokenCode = new ERC20Mock("Aerodrome", "AERO", 18);
-        vm.etch(AERO, address(rewardTokenCode).code);
+        rewardToken = new ERC20Mock("Aerodrome", "AERO", 18);
+        vm.etch(AERO, address(rewardToken).code);
         aeroOracle = initMockedOracle(8, "AERO / USD", rates.token1ToUsd);
 
         // Add AERO to the ERC20PrimaryAM.
@@ -94,6 +94,22 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
     /* ///////////////////////////////////////////////////////////////
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
+
+    modifier notTestContracts2(address fuzzedAddress) {
+        vm.assume(fuzzedAddress != AERO);
+        vm.assume(fuzzedAddress != address(aerodromeVolatileAM));
+        vm.assume(fuzzedAddress != address(aerodromeStableAM));
+        vm.assume(fuzzedAddress != address(stakedAerodromeAM));
+        vm.assume(fuzzedAddress != address(voter));
+        vm.assume(fuzzedAddress != address(pool));
+        vm.assume(fuzzedAddress != address(implementation));
+        vm.assume(fuzzedAddress != address(poolFactory));
+        vm.assume(fuzzedAddress != address(gauge));
+        vm.assume(fuzzedAddress != address(aeroOracle));
+        vm.assume(fuzzedAddress != address(rewardToken));
+        vm.assume(fuzzedAddress != address(stakingAM));
+        _;
+    }
 
     function deployAerodromePoolFixture(address token0, address token1, bool stable) public {
         address newPool = poolFactory.createPool(token0, token1, stable);

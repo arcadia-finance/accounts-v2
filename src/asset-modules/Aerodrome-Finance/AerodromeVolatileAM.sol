@@ -148,6 +148,20 @@ contract AerodromeVolatileAM is DerivedAM {
      * @param underlyingAssetKeys The unique identifiers of the underlying assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     * @dev The trusted reserves (r0' and r1') must satisfy two conditions:
+     *  1) The pool is in equilibrium with external markets.
+     *     r0' * P0usd = r1' * P1usd
+     *     With P0usd and P1usd the trusted usd prices of both Underlying Assets.
+     *  2) The invariant, k, of the pool is equal for both the trusted and untrusted reserves.
+     *     k(r0', r1') = k(r0, r1)
+     *     The invariant is defined as: k(r0, r1) = r0 * r1
+     * From these two conditions, the trusted reserves can be calculated as follows:
+     *  3) Condition 1) can be rewritten as:
+     *     r1' = r0' * P0usd / P1usd
+     *  4) We plug 3) into 2) and solve for r0':
+     *     r0' = √[P1usd * k / P0usd]
+     *  5) Calculate r1' from r1':
+     *     r1' = r0' * P0usd / P1usd
      */
     function _getUnderlyingAssetsAmounts(
         address creditor,
@@ -169,17 +183,20 @@ contract AerodromeVolatileAM is DerivedAM {
             return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
         }
 
-        // Get current invariant (k) from the Aerodrome Pool.
         (address pool,) = _getAssetFromKey(assetKey);
+
+        // Calculate k from the untrusted reserves:
+        // k = r0 * r1
         (uint256 reserve0, uint256 reserve1,) = IAeroPool(pool).getReserves();
         uint256 k = reserve0 * reserve1;
 
-        // r0' = sqrt((p1 * k) / p0)
+        // Calculate trusted reserves:
+        // r0' = √[P1usd * k / P0usd]
         uint256 trustedReserve0 = FixedPointMathLib.sqrt(
             FullMath.mulDiv(rateUnderlyingAssetsToUsd[1].assetValue, k, rateUnderlyingAssetsToUsd[0].assetValue)
         );
 
-        // r1' = (r0' * p0) / p1
+        // r1' = r0' * P0usd / P1usd
         uint256 trustedReserve1 = FullMath.mulDiv(
             trustedReserve0, rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue
         );
