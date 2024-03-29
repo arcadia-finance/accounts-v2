@@ -28,10 +28,10 @@ abstract contract DerivedAM is AssetModule {
     // Map with the risk parameters of the protocol for each Creditor.
     mapping(address creditor => RiskParameters riskParameters) public riskParams;
     // Map with the last exposures of each asset for each Creditor.
-    mapping(address creditor => mapping(bytes32 assetKey => ExposuresPerAsset)) internal lastExposuresAsset;
+    mapping(address creditor => mapping(bytes32 assetKey => ExposuresPerAsset)) public lastExposuresAsset;
     // Map with the last amount of exposure of each underlying asset for each asset for each Creditor.
     mapping(address creditor => mapping(bytes32 assetKey => mapping(bytes32 underlyingAssetKey => uint256 exposure)))
-        internal lastExposureAssetToUnderlyingAsset;
+        public lastExposureAssetToUnderlyingAsset;
 
     // Struct with the risk parameters of the protocol for a specific Creditor.
     struct RiskParameters {

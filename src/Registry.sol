@@ -57,7 +57,7 @@ contract Registry is IRegistry, RegistryGuardian {
     // Map oracleModule => flag.
     mapping(address => bool) public isOracleModule;
     // Map oracle identifier => oracleModule.
-    mapping(uint256 => address) internal oracleToOracleModule;
+    mapping(uint256 => address) public oracleToOracleModule;
     // Map asset => Asset Information.
     mapping(address => AssetInformation) public assetToAssetInformation;
     // Map with the risk parameters for each Creditor.
