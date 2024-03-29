@@ -8,6 +8,12 @@ import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol"
 
 interface IRegistry {
     /**
+     * @notice Returns the contract address of the Factory.
+     * @return The address of the Factory.
+     */
+    function FACTORY() external view returns(address);
+
+    /**
      * @notice Checks for a token address and the corresponding Id if it is allowed.
      * @param asset The contract address of the asset.
      * @param assetId The Id of the asset.

@@ -4,9 +4,12 @@
  */
 pragma solidity 0.8.22;
 
-import { ERC20, IRegistry, StakingAM } from "../abstracts/AbstractStakingAM.sol";
+import { ERC20, IRegistry, StakingAM, FixedPointMathLib } from "../abstracts/AbstractStakingAM.sol";
 import { IAeroGauge } from "./interfaces/IAeroGauge.sol";
 import { IAeroVoter } from "./interfaces/IAeroVoter.sol";
+import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
+import { IFactory } from "../interfaces/IFactory.sol";
 
 /**
  * @title Asset Module for Staked Aerodrome Finance pools
@@ -15,11 +18,14 @@ import { IAeroVoter } from "./interfaces/IAeroVoter.sol";
  * @dev No end-user should directly interact with the Staked Aerodrome Finance Asset Module, only the Registry, the contract owner or via the actionHandler
  */
 contract StakedAerodromeAM is StakingAM {
+    using FixedPointMathLib for uint256;
+    using SafeTransferLib for ERC20;
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
     IAeroVoter public immutable AERO_VOTER;
+    IFactory internal immutable FACTORY;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -54,6 +60,7 @@ contract StakedAerodromeAM is StakingAM {
         REWARD_TOKEN = ERC20(0x940181a94A35A4569E4529A3CDfB74e38FD98631);
         if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
         AERO_VOTER = IAeroVoter(aerodromeVoter);
+        FACTORY = IFactory(IRegistry(REGISTRY).FACTORY());
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -75,6 +82,91 @@ contract StakedAerodromeAM is StakingAM {
 
         assetToGauge[pool] = gauge;
         _addAsset(pool);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                            ASSET INFORMATION
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Returns the unique identifiers of the underlying assets.
+     * @param assetKey The unique identifier of the asset.
+     * @return underlyingAssetKeys The unique identifiers of the underlying assets.
+     */
+    function _getUnderlyingAssets(bytes32 assetKey)
+        internal
+        view
+        override
+        returns (bytes32[] memory underlyingAssetKeys)
+    {
+        (, uint256 positionId) = _getAssetFromKey(assetKey);
+
+        underlyingAssetKeys = new bytes32[](1);
+        underlyingAssetKeys[0] = _getKeyFromAsset(positionState[positionId].asset, 0);
+    }
+
+    /**
+     * @notice Calculates for a given amount of Asset the corresponding amount of underlying asset.
+     * param creditor The contract address of the creditor.
+     * @param assetKey The unique identifier of the asset.
+     * @param amount The amount of the Asset, in the decimal precision of the Asset.
+     * param underlyingAssetKeys The unique identifiers of the underlying assets.
+     * @return underlyingAssetsAmounts The corresponding amount of Underlying Asset, in the decimal precision of the Underlying Asset.
+     * @return rateUnderlyingAssetsToUsd The usd rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     */
+    function _getUnderlyingAssetsAmounts(address, bytes32 assetKey, uint256 amount, bytes32[] memory)
+        internal
+        view
+        override
+        returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+    {
+        // Amount of a Staked position in the Asset Module can only be either 0 or 1.
+        if (amount == 0) return (new uint256[](1), rateUnderlyingAssetsToUsd);
+
+        (, uint256 positionId) = _getAssetFromKey(assetKey);
+
+        underlyingAssetsAmounts = new uint256[](1);
+        underlyingAssetsAmounts[0] = positionState[positionId].amountStaked;
+
+        return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                            PRICING LOGIC
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Returns the USD value of an asset.
+     * @param creditor The contract address of the Creditor.
+     * @param underlyingAssetsAmounts The corresponding amount of Underlying Asset, in the decimal precision of the Underlying Asset.
+     * @param rateUnderlyingAssetsToUsd The USD rates of 10**18 tokens of underlying asset, with 18 decimals precision.
+     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given Creditor, with 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given Creditor, with 4 decimals precision.
+     * @dev We take a weighted risk factor of both underlying assets.
+     */
+    function _calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    ) internal view override returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        // "rateUnderlyingAssetsToUsd" is the USD value with 18 decimals precision for 10**18 tokens of Underlying Asset.
+        // To get the USD value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
+        // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
+        valueInUsd = underlyingAssetsAmounts[0].mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, 1e18);
+
+        // Calculate weighted risk factors.
+        if (valueInUsd > 0) {
+            unchecked {
+                collateralFactor = valueInUsd * rateUnderlyingAssetsToUsd[0].collateralFactor / valueInUsd;
+                liquidationFactor = valueInUsd * rateUnderlyingAssetsToUsd[0].liquidationFactor / valueInUsd;
+            }
+        }
+
+        // Lower risk factors with the protocol wide risk factor.
+        uint256 riskFactor = riskParams[creditor].riskFactor;
+        collateralFactor = riskFactor.mulDivDown(collateralFactor, AssetValuationLib.ONE_4);
+        liquidationFactor = riskFactor.mulDivDown(liquidationFactor, AssetValuationLib.ONE_4);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -128,5 +220,44 @@ contract StakedAerodromeAM is StakingAM {
      */
     function _getCurrentReward(address asset) internal view override returns (uint256 currentReward) {
         currentReward = IAeroGauge(assetToGauge[asset]).earned(address(this));
+    }
+
+    /**
+     * @notice Claims and transfers the staking rewards of the position.
+     * @param positionId The id of the position.
+     * @return rewards The amount of reward tokens claimed.
+     */
+    function claimReward(uint256 positionId) external override nonReentrant returns (uint256 rewards) {
+        address ownerOfPositionId = _ownerOf[positionId];
+        address accountOwner = FACTORY.ownerOfAccount(ownerOfPositionId);
+        // TODO : see if third party should be able to use and claim rewards from contract
+        if (accountOwner != msg.sender) revert NotOwner();
+
+        // Cache the old positionState and assetState.
+        PositionState memory positionState_ = positionState[positionId];
+        address asset = positionState_.asset;
+        AssetState memory assetState_ = assetState[asset];
+
+        // Calculate the new reward balances.
+        (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
+
+        // Rewards are paid out to the owner on a claimReward.
+        // -> Reset the balances of the pending rewards.
+        rewards = positionState_.lastRewardPosition;
+        positionState_.lastRewardPosition = 0;
+
+        // Store the new positionState and assetState.
+        positionState[positionId] = positionState_;
+        assetState[asset] = assetState_;
+
+        // Claim the pending rewards from the external staking contract.
+        _claimReward(asset);
+
+        // Pay out the share of the reward owed to the position owner.
+        if (rewards > 0) {
+            // Transfer reward
+            REWARD_TOKEN.safeTransfer(accountOwner, rewards);
+            emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
+        }
     }
 }
