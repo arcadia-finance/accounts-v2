@@ -153,18 +153,10 @@ contract StakedAerodromeAM is StakingAM {
         // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
         valueInUsd = underlyingAssetsAmounts[0].mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, 1e18);
 
-        // Calculate weighted risk factors.
-        if (valueInUsd > 0) {
-            unchecked {
-                collateralFactor = valueInUsd * rateUnderlyingAssetsToUsd[0].collateralFactor / valueInUsd;
-                liquidationFactor = valueInUsd * rateUnderlyingAssetsToUsd[0].liquidationFactor / valueInUsd;
-            }
-        }
-
         // Lower risk factors with the protocol wide risk factor.
         uint256 riskFactor = riskParams[creditor].riskFactor;
-        collateralFactor = riskFactor.mulDivDown(collateralFactor, AssetValuationLib.ONE_4);
-        liquidationFactor = riskFactor.mulDivDown(liquidationFactor, AssetValuationLib.ONE_4);
+        collateralFactor = riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].collateralFactor, AssetValuationLib.ONE_4);
+        liquidationFactor = riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].liquidationFactor, AssetValuationLib.ONE_4);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -218,41 +210,5 @@ contract StakedAerodromeAM is StakingAM {
      */
     function _getCurrentReward(address asset) internal view override returns (uint256 currentReward) {
         currentReward = IAeroGauge(assetToGauge[asset]).earned(address(this));
-    }
-
-    /**
-     * @notice Claims and transfers the staking rewards of the position.
-     * @param positionId The id of the position.
-     * @return rewards The amount of reward tokens claimed.
-     */
-    function claimReward(uint256 positionId) external override nonReentrant returns (uint256 rewards) {
-        if (_ownerOf[positionId] !=  msg.sender) revert NotOwner();
-
-        // Cache the old positionState and assetState.
-        PositionState memory positionState_ = positionState[positionId];
-        address asset = positionState_.asset;
-        AssetState memory assetState_ = assetState[asset];
-
-        // Calculate the new reward balances.
-        (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
-
-        // Rewards are paid out to the owner on a claimReward.
-        // -> Reset the balances of the pending rewards.
-        rewards = positionState_.lastRewardPosition;
-        positionState_.lastRewardPosition = 0;
-
-        // Store the new positionState and assetState.
-        positionState[positionId] = positionState_;
-        assetState[asset] = assetState_;
-
-        // Claim the pending rewards from the external staking contract.
-        _claimReward(asset);
-
-        // Pay out the share of the reward owed to the position owner.
-        if (rewards > 0) {
-            // Transfer reward
-            REWARD_TOKEN.safeTransfer(msg.sender, rewards);
-            emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
-        }
     }
 }
