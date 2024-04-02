@@ -7,9 +7,7 @@ pragma solidity 0.8.22;
 import { ERC20, IRegistry, StakingAM, FixedPointMathLib } from "../abstracts/AbstractStakingAM.sol";
 import { IAeroGauge } from "./interfaces/IAeroGauge.sol";
 import { IAeroVoter } from "./interfaces/IAeroVoter.sol";
-import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
-import { IFactory } from "../interfaces/IFactory.sol";
 
 /**
  * @title Asset Module for Staked Aerodrome Finance pools
@@ -19,7 +17,6 @@ import { IFactory } from "../interfaces/IFactory.sol";
  */
 contract StakedAerodromeAM is StakingAM {
     using FixedPointMathLib for uint256;
-    using SafeTransferLib for ERC20;
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
