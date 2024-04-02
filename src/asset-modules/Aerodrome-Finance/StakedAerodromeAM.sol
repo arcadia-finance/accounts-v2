@@ -156,7 +156,8 @@ contract StakedAerodromeAM is StakingAM {
         // Lower risk factors with the protocol wide risk factor.
         uint256 riskFactor = riskParams[creditor].riskFactor;
         collateralFactor = riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].collateralFactor, AssetValuationLib.ONE_4);
-        liquidationFactor = riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].liquidationFactor, AssetValuationLib.ONE_4);
+        liquidationFactor =
+            riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].liquidationFactor, AssetValuationLib.ONE_4);
     }
 
     /*///////////////////////////////////////////////////////////////

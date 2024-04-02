@@ -40,8 +40,8 @@ contract GetRiskFactors_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Te
         stakedAerodromeAM.addAsset(address(pool), address(gauge));
 
         // And : pool has funds (random amount, has no impact)
-        mockERC20.token1.mint(address(pool), 1_000 * 1e18);
-        mockERC20.stable1.mint(address(pool), 1_000 * 1e6);
+        mockERC20.token1.mint(address(pool), 1000 * 1e18);
+        mockERC20.stable1.mint(address(pool), 1000 * 1e6);
 
         vm.prank(users.liquidityProvider);
         pool.mint(users.liquidityProvider);
@@ -64,8 +64,10 @@ contract GetRiskFactors_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Te
             stakedAerodromeAM.getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
 
         // And : Risk factors are below max risk factor.
-        uint256 expectedCollateralFactor = uint256(riskFactor).mulDivDown(rateUnderlyingAssetsToUsd[0].collateralFactor, 1e4);
-        uint256 expectedLiquidationFactor = uint256(riskFactor).mulDivDown(rateUnderlyingAssetsToUsd[0].liquidationFactor, 1e4);
+        uint256 expectedCollateralFactor =
+            uint256(riskFactor).mulDivDown(rateUnderlyingAssetsToUsd[0].collateralFactor, 1e4);
+        uint256 expectedLiquidationFactor =
+            uint256(riskFactor).mulDivDown(rateUnderlyingAssetsToUsd[0].liquidationFactor, 1e4);
 
         (uint256 collateralFactor, uint256 liquidationFactor) =
             stakedAerodromeAM.getRiskFactors(creditor, address(stakedAerodromeAM), positionId);

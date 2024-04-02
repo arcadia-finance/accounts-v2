@@ -972,10 +972,14 @@ contract StakedAerodromeAMExtension is StakedAerodromeAM {
     }
 
     function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssetKeys) {
-       underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+        underlyingAssetKeys = _getUnderlyingAssets(assetKey);
     }
 
-    function getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys) public view returns (AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) {
+    function getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys)
+        public
+        view
+        returns (AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+    {
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
     }
 }
