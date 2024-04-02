@@ -31,9 +31,7 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_F
                             FUZZ TESTS
     ///////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_claimReward_ownerIsNotAnAccount(address owner, uint96 positionId)
-        public
-    {
+    function testFuzz_Revert_claimReward_ownerIsNotAnAccount(address owner, uint96 positionId) public {
         // Given : Owner is not an Account
         stakedAerodromeAM.setOwnerOfPositionId(owner, positionId);
 

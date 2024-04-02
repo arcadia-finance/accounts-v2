@@ -25,7 +25,6 @@ contract StakedAerodromeAM is StakingAM {
     ////////////////////////////////////////////////////////////// */
 
     IAeroVoter public immutable AERO_VOTER;
-    IFactory public immutable FACTORY;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -60,7 +59,6 @@ contract StakedAerodromeAM is StakingAM {
         REWARD_TOKEN = ERC20(0x940181a94A35A4569E4529A3CDfB74e38FD98631);
         if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
         AERO_VOTER = IAeroVoter(aerodromeVoter);
-        FACTORY = IFactory(IRegistry(REGISTRY).FACTORY());
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -228,10 +226,7 @@ contract StakedAerodromeAM is StakingAM {
      * @return rewards The amount of reward tokens claimed.
      */
     function claimReward(uint256 positionId) external override nonReentrant returns (uint256 rewards) {
-        address ownerOfPositionId = _ownerOf[positionId];
-        address accountOwner = FACTORY.ownerOfAccount(ownerOfPositionId);
-        // TODO : see if third party should be able to use and claim rewards from contract
-        if (accountOwner != msg.sender) revert NotOwner();
+        if (_ownerOf[positionId] !=  msg.sender) revert NotOwner();
 
         // Cache the old positionState and assetState.
         PositionState memory positionState_ = positionState[positionId];
@@ -256,7 +251,7 @@ contract StakedAerodromeAM is StakingAM {
         // Pay out the share of the reward owed to the position owner.
         if (rewards > 0) {
             // Transfer reward
-            REWARD_TOKEN.safeTransfer(accountOwner, rewards);
+            REWARD_TOKEN.safeTransfer(msg.sender, rewards);
             emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
         }
     }

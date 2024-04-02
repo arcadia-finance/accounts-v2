@@ -940,7 +940,38 @@ contract StakedAerodromeAMExtension is StakedAerodromeAM {
         assetState[asset].totalStaked = totalStaked_;
     }
 
+    function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
+        key = _getKeyFromAsset(asset, assetId);
+    }
+
     function setOwnerOfPositionId(address owner_, uint256 positionId) public {
         _ownerOf[positionId] = owner_;
+    }
+
+    function calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    ) public view returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        (valueInUsd, collateralFactor, liquidationFactor) =
+            _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
+
+    function getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 amount,
+        bytes32[] memory underlyingAssetKeys
+    )
+        public
+        view
+        returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+    {
+        (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(creditor, assetKey, amount, underlyingAssetKeys);
+    }
+
+    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssetKeys) {
+       underlyingAssetKeys = _getUnderlyingAssets(assetKey);
     }
 }

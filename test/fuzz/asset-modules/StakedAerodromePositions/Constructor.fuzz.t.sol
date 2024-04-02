@@ -43,6 +43,5 @@ contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test 
         assertEq(assetModule.symbol(), "aAEROP");
         assertEq(assetModule.name(), "Arcadia Aerodrome Positions");
         assertEq(address(assetModule.AERO_VOTER()), address(voter));
-        assertEq(address(assetModule.FACTORY()), registryExtension.FACTORY());
     }
 }
