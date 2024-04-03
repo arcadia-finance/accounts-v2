@@ -31,7 +31,8 @@ import { StargateAM } from "../../src/asset-modules/Stargate-Finance/StargateAM.
 import { StakedStargateAM } from "../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
 import { AerodromeVolatileAM } from "../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
 import { AerodromeStableAM } from "../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
-import { StakedAerodromeAM } from "../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
+import { StakedAerodromeAM_IndirectEmissions } from
+    "../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM_IndirectEmissions.sol";
 import { Pool } from "./fixtures/aerodrome/AeroPoolFixture.f.sol";
 import { Gauge } from "./fixtures/aerodrome/AeroGaugeFixture.f.sol";
 
@@ -885,8 +886,8 @@ contract AerodromeStableAMExtension is AerodromeStableAM {
     }
 }
 
-contract StakedAerodromeAMExtension is StakedAerodromeAM {
-    constructor(address registry, address aerodromeVoter) StakedAerodromeAM(registry, aerodromeVoter) { }
+contract StakedAerodromeAMExtension is StakedAerodromeAM_IndirectEmissions {
+    constructor(address registry, address aerodromeVoter) StakedAerodromeAM_IndirectEmissions(registry, aerodromeVoter) { }
 
     function stakeAndClaim(address asset, uint256 amount) public {
         _stakeAndClaim(asset, amount);

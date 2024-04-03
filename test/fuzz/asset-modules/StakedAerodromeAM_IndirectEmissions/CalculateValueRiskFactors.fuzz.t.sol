@@ -4,22 +4,22 @@
  */
 pragma solidity 0.8.22;
 
-import { StakedAerodromeAM_Fuzz_Test, StakedAerodromeAM, StakingAM } from "./_StakedAerodromeAM.fuzz.t.sol";
+import { StakedAerodromeAM_IndirectEmissions_Fuzz_Test, StakedAerodromeAM_IndirectEmissions, StakingAM } from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 /**
- * @notice Fuzz tests for the "CalculateValueAndRiskFactors" function of contract "StakedAerodromeAM".
+ * @notice Fuzz tests for the "CalculateValueAndRiskFactors" function of contract "StakedAerodromeAM_IndirectEmissions".
  */
-contract CalculateValueAndRiskFactors_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
+contract CalculateValueAndRiskFactors_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_IndirectEmissions_Fuzz_Test {
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        StakedAerodromeAM_Fuzz_Test.setUp();
+        StakedAerodromeAM_IndirectEmissions_Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////

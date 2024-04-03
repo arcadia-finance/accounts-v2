@@ -4,18 +4,18 @@
  */
 pragma solidity 0.8.22;
 
-import { StakedAerodromeAM_Fuzz_Test } from "./_StakedAerodromeAM.fuzz.t.sol";
+import { StakedAerodromeAM_IndirectEmissions_Fuzz_Test } from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "StakedAerodromeAM".
+ * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "StakedAerodromeAM_IndirectEmissions".
  */
-contract GetUnderlyingAssets_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
+contract GetUnderlyingAssets_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_IndirectEmissions_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        StakedAerodromeAM_Fuzz_Test.setUp();
+        StakedAerodromeAM_IndirectEmissions_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////

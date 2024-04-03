@@ -5,26 +5,26 @@
 pragma solidity 0.8.22;
 
 import {
-    StakedAerodromeAM_Fuzz_Test,
+    StakedAerodromeAM_IndirectEmissions_Fuzz_Test,
     AbstractStakingAM_Fuzz_Test,
     StakingAM,
     ERC20Mock
-} from "./_StakedAerodromeAM.fuzz.t.sol";
+} from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "mint" of contract "StakedAerodromeAM".
+ * @notice Fuzz tests for the function "mint" of contract "StakedAerodromeAM_IndirectEmissions".
  */
-contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
+contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_IndirectEmissions_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        StakedAerodromeAM_Fuzz_Test.setUp();
+        StakedAerodromeAM_IndirectEmissions_Fuzz_Test.setUp();
     }
 
     function testFuzz_Revert_mint_ZeroAmount(address asset) public {

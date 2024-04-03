@@ -4,23 +4,23 @@
  */
 pragma solidity 0.8.22;
 
-import { StakedAerodromeAM_Fuzz_Test, StakingAM } from "./_StakedAerodromeAM.fuzz.t.sol";
+import { StakedAerodromeAM_IndirectEmissions_Fuzz_Test, StakingAM } from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { FixedPointMathLib } from "../../../../src/asset-modules/abstracts/AbstractStakingAM.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
 /**
- * @notice Fuzz tests for the function "getRiskFactors" of contract "StakedAerodromeeAM".
+ * @notice Fuzz tests for the function "getRiskFactors" of contract "StakedAerodromeeAM_IndirectEmissions".
  */
-contract GetRiskFactors_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
+contract GetRiskFactors_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_IndirectEmissions_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        StakedAerodromeAM_Fuzz_Test.setUp();
+        StakedAerodromeAM_IndirectEmissions_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////
