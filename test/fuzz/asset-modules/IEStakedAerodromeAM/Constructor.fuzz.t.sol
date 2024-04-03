@@ -4,23 +4,20 @@
  */
 pragma solidity 0.8.22;
 
-import {
-    StakedAerodromeAM_IndirectEmissions_Fuzz_Test,
-    StakedAerodromeAM_IndirectEmissions
-} from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
+import { IEStakedAerodromeAM_Fuzz_Test, IEStakedAerodromeAM } from "./_IEStakedAerodromeAM.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 /**
- * @notice Fuzz tests for the constructor of contract "StakedAerodromeAM_IndirectEmissions".
+ * @notice Fuzz tests for the constructor of contract "IEStakedAerodromeAM".
  */
-contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_IndirectEmissions_Fuzz_Test {
+contract Constructor_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_Fuzz_Test {
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        StakedAerodromeAM_IndirectEmissions_Fuzz_Test.setUp();
+        IEStakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -33,13 +30,12 @@ contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_IndirectEm
 
         // When: An asset is added to the AM.
         // Then: It reverts.
-        vm.expectRevert(StakedAerodromeAM_IndirectEmissions.RewardTokenNotAllowed.selector);
-        new StakedAerodromeAM_IndirectEmissions(address(registryExtension), address(voter));
+        vm.expectRevert(IEStakedAerodromeAM.RewardTokenNotAllowed.selector);
+        new IEStakedAerodromeAM(address(registryExtension), address(voter));
     }
 
     function testFuzz_success_constructor() public {
-        StakedAerodromeAM_IndirectEmissions assetModule =
-            new StakedAerodromeAM_IndirectEmissions(address(registryExtension), address(voter));
+        IEStakedAerodromeAM assetModule = new IEStakedAerodromeAM(address(registryExtension), address(voter));
 
         assertEq(address(assetModule.REWARD_TOKEN()), AERO);
         assertEq(assetModule.ASSET_TYPE(), 2);

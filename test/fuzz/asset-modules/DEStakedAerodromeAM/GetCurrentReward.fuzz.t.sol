@@ -4,23 +4,20 @@
  */
 pragma solidity 0.8.22;
 
-import {
-    StakedAerodromeAM_DirectEmissions_Fuzz_Test,
-    StakedAerodromeAM_DirectEmissions
-} from "./_StakedAerodromeAM_DirectEmissions.fuzz.t.sol";
+import { DEStakedAerodromeAM_Fuzz_Test, DEStakedAerodromeAM } from "./_DEStakedAerodromeAM.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 /**
- * @notice Fuzz tests for the "GetCurrentReward" function of contract "StakedAerodromeAM_DirectEmissions".
+ * @notice Fuzz tests for the "GetCurrentReward" function of contract "DEStakedAerodromeAM".
  */
-contract GetCurrentReward_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_DirectEmissions_Fuzz_Test {
+contract GetCurrentReward_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test {
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        StakedAerodromeAM_DirectEmissions_Fuzz_Test.setUp();
+        DEStakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////

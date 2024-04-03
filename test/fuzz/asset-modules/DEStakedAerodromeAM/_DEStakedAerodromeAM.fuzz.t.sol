@@ -8,10 +8,7 @@ import { Fuzz_Test, Constants, ERC20Mock, ArcadiaOracle, BitPackingLib } from ".
 
 import { AerodromeVolatileAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
 import { AerodromeStableAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
-import {
-    StakedAerodromeAM_IndirectEmissions,
-    ERC20
-} from "../../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM_IndirectEmissions.sol";
+import { DEStakedAerodromeAM, ERC20 } from "../../../../src/asset-modules/Aerodrome-Finance/DEStakedAerodromeAM.sol";
 import { StakedAerodromeAMExtension } from "../../../utils/Extensions.sol";
 import { AerodromeVoterMock } from "../../../utils/mocks/Aerodrome/AerodromeVoterMock.sol";
 import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
@@ -21,15 +18,19 @@ import { AbstractStakingAM_Fuzz_Test, StakingAM, ERC20Mock } from "../AbstractSt
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 /**
- * @notice Common logic needed by "StakedAerodromeAM" fuzz tests.
+ * @notice Common logic needed by "DEStakedAerodromeAM" fuzz tests.
  */
-abstract contract StakedAerodromeAM_IndirectEmissions_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fuzz_Test {
+abstract contract DEStakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fuzz_Test {
     using stdStorage for StdStorage;
     /*////////////////////////////////////////////////////////////////
                             CONSTANTS
     /////////////////////////////////////////////////////////////// */
 
     address AERO = 0x940181a94A35A4569E4529A3CDfB74e38FD98631;
+
+    /*////////////////////////////////////////////////////////////////
+                            VARIABLES
+    /////////////////////////////////////////////////////////////// */
 
     /*////////////////////////////////////////////////////////////////
                             TEST CONTRACTS

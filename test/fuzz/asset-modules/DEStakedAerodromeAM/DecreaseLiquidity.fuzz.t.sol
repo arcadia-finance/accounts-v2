@@ -5,27 +5,27 @@
 pragma solidity 0.8.22;
 
 import {
-    StakedAerodromeAM_DirectEmissions_Fuzz_Test,
+    DEStakedAerodromeAM_Fuzz_Test,
     AbstractStakingAM_Fuzz_Test,
     StakingAM,
     ERC20Mock
-} from "./_StakedAerodromeAM_DirectEmissions.fuzz.t.sol";
+} from "./_DEStakedAerodromeAM.fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
 /**
- * @notice Fuzz tests for the function "decreaseLiquidity" of contract "StakedAerodromeAM_DirectEmissions".
+ * @notice Fuzz tests for the function "decreaseLiquidity" of contract "DEStakedAerodromeAM".
  */
-contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_DirectEmissions_Fuzz_Test {
+contract DecreaseLiquidity_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        StakedAerodromeAM_DirectEmissions_Fuzz_Test.setUp();
+        DEStakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////

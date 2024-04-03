@@ -14,8 +14,7 @@ import { IAeroRouter } from "../../../utils/Interfaces.sol";
 import { IAeroFactory } from "../../../../src/asset-modules/Aerodrome-Finance/interfaces/IAeroFactory.sol";
 import { AerodromeVolatileAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
 import { AerodromeStableAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
-import { StakedAerodromeAM_IndirectEmissions } from
-    "../../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM_IndirectEmissions.sol";
+import { IEStakedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/IEStakedAerodromeAM.sol";
 import { StakedAerodromeAMExtension } from "../../../utils/Extensions.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 
