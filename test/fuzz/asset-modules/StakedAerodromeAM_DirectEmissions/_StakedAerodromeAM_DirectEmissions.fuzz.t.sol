@@ -8,7 +8,10 @@ import { Fuzz_Test, Constants, ERC20Mock, ArcadiaOracle, BitPackingLib } from ".
 
 import { AerodromeVolatileAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
 import { AerodromeStableAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
-import { StakedAerodromeAM_DirectEmissions, ERC20 } from "../../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM_DirectEmissions.sol";
+import {
+    StakedAerodromeAM_DirectEmissions,
+    ERC20
+} from "../../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM_DirectEmissions.sol";
 import { StakedAerodromeAMExtension } from "../../../utils/Extensions.sol";
 import { AerodromeVoterMock } from "../../../utils/mocks/Aerodrome/AerodromeVoterMock.sol";
 import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";

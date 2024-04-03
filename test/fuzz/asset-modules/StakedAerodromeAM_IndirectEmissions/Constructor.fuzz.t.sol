@@ -4,7 +4,10 @@
  */
 pragma solidity 0.8.22;
 
-import { StakedAerodromeAM_IndirectEmissions_Fuzz_Test, StakedAerodromeAM_IndirectEmissions } from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
+import {
+    StakedAerodromeAM_IndirectEmissions_Fuzz_Test,
+    StakedAerodromeAM_IndirectEmissions
+} from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
@@ -35,7 +38,8 @@ contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_IndirectEm
     }
 
     function testFuzz_success_constructor() public {
-        StakedAerodromeAM_IndirectEmissions assetModule = new StakedAerodromeAM_IndirectEmissions(address(registryExtension), address(voter));
+        StakedAerodromeAM_IndirectEmissions assetModule =
+            new StakedAerodromeAM_IndirectEmissions(address(registryExtension), address(voter));
 
         assertEq(address(assetModule.REWARD_TOKEN()), AERO);
         assertEq(assetModule.ASSET_TYPE(), 2);

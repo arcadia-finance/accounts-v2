@@ -4,7 +4,9 @@
  */
 pragma solidity 0.8.22;
 
-import { StakedAerodromeAM_IndirectEmissions_Fuzz_Test, StakingAM } from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
+import {
+    StakedAerodromeAM_IndirectEmissions_Fuzz_Test, StakingAM
+} from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { FixedPointMathLib } from "../../../../src/asset-modules/abstracts/AbstractStakingAM.sol";

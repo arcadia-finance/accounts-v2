@@ -4,7 +4,11 @@
  */
 pragma solidity 0.8.22;
 
-import { StakedAerodromeAM_IndirectEmissions_Fuzz_Test, StakedAerodromeAM_IndirectEmissions, StakingAM } from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
+import {
+    StakedAerodromeAM_IndirectEmissions_Fuzz_Test,
+    StakedAerodromeAM_IndirectEmissions,
+    StakingAM
+} from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";

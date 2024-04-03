@@ -887,7 +887,9 @@ contract AerodromeStableAMExtension is AerodromeStableAM {
 }
 
 contract StakedAerodromeAMExtension is StakedAerodromeAM_IndirectEmissions {
-    constructor(address registry, address aerodromeVoter) StakedAerodromeAM_IndirectEmissions(registry, aerodromeVoter) { }
+    constructor(address registry, address aerodromeVoter)
+        StakedAerodromeAM_IndirectEmissions(registry, aerodromeVoter)
+    { }
 
     function stakeAndClaim(address asset, uint256 amount) public {
         _stakeAndClaim(asset, amount);

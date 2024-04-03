@@ -4,7 +4,10 @@
  */
 pragma solidity 0.8.22;
 
-import { StakedAerodromeAM_DirectEmissions_Fuzz_Test, StakedAerodromeAM_DirectEmissions } from "./_StakedAerodromeAM_DirectEmissions.fuzz.t.sol";
+import {
+    StakedAerodromeAM_DirectEmissions_Fuzz_Test,
+    StakedAerodromeAM_DirectEmissions
+} from "./_StakedAerodromeAM_DirectEmissions.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the "StakeAndClaim" function of contract "StakedAerodromeAM_DirectEmissions".
