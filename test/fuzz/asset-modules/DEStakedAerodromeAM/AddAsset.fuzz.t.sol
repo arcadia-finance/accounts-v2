@@ -45,7 +45,7 @@ contract AddAsset_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test
         stakedAerodromeAM.addAsset(address(gauge));
     }
 
-   function testFuzz_Revert_AddAsset_AssetAlreadySet() public {
+    function testFuzz_Revert_AddAsset_AssetAlreadySet() public {
         // Given : the pool is allowed in the Registry
         deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
 

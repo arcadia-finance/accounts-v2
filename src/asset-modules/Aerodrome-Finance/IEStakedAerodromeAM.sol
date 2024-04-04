@@ -70,7 +70,7 @@ contract IEStakedAerodromeAM is StakingAM {
      */
     function addAsset(address gauge) external {
         if (AERO_VOTER.isGauge(gauge) != true) revert GaugeNotValid();
-        
+
         address pool = IAeroGauge(gauge).stakingToken();
         if (!IRegistry(REGISTRY).isAllowed(pool, 0)) revert PoolNotAllowed();
         if (assetState[pool].allowed) revert AssetAlreadySet();
