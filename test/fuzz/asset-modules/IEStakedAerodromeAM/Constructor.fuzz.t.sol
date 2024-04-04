@@ -4,20 +4,20 @@
  */
 pragma solidity 0.8.22;
 
-import { StakedAerodromeAM_Fuzz_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fuzz.t.sol";
+import { IEStakedAerodromeAM_Fuzz_Test, IEStakedAerodromeAM } from "./_IEStakedAerodromeAM.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 /**
- * @notice Fuzz tests for the constructor of contract "StakedAerodromeAM".
+ * @notice Fuzz tests for the constructor of contract "IEStakedAerodromeAM".
  */
-contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
+contract Constructor_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_Fuzz_Test {
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        StakedAerodromeAM_Fuzz_Test.setUp();
+        IEStakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -30,18 +30,18 @@ contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test 
 
         // When: An asset is added to the AM.
         // Then: It reverts.
-        vm.expectRevert(StakedAerodromeAM.RewardTokenNotAllowed.selector);
-        new StakedAerodromeAM(address(registryExtension), address(voter));
+        vm.expectRevert(IEStakedAerodromeAM.RewardTokenNotAllowed.selector);
+        new IEStakedAerodromeAM(address(registryExtension), address(voter));
     }
 
     function testFuzz_success_constructor() public {
-        StakedAerodromeAM assetModule = new StakedAerodromeAM(address(registryExtension), address(voter));
+        IEStakedAerodromeAM assetModule = new IEStakedAerodromeAM(address(registryExtension), address(voter));
 
         assertEq(address(assetModule.REWARD_TOKEN()), AERO);
         assertEq(assetModule.ASSET_TYPE(), 2);
         assertEq(assetModule.REGISTRY(), address(registryExtension));
-        assertEq(assetModule.symbol(), "aAEROP");
-        assertEq(assetModule.name(), "Arcadia Aerodrome Positions");
+        assertEq(assetModule.symbol(), "aIEAEROP");
+        assertEq(assetModule.name(), "Arcadia IE Aerodrome Positions");
         assertEq(address(assetModule.AERO_VOTER()), address(voter));
     }
 }

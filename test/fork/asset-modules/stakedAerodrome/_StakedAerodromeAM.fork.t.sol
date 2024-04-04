@@ -14,8 +14,7 @@ import { IAeroRouter } from "../../../utils/Interfaces.sol";
 import { IAeroFactory } from "../../../../src/asset-modules/Aerodrome-Finance/interfaces/IAeroFactory.sol";
 import { AerodromeVolatileAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
 import { AerodromeStableAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
-import { StakedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
-import { StakedAerodromeAMExtension } from "../../../utils/Extensions.sol";
+import { DEStakedAerodromeAMExtension } from "../../../utils/Extensions.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 
 /**
@@ -44,7 +43,7 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
 
     AerodromeVolatileAM public aerodromeVolatileAM;
     AerodromeStableAM public aerodromeStableAM;
-    StakedAerodromeAMExtension public stakedAerodromeAM;
+    DEStakedAerodromeAMExtension public stakedAerodromeAM;
 
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
@@ -80,7 +79,7 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
         registryExtension.addAssetModule(address(aerodromeStableAM));
 
         // Deploy StakedAerodromeAM.
-        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registryExtension), aeroVoter);
+        stakedAerodromeAM = new DEStakedAerodromeAMExtension(address(registryExtension), aeroVoter);
         registryExtension.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
 

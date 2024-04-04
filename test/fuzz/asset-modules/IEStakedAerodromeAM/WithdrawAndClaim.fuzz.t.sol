@@ -4,18 +4,18 @@
  */
 pragma solidity 0.8.22;
 
-import { StakedAerodromeAM_Fuzz_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fuzz.t.sol";
+import { IEStakedAerodromeAM_Fuzz_Test, IEStakedAerodromeAM } from "./_IEStakedAerodromeAM.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "WithdrawAndClaim" function of contract "StakedAerodromeAM".
+ * @notice Fuzz tests for the "WithdrawAndClaim" function of contract "IEStakedAerodromeAM".
  */
-contract WithdrawAndClaim_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
+contract WithdrawAndClaim_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_Fuzz_Test {
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        StakedAerodromeAM_Fuzz_Test.setUp();
+        IEStakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@ contract WithdrawAndClaim_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : Send pool tokens to the AM.
         deal(address(pool), address(stakedAerodromeAM), stakedAmount);
@@ -60,7 +60,7 @@ contract WithdrawAndClaim_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // And : Send pool tokens to the AM.
         deal(address(pool), address(stakedAerodromeAM), stakedAmount);
