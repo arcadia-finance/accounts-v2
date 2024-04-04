@@ -34,11 +34,11 @@ contract DEStakedAerodromeAM is StakingAM {
     ////////////////////////////////////////////////////////////// */
 
     error AssetAlreadySet();
+    error GaugeNotValid();
     error PoolNotAllowed();
+    error PoolOrGaugeNotValid();
     error RewardTokenNotAllowed();
     error RewardTokenNotValid();
-    error PoolOrGaugeNotValid();
-    error GaugeNotValid();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -47,10 +47,10 @@ contract DEStakedAerodromeAM is StakingAM {
     /**
      * @param registry The address of the Registry.
      * @param aerodromeVoter The address of the Aerodrome Finance Voter contract.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC721 tokens.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
     constructor(address registry, address aerodromeVoter)
-        StakingAM(registry, "Arcadia Aerodrome Positions", "aAEROP")
+        StakingAM(registry, "Arcadia Aerodrome Positions DE", "aAEROPDE")
     {
         REWARD_TOKEN = ERC20(0x940181a94A35A4569E4529A3CDfB74e38FD98631);
         if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
