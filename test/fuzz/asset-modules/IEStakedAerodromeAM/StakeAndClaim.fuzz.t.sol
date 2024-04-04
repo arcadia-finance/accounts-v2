@@ -4,21 +4,18 @@
  */
 pragma solidity 0.8.22;
 
-import {
-    StakedAerodromeAM_IndirectEmissions_Fuzz_Test,
-    StakedAerodromeAM_IndirectEmissions
-} from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
+import { IEStakedAerodromeAM_Fuzz_Test, IEStakedAerodromeAM } from "./_IEStakedAerodromeAM.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "StakeAndClaim" function of contract "StakedAerodromeAM_IndirectEmissions".
+ * @notice Fuzz tests for the "StakeAndClaim" function of contract "IEStakedAerodromeAM".
  */
-contract StakeAndClaim_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_IndirectEmissions_Fuzz_Test {
+contract StakeAndClaim_StakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_Fuzz_Test {
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        StakedAerodromeAM_IndirectEmissions_Fuzz_Test.setUp();
+        IEStakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -35,7 +32,7 @@ contract StakeAndClaim_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Indirect
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : Send pool tokens to the AM.
         deal(address(pool), address(stakedAerodromeAM), lpBalance);
@@ -57,7 +54,7 @@ contract StakeAndClaim_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Indirect
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : An initial stake via the stakedAerodromeAM
         deal(address(pool), address(stakedAerodromeAM), lpBalance);

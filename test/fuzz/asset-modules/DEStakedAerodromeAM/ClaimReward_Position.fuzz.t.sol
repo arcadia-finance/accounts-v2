@@ -5,26 +5,26 @@
 pragma solidity 0.8.22;
 
 import {
-    StakedAerodromeAM_IndirectEmissions_Fuzz_Test,
+    DEStakedAerodromeAM_Fuzz_Test,
     AbstractStakingAM_Fuzz_Test,
     StakingAM,
     ERC20Mock
-} from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
+} from "./_DEStakedAerodromeAM.fuzz.t.sol";
 
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 /**
- * @notice Fuzz tests for the "ClaimReward" function (position rewards) of contract "StakedAerodromeAM_IndirectEmissions".
+ * @notice Fuzz tests for the "ClaimReward" function (position rewards) of contract "DEStakedAerodromeAM".
  */
-contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_IndirectEmissions_Fuzz_Test {
+contract ClaimReward_Position_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        StakedAerodromeAM_IndirectEmissions_Fuzz_Test.setUp();
+        DEStakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -67,7 +67,7 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_I
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given: Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -138,7 +138,7 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_I
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given: Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState);

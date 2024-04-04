@@ -4,24 +4,26 @@
  */
 pragma solidity 0.8.22;
 
-import { ERC20, IRegistry, StakingAM, FixedPointMathLib } from "../abstracts/AbstractStakingAM.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
+import { ERC20, FixedPointMathLib, IRegistry, StakingAM } from "../abstracts/AbstractStakingAM.sol";
 import { IAeroGauge } from "./interfaces/IAeroGauge.sol";
 import { IAeroVoter } from "./interfaces/IAeroVoter.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 
 /**
- * @title Asset Module for Staked Aerodrome Finance pools
+ * @title Asset Module for Staked Aerodrome Finance pools with Indirect Emissions
  * @author Pragma Labs
- * @notice The Staked Aerodrome Finance Asset Module stores pricing logic and basic information for Staked Aerodrome Finance LP pools.
- * This version of the Asset Module does not accrue rewards to the Account value. Rewards remain claimable by the owner of a position.
- * @dev No end-user should directly interact with the Staked Aerodrome Finance Asset Module, only the Registry, the contract owner or via the actionHandler
+ * @notice The Indirect Emissions Staked Aerodrome Finance Asset Module stores pricing logic
+ * and basic information for Staked Aerodrome Finance LP pools.
+ * This version of the Asset Module does not accrue rewards to the Account value.
+ * Rewards remain claimable by the owner of a position..
  */
-contract StakedAerodromeAM_IndirectEmissions is StakingAM {
+contract IEStakedAerodromeAM is StakingAM {
     using FixedPointMathLib for uint256;
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
+    // Manages gauge creation within Aerodrome Finance.
     IAeroVoter public immutable AERO_VOTER;
 
     /* //////////////////////////////////////////////////////////////
@@ -36,11 +38,10 @@ contract StakedAerodromeAM_IndirectEmissions is StakingAM {
     ////////////////////////////////////////////////////////////// */
 
     error AssetAlreadySet();
+    error GaugeNotValid();
     error PoolNotAllowed();
     error RewardTokenNotAllowed();
     error RewardTokenNotValid();
-    error PoolOrGaugeNotValid();
-    error GaugeNotValid();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -49,10 +50,10 @@ contract StakedAerodromeAM_IndirectEmissions is StakingAM {
     /**
      * @param registry The address of the Registry.
      * @param aerodromeVoter The address of the Aerodrome Finance Voter contract.
-     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC721 tokens.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
     constructor(address registry, address aerodromeVoter)
-        StakingAM(registry, "Arcadia Aerodrome Positions", "aAEROP")
+        StakingAM(registry, "Arcadia IE Aerodrome Positions", "aIEAEROP")
     {
         REWARD_TOKEN = ERC20(0x940181a94A35A4569E4529A3CDfB74e38FD98631);
         if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
@@ -65,15 +66,15 @@ contract StakedAerodromeAM_IndirectEmissions is StakingAM {
 
     /**
      * @notice Adds a new Staked Aerodrome Finance pool to the StakedAerodromeAM.
-     * @param pool The contract address of the Aerodrome Finance pool.
      * @param gauge The contract address of the gauge to stake the Aerodrome Finance LP.
      */
-    function addAsset(address pool, address gauge) external {
+    function addAsset(address gauge) external {
+        if (AERO_VOTER.isGauge(gauge) != true) revert GaugeNotValid();
+
+        address pool = IAeroGauge(gauge).stakingToken();
         if (!IRegistry(REGISTRY).isAllowed(pool, 0)) revert PoolNotAllowed();
         if (assetState[pool].allowed) revert AssetAlreadySet();
 
-        if (AERO_VOTER.isGauge(gauge) != true) revert GaugeNotValid();
-        if (IAeroGauge(gauge).stakingToken() != pool) revert PoolOrGaugeNotValid();
         if (IAeroGauge(gauge).rewardToken() != address(REWARD_TOKEN)) revert RewardTokenNotValid();
 
         assetToGauge[pool] = gauge;

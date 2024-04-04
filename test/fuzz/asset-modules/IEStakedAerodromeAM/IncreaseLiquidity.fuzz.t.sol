@@ -5,27 +5,27 @@
 pragma solidity 0.8.22;
 
 import {
-    StakedAerodromeAM_IndirectEmissions_Fuzz_Test,
+    IEStakedAerodromeAM_Fuzz_Test,
     AbstractStakingAM_Fuzz_Test,
     StakingAM,
     ERC20Mock
-} from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
+} from "./_IEStakedAerodromeAM.fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
 /**
- * @notice Fuzz tests for the function "increaseLiquidity" of contract "StakedAerodromeAM_IndirectEmissions".
+ * @notice Fuzz tests for the function "increaseLiquidity" of contract "IEStakedAerodromeAM".
  */
-contract IncreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_IndirectEmissions_Fuzz_Test {
+contract IncreaseLiquidity_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        StakedAerodromeAM_IndirectEmissions_Fuzz_Test.setUp();
+        IEStakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ contract IncreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Indi
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         deal(address(pool), account, amount);
         vm.prank(account);
@@ -97,7 +97,7 @@ contract IncreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Indi
             vm.assume(account != address(voter));
 
             // And : Add asset and gauge to the AM
-            stakedAerodromeAM.addAsset(address(pool), address(gauge));
+            stakedAerodromeAM.addAsset(address(gauge));
 
             // Given : Valid state
             (assetState, positionState) = givenValidStakingAMState(assetState, positionState);

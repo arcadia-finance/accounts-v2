@@ -4,21 +4,18 @@
  */
 pragma solidity 0.8.22;
 
-import {
-    StakedAerodromeAM_DirectEmissions_Fuzz_Test,
-    StakedAerodromeAM_DirectEmissions
-} from "./_StakedAerodromeAM_DirectEmissions.fuzz.t.sol";
+import { DEStakedAerodromeAM_Fuzz_Test, DEStakedAerodromeAM } from "./_DEStakedAerodromeAM.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "StakeAndClaim" function of contract "StakedAerodromeAM_DirectEmissions".
+ * @notice Fuzz tests for the "StakeAndClaim" function of contract "DEStakedAerodromeAM".
  */
-contract StakeAndClaim_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_DirectEmissions_Fuzz_Test {
+contract StakeAndClaim_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test {
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        StakedAerodromeAM_DirectEmissions_Fuzz_Test.setUp();
+        DEStakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -35,7 +32,7 @@ contract StakeAndClaim_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_DirectEm
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : Send pool tokens to the AM.
         deal(address(pool), address(stakedAerodromeAM), lpBalance);
@@ -57,7 +54,7 @@ contract StakeAndClaim_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_DirectEm
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : An initial stake via the stakedAerodromeAM
         deal(address(pool), address(stakedAerodromeAM), lpBalance);

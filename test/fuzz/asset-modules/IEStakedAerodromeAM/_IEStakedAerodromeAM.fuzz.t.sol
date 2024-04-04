@@ -8,11 +8,8 @@ import { Fuzz_Test, Constants, ERC20Mock, ArcadiaOracle, BitPackingLib } from ".
 
 import { AerodromeVolatileAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
 import { AerodromeStableAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
-import {
-    StakedAerodromeAM_IndirectEmissions,
-    ERC20
-} from "../../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM_IndirectEmissions.sol";
-import { StakedAerodromeAMExtension } from "../../../utils/Extensions.sol";
+import { IEStakedAerodromeAM, ERC20 } from "../../../../src/asset-modules/Aerodrome-Finance/IEStakedAerodromeAM.sol";
+import { IEStakedAerodromeAMExtension } from "../../../utils/Extensions.sol";
 import { AerodromeVoterMock } from "../../../utils/mocks/Aerodrome/AerodromeVoterMock.sol";
 import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
 import { PoolFactory } from "../../../utils/fixtures/aerodrome/AeroPoolFactoryFixture.f.sol";
@@ -21,9 +18,9 @@ import { AbstractStakingAM_Fuzz_Test, StakingAM, ERC20Mock } from "../AbstractSt
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 /**
- * @notice Common logic needed by "StakedAerodromeAM" fuzz tests.
+ * @notice Common logic needed by "IEStakedAerodromeAM" fuzz tests.
  */
-abstract contract StakedAerodromeAM_IndirectEmissions_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fuzz_Test {
+abstract contract IEStakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fuzz_Test {
     using stdStorage for StdStorage;
     /*////////////////////////////////////////////////////////////////
                             CONSTANTS
@@ -37,7 +34,7 @@ abstract contract StakedAerodromeAM_IndirectEmissions_Fuzz_Test is Fuzz_Test, Ab
 
     AerodromeVolatileAM public aerodromeVolatileAM;
     AerodromeStableAM public aerodromeStableAM;
-    StakedAerodromeAMExtension public stakedAerodromeAM;
+    IEStakedAerodromeAMExtension public stakedAerodromeAM;
     AerodromeVoterMock public voter;
     Pool public pool;
     Pool public implementation;
@@ -83,7 +80,7 @@ abstract contract StakedAerodromeAM_IndirectEmissions_Fuzz_Test is Fuzz_Test, Ab
         erc20AssetModule.addAsset(AERO, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAeroToUsdArr));
 
         // Deploy StakedAerodromeAM.
-        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registryExtension), address(voter));
+        stakedAerodromeAM = new IEStakedAerodromeAMExtension(address(registryExtension), address(voter));
         registryExtension.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
 

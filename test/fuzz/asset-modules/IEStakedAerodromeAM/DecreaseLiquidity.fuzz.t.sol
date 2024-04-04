@@ -5,27 +5,27 @@
 pragma solidity 0.8.22;
 
 import {
-    StakedAerodromeAM_DirectEmissions_Fuzz_Test,
+    IEStakedAerodromeAM_Fuzz_Test,
     AbstractStakingAM_Fuzz_Test,
     StakingAM,
     ERC20Mock
-} from "./_StakedAerodromeAM_DirectEmissions.fuzz.t.sol";
+} from "./_IEStakedAerodromeAM.fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
 /**
- * @notice Fuzz tests for the function "decreaseLiquidity" of contract "StakedAerodromeAM_DirectEmissions".
+ * @notice Fuzz tests for the function "decreaseLiquidity" of contract "IEStakedAerodromeAM".
  */
-contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_DirectEmissions_Fuzz_Test {
+contract DecreaseLiquidity_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        StakedAerodromeAM_DirectEmissions_Fuzz_Test.setUp();
+        IEStakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Dire
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -126,7 +126,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Dire
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -224,7 +224,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Dire
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         uint256 currentRewardAccount;
         {
@@ -325,7 +325,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Dire
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -409,7 +409,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Dire
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         {
             // Given : Valid state
@@ -496,7 +496,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Dire
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : Valid state
         StakingAMStateForAsset memory assetState = StakingAMStateForAsset({

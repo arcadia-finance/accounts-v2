@@ -4,23 +4,20 @@
  */
 pragma solidity 0.8.22;
 
-import {
-    StakedAerodromeAM_IndirectEmissions_Fuzz_Test,
-    StakedAerodromeAM_IndirectEmissions
-} from "./_StakedAerodromeAM_IndirectEmissions.fuzz.t.sol";
+import { DEStakedAerodromeAM_Fuzz_Test, DEStakedAerodromeAM } from "./_DEStakedAerodromeAM.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 /**
- * @notice Fuzz tests for the "ClaimReward" function of contract "StakedAerodromeAM_IndirectEmissions".
+ * @notice Fuzz tests for the "ClaimReward" function of contract "DEStakedAerodromeAM".
  */
-contract ClaimReward_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_IndirectEmissions_Fuzz_Test {
+contract ClaimReward_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test {
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        StakedAerodromeAM_IndirectEmissions_Fuzz_Test.setUp();
+        DEStakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -40,7 +37,7 @@ contract ClaimReward_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_IndirectEm
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // And : Add emissions to the Gauge
         addEmissionsToGauge(emissions);
