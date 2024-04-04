@@ -9,7 +9,7 @@ import { Fuzz_Test, Constants, ERC20Mock, ArcadiaOracle, BitPackingLib } from ".
 import { AerodromeVolatileAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
 import { AerodromeStableAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
 import { DEStakedAerodromeAM, ERC20 } from "../../../../src/asset-modules/Aerodrome-Finance/DEStakedAerodromeAM.sol";
-import { StakedAerodromeAMExtension } from "../../../utils/Extensions.sol";
+import { DEStakedAerodromeAMExtension } from "../../../utils/Extensions.sol";
 import { AerodromeVoterMock } from "../../../utils/mocks/Aerodrome/AerodromeVoterMock.sol";
 import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
 import { PoolFactory } from "../../../utils/fixtures/aerodrome/AeroPoolFactoryFixture.f.sol";
@@ -38,7 +38,7 @@ abstract contract DEStakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_
 
     AerodromeVolatileAM public aerodromeVolatileAM;
     AerodromeStableAM public aerodromeStableAM;
-    StakedAerodromeAMExtension public stakedAerodromeAM;
+    DEStakedAerodromeAMExtension public stakedAerodromeAM;
     AerodromeVoterMock public voter;
     Pool public pool;
     Pool public implementation;
@@ -84,7 +84,7 @@ abstract contract DEStakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_
         erc20AssetModule.addAsset(AERO, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAeroToUsdArr));
 
         // Deploy StakedAerodromeAM.
-        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registryExtension), address(voter));
+        stakedAerodromeAM = new DEStakedAerodromeAMExtension(address(registryExtension), address(voter));
         registryExtension.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
 
