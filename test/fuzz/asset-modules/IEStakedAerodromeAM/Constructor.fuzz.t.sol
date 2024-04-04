@@ -40,8 +40,8 @@ contract Constructor_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_Fuzz_T
         assertEq(address(assetModule.REWARD_TOKEN()), AERO);
         assertEq(assetModule.ASSET_TYPE(), 2);
         assertEq(assetModule.REGISTRY(), address(registryExtension));
-        assertEq(assetModule.symbol(), "aAEROP");
-        assertEq(assetModule.name(), "Arcadia Aerodrome Positions");
+        assertEq(assetModule.symbol(), "aAEROPIE");
+        assertEq(assetModule.name(), "Arcadia Aerodrome Positions IE");
         assertEq(address(assetModule.AERO_VOTER()), address(voter));
     }
 }
