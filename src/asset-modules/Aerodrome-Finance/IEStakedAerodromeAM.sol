@@ -10,10 +10,12 @@ import { IAeroGauge } from "./interfaces/IAeroGauge.sol";
 import { IAeroVoter } from "./interfaces/IAeroVoter.sol";
 
 /**
- * @title Asset Module for Staked Aerodrome Finance pools
+ * @title Asset Module for Staked Aerodrome Finance pools with Indirect Emissions
  * @author Pragma Labs
- * @notice The Staked Aerodrome Finance Asset Module stores pricing logic and basic information for Staked Aerodrome Finance LP pools.
- * This version of the Asset Module does not accrue rewards to the Account value. Rewards remain claimable by the owner of a position.
+ * @notice The Indirect Emissions Staked Aerodrome Finance Asset Module stores pricing logic
+ * and basic information for Staked Aerodrome Finance LP pools.
+ * This version of the Asset Module does not accrue rewards to the Account value.
+ * Rewards remain claimable by the owner of a position..
  */
 contract IEStakedAerodromeAM is StakingAM {
     using FixedPointMathLib for uint256;
@@ -38,7 +40,6 @@ contract IEStakedAerodromeAM is StakingAM {
     error AssetAlreadySet();
     error GaugeNotValid();
     error PoolNotAllowed();
-    error PoolOrGaugeNotValid();
     error RewardTokenNotAllowed();
     error RewardTokenNotValid();
 
@@ -52,7 +53,7 @@ contract IEStakedAerodromeAM is StakingAM {
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
     constructor(address registry, address aerodromeVoter)
-        StakingAM(registry, "Arcadia Aerodrome Positions IE", "aAEROPIE")
+        StakingAM(registry, "Arcadia IE Aerodrome Positions", "aIEAEROP")
     {
         REWARD_TOKEN = ERC20(0x940181a94A35A4569E4529A3CDfB74e38FD98631);
         if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
