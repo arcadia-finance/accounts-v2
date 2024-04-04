@@ -32,7 +32,7 @@ contract StakeAndClaim_StakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_Fuzz_T
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : Send pool tokens to the AM.
         deal(address(pool), address(stakedAerodromeAM), lpBalance);
@@ -54,7 +54,7 @@ contract StakeAndClaim_StakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_Fuzz_T
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : An initial stake via the stakedAerodromeAM
         deal(address(pool), address(stakedAerodromeAM), lpBalance);

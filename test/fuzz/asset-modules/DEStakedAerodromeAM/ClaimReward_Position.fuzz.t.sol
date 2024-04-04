@@ -67,7 +67,7 @@ contract ClaimReward_Position_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodrome
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given: Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -138,7 +138,7 @@ contract ClaimReward_Position_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodrome
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given: Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState);

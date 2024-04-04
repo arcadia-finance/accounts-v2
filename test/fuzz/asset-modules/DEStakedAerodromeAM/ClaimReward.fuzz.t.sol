@@ -37,7 +37,7 @@ contract ClaimReward_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_T
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // And : Add emissions to the Gauge
         addEmissionsToGauge(emissions);

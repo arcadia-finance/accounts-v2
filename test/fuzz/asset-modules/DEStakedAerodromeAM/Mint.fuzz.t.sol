@@ -74,7 +74,7 @@ contract Mint_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test {
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         {
             // And: Valid state.
@@ -150,7 +150,7 @@ contract Mint_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test {
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // And: Valid state.
         StakingAM.PositionState memory positionState;

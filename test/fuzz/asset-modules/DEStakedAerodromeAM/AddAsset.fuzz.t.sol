@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import { DEStakedAerodromeAM_Fuzz_Test, DEStakedAerodromeAM } from "./_DEStakedAerodromeAM.fuzz.t.sol";
-
+import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 /**
@@ -24,16 +24,33 @@ contract AddAsset_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test
                             FORK TESTS
     ///////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_AddAsset_PoolNotAllowed(address pool_, address gauge_) public notTestContracts(pool_) {
-        // When :  Calling addAsset()
+    function testFuzz_Revert_AddAsset_GaugeNotValid(address gauge_) public {
+        // When : Calling addAsset()
         // Then : It should revert
-        vm.expectRevert(DEStakedAerodromeAM.PoolNotAllowed.selector);
-        stakedAerodromeAM.addAsset(pool_, gauge_);
+        vm.expectRevert(DEStakedAerodromeAM.GaugeNotValid.selector);
+        stakedAerodromeAM.addAsset(gauge_);
     }
 
-    function testFuzz_Revert_AddAsset_AssetAlreadySet(address gauge_) public {
+    function testFuzz_Revert_AddAsset_PoolNotAllowed(bool stable) public {
+        // And : Valid pool
+        address newPool = poolFactory.createPool(address(mockERC20.stable1), address(mockERC20.token1), stable);
+        pool = Pool(newPool);
+
+        // And : Valid gauge
+        deployAerodromeGaugeFixture(address(pool), address(stakedAerodromeAM.REWARD_TOKEN()));
+
+        // When :  Calling addAsset()
+        // Then : It should revert as the pool has not been added to the registry
+        vm.expectRevert(DEStakedAerodromeAM.PoolNotAllowed.selector);
+        stakedAerodromeAM.addAsset(address(gauge));
+    }
+
+   function testFuzz_Revert_AddAsset_AssetAlreadySet() public {
         // Given : the pool is allowed in the Registry
         deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
+
+        // And : Gauge exists
+        deployAerodromeGaugeFixture(address(pool), address(stakedAerodromeAM.REWARD_TOKEN()));
 
         // Given : pool is already added to the AM
         stakedAerodromeAM.setAllowed(address(pool), true);
@@ -41,31 +58,7 @@ contract AddAsset_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test
         // When :  Calling addAsset()
         // Then : It should revert
         vm.expectRevert(DEStakedAerodromeAM.AssetAlreadySet.selector);
-        stakedAerodromeAM.addAsset(address(pool), gauge_);
-    }
-
-    function testFuzz_Revert_AddAsset_GaugeNotValid(address gauge_) public {
-        // Given : the pool is allowed in the Registry
-        deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
-
-        // When : Calling addAsset
-        // Then : It should revert
-        vm.expectRevert(DEStakedAerodromeAM.GaugeNotValid.selector);
-        stakedAerodromeAM.addAsset(address(pool), gauge_);
-    }
-
-    function testFuzz_Revert_AddAsset_PoolOrGaugeNotValid(address notPool) public {
-        // Given : the pool is allowed in the Registry
-        deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
-
-        // Given : Valid gauge
-        deployAerodromeGaugeFixture(notPool, address(stakedAerodromeAM.REWARD_TOKEN()));
-
-        // Given :
-        // When :  Calling addAsset()
-        // Then : It should revert
-        vm.expectRevert(DEStakedAerodromeAM.PoolOrGaugeNotValid.selector);
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
     }
 
     function testFuzz_Revert_AddAsset_RewardTokenNotValid(address notAERO) public {
@@ -79,7 +72,7 @@ contract AddAsset_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test
         // When :  Calling addAsset()
         // Then : It should revert
         vm.expectRevert(DEStakedAerodromeAM.RewardTokenNotValid.selector);
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
     }
 
     function testFuzz_Success_AddAsset() public {
@@ -90,7 +83,7 @@ contract AddAsset_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // When : Calling addAsset()
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Then : Asset and gauge info should be updated
         assertEq(stakedAerodromeAM.assetToGauge(address(pool)), address(gauge));

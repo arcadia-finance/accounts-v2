@@ -33,7 +33,7 @@ contract WithdrawAndClaim_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_F
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : Send pool tokens to the AM.
         deal(address(pool), address(stakedAerodromeAM), stakedAmount);
@@ -60,7 +60,7 @@ contract WithdrawAndClaim_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_F
         deployAerodromeGaugeFixture(address(pool), AERO);
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // And : Send pool tokens to the AM.
         deal(address(pool), address(stakedAerodromeAM), stakedAmount);

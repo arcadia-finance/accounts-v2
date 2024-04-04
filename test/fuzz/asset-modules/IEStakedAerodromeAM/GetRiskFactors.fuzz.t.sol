@@ -37,7 +37,7 @@ contract GetRiskFactors_StakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_Fuzz_
         // Given : Asset is added to stakedAerodromeAM
         deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
         deployAerodromeGaugeFixture(address(pool), AERO);
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // And : pool has funds (random amount, has no impact)
         mockERC20.token1.mint(address(pool), 1000 * 1e18);

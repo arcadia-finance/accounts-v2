@@ -22,6 +22,7 @@ contract IEStakedAerodromeAM is StakingAM {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
+    // Manages gauge creation within Aerodrome Finance.
     IAeroVoter public immutable AERO_VOTER;
 
     /* //////////////////////////////////////////////////////////////
@@ -65,15 +66,15 @@ contract IEStakedAerodromeAM is StakingAM {
 
     /**
      * @notice Adds a new Staked Aerodrome Finance pool to the StakedAerodromeAM.
-     * @param pool The contract address of the Aerodrome Finance pool.
      * @param gauge The contract address of the gauge to stake the Aerodrome Finance LP.
      */
-    function addAsset(address pool, address gauge) external {
+    function addAsset(address gauge) external {
+        if (AERO_VOTER.isGauge(gauge) != true) revert GaugeNotValid();
+        
+        address pool = IAeroGauge(gauge).stakingToken();
         if (!IRegistry(REGISTRY).isAllowed(pool, 0)) revert PoolNotAllowed();
         if (assetState[pool].allowed) revert AssetAlreadySet();
 
-        if (AERO_VOTER.isGauge(gauge) != true) revert GaugeNotValid();
-        if (IAeroGauge(gauge).stakingToken() != pool) revert PoolOrGaugeNotValid();
         if (IAeroGauge(gauge).rewardToken() != address(REWARD_TOKEN)) revert RewardTokenNotValid();
 
         assetToGauge[pool] = gauge;

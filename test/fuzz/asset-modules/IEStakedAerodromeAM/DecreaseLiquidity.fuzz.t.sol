@@ -80,7 +80,7 @@ contract DecreaseLiquidity_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -126,7 +126,7 @@ contract DecreaseLiquidity_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -224,7 +224,7 @@ contract DecreaseLiquidity_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         uint256 currentRewardAccount;
         {
@@ -325,7 +325,7 @@ contract DecreaseLiquidity_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -409,7 +409,7 @@ contract DecreaseLiquidity_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         {
             // Given : Valid state
@@ -496,7 +496,7 @@ contract DecreaseLiquidity_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         // Given : Valid state
         StakingAMStateForAsset memory assetState = StakingAMStateForAsset({

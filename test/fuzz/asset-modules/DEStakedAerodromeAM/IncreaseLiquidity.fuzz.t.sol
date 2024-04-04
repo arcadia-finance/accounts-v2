@@ -63,7 +63,7 @@ contract IncreaseLiquidity_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_
         vm.assume(account != address(voter));
 
         // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(pool), address(gauge));
+        stakedAerodromeAM.addAsset(address(gauge));
 
         deal(address(pool), account, amount);
         vm.prank(account);
@@ -97,7 +97,7 @@ contract IncreaseLiquidity_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_
             vm.assume(account != address(voter));
 
             // And : Add asset and gauge to the AM
-            stakedAerodromeAM.addAsset(address(pool), address(gauge));
+            stakedAerodromeAM.addAsset(address(gauge));
 
             // Given : Valid state
             (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
