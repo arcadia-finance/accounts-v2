@@ -14,7 +14,6 @@ import { IAeroVoter } from "./interfaces/IAeroVoter.sol";
  * @author Pragma Labs
  * @notice The Staked Aerodrome Finance Asset Module stores pricing logic and basic information for Staked Aerodrome Finance LP pools.
  * This version of the Asset Module does not accrue rewards to the Account value. Rewards remain claimable by the owner of a position.
- * @dev No end-user should directly interact with the Staked Aerodrome Finance Asset Module, only the Registry, the contract owner or via the actionHandler
  */
 contract IEStakedAerodromeAM is StakingAM {
     using FixedPointMathLib for uint256;

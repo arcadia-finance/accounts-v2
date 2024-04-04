@@ -13,7 +13,6 @@ import { IAeroVoter } from "./interfaces/IAeroVoter.sol";
  * @author Pragma Labs
  * @notice The Staked Aerodrome Finance Asset Module stores pricing logic and basic information for Staked Aerodrome Finance LP pools.
  * Emission tokens earned will accrue to the value of an Account owning a position.
- * @dev No end-user should directly interact with the Staked Aerodrome Finance Asset Module, only the Registry, the contract owner or via the actionHandler
  */
 contract DEStakedAerodromeAM is StakingAM {
     /* //////////////////////////////////////////////////////////////
