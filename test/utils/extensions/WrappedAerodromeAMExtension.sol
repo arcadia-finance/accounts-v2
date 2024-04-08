@@ -1,0 +1,67 @@
+/**
+ * Created by Pragma Labs
+ * SPDX-License-Identifier: BUSL-1.1
+ */
+pragma solidity 0.8.22;
+
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
+import { WrappedAerodromeAM } from "../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
+
+contract WrappedAerodromeAMExtension is WrappedAerodromeAM {
+    constructor(address registry) WrappedAerodromeAM(registry) { }
+
+    function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
+        key = _getKeyFromAsset(asset, assetId);
+    }
+
+    function calculateValueAndRiskFactors(
+        address creditor,
+        uint256[] memory underlyingAssetsAmounts,
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
+    ) public view returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
+        (valueInUsd, collateralFactor, liquidationFactor) =
+            _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+    }
+
+    function getUnderlyingAssetsAmounts(
+        address creditor,
+        bytes32 assetKey,
+        uint256 amount,
+        bytes32[] memory underlyingAssetKeys
+    )
+        public
+        view
+        returns (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+    {
+        (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
+            _getUnderlyingAssetsAmounts(creditor, assetKey, amount, underlyingAssetKeys);
+    }
+
+    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssetKeys) {
+        underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+    }
+
+    function getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys)
+        public
+        view
+        returns (AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+    {
+        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
+    }
+
+    function claimFees(address asset) public returns (uint256 fee0, uint256 fee1) {
+        return _claimFees(asset);
+    }
+
+    function getCurrentFees(address asset) public view returns (uint256 fee0, uint256 fee1) {
+        return _getCurrentFees(asset);
+    }
+
+    function mintIdTo(address to, uint256 tokenId) public {
+        _safeMint(to, tokenId);
+    }
+
+    function setOwnerOfPositionId(address owner_, uint256 positionId) public {
+        _ownerOf[positionId] = owner_;
+    }
+}
