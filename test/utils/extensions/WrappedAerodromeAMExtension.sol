@@ -23,6 +23,10 @@ contract WrappedAerodromeAMExtension is WrappedAerodromeAM {
             _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }
 
+    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssetKeys) {
+        underlyingAssetKeys = _getUnderlyingAssets(assetKey);
+    }
+
     function getUnderlyingAssetsAmounts(
         address creditor,
         bytes32 assetKey,
@@ -37,16 +41,21 @@ contract WrappedAerodromeAMExtension is WrappedAerodromeAM {
             _getUnderlyingAssetsAmounts(creditor, assetKey, amount, underlyingAssetKeys);
     }
 
-    function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssetKeys) {
-        underlyingAssetKeys = _getUnderlyingAssets(assetKey);
-    }
-
     function getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys)
         public
         view
         returns (AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
+    }
+
+    function getFeeBalances(
+        WrappedAerodromeAM.PoolState memory poolState_,
+        WrappedAerodromeAM.PositionState memory positionState_,
+        uint256 fee0,
+        uint256 fee1
+    ) public pure returns (WrappedAerodromeAM.PoolState memory, WrappedAerodromeAM.PositionState memory) {
+        return _getFeeBalances(poolState_, positionState_, fee0, fee1);
     }
 
     function claimFees(address asset) public returns (uint256 fee0, uint256 fee1) {
@@ -63,5 +72,13 @@ contract WrappedAerodromeAMExtension is WrappedAerodromeAM {
 
     function setOwnerOfPositionId(address owner_, uint256 positionId) public {
         _ownerOf[positionId] = owner_;
+    }
+
+    function setIdCounter(uint256 lastId_) public {
+        lastPositionId = lastId_;
+    }
+
+    function setPoolInPosition(address pool, uint96 tokenId) public {
+        positionState[tokenId].pool = pool;
     }
 }

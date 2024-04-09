@@ -22,6 +22,7 @@ import { Strings } from "../../libraries/Strings.sol";
 contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
     using FixedPointMathLib for uint256;
     using Strings for uint256;
+    using SafeCastLib for uint256;
     using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////
@@ -47,25 +48,25 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
     struct PoolState {
         // The growth of fees per Pool, at the last interaction with this contract,
         // with 18 decimals precision.
-        uint128 lastFee0PerPoolGlobal;
-        uint128 lastFee1PerPoolGlobal;
+        uint128 fee0PerLiquidity;
+        uint128 fee1PerLiquidity;
         // The total amount of liquidity wrapped.
         uint128 totalWrapped;
     }
 
     // Struct with the Position specific state.
     struct PositionState {
-        // The contract address of the Pool.
-        address pool;
-        // Total amount of liquidity wrapped for this position.
-        uint128 amountWrapped;
         // The growth of fees per Pool, at the last interaction of the position owner with this contract,
         // with 18 decimals precision.
-        uint128 lastFee0PerPoolPosition;
-        uint128 lastFee1PerPoolPosition;
+        uint128 fee0PerLiquidity;
+        uint128 fee1PerLiquidity;
         // The unclaimed amount of fees of the position owner, at the last interaction of the owner with this contract.
-        uint128 lastFee0Position;
-        uint128 lastFee1Position;
+        uint128 fee0;
+        uint128 fee1;
+        // Total amount of liquidity wrapped for this position.
+        uint128 amountWrapped;
+        // The contract address of the Pool.
+        address pool;
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -80,7 +81,6 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
-    error AssetNotAllowed();
     error NotOwner();
     error PoolNotAllowed();
     error ZeroAmount();
@@ -280,7 +280,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
      */
     function mint(address pool, uint128 amount) external nonReentrant returns (uint256 positionId) {
         if (amount == 0) revert ZeroAmount();
-        if (token0[pool] == address(0)) revert AssetNotAllowed();
+        if (token0[pool] == address(0)) revert PoolNotAllowed();
 
         // Need to transfer before minting or ERC777s could reenter.
         ERC20(pool).safeTransferFrom(msg.sender, address(this), amount);
@@ -390,10 +390,10 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Fees are paid out to the owner on a decreaseLiquidity.
         // -> Reset the balances of the pending fees.
-        fee0Position = positionState_.lastFee0Position;
-        fee1Position = positionState_.lastFee1Position;
-        positionState_.lastFee0Position = 0;
-        positionState_.lastFee1Position = 0;
+        fee0Position = positionState_.fee0;
+        fee1Position = positionState_.fee1;
+        positionState_.fee0 = 0;
+        positionState_.fee1 = 0;
 
         // Store the new positionState and poolState.
         if (positionState_.amountWrapped > 0) {
@@ -436,10 +436,10 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Fees are paid out to the owner on a claimFees.
         // -> Reset the balances of the pending fees.
-        fee0Position = positionState_.lastFee0Position;
-        fee1Position = positionState_.lastFee1Position;
-        positionState_.lastFee0Position = 0;
-        positionState_.lastFee1Position = 0;
+        fee0Position = positionState_.fee0;
+        fee1Position = positionState_.fee1;
+        positionState_.fee0 = 0;
+        positionState_.fee1 = 0;
 
         // Store the new positionState and poolState.
         positionState[positionId] = positionState_;
@@ -519,8 +519,8 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         (uint256 fee0Global, uint256 fee1Global) = _getCurrentFees(positionState_.pool);
         (, positionState_) = _getFeeBalances(poolState_, positionState_, fee0Global, fee1Global);
 
-        fee0Position = positionState_.lastFee0Position;
-        fee1Position = positionState_.lastFee1Position;
+        fee0Position = positionState_.fee0;
+        fee1Position = positionState_.fee1;
     }
 
     /**
@@ -538,40 +538,38 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
     ) internal pure returns (PoolState memory, PositionState memory) {
         if (poolState_.totalWrapped > 0) {
             // Calculate the new poolState.
-            // Calculate the change in FeePerPool.
-            uint256 deltaFee0PerPool = fee0.mulDivDown(1e18, poolState_.totalWrapped);
-            uint256 deltaFee1PerPool = fee1.mulDivDown(1e18, poolState_.totalWrapped);
-            // Calculate and update the new FeePerPool of the Pool.
-            // unchecked: FeePerPool can overflow, what matters is the delta in FeePerPool between two interactions.
+            // Calculate the change in FeePerLiquidity.
+            uint256 deltaFee0PerLiquidity = fee0.mulDivDown(1e18, poolState_.totalWrapped);
+            uint256 deltaFee1PerLiquidity = fee1.mulDivDown(1e18, poolState_.totalWrapped);
+            // Calculate and update the new FeePerLiquidity of the Pool.
+            // unchecked: FeePerLiquidity can overflow, what matters is the delta in FeePerLiquidity between two interactions.
             unchecked {
-                poolState_.lastFee0PerPoolGlobal =
-                    poolState_.lastFee0PerPoolGlobal + SafeCastLib.safeCastTo128(deltaFee0PerPool);
-                poolState_.lastFee1PerPoolGlobal =
-                    poolState_.lastFee1PerPoolGlobal + SafeCastLib.safeCastTo128(deltaFee1PerPool);
+                poolState_.fee0PerLiquidity = poolState_.fee0PerLiquidity + deltaFee0PerLiquidity.safeCastTo128();
+                poolState_.fee1PerLiquidity = poolState_.fee1PerLiquidity + deltaFee1PerLiquidity.safeCastTo128();
             }
 
             // Calculate the new positionState.
-            // Calculate the difference in feePerPool since the last position interaction.
-            // unchecked: FeePerPool can underflow, what matters is the delta in FeePerPool between two interactions.
+            // Calculate the difference in feePerLiquidity since the last position interaction.
+            // unchecked: FeePerLiquidity can underflow, what matters is the delta in FeePerLiquidity between two interactions.
             unchecked {
-                deltaFee0PerPool = poolState_.lastFee0PerPoolGlobal - positionState_.lastFee0PerPoolPosition;
-                deltaFee1PerPool = poolState_.lastFee1PerPoolGlobal - positionState_.lastFee1PerPoolPosition;
+                deltaFee0PerLiquidity = poolState_.fee0PerLiquidity - positionState_.fee0PerLiquidity;
+                deltaFee1PerLiquidity = poolState_.fee1PerLiquidity - positionState_.fee1PerLiquidity;
             }
             // Calculate the fees earned by the position since its last interaction.
-            // unchecked: deltaFeePerPool and positionState_.amountWrapped are smaller than type(uint128).max.
+            // unchecked: deltaFeePerLiquidity and positionState_.amountWrapped are smaller than type(uint128).max.
             uint256 deltaFee0;
             uint256 deltaFee1;
             unchecked {
-                deltaFee0 = deltaFee0PerPool * positionState_.amountWrapped / 1e18;
-                deltaFee1 = deltaFee1PerPool * positionState_.amountWrapped / 1e18;
+                deltaFee0 = deltaFee0PerLiquidity * positionState_.amountWrapped / 1e18;
+                deltaFee1 = deltaFee1PerLiquidity * positionState_.amountWrapped / 1e18;
             }
             // Update the fee balance of the position.
-            positionState_.lastFee0Position = SafeCastLib.safeCastTo128(positionState_.lastFee0Position + deltaFee0);
-            positionState_.lastFee1Position = SafeCastLib.safeCastTo128(positionState_.lastFee1Position + deltaFee1);
+            positionState_.fee0 = (positionState_.fee0 + deltaFee0).safeCastTo128();
+            positionState_.fee1 = (positionState_.fee1 + deltaFee1).safeCastTo128();
         }
-        // Update the FeePerPool of the position.
-        positionState_.lastFee0PerPoolPosition = poolState_.lastFee0PerPoolGlobal;
-        positionState_.lastFee1PerPoolPosition = poolState_.lastFee1PerPoolGlobal;
+        // Update the FeePerLiquidity of the position.
+        positionState_.fee0PerLiquidity = poolState_.fee0PerLiquidity;
+        positionState_.fee1PerLiquidity = poolState_.fee1PerLiquidity;
 
         return (poolState_, positionState_);
     }
