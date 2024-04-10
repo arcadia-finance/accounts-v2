@@ -50,11 +50,14 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     mapping(uint256 position => mapping(address reward => RewardStatePosition)) public rewardStatePosition;
     // Map a customAsset to its underlying asset and rewards.
     mapping(address customAsset => AssetAndRewards) public customAssetInfo;
+    // Map an Asset to a reward token and to its lastRewardPerTokenGlobal at last time of interaction.
     mapping(address asset => mapping(address rewardToken => uint256 lastRewardPerTokenGlobal)) public
         lastRewardPerTokenGlobal;
+    // Map an Asset to total amount wrapped in this Asset Module.
     mapping(address asset => uint256 totalWrapped) public assetToTotalWrapped;
-    // TODO: when adding an asset always check if have to update activeRewardsForAsset.
-    mapping(address asset => address[] rewards) public activeRewardsForAsset;
+    // Map an Asset to all reward tokens claimable for that asset via this Asset Module.
+    // TODO: when adding an asset always check if have to update rewardsForAsset.
+    mapping(address asset => address[] rewards) public rewardsForAsset;
 
     // Struct with the Position specific state.
     struct PositionState {
@@ -196,18 +199,20 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         (, uint256 positionId) = _getAssetFromKey(assetKey);
 
         // Cache values
-        address asset = customAssetInfo[positionState[positionId].customAsset].asset;
-        address[] memory activeRewards = activeRewardsForAsset[asset];
-        AssetAndRewards memory assetAndRewards = customAssetInfo[positionState[positionId].customAsset];
-        uint256 numberOfUnderlyingAssets = assetAndRewards.rewards.length + 1;
+        address customAsset = positionState[positionId].customAsset;
+        address asset = customAssetInfo[customAsset].asset;
+        address[] memory activeRewards = rewardsForAsset[asset];
+        AssetAndRewards memory customAssetAndRewards = customAssetInfo[customAsset];
+        uint256 numberOfUnderlyingAssets = customAssetAndRewards.rewards.length + 1;
 
-        // Amount of a Staked position in the Asset Module can only be either 0 or 1.
+        // Amount of a Wrapped position in the Asset Module can only be either 0 or 1.
         if (amount == 0) return (new uint256[](numberOfUnderlyingAssets), rateUnderlyingAssetsToUsd);
 
+        // Isolate rewards that account as underlyingAsset for a customAsset.
         uint256[] memory rewardsClaimable = rewardsOf(positionId);
-        uint256[] memory underlyingRewardsAmount = new uint256[](assetAndRewards.rewards.length);
-        for (uint256 i; i < assetAndRewards.rewards.length; ++i) {
-            address underlyingReward = assetAndRewards.rewards[i];
+        uint256[] memory underlyingRewardsAmount = new uint256[](customAssetAndRewards.rewards.length);
+        for (uint256 i; i < customAssetAndRewards.rewards.length; ++i) {
+            address underlyingReward = customAssetAndRewards.rewards[i];
             for (uint256 j; j < activeRewards.length; ++j) {
                 if (underlyingReward == activeRewards[j]) {
                     underlyingRewardsAmount[i] = rewardsClaimable[j];
@@ -217,7 +222,6 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
         underlyingAssetsAmounts = new uint256[](numberOfUnderlyingAssets);
         underlyingAssetsAmounts[0] = positionState[positionId].amountWrapped;
-
         for (uint256 i = 1; i < numberOfUnderlyingAssets; ++i) {
             underlyingAssetsAmounts[i] = underlyingRewardsAmount[i - 1];
         }
@@ -342,7 +346,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
         for (uint256 i; i < activeRewards.length; ++i) {
             rewardStatePosition[positionId][activeRewards[i]].lastRewardPerTokenPosition =
-                lastRewardPerTokenGlobalArr[i];
+                SafeCastLib.safeCastTo128(lastRewardPerTokenGlobalArr[i]);
         }
 
         // Mint the new position.
@@ -370,7 +374,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         (, RewardStatePosition[] memory rewardStatePositionArr, address[] memory activeRewards) =
             _getRewardBalances(positionId);
 
-        for (uint256 i; activeRewards.lenght; ++i) {
+        for (uint256 i; i < activeRewards.length; ++i) {
             rewardStatePosition[positionId][activeRewards[i]] = rewardStatePositionArr[i];
         }
 
@@ -396,7 +400,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Cache values.
         address asset = customAssetInfo[positionState[positionId].customAsset].asset;
-        address[] memory activeRewards = activeRewardsForAsset[asset];
+        address[] memory activeRewards = rewardsForAsset[asset];
 
         // Delete mappings
         delete positionState[positionId];
@@ -408,7 +412,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Transfer the asset back to the position owner.
         ERC20(asset).safeTransfer(msg.sender, positionAmount);
-        emit LiquidityDecreased(positionId, asset, positionAmount);
+        emit LiquidityDecreased(positionId, asset, uint128(positionAmount));
     }
 
     /**
@@ -422,7 +426,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         public
         virtual
         nonReentrant
-        returns (uint256 rewards)
+        returns (uint256[] memory rewards)
     {
         if (amount == 0) revert ZeroAmount();
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
@@ -438,7 +442,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
                 _getRewardBalances(positionId);
 
             // Update the reward state
-            for (uint256 i; activeRewards.lenght; ++i) {
+            for (uint256 i; i < activeRewards.length; ++i) {
                 rewardStatePosition[positionId][activeRewards[i]] = rewardStatePositionArr[i];
             }
 
@@ -473,9 +477,9 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         rewards = new uint256[](activeRewards_.length);
         // Store the new rewardState and lastRewardPerTokenGlobal
         for (uint256 i; i < activeRewards_.length; ++i) {
-            rewards[i] = rewardStatePositionArr[i].lastRewardPosiion;
+            rewards[i] = rewardStatePositionArr[i].lastRewardPerTokenPosition;
             // Rewards are paid out to the owner on a claimReward.
-            rewardStatePositionArr[i].lastRewardPosiion = 0;
+            rewardStatePositionArr[i].lastRewardPerTokenPosition = 0;
             // Store the new rewardStatePosition
             rewardStatePosition[positionId][activeRewards_[i]] = rewardStatePositionArr[i];
             // Store the new value of lastRewardPerTokenGlobal
@@ -533,7 +537,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
         currentRewardsClaimable = new uint256[](rewardStatePosition_.length);
         for (uint256 i; i < rewardStatePosition_.length; ++i) {
-            currentRewardsClaimable[i] = rewardStatePosition_.lastRewardPosition;
+            currentRewardsClaimable[i] = rewardStatePosition_[i].lastRewardPosition;
         }
     }
 
@@ -556,7 +560,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         address asset = customAssetInfo[positionState[positionId].customAsset].asset;
 
         // Cache all active rewards for a given asset
-        activeRewards_ = activeRewardsForAsset[asset];
+        activeRewards_ = rewardsForAsset[asset];
         // Cache number of active rewards
         uint256 numberOfActiveRewards = activeRewards_.length;
         // Cache total wrapped
@@ -611,7 +615,8 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Update the RewardPerToken of the rewards of the position.
         for (uint256 i; i < numberOfActiveRewards; ++i) {
-            rewardStatePositionArr[i].lastRewardPerTokenPosition = lastRewardPerTokenGlobalArr[i];
+            rewardStatePositionArr[i].lastRewardPerTokenPosition =
+                SafeCastLib.safeCastTo128(lastRewardPerTokenGlobalArr[i]);
         }
 
         return (lastRewardPerTokenGlobalArr, rewardStatePositionArr, activeRewards_);
