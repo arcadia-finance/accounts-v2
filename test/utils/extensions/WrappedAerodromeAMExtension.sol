@@ -58,8 +58,21 @@ contract WrappedAerodromeAMExtension is WrappedAerodromeAM {
         return _getFeeBalances(poolState_, positionState_, fee0, fee1);
     }
 
+    function setPoolState(address pool, WrappedAerodromeAM.PoolState memory poolState_) public {
+        poolState[pool] = poolState_;
+    }
+
+    function setPositionState(uint256 positionId, WrappedAerodromeAM.PositionState memory positionState_) public {
+        positionState[positionId] = positionState_;
+    }
+
     function claimFees(address asset) public returns (uint256 fee0, uint256 fee1) {
         return _claimFees(asset);
+    }
+
+    function setTokens(address pool, address token0_, address token1_) public {
+        token0[pool] = token0_;
+        token1[pool] = token1_;
     }
 
     function getCurrentFees(address asset) public view returns (uint256 fee0, uint256 fee1) {
@@ -70,7 +83,7 @@ contract WrappedAerodromeAMExtension is WrappedAerodromeAM {
         _safeMint(to, tokenId);
     }
 
-    function setOwnerOfPositionId(address owner_, uint256 positionId) public {
+    function setOwnerOf(address owner_, uint256 positionId) public {
         _ownerOf[positionId] = owner_;
     }
 

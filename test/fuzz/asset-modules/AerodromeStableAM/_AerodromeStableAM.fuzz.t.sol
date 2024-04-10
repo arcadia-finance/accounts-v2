@@ -8,10 +8,9 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { AerodromeStableAMExtension } from "../../../utils/Extensions.sol";
 import { AerodromeFactoryMock } from "../../../utils/mocks/Aerodrome/AerodromeFactoryMock.sol";
-import { AerodromePoolExtension } from "../../../utils/Extensions.sol";
+import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
 import { FullMath } from "../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
 import {
-    Pool,
     PoolFactory,
     ERC20Mock,
     ArcadiaOracle,
@@ -54,7 +53,7 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
 
     AerodromeStableAMExtension internal aeroStableAM;
     AerodromeFactoryMock internal aeroFactoryMock;
-    AerodromePoolExtension internal aeroPoolMock;
+    Pool internal aeroPoolMock;
     PoolFactory internal poolFactory;
     Pool internal pool;
     Pool internal implementation;
@@ -68,7 +67,7 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
 
         // Deploy mocked Aerodrome contracts
         aeroFactoryMock = new AerodromeFactoryMock();
-        aeroPoolMock = new AerodromePoolExtension();
+        aeroPoolMock = new Pool();
 
         // Deploy the Aerodrome Stable AssetModule.
         vm.startPrank(users.creatorAddress);

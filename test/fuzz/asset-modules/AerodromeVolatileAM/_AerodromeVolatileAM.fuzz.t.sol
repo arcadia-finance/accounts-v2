@@ -8,7 +8,6 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { AerodromeVolatileAMExtension, FixedPointMathLib } from "../../../utils/Extensions.sol";
 import { AerodromeFactoryMock } from "../../../utils/mocks/Aerodrome/AerodromeFactoryMock.sol";
-import { AerodromePoolExtension } from "../../../utils/Extensions.sol";
 import { FullMath } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
 import { PoolFactory } from "../../../utils/fixtures/aerodrome/AeroPoolFactoryFixture.f.sol";
 import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
@@ -50,7 +49,7 @@ abstract contract AerodromeVolatileAM_Fuzz_Test is Fuzz_Test {
 
     AerodromeVolatileAMExtension internal aeroVolatileAM;
     AerodromeFactoryMock internal aeroFactoryMock;
-    AerodromePoolExtension internal aeroPoolMock;
+    Pool internal aeroPoolMock;
     PoolFactory internal poolFactory;
     Pool internal pool;
     Pool internal implementation;
@@ -64,7 +63,7 @@ abstract contract AerodromeVolatileAM_Fuzz_Test is Fuzz_Test {
 
         // Deploy mocked Aerodrome contracts
         aeroFactoryMock = new AerodromeFactoryMock();
-        aeroPoolMock = new AerodromePoolExtension();
+        aeroPoolMock = new Pool();
 
         // Deploy the Aerodrome AssetModule.
         vm.startPrank(users.creatorAddress);

@@ -79,7 +79,6 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
         vm.assume(fuzzedAddress != address(aerodromeStableAM));
         vm.assume(fuzzedAddress != address(asset0));
         vm.assume(fuzzedAddress != address(asset1));
-        vm.assume(fuzzedAddress != address(pool));
         vm.assume(fuzzedAddress != address(implementation));
         vm.assume(fuzzedAddress != address(poolFactory));
         vm.assume(fuzzedAddress != address(wrappedAerodromeAM));
@@ -87,8 +86,7 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
     }
 
     function deployAerodromePoolFixture(address token0, address token1, bool stable) public {
-        address newPool = poolFactory.createPool(token0, token1, stable);
-        pool = Pool(newPool);
+        pool = Pool(poolFactory.createPool(token0, token1, stable));
 
         if (stable == true) {
             aerodromeStableAM.addAsset(address(pool));
@@ -178,5 +176,20 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
         positionState.fee1 = uint128(bound(positionState.fee1, 0, type(uint128).max - deltaFee1));
 
         return (poolState, positionState, fee0, fee1);
+    }
+
+    function setAMState(
+        Pool pool_,
+        uint256 positionId,
+        WrappedAerodromeAM.PoolState memory poolState,
+        WrappedAerodromeAM.PositionState memory positionState
+    ) public {
+        wrappedAerodromeAM.setPoolState(address(pool_), poolState);
+        positionState.pool = address(pool_);
+        wrappedAerodromeAM.setPositionState(positionId, positionState);
+        deal(address(pool_), address(wrappedAerodromeAM), poolState.totalWrapped, true);
+
+        (address token0, address token1) = pool_.tokens();
+        wrappedAerodromeAM.setTokens(address(pool_), token0, token1);
     }
 }

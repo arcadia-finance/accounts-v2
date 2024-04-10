@@ -33,7 +33,6 @@ import { AerodromeVolatileAM } from "../../src/asset-modules/Aerodrome-Finance/A
 import { AerodromeStableAM } from "../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
 import { IEStakedAerodromeAM } from "../../src/asset-modules/Aerodrome-Finance/IEStakedAerodromeAM.sol";
 import { DEStakedAerodromeAM } from "../../src/asset-modules/Aerodrome-Finance/DEStakedAerodromeAM.sol";
-import { Pool } from "./fixtures/aerodrome/AeroPoolFixture.f.sol";
 import { Gauge } from "./fixtures/aerodrome/AeroGaugeFixture.f.sol";
 
 contract AccountExtension is AccountV1 {
@@ -778,25 +777,6 @@ contract StakedStargateAMExtension is StakedStargateAM {
     ) public view returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
         (valueInUsd, collateralFactor, liquidationFactor) =
             _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
-    }
-}
-
-contract AerodromePoolExtension is Pool {
-    constructor() { }
-
-    function setTokens(address token0_, address token1_) public {
-        token0 = token0_;
-        token1 = token1_;
-    }
-
-    function setReserves(uint256 reserve0_, uint256 reserve1_) public {
-        reserve0 = reserve0_;
-        reserve1 = reserve1_;
-        blockTimestampLast = block.timestamp;
-    }
-
-    function setStable(bool isStable) public {
-        stable = isStable;
     }
 }
 

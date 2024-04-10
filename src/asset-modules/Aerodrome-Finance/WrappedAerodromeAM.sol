@@ -75,7 +75,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
 
     event LiquidityDecreased(uint256 indexed positionId, address indexed pool, uint128 amount);
     event LiquidityIncreased(uint256 indexed positionId, address indexed pool, uint128 amount);
-    event RewardPaid(uint256 indexed positionId, uint128 fee0, uint128 fee1);
+    event FeesPaid(uint256 indexed positionId, uint128 fee0, uint128 fee1);
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -384,7 +384,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         // Calculate the new fee balances.
         (poolState_, positionState_) = _getFeeBalances(poolState_, positionState_, fee0Global, fee1Global);
 
-        // Calculate the new wrapped amounts.
+        // Calculate the new wrapped amounts, reverts if balance is too low.
         poolState_.totalWrapped = poolState_.totalWrapped - amount;
         positionState_.amountWrapped = positionState_.amountWrapped - amount;
 
@@ -407,7 +407,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         // Pay out the fees to the position owner.
         ERC20(token0[pool]).safeTransfer(msg.sender, fee0Position);
         ERC20(token1[pool]).safeTransfer(msg.sender, fee1Position);
-        emit RewardPaid(positionId, uint128(fee0Position), uint128(fee0Position));
+        emit FeesPaid(positionId, uint128(fee0Position), uint128(fee1Position));
 
         // Transfer the liquidity back to the position owner.
         ERC20(pool).safeTransfer(msg.sender, amount);
@@ -448,7 +448,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         // Pay out the fees to the position owner.
         ERC20(token0[pool]).safeTransfer(msg.sender, fee0Position);
         ERC20(token1[pool]).safeTransfer(msg.sender, fee1Position);
-        emit RewardPaid(positionId, uint128(fee0Position), uint128(fee0Position));
+        emit FeesPaid(positionId, uint128(fee0Position), uint128(fee1Position));
     }
 
     /**
@@ -482,21 +482,15 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
      * @return fee1 The amount of fees of token1 that can be claimed by this contract.
      */
     function _getCurrentFees(address pool) internal view returns (uint256 fee0, uint256 fee1) {
-        // Cache storage variables from pool contract.
-        // Unfortunately Aerodrome does not have a view function to get pending fees.
-        uint256 index0 = IAeroPool(pool).index0();
-        uint256 index1 = IAeroPool(pool).index1();
-        uint256 supplyIndex0 = IAeroPool(pool).supplyIndex0(address(this));
-        uint256 supplyIndex1 = IAeroPool(pool).supplyIndex1(address(this));
-        uint256 claimable0 = IAeroPool(pool).claimable0(address(this));
-        uint256 claimable1 = IAeroPool(pool).claimable1(address(this));
-
         // Cache totalWrapped.
         uint256 totalWrapped_ = poolState[pool].totalWrapped;
 
         if (totalWrapped_ > 0) {
-            fee0 = claimable0 + totalWrapped_.mulDivDown(index0 - supplyIndex0, 1e18);
-            fee1 = claimable1 + totalWrapped_.mulDivDown(index1 - supplyIndex1, 1e18);
+            // Unfortunately Aerodrome does not have a view function to get pending fees.
+            fee0 = IAeroPool(pool).claimable0(address(this))
+                + totalWrapped_.mulDivDown(IAeroPool(pool).index0() - IAeroPool(pool).supplyIndex0(address(this)), 1e18);
+            fee1 = IAeroPool(pool).claimable1(address(this))
+                + totalWrapped_.mulDivDown(IAeroPool(pool).index1() - IAeroPool(pool).supplyIndex1(address(this)), 1e18);
         }
     }
 
@@ -516,8 +510,8 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         PoolState memory poolState_ = poolState[positionState_.pool];
 
         // Calculate the new fee balances.
-        (uint256 fee0Global, uint256 fee1Global) = _getCurrentFees(positionState_.pool);
-        (, positionState_) = _getFeeBalances(poolState_, positionState_, fee0Global, fee1Global);
+        (uint256 fee0Pool, uint256 fee1Pool) = _getCurrentFees(positionState_.pool);
+        (, positionState_) = _getFeeBalances(poolState_, positionState_, fee0Pool, fee1Pool);
 
         fee0Position = positionState_.fee0;
         fee1Position = positionState_.fee1;

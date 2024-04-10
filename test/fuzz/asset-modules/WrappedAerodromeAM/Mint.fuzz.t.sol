@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
 
-import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
 import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
@@ -40,6 +40,8 @@ contract Mint_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
 
         // Given : Valid pool
         pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
+        vm.assume(account != address(pool));
+        vm.assume(account != pool.poolFees());
 
         // When : Calling Stake
         // Then : The function should revert as the asset has not been added to the Staking Module.
@@ -48,146 +50,150 @@ contract Mint_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
         wrappedAerodromeAM.mint(address(pool), amount);
     }
 
-    // function testFuzz_Success_mint_TotalStakedForAssetGreaterThan0(
-    //     uint8 assetDecimals,
-    //     StakingAMStateForAsset memory poolState,
-    //     uint128 amount,
-    //     address account
-    // ) public notTestContracts(account) {
-    //     vm.assume(account != address(0));
-    //     vm.assume(account != address(wrappedAerodromeAM));
-    //     vm.assume(account != address(rewardToken));
+    function testFuzz_Success_mint_TotalWrappedGreaterThan0(
+        bool stable,
+        WrappedAerodromeAM.PoolState memory poolState,
+        address account,
+        uint256 fee0,
+        uint256 fee1,
+        uint128 amount
+    ) public notTestContracts(account) notTestContracts2(account) {
+        // Given : Valid pool
+        pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
+        vm.assume(account != address(pool));
+        vm.assume(account != pool.poolFees());
 
-    //     address asset;
-    //     {
-    //         // Given: An Asset is added to the wrappedAerodromeAM.
-    //         asset = addAsset(assetDecimals);
-    //         vm.assume(account != asset);
+        // And: Valid state.
+        WrappedAerodromeAM.PositionState memory positionState;
+        (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
 
-    //         // And: Valid state.
-    //         StakingAM.PositionState memory positionState;
-    //         (poolState, positionState) = givenValidStakingAMState(poolState, positionState);
+        // And: Amount staked is greater than zero.
+        vm.assume(poolState.totalWrapped < type(uint128).max);
+        amount = uint128(bound(amount, 1, type(uint128).max - poolState.totalWrapped));
 
-    //         // And: State is persisted.
-    //         setStakingAMState(poolState, positionState, asset, 0);
+        // And: State is persisted.
+        setAMState(pool, 0, poolState, positionState);
+        pool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
+        deal(address(pool), account, amount, true);
+        deal(pool.token0(), pool.poolFees(), fee0, true);
+        deal(pool.token1(), pool.poolFees(), fee1, true);
 
-    //         // And: updated totalStake should not be greater than uint128.
-    //         // And: Amount staked is greater than zero.
-    //         vm.assume(poolState.totalStaked < type(uint128).max);
-    //         amount = uint128(bound(amount, 1, type(uint128).max - poolState.totalStaked));
+        // When:  A user is staking via the Staking Module.
+        vm.startPrank(account);
+        pool.approve(address(wrappedAerodromeAM), amount);
+        vm.expectEmit();
+        emit WrappedAerodromeAM.LiquidityIncreased(1, address(pool), amount);
+        uint256 positionId = wrappedAerodromeAM.mint(address(pool), amount);
 
-    //         address[] memory tokens = new address[](1);
-    //         tokens[0] = asset;
+        // Then: Assets should have been transferred to the Staking Module.
+        assertEq(pool.balanceOf(address(wrappedAerodromeAM)), poolState.totalWrapped + amount);
+        assertEq(ERC20(pool.token0()).balanceOf(address(wrappedAerodromeAM)), fee0);
+        assertEq(ERC20(pool.token1()).balanceOf(address(wrappedAerodromeAM)), fee1);
 
-    //         uint256[] memory amounts = new uint256[](1);
-    //         amounts[0] = amount;
+        // And: New position has been minted to Account.
+        assertEq(wrappedAerodromeAM.ownerOf(positionId), account);
 
-    //         mintERC20TokensTo(tokens, account, amounts);
-    //         approveERC20TokensFor(tokens, address(wrappedAerodromeAM), amounts, account);
-    //     }
+        // And: Position state should be updated correctly.
+        WrappedAerodromeAM.PositionState memory positionState_;
+        (
+            positionState_.fee0PerLiquidity,
+            positionState_.fee1PerLiquidity,
+            positionState_.fee0,
+            positionState_.fee1,
+            positionState_.amountWrapped,
+            positionState_.pool
+        ) = wrappedAerodromeAM.positionState(positionId);
 
-    //     // When:  A user is staking via the Staking Module.
-    //     vm.startPrank(account);
-    //     vm.expectEmit();
-    //     emit StakingAM.LiquidityIncreased(1, asset, amount);
-    //     uint256 positionId = wrappedAerodromeAM.mint(asset, amount);
+        uint128 fee0PerLiquidity;
+        uint128 fee1PerLiquidity;
+        unchecked {
+            fee0PerLiquidity = poolState.fee0PerLiquidity + uint128(fee0.mulDivDown(1e18, poolState.totalWrapped));
+            fee1PerLiquidity = poolState.fee1PerLiquidity + uint128(fee1.mulDivDown(1e18, poolState.totalWrapped));
+        }
+        assertEq(positionState_.fee0PerLiquidity, fee0PerLiquidity);
+        assertEq(positionState_.fee1PerLiquidity, fee1PerLiquidity);
+        assertEq(positionState_.fee0, 0);
+        assertEq(positionState_.fee1, 0);
+        assertEq(positionState_.amountWrapped, amount);
+        assertEq(positionState_.pool, address(pool));
 
-    //     // Then: Assets should have been transferred to the Staking Module.
-    //     assertEq(ERC20Mock(asset).balanceOf(address(wrappedAerodromeAM)), amount);
+        // And: Asset state should be updated correctly.
+        WrappedAerodromeAM.PoolState memory poolState_;
+        (poolState_.fee0PerLiquidity, poolState_.fee1PerLiquidity, poolState_.totalWrapped) =
+            wrappedAerodromeAM.poolState(address(pool));
 
-    //     // And: New position has been minted to Account.
-    //     assertEq(wrappedAerodromeAM.ownerOf(positionId), account);
+        assertEq(poolState_.fee0PerLiquidity, fee0PerLiquidity);
+        assertEq(poolState_.fee1PerLiquidity, fee1PerLiquidity);
+        assertEq(poolState_.totalWrapped, poolState.totalWrapped + amount);
+    }
 
-    //     // And: Position state should be updated correctly.
-    //     StakingAM.PositionState memory newPositionState;
-    //     (
-    //         newPositionState.asset,
-    //         newPositionState.amountStaked,
-    //         newPositionState.lastRewardPerTokenPosition,
-    //         newPositionState.lastRewardPosition
-    //     ) = wrappedAerodromeAM.positionState(positionId);
-    //     assertEq(newPositionState.asset, asset);
-    //     assertEq(newPositionState.amountStaked, amount);
-    //     uint128 currentRewardPerToken;
-    //     unchecked {
-    //         currentRewardPerToken = poolState.lastRewardPerTokenGlobal
-    //             + uint128(poolState.currentRewardGlobal.mulDivDown(1e18, poolState.totalStaked));
-    //     }
-    //     assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
-    //     assertEq(newPositionState.lastRewardPosition, 0);
+    function testFuzz_Success_mint_TotalWrappedIsZero(
+        bool stable,
+        WrappedAerodromeAM.PoolState memory poolState,
+        address account,
+        uint256 fee0,
+        uint256 fee1,
+        uint128 amount
+    ) public notTestContracts(account) notTestContracts2(account) {
+        // Given : Valid pool
+        pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
+        vm.assume(account != address(pool));
+        vm.assume(account != pool.poolFees());
 
-    //     // And: Asset state should be updated correctly.
-    //     StakingAM.PoolState memory newPoolState;
-    //     (newPoolState.lastRewardPerTokenGlobal, newPoolState.totalStaked,) = wrappedAerodromeAM.poolState(asset);
-    //     assertEq(newPoolState.lastRewardPerTokenGlobal, currentRewardPerToken);
-    //     assertEq(newPoolState.totalStaked, poolState.totalStaked + amount);
-    // }
+        // And: Valid state.
+        WrappedAerodromeAM.PositionState memory positionState;
+        (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
 
-    // function testFuzz_Success_mint_TotalStakedForAssetIsZero(
-    //     uint8 assetDecimals,
-    //     StakingAMStateForAsset memory poolState,
-    //     uint128 amount,
-    //     address account
-    // ) public notTestContracts(account) {
-    //     vm.assume(account != address(0));
-    //     vm.assume(account != address(wrappedAerodromeAM));
-    //     vm.assume(account != address(rewardToken));
+        // And: TotalStaked is 0.
+        poolState.totalWrapped = 0;
 
-    //     // Given: An Asset is added to the wrappedAerodromeAM.
-    //     address asset = addAsset(assetDecimals);
-    //     vm.assume(account != asset);
+        // And: Amount staked is greater than zero.
+        amount = uint128(bound(amount, 1, type(uint128).max));
 
-    //     // And: Valid state.
-    //     StakingAM.PositionState memory positionState;
-    //     (poolState, positionState) = givenValidStakingAMState(poolState, positionState);
+        // And: State is persisted.
+        setAMState(pool, 0, poolState, positionState);
+        pool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
+        deal(address(pool), account, amount, true);
+        deal(pool.token0(), pool.poolFees(), fee0, true);
+        deal(pool.token1(), pool.poolFees(), fee1, true);
 
-    //     // And: TotalStaked is 0.
-    //     poolState.totalStaked = 0;
+        // When:  A user is staking via the Staking Module.
+        vm.startPrank(account);
+        pool.approve(address(wrappedAerodromeAM), amount);
+        vm.expectEmit();
+        emit WrappedAerodromeAM.LiquidityIncreased(1, address(pool), amount);
+        uint256 positionId = wrappedAerodromeAM.mint(address(pool), amount);
 
-    //     // And: State is persisted.
-    //     setStakingAMState(poolState, positionState, asset, 0);
+        // Then: Assets should have been transferred to the Staking Module.
+        assertEq(pool.balanceOf(address(wrappedAerodromeAM)), poolState.totalWrapped + amount);
 
-    //     // And: Amount staked is greater than zero.
-    //     amount = uint128(bound(amount, 1, type(uint128).max));
+        // And: New position has been minted to Account.
+        assertEq(wrappedAerodromeAM.ownerOf(positionId), account);
 
-    //     address[] memory tokens = new address[](1);
-    //     tokens[0] = asset;
+        // And: Position state should be updated correctly.
+        WrappedAerodromeAM.PositionState memory positionState_;
+        (
+            positionState_.fee0PerLiquidity,
+            positionState_.fee1PerLiquidity,
+            positionState_.fee0,
+            positionState_.fee1,
+            positionState_.amountWrapped,
+            positionState_.pool
+        ) = wrappedAerodromeAM.positionState(positionId);
+        assertEq(positionState_.fee0PerLiquidity, poolState.fee0PerLiquidity);
+        assertEq(positionState_.fee1PerLiquidity, poolState.fee1PerLiquidity);
+        assertEq(positionState_.fee0, 0);
+        assertEq(positionState_.fee1, 0);
+        assertEq(positionState_.amountWrapped, amount);
+        assertEq(positionState_.pool, address(pool));
 
-    //     uint256[] memory amounts = new uint256[](1);
-    //     amounts[0] = amount;
+        // And: Asset state should be updated correctly.
+        WrappedAerodromeAM.PoolState memory poolState_;
+        (poolState_.fee0PerLiquidity, poolState_.fee1PerLiquidity, poolState_.totalWrapped) =
+            wrappedAerodromeAM.poolState(address(pool));
 
-    //     mintERC20TokensTo(tokens, account, amounts);
-    //     approveERC20TokensFor(tokens, address(wrappedAerodromeAM), amounts, account);
-
-    //     // When:  A user is staking via the Staking Module.
-    //     vm.startPrank(account);
-    //     vm.expectEmit();
-    //     emit StakingAM.LiquidityIncreased(1, asset, amount);
-    //     uint256 positionId = wrappedAerodromeAM.mint(asset, amount);
-
-    //     // Then: Assets should have been transferred to the Staking Module.
-    //     assertEq(ERC20Mock(asset).balanceOf(address(wrappedAerodromeAM)), amount);
-
-    //     // And: New position has been minted to Account.
-    //     assertEq(wrappedAerodromeAM.ownerOf(positionId), account);
-
-    //     // And: Position state should be updated correctly.
-    //     StakingAM.PositionState memory newPositionState;
-    //     (
-    //         newPositionState.asset,
-    //         newPositionState.amountStaked,
-    //         newPositionState.lastRewardPerTokenPosition,
-    //         newPositionState.lastRewardPosition
-    //     ) = wrappedAerodromeAM.positionState(positionId);
-    //     assertEq(newPositionState.asset, asset);
-    //     assertEq(newPositionState.amountStaked, amount);
-    //     assertEq(newPositionState.lastRewardPerTokenPosition, poolState.lastRewardPerTokenGlobal);
-    //     assertEq(newPositionState.lastRewardPosition, 0);
-
-    //     // And: Asset state should be updated correctly.
-    //     StakingAM.PoolState memory newPoolState;
-    //     (newPoolState.lastRewardPerTokenGlobal, newPoolState.totalStaked,) = wrappedAerodromeAM.poolState(asset);
-    //     assertEq(newPoolState.lastRewardPerTokenGlobal, poolState.lastRewardPerTokenGlobal);
-    //     assertEq(newPoolState.totalStaked, amount);
-    // }
+        assertEq(poolState_.fee0PerLiquidity, poolState.fee0PerLiquidity);
+        assertEq(poolState_.fee1PerLiquidity, poolState.fee1PerLiquidity);
+        assertEq(poolState_.totalWrapped, poolState.totalWrapped + amount);
+    }
 }
