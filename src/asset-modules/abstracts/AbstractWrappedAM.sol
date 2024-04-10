@@ -305,6 +305,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     function mint(address customAsset, uint128 amount) external virtual nonReentrant returns (uint256 positionId) {
         if (amount == 0) revert ZeroAmount();
 
+        // Cache struct
         AssetAndRewards memory customAssetInfo_ = customAssetInfo[customAsset];
 
         // Need to transfer before minting or ERC777s could reenter.
@@ -316,12 +317,18 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
             positionId = ++lastPositionId;
         }
 
-        // TODO: see if a transfer of tokens could trigger a claim but shouldn't be the case
-
         // Calculate the new wrapped amounts and set positionState
-        assetToTotalWrapped[customAssetInfo_.asset] += amount;
+        assetToTotalWrapped[customAssetInfo_.asset] = assetToTotalWrapped[customAssetInfo_.asset] + amount;
         positionState[positionId].amountWrapped = amount;
         positionState[positionId].customAsset = customAsset;
+
+        // Set lastRewardPerPosition for each reward
+        (uint256[] memory lastRewardPerTokenGlobalArr,, address[] memory activeRewards) = _getRewardBalances(positionId);
+
+        for (uint256 i; i < activeRewards.length; ++i) {
+            rewardStatePosition[positionId][activeRewards[i]].lastRewardPerTokenPosition =
+                lastRewardPerTokenGlobalArr[i];
+        }
 
         // Mint the new position.
         _safeMint(msg.sender, positionId);
@@ -338,27 +345,23 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         if (amount == 0) revert ZeroAmount();
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
-        // Cache the old positionState and assetState.
-        PositionState memory positionState_ = positionState[positionId];
-        address asset = positionState_.asset;
-        AssetState memory assetState_ = assetState[asset];
+        // Cache asset
+        address asset = customAssetInfo[positionState[positionId].customAsset].asset;
 
         // Need to transfer before increasing liquidity or ERC777s could reenter.
         ERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
 
-        // Calculate the new reward balances.
-        (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
+        // Update rewardState for position (lastRewardPerTokenPosition + lastRewardPosition)
+        (, RewardStatePosition[] memory rewardStatePositionArr, address[] memory activeRewards) =
+            _getRewardBalances(positionId);
 
-        // Calculate the new staked amounts.
-        assetState_.totalStaked = assetState_.totalStaked + amount;
-        positionState_.amountStaked = positionState_.amountStaked + amount;
+        for (uint256 i; activeRewards.lenght; ++i) {
+            rewardStatePosition[positionId][activeRewards[i]] = rewardStatePositionArr[i];
+        }
 
-        // Store the new positionState and assetState.
-        positionState[positionId] = positionState_;
-        assetState[asset] = assetState_;
-
-        // Stake Asset in external staking contract and claim any pending rewards.
-        _stakeAndClaim(asset, amount);
+        // Calculate the updated wrapped amounts.
+        positionState[positionId].amountWrapped = positionState[positionId].amountWrapped + amount;
+        assetToTotalWrapped[asset] = assetToTotalWrapped[asset] + amount;
 
         emit LiquidityIncreased(positionId, asset, amount);
     }
@@ -367,8 +370,30 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
      * @notice Unstakes, withdraws and claims rewards for total amount staked of Asset in position.
      * @param positionId The id of the position to burn.
      */
-    function burn(uint256 positionId) external virtual {
-        decreaseLiquidity(positionId, positionState[positionId].amountStaked);
+    function burn(uint256 positionId) public virtual returns (uint256[] memory rewards) {
+        if (_ownerOf[positionId] != msg.sender) revert NotOwner();
+
+        // Cache position amount
+        uint256 positionAmount = positionState[positionId].amountWrapped;
+
+        // Claim rewards before burning the position
+        (rewards) = claimRewards(positionId);
+
+        // Cache values.
+        address asset = customAssetInfo[positionState[positionId].customAsset].asset;
+        address[] memory activeRewards = activeRewardsForAsset[asset];
+
+        // Delete mappings
+        delete positionState[positionId];
+        for (uint256 i; i < activeRewards.length; ++i) {
+            delete rewardStatePosition[positionId][activeRewards[i]];
+        }
+
+        _burn(positionId);
+
+        // Transfer the asset back to the position owner.
+        ERC20(asset).safeTransfer(msg.sender, positionAmount);
+        emit LiquidityDecreased(positionId, asset, positionAmount);
     }
 
     /**
@@ -387,45 +412,29 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         if (amount == 0) revert ZeroAmount();
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
-        // Cache the old positionState and assetState.
-        PositionState memory positionState_ = positionState[positionId];
-        address asset = positionState_.asset;
-        AssetState memory assetState_ = assetState[asset];
-
-        // Calculate the new reward balances.
-        (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
-
-        // Calculate the new staked amounts.
-        assetState_.totalStaked = assetState_.totalStaked - amount;
-        positionState_.amountStaked = positionState_.amountStaked - amount;
-
-        // Rewards are paid out to the owner on a decreaseLiquidity.
-        // -> Reset the balances of the pending rewards.
-        rewards = positionState_.lastRewardPosition;
-        positionState_.lastRewardPosition = 0;
-
-        // Store the new positionState and assetState.
-        if (positionState_.amountStaked > 0) {
-            positionState[positionId] = positionState_;
+        if (positionState[positionId].amountWrapped == amount) {
+            rewards = burn(positionId);
         } else {
-            delete positionState[positionId];
-            _burn(positionId);
+            // Cache asset.
+            address asset = customAssetInfo[positionState[positionId].customAsset].asset;
+
+            // Calculate the new reward balances.
+            (, RewardStatePosition[] memory rewardStatePositionArr, address[] memory activeRewards) =
+                _getRewardBalances(positionId);
+
+            // Update the reward state
+            for (uint256 i; activeRewards.lenght; ++i) {
+                rewardStatePosition[positionId][activeRewards[i]] = rewardStatePositionArr[i];
+            }
+
+            // Calculate the updated wrapped amounts.
+            positionState[positionId].amountWrapped = positionState[positionId].amountWrapped - amount;
+            assetToTotalWrapped[asset] = assetToTotalWrapped[asset] - amount;
+
+            // Transfer the asset back to the position owner.
+            ERC20(asset).safeTransfer(msg.sender, amount);
+            emit LiquidityDecreased(positionId, asset, amount);
         }
-        assetState[asset] = assetState_;
-
-        // Withdraw the Assets from external staking contract and claim any pending rewards.
-        _withdrawAndClaim(asset, amount);
-
-        // Pay out the rewards to the position owner.
-        if (rewards > 0) {
-            // Transfer reward
-            REWARD_TOKEN.safeTransfer(msg.sender, rewards);
-            emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
-        }
-
-        // Transfer the asset back to the position owner.
-        ERC20(asset).safeTransfer(msg.sender, amount);
-        emit LiquidityDecreased(positionId, asset, amount);
     }
 
     /**
@@ -433,11 +442,18 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param positionId The id of the position.
      * @return rewards The amount of reward tokens claimed.
      */
-    function claimRewards(uint256 positionId) external virtual nonReentrant returns (uint256[] memory rewards) {
+    function claimRewards(uint256 positionId) public virtual nonReentrant returns (uint256[] memory rewards) {
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
+        // Cache asset
+        address asset = customAssetInfo[positionState[positionId].customAsset].asset;
+
         // Calculate the new reward balances.
-        (uint256[] memory lastRewardPerTokenGlobalArr, RewardStatePosition[] memory rewardStatePositionArr, address[] memory activeRewards_) = _getRewardBalances(positionId);
+        (
+            uint256[] memory lastRewardPerTokenGlobalArr,
+            RewardStatePosition[] memory rewardStatePositionArr,
+            address[] memory activeRewards_
+        ) = _getRewardBalances(positionId);
 
         rewards = new uint256[](activeRewards_.length);
         // Store the new rewardState and lastRewardPerTokenGlobal
@@ -446,51 +462,28 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
             // Rewards are paid out to the owner on a claimReward.
             rewardStatePositionArr[i].lastRewardPosiion = 0;
             // Store the new rewardStatePosition
-            rewardStatePosition[positionId][assetAndRewards.rewards[i]] = rewardStatePositionArr[i];
+            rewardStatePosition[positionId][activeRewards_[i]] = rewardStatePositionArr[i];
             // Store the new value of lastRewardPerTokenGlobal
-            lastRewardPerTokenGlobal[assetAndReward.asset][assetAndReward.rewards[i]] = lastRewardPerTokenGlobalArr[i];
+            lastRewardPerTokenGlobal[asset][activeRewards_[i]] = lastRewardPerTokenGlobalArr[i];
         }
 
         // Claim the pending rewards from the external contract.
         // TODO : double check
-        _claimRewards(asset, activeRewards);
+        _claimRewards(asset, activeRewards_);
 
         // Pay out the share of the reward owed to the position owner.
-        for (uint256 i = 0; i < activeRewards.length; ++i) {
+        for (uint256 i = 0; i < activeRewards_.length; ++i) {
             if (rewards[i] > 0) {
                 // Transfer reward
                 ERC20(activeRewards_[i]).safeTransfer(msg.sender, rewards[i]);
-                emit RewardPaid(positionId, activeRewards[i], uint128(rewards[i]));
+                emit RewardPaid(positionId, activeRewards_[i], uint128(rewards[i]));
             }
         }
-    }
-
-    /**
-     * @notice Returns the total amount of Asset staked via this contract.
-     * @param asset The Asset staked via this contract.
-     * @return totalStaked_ The total amount of Asset staked via this contract.
-     */
-    function totalStaked(address asset) external view returns (uint256 totalStaked_) {
-        return assetState[asset].totalStaked;
     }
 
     /*///////////////////////////////////////////////////////////////
                     INTERACTIONS STAKING CONTRACT
     ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Stakes an amount of Asset in the external staking contract and claims pending rewards.
-     * @param asset The Asset to stake.
-     * @param amount The amount of Asset to stake.
-     */
-    function _stakeAndClaim(address asset, uint256 amount) internal virtual;
-
-    /**
-     * @notice Unstakes and withdraws the Asset from the external contract and claims pending rewards.
-     * @param asset The Asset to withdraw.
-     * @param amount The amount of Asset to unstake and withdraw.
-     */
-    function _withdrawAndClaim(address asset, uint256 amount) internal virtual;
 
     /**
      * @notice Claims the rewards available for this contract.
@@ -502,10 +495,14 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     /**
      * @notice Returns the amount of reward tokens that can be claimed for a specific Asset by this contract.
      * @param asset The Asset that is earning rewards.
-     * @param reward The reward earned by the Asset.
-     * @return currentReward The amount of rewards tokens that can be claimed.
+     * @param rewards The reward earned by the Asset.
+     * @return currentRewards The amount of rewards tokens that can be claimed.
      */
-    function _getCurrentReward(address asset, address reward) internal view virtual returns (uint256 currentReward);
+    function _getCurrentRewards(address asset, address[] memory rewards)
+        internal
+        view
+        virtual
+        returns (uint256[] memory currentRewards);
 
     /*///////////////////////////////////////////////////////////////
                          REWARDS VIEW FUNCTIONS
@@ -528,12 +525,18 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     /**
      * @notice Calculates the current global and position specific reward balances.
      * @param positionId .
-     * @return rewardBalances .
+     * @return lastRewardPerTokenGlobalArr .
+     * @return .
+     * @return activeRewards_ .
      */
     function _getRewardBalances(uint256 positionId)
         internal
         view
-        returns (uint256[] memory lastRewardPerTokenGlobalArr, RewardStatePosition[] memory, address[] memory activeRewards_)
+        returns (
+            uint256[] memory lastRewardPerTokenGlobalArr,
+            RewardStatePosition[] memory,
+            address[] memory activeRewards_
+        )
     {
         address asset = customAssetInfo[positionState[positionId].customAsset].asset;
 
@@ -552,51 +555,51 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         }
 
         lastRewardPerTokenGlobalArr = new uint256[](numberOfActiveRewards);
+        uint256[] memory currentRewardsClaimable = _getCurrentRewards(asset, activeRewards_);
 
         if (totalWrapped > 0) {
             for (uint256 i; i < numberOfActiveRewards; ++i) {
                 // Calculate the new assetState
                 // Fetch the current reward balance from the staking contract and calculate the change in RewardPerToken.
-                uint256 deltaRewardPerToken =
-                    _getCurrentReward(asset, activeRewards[i]).mulDivDown(1e18, totalWrapped);
+                uint256 deltaRewardPerToken = currentRewardsClaimable[i].mulDivDown(1e18, totalWrapped);
                 // Calculate and update the new RewardPerToken of the asset.
                 // unchecked: RewardPerToken can overflow, what matters is the delta in RewardPerToken between two interactions.
                 unchecked {
                     lastRewardPerTokenGlobalArr[i] =
-                        lastRewardPerTokenGlobal[asset][activeRewards[i]] + deltaRewardPerToken;
+                        lastRewardPerTokenGlobal[asset][activeRewards_[i]] + deltaRewardPerToken;
                 }
 
                 // Calculate the new rewardState for the position.
                 // Calculate the difference in rewardPerToken since the last position interaction.
                 // unchecked: RewardPerToken can underflow, what matters is the delta in RewardPerToken between two interactions.
                 // If lastRewardPerTokenPosition == 0, it means a new reward token has been added, no rewards should be added.
-                if (rewardStatePosition_[i].lastRewardPerTokenPosition == 0) {
+                if (rewardStatePositionArr[i].lastRewardPerTokenPosition == 0) {
                     continue;
                 } else {
                     unchecked {
                         deltaRewardPerToken =
-                            lastRewardPerTokenGlobalArr[i] - rewardStatePosition_[i].lastRewardPerTokenPosition;
+                            lastRewardPerTokenGlobalArr[i] - rewardStatePositionArr[i].lastRewardPerTokenPosition;
                     }
 
                     // Calculate the rewards earned by the position since its last interaction.
                     // TODO: double check here : unchecked: deltaRewardPerToken and positionAmount are smaller than type(uint128).max.
                     uint256 deltaReward;
                     unchecked {
-                        deltaReward = deltaRewardPerToken * positionAmount / 1e18;
+                        deltaReward = deltaRewardPerToken * positionState[positionId].amountWrapped / 1e18;
                     }
                     // Update the reward balance of the position.
-                    rewardStatePosition_[i].lastRewardPosition =
-                        SafeCastLib.safeCastTo128(rewardStatePosition_[i].lastRewardPosition + deltaReward);
+                    rewardStatePositionArr[i].lastRewardPosition =
+                        SafeCastLib.safeCastTo128(rewardStatePositionArr[i].lastRewardPosition + deltaReward);
                 }
             }
         }
 
         // Update the RewardPerToken of the rewards of the position.
         for (uint256 i; i < numberOfActiveRewards; ++i) {
-            rewardStatePosition_[i].lastRewardPerTokenPosition = lastRewardPerTokenGlobalArr[i];
+            rewardStatePositionArr[i].lastRewardPerTokenPosition = lastRewardPerTokenGlobalArr[i];
         }
 
-        return (lastRewardPerTokenGlobalArr, rewardStatePosition_);
+        return (lastRewardPerTokenGlobalArr, rewardStatePositionArr, activeRewards_);
     }
 
     /*///////////////////////////////////////////////////////////////
