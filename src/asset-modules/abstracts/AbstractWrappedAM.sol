@@ -195,17 +195,32 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     {
         (, uint256 positionId) = _getAssetFromKey(assetKey);
 
+        // Cache values
+        address asset = customAssetInfo[positionState[positionId].customAsset].asset;
+        address[] memory activeRewards = activeRewardsForAsset[asset];
         AssetAndRewards memory assetAndRewards = customAssetInfo[positionState[positionId].customAsset];
-
         uint256 numberOfUnderlyingAssets = assetAndRewards.rewards.length + 1;
 
         // Amount of a Staked position in the Asset Module can only be either 0 or 1.
         if (amount == 0) return (new uint256[](numberOfUnderlyingAssets), rateUnderlyingAssetsToUsd);
 
+        uint256[] memory rewardsClaimable = rewardsOf(positionId);
+        uint256[] memory underlyingRewardsAmount = new uint256[](assetAndRewards.rewards.length);
+        for (uint256 i; i < assetAndRewards.rewards.length; ++i) {
+            address underlyingReward = assetAndRewards.rewards[i];
+            for (uint256 j; j < activeRewards.length; ++j) {
+                if (underlyingReward == activeRewards[j]) {
+                    underlyingRewardsAmount[i] = rewardsClaimable[j];
+                }
+            }
+        }
+
         underlyingAssetsAmounts = new uint256[](numberOfUnderlyingAssets);
         underlyingAssetsAmounts[0] = positionState[positionId].amountWrapped;
 
-        underlyingAssetsAmounts[1] = rewardOf(positionId);
+        for (uint256 i = 1; i < numberOfUnderlyingAssets; ++i) {
+            underlyingAssetsAmounts[i] = underlyingRewardsAmount[i - 1];
+        }
 
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }
