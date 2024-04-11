@@ -305,7 +305,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given Creditor, with 4 decimals precision.
      * @return liquidationFactor The liquidation factor of the asset for a given Creditor, with 4 decimals precision.
-     * @dev We take a weighted risk factor of both underlying assets.
+     * @dev We take a weighted risk factor of underlying assets.
      */
     function _calculateValueAndRiskFactors(
         address creditor,
@@ -321,21 +321,23 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         // "rateUnderlyingAssetsToUsd" is the USD value with 18 decimals precision for 10**18 tokens of Underlying Asset.
         // To get the USD value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
         // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
-        uint256 valueStakedAsset = underlyingAssetsAmounts[0].mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, 1e18);
-        uint256 valueRewardAsset = underlyingAssetsAmounts[1].mulDivDown(rateUnderlyingAssetsToUsd[1].assetValue, 1e18);
-        valueInUsd = valueStakedAsset + valueRewardAsset;
+        uint256[] memory assetValues = new uint256[](underlyingAssetsAmounts.length);
+        for (uint256 i; i < underlyingAssetsAmounts.length; ++i) {
+            assetValues[i] += underlyingAssetsAmounts[i].mulDivDown(rateUnderlyingAssetsToUsd[i].assetValue, 1e18);
+
+            valueInUsd += assetValues[i];
+        }
 
         // Calculate weighted risk factors.
         if (valueInUsd > 0) {
             unchecked {
-                collateralFactor = (
-                    valueStakedAsset * rateUnderlyingAssetsToUsd[0].collateralFactor
-                        + valueRewardAsset * rateUnderlyingAssetsToUsd[1].collateralFactor
-                ) / valueInUsd;
-                liquidationFactor = (
-                    valueStakedAsset * rateUnderlyingAssetsToUsd[0].liquidationFactor
-                        + valueRewardAsset * rateUnderlyingAssetsToUsd[1].liquidationFactor
-                ) / valueInUsd;
+                for (uint256 i; i < underlyingAssetsAmounts.length; ++i) {
+                    collateralFactor += assetValues[i] * rateUnderlyingAssetsToUsd[i].collateralFactor;
+
+                    liquidationFactor += assetValues[i] * rateUnderlyingAssetsToUsd[i].liquidationFactor;
+                }
+                collateralFactor /= valueInUsd;
+                liquidationFactor /= valueInUsd;
             }
         }
 
@@ -591,6 +593,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
             address[] memory activeRewards_
         )
     {
+        // Cache asset
         address asset = customAssetInfo[positionState[positionId].customAsset].asset;
 
         // Cache all active rewards for a given asset
