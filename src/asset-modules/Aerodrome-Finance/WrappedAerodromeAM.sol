@@ -293,10 +293,10 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         positionState_.pool = pool;
 
         // Claim any pending fees from the Aerodrome Pool.
-        (uint256 fee0Global, uint256 fee1Global) = _claimFees(pool);
+        (uint256 fee0Pool, uint256 fee1Pool) = _claimFees(pool);
 
         // Calculate the new fee balances.
-        (poolState_, positionState_) = _getFeeBalances(poolState_, positionState_, fee0Global, fee1Global);
+        (poolState_, positionState_) = _getFeeBalances(poolState_, positionState_, fee0Pool, fee1Pool);
 
         // Calculate the new wrapped amounts.
         poolState_.totalWrapped = poolState_.totalWrapped + amount;
@@ -333,10 +333,10 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         ERC20(pool).safeTransferFrom(msg.sender, address(this), amount);
 
         // Claim any pending fees from the Aerodrome Pool.
-        (uint256 fee0Global, uint256 fee1Global) = _claimFees(pool);
+        (uint256 fee0Pool, uint256 fee1Pool) = _claimFees(pool);
 
         // Calculate the new fee balances.
-        (poolState_, positionState_) = _getFeeBalances(poolState_, positionState_, fee0Global, fee1Global);
+        (poolState_, positionState_) = _getFeeBalances(poolState_, positionState_, fee0Pool, fee1Pool);
 
         // Calculate the new wrapped amounts.
         poolState_.totalWrapped = poolState_.totalWrapped + amount;
@@ -382,10 +382,10 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         PoolState memory poolState_ = poolState[pool];
 
         // Claim any pending fees from the Aerodrome Pool.
-        (uint256 fee0Global, uint256 fee1Global) = _claimFees(pool);
+        (uint256 fee0Pool, uint256 fee1Pool) = _claimFees(pool);
 
         // Calculate the new fee balances.
-        (poolState_, positionState_) = _getFeeBalances(poolState_, positionState_, fee0Global, fee1Global);
+        (poolState_, positionState_) = _getFeeBalances(poolState_, positionState_, fee0Pool, fee1Pool);
 
         // Calculate the new wrapped amounts, reverts if balance is too low.
         poolState_.totalWrapped = poolState_.totalWrapped - amount;
@@ -432,10 +432,10 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         PoolState memory poolState_ = poolState[pool];
 
         // Claim any pending fees from the Aerodrome Pool.
-        (uint256 fee0Global, uint256 fee1Global) = _claimFees(pool);
+        (uint256 fee0Pool, uint256 fee1Pool) = _claimFees(pool);
 
         // Calculate the new fee balances.
-        (poolState_, positionState_) = _getFeeBalances(poolState_, positionState_, fee0Global, fee1Global);
+        (poolState_, positionState_) = _getFeeBalances(poolState_, positionState_, fee0Pool, fee1Pool);
 
         // Fees are paid out to the owner on a claimFees.
         // -> Reset the balances of the pending fees.
@@ -452,6 +452,34 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         ERC20(token0[pool]).safeTransfer(msg.sender, fee0Position);
         ERC20(token1[pool]).safeTransfer(msg.sender, fee1Position);
         emit FeesPaid(positionId, uint128(fee0Position), uint128(fee1Position));
+    }
+
+    /**
+     * @notice Skims any surplus pool-tokens to the owner.
+     * @param pool The contract address of the Aerodrome pool.
+     * @dev If pool tokens are transferred without depositing before any position is minted,
+     * the pool can have non zero fees balances while totalWrapped_ is 0.
+     * In this case the fees are not accounted for and will be lost.
+     */
+    function skim(address pool) external onlyOwner nonReentrant {
+        if (token0[pool] == address(0)) revert PoolNotAllowed();
+
+        // Claim any pending fees from the Aerodrome Pool.
+        (uint256 fee0Pool, uint256 fee1Pool) = _claimFees(pool);
+
+        // Cache the poolState.
+        PoolState memory poolState_ = poolState[pool];
+
+        // Calculate the new fee balances.
+        PositionState memory positionState_;
+        (poolState_,) = _getFeeBalances(poolState_, positionState_, fee0Pool, fee1Pool);
+
+        // Store the new poolState.
+        poolState[pool] = poolState_;
+
+        // Transfer excess funds to the owner.
+        uint256 deltaWrapped = ERC20(pool).balanceOf(address(this)) - poolState_.totalWrapped;
+        ERC20(pool).safeTransfer(msg.sender, deltaWrapped);
     }
 
     /**
@@ -472,7 +500,6 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param pool The contract address of the Aerodrome pool to claim the fees for.
      * @return fee0 The amount of fees of token0 claimed.
      * @return fee1 The amount of fees of token1 claimed.
-     * @dev Withdrawing a zero amount will trigger the claim for fees.
      */
     function _claimFees(address pool) internal returns (uint256 fee0, uint256 fee1) {
         (fee0, fee1) = IAeroPool(pool).claimFees();
@@ -483,9 +510,9 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param pool The contract address of the Aerodrome pool to get the current fees for.
      * @return fee0 The amount of fees of token0 that can be claimed by this contract.
      * @return fee1 The amount of fees of token1 that can be claimed by this contract.
-     * @dev In theory, if pool tokens are transferred without depositing,
-     * the pool can have a non zero claimable0 or claimable1 balance while totalWrapped_ is 0.
-     * In this case the claimables are not accounted for and will be lost.
+     * @dev If pool tokens are transferred without depositing before any position is minted,
+     * the pool can have non zero fees balances while totalWrapped_ is 0.
+     * In this case the fees are not accounted for and will be lost.
      */
     function _getCurrentFees(address pool) internal view returns (uint256 fee0, uint256 fee1) {
         // Cache totalWrapped.
@@ -548,24 +575,26 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
                 poolState_.fee1PerLiquidity = poolState_.fee1PerLiquidity + deltaFee1PerLiquidity.safeCastTo128();
             }
 
-            // Calculate the new positionState.
-            // Calculate the difference in feePerLiquidity since the last position interaction.
-            // unchecked: FeePerLiquidity can underflow, what matters is the delta in FeePerLiquidity between two interactions.
-            unchecked {
-                deltaFee0PerLiquidity = poolState_.fee0PerLiquidity - positionState_.fee0PerLiquidity;
-                deltaFee1PerLiquidity = poolState_.fee1PerLiquidity - positionState_.fee1PerLiquidity;
+            if (positionState_.amountWrapped > 0) {
+                // Calculate the new positionState.
+                // Calculate the difference in feePerLiquidity since the last position interaction.
+                // unchecked: FeePerLiquidity can underflow, what matters is the delta in FeePerLiquidity between two interactions.
+                unchecked {
+                    deltaFee0PerLiquidity = poolState_.fee0PerLiquidity - positionState_.fee0PerLiquidity;
+                    deltaFee1PerLiquidity = poolState_.fee1PerLiquidity - positionState_.fee1PerLiquidity;
+                }
+                // Calculate the fees earned by the position since its last interaction.
+                // unchecked: deltaFeePerLiquidity and positionState_.amountWrapped are smaller than type(uint128).max.
+                uint256 deltaFee0;
+                uint256 deltaFee1;
+                unchecked {
+                    deltaFee0 = deltaFee0PerLiquidity * positionState_.amountWrapped / 1e18;
+                    deltaFee1 = deltaFee1PerLiquidity * positionState_.amountWrapped / 1e18;
+                }
+                // Update the fee balance of the position.
+                positionState_.fee0 = (positionState_.fee0 + deltaFee0).safeCastTo128();
+                positionState_.fee1 = (positionState_.fee1 + deltaFee1).safeCastTo128();
             }
-            // Calculate the fees earned by the position since its last interaction.
-            // unchecked: deltaFeePerLiquidity and positionState_.amountWrapped are smaller than type(uint128).max.
-            uint256 deltaFee0;
-            uint256 deltaFee1;
-            unchecked {
-                deltaFee0 = deltaFee0PerLiquidity * positionState_.amountWrapped / 1e18;
-                deltaFee1 = deltaFee1PerLiquidity * positionState_.amountWrapped / 1e18;
-            }
-            // Update the fee balance of the position.
-            positionState_.fee0 = (positionState_.fee0 + deltaFee0).safeCastTo128();
-            positionState_.fee1 = (positionState_.fee1 + deltaFee1).safeCastTo128();
         }
         // Update the FeePerLiquidity of the position.
         positionState_.fee0PerLiquidity = poolState_.fee0PerLiquidity;
