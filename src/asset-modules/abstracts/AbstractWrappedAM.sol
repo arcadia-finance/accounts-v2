@@ -42,6 +42,9 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     // The baseURI of the ERC721 tokens.
     string public baseURI;
 
+    // Max rewards
+    uint256 public maxRewardsPerAsset;
+
     // Map an Asset to its underlying asset
     mapping(address asset => address underlyingAsset) public assetToUnderlyingAsset;
     // Map a position id to its corresponding struct with the position state.
@@ -99,6 +102,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     error AssetNotAllowed();
     error NotOwner();
     error ZeroAmount();
+    error MaxRewardsReached();
 
     /* //////////////////////////////////////////////////////////////
                               CONSTRUCTOR
@@ -134,11 +138,39 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds an asset that can be staked to this contract.
+     * @notice Adds an asset that can be wrapped through this contract.
      * @param customAsset The contract address of the custom Asset.
+     * @param asset_ .
+     * @param rewards_ .
      */
-    function _addAsset(address customAsset) internal {
-        customAssetInfo[customAsset].allowed = true;
+    function _addAsset(address customAsset, address asset_, address[] memory rewards_) internal {
+        customAssetInfo[customAsset] = AssetAndRewards({ allowed: true, asset: asset_, rewards: rewards_ });
+
+        // Cache current rewards tracked for an Asset
+        address[] memory currentRewardsForAsset = rewardsForAsset[asset_];
+
+        // Check for new rewards available for an asset and add those to "rewardsForAsset"
+        if (currentRewardsForAsset.length == 0) {
+            rewardsForAsset[asset_] = rewards_;
+        } else {
+            for (uint256 i; i < rewards_.length; ++i) {
+                bool isNew = true;
+                for (uint256 j; j < currentRewardsForAsset.length; ++j) {
+                    if (rewards_[i] == currentRewardsForAsset[j]) {
+                        isNew = false;
+                    }
+                }
+                if (isNew == true && currentRewardsForAsset.length < maxRewardsPerAsset) {
+                    rewardsForAsset[asset_].push(rewards_[i]);
+                } else if (isNew == true && currentRewardsForAsset.length == maxRewardsPerAsset) {
+                    revert MaxRewardsReached();
+                }
+            }
+        }
+    }
+
+    function setMaxRewardsPerAsset(uint256 maxRewards) external onlyOwner {
+        maxRewardsPerAsset = maxRewards;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -477,9 +509,9 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         rewards = new uint256[](activeRewards_.length);
         // Store the new rewardState and lastRewardPerTokenGlobal
         for (uint256 i; i < activeRewards_.length; ++i) {
-            rewards[i] = rewardStatePositionArr[i].lastRewardPerTokenPosition;
+            rewards[i] = rewardStatePositionArr[i].lastRewardPosition;
             // Rewards are paid out to the owner on a claimReward.
-            rewardStatePositionArr[i].lastRewardPerTokenPosition = 0;
+            rewardStatePositionArr[i].lastRewardPosition = 0;
             // Store the new rewardStatePosition
             rewardStatePosition[positionId][activeRewards_[i]] = rewardStatePositionArr[i];
             // Store the new value of lastRewardPerTokenGlobal
@@ -615,6 +647,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Update the RewardPerToken of the rewards of the position.
         for (uint256 i; i < numberOfActiveRewards; ++i) {
+            // TODO: don't think safeCast is necessary here
             rewardStatePositionArr[i].lastRewardPerTokenPosition =
                 SafeCastLib.safeCastTo128(lastRewardPerTokenGlobalArr[i]);
         }
