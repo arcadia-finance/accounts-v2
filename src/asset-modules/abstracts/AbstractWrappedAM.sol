@@ -144,6 +144,8 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param rewards_ .
      */
     function _addAsset(address customAsset, address asset_, address[] memory rewards_) internal {
+        if (rewards_.length > maxRewardsPerAsset) revert MaxRewardsReached();
+
         customAssetInfo[customAsset] = AssetAndRewards({ allowed: true, asset: asset_, rewards: rewards_ });
 
         // Cache current rewards tracked for an Asset
@@ -151,7 +153,6 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Check for new rewards available for an asset and add those to "rewardsForAsset"
         if (currentRewardsForAsset.length == 0) {
-            if (rewards_.length > maxRewardsPerAsset) revert MaxRewardsReached();
             rewardsForAsset[asset_] = rewards_;
         } else {
             for (uint256 i; i < rewards_.length; ++i) {
