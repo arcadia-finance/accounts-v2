@@ -151,6 +151,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Check for new rewards available for an asset and add those to "rewardsForAsset"
         if (currentRewardsForAsset.length == 0) {
+            if (rewards_.length > maxRewardsPerAsset) revert MaxRewardsReached();
             rewardsForAsset[asset_] = rewards_;
         } else {
             for (uint256 i; i < rewards_.length; ++i) {
