@@ -128,8 +128,8 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
         positionState.amountWrapped = uint128(bound(positionState.amountWrapped, 1, poolState.totalWrapped));
 
         // And: deltaFeesPerLiquidity is smaller or equal as type(uint128).max (no overflow safeCastTo128).
-        fee0 = bound(fee0, 1, uint256(type(uint128).max) * poolState.totalWrapped / 1e18);
-        fee1 = bound(fee1, 1, uint256(type(uint128).max) * poolState.totalWrapped / 1e18);
+        fee0 = bound(fee0, 0, uint256(type(uint128).max) * poolState.totalWrapped / 1e18);
+        fee1 = bound(fee1, 0, uint256(type(uint128).max) * poolState.totalWrapped / 1e18);
 
         // Calculate the new fee0PerLiquidity.
         uint256 deltaFee0PerLiquidity = fee0 * 1e18 / poolState.totalWrapped;

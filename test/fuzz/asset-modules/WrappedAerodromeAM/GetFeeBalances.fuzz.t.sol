@@ -28,7 +28,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_getFeeBalances_NonZeroTotalStaked_OverflowDeltaFee0PerLiquidity_MulDivDown(
+    function testFuzz_Revert_getFeeBalances_NonZeroTotalWrapped_OverflowDeltaFee0PerLiquidity_MulDivDown(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,
@@ -46,7 +46,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
     }
 
-    function testFuzz_Revert_getFeeBalances_NonZeroTotalStaked_OverflowDeltaFee1PerLiquidity_MulDivDown(
+    function testFuzz_Revert_getFeeBalances_NonZeroTotalWrapped_OverflowDeltaFee1PerLiquidity_MulDivDown(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,
@@ -67,7 +67,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
     }
 
-    function testFuzz_Revert_getFeeBalances_NonZeroTotalStaked_OverflowDeltaFee0PerLiquidity_SafeCast(
+    function testFuzz_Revert_getFeeBalances_NonZeroTotalWrapped_OverflowDeltaFee0PerLiquidity_SafeCast(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,
@@ -91,7 +91,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
     }
 
-    function testFuzz_Revert_getFeeBalances_NonZeroTotalStaked_OverflowDeltaFee1PerLiquidity_SafeCast(
+    function testFuzz_Revert_getFeeBalances_NonZeroTotalWrapped_OverflowDeltaFee1PerLiquidity_SafeCast(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,
@@ -115,7 +115,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
     }
 
-    function testFuzz_Revert_getFeeBalances_NonZeroTotalStaked_OverflowDeltaFee0(
+    function testFuzz_Revert_getFeeBalances_NonZeroTotalWrapped_OverflowDeltaFee0(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,
@@ -155,7 +155,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
     }
 
-    function testFuzz_Revert_getFeeBalances_NonZeroTotalStaked_OverflowDeltaFee1(
+    function testFuzz_Revert_getFeeBalances_NonZeroTotalWrapped_OverflowDeltaFee1(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,
@@ -217,7 +217,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
     }
 
-    function testFuzz_Revert_getFeeBalances_NonZeroTotalStaked_OverflowFee0(
+    function testFuzz_Revert_getFeeBalances_NonZeroTotalWrapped_OverflowFee0(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,
@@ -262,7 +262,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
     }
 
-    function testFuzz_Revert_getFeeBalances_NonZeroTotalStaked_OverflowFee1(
+    function testFuzz_Revert_getFeeBalances_NonZeroTotalWrapped_OverflowFee1(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,
@@ -328,7 +328,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
     }
 
-    function testFuzz_Success_getFeeBalances_ZeroTotalStaked(
+    function testFuzz_Success_getFeeBalances_ZeroTotalWrapped(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,
@@ -354,7 +354,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         assertEq(positionState_.pool, positionState.pool);
     }
 
-    function testFuzz_Success_getFeeBalances_NonZeroTotalStaked(
+    function testFuzz_Success_getFeeBalances_NonZeroTotalWrapped(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,

@@ -47,7 +47,7 @@ contract ClaimFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test 
         uint96 positionId,
         WrappedAerodromeAM.PositionState memory positionState,
         WrappedAerodromeAM.PoolState memory poolState
-    ) public {
+    ) public notTestContracts(owner) notTestContracts2(owner) {
         // Given : Owner of positionId is not the randomAddress
         vm.assume(owner != randomAddress);
 
@@ -67,7 +67,7 @@ contract ClaimFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test 
         wrappedAerodromeAM.claimFees(positionId);
     }
 
-    function testFuzz_Success_claimReward(
+    function testFuzz_Success_claimFees(
         bool stable,
         address owner,
         uint96 positionId,
