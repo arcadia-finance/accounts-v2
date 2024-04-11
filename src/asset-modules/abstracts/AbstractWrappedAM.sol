@@ -59,7 +59,6 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     // Map an Asset to total amount wrapped in this Asset Module.
     mapping(address asset => uint256 totalWrapped) public assetToTotalWrapped;
     // Map an Asset to all reward tokens claimable for that asset via this Asset Module.
-    // TODO: when adding an asset always check if have to update rewardsForAsset.
     mapping(address asset => address[] rewards) public rewardsForAsset;
 
     // Struct with the Position specific state.
@@ -140,8 +139,8 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     /**
      * @notice Adds an asset that can be wrapped through this contract.
      * @param customAsset The contract address of the custom Asset.
-     * @param asset_ .
-     * @param rewards_ .
+     * @param asset_ The contract address of the Asset.
+     * @param rewards_ An array with all reward addresses for a specific custom Asset.
      */
     function _addAsset(address customAsset, address asset_, address[] memory rewards_) internal {
         if (rewards_.length > maxRewardsPerAsset) revert MaxRewardsReached();
@@ -171,7 +170,12 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         }
     }
 
+    /**
+     * @notice Sets the max number of rewards that can be accounted for an Asset.
+     * @param maxRewards The new max number of rewards that can be accounted for an Asset.
+     */
     function setMaxRewardsPerAsset(uint256 maxRewards) external onlyOwner {
+        // TODO: immutable max number of rewards ?
         maxRewardsPerAsset = maxRewards;
     }
 
@@ -352,7 +356,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Stakes an amount of Assets in the external staking contract and mints a new position.
+     * @notice Wraps an amount of Assets in this contract and mints a new position.
      * @param customAsset The contract address of the asset to wrap.
      * @param amount The amount of Assets to wrap.
      * @return positionId The id of the minted position.
@@ -392,9 +396,9 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     }
 
     /**
-     * @notice Stakes additional Assets in the external staking contract for an existing position.
+     * @notice Wraps additional Assets for an existing position.
      * @param positionId The id of the position.
-     * @param amount The amount of Assets to stake.
+     * @param amount The amount of Assets to wrap.
      */
     function increaseLiquidity(uint256 positionId, uint128 amount) external virtual nonReentrant {
         if (amount == 0) revert ZeroAmount();
@@ -422,7 +426,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     }
 
     /**
-     * @notice Unstakes, withdraws and claims rewards for total amount staked of Asset in position.
+     * @notice Unwraps, withdraws and claims rewards for total amount of wrapped Asset in position.
      * @param positionId The id of the position to burn.
      */
     function burn(uint256 positionId) public virtual returns (uint256[] memory rewards) {
@@ -452,11 +456,10 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     }
 
     /**
-     * @notice Unstakes and withdraws the asset from the external staking contract.
+     * @notice Unwraps and withdraws the asset from this contract.
      * @param positionId The id of the position to withdraw from.
-     * @param amount The amount of Asset to unstake and withdraw.
+     * @param amount The amount of Asset to unwrap and withdraw.
      * @return rewards The amount of reward tokens claimed.
-     * @dev Also claims and transfers the staking rewards of the position.
      */
     function decreaseLiquidity(uint256 positionId, uint128 amount)
         public
@@ -465,11 +468,12 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         returns (uint256[] memory rewards)
     {
         if (amount == 0) revert ZeroAmount();
-        if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
         if (positionState[positionId].amountWrapped == amount) {
             rewards = burn(positionId);
         } else {
+            if (_ownerOf[positionId] != msg.sender) revert NotOwner();
+
             // Cache asset.
             address asset = customAssetInfo[positionState[positionId].customAsset].asset;
 
@@ -493,7 +497,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     }
 
     /**
-     * @notice Claims and transfers the staking rewards of the position.
+     * @notice Claims and transfers the rewards of the position.
      * @param positionId The id of the position.
      * @return rewards The amount of reward tokens claimed.
      */
@@ -537,7 +541,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     }
 
     /*///////////////////////////////////////////////////////////////
-                    INTERACTIONS STAKING CONTRACT
+                    INTERACTIONS REWARD CONTRACT
     ///////////////////////////////////////////////////////////////*/
 
     /**
@@ -579,10 +583,10 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
     /**
      * @notice Calculates the current global and position specific reward balances.
-     * @param positionId .
-     * @return lastRewardPerTokenGlobalArr .
-     * @return .
-     * @return activeRewards_ .
+     * @param positionId The id of the position to get the reward balances for.
+     * @return lastRewardPerTokenGlobalArr An array representing the reward tokens growth per asset wrapped at last interaction with external rewards contract.
+     * @return An array of the updated reward state for each reward of a position.
+     * @return activeRewards_ An array of all rewards claimable for an asset via this contract.
      */
     function _getRewardBalances(uint256 positionId)
         internal
@@ -616,7 +620,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         if (totalWrapped > 0) {
             for (uint256 i; i < numberOfActiveRewards; ++i) {
                 // Calculate the new assetState
-                // Fetch the current reward balance from the staking contract and calculate the change in RewardPerToken.
+                // Fetch the current reward balance from the reward contract and calculate the change in RewardPerToken.
                 uint256 deltaRewardPerToken = currentRewardsClaimable[i].mulDivDown(1e18, totalWrapped);
                 // Calculate and update the new RewardPerToken of the asset.
                 // unchecked: RewardPerToken can overflow, what matters is the delta in RewardPerToken between two interactions.
