@@ -57,7 +57,7 @@ contract Mint_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
         uint256 fee0,
         uint256 fee1,
         uint128 amount
-    ) public notTestContracts(account) notTestContracts2(account) {
+    ) public canReceiveERC721(account) {
         // Given : Valid pool
         pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
         vm.assume(account != address(pool));
@@ -134,7 +134,7 @@ contract Mint_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
         uint256 fee0,
         uint256 fee1,
         uint128 amount
-    ) public notTestContracts(account) notTestContracts2(account) {
+    ) public canReceiveERC721(account) {
         // Given : Valid pool
         pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
         vm.assume(account != address(pool));

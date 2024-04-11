@@ -43,7 +43,8 @@ contract IncreaseLiquidity_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_
         address randomAddress,
         uint128 amount,
         uint96 positionId
-    ) public notTestContracts(account) notTestContracts2(account) {
+    ) public canReceiveERC721(account) {
+        vm.assume(account != randomAddress);
         vm.assume(account != address(0));
         // Given : Amount is greater than zero
         vm.assume(amount > 0);
@@ -83,7 +84,7 @@ contract IncreaseLiquidity_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_
         uint96 positionId,
         uint128 amount,
         address account
-    ) public notTestContracts(account) notTestContracts2(account) {
+    ) public canReceiveERC721(account) {
         vm.assume(account != address(0));
         {
             // Given : the pool is allowed in the Registry

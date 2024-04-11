@@ -4,20 +4,20 @@
  */
 pragma solidity 0.8.22;
 
-import { AerodromeVolatileAM_Fuzz_Test } from "./_AerodromeVolatileAM.fuzz.t.sol";
+import { AerodromePoolAM_Fuzz_Test } from "./_AerodromePoolAM.fuzz.t.sol";
 import { stdStorage, StdStorage } from "../../../../lib/forge-std/src/StdStorage.sol";
 
 /**
- * @notice Fuzz tests for the function "isAllowed" of contract "AerodromeVolatileAM".
+ * @notice Fuzz tests for the function "isAllowed" of contract "AerodromePoolAM".
  */
-contract IsAllowed_AerodromeVolatileAM_Fuzz_Test is AerodromeVolatileAM_Fuzz_Test {
+contract IsAllowed_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        AerodromeVolatileAM_Fuzz_Test.setUp();
+        AerodromePoolAM_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -26,19 +26,18 @@ contract IsAllowed_AerodromeVolatileAM_Fuzz_Test is AerodromeVolatileAM_Fuzz_Tes
 
     function testFuzz_Success_isAllowed_False(address asset, uint256 id) public {
         // When : Calling isAllowed()
-        bool allowed = aeroVolatileAM.isAllowed(asset, id);
+        bool allowed = aeroPoolAM.isAllowed(asset, id);
 
         // Then : It should return false
         assertFalse(allowed);
     }
 
     function testFuzz_Success_isAllowed_True(address asset, uint256 id) public {
-        // Given: asset is in the aeroVolatileAM.
-        stdstore.target(address(aeroVolatileAM)).sig(aeroVolatileAM.inAssetModule.selector).with_key(asset)
-            .checked_write(true);
+        // Given: asset is in the aeroPoolAM.
+        stdstore.target(address(aeroPoolAM)).sig(aeroPoolAM.inAssetModule.selector).with_key(asset).checked_write(true);
 
         // When : Calling isAllowed()
-        bool allowed = aeroVolatileAM.isAllowed(asset, id);
+        bool allowed = aeroPoolAM.isAllowed(asset, id);
 
         // Then : It should return true
         assertTrue(allowed);

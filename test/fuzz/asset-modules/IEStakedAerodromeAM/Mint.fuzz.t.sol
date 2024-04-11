@@ -60,7 +60,7 @@ contract Mint_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_Fuzz_Test {
         AbstractStakingAM_Fuzz_Test.StakingAMStateForAsset memory assetState,
         uint128 amount,
         address account
-    ) public notTestContracts(account) notTestContracts2(account) {
+    ) public canReceiveERC721(account) {
         vm.assume(account != address(0));
 
         // Given : the pool is allowed in the Registry
@@ -136,7 +136,7 @@ contract Mint_IEStakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_Fuzz_Test {
         StakingAMStateForAsset memory assetState,
         uint128 amount,
         address account
-    ) public notTestContracts(account) notTestContracts2(account) {
+    ) public canReceiveERC721(account) {
         vm.assume(account != address(0));
 
         // Given : the pool is allowed in the Registry

@@ -6,28 +6,26 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { AerodromeStableAMExtension } from "../../../utils/Extensions.sol";
+import { AerodromePoolAMExtension } from "../../../utils/extensions/AerodromePoolAMExtension.sol";
+import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { AerodromeFactoryMock } from "../../../utils/mocks/Aerodrome/AerodromeFactoryMock.sol";
+import { FullMath } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
+import { PoolFactory } from "../../../utils/fixtures/aerodrome/AeroPoolFactoryFixture.f.sol";
 import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
-import { FullMath } from "../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
-import {
-    PoolFactory,
-    ERC20Mock,
-    ArcadiaOracle,
-    BitPackingLib,
-    FixedPointMathLib
-} from "../AerodromeVolatileAM/_AerodromeVolatileAM.fuzz.t.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 /**
- * @notice Common logic needed by "AerodromeStableAM" fuzz tests.
+ * @notice Common logic needed by "AerodromePoolAM" fuzz tests.
  */
-abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
+abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test {
     using FixedPointMathLib for uint256;
     /*////////////////////////////////////////////////////////////////
                             CONSTANTS
     /////////////////////////////////////////////////////////////// */
 
-    uint256 MINIMUM_LIQUIDITY = 10 ** 3;
+    uint256 internal constant MINIMUM_LIQUIDITY = 10 ** 3;
     uint256 MINIMUM_K = 10 ** 10;
 
     /*////////////////////////////////////////////////////////////////
@@ -35,6 +33,7 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     struct TestVariables {
+        bool stable;
         uint256 decimals0;
         uint256 decimals1;
         uint256 reserve0;
@@ -51,7 +50,7 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AerodromeStableAMExtension internal aeroStableAM;
+    AerodromePoolAMExtension internal aeroPoolAM;
     AerodromeFactoryMock internal aeroFactoryMock;
     Pool internal aeroPoolMock;
     PoolFactory internal poolFactory;
@@ -69,10 +68,10 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         aeroFactoryMock = new AerodromeFactoryMock();
         aeroPoolMock = new Pool();
 
-        // Deploy the Aerodrome Stable AssetModule.
+        // Deploy the Aerodrome AssetModule.
         vm.startPrank(users.creatorAddress);
-        aeroStableAM = new AerodromeStableAMExtension(address(registryExtension), address(aeroFactoryMock));
-        registryExtension.addAssetModule(address(aeroStableAM));
+        aeroPoolAM = new AerodromePoolAMExtension(address(registryExtension), address(aeroFactoryMock));
+        registryExtension.addAssetModule(address(aeroPoolAM));
         vm.stopPrank();
     }
 
@@ -80,22 +79,22 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
-    function setMockState() public {
+    function setMockState(bool stable) public {
         // Given : The asset is a pool in the the Aerodrome Factory.
         aeroFactoryMock.setPool(address(aeroPoolMock));
 
-        // Given : The asset is an Aerodrome Stable pool.
-        aeroPoolMock.setStable(true);
+        // Given : The asset is an Aerodrome Volatile pool.
+        aeroPoolMock.setStable(stable);
 
         // Given : Token0 and token1 are added to the Registry
         aeroPoolMock.setTokens(address(mockERC20.token1), address(mockERC20.stable1));
     }
 
-    function deployAerodromeStableFixture(address token0, address token1) public {
+    function deployAerodromeFixture(address token0, address token1, bool stable) public {
         implementation = new Pool();
         poolFactory = new PoolFactory(address(implementation));
 
-        address newPool = poolFactory.createPool(token0, token1, true);
+        address newPool = poolFactory.createPool(token0, token1, stable);
         pool = Pool(newPool);
     }
 
@@ -106,7 +105,7 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(testVars.decimals0));
         ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(testVars.decimals1));
 
-        deployAerodromeStableFixture(address(token0), address(token1));
+        deployAerodromeFixture(address(token0), address(token1), testVars.stable);
 
         // And : The tokens of the pool are added to the Arcadia protocol
         addUnderlyingTokenToArcadia(address(token0), int256(testVars.priceToken0));
@@ -124,8 +123,86 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         testVars_ = testVars;
     }
 
-    function givenValidTestVars(TestVariables memory testVars) public view returns (TestVariables memory testVars_) {
-        // Given : decimals should be max equal to 18.
+    function addUnderlyingTokenToArcadia(address token, int256 price) internal {
+        ArcadiaOracle oracle = initMockedOracle(18, "Token / USD");
+        address[] memory oracleArr = new address[](1);
+        oracleArr[0] = address(oracle);
+
+        vm.prank(users.defaultTransmitter);
+        oracle.transmit(price);
+        vm.startPrank(users.creatorAddress);
+        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD", 2 days));
+        uint80[] memory oracleAssetToUsdArr = new uint80[](1);
+        oracleAssetToUsdArr[0] = oracleId;
+
+        erc20AssetModule.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
+        vm.stopPrank();
+
+        vm.prank(users.riskManager);
+        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
+    }
+
+    function givenValidTestVarsVolatile(TestVariables memory testVars)
+        public
+        view
+        returns (TestVariables memory testVars_)
+    {
+        // Given : Pool is volatile
+        testVars.stable = false;
+
+        // Given : decimals should be max equal to 18
+        testVars.decimals0 = bound(testVars.decimals0, 0, 18);
+        testVars.decimals1 = bound(testVars.decimals1, 0, 18);
+
+        // And : "rateUnderlyingAssetsToUsd" for token0 and token1 does not overflows in "_getRateUnderlyingAssetsToUsd"
+        testVars.priceToken0 = bound(testVars.priceToken0, 1, type(uint256).max / 1e18);
+        testVars.priceToken1 = bound(testVars.priceToken1, 1, type(uint256).max / 1e18);
+        uint256 p0 = 10 ** (18 - testVars.decimals0) * testVars.priceToken0;
+        uint256 p1 = 10 ** (18 - testVars.decimals1) * testVars.priceToken1;
+
+        // And: Reserves should not be zero.
+        // And: liquidity should be greater than minimum liquidity.
+        // And: k should not overflow.
+        testVars.reserve0 = bound(testVars.reserve0, 1, type(uint256).max);
+        testVars.reserve1 = bound(testVars.reserve1, 1, type(uint256).max / testVars.reserve0);
+        testVars.reserve1 =
+            bound(testVars.reserve1, MINIMUM_LIQUIDITY ** 2 / testVars.reserve0, type(uint256).max / testVars.reserve0);
+        uint256 k = testVars.reserve0 * testVars.reserve1;
+        uint256 totalSupply = FixedPointMathLib.sqrt(k);
+
+        // And: liquidity should be strictly greater than minimum liquidity.
+        vm.assume(totalSupply > MINIMUM_LIQUIDITY);
+
+        // And: trustedReserve0 does not overflow
+        vm.assume(k / p0 < type(uint256).max / p1);
+        uint256 trustedReserve0 = FixedPointMathLib.sqrt(FullMath.mulDiv(k, p1, p0));
+
+        // trustedReserve1 can not overflow.
+        uint256 trustedReserve1 = FullMath.mulDiv(trustedReserve0, p0, p1);
+
+        // And: underlyingAssetsAmounts does not overflow.
+        if (trustedReserve0 > 0) {
+            testVars.assetAmount = bound(testVars.assetAmount, 0, type(uint256).max / trustedReserve0);
+        }
+        if (trustedReserve1 > 0) {
+            testVars.assetAmount = bound(testVars.assetAmount, 0, type(uint256).max / trustedReserve1);
+        }
+
+        // And : assetAmount is maximum equal to pool totalSupply.
+        testVars.assetAmount = bound(testVars.assetAmount, 0, totalSupply);
+
+        testVars_ = testVars;
+    }
+
+    function givenValidTestVarsStable(TestVariables memory testVars)
+        public
+        view
+        returns (TestVariables memory testVars_)
+    {
+        // Given : Pool is stable
+        testVars.stable = true;
+
+        // And : decimals should be max equal to 18.
         testVars.decimals0 = bound(testVars.decimals0, 0, 18);
         testVars.decimals1 = bound(testVars.decimals1, 0, 18);
 
@@ -180,25 +257,6 @@ abstract contract AerodromeStableAM_Fuzz_Test is Fuzz_Test {
         testVars.assetAmount = bound(testVars.assetAmount, 0, totalSupply);
 
         testVars_ = testVars;
-    }
-
-    function addUnderlyingTokenToArcadia(address token, int256 price) internal {
-        ArcadiaOracle oracle = initMockedOracle(18, "Token / USD");
-        address[] memory oracleArr = new address[](1);
-        oracleArr[0] = address(oracle);
-
-        vm.prank(users.defaultTransmitter);
-        oracle.transmit(price);
-        vm.startPrank(users.creatorAddress);
-        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD", 2 days));
-        uint80[] memory oracleAssetToUsdArr = new uint80[](1);
-        oracleAssetToUsdArr[0] = oracleId;
-
-        erc20AssetModule.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
-        vm.stopPrank();
-
-        vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
     }
 
     function convertToDecimals(uint256 amount, uint256 assetDecimals, uint256 assetToDecimals)

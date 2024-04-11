@@ -47,7 +47,7 @@ contract ClaimFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test 
         uint96 positionId,
         WrappedAerodromeAM.PositionState memory positionState,
         WrappedAerodromeAM.PoolState memory poolState
-    ) public notTestContracts(owner) notTestContracts2(owner) {
+    ) public canReceiveERC721(owner) {
         // Given : Owner of positionId is not the randomAddress
         vm.assume(owner != randomAddress);
 
@@ -75,7 +75,7 @@ contract ClaimFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test 
         uint256 fee1,
         WrappedAerodromeAM.PositionState memory positionState,
         WrappedAerodromeAM.PoolState memory poolState
-    ) public notTestContracts(owner) notTestContracts2(owner) {
+    ) public canReceiveERC721(owner) {
         // Given : Valid pool
         pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
         vm.assume(owner != address(pool));

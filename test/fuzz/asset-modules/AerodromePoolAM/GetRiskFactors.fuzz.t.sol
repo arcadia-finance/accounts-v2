@@ -4,22 +4,22 @@
  */
 pragma solidity 0.8.22;
 
-import { AerodromeVolatileAM_Fuzz_Test, Constants } from "./_AerodromeVolatileAM.fuzz.t.sol";
+import { AerodromePoolAM_Fuzz_Test, Constants } from "./_AerodromePoolAM.fuzz.t.sol";
 
 import { FixedPointMathLib } from "../../../../src/asset-modules/abstracts/AbstractDerivedAM.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
- * @notice Fuzz tests for the function "getRiskFactors" of contract "AerodromeVolatileAM".
+ * @notice Fuzz tests for the function "getRiskFactors" of contract "AerodromePoolAM".
  */
-contract GetRiskFactors_AerodromeVolatileAM_Fuzz_Test is AerodromeVolatileAM_Fuzz_Test {
+contract GetRiskFactors_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        AerodromeVolatileAM_Fuzz_Test.setUp();
+        AerodromePoolAM_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -27,6 +27,7 @@ contract GetRiskFactors_AerodromeVolatileAM_Fuzz_Test is AerodromeVolatileAM_Fuz
     /////////////////////////////////////////////////////////////// */
 
     function testFuzz_Success_getRiskFactors(
+        bool stable,
         uint16 riskFactor,
         uint16 collateralFactor0,
         uint16 collateralFactor1,
@@ -52,11 +53,12 @@ contract GetRiskFactors_AerodromeVolatileAM_Fuzz_Test is AerodromeVolatileAM_Fuz
 
         // And riskFactor is set.
         vm.prank(address(registryExtension));
-        aeroVolatileAM.setRiskParameters(creditor, 0, riskFactor);
+        aeroPoolAM.setRiskParameters(creditor, 0, riskFactor);
 
         // And: pool is added
-        setMockState();
-        aeroVolatileAM.addAsset(address(aeroPoolMock));
+        setMockState(stable);
+        vm.prank(users.creatorAddress);
+        aeroPoolAM.addAsset(address(aeroPoolMock));
 
         // And riskFactors are set for token0.
         vm.startPrank(address(registryExtension));
@@ -72,7 +74,7 @@ contract GetRiskFactors_AerodromeVolatileAM_Fuzz_Test is AerodromeVolatileAM_Fuz
         // When : calling getRiskFactors()
         // Then : It should return correct values
         (uint256 collateralFactor_, uint256 liquidationFactor_) =
-            aeroVolatileAM.getRiskFactors(creditor, address(aeroPoolMock), 0);
+            aeroPoolAM.getRiskFactors(creditor, address(aeroPoolMock), 0);
         assertEq(collateralFactor_, expectedCollateralFactor);
         assertEq(liquidationFactor_, expectedLiquidationFactor);
     }
