@@ -66,8 +66,8 @@ contract WrappedAerodromeAMExtension is WrappedAerodromeAM {
         positionState[positionId] = positionState_;
     }
 
-    function claimFees(address asset) public returns (uint256 fee0, uint256 fee1) {
-        return _claimFees(asset);
+    function claimFees(address pool) public returns (uint256 fee0, uint256 fee1) {
+        return _claimFees(pool);
     }
 
     function setTokens(address pool, address token0_, address token1_) public {
@@ -75,8 +75,8 @@ contract WrappedAerodromeAMExtension is WrappedAerodromeAM {
         token1[pool] = token1_;
     }
 
-    function getCurrentFees(address asset) public view returns (uint256 fee0, uint256 fee1) {
-        return _getCurrentFees(asset);
+    function getCurrentFees(address pool) public view returns (uint256 fee0, uint256 fee1) {
+        return _getCurrentFees(pool);
     }
 
     function mintIdTo(address to, uint256 tokenId) public {

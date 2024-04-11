@@ -352,9 +352,12 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
     /**
      * @notice Unwraps, withdraws and claims fees for total amount of liquidity in position.
      * @param positionId The id of the position to burn.
+     * @return fee0Position The amount of fees of token0 that can be claimed for a certain position.
+     * @return fee1Position The amount of fees of token1 that can be claimed for a certain position.
+     * @dev Also claims and transfers the fees of the position.
      */
-    function burn(uint256 positionId) external {
-        decreaseLiquidity(positionId, positionState[positionId].amountWrapped);
+    function burn(uint256 positionId) external returns (uint256 fee0Position, uint256 fee1Position) {
+        return decreaseLiquidity(positionId, positionState[positionId].amountWrapped);
     }
 
     /**
@@ -480,6 +483,9 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param pool The contract address of the Aerodrome pool to get the current fees for.
      * @return fee0 The amount of fees of token0 that can be claimed by this contract.
      * @return fee1 The amount of fees of token1 that can be claimed by this contract.
+     * @dev In theory, if pool tokens are transferred without depositing,
+     * the pool can have a non zero claimable0 or claimable1 balance while totalWrapped_ is 0.
+     * In this case the claimables are not accounted for and will be lost.
      */
     function _getCurrentFees(address pool) internal view returns (uint256 fee0, uint256 fee1) {
         // Cache totalWrapped.

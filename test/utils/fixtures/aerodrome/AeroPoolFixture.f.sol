@@ -530,4 +530,23 @@ contract Pool is IPool, ERC20Permit, ReentrancyGuard {
         claimable0[owner] = claimable0_;
         claimable1[owner] = claimable1_;
     }
+
+    function setPoolFeeState(
+        address owner,
+        uint256 index0_,
+        uint256 index1_,
+        uint256 supplyIndex0_,
+        uint256 supplyIndex1_,
+        uint256 claimable0_,
+        uint256 claimable1_,
+        uint256 balanceOf_
+    ) public {
+        _mint(owner, balanceOf_);
+        index0 = index0_;
+        index1 = index1_;
+        supplyIndex0[owner] = supplyIndex0_;
+        supplyIndex1[owner] = supplyIndex1_;
+        claimable0[owner] = claimable0_;
+        claimable1[owner] = claimable1_;
+    }
 }
