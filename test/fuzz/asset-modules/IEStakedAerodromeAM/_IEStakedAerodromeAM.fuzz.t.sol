@@ -6,8 +6,7 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants, ERC20Mock, ArcadiaOracle, BitPackingLib } from "../../Fuzz.t.sol";
 
-import { AerodromeVolatileAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
-import { AerodromeStableAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
+import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
 import { IEStakedAerodromeAM, ERC20 } from "../../../../src/asset-modules/Aerodrome-Finance/IEStakedAerodromeAM.sol";
 import { IEStakedAerodromeAMExtension } from "../../../utils/Extensions.sol";
 import { AerodromeVoterMock } from "../../../utils/mocks/Aerodrome/AerodromeVoterMock.sol";
@@ -32,8 +31,7 @@ abstract contract IEStakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AerodromeVolatileAM public aerodromeVolatileAM;
-    AerodromeStableAM public aerodromeStableAM;
+    AerodromePoolAM public aerodromePoolAM;
     IEStakedAerodromeAMExtension public stakedAerodromeAM;
     AerodromeVoterMock public voter;
     Pool public pool;
@@ -59,12 +57,9 @@ abstract contract IEStakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_
         // Deploy mock voter contract
         voter = new AerodromeVoterMock();
 
-        // Deploy Aerodrome Volatile and Stable pools.
-        aerodromeVolatileAM = new AerodromeVolatileAM(address(registryExtension), address(poolFactory));
-        registryExtension.addAssetModule(address(aerodromeVolatileAM));
-
-        aerodromeStableAM = new AerodromeStableAM(address(registryExtension), address(poolFactory));
-        registryExtension.addAssetModule(address(aerodromeStableAM));
+        // Deploy Aerodrome AM.
+        aerodromePoolAM = new AerodromePoolAM(address(registryExtension), address(poolFactory));
+        registryExtension.addAssetModule(address(aerodromePoolAM));
 
         // Deploy StakedAerodromeAM.
         // First we need to add the reward token to the Registry
@@ -93,8 +88,7 @@ abstract contract IEStakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_
 
     modifier notTestContracts2(address fuzzedAddress) {
         vm.assume(fuzzedAddress != AERO);
-        vm.assume(fuzzedAddress != address(aerodromeVolatileAM));
-        vm.assume(fuzzedAddress != address(aerodromeStableAM));
+        vm.assume(fuzzedAddress != address(aerodromePoolAM));
         vm.assume(fuzzedAddress != address(stakedAerodromeAM));
         vm.assume(fuzzedAddress != address(voter));
         vm.assume(fuzzedAddress != address(pool));
@@ -111,11 +105,8 @@ abstract contract IEStakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_
         address newPool = poolFactory.createPool(token0, token1, stable);
         pool = Pool(newPool);
 
-        if (stable == true) {
-            aerodromeStableAM.addAsset(address(pool));
-        } else {
-            aerodromeVolatileAM.addAsset(address(pool));
-        }
+        vm.prank(users.creatorAddress);
+        aerodromePoolAM.addAsset(address(pool));
     }
 
     function deployAerodromeGaugeFixture(address stakingToken, address rewardToken_) public {

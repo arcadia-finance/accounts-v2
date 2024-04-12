@@ -12,8 +12,7 @@ import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { IAeroPool } from "../../../../src/asset-modules/Aerodrome-Finance/interfaces/IAeroPool.sol";
 import { IAeroRouter } from "../../../utils/Interfaces.sol";
 import { IAeroFactory } from "../../../../src/asset-modules/Aerodrome-Finance/interfaces/IAeroFactory.sol";
-import { AerodromeVolatileAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeVolatileAM.sol";
-import { AerodromeStableAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromeStableAM.sol";
+import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
 import { DEStakedAerodromeAMExtension } from "../../../utils/Extensions.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 
@@ -41,8 +40,7 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
     // The gauge of the WETH/USDC Aerodrome Volatile pool
     address volatileGauge = 0x519BBD1Dd8C6A94C46080E24f316c14Ee758C025;
 
-    AerodromeVolatileAM public aerodromeVolatileAM;
-    AerodromeStableAM public aerodromeStableAM;
+    AerodromePoolAM public aerodromePoolAM;
     DEStakedAerodromeAMExtension public stakedAerodromeAM;
 
     /*///////////////////////////////////////////////////////////////
@@ -72,25 +70,21 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
         erc20AssetModule.addAsset(AERO, oracleSequence);
 
         // Deploy Aerodrome Volatile and Stable pools.
-        aerodromeVolatileAM = new AerodromeVolatileAM(address(registryExtension), address(aeroFactory));
-        registryExtension.addAssetModule(address(aerodromeVolatileAM));
-
-        aerodromeStableAM = new AerodromeStableAM(address(registryExtension), address(aeroFactory));
-        registryExtension.addAssetModule(address(aerodromeStableAM));
+        aerodromePoolAM = new AerodromePoolAM(address(registryExtension), address(aeroFactory));
+        registryExtension.addAssetModule(address(aerodromePoolAM));
 
         // Deploy StakedAerodromeAM.
         stakedAerodromeAM = new DEStakedAerodromeAMExtension(address(registryExtension), aeroVoter);
         registryExtension.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
 
-        // Add stablePool to the AerodromeStableAM
-        aerodromeStableAM.addAsset(stablePool);
+        // Add stablePool to the AerodromePoolAM
+        aerodromePoolAM.addAsset(stablePool);
 
         // Label contracts
         vm.label({ account: address(router), newLabel: "Aerodrome Router" });
         vm.label({ account: address(aeroFactory), newLabel: "Aerodrome Factory" });
-        vm.label({ account: address(aerodromeVolatileAM), newLabel: "Aerodrome Volatile AM" });
-        vm.label({ account: address(aerodromeStableAM), newLabel: "Aerodrome Stable AM" });
+        vm.label({ account: address(aerodromePoolAM), newLabel: "Aerodrome Volatile AM" });
         vm.label({ account: address(stakedAerodromeAM), newLabel: "Staked Aerodrome Asset Module" });
 
         vm.stopPrank();

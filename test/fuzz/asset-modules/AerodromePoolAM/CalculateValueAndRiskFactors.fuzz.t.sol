@@ -4,21 +4,21 @@
  */
 pragma solidity 0.8.22;
 
-import { AerodromeVolatileAM_Fuzz_Test, Constants } from "./_AerodromeVolatileAM.fuzz.t.sol";
+import { AerodromePoolAM_Fuzz_Test, Constants } from "./_AerodromePoolAM.fuzz.t.sol";
 
 import { Utils } from "../../../utils/Utils.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
- * @notice Fuzz tests for the function "_calculateValueAndRiskFactors" of contract "AerodromeVolatileAM".
+ * @notice Fuzz tests for the function "_calculateValueAndRiskFactors" of contract "AerodromePoolAM".
  */
-contract CalculateValueAndRiskFactors_AerodromeVolatileAM_Fuzz_Test is AerodromeVolatileAM_Fuzz_Test {
+contract CalculateValueAndRiskFactors_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        AerodromeVolatileAM_Fuzz_Test.setUp();
+        AerodromePoolAM_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ contract CalculateValueAndRiskFactors_AerodromeVolatileAM_Fuzz_Test is Aerodrome
 
         // And riskFactor is set.
         vm.prank(address(registryExtension));
-        aeroVolatileAM.setRiskParameters(creditor, 0, riskFactor);
+        aeroPoolAM.setRiskParameters(creditor, 0, riskFactor);
 
         uint256 expectedCollateralFactor =
             collateralFactors[0] < collateralFactors[1] ? collateralFactors[0] : collateralFactors[1];
@@ -73,7 +73,7 @@ contract CalculateValueAndRiskFactors_AerodromeVolatileAM_Fuzz_Test is Aerodrome
             liquidationFactor: liquidationFactors[1]
         });
 
-        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = aeroVolatileAM
+        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = aeroPoolAM
             .calculateValueAndRiskFactors(
             creditor, Utils.castArrayStaticToDynamic(underlyingAssetsAmounts), rateUnderlyingAssetsToUsd
         );

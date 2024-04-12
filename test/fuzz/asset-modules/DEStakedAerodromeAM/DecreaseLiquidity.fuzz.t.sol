@@ -66,7 +66,7 @@ contract DecreaseLiquidity_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
         uint128 amount
-    ) public notTestContracts(account) notTestContracts2(account) {
+    ) public canReceiveERC721(account) {
         vm.assume(account != address(0));
 
         // Given : the pool is allowed in the Registry
@@ -112,7 +112,7 @@ contract DecreaseLiquidity_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_
         address account,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState
-    ) public notTestContracts(account) notTestContracts2(account) {
+    ) public canReceiveERC721(account) {
         vm.assume(account != address(0));
 
         // Given : the pool is allowed in the Registry
@@ -210,7 +210,7 @@ contract DecreaseLiquidity_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
         uint128 amount
-    ) public notTestContracts(account) notTestContracts2(account) {
+    ) public canReceiveERC721(account) {
         vm.assume(account != address(0));
 
         // Given : the pool is allowed in the Registry
@@ -311,7 +311,7 @@ contract DecreaseLiquidity_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_
         address account,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState
-    ) public notTestContracts(account) notTestContracts2(account) {
+    ) public canReceiveERC721(account) {
         vm.assume(account != address(0));
 
         // Given : the pool is allowed in the Registry
@@ -395,7 +395,7 @@ contract DecreaseLiquidity_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
         uint128 amount
-    ) public notTestContracts(account) notTestContracts2(account) {
+    ) public canReceiveERC721(account) {
         vm.assume(account != address(0));
 
         // Given : the pool is allowed in the Registry
@@ -482,7 +482,7 @@ contract DecreaseLiquidity_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_
     function testFuzz_Success_decreaseLiquidity_NonZeroReward_FullWithdraw_RewardsAccounting(
         uint96 positionId,
         address account
-    ) public notTestContracts(account) notTestContracts2(account) {
+    ) public canReceiveERC721(account) {
         vm.assume(account != address(0));
 
         // Given : the pool is allowed in the Registry

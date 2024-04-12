@@ -63,7 +63,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         StakingAM.PositionState memory positionState,
         address asset,
         uint128 amount
-    ) public notTestContracts(account) {
+    ) public canReceiveERC721(account) {
         // Given : account != zero address
         vm.assume(account != address(0));
         vm.assume(account != address(stakingAM));
@@ -99,7 +99,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         address account,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState
-    ) public notTestContracts(account) {
+    ) public canReceiveERC721(account) {
         // Given : account != zero address
         vm.assume(account != address(0));
         vm.assume(account != address(stakingAM));
@@ -187,7 +187,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
         uint128 amount
-    ) public notTestContracts(account) {
+    ) public canReceiveERC721(account) {
         // Given : account != zero address
         vm.assume(account != address(0));
         vm.assume(account != address(stakingAM));
@@ -280,7 +280,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
         uint8 assetDecimals
-    ) public notTestContracts(account) {
+    ) public canReceiveERC721(account) {
         // Given : account != zero address
         vm.assume(account != address(0));
         vm.assume(account != address(stakingAM));
@@ -360,7 +360,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
         uint128 amount
-    ) public notTestContracts(account) {
+    ) public canReceiveERC721(account) {
         // Given : account != zero address
         vm.assume(account != address(0));
         vm.assume(account != address(stakingAM));

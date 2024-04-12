@@ -60,7 +60,7 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         StakingAMStateForAsset memory assetState,
         uint128 amount,
         address account
-    ) public notTestContracts(account) {
+    ) public canReceiveERC721(account) {
         vm.assume(account != address(0));
         vm.assume(account != address(stakingAM));
         vm.assume(account != address(rewardToken));
@@ -135,7 +135,7 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         StakingAMStateForAsset memory assetState,
         uint128 amount,
         address account
-    ) public notTestContracts(account) {
+    ) public canReceiveERC721(account) {
         vm.assume(account != address(0));
         vm.assume(account != address(stakingAM));
         vm.assume(account != address(rewardToken));

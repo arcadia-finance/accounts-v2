@@ -39,14 +39,14 @@ contract IncreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         address randomAddress,
         uint128 amount,
         uint96 positionId
-    ) public notTestContracts(owner) notTestContracts2(owner) {
+    ) public canReceiveERC721(owner) {
         // Given : Amount is greater than zero
         amount = uint128(bound(amount, 1, type(uint128).max));
 
         // And : positionId is greater than 0
         positionId = uint96(bound(positionId, 1, type(uint96).max));
 
-        // Given : Owner of positionId is not the randomAddress
+        // And : Owner of positionId is not the randomAddress
         vm.assume(owner != randomAddress);
         wrappedAerodromeAM.setOwnerOf(owner, positionId);
 
@@ -67,7 +67,7 @@ contract IncreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         WrappedAerodromeAM.PositionState memory positionState,
         WrappedAerodromeAM.PoolState memory poolState,
         uint128 amount
-    ) public notTestContracts(owner) notTestContracts2(owner) {
+    ) public canReceiveERC721(owner) {
         // Given : Valid pool
         pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
         vm.assume(owner != address(pool));
