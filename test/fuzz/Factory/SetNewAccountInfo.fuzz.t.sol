@@ -10,7 +10,7 @@ import { AccountV2 } from "../../utils/mocks/accounts/AccountV2.sol";
 import { AccountVariableVersion } from "../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { Factory } from "../../../src/Factory.sol";
-import { Registry, RegistryExtension } from "../../utils/Extensions.sol";
+import { Registry, RegistryExtension } from "../../utils/extensions/RegistryExtension.sol";
 
 /**
  * @notice Fuzz tests for the function "setNewAccountInfo" of contract "Factory".

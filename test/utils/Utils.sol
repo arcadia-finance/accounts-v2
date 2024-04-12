@@ -81,12 +81,46 @@ library Utils {
         }
     }
 
+    function castArrayStaticToDynamic(address[3] calldata staticArray)
+        public
+        pure
+        returns (address[] memory dynamicArray)
+    {
+        uint256 length = staticArray.length;
+        dynamicArray = new address[](length);
+
+        for (uint256 i; i < length;) {
+            dynamicArray[i] = staticArray[i];
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     /**
      * @notice Casts a static array of uint256's of length two to a dynamic array of uint256's.
      * @param staticArray The static array of uint256's.
      * @return dynamicArray The dynamic array of uint256's.
      */
     function castArrayStaticToDynamic(uint256[2] calldata staticArray)
+        public
+        pure
+        returns (uint256[] memory dynamicArray)
+    {
+        uint256 length = staticArray.length;
+        dynamicArray = new uint256[](length);
+
+        for (uint256 i; i < length;) {
+            dynamicArray[i] = staticArray[i];
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function castArrayStaticToDynamic(uint256[3] calldata staticArray)
         public
         pure
         returns (uint256[] memory dynamicArray)

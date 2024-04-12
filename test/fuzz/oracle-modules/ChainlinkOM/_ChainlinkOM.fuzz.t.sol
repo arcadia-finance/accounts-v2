@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
-import { ChainlinkOMExtension } from "../../../utils/Extensions.sol";
+import { ChainlinkOMExtension } from "../../../utils/extensions/ChainlinkOMExtension.sol";
 import { OracleModule } from "../../../../src/oracle-modules/abstracts/AbstractOM.sol";
 
 /**

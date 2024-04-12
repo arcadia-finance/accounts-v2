@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Constants, AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
-import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
+import { AccountV1Extension, AccountV1 } from "../../../utils/extensions/AccountV1Extension.sol";
 import { IActionBase, ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { MultiActionMock } from "../../.././utils/mocks/actions/MultiActionMock.sol";
@@ -24,7 +24,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    AccountExtension internal accountNotInitialised;
+    AccountV1Extension internal accountNotInitialised;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -38,7 +38,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         action = new ActionMultiCall();
         multiActionMock = new MultiActionMock();
 
-        accountNotInitialised = new AccountExtension(address(factory));
+        accountNotInitialised = new AccountV1Extension(address(factory));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -72,7 +72,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         // Deploy account via factory (proxy)
         vm.startPrank(users.accountOwner);
         address proxyAddr = factory.createAccount(12_345_678, 0, address(0));
-        AccountExtension proxy = AccountExtension(proxyAddr);
+        AccountV1Extension proxy = AccountV1Extension(proxyAddr);
         vm.stopPrank();
 
         vm.prank(users.accountOwner);

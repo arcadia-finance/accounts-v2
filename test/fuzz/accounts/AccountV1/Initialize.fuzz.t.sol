@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
-import { AccountExtension } from "../../../utils/Extensions.sol";
+import { AccountV1Extension } from "../../../utils/extensions/AccountV1Extension.sol";
 
 /**
  * @notice Fuzz tests for the function "initialize" of contract "AccountV1".
@@ -16,7 +16,7 @@ contract Initialize_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AccountExtension internal accountNotInitialised;
+    AccountV1Extension internal accountNotInitialised;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -25,7 +25,7 @@ contract Initialize_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function setUp() public override {
         AccountV1_Fuzz_Test.setUp();
 
-        accountNotInitialised = new AccountExtension(address(factory));
+        accountNotInitialised = new AccountV1Extension(address(factory));
     }
 
     /*//////////////////////////////////////////////////////////////

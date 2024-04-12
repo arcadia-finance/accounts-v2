@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { StargateAM_Fuzz_Test } from "./_StargateAM.fuzz.t.sol";
 
-import { StargateAMExtension } from "../../../utils/Extensions.sol";
+import { StargateAMExtension } from "../../../utils/extensions/StargateAMExtension.sol";
 
 /**
  * @notice Fuzz tests for the constructor of contract "StargateAM".

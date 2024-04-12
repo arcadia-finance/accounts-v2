@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
-import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
+import { AccountV1Extension, AccountV1 } from "../../../utils/extensions/AccountV1Extension.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { Constants } from "../../../utils/Constants.sol";
 

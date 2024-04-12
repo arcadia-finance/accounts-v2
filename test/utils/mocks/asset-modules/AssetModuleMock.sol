@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
-import { AbstractAssetModuleExtension } from "../../Extensions.sol";
+import { AssetModuleExtension } from "../../extensions/AssetModuleExtension.sol";
 
-contract AssetModuleMock is AbstractAssetModuleExtension {
-    constructor(address registry_, uint256 assetType_) AbstractAssetModuleExtension(registry_, assetType_) { }
+contract AssetModuleMock is AssetModuleExtension {
+    constructor(address registry_, uint256 assetType_) AssetModuleExtension(registry_, assetType_) { }
 
     bool internal isAllowed_;
 

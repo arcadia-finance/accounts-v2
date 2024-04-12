@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
-import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
+import { AccountV1Extension, AccountV1 } from "../../../utils/extensions/AccountV1Extension.sol";
 import { AssetModuleMock } from "../../../utils/mocks/asset-modules/AssetModuleMock.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
