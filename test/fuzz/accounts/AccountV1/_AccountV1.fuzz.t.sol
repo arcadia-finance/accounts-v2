@@ -8,7 +8,7 @@ import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
-import { AccountExtension } from "../../../utils/Extensions.sol";
+import { AccountV1Extension } from "../../../utils/extensions/AccountV1Extension.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { MultiActionMock } from "../../../utils/mocks/actions/MultiActionMock.sol";
@@ -27,7 +27,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AccountExtension internal accountExtension;
+    AccountV1Extension internal accountExtension;
     MultiActionMock internal multiActionMock;
     ActionMultiCall internal action;
 
@@ -39,7 +39,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         // Deploy Account.
-        accountExtension = new AccountExtension(address(factory));
+        accountExtension = new AccountV1Extension(address(factory));
 
         // Initiate Account (set owner and numeraire).
         accountExtension.initialize(users.accountOwner, address(registryExtension), address(creditorStable1));
@@ -100,7 +100,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(sender);
         token.approve(accountExtension_, amount);
-        AccountExtension(accountExtension_).deposit(assetAddresses, assetIds, assetAmounts);
+        AccountV1Extension(accountExtension_).deposit(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
 

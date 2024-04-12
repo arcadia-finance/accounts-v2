@@ -8,10 +8,10 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
-import { AccountExtension, AccountV1 } from "../../../utils/Extensions.sol";
+import { AccountV1Extension, AccountV1 } from "../../../utils/extensions/AccountV1Extension.sol";
 import { ICreditor } from "../../../../src/interfaces/ICreditor.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
-import { AssetValuationLibExtension } from "../../../utils/Extensions.sol";
+import { AssetValuationLibExtension } from "../../../utils/extensions/AssetValuationLibExtension.sol";
 
 /**
  * @notice Fuzz tests for the "startLiquidation" of contract "AccountV1".
@@ -22,7 +22,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    AccountExtension internal accountExtension2;
+    AccountV1Extension internal accountExtension2;
     AssetValuationLibExtension internal assetValuationLib;
 
     /* ///////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         AccountV1_Fuzz_Test.setUp();
 
         vm.prank(users.accountOwner);
-        accountExtension2 = new AccountExtension(address(factory));
+        accountExtension2 = new AccountV1Extension(address(factory));
 
         assetValuationLib = new AssetValuationLibExtension();
     }

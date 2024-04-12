@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
-import { RegistryExtension } from "../../utils/Extensions.sol";
+import { RegistryExtension } from "../../utils/extensions/RegistryExtension.sol";
 
 /**
  * @notice Fuzz tests for the function "constructor" of contract "Registry".
