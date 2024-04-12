@@ -19,7 +19,6 @@ contract GetUnderlyingAssetsAmounts_AerodromeStableAM_Fuzz_Test is AerodromeStab
     using FixedPointMathLib for uint256;
     using stdStorage for StdStorage;
 
-    uint256 success;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -31,6 +30,41 @@ contract GetUnderlyingAssetsAmounts_AerodromeStableAM_Fuzz_Test is AerodromeStab
     /* ///////////////////////////////////////////////////////////////
                               TESTS
     /////////////////////////////////////////////////////////////// */
+
+    function testFuzz_Revert_getUnderlyingAssetsAmounts_KOverflows(TestVariables memory testVars) public {
+        // Cache initial seed for the reserves.
+        uint256 reserve0_ = testVars.reserve0;
+        uint256 reserve1_ = testVars.reserve1;
+
+        // Given : Valid state
+        testVars = givenValidTestVars(testVars);
+
+        // And state is persisted.
+        testVars = initAndSetValidStateInPoolFixture(testVars);
+
+        // And reserves are increased to that k reverts.
+        reserve0_ = bound(reserve0_, 15_511_800_965 * 10 ** testVars.decimals0, type(uint256).max);
+        reserve1_ = bound(reserve1_, 15_511_800_965 * 10 ** testVars.decimals1, type(uint256).max);
+        stdstore.target(address(pool)).sig(pool.reserve0.selector).checked_write(reserve0_);
+        stdstore.target(address(pool)).sig(pool.reserve1.selector).checked_write(reserve1_);
+
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+
+        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
+        underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
+        underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
+
+        // And : Pool is added to the AM
+        aeroFactoryMock.setPool(address(pool));
+        aeroStableAM.addAsset(address(pool));
+
+        // When : Calling getUnderlyingAssetsAmounts()
+        // Then: It should revert
+        vm.expectRevert();
+        aeroStableAM.getUnderlyingAssetsAmounts(
+            address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys
+        );
+    }
 
     function testFuzz_Revert_getUnderlyingAssetsAmounts_COverflows(TestVariables memory testVars) public {
         // Given : decimals should be max equal to 18.
