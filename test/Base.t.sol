@@ -152,7 +152,7 @@ abstract contract Base_Test is Test, Events, Errors {
 
         // Get the bytecode of UniswapV3AMExtension.
         args = abi.encode(address(registryExtension), nonfungiblePositionManager_);
-        bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3AMExtension"), args);
+        bytecode = abi.encodePacked(vm.getCode("UniswapV3AMExtension.sol:UniswapV3AMExtension"), args);
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.
         // -> Replace the code hash of UniswapV3Pool.sol with the code hash of UniswapV3PoolExtension.sol
