@@ -14,7 +14,7 @@ import { INonfungiblePositionManagerExtension } from
 import { ICLPoolExtension } from "../../../utils/fixtures/slipstream/extensions/interfaces/ICLPoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
-import { SlipstreamAM } from "../../../../src/asset-modules/slipstream/SlipstreamAM.sol";
+import { SlipstreamAM } from "../../../../src/asset-modules/Slipstream/SlipstreamAM.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 
 /**

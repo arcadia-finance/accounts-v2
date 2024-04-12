@@ -37,7 +37,7 @@ contract GetSqrtPriceX96_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     }
 
     function testFuzz_Success_getSqrtPriceX96_Overflow(uint256 priceToken0, uint256 priceToken1) public {
-        // Avoid divide by 0, which is already checked in earlier in function.
+        // Avoid divide by 0 which, is already checked in earlier in function.
         priceToken1 = bound(priceToken1, 1, type(uint256).max);
         // Function will overFlow, not realistic.
         priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e28);
