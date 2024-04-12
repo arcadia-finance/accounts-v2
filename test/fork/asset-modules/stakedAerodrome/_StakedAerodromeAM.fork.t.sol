@@ -13,7 +13,7 @@ import { IAeroPool } from "../../../../src/asset-modules/Aerodrome-Finance/inter
 import { IAeroRouter } from "../../../utils/Interfaces.sol";
 import { IAeroFactory } from "../../../../src/asset-modules/Aerodrome-Finance/interfaces/IAeroFactory.sol";
 import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
-import { DEStakedAerodromeAMExtension } from "../../../utils/Extensions.sol";
+import { DEStakedAerodromeAMExtension } from "../../../utils/extensions/DEStakedAerodromeAMExtension.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 
 /**

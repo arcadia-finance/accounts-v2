@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 
-import { BaseGuardianExtension } from "../../../utils/Extensions.sol";
+import { BaseGuardianExtension } from "../../../utils/extensions/BaseGuardianExtension.sol";
 
 /**
  * @notice Common logic needed by all "BaseGuardian" fuzz tests.

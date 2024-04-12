@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { ChainlinkOM_Fuzz_Test } from "./_ChainlinkOM.fuzz.t.sol";
 
-import { ChainlinkOMExtension } from "../../../utils/Extensions.sol";
+import { ChainlinkOMExtension } from "../../../utils/extensions/ChainlinkOMExtension.sol";
 
 /**
  * @notice Fuzz tests for the function "constructor" of contract "ChainlinkOM".
