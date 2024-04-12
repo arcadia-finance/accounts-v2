@@ -4,18 +4,18 @@
  */
 pragma solidity 0.8.22;
 
-import { IEStakedAerodromeAM_Fuzz_Test, IEStakedAerodromeAM } from "./_IEStakedAerodromeAM.fuzz.t.sol";
+import { StakedAerodromeAM_Fuzz_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the "StakeAndClaim" function of contract "IEStakedAerodromeAM".
+ * @notice Fuzz tests for the "StakeAndClaim" function of contract "StakedAerodromeAM".
  */
-contract StakeAndClaim_StakedAerodromeAM_Fuzz_Test is IEStakedAerodromeAM_Fuzz_Test {
+contract StakeAndClaim_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        IEStakedAerodromeAM_Fuzz_Test.setUp();
+        StakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -9,13 +9,12 @@ import { IAeroGauge } from "./interfaces/IAeroGauge.sol";
 import { IAeroVoter } from "./interfaces/IAeroVoter.sol";
 
 /**
- * @title Asset Module for Staked Aerodrome Finance pools with Direct Emissions
+ * @title Asset Module for Staked Aerodrome Finance pools
  * @author Pragma Labs
- * @notice The Direct Emissions Staked Aerodrome Finance Asset Module stores pricing logic
+ * @notice The Staked Aerodrome Finance Asset Module stores pricing logic
  * and basic information for Staked Aerodrome Finance LP pools.
- * Emission tokens earned will accrue to the value of an Account owning a position.
  */
-contract DEStakedAerodromeAM is StakingAM {
+contract StakedAerodromeAM is StakingAM {
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
@@ -49,7 +48,7 @@ contract DEStakedAerodromeAM is StakingAM {
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
     constructor(address registry, address aerodromeVoter)
-        StakingAM(registry, "Arcadia DE Aerodrome Positions", "aDEAEROP")
+        StakingAM(registry, "Arcadia Staked Aerodrome Positions", "aSAEROP")
     {
         REWARD_TOKEN = ERC20(0x940181a94A35A4569E4529A3CDfB74e38FD98631);
         if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();

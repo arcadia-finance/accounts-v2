@@ -4,20 +4,20 @@
  */
 pragma solidity 0.8.22;
 
-import { DEStakedAerodromeAM_Fuzz_Test, DEStakedAerodromeAM } from "./_DEStakedAerodromeAM.fuzz.t.sol";
+import { StakedAerodromeAM_Fuzz_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fuzz.t.sol";
 import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 /**
- * @notice Fuzz tests for the "addAsset" function of contract "DEStakedAerodromeAM".
+ * @notice Fuzz tests for the "addAsset" function of contract "StakedAerodromeAM".
  */
-contract AddAsset_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test {
+contract AddAsset_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        DEStakedAerodromeAM_Fuzz_Test.setUp();
+        StakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ contract AddAsset_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test
     function testFuzz_Revert_AddAsset_GaugeNotValid(address gauge_) public {
         // When : Calling addAsset()
         // Then : It should revert
-        vm.expectRevert(DEStakedAerodromeAM.GaugeNotValid.selector);
+        vm.expectRevert(StakedAerodromeAM.GaugeNotValid.selector);
         stakedAerodromeAM.addAsset(gauge_);
     }
 
@@ -41,7 +41,7 @@ contract AddAsset_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test
 
         // When :  Calling addAsset()
         // Then : It should revert as the pool has not been added to the registry
-        vm.expectRevert(DEStakedAerodromeAM.PoolNotAllowed.selector);
+        vm.expectRevert(StakedAerodromeAM.PoolNotAllowed.selector);
         stakedAerodromeAM.addAsset(address(gauge));
     }
 
@@ -57,7 +57,7 @@ contract AddAsset_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test
 
         // When :  Calling addAsset()
         // Then : It should revert
-        vm.expectRevert(DEStakedAerodromeAM.AssetAlreadySet.selector);
+        vm.expectRevert(StakedAerodromeAM.AssetAlreadySet.selector);
         stakedAerodromeAM.addAsset(address(gauge));
     }
 
@@ -71,7 +71,7 @@ contract AddAsset_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test
 
         // When :  Calling addAsset()
         // Then : It should revert
-        vm.expectRevert(DEStakedAerodromeAM.RewardTokenNotValid.selector);
+        vm.expectRevert(StakedAerodromeAM.RewardTokenNotValid.selector);
         stakedAerodromeAM.addAsset(address(gauge));
     }
 
