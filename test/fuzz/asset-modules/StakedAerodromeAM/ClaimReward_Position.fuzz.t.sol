@@ -5,26 +5,26 @@
 pragma solidity 0.8.22;
 
 import {
-    DEStakedAerodromeAM_Fuzz_Test,
+    StakedAerodromeAM_Fuzz_Test,
     AbstractStakingAM_Fuzz_Test,
     StakingAM,
     ERC20Mock
-} from "./_DEStakedAerodromeAM.fuzz.t.sol";
+} from "./_StakedAerodromeAM.fuzz.t.sol";
 
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 /**
- * @notice Fuzz tests for the "ClaimReward" function (position rewards) of contract "DEStakedAerodromeAM".
+ * @notice Fuzz tests for the "ClaimReward" function (position rewards) of contract "StakedAerodromeAM".
  */
-contract ClaimReward_Position_DEStakedAerodromeAM_Fuzz_Test is DEStakedAerodromeAM_Fuzz_Test {
+contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        DEStakedAerodromeAM_Fuzz_Test.setUp();
+        StakedAerodromeAM_Fuzz_Test.setUp();
     }
 
     /*///////////////////////////////////////////////////////////////

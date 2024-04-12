@@ -5,10 +5,10 @@
 pragma solidity 0.8.22;
 
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
-import { DEStakedAerodromeAM } from "../../../src/asset-modules/Aerodrome-Finance/DEStakedAerodromeAM.sol";
+import { StakedAerodromeAM } from "../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
 
-contract DEStakedAerodromeAMExtension is DEStakedAerodromeAM {
-    constructor(address registry, address aerodromeVoter) DEStakedAerodromeAM(registry, aerodromeVoter) { }
+contract StakedAerodromeAMExtension is StakedAerodromeAM {
+    constructor(address registry, address aerodromeVoter) StakedAerodromeAM(registry, aerodromeVoter) { }
 
     function stakeAndClaim(address asset, uint256 amount) public {
         _stakeAndClaim(asset, amount);
