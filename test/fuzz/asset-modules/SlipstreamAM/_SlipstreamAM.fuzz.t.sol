@@ -5,31 +5,32 @@
 pragma solidity 0.8.22;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
-import { UniswapV3Fixture } from "../../../utils/fixtures/uniswap-v3/UniswapV3Fixture.f.sol";
+import { SlipstreamFixture } from "../../../utils/fixtures/slipstream/Slipstream.f.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
+import { AerodromeVoterMock } from "../../../utils/mocks/Aerodrome/AerodromeVoterMock.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { INonfungiblePositionManagerExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
-import { IUniswapV3PoolExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
+    "../../../utils/fixtures/slipstream/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
+import { ICLFactoryExtension } from "../../../utils/fixtures/slipstream/extensions/interfaces/ICLFactoryExtension.sol";
+import { ICLPoolExtension } from "../../../utils/fixtures/slipstream/extensions/interfaces/ICLPoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { LiquidityAmountsExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
-import { NonfungiblePositionManagerMock } from "../../../utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
+import { NonfungiblePositionManagerMock } from "../../../utils/mocks/Slipstream/NonfungiblePositionManager.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 import { Utils } from "../../../utils/Utils.sol";
-import { UniswapV3AM } from "../../../../src/asset-modules/UniswapV3/UniswapV3AM.sol";
+import { SlipstreamAMExtension } from "../../../utils/extensions/SlipstreamAMExtension.sol";
 
 /**
- * @notice Common logic needed by all "UniswapV3AM" fuzz tests.
+ * @notice Common logic needed by all "SlipstreamAM" fuzz tests.
  */
-abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
+abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                               CONSTANTS
@@ -44,7 +45,9 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    IUniswapV3PoolExtension internal poolStable1Stable2;
+    AerodromeVoterMock internal voter;
+    SlipstreamAMExtension internal slipstreamAM;
+    ICLPoolExtension internal poolStable1Stable2;
     NonfungiblePositionManagerMock internal nonfungiblePositionManagerMock;
 
     struct TestVariables {
@@ -68,13 +71,17 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(Fuzz_Test, UniswapV3Fixture) {
+    function setUp() public virtual override(Fuzz_Test, SlipstreamFixture) {
         Fuzz_Test.setUp();
-        // Deploy fixture for Uniswap.
-        UniswapV3Fixture.setUp();
+        SlipstreamFixture.setUp();
+
+        // Deploy Aerodrome Voter.
+        voter = new AerodromeVoterMock();
+
+        // Deploy fixture for Slipstream.
+        deploySlipstream(address(voter));
 
         // Deploy mock for the Nonfungibleposition manager for tests where state of position must be fuzzed.
-        // (we can't use the Fixture since most variables of the NonfungiblepositionExtension are private).
         deployNonfungiblePositionManagerMock();
 
         poolStable1Stable2 = createPool(mockERC20.stable1, mockERC20.stable2, TickMath.getSqrtRatioAtTick(0), 300);
@@ -86,32 +93,43 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
 
     function deployNonfungiblePositionManagerMock() public {
         vm.prank(users.creatorAddress);
-        nonfungiblePositionManagerMock = new NonfungiblePositionManagerMock(address(uniswapV3Factory));
+        nonfungiblePositionManagerMock = new NonfungiblePositionManagerMock(address(cLFactory));
 
         vm.label({ account: address(nonfungiblePositionManagerMock), newLabel: "NonfungiblePositionManagerMock" });
     }
 
+    function deploySlipstreamAM(address nonfungiblePositionManager_) internal {
+        // Deploy SlipstreamAM.
+        vm.startPrank(users.creatorAddress);
+        slipstreamAM = new SlipstreamAMExtension(address(registryExtension), nonfungiblePositionManager_);
+
+        vm.label({ account: address(slipstreamAM), newLabel: "Slipstream Asset Module" });
+
+        // Add the Asset Module to the Registry.
+        registryExtension.addAssetModule(address(slipstreamAM));
+        slipstreamAM.setProtocol();
+        vm.stopPrank();
+    }
+
     function createPool(ERC20 token0, ERC20 token1, uint160 sqrtPriceX96, uint16 observationCardinality)
         public
-        returns (IUniswapV3PoolExtension pool)
+        returns (ICLPoolExtension pool)
     {
         (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
-        address poolAddress = nonfungiblePositionManager.createAndInitializePoolIfNecessary(
-            address(token0), address(token1), 100, sqrtPriceX96
-        ); // Set initial price to lowest possible price.
-        pool = IUniswapV3PoolExtension(poolAddress);
+        address poolAddress = cLFactory.createPool(address(token0), address(token1), 1, sqrtPriceX96); // Set initial price to lowest possible price.
+        pool = ICLPoolExtension(poolAddress);
         pool.increaseObservationCardinalityNext(observationCardinality);
     }
 
     function addLiquidity(
-        IUniswapV3PoolExtension pool,
+        ICLPoolExtension pool,
         uint128 liquidity,
         address liquidityProvider_,
         int24 tickLower,
         int24 tickUpper,
         bool revertsOnZeroLiquidity
     ) public returns (uint256 tokenId) {
-        (uint160 sqrtPrice,,,,,,) = pool.slot0();
+        (uint160 sqrtPrice,,,,,) = pool.slot0();
 
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPrice, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity
@@ -121,7 +139,7 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
     }
 
     function addLiquidity(
-        IUniswapV3PoolExtension pool,
+        ICLPoolExtension pool,
         uint256 amount0,
         uint256 amount1,
         address liquidityProvider_,
@@ -132,7 +150,7 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
         // Check if test should revert or be skipped when liquidity is zero.
         // This is hard to check with assumes of the fuzzed inputs due to rounding errors.
         if (!revertsOnZeroLiquidity) {
-            (uint160 sqrtPrice,,,,,,) = pool.slot0();
+            (uint160 sqrtPrice,,,,,) = pool.slot0();
             uint256 liquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
                 sqrtPrice,
                 TickMath.getSqrtRatioAtTick(tickLower),
@@ -145,7 +163,7 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
 
         address token0 = pool.token0();
         address token1 = pool.token1();
-        uint24 fee = pool.fee();
+        int24 tickSpacing = pool.tickSpacing();
 
         deal(token0, liquidityProvider_, amount0);
         deal(token1, liquidityProvider_, amount1);
@@ -156,7 +174,7 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
             INonfungiblePositionManagerExtension.MintParams({
                 token0: token0,
                 token1: token1,
-                fee: fee,
+                tickSpacing: tickSpacing,
                 tickLower: tickLower,
                 tickUpper: tickUpper,
                 amount0Desired: amount0,
@@ -164,14 +182,15 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
                 amount0Min: 0,
                 amount1Min: 0,
                 recipient: liquidityProvider_,
-                deadline: type(uint256).max
+                deadline: type(uint256).max,
+                sqrtPriceX96: 0
             })
         );
         vm.stopPrank();
     }
 
     function increaseLiquidity(
-        IUniswapV3PoolExtension pool,
+        ICLPoolExtension pool,
         uint256 tokenId,
         uint256 amount0,
         uint256 amount1,
@@ -182,7 +201,7 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
         (,, address token0, address token1,, int24 tickLower, int24 tickUpper,,,,,) =
             nonfungiblePositionManager.positions(tokenId);
         if (!revertsOnZeroLiquidity) {
-            (uint160 sqrtPrice,,,,,,) = pool.slot0();
+            (uint160 sqrtPrice,,,,,) = pool.slot0();
             uint256 liquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
                 sqrtPrice,
                 TickMath.getSqrtRatioAtTick(tickLower),

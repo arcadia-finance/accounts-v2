@@ -8,7 +8,7 @@ optimizer_runs = 200
 auto_detect_solc = true
 fuzz = { runs = 50, max_test_rejects = 100_000_000}
 no_match_path = ""
-remappings = ["@uniswap/v3-core/contracts/=lib/v3-core/contracts/", "@openzeppelin/=lib/openzeppelin-contracts/"]
+remappings = ["@uniswap/v3-core/contracts/=lib/v3-core/contracts/", "@openzeppelin/=lib/openzeppelin-contracts/", "contracts/=lib/slipstream/contracts"]
 fs_permissions = [{ access = "read", path = "./out"}]
 evm_version = 'shanghai'
 

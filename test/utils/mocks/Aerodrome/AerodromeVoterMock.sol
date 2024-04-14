@@ -16,4 +16,6 @@ contract AerodromeVoterMock {
     function setAlive(address gauge) public {
         isAlive[gauge] = true;
     }
+
+    function factoryRegistry() public returns (address factoryRegistry_) { }
 }
