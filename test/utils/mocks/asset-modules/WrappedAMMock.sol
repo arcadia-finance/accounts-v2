@@ -4,34 +4,40 @@
  */
 pragma solidity 0.8.22;
 
-import { ERC20, StakingAMExtension } from "../../Extensions.sol";
+import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
+import { WrappedAMExtension } from "../../extensions/WrappedAMExtension.sol";
 
-contract StakingAMMock is StakingAMExtension {
-    constructor(address registry, string memory name_, string memory symbol_, address rewardToken)
-        StakingAMExtension(registry, name_, symbol_)
+contract WrappedAMMock is WrappedAMExtension {
+    constructor(address registry, string memory name_, string memory symbol_)
+        WrappedAMExtension(registry, name_, symbol_)
+    { }
+
+    function addAsset(address asset, address[] memory rewards) public {
+        address customAsset = address(uint160(uint256(keccak256(abi.encodePacked(asset, rewards)))));
+        _addAsset(customAsset, asset, rewards);
+    }
+
+    mapping(address asset => mapping(address rewardToken => uint256 currentRewardGlobal_) rewardBalance) public
+        currentRewardBalance;
+
+    function setCurrentRewardBalance(address asset, address rewardToken, uint256 rewardBalance) public {
+        currentRewardBalance[asset][rewardToken] = rewardBalance;
+    }
+
+    function _claimRewards(address asset, address[] memory rewards) internal override {
+        for (uint256 i; i < rewards.length; ++i) {
+            currentRewardBalance[asset][rewards[i]] = 0;
+        }
+    }
+
+    function _getCurrentRewards(address asset, address[] memory rewards)
+        internal
+        view
+        override
+        returns (uint256[] memory currentRewards)
     {
-        REWARD_TOKEN = ERC20(rewardToken);
-    }
-
-    mapping(address asset => uint256 rewardBalance) public currentRewardGlobal;
-
-    function setActualRewardBalance(address asset, uint256 amount) public {
-        currentRewardGlobal[asset] = amount;
-    }
-
-    function _stakeAndClaim(address asset, uint256) internal override {
-        _claimReward(asset);
-    }
-
-    function _withdrawAndClaim(address asset, uint256) internal override {
-        _claimReward(asset);
-    }
-
-    function _claimReward(address asset) internal override {
-        currentRewardGlobal[asset] = 0;
-    }
-
-    function _getCurrentReward(address asset) internal view override returns (uint256 earned) {
-        earned = currentRewardGlobal[asset];
+        for (uint256 i; i < rewards.length; ++i) {
+            currentRewards[i] = currentRewardBalance[asset][rewards[i]];
+        }
     }
 }

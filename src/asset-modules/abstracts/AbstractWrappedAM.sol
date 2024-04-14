@@ -57,7 +57,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     mapping(address asset => mapping(address rewardToken => uint256 lastRewardPerTokenGlobal)) public
         lastRewardPerTokenGlobal;
     // Map an Asset to total amount wrapped in this Asset Module.
-    mapping(address asset => uint256 totalWrapped) public assetToTotalWrapped;
+    mapping(address asset => uint128 totalWrapped) public assetToTotalWrapped;
     // Map an Asset to all reward tokens claimable for that asset via this Asset Module.
     mapping(address asset => address[] rewards) public rewardsForAsset;
 
