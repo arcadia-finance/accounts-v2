@@ -129,7 +129,7 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
 
         // Exposures are greater than 0 for both token 1 and token 2, see Fuzz.t.sol
 
-        // Test that Uni V3 LP token with allowed exposure to the underlying assets but with 0 liquidity is not allowed.
+        // Test that Slipstream LP token with allowed exposure to the underlying assets but with 0 liquidity is not allowed.
         assertFalse(slipstreamAM.isAllowed(address(nonfungiblePositionManager), tokenId));
     }
 
@@ -171,7 +171,7 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
 
         // Exposures are greater than 0 for both token 1 and token 2, see Fuzz.t.sol
 
-        // Test that Uni V3 LP token with allowed exposure to the underlying assets is allowlisted.
+        // Test that Slipstream LP token with allowed exposure to the underlying assets is allowlisted.
         assertTrue(slipstreamAM.isAllowed(address(nonfungiblePositionManager), tokenId));
     }
 }

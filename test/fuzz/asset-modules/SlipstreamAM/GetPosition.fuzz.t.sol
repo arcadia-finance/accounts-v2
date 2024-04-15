@@ -51,7 +51,7 @@ contract GetPosition_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         // And: State is persisted.
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), assetId, position);
 
-        // And: The Uniswap V3 position is added to the Asset Module.
+        // And: The Slipstream position is added to the Asset Module.
         slipstreamAM.addAsset(assetId);
 
         // And: The Liquidity of the position changes

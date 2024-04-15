@@ -67,7 +67,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
-        // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
+        // Create Slipstream pool initiated at tickCurrent with cardinality 300.
         pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
 
         // Check that Liquidity is within allowed ranges.
@@ -106,7 +106,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
-        // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
+        // Create Slipstream pool initiated at tickCurrent with cardinality 300.
         pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
 
         // Check that Liquidity is within allowed ranges.
@@ -144,7 +144,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
-        // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
+        // Create Slipstream pool initiated at tickCurrent with cardinality 300.
         pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
 
         // Check that Liquidity is within allowed ranges.
@@ -254,7 +254,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
-        // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
+        // Create Slipstream pool initiated at tickCurrent with cardinality 300.
         pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
 
         // Check that Liquidity is within allowed ranges.
@@ -361,7 +361,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
-        // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
+        // Create Slipstream pool initiated at tickCurrent with cardinality 300.
         pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
 
         // Check that Liquidity is within allowed ranges.
@@ -418,7 +418,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
                 address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100
             );
 
-            // Given: uniV3 position is deposited.
+            // Given: Slipstream position is deposited.
             vm.prank(address(registryExtension));
             slipstreamAM.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         }

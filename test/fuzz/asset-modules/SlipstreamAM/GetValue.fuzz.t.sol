@@ -58,7 +58,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         vm.assume(vars.priceToken1 > 0);
         // Cast to uint160 will overflow, not realistic.
         vm.assume(vars.priceToken0 / vars.priceToken1 < 2 ** 128);
-        // Check that sqrtPriceX96 is within allowed Uniswap V3 ranges.
+        // Check that sqrtPriceX96 is within allowed Slipstream ranges.
         uint160 sqrtPriceX96 = slipstreamAM.getSqrtPriceX96(
             vars.priceToken0 * 10 ** (18 - vars.decimals0), vars.priceToken1 * 10 ** (18 - vars.decimals1)
         );
@@ -66,7 +66,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         vm.assume(sqrtPriceX96 >= 4_295_128_739);
         vm.assume(sqrtPriceX96 <= 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342);
 
-        // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
+        // Create Slipstream pool initiated at tickCurrent with cardinality 300.
         ICLPoolExtension pool = createPool(token0, token1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
@@ -86,7 +86,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
             liquidity_
         );
 
-        // Overflows Uniswap libraries, not realistic.
+        // Overflows Slipstream libraries, not realistic.
         vm.assume(amount0 < type(uint104).max);
         vm.assume(amount1 < type(uint104).max);
 
@@ -111,13 +111,13 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         uint256 liqFactor0,
         uint256 collFactor1,
         uint256 liqFactor1,
-        uint256 riskFactorUniV3
+        uint256 riskFactorSlipstream
     ) public {
         liqFactor0 = bound(liqFactor0, 0, AssetValuationLib.ONE_4);
         collFactor0 = bound(collFactor0, 0, liqFactor0);
         liqFactor1 = bound(liqFactor1, 0, AssetValuationLib.ONE_4);
         collFactor1 = bound(collFactor1, 0, liqFactor1);
-        riskFactorUniV3 = bound(riskFactorUniV3, 0, AssetValuationLib.ONE_4);
+        riskFactorSlipstream = bound(riskFactorSlipstream, 0, AssetValuationLib.ONE_4);
 
         // Deploy and sort tokens.
         decimals0 = bound(decimals0, 6, 18);
@@ -146,7 +146,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
             address(creditorUsd), address(token1), 0, type(uint112).max, uint16(collFactor1), uint16(liqFactor1)
         );
         registryExtension.setRiskParametersOfDerivedAM(
-            address(creditorUsd), address(slipstreamAM), type(uint112).max, uint16(riskFactorUniV3)
+            address(creditorUsd), address(slipstreamAM), type(uint112).max, uint16(riskFactorSlipstream)
         );
         vm.stopPrank();
 
@@ -154,9 +154,9 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         uint256 expectedCollFactor = collFactor0 < collFactor1 ? collFactor0 : collFactor1;
         uint256 expectedLiqFactor = liqFactor0 < liqFactor1 ? liqFactor0 : liqFactor1;
 
-        // Next apply risk factor for uniswap V3.
-        expectedCollFactor = expectedCollFactor * riskFactorUniV3 / AssetValuationLib.ONE_4;
-        expectedLiqFactor = expectedLiqFactor * riskFactorUniV3 / AssetValuationLib.ONE_4;
+        // Next apply risk factor for Slipstream .
+        expectedCollFactor = expectedCollFactor * riskFactorSlipstream / AssetValuationLib.ONE_4;
+        expectedLiqFactor = expectedLiqFactor * riskFactorSlipstream / AssetValuationLib.ONE_4;
 
         (, uint256 actualCollFactor, uint256 actualLiqFactor) =
             slipstreamAM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
