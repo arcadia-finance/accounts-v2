@@ -138,7 +138,7 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         // New reward
         rewards_[0] = address(j);
         for (uint256 i; i < rewards.length; ++i) {
-            assertNotEq(rewards_[0], rewards[i]);
+            assert(rewards_[0] != rewards[i]);
         }
 
         // Existing reward
