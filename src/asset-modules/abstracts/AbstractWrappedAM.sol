@@ -32,6 +32,9 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
+    // The max amount of rewards that should ever be allowed.
+    uint8 public immutable MAX_REWARDS = 10;
+
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
@@ -102,6 +105,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     error NotOwner();
     error ZeroAmount();
     error MaxRewardsReached();
+    error IncreaseRewardsOnly();
 
     /* //////////////////////////////////////////////////////////////
                               CONSTRUCTOR
@@ -124,10 +128,12 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
     /**
      * @notice This function will add this contract as an asset in the Registry.
+     * @param maxRewardsPerAsset_ The maximum amount of rewards that can be accounted for an Asset.
      * @dev Will revert if called more than once.
      */
-    function initialize() external onlyOwner {
+    function initialize(uint8 maxRewardsPerAsset_) external onlyOwner {
         inAssetModule[address(this)] = true;
+        maxRewardsPerAsset = maxRewardsPerAsset_;
 
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), address(this));
     }
@@ -175,7 +181,8 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param maxRewards The new max number of rewards that can be accounted for an Asset.
      */
     function setMaxRewardsPerAsset(uint256 maxRewards) external onlyOwner {
-        // TODO: immutable max number of rewards ?
+        if (maxRewards > MAX_REWARDS) revert MaxRewardsReached();
+        if (maxRewards <= maxRewardsPerAsset) revert IncreaseRewardsOnly();
         maxRewardsPerAsset = maxRewards;
     }
 
@@ -352,7 +359,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     }
 
     /*///////////////////////////////////////////////////////////////
-                         STAKING MODULE LOGIC
+                         WRAPPER MODULE LOGIC
     ///////////////////////////////////////////////////////////////*/
 
     /**
@@ -566,6 +573,15 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     /*///////////////////////////////////////////////////////////////
                          REWARDS VIEW FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Returns the array of reward tokens claimable by a custom Asset.
+     * @param customAsset The address of the custom Asset.
+     * @return rewards An array of reward addresses claimable by a specific customAsset wrapped through this AM.
+     */
+    function getRewardsForCustomAsset(address customAsset) external view returns (address[] memory rewards) {
+        rewards = customAssetInfo[customAsset].rewards;
+    }
 
     /**
      * @notice Returns the amount of reward tokens claimable by a position.

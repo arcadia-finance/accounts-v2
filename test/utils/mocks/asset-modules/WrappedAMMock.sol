@@ -12,11 +12,6 @@ contract WrappedAMMock is WrappedAMExtension {
         WrappedAMExtension(registry, name_, symbol_)
     { }
 
-    function addAsset(address asset, address[] memory rewards) public {
-        address customAsset = address(uint160(uint256(keccak256(abi.encodePacked(asset, rewards)))));
-        _addAsset(customAsset, asset, rewards);
-    }
-
     mapping(address asset => mapping(address rewardToken => uint256 currentRewardGlobal_) rewardBalance) public
         currentRewardBalance;
 

@@ -37,7 +37,6 @@ abstract contract AbstractWrappedAM_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    ERC20Mock internal rewardToken;
     WrappedAMMock internal wrappedAM;
 
     /* ///////////////////////////////////////////////////////////////
@@ -158,6 +157,12 @@ abstract contract AbstractWrappedAM_Fuzz_Test is Fuzz_Test {
         for (uint256 i; i < numberOfRewards; ++i) {
             rewards_[i] = address(new ERC20Mock("Reward", "RWD", rewardDecimals));
         }
-        wrappedAM.addAsset(asset_, rewards_);
+
+        address customAsset = getCustomAsset(asset_, rewards_);
+        wrappedAM.addAsset(customAsset, asset_, rewards_);
+    }
+
+    function getCustomAsset(address asset, address[] memory rewards) public pure returns (address customAsset) {
+        customAsset = address(uint160(uint256(keccak256(abi.encodePacked(asset, rewards)))));
     }
 }
