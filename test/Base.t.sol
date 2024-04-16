@@ -10,13 +10,13 @@ import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/accounts/AccountV1.sol";
 import { AccountV2 } from "./utils/mocks/accounts/AccountV2.sol";
 import { SequencerUptimeOracle } from "./utils/mocks/oracles/SequencerUptimeOracle.sol";
-import { ChainlinkOMExtension } from "./utils/Extensions.sol";
-import { RegistryExtension } from "./utils/Extensions.sol";
+import { ChainlinkOMExtension } from "./utils/extensions/ChainlinkOMExtension.sol";
+import { RegistryExtension } from "./utils/extensions/RegistryExtension.sol";
 import { AssetModule } from "../src/asset-modules/abstracts/AbstractAM.sol";
-import { ERC20PrimaryAMExtension } from "./utils/Extensions.sol";
-import { FloorERC721AMExtension } from "./utils/Extensions.sol";
-import { FloorERC1155AMExtension } from "./utils/Extensions.sol";
-import { UniswapV3AMExtension } from "./utils/Extensions.sol";
+import { ERC20PrimaryAMExtension } from "./utils/extensions/ERC20PrimaryAMExtension.sol";
+import { FloorERC721AMExtension } from "./utils/extensions/FloorERC721AMExtension.sol";
+import { FloorERC1155AMExtension } from "./utils/extensions/FloorERC1155AMExtension.sol";
+import { UniswapV3AMExtension } from "./utils/extensions/UniswapV3AMExtension.sol";
 import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Errors } from "./utils/Errors.sol";
@@ -152,7 +152,7 @@ abstract contract Base_Test is Test, Events, Errors {
 
         // Get the bytecode of UniswapV3AMExtension.
         args = abi.encode(address(registryExtension), nonfungiblePositionManager_);
-        bytecode = abi.encodePacked(vm.getCode("Extensions.sol:UniswapV3AMExtension"), args);
+        bytecode = abi.encodePacked(vm.getCode("UniswapV3AMExtension.sol:UniswapV3AMExtension"), args);
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.
         // -> Replace the code hash of UniswapV3Pool.sol with the code hash of UniswapV3PoolExtension.sol

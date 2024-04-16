@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
-import { AbstractDerivedAMExtension } from "../../Extensions.sol";
+import { DerivedAMExtension } from "../../extensions/DerivedAMExtension.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IRegistry } from "../../../../src/asset-modules/interfaces/IRegistry.sol";
 
-contract DerivedAMMock is AbstractDerivedAMExtension {
+contract DerivedAMMock is DerivedAMExtension {
     using FixedPointMathLib for uint256;
 
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
@@ -15,7 +15,7 @@ contract DerivedAMMock is AbstractDerivedAMExtension {
     bool internal returnRateUnderlyingAssetToUsd;
     uint256 internal rateUnderlyingAssetToUsd;
 
-    constructor(address registry_, uint256 assetType_) AbstractDerivedAMExtension(registry_, assetType_) { }
+    constructor(address registry_, uint256 assetType_) DerivedAMExtension(registry_, assetType_) { }
 
     function isAllowed(address asset, uint256) public view override returns (bool) { }
 

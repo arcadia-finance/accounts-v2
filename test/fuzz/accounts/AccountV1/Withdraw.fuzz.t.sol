@@ -9,7 +9,7 @@ import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
-import { AccountExtension } from "../../../utils/Extensions.sol";
+import { AccountV1Extension } from "../../../utils/extensions/AccountV1Extension.sol";
 import { AssetModuleMock } from "../../../utils/mocks/asset-modules/AssetModuleMock.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
@@ -264,7 +264,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Given: At least one nft of same collection is deposited in other account.
         // (otherwise processWithdrawal underflows when arrLength is 0: account didn't deposit any nfts yet).
-        AccountExtension account2 = new AccountExtension(address(factory));
+        AccountV1Extension account2 = new AccountV1Extension(address(factory));
         account2.initialize(users.accountOwner, address(registryExtension), address(creditorStable1));
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(account2)).checked_write(
             true

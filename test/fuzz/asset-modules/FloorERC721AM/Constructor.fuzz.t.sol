@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { FloorERC721AM_Fuzz_Test } from "./_FloorERC721AM.fuzz.t.sol";
 
-import { FloorERC721AMExtension } from "../../../utils/Extensions.sol";
+import { FloorERC721AMExtension } from "../../../utils/extensions/FloorERC721AMExtension.sol";
 
 /**
  * @notice Fuzz tests for the function "constructor" of contract "FloorERC721AM".

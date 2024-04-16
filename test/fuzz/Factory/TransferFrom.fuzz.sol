@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
 import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
-import { AccountExtension } from "../../utils/Extensions.sol";
+import { AccountV1Extension } from "../../utils/extensions/AccountV1Extension.sol";
 
 /**
  * @notice Fuzz tests for the functions "(safe)TransferFrom" of contract "Factory".
@@ -26,7 +26,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function setUp() public override {
         Factory_Fuzz_Test.setUp();
 
-        AccountExtension account_ = new AccountExtension(address(factory));
+        AccountV1Extension account_ = new AccountV1Extension(address(factory));
         coolDownPeriod = account_.getCoolDownPeriod();
     }
 
