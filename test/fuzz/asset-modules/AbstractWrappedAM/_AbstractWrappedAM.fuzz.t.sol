@@ -64,8 +64,8 @@ abstract contract AbstractWrappedAM_Fuzz_Test is Fuzz_Test {
         uint96 tokenId,
         uint128 totalWrapped,
         address underlyingAsset
-    ) internal {
-        address customAsset = address(uint160(uint256(keccak256(abi.encodePacked(asset, rewards)))));
+    ) internal returns (address customAsset) {
+        customAsset = getCustomAsset(asset, rewards);
 
         wrappedAM.setCustomAssetInfo(customAsset, asset, rewards);
         wrappedAM.setTotalWrapped(asset, totalWrapped);
@@ -97,7 +97,7 @@ abstract contract AbstractWrappedAM_Fuzz_Test is Fuzz_Test {
             WrappedAMAssetAndRewardStateGlobal[] memory,
             WrappedAMPositionState memory,
             WrappedAMPositionStatePerReward[] memory,
-            uint256
+            uint128
         )
     {
         // Given: More than 1 gwei is staked.
@@ -164,5 +164,39 @@ abstract contract AbstractWrappedAM_Fuzz_Test is Fuzz_Test {
 
     function getCustomAsset(address asset, address[] memory rewards) public pure returns (address customAsset) {
         customAsset = address(uint160(uint256(keccak256(abi.encodePacked(asset, rewards)))));
+    }
+
+    function castArrayStaticToDynamicAssetAndReward(WrappedAMAssetAndRewardStateGlobal[2] memory staticArray)
+        public
+        pure
+        returns (WrappedAMAssetAndRewardStateGlobal[] memory dynamicArray)
+    {
+        uint256 length = staticArray.length;
+        dynamicArray = new WrappedAMAssetAndRewardStateGlobal[](length);
+
+        for (uint256 i; i < length;) {
+            dynamicArray[i] = staticArray[i];
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function castArrayStaticToDynamicPositionPerReward(WrappedAMPositionStatePerReward[2] memory staticArray)
+        public
+        pure
+        returns (WrappedAMPositionStatePerReward[] memory dynamicArray)
+    {
+        uint256 length = staticArray.length;
+        dynamicArray = new WrappedAMPositionStatePerReward[](length);
+
+        for (uint256 i; i < length;) {
+            dynamicArray[i] = staticArray[i];
+
+            unchecked {
+                ++i;
+            }
+        }
     }
 }

@@ -10,8 +10,8 @@ import { WrappedAM } from "../../../src/asset-modules/abstracts/AbstractWrappedA
 abstract contract WrappedAMExtension is WrappedAM {
     constructor(address registry, string memory name_, string memory symbol_) WrappedAM(registry, name_, symbol_) { }
 
-    function setCustomAssetForPosition(address customAsset, uint96 tokenId) public {
-        positionState[tokenId].customAsset = customAsset;
+    function setCustomAssetForPosition(address customAsset_, uint96 tokenId) public {
+        positionState[tokenId].customAsset = customAsset_;
     }
 
     function addAsset(address customAsset, address asset, address[] memory rewards) public {
