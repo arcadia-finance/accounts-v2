@@ -22,6 +22,7 @@ library DeployAddresses {
     address public constant axl_base = 0x23ee2343B892b1BB63503a4FAbc840E0e2C6810f;
     address public constant crv_base = 0x8Ee73c484A26e0A5df2Ee2a4960B789967dd0415;
     address public constant stg_base = 0xE3B53AF74a4BF62Ae5511055290838050bf764Df;
+    address public constant wsteth_base = 0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452;
 
     address public constant oracleCompToUsd_base = 0x9DDa783DE64A9d1A60c49ca761EbE528C35BA428;
     address public constant oracleDaiToUsd_base = 0x591e79239a7d679378eC8c847e5038150364C78F;
@@ -32,6 +33,7 @@ library DeployAddresses {
     address public constant oracleWbtcToUsd_base = 0xCCADC697c55bbB68dc5bCdf8d3CBe83CdD4E071E;
     address public constant oracleRethToEth_base = 0xf397bF97280B488cA19ee3093E81C0a77F02e9a5;
     address public constant oracleStgToUsd_base = 0x63Af8341b62E683B87bB540896bF283D96B4D385;
+    address public constant oracleWstethToEth_base = 0xa669E5272E60f78299F4824495cE01a3923f4380;
 
     address public constant uniswapV3PositionMgr_base = 0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1;
     address public constant stargateFactory_base = 0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6;
@@ -39,9 +41,9 @@ library DeployAddresses {
     address public constant sequencerUptimeOracle_base = 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433;
 
     // to do: change to gnosis
-    address public constant protocolOwner_base = 0x0f518becFC14125F23b8422849f6393D59627ddB;
-    address public constant pauseGuardian_base = 0x0106BBB9a3AAf4ec5fEbC6A1A90A2C2FEacb1087;
-    address public constant riskManager_base = 0x829bc2A98f1D0AFA4C487894a329CF372Ca3337C;
+    address public constant protocolOwner_base = 0xb4d72B1c91e640e4ED7d7397F3244De4D8ACc50B;
+    address public constant pauseGuardian_base = 0xEdD41f9740b06eCBfe1CE9194Ce2715C28263187;
+    address public constant riskManager_base = 0xD5FA6C6e284007743d4263255385eDA78dDa268c;
 }
 
 library DeployNumbers {
@@ -61,6 +63,7 @@ library DeployNumbers {
     uint8 public constant axlDecimals = 6;
     uint8 public constant crvDecimals = 18;
     uint8 public constant stgDecimals = 18;
+    uint8 public constant wstethDecimals = 18;
 
     uint256 public constant stargateWethPoolId = 13;
     uint256 public constant stargateUsdbcPoolId = 1;
@@ -73,6 +76,9 @@ library DeployNumbers {
     uint32 public constant cbeth_usd_cutOffTime = 1 hours;
     uint32 public constant reth_eth_cutOffTime = 25 hours;
     uint32 public constant stg_usd_cutOffTime = 25 hours;
+    uint32 public constant wsteth_eth_cutOffTime = 25 hours;
+
+    uint80 public constant EthToUsdOracleId = 2;
 }
 
 library DeployBytes {
@@ -198,6 +204,13 @@ library DeployRiskConstantsBase {
     uint16 public constant stg_liqFact_usdc = 7000;
     uint112 public constant stg_exposure_eth = 1; // Cannot be deposited as primary asset, but still as yield source
     uint112 public constant stg_exposure_usdc = 1; // Cannot be deposited as primary asset, but still as yield source
+
+    uint16 public constant wsteth_collFact_eth = 9100;
+    uint16 public constant wsteth_collFact_usdc = 8100;
+    uint16 public constant wsteth_liqFact_eth = 9500;
+    uint16 public constant wsteth_liqFact_usdc = 9400;
+    uint112 public constant wsteth_exposure_eth = uint112(400 * 10 ** DeployNumbers.wstethDecimals);
+    uint112 public constant wsteth_exposure_usdc = uint112(300 * 10 ** DeployNumbers.wstethDecimals);
 
     uint16 public constant uniswapV3AM_riskFact_eth = 9800;
     uint16 public constant uniswapV3AM_riskFact_usdc = 9800;
