@@ -35,7 +35,7 @@ abstract contract WrappedAMExtension is WrappedAM {
     }
 
     function setLastRewardPerTokenGlobal(address asset, address reward, uint128 amount) public {
-        lastRewardPerTokenGlobal[asset][reward] = amount;
+        lastRewardPerTokenGlobal[asset][reward] = uint256(amount);
     }
 
     function setLastRewardPosition(uint256 id, address reward, uint128 amount) public {

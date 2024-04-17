@@ -31,6 +31,7 @@ contract WrappedAMMock is WrappedAMExtension {
         override
         returns (uint256[] memory currentRewards)
     {
+        currentRewards = new uint256[](rewards.length);
         for (uint256 i; i < rewards.length; ++i) {
             currentRewards[i] = currentRewardBalance[asset][rewards[i]];
         }

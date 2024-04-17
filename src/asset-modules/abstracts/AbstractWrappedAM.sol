@@ -615,7 +615,6 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     {
         // Cache asset
         address asset = customAssetInfo[positionState[positionId].customAsset].asset;
-
         // Cache all active rewards for a given asset
         activeRewards_ = rewardsForAsset[asset];
         // Cache number of active rewards
@@ -638,6 +637,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
                 // Calculate the new assetState
                 // Fetch the current reward balance from the reward contract and calculate the change in RewardPerToken.
                 uint256 deltaRewardPerToken = currentRewardsClaimable[i].mulDivDown(1e18, totalWrapped);
+
                 // Calculate and update the new RewardPerToken of the asset.
                 // unchecked: RewardPerToken can overflow, what matters is the delta in RewardPerToken between two interactions.
                 unchecked {
@@ -663,6 +663,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
                     unchecked {
                         deltaReward = deltaRewardPerToken * positionState[positionId].amountWrapped / 1e18;
                     }
+
                     // Update the reward balance of the position.
                     rewardStatePositionArr[i].lastRewardPosition =
                         SafeCastLib.safeCastTo128(rewardStatePositionArr[i].lastRewardPosition + deltaReward);
@@ -673,8 +674,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         // Update the RewardPerToken of the rewards of the position.
         for (uint256 i; i < numberOfActiveRewards; ++i) {
             // TODO: don't think safeCast is necessary here
-            rewardStatePositionArr[i].lastRewardPerTokenPosition =
-                SafeCastLib.safeCastTo128(lastRewardPerTokenGlobalArr[i]);
+            rewardStatePositionArr[i].lastRewardPerTokenPosition = uint128(lastRewardPerTokenGlobalArr[i]);
         }
 
         return (lastRewardPerTokenGlobalArr, rewardStatePositionArr, activeRewards_);
