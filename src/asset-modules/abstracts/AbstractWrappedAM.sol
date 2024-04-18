@@ -57,7 +57,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     // Map a customAsset to its underlying asset and rewards.
     mapping(address customAsset => AssetAndRewards) public customAssetInfo;
     // Map an Asset to a reward token and to its lastRewardPerTokenGlobal at last time of interaction.
-    mapping(address asset => mapping(address rewardToken => uint256 lastRewardPerTokenGlobal)) public
+    mapping(address asset => mapping(address rewardToken => uint128 lastRewardPerTokenGlobal)) public
         lastRewardPerTokenGlobal;
     // Map an Asset to total amount wrapped in this Asset Module.
     mapping(address asset => uint128 totalWrapped) public assetToTotalWrapped;
@@ -389,7 +389,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         positionState[positionId].customAsset = customAsset;
 
         // Set lastRewardPerPosition for each reward
-        (uint256[] memory lastRewardPerTokenGlobalArr,, address[] memory activeRewards) = _getRewardBalances(positionId);
+        (uint128[] memory lastRewardPerTokenGlobalArr,, address[] memory activeRewards) = _getRewardBalances(positionId);
 
         for (uint256 i; i < activeRewards.length; ++i) {
             rewardStatePosition[positionId][activeRewards[i]].lastRewardPerTokenPosition =
@@ -516,7 +516,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Calculate the new reward balances.
         (
-            uint256[] memory lastRewardPerTokenGlobalArr,
+            uint128[] memory lastRewardPerTokenGlobalArr,
             RewardStatePosition[] memory rewardStatePositionArr,
             address[] memory activeRewards_
         ) = _getRewardBalances(positionId);
@@ -608,7 +608,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         internal
         view
         returns (
-            uint256[] memory lastRewardPerTokenGlobalArr,
+            uint128[] memory lastRewardPerTokenGlobalArr,
             RewardStatePosition[] memory,
             address[] memory activeRewards_
         )
@@ -629,7 +629,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
             rewardStatePositionArr[i] = rewardStatePosition[positionId][activeRewards_[i]];
         }
 
-        lastRewardPerTokenGlobalArr = new uint256[](numberOfActiveRewards);
+        lastRewardPerTokenGlobalArr = new uint128[](numberOfActiveRewards);
         uint256[] memory currentRewardsClaimable = _getCurrentRewards(asset, activeRewards_);
 
         if (totalWrapped > 0) {
@@ -641,8 +641,8 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
                 // Calculate and update the new RewardPerToken of the asset.
                 // unchecked: RewardPerToken can overflow, what matters is the delta in RewardPerToken between two interactions.
                 unchecked {
-                    lastRewardPerTokenGlobalArr[i] =
-                        lastRewardPerTokenGlobal[asset][activeRewards_[i]] + deltaRewardPerToken;
+                    lastRewardPerTokenGlobalArr[i] = lastRewardPerTokenGlobal[asset][activeRewards_[i]]
+                        + SafeCastLib.safeCastTo128(deltaRewardPerToken);
                 }
 
                 // Calculate the new rewardState for the position.
@@ -674,7 +674,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         // Update the RewardPerToken of the rewards of the position.
         for (uint256 i; i < numberOfActiveRewards; ++i) {
             // TODO: don't think safeCast is necessary here
-            rewardStatePositionArr[i].lastRewardPerTokenPosition = uint128(lastRewardPerTokenGlobalArr[i]);
+            rewardStatePositionArr[i].lastRewardPerTokenPosition = lastRewardPerTokenGlobalArr[i];
         }
 
         return (lastRewardPerTokenGlobalArr, rewardStatePositionArr, activeRewards_);

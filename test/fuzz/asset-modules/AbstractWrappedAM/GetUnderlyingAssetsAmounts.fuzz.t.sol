@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { AbstractWrappedAM_Fuzz_Test, WrappedAM } from "./_AbstractWrappedAM.fuzz.t.sol";
+import { AbstractWrappedAM_Fuzz_Test, WrappedAM, ERC20Mock } from "./_AbstractWrappedAM.fuzz.t.sol";
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
@@ -24,8 +24,7 @@ contract GetUnderlyingAssetsAmounts_AbstractWrappedAM_Fuzz_Test is AbstractWrapp
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    // TODO: to continue
-    function testFuzz_success_getUnderlyingAssetsAmounts_AssetAndCustomAssetRewardsAreIdentical(
+    function testFuzz_success_getUnderlyingAssetsAmounts_AmountNotZero_SameRewardsForAssetAndCustomAsset(
         AbstractWrappedAM_Fuzz_Test.WrappedAMAssetAndRewardStateGlobal[2] memory assetAndRewardState,
         AbstractWrappedAM_Fuzz_Test.WrappedAMPositionState memory positionState,
         AbstractWrappedAM_Fuzz_Test.WrappedAMPositionStatePerReward[2] memory positionStatePerReward,
@@ -48,6 +47,7 @@ contract GetUnderlyingAssetsAmounts_AbstractWrappedAM_Fuzz_Test is AbstractWrapp
             totalWrapped
         );
 
+        // And : State is persisted
         setWrappedAMState(
             assetAndRewardState_,
             positionState_,
@@ -59,7 +59,9 @@ contract GetUnderlyingAssetsAmounts_AbstractWrappedAM_Fuzz_Test is AbstractWrapp
             underlyingAsset
         );
 
-        uint256 positionAmount = positionState.amountWrapped;
+        uint256 positionAmount = positionState_.amountWrapped;
+        // And: amount is greater than 0
+        vm.assume(positionAmount > 0);
 
         // When : Calling getUnderlyingAssetsAmounts()
         bytes32[] memory emptyArr;
@@ -76,6 +78,136 @@ contract GetUnderlyingAssetsAmounts_AbstractWrappedAM_Fuzz_Test is AbstractWrapp
         assertEq(underlyingAssetsAmounts[2], claimableRewards[1]);
 
         // And: No rateUnderlyingAssetsToUsd are returned.
+        assertEq(rateUnderlyingAssetsToUsd.length, 0);
+    }
+
+    function testFuzz_success_getUnderlyingAssetsAmounts_AmountNotZero_RewardsDifferForAssetAndCustomAsset(
+        AbstractWrappedAM_Fuzz_Test.WrappedAMAssetAndRewardStateGlobal[2] memory assetAndRewardState,
+        AbstractWrappedAM_Fuzz_Test.WrappedAMPositionState memory positionState,
+        AbstractWrappedAM_Fuzz_Test.WrappedAMPositionStatePerReward[2] memory positionStatePerReward,
+        address asset,
+        address[2] calldata rewards,
+        uint96 tokenId,
+        uint128 totalWrapped,
+        address underlyingAsset,
+        uint128 position2Amount
+    ) public {
+        // Given : tokenId not equal to 2 (we use tokenId 2 further in the test)
+        vm.assume(tokenId != 2);
+
+        // And : position2Amount is greater than  0
+        vm.assume(position2Amount > 0);
+
+        // And : Valid state
+        (
+            AbstractWrappedAM_Fuzz_Test.WrappedAMAssetAndRewardStateGlobal[] memory assetAndRewardState_,
+            AbstractWrappedAM_Fuzz_Test.WrappedAMPositionState memory positionState_,
+            AbstractWrappedAM_Fuzz_Test.WrappedAMPositionStatePerReward[] memory positionStatePerReward_,
+            uint128 totalWrapped_
+        ) = givenValidWrappedAMState(
+            castArrayStaticToDynamicAssetAndReward(assetAndRewardState),
+            positionState,
+            castArrayStaticToDynamicPositionPerReward(positionStatePerReward),
+            totalWrapped
+        );
+
+        // Given : totalWrapped is 0 (objective of the test is not to test _getRewardBalances(), but that the position and reward amounts are returned in the correct order)
+        totalWrapped_ = 0;
+
+        // And : State is persisted
+        setWrappedAMState(
+            assetAndRewardState_,
+            positionState_,
+            positionStatePerReward_,
+            asset,
+            Utils.castArrayStaticToDynamic(rewards),
+            tokenId,
+            totalWrapped_,
+            underlyingAsset
+        );
+
+        // And : Set maxRewardsPerAsset to 3 (2 existing + 1 new reward)
+        vm.startPrank(users.creatorAddress);
+        wrappedAM.setMaxRewardsPerAsset(3);
+
+        // And : Add a new custom Asset
+        address newReward = address(new ERC20Mock("Reward", "RWD", 18));
+        address[] memory rewardsForCustomAsset = new address[](2);
+        // New reward
+        rewardsForCustomAsset[0] = newReward;
+        // Exisiting reward
+        rewardsForCustomAsset[1] = rewards[0];
+
+        address customAsset = getCustomAsset(asset, rewardsForCustomAsset);
+        wrappedAM.addAsset(customAsset, asset, rewardsForCustomAsset);
+
+        // And : Set rewards for new position Id
+        wrappedAM.setLastRewardPosition(2, newReward, 1e18);
+        wrappedAM.setLastRewardPosition(2, rewards[0], 1e6);
+        wrappedAM.setAmountWrappedForPosition(2, position2Amount);
+        wrappedAM.setCustomAssetForPosition(customAsset, 2);
+
+        // When : Calling getUnderlyingAssetsAmounts()
+        bytes32[] memory emptyArr;
+        bytes32 assetKey = wrappedAM.getKeyFromAsset(address(wrappedAM), 2);
+        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
+            wrappedAM.getUnderlyingAssetsAmounts(address(0), assetKey, position2Amount, emptyArr);
+
+        // Then : It should return the correct values
+        // 1 Underlying asset + 2 rewards
+        assertEq(underlyingAssetsAmounts.length, 3);
+        assertEq(underlyingAssetsAmounts[0], position2Amount);
+        assertEq(underlyingAssetsAmounts[1], 1e18);
+        assertEq(underlyingAssetsAmounts[2], 1e6);
+        assertEq(rateUnderlyingAssetsToUsd.length, 0);
+    }
+
+    function testFuzz_success_getUnderlyingAssetsAmounts_AmountIsZero(
+        AbstractWrappedAM_Fuzz_Test.WrappedAMAssetAndRewardStateGlobal[2] memory assetAndRewardState,
+        AbstractWrappedAM_Fuzz_Test.WrappedAMPositionState memory positionState,
+        AbstractWrappedAM_Fuzz_Test.WrappedAMPositionStatePerReward[2] memory positionStatePerReward,
+        address asset,
+        address[2] calldata rewards,
+        uint96 tokenId,
+        uint128 totalWrapped,
+        address underlyingAsset
+    ) public {
+        // Given : Valid state
+        (
+            AbstractWrappedAM_Fuzz_Test.WrappedAMAssetAndRewardStateGlobal[] memory assetAndRewardState_,
+            AbstractWrappedAM_Fuzz_Test.WrappedAMPositionState memory positionState_,
+            AbstractWrappedAM_Fuzz_Test.WrappedAMPositionStatePerReward[] memory positionStatePerReward_,
+            uint128 totalWrapped_
+        ) = givenValidWrappedAMState(
+            castArrayStaticToDynamicAssetAndReward(assetAndRewardState),
+            positionState,
+            castArrayStaticToDynamicPositionPerReward(positionStatePerReward),
+            totalWrapped
+        );
+
+        // And : State is persisted
+        setWrappedAMState(
+            assetAndRewardState_,
+            positionState_,
+            positionStatePerReward_,
+            asset,
+            Utils.castArrayStaticToDynamic(rewards),
+            tokenId,
+            totalWrapped_,
+            underlyingAsset
+        );
+
+        // When : Calling getUnderlyingAssetsAmounts() with 0 amount
+        bytes32[] memory emptyArr;
+        bytes32 assetKey = wrappedAM.getKeyFromAsset(address(wrappedAM), tokenId);
+        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
+            wrappedAM.getUnderlyingAssetsAmounts(address(0), assetKey, 0, emptyArr);
+
+        // Then : It should return the correct values
+        assertEq(underlyingAssetsAmounts.length, 3);
+        assertEq(underlyingAssetsAmounts[0], 0);
+        assertEq(underlyingAssetsAmounts[1], 0);
+        assertEq(underlyingAssetsAmounts[2], 0);
         assertEq(rateUnderlyingAssetsToUsd.length, 0);
     }
 }
