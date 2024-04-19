@@ -131,7 +131,6 @@ contract Mint_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
 
         // When:  A user is deposition via the wrappedAM
         vm.startPrank(accountStack);
-        // TODO: fix
         vm.expectEmit();
         emit WrappedAM.LiquidityIncreased(1, assetStack, amountStack);
         uint256 positionId = wrappedAM.mint(getCustomAsset(assetStack, rewards_), amountStack);
