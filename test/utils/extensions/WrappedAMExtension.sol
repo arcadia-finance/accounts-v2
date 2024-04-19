@@ -22,6 +22,10 @@ abstract contract WrappedAMExtension is WrappedAM {
         customAssetInfo[customAsset] = WrappedAM.AssetAndRewards({ allowed: true, asset: asset_, rewards: rewards_ });
     }
 
+    function setCustomAssetNotAllowed(address customAsset) public {
+        customAssetInfo[customAsset].allowed = false;
+    }
+
     function setAssetToUnderlyingAsset(address asset, address underlyingAsset) public {
         assetToUnderlyingAsset[asset] = underlyingAsset;
     }

@@ -376,29 +376,31 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Need to transfer before minting or ERC777s could reenter.
         ERC20(customAssetInfo_.asset).safeTransferFrom(msg.sender, address(this), amount);
-
         if (!customAssetInfo_.allowed) revert AssetNotAllowed();
 
         unchecked {
             positionId = ++lastPositionId;
         }
 
-        // Calculate the new wrapped amounts and set positionState
-        assetToTotalWrapped[customAssetInfo_.asset] = assetToTotalWrapped[customAssetInfo_.asset] + amount;
-        positionState[positionId].amountWrapped = amount;
+        // Set customAsset for position
         positionState[positionId].customAsset = customAsset;
 
         // Set lastRewardPerPosition for each reward
         (uint128[] memory lastRewardPerTokenGlobalArr,, address[] memory activeRewards) = _getRewardBalances(positionId);
 
+        // Update the new wrapped amounts and set positionState
+        assetToTotalWrapped[customAssetInfo_.asset] = assetToTotalWrapped[customAssetInfo_.asset] + amount;
+        positionState[positionId].amountWrapped = amount;
+
         for (uint256 i; i < activeRewards.length; ++i) {
             rewardStatePosition[positionId][activeRewards[i]].lastRewardPerTokenPosition =
-                SafeCastLib.safeCastTo128(lastRewardPerTokenGlobalArr[i]);
+                lastRewardPerTokenGlobalArr[i];
         }
 
         // Mint the new position.
         _safeMint(msg.sender, positionId);
 
+        // TODO: Log asset or customAsset here ?
         emit LiquidityIncreased(positionId, customAssetInfo_.asset, amount);
     }
 
@@ -669,11 +671,15 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
                         SafeCastLib.safeCastTo128(rewardStatePositionArr[i].lastRewardPosition + deltaReward);
                 }
             }
+        } else {
+            // If totalWrapped is 0, then lastRewardPerTokenPosition should be equal to lastRewardPerTokenGlobal
+            for (uint256 i; i < numberOfActiveRewards; ++i) {
+                lastRewardPerTokenGlobalArr[i] = lastRewardPerTokenGlobal[asset][activeRewards_[i]];
+            }
         }
 
         // Update the RewardPerToken of the rewards of the position.
         for (uint256 i; i < numberOfActiveRewards; ++i) {
-            // TODO: don't think safeCast is necessary here
             rewardStatePositionArr[i].lastRewardPerTokenPosition = lastRewardPerTokenGlobalArr[i];
         }
 
