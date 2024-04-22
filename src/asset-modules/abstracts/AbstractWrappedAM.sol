@@ -438,14 +438,22 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
      * @notice Unwraps, withdraws and claims rewards for total amount of wrapped Asset in position.
      * @param positionId The id of the position to burn.
      */
-    function burn(uint256 positionId) public virtual returns (uint256[] memory rewards) {
+    function burnPosition(uint256 positionId) public virtual nonReentrant returns (uint256[] memory rewards) {
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
+        rewards = _burnPosition(positionId);
+    }
+
+    /**
+     * @notice Unwraps, withdraws and claims rewards for total amount of wrapped Asset in position.
+     * @param positionId The id of the position to burn.
+     */
+    function _burnPosition(uint256 positionId) internal virtual returns (uint256[] memory rewards) {
         // Cache position amount
         uint128 positionAmount = positionState[positionId].amountWrapped;
 
         // Claim rewards before burning the position
-        (rewards) = claimRewards(positionId);
+        (rewards) = _claimRewards(positionId);
 
         // Cache values.
         address asset = customAssetInfo[positionState[positionId].customAsset].asset;
@@ -482,7 +490,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         if (amount == 0) revert ZeroAmount();
 
         if (positionState[positionId].amountWrapped == amount) {
-            rewards = burn(positionId);
+            rewards = _burnPosition(positionId);
         } else {
             if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
@@ -513,9 +521,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param positionId The id of the position.
      * @return rewards The amount of reward tokens claimed.
      */
-    function claimRewards(uint256 positionId) public virtual nonReentrant returns (uint256[] memory rewards) {
-        if (_ownerOf[positionId] != msg.sender) revert NotOwner();
-
+    function _claimRewards(uint256 positionId) internal virtual returns (uint256[] memory rewards) {
         // Cache asset
         address asset = customAssetInfo[positionState[positionId].customAsset].asset;
 
@@ -539,7 +545,6 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         }
 
         // Claim the pending rewards from the external contract.
-        // TODO : double check
         _claimRewards(asset, activeRewards_);
 
         // Pay out the share of the reward owed to the position owner.
@@ -550,6 +555,17 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
                 emit RewardPaid(positionId, activeRewards_[i], uint128(rewards[i]));
             }
         }
+    }
+
+    /**
+     * @notice Claims and transfers the rewards of the position.
+     * @param positionId The id of the position.
+     * @return rewards The amount of reward tokens claimed.
+     */
+    function claimRewards(uint256 positionId) public virtual nonReentrant returns (uint256[] memory rewards) {
+        if (_ownerOf[positionId] != msg.sender) revert NotOwner();
+
+        rewards = _claimRewards(positionId);
     }
 
     /*///////////////////////////////////////////////////////////////

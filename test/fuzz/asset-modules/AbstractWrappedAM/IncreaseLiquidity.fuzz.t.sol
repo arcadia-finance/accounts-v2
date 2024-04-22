@@ -25,9 +25,6 @@ contract IncreaseLiquidity_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz
     /* ///////////////////////////////////////////////////////////////
                               TESTS
     /////////////////////////////////////////////////////////////// */
-
-    // TODO : add fuzzed positionState nad positionStatePerReward
-
     function testFuzz_Revert_increaseLiquidity_zeroAmount(uint96 positionId) public {
         // The increaseLiquidity function should revert when trying to stake 0 amount.
         vm.expectRevert(WrappedAM.ZeroAmount.selector);
