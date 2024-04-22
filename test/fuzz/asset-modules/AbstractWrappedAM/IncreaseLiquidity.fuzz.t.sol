@@ -26,6 +26,8 @@ contract IncreaseLiquidity_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
+    // TODO : add fuzzed positionState nad positionStatePerReward
+
     function testFuzz_Revert_increaseLiquidity_zeroAmount(uint96 positionId) public {
         // The increaseLiquidity function should revert when trying to stake 0 amount.
         vm.expectRevert(WrappedAM.ZeroAmount.selector);
@@ -52,9 +54,10 @@ contract IncreaseLiquidity_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz
     }
 
     function testFuzz_Success_increaseLiquidity(
-        uint8 assetDecimals,
         address account,
         AbstractWrappedAM_Fuzz_Test.WrappedAMAssetAndRewardStateGlobal[2] memory assetAndRewardState,
+        AbstractWrappedAM_Fuzz_Test.WrappedAMPositionState memory positionState,
+        AbstractWrappedAM_Fuzz_Test.WrappedAMPositionStatePerReward[2] memory positionStatePerReward,
         address underlyingAsset,
         address[2] calldata rewards,
         uint128 amount,
@@ -63,12 +66,9 @@ contract IncreaseLiquidity_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz
         vm.assume(account != address(0));
         vm.assume(account != address(wrappedAM));
 
-        assetDecimals = uint8(bound(assetDecimals, 0, 18));
         address asset = address(mockERC20.token1);
 
         // Given : Valid state
-        AbstractWrappedAM_Fuzz_Test.WrappedAMPositionState memory positionState;
-        AbstractWrappedAM_Fuzz_Test.WrappedAMPositionStatePerReward[2] memory positionStatePerReward;
         (
             AbstractWrappedAM_Fuzz_Test.WrappedAMAssetAndRewardStateGlobal[] memory assetAndRewardState_,
             AbstractWrappedAM_Fuzz_Test.WrappedAMPositionState memory positionState_,

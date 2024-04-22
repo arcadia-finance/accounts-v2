@@ -62,7 +62,6 @@ contract Mint_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
     }
 
     function testFuzz_Success_mint_MintAmountGreaterThan0(
-        uint8 assetDecimals,
         address account,
         AbstractWrappedAM_Fuzz_Test.WrappedAMAssetAndRewardStateGlobal[2] memory assetAndRewardState,
         address underlyingAsset,
@@ -73,7 +72,6 @@ contract Mint_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         vm.assume(account != address(0));
         vm.assume(account != address(wrappedAM));
 
-        assetDecimals = uint8(bound(assetDecimals, 0, 18));
         address asset = address(mockERC20.token1);
 
         // Given : Valid state

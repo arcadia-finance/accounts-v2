@@ -442,7 +442,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
         // Cache position amount
-        uint256 positionAmount = positionState[positionId].amountWrapped;
+        uint128 positionAmount = positionState[positionId].amountWrapped;
 
         // Claim rewards before burning the position
         (rewards) = claimRewards(positionId);
@@ -450,6 +450,9 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         // Cache values.
         address asset = customAssetInfo[positionState[positionId].customAsset].asset;
         address[] memory activeRewards = rewardsForAsset[asset];
+
+        // Update totalWrapped for asset
+        assetToTotalWrapped[asset] = assetToTotalWrapped[asset] - positionAmount;
 
         // Delete mappings
         delete positionState[positionId];
@@ -624,9 +627,8 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         // Cache total wrapped
         uint256 totalWrapped = assetToTotalWrapped[asset];
 
-        RewardStatePosition[] memory rewardStatePositionArr = new RewardStatePosition[](numberOfActiveRewards);
-
         // Get the rewardState for each active reward per position
+        RewardStatePosition[] memory rewardStatePositionArr = new RewardStatePosition[](numberOfActiveRewards);
         for (uint256 i; i < numberOfActiveRewards; ++i) {
             rewardStatePositionArr[i] = rewardStatePosition[positionId][activeRewards_[i]];
         }
@@ -650,26 +652,21 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
                 // Calculate the new rewardState for the position.
                 // Calculate the difference in rewardPerToken since the last position interaction.
                 // unchecked: RewardPerToken can underflow, what matters is the delta in RewardPerToken between two interactions.
-                // If lastRewardPerTokenPosition == 0, it means a new reward token has been added, no rewards should be added.
-                if (rewardStatePositionArr[i].lastRewardPerTokenPosition == 0) {
-                    continue;
-                } else {
-                    unchecked {
-                        deltaRewardPerToken =
-                            lastRewardPerTokenGlobalArr[i] - rewardStatePositionArr[i].lastRewardPerTokenPosition;
-                    }
-
-                    // Calculate the rewards earned by the position since its last interaction.
-                    // TODO: double check here : unchecked: deltaRewardPerToken and positionAmount are smaller than type(uint128).max.
-                    uint256 deltaReward;
-                    unchecked {
-                        deltaReward = deltaRewardPerToken * positionState[positionId].amountWrapped / 1e18;
-                    }
-
-                    // Update the reward balance of the position.
-                    rewardStatePositionArr[i].lastRewardPosition =
-                        SafeCastLib.safeCastTo128(rewardStatePositionArr[i].lastRewardPosition + deltaReward);
+                unchecked {
+                    deltaRewardPerToken =
+                        lastRewardPerTokenGlobalArr[i] - rewardStatePositionArr[i].lastRewardPerTokenPosition;
                 }
+
+                // Calculate the rewards earned by the position since its last interaction.
+                // TODO: double check here : unchecked: deltaRewardPerToken and positionAmount are smaller than type(uint128).max.
+                uint256 deltaReward;
+                unchecked {
+                    deltaReward = deltaRewardPerToken * positionState[positionId].amountWrapped / 1e18;
+                }
+
+                // Update the reward balance of the position.
+                rewardStatePositionArr[i].lastRewardPosition =
+                    SafeCastLib.safeCastTo128(rewardStatePositionArr[i].lastRewardPosition + deltaReward);
             }
         } else {
             // If totalWrapped is 0, then lastRewardPerTokenPosition should be equal to lastRewardPerTokenGlobal
