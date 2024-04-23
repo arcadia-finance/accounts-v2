@@ -334,7 +334,7 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
         uint256[] memory assetValues = new uint256[](underlyingAssetsAmounts.length);
         for (uint256 i; i < underlyingAssetsAmounts.length; ++i) {
-            assetValues[i] += underlyingAssetsAmounts[i].mulDivDown(rateUnderlyingAssetsToUsd[i].assetValue, 1e18);
+            assetValues[i] = underlyingAssetsAmounts[i].mulDivDown(rateUnderlyingAssetsToUsd[i].assetValue, 1e18);
 
             valueInUsd += assetValues[i];
         }
