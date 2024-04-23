@@ -107,7 +107,7 @@ abstract contract AbstractWrappedAM_Fuzz_Test is Fuzz_Test {
         positionState.amountWrapped = uint128(bound(positionState.amountWrapped, 0, totalWrapped));
 
         for (uint256 i; i < assetAndRewardState.length; ++i) {
-            // And: deltaRewardPerToken is smaller or equal as type(uint128).max (no overflow safeCastTo128). TODO: double check
+            // And: deltaRewardPerToken is smaller or equal as type(uint128).max (no overflow safeCastTo128).
             assetAndRewardState[i].currentRewardGlobal =
                 bound(assetAndRewardState[i].currentRewardGlobal, 1, uint256(type(uint128).max) * totalWrapped / 1e18);
 
