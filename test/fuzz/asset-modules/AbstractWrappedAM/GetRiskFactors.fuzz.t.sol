@@ -34,7 +34,7 @@ contract GetRiskFactors_WrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         uint256[2] memory underlyingAssetsAmounts
     ) public {
         // Given amounts do not overflow.
-        underlyingAssetsAmounts[0] = bound(underlyingAssetsAmounts[0], 0 forge, type(uint64).max);
+        underlyingAssetsAmounts[0] = bound(underlyingAssetsAmounts[0], 0, type(uint64).max);
         underlyingAssetsAmounts[1] = bound(underlyingAssetsAmounts[1], 0, type(uint64).max);
         assetRates[0] = bound(assetRates[0], 0, type(uint64).max);
         assetRates[1] = bound(assetRates[1], 0, type(uint64).max);
@@ -75,7 +75,7 @@ contract GetRiskFactors_WrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         wrappedAM.setTotalWrapped(asset, uint128(underlyingAssetsAmounts[0]));
         wrappedAM.setLastRewardPosition(1, rewards[0], uint128(underlyingAssetsAmounts[1]));
 
-        // And : For the example we say asset is equal to underlying asset
+        // And : Asset and underlying asset are the same
         wrappedAM.setAssetToUnderlyingAsset(asset, asset);
 
         uint256 expectedCollateralFactor = (
