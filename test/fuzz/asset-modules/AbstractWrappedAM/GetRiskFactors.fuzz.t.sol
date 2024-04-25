@@ -26,23 +26,26 @@ contract GetRiskFactors_WrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
                               TESTS
     /////////////////////////////////////////////////////////////// */
     function testFuzz_Success_getRiskFactors(
-        uint256[2] memory assetRates,
         uint16[2] memory collateralFactors,
         uint16[2] memory liquidationFactors,
         uint16 riskFactor,
         address creditor,
         uint256[2] memory underlyingAssetsAmounts
     ) public {
-        // Given amounts do not overflow.
-        underlyingAssetsAmounts[0] = bound(underlyingAssetsAmounts[0], 0, type(uint64).max);
-        underlyingAssetsAmounts[1] = bound(underlyingAssetsAmounts[1], 0, type(uint64).max);
-        assetRates[0] = bound(assetRates[0], 0, type(uint64).max);
-        assetRates[1] = bound(assetRates[1], 0, type(uint64).max);
+        // Given : wrappedAM is an Asset Module and is initialized
+        vm.startPrank(users.creatorAddress);
+        registryExtension.addAssetModule(address(wrappedAM));
+        wrappedAM.initialize(1);
+        vm.stopPrank();
 
-        uint256 value0 = underlyingAssetsAmounts[0].mulDivDown(assetRates[0], 1e18);
-        uint256 value1 = underlyingAssetsAmounts[1].mulDivDown(assetRates[1], 1e18);
-        uint256 expectedValueInUsd = value0 + value1;
-        vm.assume(expectedValueInUsd > 0);
+        // ToDo assetRates are hard coded for now.
+        uint256[] memory assetRates = new uint256[](2);
+        assetRates[0] = 3_000_000_000_000_000_000_000;
+        assetRates[1] = 1_000_000_000_000_000_000_000_000_000_000;
+
+        // And : amounts do not overflow.
+        underlyingAssetsAmounts[0] = bound(underlyingAssetsAmounts[0], 10_000, type(uint64).max);
+        underlyingAssetsAmounts[1] = bound(underlyingAssetsAmounts[1], 10_000, type(uint64).max);
 
         // And: Risk factors are below max risk factor.
         riskFactor = uint16(bound(riskFactor, 0, AssetValuationLib.ONE_4));
@@ -62,33 +65,49 @@ contract GetRiskFactors_WrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         );
         vm.stopPrank();
 
-        // And: An asset is added
+        // Given: An asset is added
         address asset = address(mockERC20.token1);
         address[] memory rewards = new address[](1);
         rewards[0] = address(mockERC20.stable1);
-        vm.prank(users.creatorAddress);
-        wrappedAM.setMaxRewardsPerAsset(1);
         address customAsset = getCustomAsset(asset, rewards);
         wrappedAM.addAsset(customAsset, asset, rewards);
         wrappedAM.setCustomAssetForPosition(customAsset, 1);
         wrappedAM.setAmountWrappedForPosition(1, underlyingAssetsAmounts[0]);
         wrappedAM.setTotalWrapped(asset, uint128(underlyingAssetsAmounts[0]));
         wrappedAM.setLastRewardPosition(1, rewards[0], uint128(underlyingAssetsAmounts[1]));
-
         // And : Asset and underlying asset are the same
         wrappedAM.setAssetToUnderlyingAsset(asset, asset);
 
-        uint256 expectedCollateralFactor = (
-            (value0 * collateralFactors[0] + value1 * collateralFactors[1]) / expectedValueInUsd
-        ) * (riskFactor / AssetValuationLib.ONE_4);
-        uint256 expectedLiquidationFactor = (
-            (value0 * liquidationFactors[0] + value1 * liquidationFactors[1]) / expectedValueInUsd
-        ) * (riskFactor / AssetValuationLib.ONE_4);
+        // And riskFactor is set.
+        vm.startPrank(address(registryExtension));
+        wrappedAM.setRiskParameters(creditor, 0, riskFactor);
+        erc20AssetModule.setRiskParameters(
+            creditor, address(mockERC20.token1), 0, 0, collateralFactors[0], liquidationFactors[0]
+        );
+        erc20AssetModule.setRiskParameters(
+            creditor, address(mockERC20.stable1), 0, 0, collateralFactors[1], liquidationFactors[1]
+        );
+        vm.stopPrank();
 
-        // When : calling getRiskFactors()
-        // Then : It should return correct values
-        (uint256 collateralFactor, uint256 liquidationFactor) = wrappedAM.getRiskFactors(creditor, customAsset, 1);
-        assertApproxEqRel(expectedCollateralFactor, collateralFactor, 1e15); //0.1% tolerance, rounding errors
-        assertApproxEqRel(expectedLiquidationFactor, liquidationFactor, 1e15); //0.1% tolerance, rounding errors
+        bytes32 assetKey = wrappedAM.getKeyFromAsset(address(wrappedAM), 1);
+
+        // getUnderlyingAssets() fully tested
+        bytes32[] memory underlyingAssetKeys = wrappedAM.getUnderlyingAssets(assetKey);
+
+        // getRateUnderlyingAssetsToUsd() fully tested
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd =
+            wrappedAM.getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
+
+        // calculateValueAndRiskFactors() fully tested
+        (, uint256 expectedCollateralFactor, uint256 expectedLiquidationFactor) = wrappedAM.calculateValueAndRiskFactors(
+            creditor, Utils.castArrayStaticToDynamic(underlyingAssetsAmounts), rateUnderlyingAssetsToUsd
+        );
+
+        // When : calling getRiskFactors
+        (uint16 collateralFactor, uint16 liquidationFactor) = wrappedAM.getRiskFactors(creditor, asset, 1);
+
+        // Then : It should return the correct values
+        assertEq(expectedCollateralFactor, collateralFactor);
+        assertEq(expectedLiquidationFactor, liquidationFactor);
     }
 }

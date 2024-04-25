@@ -116,4 +116,12 @@ abstract contract WrappedAMExtension is WrappedAM {
         (valueInUsd, collateralFactor, liquidationFactor) =
             _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }
+
+    function getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys)
+        public
+        view
+        returns (AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+    {
+        rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
+    }
 }

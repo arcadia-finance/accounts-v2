@@ -674,7 +674,6 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
                 }
 
                 // Calculate the rewards earned by the position since its last interaction.
-                // TODO: double check here : unchecked: deltaRewardPerToken and positionAmount are smaller than type(uint128).max.
                 uint256 deltaReward;
                 unchecked {
                     deltaReward = deltaRewardPerToken * positionState[positionId].amountWrapped / 1e18;
