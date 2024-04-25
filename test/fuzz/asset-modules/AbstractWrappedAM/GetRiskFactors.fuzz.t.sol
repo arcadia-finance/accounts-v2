@@ -104,7 +104,7 @@ contract GetRiskFactors_WrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         );
 
         // When : calling getRiskFactors
-        (uint16 collateralFactor, uint16 liquidationFactor) = wrappedAM.getRiskFactors(creditor, asset, 1);
+        (uint16 collateralFactor, uint16 liquidationFactor) = wrappedAM.getRiskFactors(creditor, address(wrappedAM), 1);
 
         // Then : It should return the correct values
         assertEq(expectedCollateralFactor, collateralFactor);
