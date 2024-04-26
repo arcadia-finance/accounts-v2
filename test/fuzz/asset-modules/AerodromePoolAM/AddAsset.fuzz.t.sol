@@ -22,58 +22,58 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               TESTS
     /////////////////////////////////////////////////////////////// */
-    function testFuzz_Revert_addAsset_InvalidPool(address asset) public {
-        // Given : The asset is not a pool in the the Aerodrome Factory.
-
-        // When : An asset is added to the AM.
-        // Then : It should revert.
-        vm.expectRevert(AerodromePoolAM.InvalidPool.selector);
-        aeroPoolAM.addAsset(asset);
-    }
-
-    function testFuzz_Revert_addAsset_Token0NotAllowed(address token0) public notTestContracts(token0) {
-        // Given : The asset is a pool in the the Aerodrome Factory.
-        aeroFactoryMock.setPool(address(aeroPoolMock));
-
-        // Given : The asset is an Aerodrome Volatile pool.
-        aeroPoolMock.setStable(false);
-
-        // Given : Token1 is added to the Registry, token0 is not.
-        aeroPoolMock.setTokens(token0, address(mockERC20.token1));
-
-        // When : An asset is added to the AM.
-        // Then : It should revert.
-        vm.expectRevert(AerodromePoolAM.AssetNotAllowed.selector);
-        aeroPoolAM.addAsset(address(aeroPoolMock));
-    }
-
-    function testFuzz_Revert_addAsset_Token1NotAllowed(address token1) public notTestContracts(token1) {
-        // Given : The asset is a pool in the the Aerodrome Factory.
-        aeroFactoryMock.setPool(address(aeroPoolMock));
-
-        // Given : The asset is an Aerodrome Volatile pool.
-        aeroPoolMock.setStable(false);
-
-        // Given : Token0 is added to the Registry, token1 is not.
-        aeroPoolMock.setTokens(address(mockERC20.token1), token1);
-
-        // When : An asset is added to the AM.
-        // Then : It should revert.
-        vm.expectRevert(AerodromePoolAM.AssetNotAllowed.selector);
-        aeroPoolAM.addAsset(address(aeroPoolMock));
-    }
-
-    function testFuzz_Revert_addAsset_Stable_NotOwner(address sender) public {
-        // Given : Valid initial state
-        setMockState(true);
-
+    function testFuzz_Revert_addAsset_Stable_NotOwner(address sender, address asset) public {
         // Given : sender is not the owner.
         vm.assume(sender != users.creatorAddress);
 
         // When : An asset is added to the AM.
         // Then : It should revert.
         vm.prank(sender);
-        vm.expectRevert(AerodromePoolAM.OnlyOwner.selector);
+        vm.expectRevert("UNAUTHORIZED");
+        aeroPoolAM.addAsset(asset);
+    }
+
+    function testFuzz_Revert_addAsset_InvalidPool(address asset) public {
+        // Given : The asset is not a pool in the the Aerodrome Factory.
+
+        // When : An asset is added to the AM.
+        // Then : It should revert.
+        vm.prank(users.creatorAddress);
+        vm.expectRevert(AerodromePoolAM.InvalidPool.selector);
+        aeroPoolAM.addAsset(asset);
+    }
+
+    function testFuzz_Revert_addAsset_Token0NotAllowed(bool isStable, address token0) public notTestContracts(token0) {
+        // Given : The asset is a pool in the the Aerodrome Factory.
+        aeroFactoryMock.setPool(address(aeroPoolMock));
+
+        // Given : The asset is an Aerodrome pool.
+        aeroPoolMock.setStable(isStable);
+
+        // Given : Token1 is added to the Registry, token0 is not.
+        aeroPoolMock.setTokens(token0, address(mockERC20.token1));
+
+        // When : An asset is added to the AM.
+        // Then : It should revert.
+        vm.prank(users.creatorAddress);
+        vm.expectRevert(AerodromePoolAM.AssetNotAllowed.selector);
+        aeroPoolAM.addAsset(address(aeroPoolMock));
+    }
+
+    function testFuzz_Revert_addAsset_Token1NotAllowed(bool isStable, address token1) public notTestContracts(token1) {
+        // Given : The asset is a pool in the the Aerodrome Factory.
+        aeroFactoryMock.setPool(address(aeroPoolMock));
+
+        // Given : The asset is an Aerodrome Volatile pool.
+        aeroPoolMock.setStable(isStable);
+
+        // Given : Token0 is added to the Registry, token1 is not.
+        aeroPoolMock.setTokens(address(mockERC20.token1), token1);
+
+        // When : An asset is added to the AM.
+        // Then : It should revert.
+        vm.prank(users.creatorAddress);
+        vm.expectRevert(AerodromePoolAM.AssetNotAllowed.selector);
         aeroPoolAM.addAsset(address(aeroPoolMock));
     }
 
@@ -82,6 +82,7 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
         setMockState(false);
 
         // When : An asset is added to the AM.
+        vm.prank(users.creatorAddress);
         aeroPoolAM.addAsset(address(aeroPoolMock));
 
         // Then : It should return the correct values
