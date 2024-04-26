@@ -50,7 +50,6 @@ contract AerodromePoolAM is DerivedAM {
 
     error AssetNotAllowed();
     error InvalidPool();
-    error OnlyOwner();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
@@ -72,8 +71,10 @@ contract AerodromePoolAM is DerivedAM {
     /**
      * @notice Adds a new Aerodrome pool to the AerodromePoolAM.
      * @param pool The contract address of the Aerodrome Finance pool.
+     * @dev Owner should not add stable pools where one of the tokens has or can have a very high supply (>15511800964 * 10 ** decimals)
+     * Since tokens with very high supply might cause an overflow in _getTrustedReservesStable().
      */
-    function addAsset(address pool) external {
+    function addAsset(address pool) external onlyOwner {
         if (AERO_FACTORY.isPool(pool) != true) revert InvalidPool();
 
         (address token0, address token1) = IAeroPool(pool).tokens();
@@ -81,10 +82,6 @@ contract AerodromePoolAM is DerivedAM {
         if (!IRegistry(REGISTRY).isAllowed(token1, 0)) revert AssetNotAllowed();
 
         if (IAeroPool(pool).stable()) {
-            // Only owner can add Stable pools, since tokens with very high supply (>15511800964 * 10 ** decimals)
-            // might cause an overflow in _getTrustedReservesStable().
-            if (msg.sender != owner) revert OnlyOwner();
-
             assetToInformation[pool] = AssetInformation({
                 stable: true,
                 unitCorrection0: uint64(10 ** (18 - ERC20(token0).decimals())),
