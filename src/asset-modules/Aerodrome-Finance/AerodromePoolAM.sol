@@ -72,7 +72,7 @@ contract AerodromePoolAM is DerivedAM {
      * @notice Adds a new Aerodrome pool to the AerodromePoolAM.
      * @param pool The contract address of the Aerodrome Finance pool.
      * @dev Owner should not add stable pools where one of the tokens has or can have a very high supply (>15511800964 * 10 ** decimals)
-     * Since tokens with very high suppl might cause an overflow in _getTrustedReservesStable().
+     * Since tokens with very high supply might cause an overflow in _getTrustedReservesStable().
      */
     function addAsset(address pool) external onlyOwner {
         if (AERO_FACTORY.isPool(pool) != true) revert InvalidPool();
