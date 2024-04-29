@@ -39,9 +39,8 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
 
         // When : calling addAsset()
         // Then : it should revert
-        address customAsset = getCustomAsset(asset, rewards_);
         vm.expectRevert(WrappedAM.MaxRewardsReached.selector);
-        wrappedAM.addAsset(customAsset, asset, rewards_);
+        wrappedAM.addAsset(asset, rewards_);
     }
 
     function testFuzz_revert_addAsset_NewRewardAddedForAssetExceedsMaxRewards(uint8 maxRewards, address asset) public {
@@ -59,8 +58,7 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
             j++;
         }
 
-        address customAsset = getCustomAsset(asset, rewards_);
-        wrappedAM.addAsset(customAsset, asset, rewards_);
+        wrappedAM.addAsset(asset, rewards_);
 
         // And : A new customAsset is added that would add a new reward to account for (and exceeding max rewards)
         // As maxRewards is minimum 1, it shouldn't revert due to the rewards array length
@@ -69,9 +67,8 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
 
         // When : Adding that new customAsset
         // Then : It should revert
-        customAsset = getCustomAsset(asset, rewards_);
         vm.expectRevert(WrappedAM.MaxRewardsReached.selector);
-        wrappedAM.addAsset(customAsset, asset, rewards_);
+        wrappedAM.addAsset(asset, rewards_);
     }
 
     function testFuzz_success_addAsset_NewAssetWithNoPreviousRewards(
@@ -93,10 +90,8 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
             j++;
         }
 
-        address customAsset = getCustomAsset(asset, rewards);
-
         // When : Calling addAsset()
-        wrappedAM.addAsset(customAsset, asset, rewards);
+        address customAsset = wrappedAM.addAsset(asset, rewards);
 
         // Then : It should return the correct values
         (bool allowed, address asset_) = wrappedAM.customAssetInfo(customAsset);
@@ -104,6 +99,7 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
 
         assertEq(allowed, true);
         assertEq(asset, asset_);
+        assertEq(customAsset, getCustomAsset(asset, rewards));
         for (uint256 i; i < rewards.length; ++i) {
             assertEq(rewards[i], rewardsForCustomAsset[i]);
             assertEq(rewards[i], wrappedAM.rewardsForAsset(asset, i));
@@ -127,10 +123,8 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
             j++;
         }
 
-        address customAsset = getCustomAsset(asset, rewards);
-
         // And : Rewards have already been set of an Asset
-        wrappedAM.addAsset(customAsset, asset, rewards);
+        wrappedAM.addAsset(asset, rewards);
 
         // And : We add a new customAsset with 1 exisiting reward for Asset and 1 new reward for Asset
         address[] memory rewards_ = new address[](2);
@@ -145,10 +139,8 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         rewards_[1] = address(j - 1);
         assertEq(rewards_[1], rewards[rewardsLength - 1]);
 
-        address customAsset_ = getCustomAsset(asset, rewards_);
-
         // When : We add a new customAsset that has 1 new reward (out of the two provided)
-        wrappedAM.addAsset(customAsset_, asset, rewards_);
+        address customAsset = wrappedAM.addAsset(asset, rewards_);
 
         // Then : It should have added only the new reward to the rewardsForAsset array
         assertEq(wrappedAM.rewardsForAsset(asset, rewards.length), rewards_[0]);
@@ -156,5 +148,7 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         for (uint256 i; i < rewards.length; ++i) {
             assertEq(rewards[i], wrappedAM.rewardsForAsset(asset, i));
         }
+        // And : CustomAsset is correct
+        assertEq(customAsset, getCustomAsset(asset, rewards_));
     }
 }

@@ -14,8 +14,8 @@ abstract contract WrappedAMExtension is WrappedAM {
         positionState[tokenId].customAsset = customAsset_;
     }
 
-    function addAsset(address customAsset, address asset, address[] memory rewards) public {
-        _addAsset(customAsset, asset, rewards);
+    function addAsset(address asset, address[] memory rewards) public returns (address customAsset) {
+        customAsset = _addAsset(asset, rewards);
     }
 
     function isRewardPresent(address[] memory currentRewardsForAsset, address reward) public pure returns (bool) {

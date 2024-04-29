@@ -69,8 +69,7 @@ contract GetRiskFactors_WrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         address asset = address(mockERC20.token1);
         address[] memory rewards = new address[](1);
         rewards[0] = address(mockERC20.stable1);
-        address customAsset = getCustomAsset(asset, rewards);
-        wrappedAM.addAsset(customAsset, asset, rewards);
+        address customAsset = wrappedAM.addAsset(asset, rewards);
         wrappedAM.setCustomAssetForPosition(customAsset, 1);
         wrappedAM.setAmountWrappedForPosition(1, underlyingAssetsAmounts[0]);
         wrappedAM.setTotalWrapped(asset, uint128(underlyingAssetsAmounts[0]));

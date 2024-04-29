@@ -148,9 +148,10 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param asset_ The contract address of the Asset.
      * @param rewards_ An array with all reward addresses for a specific custom Asset.
      */
-    function _addAsset(address customAsset, address asset_, address[] memory rewards_) internal {
+    function _addAsset(address asset_, address[] memory rewards_) internal returns (address customAsset) {
         if (rewards_.length > maxRewardsPerAsset) revert MaxRewardsReached();
 
+        customAsset = address(uint160(uint256(keccak256(abi.encodePacked(asset_, rewards_)))));
         customAssetInfo[customAsset] = AssetAndRewards({ allowed: true, asset: asset_, rewards: rewards_ });
 
         // Cache current rewards tracked for an Asset

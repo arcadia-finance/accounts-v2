@@ -138,8 +138,7 @@ contract GetUnderlyingAssetsAmounts_AbstractWrappedAM_Fuzz_Test is AbstractWrapp
         // Exisiting reward
         rewardsForCustomAsset[1] = rewards[0];
 
-        address customAsset = getCustomAsset(asset, rewardsForCustomAsset);
-        wrappedAM.addAsset(customAsset, asset, rewardsForCustomAsset);
+        address customAsset = wrappedAM.addAsset(asset, rewardsForCustomAsset);
 
         // And : Set rewards for new position Id
         wrappedAM.setLastRewardPosition(2, newReward, 1e18);
