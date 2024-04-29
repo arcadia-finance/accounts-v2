@@ -18,6 +18,10 @@ abstract contract WrappedAMExtension is WrappedAM {
         _addAsset(customAsset, asset, rewards);
     }
 
+    function isRewardPresent(address[] memory currentRewardsForAsset, address reward) public returns (bool) {
+        return _isRewardPresent(currentRewardsForAsset, reward);
+    }
+
     function setCustomAssetInfo(address customAsset, address asset_, address[] memory rewards_) public {
         customAssetInfo[customAsset] = WrappedAM.AssetAndRewards({ allowed: true, asset: asset_, rewards: rewards_ });
     }

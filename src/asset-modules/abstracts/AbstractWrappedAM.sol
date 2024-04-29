@@ -160,20 +160,35 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         if (currentRewardsForAsset.length == 0) {
             rewardsForAsset[asset_] = rewards_;
         } else {
-            for (uint256 i; i < rewards_.length; ++i) {
-                bool isNew = true;
-                for (uint256 j; j < currentRewardsForAsset.length; ++j) {
-                    if (rewards_[i] == currentRewardsForAsset[j]) {
-                        isNew = false;
+            for (uint256 i = 0; i < rewards_.length; ++i) {
+                if (!_isRewardPresent(currentRewardsForAsset, rewards_[i])) {
+                    if (currentRewardsForAsset.length < maxRewardsPerAsset) {
+                        rewardsForAsset[asset_].push(rewards_[i]);
+                    } else {
+                        revert MaxRewardsReached();
                     }
-                }
-                if (isNew == true && currentRewardsForAsset.length < maxRewardsPerAsset) {
-                    rewardsForAsset[asset_].push(rewards_[i]);
-                } else if (isNew == true && currentRewardsForAsset.length == maxRewardsPerAsset) {
-                    revert MaxRewardsReached();
                 }
             }
         }
+    }
+
+    /**
+     * @notice Helper function to check if a reward is already present in the current rewards list.
+     * @param currentRewardsForAsset The contract address of the custom Asset.
+     * @param reward The contract address of the Asset.
+     * @return isPresent It will return true if the reward is already present
+     */
+    function _isRewardPresent(address[] memory currentRewardsForAsset, address reward)
+        internal
+        pure
+        returns (bool isPresent)
+    {
+        for (uint256 i = 0; i < currentRewardsForAsset.length; ++i) {
+            if (reward == currentRewardsForAsset[i]) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
