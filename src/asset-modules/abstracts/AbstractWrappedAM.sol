@@ -262,13 +262,12 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
         address customAsset = positionState[positionId].customAsset;
         AssetAndRewards memory customAssetAndRewards = customAssetInfo[customAsset];
         address[] memory activeRewards = rewardsForAsset[customAssetAndRewards.asset];
-        uint256 numberOfUnderlyingAssets = customAssetAndRewards.rewards.length + 1;
 
         // Amount of a Wrapped position in the Asset Module can only be either 0 or 1.
-        if (amount == 0) return (new uint256[](numberOfUnderlyingAssets), rateUnderlyingAssetsToUsd);
+        if (amount == 0) return (new uint256[](customAssetAndRewards.rewards.length + 1), rateUnderlyingAssetsToUsd);
 
         uint256[] memory rewardsClaimable = rewardsOf(positionId);
-        underlyingAssetsAmounts = new uint256[](numberOfUnderlyingAssets);
+        underlyingAssetsAmounts = new uint256[](customAssetAndRewards.rewards.length + 1);
         underlyingAssetsAmounts[0] = positionState[positionId].amountWrapped;
 
         // Isolate rewards that account as underlyingAsset for a customAsset.
