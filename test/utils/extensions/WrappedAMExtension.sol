@@ -18,7 +18,7 @@ abstract contract WrappedAMExtension is WrappedAM {
         _addAsset(customAsset, asset, rewards);
     }
 
-    function isRewardPresent(address[] memory currentRewardsForAsset, address reward) public returns (bool) {
+    function isRewardPresent(address[] memory currentRewardsForAsset, address reward) public pure returns (bool) {
         return _isRewardPresent(currentRewardsForAsset, reward);
     }
 

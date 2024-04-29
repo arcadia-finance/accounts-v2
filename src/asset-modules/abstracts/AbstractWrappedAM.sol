@@ -260,30 +260,25 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Cache values
         address customAsset = positionState[positionId].customAsset;
-        address asset = customAssetInfo[customAsset].asset;
-        address[] memory activeRewards = rewardsForAsset[asset];
         AssetAndRewards memory customAssetAndRewards = customAssetInfo[customAsset];
+        address[] memory activeRewards = rewardsForAsset[customAssetAndRewards.asset];
         uint256 numberOfUnderlyingAssets = customAssetAndRewards.rewards.length + 1;
 
         // Amount of a Wrapped position in the Asset Module can only be either 0 or 1.
         if (amount == 0) return (new uint256[](numberOfUnderlyingAssets), rateUnderlyingAssetsToUsd);
 
-        // Isolate rewards that account as underlyingAsset for a customAsset.
         uint256[] memory rewardsClaimable = rewardsOf(positionId);
-        uint256[] memory underlyingRewardsAmount = new uint256[](customAssetAndRewards.rewards.length);
-        for (uint256 i; i < customAssetAndRewards.rewards.length; ++i) {
-            address underlyingReward = customAssetAndRewards.rewards[i];
-            for (uint256 j; j < activeRewards.length; ++j) {
-                if (underlyingReward == activeRewards[j]) {
-                    underlyingRewardsAmount[i] = rewardsClaimable[j];
-                }
-            }
-        }
-
         underlyingAssetsAmounts = new uint256[](numberOfUnderlyingAssets);
         underlyingAssetsAmounts[0] = positionState[positionId].amountWrapped;
-        for (uint256 i = 1; i < numberOfUnderlyingAssets; ++i) {
-            underlyingAssetsAmounts[i] = underlyingRewardsAmount[i - 1];
+
+        // Isolate rewards that account as underlyingAsset for a customAsset.
+        for (uint256 i; i < customAssetAndRewards.rewards.length; ++i) {
+            for (uint256 j; j < activeRewards.length; ++j) {
+                if (customAssetAndRewards.rewards[i] == activeRewards[j]) {
+                    underlyingAssetsAmounts[i + 1] = rewardsClaimable[j];
+                    break;
+                }
+            }
         }
 
         return (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
