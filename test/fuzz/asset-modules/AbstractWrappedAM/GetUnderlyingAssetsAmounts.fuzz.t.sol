@@ -134,30 +134,36 @@ contract GetUnderlyingAssetsAmounts_AbstractWrappedAM_Fuzz_Test is AbstractWrapp
         address newReward = address(new ERC20Mock("Reward", "RWD", 18));
         address[] memory rewardsForCustomAsset = new address[](2);
         // New reward
-        rewardsForCustomAsset[0] = newReward;
+        rewardsForCustomAsset[0] = newReward < rewards[0] ? newReward : rewards[0];
         // Exisiting reward
-        rewardsForCustomAsset[1] = rewards[0];
+        rewardsForCustomAsset[1] = newReward > rewards[0] ? newReward : rewards[0];
 
         address customAsset = wrappedAM.addAsset(asset, rewardsForCustomAsset);
+
+        // Stack too deep
+        uint256 position2AmountStack = position2Amount;
 
         // And : Set rewards for new position Id
         wrappedAM.setLastRewardPosition(2, newReward, 1e18);
         wrappedAM.setLastRewardPosition(2, rewards[0], 1e6);
-        wrappedAM.setAmountWrappedForPosition(2, position2Amount);
+        wrappedAM.setAmountWrappedForPosition(2, position2AmountStack);
         wrappedAM.setCustomAssetForPosition(customAsset, 2);
+
+        // Stack too deep
+        address rewards0Stack = rewards[0];
 
         // When : Calling getUnderlyingAssetsAmounts()
         bytes32[] memory emptyArr;
         bytes32 assetKey = wrappedAM.getKeyFromAsset(address(wrappedAM), 2);
         (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
-            wrappedAM.getUnderlyingAssetsAmounts(address(0), assetKey, position2Amount, emptyArr);
+            wrappedAM.getUnderlyingAssetsAmounts(address(0), assetKey, position2AmountStack, emptyArr);
 
         // Then : It should return the correct values
         // 1 Underlying asset + 2 rewards
         assertEq(underlyingAssetsAmounts.length, 3);
-        assertEq(underlyingAssetsAmounts[0], position2Amount);
-        assertEq(underlyingAssetsAmounts[1], 1e18);
-        assertEq(underlyingAssetsAmounts[2], 1e6);
+        assertEq(underlyingAssetsAmounts[0], position2AmountStack);
+        assertEq(underlyingAssetsAmounts[1], newReward < rewards0Stack ? 1e18 : 1e6);
+        assertEq(underlyingAssetsAmounts[2], newReward > rewards0Stack ? 1e18 : 1e6);
         assertEq(rateUnderlyingAssetsToUsd.length, 0);
     }
 

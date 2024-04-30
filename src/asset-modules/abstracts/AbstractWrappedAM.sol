@@ -106,6 +106,8 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
     error ZeroAmount();
     error MaxRewardsReached();
     error IncreaseRewardsOnly();
+    error RewardTokenNotAllowed();
+    error UnorderedRewards();
 
     /* //////////////////////////////////////////////////////////////
                               CONSTRUCTOR
@@ -147,6 +149,8 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param customAsset The contract address of the custom Asset.
      * @param asset_ The contract address of the Asset.
      * @param rewards_ An array with all reward addresses for a specific custom Asset.
+     * @return customAsset The combination of asset and rewards that are hashed together and converted to an address
+     * @dev Rewards array has to be ordered as follows : rewards_[i + 1] > rewards_[i]
      */
     function _addAsset(address asset_, address[] memory rewards_) internal returns (address customAsset) {
         if (rewards_.length > maxRewardsPerAsset) revert MaxRewardsReached();
@@ -159,9 +163,13 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Check for new rewards available for an asset and add those to "rewardsForAsset"
         if (currentRewardsForAsset.length == 0) {
+            for (uint256 i = 0; i < rewards_.length; ++i) {
+                if (i > 0 && rewards_[i] < rewards_[i - 1]) revert UnorderedRewards();
+            }
             rewardsForAsset[asset_] = rewards_;
         } else {
             for (uint256 i = 0; i < rewards_.length; ++i) {
+                if (i > 0 && rewards_[i] < rewards_[i - 1]) revert UnorderedRewards();
                 if (!_isRewardPresent(currentRewardsForAsset, rewards_[i])) {
                     if (currentRewardsForAsset.length < maxRewardsPerAsset) {
                         rewardsForAsset[asset_].push(rewards_[i]);
