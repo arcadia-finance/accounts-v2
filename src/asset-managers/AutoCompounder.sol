@@ -20,6 +20,7 @@ contract AutoCompounder is IActionBase {
 
     error InvalidERC721Amount();
     error InvalidAssetType();
+    error InvalidLength();
 
     /* //////////////////////////////////////////////////////////////
                             CONSTRUCTOR
@@ -33,7 +34,6 @@ contract AutoCompounder is IActionBase {
 
     function compoundRewardsForAccount(address account, ActionData memory assetData) external {
         // Check condition from Beefy (on which size + fee should we decide to trigger this function ?)
-
         if (withdrawData.assetAmounts[0] != 1) revert InvalidERC721Amount();
         if (withdrawData.assetTypes[0] != 2) revert InvalidAssetType();
         if (
@@ -49,7 +49,7 @@ contract AutoCompounder is IActionBase {
         bytes memory compounderData = abi.encode(assetData);
         bytes memory actionData = abi.encode(assetData, transferFromOwner, permit, signature, compounderData);
         // Trigger flashAction with actionTarget as this contract
-        -IAccount(account).flashAction(address(this), actionData);
+        IAccount(account).flashAction(address(this), actionData);
 
         // executeAction() triggered as callback function
     }
