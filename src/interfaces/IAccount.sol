@@ -40,4 +40,24 @@ interface IAccount {
      * @param newOwner The new owner of the Account.
      */
     function transferOwnership(address newOwner) external;
+
+    /**
+     * @notice Executes a flash action.
+     * @param actionTarget The contract address of the actionTarget to execute external logic.
+     * @param actionData A bytes object containing three structs and two bytes objects.
+     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
+     * The second struct contains the info about the owner's assets that need to be transferred from the owner to the actionTarget.
+     * The third struct contains the permit for the Permit2 transfer.
+     * The first bytes object contains the signature for the Permit2 transfer.
+     * The second bytes object contains the encoded input for the actionTarget.
+     * @dev This function optimistically chains multiple actions together (= do a flash action):
+     * - It can optimistically withdraw assets from the Account to the actionTarget.
+     * - It can transfer assets directly from the owner to the actionTarget.
+     * - It can execute external logic on the actionTarget, and interact with any DeFi protocol to swap, stake, claim...
+     * - It can deposit all recipient tokens from the actionTarget back into the Account.
+     * At the very end of the flash action, the following check is performed:
+     * - The Account is in a healthy state (collateral value is greater than open liabilities).
+     * If a check fails, the whole transaction reverts.
+     */
+    function flashAction(address actionTarget, bytes calldata actionData) external;
 }
