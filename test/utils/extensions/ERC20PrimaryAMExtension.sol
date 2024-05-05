@@ -22,4 +22,8 @@ contract ERC20PrimaryAMExtension is ERC20PrimaryAM {
         riskParams[creditor][assetKey].lastExposureAsset = lastExposureAsset;
         riskParams[creditor][assetKey].maxExposure = maxExposure;
     }
+
+    function setAllowed(address asset) public {
+        inAssetModule[asset] = true;
+    }
 }

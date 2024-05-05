@@ -134,7 +134,8 @@ contract RewardsOf_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         wrappedAM.setMaxRewardsPerAsset(3);
         address[] memory newReward = new address[](1);
         newReward[0] = address(new ERC20Mock("Reward", "RWD", 18));
-        address customAsset = wrappedAM.addAsset(asset, newReward);
+        setAllowedInRegistry(newReward[0]);
+        wrappedAM.addAsset(asset, newReward);
 
         // Stack too deep
         uint128 positionAmountStack = positionState_.amountWrapped;

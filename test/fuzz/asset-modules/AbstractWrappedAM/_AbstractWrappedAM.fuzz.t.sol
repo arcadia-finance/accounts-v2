@@ -165,6 +165,11 @@ abstract contract AbstractWrappedAM_Fuzz_Test is Fuzz_Test {
         customAsset = address(uint160(uint256(keccak256(abi.encodePacked(asset, rewards)))));
     }
 
+    function setAllowedInRegistry(address asset) public {
+        registryExtension.setAssetModule(asset, address(erc20AssetModule));
+        erc20AssetModule.setAllowed(asset);
+    }
+
     function castArrayStaticToDynamicAssetAndReward(WrappedAMAssetAndRewardStateGlobal[2] memory staticArray)
         public
         pure

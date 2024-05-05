@@ -138,6 +138,9 @@ contract GetUnderlyingAssetsAmounts_AbstractWrappedAM_Fuzz_Test is AbstractWrapp
         // Exisiting reward
         rewardsForCustomAsset[1] = newReward > rewards[0] ? newReward : rewards[0];
 
+        setAllowedInRegistry(rewardsForCustomAsset[0]);
+        setAllowedInRegistry(rewardsForCustomAsset[1]);
+
         address customAsset = wrappedAM.addAsset(asset, rewardsForCustomAsset);
 
         // Stack too deep

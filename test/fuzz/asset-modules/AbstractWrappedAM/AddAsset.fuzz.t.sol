@@ -55,6 +55,7 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         address[] memory rewards_ = new address[](rewardsLength);
         for (uint256 i; i < rewardsLength; ++i) {
             rewards_[i] = address(j);
+            setAllowedInRegistry(rewards_[i]);
             j++;
         }
 
@@ -64,6 +65,7 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         // As maxRewards is minimum 1, it shouldn't revert due to the rewards array length
         rewards_ = new address[](1);
         rewards_[0] = address(j);
+        setAllowedInRegistry(rewards_[0]);
 
         // When : Adding that new customAsset
         // Then : It should revert
@@ -85,6 +87,7 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         // And : Initial reward is already set
         address[] memory initialRewardArr = new address[](1);
         initialRewardArr[0] = initialReward;
+        setAllowedInRegistry(initialReward);
         wrappedAM.setRewardsForAsset(asset, initialRewardArr);
 
         // And : Rewards array length does not exceed max rewards amount
@@ -93,6 +96,7 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         address[] memory rewards = new address[](rewardsLength);
         for (uint256 i; i < rewardsLength; ++i) {
             rewards[i] = address(j);
+            setAllowedInRegistry(rewards[i]);
             j--;
         }
 
@@ -114,12 +118,35 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         address[] memory rewards = new address[](rewardsLength);
         for (uint256 i; i < rewardsLength; ++i) {
             rewards[i] = address(j);
+            setAllowedInRegistry(rewards[i]);
             j--;
         }
 
         // When : Calling addAsset()
         // Then : It should revert as rewards are ordered from A > B instead of A < B
         vm.expectRevert(WrappedAM.UnorderedRewards.selector);
+        wrappedAM.addAsset(asset, rewards);
+    }
+
+    function testFuzz_revert_addAsset_RewardsNotAllowed(uint8 maxRewards, address asset, uint8 rewardsLength) public {
+        // Given : maxRewards should not exceed max amount
+        maxRewards = uint8(bound(maxRewards, 1, wrappedAM.MAX_REWARDS()));
+        vm.startPrank(users.creatorAddress);
+        wrappedAM.setMaxRewardsPerAsset(maxRewards);
+
+        // And : Rewards array length does not exceed max rewards amount
+        // And : Rewards are not allowed in the Registry
+        rewardsLength = uint8(bound(rewardsLength, 1, maxRewards));
+        uint160 j = 1;
+        address[] memory rewards = new address[](rewardsLength);
+        for (uint256 i; i < rewardsLength; ++i) {
+            rewards[i] = address(j);
+            j++;
+        }
+
+        // When : Calling addAsset()
+        // Then : It should revert
+        vm.expectRevert(WrappedAM.RewardTokenNotAllowed.selector);
         wrappedAM.addAsset(asset, rewards);
     }
 
@@ -139,6 +166,7 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         address[] memory rewards = new address[](rewardsLength);
         for (uint256 i; i < rewardsLength; ++i) {
             rewards[i] = address(j);
+            setAllowedInRegistry(rewards[i]);
             j++;
         }
 
@@ -172,6 +200,7 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
         address[] memory rewards = new address[](rewardsLength);
         for (uint256 i; i < rewardsLength; ++i) {
             rewards[i] = address(j);
+            setAllowedInRegistry(rewards[i]);
             j++;
         }
 
@@ -183,6 +212,7 @@ contract AddAsset_AbstractWrappedAM_Fuzz_Test is AbstractWrappedAM_Fuzz_Test {
 
         // New reward
         rewards_[1] = address(j);
+        setAllowedInRegistry(rewards_[1]);
         for (uint256 i; i < rewards.length; ++i) {
             assert(rewards_[0] != rewards[i]);
         }
