@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { ERC20PrimaryAM_Fuzz_Test } from "./_ERC20PrimaryAM.fuzz.t.sol";
 
-import { ERC20PrimaryAMExtension } from "../../../utils/Extensions.sol";
+import { ERC20PrimaryAMExtension } from "../../../utils/extensions/ERC20PrimaryAMExtension.sol";
 
 /**
  * @notice Fuzz tests for the function "constructor" of contract "ERC20PrimaryAM".

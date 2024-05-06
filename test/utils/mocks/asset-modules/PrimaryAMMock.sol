@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
-import { AbstractPrimaryAMExtension } from "../../Extensions.sol";
+import { PrimaryAMExtension } from "../../extensions/PrimaryAMExtension.sol";
 
-contract PrimaryAMMock is AbstractPrimaryAMExtension {
+contract PrimaryAMMock is PrimaryAMExtension {
     // Price is 1 by default
     bool useRealUsdValue;
     uint256 usdExposureToUnderlyingAsset = 1;
 
-    constructor(address registry_, uint256 assetType_) AbstractPrimaryAMExtension(registry_, assetType_) { }
+    constructor(address registry_, uint256 assetType_) PrimaryAMExtension(registry_, assetType_) { }
 
     function isAllowed(address asset, uint256) public view override returns (bool) {
         return inAssetModule[asset];

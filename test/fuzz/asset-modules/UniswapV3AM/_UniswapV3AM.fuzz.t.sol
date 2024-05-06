@@ -85,14 +85,8 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
     ////////////////////////////////////////////////////////////////*/
 
     function deployNonfungiblePositionManagerMock() public {
-        // Since Uniswap uses different a pragma version as us, we can't directly deploy the code
-        // -> use getCode to get bytecode from artefacts and deploy directly.
-        bytes memory args = abi.encode(address(uniswapV3Factory));
-        bytes memory bytecode =
-            abi.encodePacked(vm.getCode("NonfungiblePositionManager.sol:NonfungiblePositionManagerMock"), args);
         vm.prank(users.creatorAddress);
-        address nonfungiblePositionManagerMock_ = Utils.deployBytecode(bytecode);
-        nonfungiblePositionManagerMock = NonfungiblePositionManagerMock(nonfungiblePositionManagerMock_);
+        nonfungiblePositionManagerMock = new NonfungiblePositionManagerMock(address(uniswapV3Factory));
 
         vm.label({ account: address(nonfungiblePositionManagerMock), newLabel: "NonfungiblePositionManagerMock" });
     }

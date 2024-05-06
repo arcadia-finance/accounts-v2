@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
 
-import { UniswapV2AMExtension } from "../../../utils/Extensions.sol";
+import { UniswapV2AMExtension } from "../../../utils/extensions/UniswapV2AMExtension.sol";
 
 /**
  * @notice Fuzz tests for the function "constructor" of contract "UniswapV2AM".

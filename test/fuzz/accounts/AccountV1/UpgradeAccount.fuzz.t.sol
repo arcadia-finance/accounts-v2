@@ -9,7 +9,7 @@ import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 import { AccountV2 } from "../../../utils/mocks/accounts/AccountV2.sol";
 import { AccountVariableVersion } from "../../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../../utils/Constants.sol";
-import { RegistryExtension } from "../../../utils/Extensions.sol";
+import { RegistryExtension } from "../../../utils/extensions/RegistryExtension.sol";
 
 /**
  * @notice Fuzz tests for the function "upgradeAccount" of contract "AccountV1".
