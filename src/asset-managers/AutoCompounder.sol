@@ -12,7 +12,7 @@ import {
     INonfungiblePositionManager
 } from "./interfaces/INonfungiblePositionManager.sol";
 import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
-import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { FixedPoint96 } from "../asset-modules/UniswapV3/libraries/FixedPoint96.sol";
 import { IAccount } from "./interfaces/IAccount.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
@@ -64,9 +64,6 @@ contract AutoCompounder is IActionBase {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
-    error InvalidERC721Amount();
-    error InvalidAssetType();
-    error InvalidLength();
     error PriceToleranceExceeded();
 
     /* //////////////////////////////////////////////////////////////
@@ -160,6 +157,7 @@ contract AutoCompounder is IActionBase {
 
     function _sqrtPriceX96InLimits(address token0, address token1, uint24 fee)
         internal
+        view
         returns (int24 currentTick, uint256 usdPriceToken0, uint256 usdPriceToken1)
     {
         // Get sqrtPriceX96 from pool
@@ -177,9 +175,11 @@ contract AutoCompounder is IActionBase {
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             REGISTRY.getValuesInUsd(address(0), assets, assetIds, assetAmounts);
 
+        usdPriceToken0 = valuesAndRiskFactors[0].assetValue;
+        usdPriceToken1 = valuesAndRiskFactors[1].assetValue;
+
         // Recalculate sqrtPriceX96 based on external prices
-        uint256 sqrtPriceX96Calculated =
-            _getSqrtPriceX96(valuesAndRiskFactors[0].assetValue, valuesAndRiskFactors[1].assetValue);
+        uint256 sqrtPriceX96Calculated = _getSqrtPriceX96(usdPriceToken0, usdPriceToken1);
 
         // Check price deviation tolerance
         uint256 priceDiff = sqrtPriceX96Calculated > sqrtPriceX96
@@ -227,7 +227,7 @@ contract AutoCompounder is IActionBase {
     }
 
     function _swap(address fromToken, address toToken, uint24 fee_, uint256 amount) internal {
-        ExactInputSingleParams memory exactInputParams = ExactInputSingleParam({
+        ExactInputSingleParams memory exactInputParams = ExactInputSingleParams({
             tokenIn: fromToken,
             tokenOut: toToken,
             fee: fee_,

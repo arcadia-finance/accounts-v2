@@ -5,4 +5,8 @@ import { UniswapV3Pool } from "@uniswap/v3-core/contracts/UniswapV3Pool.sol";
 
 contract UniswapV3PoolExtension is UniswapV3Pool {
     constructor() UniswapV3Pool() { }
+
+    function setCurrentTick(int24 currentTick) public {
+        slot0.tick = currentTick;
+    }
 }

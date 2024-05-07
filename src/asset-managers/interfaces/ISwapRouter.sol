@@ -15,7 +15,7 @@ struct ExactInputSingleParams {
     uint160 sqrtPriceLimitX96;
 }
 
-interface IUniswapV3Factory {
+interface ISwapRouter {
     /// @notice Swaps `amountIn` of one token for as much as possible of another token
     /// @param params The parameters necessary for the swap, encoded as `ExactInputSingleParams` in calldata
     /// @return amountOut The amount of the received token
