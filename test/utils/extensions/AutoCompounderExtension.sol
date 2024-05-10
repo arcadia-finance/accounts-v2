@@ -27,7 +27,7 @@ contract AutoCompounderExtension is AutoCompounder {
         _swap(fromToken, toToken, fee, amount);
     }
 
-    function getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) internal pure returns (uint160 sqrtPriceX96) {
+    function getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) public pure returns (uint160 sqrtPriceX96) {
         sqrtPriceX96 = _getSqrtPriceX96(priceToken0, priceToken1);
     }
 }
