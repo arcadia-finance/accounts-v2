@@ -9,4 +9,8 @@ contract UniswapV3PoolExtension is UniswapV3Pool {
     function setCurrentTick(int24 currentTick) public {
         slot0.tick = currentTick;
     }
+
+    function getCurrentTick() public view returns (int24 currentTick) {
+        currentTick = slot0.tick;
+    }
 }

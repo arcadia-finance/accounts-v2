@@ -239,6 +239,8 @@ contract AutoCompounder is IActionBase {
             sqrtPriceLimitX96: 0
         });
 
+        ERC20(fromToken).approve(address(SWAP_ROUTER), amount);
+
         SWAP_ROUTER.exactInputSingle(exactInputParams);
     }
 
