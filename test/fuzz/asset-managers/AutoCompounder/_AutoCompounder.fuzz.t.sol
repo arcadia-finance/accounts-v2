@@ -36,6 +36,8 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
     uint256 public MOCK_ORACLE_DECIMALS = 18;
     uint24 public POOL_FEE = 100;
     uint256 public BIPS = 10_000;
+    // 10 % price diff for testing
+    uint256 public TOLERANCE = 1000;
 
     /*////////////////////////////////////////////////////////////////
                             VARIABLES
@@ -124,7 +126,8 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
             address(registryExtension),
             address(uniswapV3Factory),
             address(nonfungiblePositionManager),
-            address(swapRouter)
+            address(swapRouter),
+            TOLERANCE
         );
     }
 

@@ -13,4 +13,8 @@ contract UniswapV3PoolExtension is UniswapV3Pool {
     function getCurrentTick() public view returns (int24 currentTick) {
         currentTick = slot0.tick;
     }
+
+    function setSqrtPriceX96(uint160 sqrtPriceX96_) public {
+        slot0.sqrtPriceX96 = sqrtPriceX96_;
+    }
 }

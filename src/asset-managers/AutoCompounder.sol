@@ -32,13 +32,12 @@ contract AutoCompounder is IActionBase {
     IUniswapV3Factory public immutable UNI_V3_FACTORY;
     // The contract address of the Registry.
     IRegistry public immutable REGISTRY;
-
     INonfungiblePositionManager public immutable NONFUNGIBLE_POSITIONMANAGER;
-
     ISwapRouter public immutable SWAP_ROUTER;
 
-    // sqrtPrice tolerance in BIPS
-    uint256 public immutable tolerance;
+    // Max deviation in quadratic value
+    uint256 public immutable MAX_SQRT_PRICE_DEVIATION;
+    uint256 internal constant BIPS = 10_000;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -70,11 +69,20 @@ contract AutoCompounder is IActionBase {
                             CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
-    constructor(address registry, address uniswapV3Factory, address nonfungiblePositionManager, address swapRouter) {
+    constructor(
+        address registry,
+        address uniswapV3Factory,
+        address nonfungiblePositionManager,
+        address swapRouter,
+        uint256 tolerance
+    ) {
         UNI_V3_FACTORY = IUniswapV3Factory(uniswapV3Factory);
         REGISTRY = IRegistry(registry);
         NONFUNGIBLE_POSITIONMANAGER = INonfungiblePositionManager(nonfungiblePositionManager);
         SWAP_ROUTER = ISwapRouter(swapRouter);
+
+        uint256 maxPriceDiffRatio = BIPS + tolerance;
+        MAX_SQRT_PRICE_DEVIATION = FixedPointMathLib.sqrt(maxPriceDiffRatio * BIPS);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -165,8 +173,10 @@ contract AutoCompounder is IActionBase {
         (uint160 sqrtPriceX96, int24 currentTick_,,,,,) = IUniswapV3Pool(pool).slot0();
         currentTick = currentTick_;
 
-        // Get current prices
+        // Get current prices for 1e18 amount of assets
         address[] memory assets = new address[](2);
+        assets[0] = token0;
+        assets[1] = token1;
         uint256[] memory assetIds = new uint256[](2);
         uint256[] memory assetAmounts = new uint256[](2);
         assetAmounts[0] = 1e18;
@@ -182,10 +192,11 @@ contract AutoCompounder is IActionBase {
         uint256 sqrtPriceX96Calculated = _getSqrtPriceX96(usdPriceToken0, usdPriceToken1);
 
         // Check price deviation tolerance
-        uint256 priceDiff = sqrtPriceX96Calculated > sqrtPriceX96
-            ? sqrtPriceX96Calculated - sqrtPriceX96
-            : sqrtPriceX96 - sqrtPriceX96Calculated;
-        if (priceDiff > (tolerance * sqrtPriceX96Calculated / 10_000)) revert PriceToleranceExceeded();
+        uint256 sqrtPriceRatio = sqrtPriceX96Calculated > sqrtPriceX96
+            ? sqrtPriceX96Calculated * BIPS / sqrtPriceX96
+            : uint256(sqrtPriceX96) * BIPS / sqrtPriceX96Calculated;
+
+        if (sqrtPriceRatio >= MAX_SQRT_PRICE_DEVIATION) revert PriceToleranceExceeded();
     }
 
     function _handleFeeRatiosForDeposit(int24 currentTick, PositionData memory posData, FeeData memory feeData)

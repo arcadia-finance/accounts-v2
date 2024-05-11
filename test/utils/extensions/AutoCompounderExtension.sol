@@ -7,9 +7,13 @@ pragma solidity 0.8.22;
 import { AutoCompounder } from "../../../src/asset-managers/AutoCompounder.sol";
 
 contract AutoCompounderExtension is AutoCompounder {
-    constructor(address registry, address uniswapV3Factory, address nonfungiblePositionManager, address swapRouter)
-        AutoCompounder(registry, uniswapV3Factory, nonfungiblePositionManager, swapRouter)
-    { }
+    constructor(
+        address registry,
+        address uniswapV3Factory,
+        address nonfungiblePositionManager,
+        address swapRouter,
+        uint256 tolerance_
+    ) AutoCompounder(registry, uniswapV3Factory, nonfungiblePositionManager, swapRouter, tolerance_) { }
 
     function sqrtPriceX96InLimits(address token0, address token1, uint24 fee)
         public
