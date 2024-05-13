@@ -28,7 +28,7 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
         (testVars, token0HasLowestDecimals) = givenValidBalancedState(testVars);
 
         // And : State is persisted
-        uint256 tokenId = setState(testVars, usdStablePool);
+        setState(testVars, usdStablePool);
 
         // And : currentTick = tickUpper
         int24 currentTick = testVars.tickUpper;
@@ -48,8 +48,7 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
             token1: address(token1),
             fee: 100,
             tickLower: testVars.tickLower,
-            tickUpper: testVars.tickUpper,
-            tokenId: tokenId
+            tickUpper: testVars.tickUpper
         });
 
         (uint256 usdPriceToken0, uint256 usdPriceToken1) = getPrices();
@@ -79,7 +78,7 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
         (testVars, token0HasLowestDecimals) = givenValidBalancedState(testVars);
 
         // And : State is persisted
-        uint256 tokenId = setState(testVars, usdStablePool);
+        setState(testVars, usdStablePool);
 
         // And : currentTick = tickUpper
         int24 currentTick = testVars.tickLower;
@@ -99,8 +98,7 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
             token1: address(token1),
             fee: 100,
             tickLower: testVars.tickLower,
-            tickUpper: testVars.tickUpper,
-            tokenId: tokenId
+            tickUpper: testVars.tickUpper
         });
 
         (uint256 usdPriceToken0, uint256 usdPriceToken1) = getPrices();
@@ -135,15 +133,14 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
         vm.assume(testVars.feeAmount0 > testVars.feeAmount1);
 
         // And : State is persisted
-        uint256 tokenId = setState(testVars, usdStablePool);
+        setState(testVars, usdStablePool);
 
         AutoCompounder.PositionData memory posData = AutoCompounder.PositionData({
             token0: address(token0),
             token1: address(token1),
             fee: 100,
             tickLower: testVars.tickLower,
-            tickUpper: testVars.tickUpper,
-            tokenId: tokenId
+            tickUpper: testVars.tickUpper
         });
 
         (uint256 usdPriceToken0, uint256 usdPriceToken1) = getPrices();
@@ -180,15 +177,14 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
         vm.assume(testVars.feeAmount1 > uint256(testVars.feeAmount0));
 
         // And : State is persisted
-        uint256 tokenId = setState(testVars, usdStablePool);
+        setState(testVars, usdStablePool);
 
         AutoCompounder.PositionData memory posData = AutoCompounder.PositionData({
             token0: address(token0),
             token1: address(token1),
             fee: 100,
             tickLower: testVars.tickLower,
-            tickUpper: testVars.tickUpper,
-            tokenId: tokenId
+            tickUpper: testVars.tickUpper
         });
 
         (uint256 usdPriceToken0, uint256 usdPriceToken1) = getPrices();

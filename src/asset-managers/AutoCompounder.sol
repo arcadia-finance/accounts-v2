@@ -49,7 +49,6 @@ contract AutoCompounder is IActionBase {
         uint24 fee;
         int24 tickLower;
         int24 tickUpper;
-        uint256 tokenId;
     }
 
     struct FeeData {
@@ -124,8 +123,10 @@ contract AutoCompounder is IActionBase {
         (assetData, initiator) = abi.decode(actionData, (ActionData, address));
 
         PositionData memory posData;
+        // Cache tokenId
+        uint256 tokenId = assetData.assetIds[0];
         (,, posData.token0, posData.token1, posData.fee, posData.tickLower, posData.tickUpper,,,,,) =
-            NONFUNGIBLE_POSITIONMANAGER.positions(assetData.assetIds[0]);
+            NONFUNGIBLE_POSITIONMANAGER.positions(tokenId);
 
         // Check that sqrtPriceX96 is in limits to avoid front-running
         FeeData memory feeData;
@@ -135,7 +136,7 @@ contract AutoCompounder is IActionBase {
 
         // Collect fees
         CollectParams memory collectParams = CollectParams({
-            tokenId: posData.tokenId,
+            tokenId: tokenId,
             recipient: address(this),
             amount0Max: type(uint128).max,
             amount1Max: type(uint128).max
@@ -147,21 +148,27 @@ contract AutoCompounder is IActionBase {
         _handleFeeRatiosForDeposit(currentTick, posData, feeData);
 
         // Increase liquidity in pool
+        uint256 amount0ToDeposit = ERC20(posData.token0).balanceOf(address(this));
+        uint256 amount1ToDeposit = ERC20(posData.token1).balanceOf(address(this));
         IncreaseLiquidityParams memory increaseLiquidityParams = IncreaseLiquidityParams({
-            tokenId: posData.tokenId,
-            amount0Desired: ERC20(posData.token0).balanceOf(address(this)),
-            amount1Desired: ERC20(posData.token1).balanceOf(address(this)),
+            tokenId: tokenId,
+            amount0Desired: amount0ToDeposit,
+            amount1Desired: amount1ToDeposit,
             amount0Min: 0,
             amount1Min: 0,
             deadline: block.timestamp
         });
-        INonfungiblePositionManager(assetData.assets[0]).increaseLiquidity(increaseLiquidityParams);
+
+        ERC20(posData.token0).approve(address(NONFUNGIBLE_POSITIONMANAGER), amount0ToDeposit);
+        ERC20(posData.token1).approve(address(NONFUNGIBLE_POSITIONMANAGER), amount1ToDeposit);
+        INonfungiblePositionManager(address(NONFUNGIBLE_POSITIONMANAGER)).increaseLiquidity(increaseLiquidityParams);
 
         // Dust amounts are transfered to the initiator
         ERC20(posData.token0).safeTransfer(initiator, ERC20(posData.token0).balanceOf(address(this)));
         ERC20(posData.token1).safeTransfer(initiator, ERC20(posData.token1).balanceOf(address(this)));
 
         // Position is deposited back to the Account
+        NONFUNGIBLE_POSITIONMANAGER.approve(msg.sender, tokenId);
     }
 
     function _sqrtPriceX96InLimits(address token0, address token1, uint24 fee)

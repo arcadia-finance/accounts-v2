@@ -250,6 +250,8 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
             amountOutMinimum: 0,
             sqrtPriceLimitX96: 0
         });
+
+        vm.stopPrank();
     }
 
     function createPool(ERC20 token0_, ERC20 token1_, uint160 sqrtPriceX96, uint16 observationCardinality)
