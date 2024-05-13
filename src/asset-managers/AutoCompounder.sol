@@ -64,6 +64,7 @@ contract AutoCompounder is IActionBase {
     ////////////////////////////////////////////////////////////// */
 
     error PriceToleranceExceeded();
+    error SingleTickLiquidity();
 
     /* //////////////////////////////////////////////////////////////
                             CONSTRUCTOR
@@ -220,8 +221,7 @@ contract AutoCompounder is IActionBase {
             uint256 totalFee1Value = feeData.usdPriceToken1 * feeData.feeAmount1 / 1e18;
             uint256 totalFeeValue = totalFee0Value + totalFee1Value;
 
-            // Note : Highly unprobable that ticksInRange is zero. No automated compounding possible in this case.
-            // Otherwise loss of precision.
+            // Ticks in range can't be zero (upper bound should be strictly higher than lower bound for a position)
             uint256 token0Ratio = ticksFromCurrentToUpperTick * type(uint24).max / ticksInRange;
             uint256 targetToken0Value = token0Ratio * totalFeeValue / type(uint24).max;
 
