@@ -63,7 +63,6 @@ contract AutoCompounder is IActionBase {
     ////////////////////////////////////////////////////////////// */
 
     error PriceToleranceExceeded();
-    error SingleTickLiquidity();
 
     /* //////////////////////////////////////////////////////////////
                             CONSTRUCTOR
