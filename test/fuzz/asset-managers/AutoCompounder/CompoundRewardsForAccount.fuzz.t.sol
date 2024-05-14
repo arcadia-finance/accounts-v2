@@ -14,9 +14,9 @@ import {
 import { ERC721 } from "../../../utils/mocks/tokens/ERC721Mock.sol";
 
 /**
- * @notice Fuzz tests for the function "CompoundRewardsForAccount" of contract "AutoCompounder".
+ * @notice Fuzz tests for the function "CompoundFeesForAccount" of contract "AutoCompounder".
  */
-contract CompoundRewardsForAccount_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
+contract CompoundFeesForAccount_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -29,7 +29,7 @@ contract CompoundRewardsForAccount_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Success_compoundRewardsForAccount(TestVariables memory testVars) public {
+    function testFuzz_Success_compoundFeesForAccount(TestVariables memory testVars) public {
         // Given : Valid state
         bool token0HasLowestDecimals;
         (testVars, token0HasLowestDecimals) = givenValidBalancedState(testVars);
@@ -63,7 +63,7 @@ contract CompoundRewardsForAccount_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
         vm.prank(users.accountOwner);
         proxyAccount.setAssetManager(address(autoCompounder), true);
 
-        // When : Calling compoundRewardsForAccount()
-        autoCompounder.compoundRewardsForAccount(address(proxyAccount), tokenId);
+        // When : Calling compoundFeesForAccount()
+        autoCompounder.compoundFeesForAccount(address(proxyAccount), tokenId);
     }
 }

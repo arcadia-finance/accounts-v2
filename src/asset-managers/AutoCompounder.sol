@@ -22,6 +22,15 @@ import { IUniswapV3Factory } from "./interfaces/IUniswapV3Factory.sol";
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { TickMath } from "../asset-modules/UniswapV3/libraries/TickMath.sol";
 
+/**
+ * @title AutoCompounder UniswapV3
+ * @author Pragma Labs
+ * @notice The AutoCompounder will act as an Asset Manager for Arcadia Accounts.
+ * It will allow third parties to trigger the compounding functionality for the Account.
+ * Compounding can only be triggered if certain conditions are met and the initiator will get a small fee for the service provided.
+ * The compounding will collect the fees earned by a position and increase the liquidity of the position by those fees.
+ * Depending on current tick of the pool and the position range, fees will be deposited in appropriate ratio.
+ */
 contract AutoCompounder is IActionBase {
     using FixedPointMathLib for uint256;
     using SafeTransferLib for ERC20;
@@ -29,20 +38,25 @@ contract AutoCompounder is IActionBase {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
+    // The Uniswap V3 Factory contract.
     IUniswapV3Factory public immutable UNI_V3_FACTORY;
     // The contract address of the Registry.
     IRegistry public immutable REGISTRY;
+    // The Uniswap V3 NonfungiblePositionManager contract.
     INonfungiblePositionManager public immutable NONFUNGIBLE_POSITIONMANAGER;
+    // The UniswapV3 SwapRouter contract.
     ISwapRouter public immutable SWAP_ROUTER;
 
     // Max deviation in quadratic value
     uint256 public immutable MAX_SQRT_PRICE_DEVIATION;
+    // Basis Points (one basis point is equivalnent to 0.01%)
     uint256 internal constant BIPS = 10_000;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
+    // A struct with variables to track for a specific position.
     struct PositionData {
         address token0;
         address token1;
@@ -51,6 +65,7 @@ contract AutoCompounder is IActionBase {
         int24 tickUpper;
     }
 
+    // A struct with variables to track in order to calculate fee ratios.
     struct FeeData {
         uint256 usdPriceToken0;
         uint256 usdPriceToken1;
@@ -68,6 +83,15 @@ contract AutoCompounder is IActionBase {
                             CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
+    /**
+     * @param registry The contract address of the Registry.
+     * @param uniswapV3Factory The contract address of the Uniswap V3 Factory.
+     * @param nonfungiblePositionManager The contract address of Uniswap V3 NonFungiblePositionManager.
+     * @param swapRouter The contract address of the Uniswap V3 SwapRouter.
+     * @param tolerance The max deviation of the internal pool price of assets compared to external price of assets (relative price), in BIPS.
+     * @dev The tolerance will be converted to a quadratic value "MAX_SQRT_PRICE_DEVIATION". We use the quadratic value for price deviation as the relationship between
+     * sqrtPriceX96 and actual price is quadratic, amplifying changes in the latter when the former alters slightly.
+     */
     constructor(
         address registry,
         address uniswapV3Factory,
@@ -81,6 +105,7 @@ contract AutoCompounder is IActionBase {
         SWAP_ROUTER = ISwapRouter(swapRouter);
 
         uint256 maxPriceDiffRatio = BIPS + tolerance;
+        // Calculate quadratic value for max sqrtPriceX96 deviation.
         MAX_SQRT_PRICE_DEVIATION = FixedPointMathLib.sqrt(maxPriceDiffRatio * BIPS);
     }
 
@@ -88,7 +113,13 @@ contract AutoCompounder is IActionBase {
                              COMPOUNDING LOGIC
     /////////////////////////////////////////////////////////////// */
 
-    function compoundRewardsForAccount(address account, uint256 assetId) external {
+    /**
+     * @notice This function will compound the fees earned by a position owned by an Arcadia Account.
+     * @param account The Arcadia Account owning the position.
+     * @param assetId The position id to compound the fees for.
+     */
+    // TODO : trigger for compounding ? Earned fee ?
+    function compoundFeesForAccount(address account, uint256 assetId) external {
         address[] memory assets_ = new address[](1);
         assets_[0] = address(NONFUNGIBLE_POSITIONMANAGER);
         uint256[] memory assetIds_ = new uint256[](1);
@@ -108,12 +139,23 @@ contract AutoCompounder is IActionBase {
 
         bytes memory compounderData = abi.encode(assetData, msg.sender);
         bytes memory actionData = abi.encode(assetData, transferFromOwner, permit, signature, compounderData);
+
         // Trigger flashAction with actionTarget as this contract
         IAccount(account).flashAction(address(this), actionData);
 
         // executeAction() triggered as callback function
     }
 
+    /**
+     * @notice Callback function called in the Arcadia Account.
+     * @param actionData A bytes object containing one actionData struct and the address of the initiator.
+     * @dev This function will trigger the following actions :
+     * - Verify that the pool's current price remains within the defined tolerance range of external price.
+     * - Collects the fees earned by the position.
+     * - Calculates the current ratio at which fees should be deposited in position, swaps one token to another if needed.
+     * - Increases the liquidity of the current position with those fees.
+     * - Transfers dust amounts to the initiator.
+     */
     function executeAction(bytes calldata actionData) external override returns (ActionData memory assetData) {
         // Position transferred from Account
 
@@ -170,6 +212,15 @@ contract AutoCompounder is IActionBase {
         NONFUNGIBLE_POSITIONMANAGER.approve(msg.sender, tokenId);
     }
 
+    /**
+     * @notice Internal function to ensure the pool's current price remains within the specified tolerance range of the external price.
+     * @param token0 The contract address of token 0 of the position.
+     * @param token1 The contract address of token 1 of the position.
+     * @param fee The fee of the pool to which the position is related.
+     * @return currentTick The current tick of the pool.
+     * @return usdPriceToken0 The oracle price of token0 for 1e18 tokens.
+     * @return usdPriceToken1 The oracle price of token1 for 1e18 tokens.
+     */
     function _sqrtPriceX96InLimits(address token0, address token1, uint24 fee)
         internal
         view
@@ -206,6 +257,12 @@ contract AutoCompounder is IActionBase {
         if (sqrtPriceRatio >= MAX_SQRT_PRICE_DEVIATION) revert PriceToleranceExceeded();
     }
 
+    /**
+     * @notice Calculates the current ratio at which fees should be deposited in the position, swaps one token to another if needed.
+     * @param currentTick The current tick of the pool.
+     * @param posData A struct with variables to track for a specific position.
+     * @param feeData A struct containing the accumulated fees of the position as well as the external token prices.
+     */
     function _handleFeeRatiosForDeposit(int24 currentTick, PositionData memory posData, FeeData memory feeData)
         internal
     {
@@ -245,6 +302,13 @@ contract AutoCompounder is IActionBase {
         }
     }
 
+    /**
+     * @notice Internal function to swap one asset for another.
+     * @param fromToken The address of the token to swap.
+     * @param toToken The address of the token to swap to.
+     * @param fee_ The fee of the pool to swap through (will be the same as the pool of the position).
+     * @param amount The amount of "fromToken" to swap.
+     */
     function _swap(address fromToken, address toToken, uint24 fee_, uint256 amount) internal {
         ExactInputSingleParams memory exactInputParams = ExactInputSingleParams({
             tokenIn: fromToken,
@@ -254,7 +318,7 @@ contract AutoCompounder is IActionBase {
             deadline: block.timestamp,
             amountIn: amount,
             amountOutMinimum: 0,
-            // TODO : calculate sqrtPriceX96 for max slippage
+            // TODO : calculate sqrtPriceX96 for max slippage, or do the sqrtPriceX96 in limits after ?
             sqrtPriceLimitX96: 0
         });
 
@@ -263,6 +327,18 @@ contract AutoCompounder is IActionBase {
         SWAP_ROUTER.exactInputSingle(exactInputParams);
     }
 
+    /**
+     * @notice Calculates the sqrtPriceX96 (token1/token0) from trusted USD prices of both tokens.
+     * @param priceToken0 The price of 1e18 tokens of token0 in USD, with 18 decimals precision.
+     * @param priceToken1 The price of 1e18 tokens of token1 in USD, with 18 decimals precision.
+     * @return sqrtPriceX96 The square root of the price (token1/token0), with 96 binary precision.
+     * @dev The price in Uniswap V3 is defined as:
+     * price = amountToken1/amountToken0.
+     * The usdPriceToken is defined as: usdPriceToken = amountUsd/amountToken.
+     * => amountToken = amountUsd/usdPriceToken.
+     * Hence we can derive the Uniswap V3 price as:
+     * price = (amountUsd/usdPriceToken1)/(amountUsd/usdPriceToken0) = usdPriceToken0/usdPriceToken1.
+     */
     function _getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) internal pure returns (uint160 sqrtPriceX96) {
         if (priceToken1 == 0) return TickMath.MAX_SQRT_RATIO;
 
@@ -285,13 +361,5 @@ contract AutoCompounder is IActionBase {
     */
     function onERC721Received(address, address, uint256, bytes calldata) public pure returns (bytes4) {
         return this.onERC721Received.selector;
-    }
-
-    /*
-    @notice Returns the onERC1155Received selector.
-    @dev Needed to receive ERC1155 tokens.
-    */
-    function onERC1155Received(address, address, uint256, uint256, bytes calldata) public pure returns (bytes4) {
-        return this.onERC1155Received.selector;
     }
 }
