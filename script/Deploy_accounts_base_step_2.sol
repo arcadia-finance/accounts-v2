@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import "../lib/forge-std/src/Test.sol";
-import { DeployAddresses, DeployNumbers, DeployRiskConstantsBase } from "./Constants/DeployConstants.sol";
+import { DeployAddresses, DeployNumbers, DeployRiskConstantsBase, ArcadiaSafes } from "./utils/Constants.sol";
 
 import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/accounts/AccountV1.sol";
@@ -65,7 +65,7 @@ contract ArcadiaAccountDeploymentStep2 is Test {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_DEPLOYER_BASE");
         address deployerAddress = vm.addr(deployerPrivateKey);
-        address protocolOwnerAddress = DeployAddresses.protocolOwner_base;
+        address protocolOwnerAddress = ArcadiaSafes.owner;
         assertEq(deployerAddress, protocolOwnerAddress);
 
         factory = Factory(0xDa14Fdd72345c4d2511357214c5B89A919768e59);

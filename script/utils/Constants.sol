@@ -23,6 +23,7 @@ library DeployAddresses {
     address public constant crv_base = 0x8Ee73c484A26e0A5df2Ee2a4960B789967dd0415;
     address public constant stg_base = 0xE3B53AF74a4BF62Ae5511055290838050bf764Df;
     address public constant wsteth_base = 0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452;
+    address public constant aero_base = 0x940181a94A35A4569E4529A3CDfB74e38FD98631;
 
     address public constant oracleCompToUsd_base = 0x9DDa783DE64A9d1A60c49ca761EbE528C35BA428;
     address public constant oracleDaiToUsd_base = 0x591e79239a7d679378eC8c847e5038150364C78F;
@@ -34,16 +35,12 @@ library DeployAddresses {
     address public constant oracleRethToEth_base = 0xf397bF97280B488cA19ee3093E81C0a77F02e9a5;
     address public constant oracleStgToUsd_base = 0x63Af8341b62E683B87bB540896bF283D96B4D385;
     address public constant oracleWstethToEth_base = 0xa669E5272E60f78299F4824495cE01a3923f4380;
+    address public constant oracleAeroToUsd_base = 0x4EC5970fC728C5f65ba413992CD5fF6FD70fcfF0;
 
     address public constant uniswapV3PositionMgr_base = 0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1;
     address public constant stargateFactory_base = 0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6;
     address public constant stargateLpStakingTime_base = 0x06Eb48763f117c7Be887296CDcdfad2E4092739C;
     address public constant sequencerUptimeOracle_base = 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433;
-
-    // to do: change to gnosis
-    address public constant protocolOwner_base = 0xb4d72B1c91e640e4ED7d7397F3244De4D8ACc50B;
-    address public constant pauseGuardian_base = 0xEdD41f9740b06eCBfe1CE9194Ce2715C28263187;
-    address public constant riskManager_base = 0xD5FA6C6e284007743d4263255385eDA78dDa268c;
 }
 
 library DeployNumbers {
@@ -64,6 +61,7 @@ library DeployNumbers {
     uint8 public constant crvDecimals = 18;
     uint8 public constant stgDecimals = 18;
     uint8 public constant wstethDecimals = 18;
+    uint8 public constant aeroDecimals = 18;
 
     uint256 public constant stargateWethPoolId = 13;
     uint256 public constant stargateUsdbcPoolId = 1;
@@ -77,6 +75,7 @@ library DeployNumbers {
     uint32 public constant reth_eth_cutOffTime = 25 hours;
     uint32 public constant stg_usd_cutOffTime = 25 hours;
     uint32 public constant wsteth_eth_cutOffTime = 25 hours;
+    uint32 public constant aero_usd_cutOffTime = 25 hours;
 
     uint80 public constant EthToUsdOracleId = 2;
 }
@@ -212,6 +211,13 @@ library DeployRiskConstantsBase {
     uint112 public constant wsteth_exposure_eth = uint112(400 * 10 ** DeployNumbers.wstethDecimals);
     uint112 public constant wsteth_exposure_usdc = uint112(300 * 10 ** DeployNumbers.wstethDecimals);
 
+    uint16 public constant aero_collFact_eth = 0;
+    uint16 public constant aero_collFact_usdc = 0;
+    uint16 public constant aero_liqFact_eth = 0;
+    uint16 public constant aero_liqFact_usdc = 0;
+    uint112 public constant aero_exposure_eth = 1; // Cannot be deposited as primary asset, but still as yield source
+    uint112 public constant aero_exposure_usdc = 1; // Cannot be deposited as primary asset, but still as yield source
+
     uint16 public constant uniswapV3AM_riskFact_eth = 9800;
     uint16 public constant uniswapV3AM_riskFact_usdc = 9800;
     uint112 public constant uniswapV3AM_exposure_eth = uint112(2_000_000 * 1e18);
@@ -234,4 +240,22 @@ library DeployRiskConstantsBase {
     uint128 public constant minUsdValue_usdc = 1 * 1e18; // 1 USD?
     uint64 public constant gracePeriod_usdc = 15 minutes;
     uint64 public constant maxRecursiveCalls_usdc = 5;
+}
+
+library ArcadiaContracts {
+    address public constant registry = address(0xd0690557600eb8Be8391D1d97346e2aab5300d5f);
+    address public constant factory = address(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
+    address public constant erc20PrimaryAM = address(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
+    address public constant chainlinkOM = address(0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31);
+    address public constant uniswapV3AM = address(0x21bd524cC54CA78A7c48254d4676184f781667dC);
+    address public constant stargateAM = address(0x20f7903290bF98716B62Dc1c9DA634291b8cfeD4);
+    address public constant stakedStargateAM = address(0xae909e19fd13C01c28d5Ee439D403920CF7f9Eea);
+    address public constant usdcLendingPool = address(0x3ec4a293Fb906DD2Cd440c20dECB250DeF141dF1);
+    address public constant wethLendingPool = address(0x803ea69c7e87D1d6C86adeB40CB636cC0E6B98E2);
+}
+
+library ArcadiaSafes {
+    address public constant owner = address(0xb4d72B1c91e640e4ED7d7397F3244De4D8ACc50B);
+    address public constant guardian = address(0xEdD41f9740b06eCBfe1CE9194Ce2715C28263187);
+    address public constant riskManager = address(0xD5FA6C6e284007743d4263255385eDA78dDa268c);
 }

@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import "../lib/forge-std/src/Test.sol";
-import { DeployAddresses, DeployNumbers, DeployRiskConstantsBase } from "./Constants/DeployConstants.sol";
+import { DeployAddresses, DeployNumbers, DeployRiskConstantsBase, ArcadiaSafes } from "./utils/Constants.sol";
 
 import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
 
@@ -49,7 +49,7 @@ contract ArcadiaAccountDeploymentAddWsteth is Test {
         chainlinkOM = ChainlinkOM(0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31);
         erc20PrimaryAM = ERC20PrimaryAM(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
 
-        vm.startBroadcast(DeployAddresses.protocolOwner_base);
+        vm.startBroadcast(ArcadiaSafes.owner);
         oracleWstethToEthId = uint80(
             chainlinkOM.addOracle(
                 DeployAddresses.oracleWstethToEth_base, "wstETH", "ETH", DeployNumbers.wsteth_eth_cutOffTime
@@ -64,7 +64,7 @@ contract ArcadiaAccountDeploymentAddWsteth is Test {
         );
         vm.stopBroadcast();
 
-        vm.startBroadcast(DeployAddresses.riskManager_base);
+        vm.startBroadcast(ArcadiaSafes.riskManager);
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
             DeployAddresses.wsteth_base,
