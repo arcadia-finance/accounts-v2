@@ -81,12 +81,46 @@ library Utils {
         }
     }
 
+    function castArrayStaticToDynamic(address[3] calldata staticArray)
+        public
+        pure
+        returns (address[] memory dynamicArray)
+    {
+        uint256 length = staticArray.length;
+        dynamicArray = new address[](length);
+
+        for (uint256 i; i < length;) {
+            dynamicArray[i] = staticArray[i];
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     /**
      * @notice Casts a static array of uint256's of length two to a dynamic array of uint256's.
      * @param staticArray The static array of uint256's.
      * @return dynamicArray The dynamic array of uint256's.
      */
     function castArrayStaticToDynamic(uint256[2] calldata staticArray)
+        public
+        pure
+        returns (uint256[] memory dynamicArray)
+    {
+        uint256 length = staticArray.length;
+        dynamicArray = new uint256[](length);
+
+        for (uint256 i; i < length;) {
+            dynamicArray[i] = staticArray[i];
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function castArrayStaticToDynamic(uint256[3] calldata staticArray)
         public
         pure
         returns (uint256[] memory dynamicArray)
@@ -119,21 +153,27 @@ library Utils {
         pure
         returns (bytes memory result)
     {
+        result = veryBadBytesReplacer(bytecode, abi.encodePacked(target), abi.encodePacked(replacement));
+    }
+
+    function veryBadBytesReplacer(bytes memory bytecode, bytes memory target, bytes memory replacement)
+        internal
+        pure
+        returns (bytes memory result)
+    {
         require(target.length <= bytecode.length);
+        require(target.length == replacement.length);
 
-        bytes memory target_ = abi.encodePacked(target);
-        bytes memory replacement_ = abi.encodePacked(replacement);
-
-        uint256 lengthTarget = target_.length;
+        uint256 lengthTarget = target.length;
         uint256 lengthBytecode = bytecode.length - lengthTarget + 1;
         uint256 i;
         for (i; i < lengthBytecode;) {
             uint256 j = 0;
             for (j; j < lengthTarget;) {
-                if (bytecode[i + j] == target_[j]) {
+                if (bytecode[i + j] == target[j]) {
                     if (j == lengthTarget - 1) {
                         // Target found, replace with replacement, and return result.
-                        return result = replaceBytes(bytecode, replacement_, i);
+                        return result = replaceBytes(bytecode, replacement, i);
                     }
                 } else {
                     break;

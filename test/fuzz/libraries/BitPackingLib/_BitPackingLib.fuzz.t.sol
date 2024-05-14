@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
 
-import { BitPackingLibExtension } from "../../../utils/Extensions.sol";
+import { BitPackingLibExtension } from "../../../utils/extensions/BitPackingLibExtension.sol";
 
 /**
  * @notice Common logic needed by all "BitPackingLib" fuzz tests.

@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { StandardERC4626AM_Fuzz_Test } from "./_StandardERC4626AM.fuzz.t.sol";
 
-import { ERC4626AMExtension } from "../../../utils/Extensions.sol";
+import { ERC4626AMExtension } from "../../../utils/extensions/ERC4626AMExtension.sol";
 
 /**
  * @notice Fuzz tests for the function "constructor" of contract "StandardERC4626AM".

@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 
-import { FactoryGuardianExtension } from "../../../utils/Extensions.sol";
+import { FactoryGuardianExtension } from "../../../utils/extensions/FactoryGuardianExtension.sol";
 import { BaseGuardian } from "../../../../src/guardians/BaseGuardian.sol";
 
 /**

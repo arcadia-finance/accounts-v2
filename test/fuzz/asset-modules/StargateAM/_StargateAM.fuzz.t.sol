@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
-import { StargateAMExtension } from "../../../utils/Extensions.sol";
+import { StargateAMExtension } from "../../../utils/extensions/StargateAMExtension.sol";
 import { StargateFactoryMock } from "../../../utils/mocks/Stargate/StargateFactoryMock.sol";
 import { StargatePoolMock } from "../../../utils/mocks/Stargate/StargatePoolMock.sol";
 

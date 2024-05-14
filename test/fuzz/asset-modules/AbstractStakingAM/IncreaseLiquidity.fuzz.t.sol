@@ -38,7 +38,8 @@ contract IncreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         uint128 amount,
         uint96 positionId,
         uint8 assetDecimals
-    ) public notTestContracts(account) {
+    ) public canReceiveERC721(account) {
+        vm.assume(account != randomAddress);
         // Given : Amount is greater than zero
         vm.assume(amount > 0);
         // Given : positionId is greater than 0
@@ -72,7 +73,7 @@ contract IncreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         uint96 positionId,
         uint128 amount,
         address account
-    ) public notTestContracts(account) {
+    ) public canReceiveERC721(account) {
         address asset;
         {
             // Given : A staking token is added to the stakingAM
