@@ -63,7 +63,15 @@ contract CompoundFeesForAccount_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_
         vm.prank(users.accountOwner);
         proxyAccount.setAssetManager(address(autoCompounder), true);
 
+        // Check liquidity pre-compounding
+        (,,,,,,, uint128 initialLiquidity,,,,) = nonfungiblePositionManager.positions(tokenId);
+
         // When : Calling compoundFeesForAccount()
         autoCompounder.compoundFeesForAccount(address(proxyAccount), tokenId);
+
+        // Then : Liquidity of position should have increased
+        (,,,,,,, uint128 newLiquidity,,,,) = nonfungiblePositionManager.positions(tokenId);
+
+        assertGt(newLiquidity, initialLiquidity);
     }
 }
