@@ -408,8 +408,8 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         poolState[pool] = poolState_;
 
         // Pay out the fees to the position owner.
-        ERC20(token0[pool]).safeTransfer(msg.sender, fee0Position);
-        ERC20(token1[pool]).safeTransfer(msg.sender, fee1Position);
+        if (fee0Position > 0) ERC20(token0[pool]).safeTransfer(msg.sender, fee0Position);
+        if (fee1Position > 0) ERC20(token1[pool]).safeTransfer(msg.sender, fee1Position);
         emit FeesPaid(positionId, uint128(fee0Position), uint128(fee1Position));
 
         // Transfer the liquidity back to the position owner.
@@ -449,8 +449,8 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         poolState[pool] = poolState_;
 
         // Pay out the fees to the position owner.
-        ERC20(token0[pool]).safeTransfer(msg.sender, fee0Position);
-        ERC20(token1[pool]).safeTransfer(msg.sender, fee1Position);
+        if (fee0Position > 0) ERC20(token0[pool]).safeTransfer(msg.sender, fee0Position);
+        if (fee1Position > 0) ERC20(token1[pool]).safeTransfer(msg.sender, fee1Position);
         emit FeesPaid(positionId, uint128(fee0Position), uint128(fee1Position));
     }
 
