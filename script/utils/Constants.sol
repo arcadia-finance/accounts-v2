@@ -37,10 +37,13 @@ library DeployAddresses {
     address public constant oracleWstethToEth_base = 0xa669E5272E60f78299F4824495cE01a3923f4380;
     address public constant oracleAeroToUsd_base = 0x4EC5970fC728C5f65ba413992CD5fF6FD70fcfF0;
 
-    address public constant uniswapV3PositionMgr_base = 0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1;
+    address public constant aeroFactory = 0x420DD381b31aEf6683db6B902084cB0FFECe40Da;
+    address public constant aeroVoter = 0x16613524e02ad97eDfeF371bC883F2F5d6C480A5;
+    address public constant sequencerUptimeOracle_base = 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433;
+    address public constant slipstreamPositionMgr = 0x827922686190790b37229fd06084350E74485b72;
     address public constant stargateFactory_base = 0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6;
     address public constant stargateLpStakingTime_base = 0x06Eb48763f117c7Be887296CDcdfad2E4092739C;
-    address public constant sequencerUptimeOracle_base = 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433;
+    address public constant uniswapV3PositionMgr_base = 0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1;
 }
 
 library DeployNumbers {
@@ -77,6 +80,7 @@ library DeployNumbers {
     uint32 public constant wsteth_eth_cutOffTime = 25 hours;
     uint32 public constant aero_usd_cutOffTime = 25 hours;
 
+    uint80 public constant AeroToUsdOracleId = 8;
     uint80 public constant EthToUsdOracleId = 2;
 }
 
@@ -218,20 +222,40 @@ library DeployRiskConstantsBase {
     uint112 public constant aero_exposure_eth = 1; // Cannot be deposited as primary asset, but still as yield source
     uint112 public constant aero_exposure_usdc = 1; // Cannot be deposited as primary asset, but still as yield source
 
-    uint16 public constant uniswapV3AM_riskFact_eth = 9800;
-    uint16 public constant uniswapV3AM_riskFact_usdc = 9800;
-    uint112 public constant uniswapV3AM_exposure_eth = uint112(2_000_000 * 1e18);
-    uint112 public constant uniswapV3AM_exposure_usdc = uint112(2_000_000 * 1e18);
+    uint16 public constant aerodromePoolAM_riskFact_eth = 0;
+    uint16 public constant aerodromePoolAM_riskFact_usdc = 0;
+    uint112 public constant aerodromePoolAM_exposure_eth = uint112(0);
+    uint112 public constant aerodromePoolAM_exposure_usdc = uint112(0);
+
+    uint16 public constant stakedAerodromeAM_riskFact_eth = 0;
+    uint16 public constant stakedAerodromeAM_riskFact_usdc = 0;
+    uint112 public constant stakedAerodromeAM_exposure_eth = uint112(0);
+    uint112 public constant stakedAerodromeAM_exposure_usdc = uint112(0);
+
+    uint16 public constant wrappedAerodromeAM_riskFact_eth = 0;
+    uint16 public constant wrappedAerodromeAM_riskFact_usdc = 0;
+    uint112 public constant wrappedAerodromeAM_exposure_eth = uint112(0);
+    uint112 public constant wrappedAerodromeAM_exposure_usdc = uint112(0);
+
+    uint16 public constant stakedStargateAM_riskFact_eth = 9800;
+    uint16 public constant stakedStargateAM_riskFact_usdc = 9800;
+    uint112 public constant stakedStargateAM_exposure_eth = uint112(250_000 * 1e18);
+    uint112 public constant stakedStargateAM_exposure_usdc = uint112(250_000 * 1e18);
 
     uint16 public constant stargateAM_riskFact_eth = 9700;
     uint16 public constant stargateAM_riskFact_usdc = 9700;
     uint112 public constant stargateAM_exposure_eth = uint112(250_000 * 1e18);
     uint112 public constant stargateAM_exposure_usdc = uint112(250_000 * 1e18);
 
-    uint16 public constant stakedStargateAM_riskFact_eth = 9800;
-    uint16 public constant stakedStargateAM_riskFact_usdc = 9800;
-    uint112 public constant stakedStargateAM_exposure_eth = uint112(250_000 * 1e18);
-    uint112 public constant stakedStargateAM_exposure_usdc = uint112(250_000 * 1e18);
+    uint16 public constant uniswapV3AM_riskFact_eth = 9800;
+    uint16 public constant uniswapV3AM_riskFact_usdc = 9800;
+    uint112 public constant uniswapV3AM_exposure_eth = uint112(2_000_000 * 1e18);
+    uint112 public constant uniswapV3AM_exposure_usdc = uint112(2_000_000 * 1e18);
+
+    uint16 public constant slipstreamAM_riskFact_eth = 9800;
+    uint16 public constant slipstreamAM_riskFact_usdc = 9800;
+    uint112 public constant slipstreamAM_exposure_eth = uint112(2_000_000 * 1e18);
+    uint112 public constant slipstreamAM_exposure_usdc = uint112(2_000_000 * 1e18);
 
     uint128 public constant minUsdValue_eth = 1 * 1e18; // 1 USD?
     uint64 public constant gracePeriod_eth = 15 minutes;
@@ -243,19 +267,45 @@ library DeployRiskConstantsBase {
 }
 
 library ArcadiaContracts {
-    address public constant registry = address(0xd0690557600eb8Be8391D1d97346e2aab5300d5f);
-    address public constant factory = address(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
-    address public constant erc20PrimaryAM = address(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
+    address public constant aerodromePoolAM = address(0);
     address public constant chainlinkOM = address(0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31);
-    address public constant uniswapV3AM = address(0x21bd524cC54CA78A7c48254d4676184f781667dC);
-    address public constant stargateAM = address(0x20f7903290bF98716B62Dc1c9DA634291b8cfeD4);
+    address public constant erc20PrimaryAM = address(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
+    address public constant factory = address(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
+    address public constant registry = address(0xd0690557600eb8Be8391D1d97346e2aab5300d5f);
+    address public constant slipstreamAM = address(0);
+    address public constant stakedAerodromeAM = address(0);
     address public constant stakedStargateAM = address(0xae909e19fd13C01c28d5Ee439D403920CF7f9Eea);
+    address public constant stargateAM = address(0x20f7903290bF98716B62Dc1c9DA634291b8cfeD4);
+    address public constant uniswapV3AM = address(0x21bd524cC54CA78A7c48254d4676184f781667dC);
     address public constant usdcLendingPool = address(0x3ec4a293Fb906DD2Cd440c20dECB250DeF141dF1);
     address public constant wethLendingPool = address(0x803ea69c7e87D1d6C86adeB40CB636cC0E6B98E2);
+    address public constant wrappedAerodromeAM = address(0);
 }
 
 library ArcadiaSafes {
     address public constant owner = address(0xb4d72B1c91e640e4ED7d7397F3244De4D8ACc50B);
     address public constant guardian = address(0xEdD41f9740b06eCBfe1CE9194Ce2715C28263187);
     address public constant riskManager = address(0xD5FA6C6e284007743d4263255385eDA78dDa268c);
+}
+
+library AerodromePools {
+    address public constant vAeroUsdbcPool = address(0x2223F9FE624F69Da4D8256A7bCc9104FBA7F8f75);
+    address public constant vAeroWstethPool = address(0x82a0c1a0d4EF0c0cA3cFDA3AD1AA78309Cc6139b);
+    address public constant vCbethWethPool = address(0x44Ecc644449fC3a9858d2007CaA8CFAa4C561f91);
+    address public constant vUsdcAeroPool = address(0x6cDcb1C4A4D1C3C6d054b27AC5B77e89eAFb971d);
+    address public constant vWethAeroPool = address(0x7f670f78B17dEC44d5Ef68a48740b6f8849cc2e6);
+    address public constant vWethUsdcPool = address(0xcDAC0d6c6C59727a65F871236188350531885C43);
+    address public constant vWethUsdbcPool = address(0xB4885Bc63399BF5518b994c1d0C153334Ee579D0);
+    address public constant vWethWstethPool = address(0xA6385c73961dd9C58db2EF0c4EB98cE4B60651e8);
+    address public constant sUsdcUsdbcPool = address(0x27a8Afa3Bd49406e48a074350fB7b2020c43B2bD);
+
+    address public constant vAeroUsdbcGauge = address(0x9a202c932453fB3d04003979B121E80e5A14eE7b);
+    address public constant vAeroWstethGauge = address(0x26D6D4E9e3fAf1C7C19992B1Ca792e4A9ea4F833);
+    address public constant vCbethWethGauge = address(0xDf9D427711CCE46b52fEB6B2a20e4aEaeA12B2b7);
+    address public constant vUsdcAeroGauge = address(0x4F09bAb2f0E15e2A078A227FE1537665F55b8360);
+    address public constant vWethAeroGauge = address(0x96a24aB830D4ec8b1F6f04Ceac104F1A3b211a01);
+    address public constant vWethUsdcGauge = address(0x519BBD1Dd8C6A94C46080E24f316c14Ee758C025);
+    address public constant vWethUsdbcGauge = address(0xeca7Ff920E7162334634c721133F3183B83B0323);
+    address public constant vWethWstethGauge = address(0xDf7c8F17Ab7D47702A4a4b6D951d2A4c90F99bf4);
+    address public constant sUsdcUsdbcGauge = address(0x1Cfc45C5221A07DA0DE958098A319a29FbBD66fE);
 }
