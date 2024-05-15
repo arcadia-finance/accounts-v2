@@ -14,19 +14,19 @@ contract DeployAerodromeStep3 is Base_Script {
     function run() public {
         // Add Asset Modules to Registry.
         bytes memory calldata_ = abi.encodeCall(registry.addAssetModule, (address(aerodromePoolAM)));
-        addToBatch(ArcadiaSafes.owner, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.OWNER, address(registry), calldata_);
 
         calldata_ = abi.encodeCall(registry.addAssetModule, (address(slipstreamAM)));
-        addToBatch(ArcadiaSafes.owner, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.OWNER, address(registry), calldata_);
 
         calldata_ = abi.encodeCall(registry.addAssetModule, (address(stakedAerodromeAM)));
-        addToBatch(ArcadiaSafes.owner, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.OWNER, address(registry), calldata_);
 
         calldata_ = abi.encodeCall(registry.addAssetModule, (address(wrappedAerodromeAM)));
-        addToBatch(ArcadiaSafes.owner, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.OWNER, address(registry), calldata_);
 
         // Create and write away batched transaction data to be signed with Safe.
-        bytes memory data = createBatchedData(ArcadiaSafes.owner);
+        bytes memory data = createBatchedData(ArcadiaSafes.OWNER);
         vm.writeLine(PATH, vm.toString(data));
     }
 

@@ -17,26 +17,26 @@ contract DeployAerodromeStep5 is Base_Script {
             registry.setRiskParametersOfPrimaryAsset,
             (
                 address(usdcLendingPool),
-                DeployAddresses.aero_base,
+                DeployAddresses.AERO,
                 0,
-                DeployRiskConstantsBase.aero_exposure_usdc,
-                DeployRiskConstantsBase.aero_collFact_usdc,
-                DeployRiskConstantsBase.aero_liqFact_usdc
+                DeployRiskConstantsBase.EXPOSURE_AERO_USDC,
+                DeployRiskConstantsBase.COL_FAC_AERO_USDC,
+                DeployRiskConstantsBase.LIQ_FAC_AERO_USDC
             )
         );
-        addToBatch(ArcadiaSafes.riskManager, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfPrimaryAsset,
             (
                 address(wethLendingPool),
-                DeployAddresses.aero_base,
+                DeployAddresses.AERO,
                 0,
-                DeployRiskConstantsBase.aero_exposure_eth,
-                DeployRiskConstantsBase.aero_collFact_eth,
-                DeployRiskConstantsBase.aero_liqFact_eth
+                DeployRiskConstantsBase.EXPOSURE_AERO_WETH,
+                DeployRiskConstantsBase.COL_FAC_AERO_WETH,
+                DeployRiskConstantsBase.LIQ_FAC_AERO_WETH
             )
         );
-        addToBatch(ArcadiaSafes.riskManager, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
 
         // Set risk parameters aerodromePoolAM.
         calldata_ = abi.encodeCall(
@@ -44,90 +44,90 @@ contract DeployAerodromeStep5 is Base_Script {
             (
                 address(usdcLendingPool),
                 address(aerodromePoolAM),
-                DeployRiskConstantsBase.aerodromePoolAM_exposure_usdc,
-                DeployRiskConstantsBase.aerodromePoolAM_riskFact_usdc
+                DeployRiskConstantsBase.EXPOSURE_AERO_POOL_AM_USDC,
+                DeployRiskConstantsBase.RISK_FAC_AERO_POOL_AM_USDC
             )
         );
-        addToBatch(ArcadiaSafes.riskManager, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfDerivedAM,
             (
                 address(wethLendingPool),
                 address(aerodromePoolAM),
-                DeployRiskConstantsBase.aerodromePoolAM_exposure_eth,
-                DeployRiskConstantsBase.aerodromePoolAM_riskFact_eth
+                DeployRiskConstantsBase.EXPOSURE_AERO_POOL_AM_WETH,
+                DeployRiskConstantsBase.RISK_FAC_AERO_POOL_AM_WETH
             )
         );
 
         // Set risk parameters slipstreamAM.
-        addToBatch(ArcadiaSafes.riskManager, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfDerivedAM,
             (
                 address(usdcLendingPool),
                 address(slipstreamAM),
-                DeployRiskConstantsBase.slipstreamAM_exposure_usdc,
-                DeployRiskConstantsBase.slipstreamAM_riskFact_usdc
+                DeployRiskConstantsBase.EXPOSURE_SLIPSTREAM_USDC,
+                DeployRiskConstantsBase.RISK_FAC_SLIPSTREAM_USDC
             )
         );
-        addToBatch(ArcadiaSafes.riskManager, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfDerivedAM,
             (
                 address(wethLendingPool),
                 address(slipstreamAM),
-                DeployRiskConstantsBase.slipstreamAM_exposure_eth,
-                DeployRiskConstantsBase.slipstreamAM_riskFact_eth
+                DeployRiskConstantsBase.EXPOSURE_SLIPSTREAM_WETH,
+                DeployRiskConstantsBase.RISK_FAC_SLIPSTREAM_WETH
             )
         );
 
         // Set risk parameters stakedAerodromeAM.
-        addToBatch(ArcadiaSafes.riskManager, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfDerivedAM,
             (
                 address(usdcLendingPool),
                 address(stakedAerodromeAM),
-                DeployRiskConstantsBase.stakedAerodromeAM_exposure_usdc,
-                DeployRiskConstantsBase.stakedAerodromeAM_riskFact_usdc
+                DeployRiskConstantsBase.EXPOSURE_STAKED_AERO_AM_USDC,
+                DeployRiskConstantsBase.RISK_FAC_STAKED_AERO_AM_USDC
             )
         );
-        addToBatch(ArcadiaSafes.riskManager, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfDerivedAM,
             (
                 address(wethLendingPool),
                 address(stakedAerodromeAM),
-                DeployRiskConstantsBase.stakedAerodromeAM_exposure_eth,
-                DeployRiskConstantsBase.stakedAerodromeAM_riskFact_eth
+                DeployRiskConstantsBase.EXPOSURE_STAKED_AERO_AM_WETH,
+                DeployRiskConstantsBase.RISK_FAC_STAKED_AERO_AM_WETH
             )
         );
 
         // Set risk parameters wrappedAerodromeAM.
-        addToBatch(ArcadiaSafes.riskManager, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfDerivedAM,
             (
                 address(usdcLendingPool),
                 address(wrappedAerodromeAM),
-                DeployRiskConstantsBase.wrappedAerodromeAM_exposure_usdc,
-                DeployRiskConstantsBase.wrappedAerodromeAM_riskFact_usdc
+                DeployRiskConstantsBase.EXPOSURE_WRAPPED_AERO_AM_USDC,
+                DeployRiskConstantsBase.RISK_FAC_WRAPPED_AERO_AM_USDC
             )
         );
-        addToBatch(ArcadiaSafes.riskManager, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfDerivedAM,
             (
                 address(wethLendingPool),
                 address(wrappedAerodromeAM),
-                DeployRiskConstantsBase.wrappedAerodromeAM_exposure_eth,
-                DeployRiskConstantsBase.wrappedAerodromeAM_riskFact_eth
+                DeployRiskConstantsBase.EXPOSURE_WRAPPED_AERO_AM_WETH,
+                DeployRiskConstantsBase.RISK_FAC_WRAPPED_AERO_AM_WETH
             )
         );
-        addToBatch(ArcadiaSafes.riskManager, address(registry), calldata_);
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
 
         // Create and write away batched transaction data to be signed with Safe.
-        bytes memory data = createBatchedData(ArcadiaSafes.riskManager);
+        bytes memory data = createBatchedData(ArcadiaSafes.RISK_MANAGER);
         vm.writeLine(PATH, vm.toString(data));
     }
 

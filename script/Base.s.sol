@@ -23,15 +23,15 @@ abstract contract Base_Script is Test, SafeTransactionBuilder {
     bool[] internal BA_TO_QA_SINGLE = new bool[](1);
     bool[] internal BA_TO_QA_DOUBLE = new bool[](2);
 
-    AerodromePoolAM internal aerodromePoolAM = AerodromePoolAM(ArcadiaContracts.aerodromePoolAM);
-    ChainlinkOM internal chainlinkOM = ChainlinkOM(ArcadiaContracts.chainlinkOM);
-    ERC20PrimaryAM internal erc20PrimaryAM = ERC20PrimaryAM(ArcadiaContracts.erc20PrimaryAM);
-    ILendingPool internal usdcLendingPool = ILendingPool(ArcadiaContracts.usdcLendingPool);
-    ILendingPool internal wethLendingPool = ILendingPool(ArcadiaContracts.wethLendingPool);
-    Registry internal registry = Registry(ArcadiaContracts.registry);
-    SlipstreamAM internal slipstreamAM = SlipstreamAM(ArcadiaContracts.slipstreamAM);
-    StakedAerodromeAM internal stakedAerodromeAM = StakedAerodromeAM(ArcadiaContracts.stakedAerodromeAM);
-    WrappedAerodromeAM internal wrappedAerodromeAM = WrappedAerodromeAM(ArcadiaContracts.wrappedAerodromeAM);
+    AerodromePoolAM internal aerodromePoolAM = AerodromePoolAM(ArcadiaContracts.AERO_POOL_AM);
+    ChainlinkOM internal chainlinkOM = ChainlinkOM(ArcadiaContracts.CHAINLINK_OM);
+    ERC20PrimaryAM internal erc20PrimaryAM = ERC20PrimaryAM(ArcadiaContracts.ERC20_PRIMARY_AM);
+    ILendingPool internal usdcLendingPool = ILendingPool(ArcadiaContracts.LENDINGPOOL_USDC);
+    ILendingPool internal wethLendingPool = ILendingPool(ArcadiaContracts.LENDINGPOOL_WETH);
+    Registry internal registry = Registry(ArcadiaContracts.REGISTRY);
+    SlipstreamAM internal slipstreamAM = SlipstreamAM(ArcadiaContracts.SLIPSTREAM_AM);
+    StakedAerodromeAM internal stakedAerodromeAM = StakedAerodromeAM(ArcadiaContracts.STAKED_AERO_AM);
+    WrappedAerodromeAM internal wrappedAerodromeAM = WrappedAerodromeAM(ArcadiaContracts.WRAPPED_AERO_AM);
 
     constructor() {
         BA_TO_QA_SINGLE[0] = true;

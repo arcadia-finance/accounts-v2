@@ -19,43 +19,43 @@ contract DeployAerodromeStep4 is Base_Script {
         wrappedAerodromeAM.initialize();
 
         // Add Aerodrome pools to Aerodrome AM.
-        aerodromePoolAM.addAsset(AerodromePools.vAeroUsdbcPool);
-        aerodromePoolAM.addAsset(AerodromePools.vAeroWstethPool);
-        aerodromePoolAM.addAsset(AerodromePools.vCbethWethPool);
-        aerodromePoolAM.addAsset(AerodromePools.vUsdcAeroPool);
-        aerodromePoolAM.addAsset(AerodromePools.vWethAeroPool);
-        aerodromePoolAM.addAsset(AerodromePools.vWethUsdcPool);
-        aerodromePoolAM.addAsset(AerodromePools.vWethUsdbcPool);
-        aerodromePoolAM.addAsset(AerodromePools.vWethWstethPool);
-        aerodromePoolAM.addAsset(AerodromePools.sUsdcUsdbcPool);
+        aerodromePoolAM.addAsset(AerodromePools.V_POOL_AERO_USDBC);
+        aerodromePoolAM.addAsset(AerodromePools.V_POOL_AERO_WSTETH);
+        aerodromePoolAM.addAsset(AerodromePools.V_POOL_CBETH_WETH);
+        aerodromePoolAM.addAsset(AerodromePools.V_POOL_USDC_AERO);
+        aerodromePoolAM.addAsset(AerodromePools.V_POOL_WETH_AERO);
+        aerodromePoolAM.addAsset(AerodromePools.V_POOL_WETH_USDC);
+        aerodromePoolAM.addAsset(AerodromePools.V_POOL_WETH_USDBC);
+        aerodromePoolAM.addAsset(AerodromePools.V_POOL_WETH_WSTETH);
+        aerodromePoolAM.addAsset(AerodromePools.S_POOL_USDC_USDBC);
 
         // Add Aerodrome gauges to Staked Aerodrome AM.
-        stakedAerodromeAM.addAsset(AerodromePools.vAeroUsdbcGauge);
-        stakedAerodromeAM.addAsset(AerodromePools.vAeroWstethGauge);
-        stakedAerodromeAM.addAsset(AerodromePools.vCbethWethGauge);
-        stakedAerodromeAM.addAsset(AerodromePools.vUsdcAeroGauge);
-        stakedAerodromeAM.addAsset(AerodromePools.vWethAeroGauge);
-        stakedAerodromeAM.addAsset(AerodromePools.vWethUsdcGauge);
-        stakedAerodromeAM.addAsset(AerodromePools.vWethUsdbcGauge);
-        stakedAerodromeAM.addAsset(AerodromePools.vWethWstethGauge);
-        stakedAerodromeAM.addAsset(AerodromePools.sUsdcUsdbcGauge);
+        stakedAerodromeAM.addAsset(AerodromePools.V_GAUGE_AERO_USDBC);
+        stakedAerodromeAM.addAsset(AerodromePools.V_GAUGE_AERO_WSTETH);
+        stakedAerodromeAM.addAsset(AerodromePools.V_GAUGE_CBETH_WETH);
+        stakedAerodromeAM.addAsset(AerodromePools.V_GAUGE_USDC_AERO);
+        stakedAerodromeAM.addAsset(AerodromePools.V_GAUGE_WETH_AERO);
+        stakedAerodromeAM.addAsset(AerodromePools.V_GAUGE_WETH_USDC);
+        stakedAerodromeAM.addAsset(AerodromePools.V_GAUGE_WETH_USDBC);
+        stakedAerodromeAM.addAsset(AerodromePools.V_GAUGE_WETH_WSTETH);
+        stakedAerodromeAM.addAsset(AerodromePools.S_GAUGE_USDC_USDBC);
 
         // Add Aerodrome pools to Wrapped Aerodrome AM.
-        wrappedAerodromeAM.addAsset(AerodromePools.vAeroUsdbcPool);
-        wrappedAerodromeAM.addAsset(AerodromePools.vAeroWstethPool);
-        wrappedAerodromeAM.addAsset(AerodromePools.vCbethWethPool);
-        wrappedAerodromeAM.addAsset(AerodromePools.vUsdcAeroPool);
-        wrappedAerodromeAM.addAsset(AerodromePools.vWethAeroPool);
-        wrappedAerodromeAM.addAsset(AerodromePools.vWethUsdcPool);
-        wrappedAerodromeAM.addAsset(AerodromePools.vWethUsdbcPool);
-        wrappedAerodromeAM.addAsset(AerodromePools.vWethWstethPool);
-        wrappedAerodromeAM.addAsset(AerodromePools.sUsdcUsdbcPool);
+        wrappedAerodromeAM.addAsset(AerodromePools.V_POOL_AERO_USDBC);
+        wrappedAerodromeAM.addAsset(AerodromePools.V_POOL_AERO_WSTETH);
+        wrappedAerodromeAM.addAsset(AerodromePools.V_POOL_CBETH_WETH);
+        wrappedAerodromeAM.addAsset(AerodromePools.V_POOL_USDC_AERO);
+        wrappedAerodromeAM.addAsset(AerodromePools.V_POOL_WETH_AERO);
+        wrappedAerodromeAM.addAsset(AerodromePools.V_POOL_WETH_USDC);
+        wrappedAerodromeAM.addAsset(AerodromePools.V_POOL_WETH_USDBC);
+        wrappedAerodromeAM.addAsset(AerodromePools.V_POOL_WETH_WSTETH);
+        wrappedAerodromeAM.addAsset(AerodromePools.S_POOL_USDC_USDBC);
 
         // Transfer ownership to owner safe.
-        aerodromePoolAM.transferOwnership(ArcadiaSafes.owner);
-        slipstreamAM.transferOwnership(ArcadiaSafes.owner);
-        stakedAerodromeAM.transferOwnership(ArcadiaSafes.owner);
-        wrappedAerodromeAM.transferOwnership(ArcadiaSafes.owner);
+        aerodromePoolAM.transferOwnership(ArcadiaSafes.OWNER);
+        slipstreamAM.transferOwnership(ArcadiaSafes.OWNER);
+        stakedAerodromeAM.transferOwnership(ArcadiaSafes.OWNER);
+        wrappedAerodromeAM.transferOwnership(ArcadiaSafes.OWNER);
         vm.stopBroadcast();
     }
 

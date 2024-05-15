@@ -18,9 +18,9 @@ contract DeployAerodromeStep2 is Base_Script {
     function run() public {
         // Deploy Asset Modules.
         vm.startBroadcast(deployer);
-        aerodromePoolAM = new AerodromePoolAM(address(registry), DeployAddresses.aeroFactory);
-        slipstreamAM = new SlipstreamAM(address(registry), DeployAddresses.slipstreamPositionMgr);
-        stakedAerodromeAM = new StakedAerodromeAM(address(registry), DeployAddresses.aeroVoter);
+        aerodromePoolAM = new AerodromePoolAM(address(registry), DeployAddresses.AERO_FACTORY);
+        slipstreamAM = new SlipstreamAM(address(registry), DeployAddresses.SLIPSTREAM_POS_MNGR);
+        stakedAerodromeAM = new StakedAerodromeAM(address(registry), DeployAddresses.AERO_VOTER);
         wrappedAerodromeAM = new WrappedAerodromeAM(address(registry));
         vm.stopBroadcast();
     }

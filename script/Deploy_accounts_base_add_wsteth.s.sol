@@ -37,7 +37,7 @@ contract ArcadiaAccountDeploymentAddWsteth is Test {
         //                   ADDRESSES
         // ///////////////////////////////////////////////////////////////*/
 
-        wsteth = ERC20(DeployAddresses.wsteth_base);
+        wsteth = ERC20(DeployAddresses.WSTETH);
         BA_TO_QA_DOUBLE[0] = true;
         BA_TO_QA_DOUBLE[1] = true;
     }
@@ -49,38 +49,36 @@ contract ArcadiaAccountDeploymentAddWsteth is Test {
         chainlinkOM = ChainlinkOM(0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31);
         erc20PrimaryAM = ERC20PrimaryAM(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
 
-        vm.startBroadcast(ArcadiaSafes.owner);
+        vm.startBroadcast(ArcadiaSafes.OWNER);
         oracleWstethToEthId = uint80(
             chainlinkOM.addOracle(
-                DeployAddresses.oracleWstethToEth_base, "wstETH", "ETH", DeployNumbers.wsteth_eth_cutOffTime
+                DeployAddresses.ORACLE_WSTETH_ETH, "wstETH", "ETH", DeployNumbers.CUTOFFTIME_WSTETH_ETH
             )
         );
 
         oracleWstethToEthToUsdArr[0] = oracleWstethToEthId;
-        oracleWstethToEthToUsdArr[1] = DeployNumbers.EthToUsdOracleId;
+        oracleWstethToEthToUsdArr[1] = DeployNumbers.ORACLE_ID_ETH_USD;
 
-        erc20PrimaryAM.addAsset(
-            DeployAddresses.wsteth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleWstethToEthToUsdArr)
-        );
+        erc20PrimaryAM.addAsset(DeployAddresses.WSTETH, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleWstethToEthToUsdArr));
         vm.stopBroadcast();
 
-        vm.startBroadcast(ArcadiaSafes.riskManager);
+        vm.startBroadcast(ArcadiaSafes.RISK_MANAGER);
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
-            DeployAddresses.wsteth_base,
+            DeployAddresses.WSTETH,
             0,
-            DeployRiskConstantsBase.wsteth_exposure_eth,
-            DeployRiskConstantsBase.wsteth_collFact_eth,
-            DeployRiskConstantsBase.wsteth_liqFact_eth
+            DeployRiskConstantsBase.EXPOSURE_WSTETH_WETH,
+            DeployRiskConstantsBase.COL_FAC_WSTETH_WETH,
+            DeployRiskConstantsBase.LIQ_FAC_WSTETH_WETH
         );
 
         registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
-            DeployAddresses.wsteth_base,
+            DeployAddresses.WSTETH,
             0,
-            DeployRiskConstantsBase.wsteth_exposure_usdc,
-            DeployRiskConstantsBase.wsteth_collFact_usdc,
-            DeployRiskConstantsBase.wsteth_liqFact_usdc
+            DeployRiskConstantsBase.EXPOSURE_WSTETH_USDC,
+            DeployRiskConstantsBase.COL_FAC_WSTETH_USDC,
+            DeployRiskConstantsBase.LIQ_FAC_WSTETH_USDC
         );
 
         vm.stopBroadcast();

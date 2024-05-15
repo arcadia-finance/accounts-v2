@@ -25,45 +25,45 @@ contract ArcadiaAccountTransferOwnership is Test {
     StakedStargateAM internal stakedStargateAM;
 
     constructor() {
-        factory = Factory(ArcadiaContracts.factory);
-        registry = Registry(ArcadiaContracts.registry);
-        erc20PrimaryAM = ERC20PrimaryAM(ArcadiaContracts.erc20PrimaryAM);
-        chainlinkOM = ChainlinkOM(ArcadiaContracts.chainlinkOM);
-        uniswapV3AM = UniswapV3AM(ArcadiaContracts.uniswapV3AM);
-        stargateAM = StargateAM(ArcadiaContracts.stargateAM);
-        stakedStargateAM = StakedStargateAM(ArcadiaContracts.stakedStargateAM);
+        factory = Factory(ArcadiaContracts.FACTORY);
+        registry = Registry(ArcadiaContracts.REGISTRY);
+        erc20PrimaryAM = ERC20PrimaryAM(ArcadiaContracts.ERC20_PRIMARY_AM);
+        chainlinkOM = ChainlinkOM(ArcadiaContracts.CHAINLINK_OM);
+        uniswapV3AM = UniswapV3AM(ArcadiaContracts.UNISWAPV3_AM);
+        stargateAM = StargateAM(ArcadiaContracts.STARGATE_AM);
+        stakedStargateAM = StakedStargateAM(ArcadiaContracts.STAKED_STARGATE_AM);
     }
 
     function run() public {
         uint256 ownerPrivateKey = vm.envUint("PRIVATE_KEY_DEPLOYER_BASE");
         vm.startBroadcast(ownerPrivateKey);
         // Set guardian
-        factory.changeGuardian(ArcadiaSafes.guardian);
-        registry.changeGuardian(ArcadiaSafes.guardian);
+        factory.changeGuardian(ArcadiaSafes.GUARDIAN);
+        registry.changeGuardian(ArcadiaSafes.GUARDIAN);
 
         // Transfer ownership to respected addresses
-        factory.transferOwnership(ArcadiaSafes.owner);
-        registry.transferOwnership(ArcadiaSafes.owner);
-        erc20PrimaryAM.transferOwnership(ArcadiaSafes.owner);
-        chainlinkOM.transferOwnership(ArcadiaSafes.owner);
-        uniswapV3AM.transferOwnership(ArcadiaSafes.owner);
-        stargateAM.transferOwnership(ArcadiaSafes.owner);
-        stakedStargateAM.transferOwnership(ArcadiaSafes.owner);
+        factory.transferOwnership(ArcadiaSafes.OWNER);
+        registry.transferOwnership(ArcadiaSafes.OWNER);
+        erc20PrimaryAM.transferOwnership(ArcadiaSafes.OWNER);
+        chainlinkOM.transferOwnership(ArcadiaSafes.OWNER);
+        uniswapV3AM.transferOwnership(ArcadiaSafes.OWNER);
+        stargateAM.transferOwnership(ArcadiaSafes.OWNER);
+        stakedStargateAM.transferOwnership(ArcadiaSafes.OWNER);
         vm.stopBroadcast();
     }
 
     function test_transferOwnership() public {
         vm.skip(true);
 
-        assertEq(registry.guardian(), ArcadiaSafes.guardian);
-        assertEq(factory.guardian(), ArcadiaSafes.guardian);
+        assertEq(registry.guardian(), ArcadiaSafes.GUARDIAN);
+        assertEq(factory.guardian(), ArcadiaSafes.GUARDIAN);
 
-        assertEq(registry.owner(), ArcadiaSafes.owner);
-        assertEq(factory.owner(), ArcadiaSafes.owner);
-        assertEq(erc20PrimaryAM.owner(), ArcadiaSafes.owner);
-        assertEq(chainlinkOM.owner(), ArcadiaSafes.owner);
-        assertEq(uniswapV3AM.owner(), ArcadiaSafes.owner);
-        assertEq(stargateAM.owner(), ArcadiaSafes.owner);
-        assertEq(stakedStargateAM.owner(), ArcadiaSafes.owner);
+        assertEq(registry.owner(), ArcadiaSafes.OWNER);
+        assertEq(factory.owner(), ArcadiaSafes.OWNER);
+        assertEq(erc20PrimaryAM.owner(), ArcadiaSafes.OWNER);
+        assertEq(chainlinkOM.owner(), ArcadiaSafes.OWNER);
+        assertEq(uniswapV3AM.owner(), ArcadiaSafes.OWNER);
+        assertEq(stargateAM.owner(), ArcadiaSafes.OWNER);
+        assertEq(stakedStargateAM.owner(), ArcadiaSafes.OWNER);
     }
 }
