@@ -38,6 +38,8 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
     uint256 public BIPS = 10_000;
     // 10 % price diff for testing
     uint256 public TOLERANCE = 1000;
+    // $10
+    uint256 public MIN_USD_FEES_VALUE = 10 * 1e18;
 
     /*////////////////////////////////////////////////////////////////
                             VARIABLES
@@ -52,8 +54,8 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
         uint112 amountToken0;
         uint112 amountToken1;
         // Fee amounts in usd
-        uint16 feeAmount0;
-        uint16 feeAmount1;
+        uint256 feeAmount0;
+        uint256 feeAmount1;
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -114,7 +116,8 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
             address(uniswapV3Factory),
             address(nonfungiblePositionManager),
             address(swapRouter),
-            TOLERANCE
+            TOLERANCE,
+            MIN_USD_FEES_VALUE
         );
     }
 
@@ -179,8 +182,8 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
             : type(uint112).max / uint112((10 ** (token0.decimals() - token1.decimals())));
 
         // And : Position has accumulated fees (amount in USD)
-        testVars.feeAmount0 = uint16(bound(testVars.feeAmount0, 100, type(uint16).max));
-        testVars.feeAmount1 = uint16(bound(testVars.feeAmount1, 100, type(uint16).max));
+        testVars.feeAmount0 = bound(testVars.feeAmount0, 100, type(uint16).max);
+        testVars.feeAmount1 = bound(testVars.feeAmount1, 100, type(uint16).max);
 
         testVars_ = testVars;
     }
@@ -196,13 +199,15 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
             testVars.tickUpper
         );
 
-        // And : Add fees to the position
+        // And : Generate fees for the position
         generateFees(testVars.feeAmount0, testVars.feeAmount1);
     }
 
     function generateFees(uint256 amount0ToGenerate, uint256 amount1ToGenerate) public {
         // Swap token0 for token1
-        uint256 amount0ToSwap = (amount0ToGenerate * (BIPS / POOL_FEE)) * 10 ** token0.decimals();
+        uint256 amount0ToSwap = ((amount0ToGenerate * (BIPS / POOL_FEE)) * 10 ** token0.decimals());
+        // TODO : Pool doesn't seem to be generating 1% fee ?
+        amount0ToSwap *= 100;
 
         mintERC20TokenTo(address(token0), users.swapper, amount0ToSwap);
 
@@ -222,7 +227,10 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
         swapRouter.exactInputSingle(exactInputParams);
 
         // Swap token1 for token0
-        uint256 amount1ToSwap = (amount1ToGenerate * (BIPS / POOL_FEE)) * 10 ** token1.decimals();
+        uint256 amount1ToSwap = ((amount1ToGenerate * (BIPS / POOL_FEE)) * 10 ** token1.decimals());
+        // TODO : Pool doesn't seem to be generating 1% fee ?
+        amount1ToSwap *= 100;
+
         mintERC20TokenTo(address(token1), users.swapper, amount1ToSwap);
         token1.approve(address(swapRouter), amount1ToSwap);
 
@@ -235,6 +243,8 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
             amountOutMinimum: 0,
             sqrtPriceLimitX96: 0
         });
+
+        swapRouter.exactInputSingle(exactInputParams);
 
         vm.stopPrank();
     }

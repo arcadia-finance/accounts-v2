@@ -30,7 +30,8 @@ contract Constructor_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
             address(uniswapV3Factory),
             address(nonfungiblePositionManager),
             address(swapRouter),
-            5001
+            5001,
+            MIN_USD_FEES_VALUE
         );
     }
 
@@ -41,7 +42,8 @@ contract Constructor_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
             address(uniswapV3Factory),
             address(nonfungiblePositionManager),
             address(swapRouter),
-            1000
+            TOLERANCE,
+            MIN_USD_FEES_VALUE
         );
 
         assertEq(address(autoCompounder.UNI_V3_FACTORY()), address(uniswapV3Factory));
@@ -52,5 +54,6 @@ contract Constructor_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
         assertEq(autoCompounder.MAX_UPPER_SQRT_PRICE_DEVIATION(), 10_488);
         assertEq(autoCompounder.MAX_LOWER_SQRT_PRICE_DEVIATION(), 9486);
         assertEq(autoCompounder.TOLERANCE(), 1000);
+        assertEq(autoCompounder.MIN_USD_FEES_VALUE(), MIN_USD_FEES_VALUE);
     }
 }

@@ -56,6 +56,8 @@ contract AutoCompounder is IActionBase {
     uint256 internal constant BIPS = 10_000;
     // Tolerance in BIPS for max price deviation and slippage
     uint256 public immutable TOLERANCE;
+    // Minimum fees value in USD to trigger the compounding of a position
+    uint256 public immutable MIN_USD_FEES_VALUE;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -88,6 +90,7 @@ contract AutoCompounder is IActionBase {
     error PriceToleranceExceeded();
     error CallerIsNotAccount();
     error MaxToleranceExceeded();
+    error FeeValueBelowTreshold();
 
     /* //////////////////////////////////////////////////////////////
                             CONSTRUCTOR
@@ -99,6 +102,7 @@ contract AutoCompounder is IActionBase {
      * @param nonfungiblePositionManager The contract address of Uniswap V3 NonFungiblePositionManager.
      * @param swapRouter The contract address of the Uniswap V3 SwapRouter.
      * @param tolerance The max deviation of the internal pool price of assets compared to external price of assets (relative price), in BIPS.
+     * @param minFeeValueInUsd The minimum USD value of the fees accumulated by a position in order to trigger the compounding. USD value with 18 decimals.
      * @dev The tolerance will be converted to an upper and lower max sqrtPrice deviation, using the square root of basis + tolerance value. As the relationship between
      * sqrtPriceX96 and actual price is quadratic, amplifying changes in the latter when the former alters slightly.
      */
@@ -107,7 +111,8 @@ contract AutoCompounder is IActionBase {
         address uniswapV3Factory,
         address nonfungiblePositionManager,
         address swapRouter,
-        uint256 tolerance
+        uint256 tolerance,
+        uint256 minFeeValueInUsd
     ) {
         // Tolerance should never be higher than 50%
         if (tolerance > 5000) revert MaxToleranceExceeded();
@@ -116,6 +121,7 @@ contract AutoCompounder is IActionBase {
         NONFUNGIBLE_POSITIONMANAGER = INonfungiblePositionManager(nonfungiblePositionManager);
         SWAP_ROUTER = ISwapRouter02(swapRouter);
         TOLERANCE = tolerance;
+        MIN_USD_FEES_VALUE = minFeeValueInUsd;
 
         // sqrtPrice to price has a quadratic relationship thus we need to take the square root of max percentage price deviation.
         MAX_UPPER_SQRT_PRICE_DEVIATION = FixedPointMathLib.sqrt((BIPS + tolerance) * BIPS);
@@ -131,7 +137,7 @@ contract AutoCompounder is IActionBase {
      * @param account_ The Arcadia Account owning the position.
      * @param assetId The position id to compound the fees for.
      */
-    // TODO : trigger for compounding ? Earned fee ?
+    // TODO : Earned fee ?
     function compoundFeesForAccount(address account_, uint256 assetId) external {
         // Cache Account in storage, used to validate caller for executeAction()
         account = account_;
@@ -289,6 +295,12 @@ contract AutoCompounder is IActionBase {
         FeeData memory feeData,
         uint160 sqrtPriceX96
     ) internal {
+        // Check value of totalFees in USD
+        uint256 totalFee0Value = feeData.usdPriceToken0 * feeData.feeAmount0 / 1e18;
+        uint256 totalFee1Value = feeData.usdPriceToken1 * feeData.feeAmount1 / 1e18;
+
+        if (totalFee0Value + totalFee1Value < MIN_USD_FEES_VALUE) revert FeeValueBelowTreshold();
+
         if (currentTick >= posData.tickUpper) {
             // Position is fully in token 1
             // Swap full amount of token0 to token1
@@ -303,9 +315,6 @@ contract AutoCompounder is IActionBase {
             uint256 ticksFromCurrentToUpperTick = uint256(int256(-currentTick + posData.tickUpper));
 
             // Get ratio of token0/token1 based on tick ratio
-            uint256 totalFee0Value = feeData.usdPriceToken0 * feeData.feeAmount0 / 1e18;
-            uint256 totalFee1Value = feeData.usdPriceToken1 * feeData.feeAmount1 / 1e18;
-
             // Ticks in range can't be zero (upper bound should be strictly higher than lower bound for a position)
             uint256 token0Ratio = ticksFromCurrentToUpperTick * type(uint24).max / ticksInRange;
             uint256 targetToken0Value = token0Ratio * (totalFee0Value + totalFee1Value) / type(uint24).max;

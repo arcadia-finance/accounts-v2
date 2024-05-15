@@ -31,8 +31,7 @@ contract CompoundFeesForAccount_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_
 
     function testFuzz_Success_compoundFeesForAccount(TestVariables memory testVars) public {
         // Given : Valid state
-        bool token0HasLowestDecimals;
-        (testVars, token0HasLowestDecimals) = givenValidBalancedState(testVars);
+        (testVars,) = givenValidBalancedState(testVars);
 
         // And : State is persisted
         uint256 tokenId = setState(testVars, usdStablePool);

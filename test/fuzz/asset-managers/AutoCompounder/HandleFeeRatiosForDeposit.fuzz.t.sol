@@ -22,10 +22,36 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
+    function testFuzz_revert_FeeValueBelowTreshold(TestVariables memory testVars) public {
+        // Given : Valid State
+        (testVars,) = givenValidBalancedState(testVars);
+
+        testVars.feeAmount0 = ((MIN_USD_FEES_VALUE / 2e18) - 1) * 10 ** token0.decimals();
+        testVars.feeAmount1 = ((MIN_USD_FEES_VALUE / 2e18) - 1) * 10 ** token1.decimals();
+
+        // And : State is persisted
+        setState(testVars, usdStablePool);
+
+        AutoCompounder.PositionData memory posData;
+
+        (uint256 usdPriceToken0, uint256 usdPriceToken1) = getPrices();
+
+        AutoCompounder.FeeData memory feeData = AutoCompounder.FeeData({
+            usdPriceToken0: usdPriceToken0,
+            usdPriceToken1: usdPriceToken1,
+            feeAmount0: testVars.feeAmount0,
+            feeAmount1: testVars.feeAmount1
+        });
+
+        // When : Calling handleFeeRatiosForDeposit()
+        // Then : It should revert as fees value in USD is below treshold for compounding
+        vm.expectRevert(AutoCompounder.FeeValueBelowTreshold.selector);
+        autoCompounder.handleFeeRatiosForDeposit(0, posData, feeData, 0);
+    }
+
     function testFuzz_success_currentTickGreaterOrEqualToTickUpper(TestVariables memory testVars) public {
         // Given : Valid State
-        bool token0HasLowestDecimals;
-        (testVars, token0HasLowestDecimals) = givenValidBalancedState(testVars);
+        (testVars,) = givenValidBalancedState(testVars);
 
         // And : State is persisted
         setState(testVars, usdStablePool);
@@ -56,12 +82,12 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
         AutoCompounder.FeeData memory feeData = AutoCompounder.FeeData({
             usdPriceToken0: usdPriceToken0,
             usdPriceToken1: usdPriceToken1,
-            feeAmount0: testVars.feeAmount0,
-            feeAmount1: testVars.feeAmount1
+            feeAmount0: testVars.feeAmount0 * 10 ** token0.decimals(),
+            feeAmount1: testVars.feeAmount1 * 10 ** token1.decimals()
         });
 
         // And : Mint fees to AutoCompounder
-        ERC20Mock(address(token0)).mint(address(autoCompounder), testVars.feeAmount0);
+        ERC20Mock(address(token0)).mint(address(autoCompounder), testVars.feeAmount0 * 10 ** token0.decimals());
 
         assert(token0.balanceOf(address(autoCompounder)) > 0);
 
@@ -75,8 +101,7 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
 
     function testFuzz_success_currentTickSmallerOrEqualToTickUpper(TestVariables memory testVars) public {
         // Given : Valid State
-        bool token0HasLowestDecimals;
-        (testVars, token0HasLowestDecimals) = givenValidBalancedState(testVars);
+        (testVars,) = givenValidBalancedState(testVars);
 
         // And : State is persisted
         setState(testVars, usdStablePool);
@@ -107,12 +132,12 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
         AutoCompounder.FeeData memory feeData = AutoCompounder.FeeData({
             usdPriceToken0: usdPriceToken0,
             usdPriceToken1: usdPriceToken1,
-            feeAmount0: testVars.feeAmount0,
-            feeAmount1: testVars.feeAmount1
+            feeAmount0: testVars.feeAmount0 * 10 ** token0.decimals(),
+            feeAmount1: testVars.feeAmount1 * 10 ** token1.decimals()
         });
 
         // And : Mint fees to AutoCompounder
-        ERC20Mock(address(token1)).mint(address(autoCompounder), testVars.feeAmount1);
+        ERC20Mock(address(token1)).mint(address(autoCompounder), testVars.feeAmount1 * 10 ** token1.decimals());
 
         assert(token1.balanceOf(address(autoCompounder)) > 0);
 
@@ -126,8 +151,7 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
 
     function testFuzz_success_tickInRangeWithExcessToken0Fees(TestVariables memory testVars) public {
         // Given : Valid State
-        bool token0HasLowestDecimals;
-        (testVars, token0HasLowestDecimals) = givenValidBalancedState(testVars);
+        (testVars,) = givenValidBalancedState(testVars);
 
         // And : totalFee0 is greater than totalFee1
         // And : currentTick unchanged (50/50)
@@ -171,8 +195,7 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
 
     function testFuzz_success_tickInRangeWithExcessToken1Fees(TestVariables memory testVars) public {
         // Given : Valid State
-        bool token0HasLowestDecimals;
-        (testVars, token0HasLowestDecimals) = givenValidBalancedState(testVars);
+        (testVars,) = givenValidBalancedState(testVars);
 
         // And : totalFee1 is greater than totalFee0
         // And : currentTick unchanged (50/50)
