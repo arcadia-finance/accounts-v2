@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { AutoCompounder_Fuzz_Test, AutoCompounderExtension } from "./_AutoCompounder.fuzz.t.sol";
+import { AutoCompounder_Fuzz_Test, AutoCompounderExtension, AutoCompounder } from "./_AutoCompounder.fuzz.t.sol";
 import { ERC721 } from "../../../utils/mocks/tokens/ERC721Mock.sol";
 
 /**
@@ -22,6 +22,17 @@ contract Constructor_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_Constructor_MaxTolerance() public {
+        vm.startPrank(users.creatorAddress);
+        vm.expectRevert(AutoCompounder.MaxToleranceExceeded.selector);
+        autoCompounder = new AutoCompounderExtension(
+            address(registryExtension),
+            address(uniswapV3Factory),
+            address(nonfungiblePositionManager),
+            address(swapRouter),
+            5001
+        );
+    }
 
     function testFuzz_Success_Constructor() public {
         vm.prank(users.creatorAddress);
@@ -40,5 +51,6 @@ contract Constructor_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
         // Sqrt of (BIPS + 1000) * BIPS is 10488
         assertEq(autoCompounder.MAX_UPPER_SQRT_PRICE_DEVIATION(), 10_488);
         assertEq(autoCompounder.MAX_LOWER_SQRT_PRICE_DEVIATION(), 9486);
+        assertEq(autoCompounder.TOLERANCE(), 1000);
     }
 }

@@ -33,7 +33,7 @@ contract SqrtPriceX96InLimits_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Te
 
         // And : We move currentTick outside of tolerance zone
         // Tolerance = 10% = 1000 BIPS, each tick moves the price by +- 0,01%
-        usdStablePool.setCurrentTick(usdStablePool.getCurrentTick() + 970);
+        usdStablePool.setCurrentTick(usdStablePool.getCurrentTick() + (int24(uint24(TOLERANCE)) + 1));
 
         // And : Update sqrtPriceX96 in slot0
         uint160 sqrtPriceX96AtCurrentTick = TickMath.getSqrtRatioAtTick(usdStablePool.getCurrentTick());
@@ -57,7 +57,7 @@ contract SqrtPriceX96InLimits_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Te
         // And : We move currentTick outside of tolerance zone
         // Tolerance = 10% = 1000 BIPS, each tick moves the price by +- 0,01% = 1 BIPS
         // Due to quadratic relation between sqrtPrice and price, sqrtPrice can have larger deviation on the left than on the right
-        usdStablePool.setCurrentTick(usdStablePool.getCurrentTick() - 1055);
+        usdStablePool.setCurrentTick(usdStablePool.getCurrentTick() - (int24(uint24(TOLERANCE)) + 1));
 
         // And : Update sqrtPriceX96 in slot0
         uint160 sqrtPriceX96AtCurrentTick = TickMath.getSqrtRatioAtTick(usdStablePool.getCurrentTick());
@@ -81,7 +81,7 @@ contract SqrtPriceX96InLimits_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Te
         // Tolerance = 10% = 1000 BIPS, each tick moves the price by +- 0,01% = 1 BIPS
         int24 currentTick = usdStablePool.getCurrentTick();
         // Due to quadratic relation between sqrtPrice and price, sqrtPrice can have larger deviation on the left than on the right
-        newTick = int24(bound(newTick, currentTick - 1050, currentTick + 960));
+        newTick = int24(bound(newTick, currentTick - int24(uint24(TOLERANCE)), currentTick + int24(uint24(TOLERANCE))));
         usdStablePool.setCurrentTick(newTick);
 
         // And : Update sqrtPriceX96 in slot0

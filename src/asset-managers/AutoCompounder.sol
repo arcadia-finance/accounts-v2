@@ -54,10 +54,15 @@ contract AutoCompounder is IActionBase {
     uint256 public immutable MAX_LOWER_SQRT_PRICE_DEVIATION;
     // Basis Points (one basis point is equivalent to 0.01%)
     uint256 internal constant BIPS = 10_000;
+    // Tolerance in BIPS for max price deviation and slippage
+    uint256 public immutable TOLERANCE;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
+
+    // Storage variable for the Account for which to compound fees.
+    address internal account;
 
     // A struct with variables to track for a specific position.
     struct PositionData {
@@ -81,6 +86,8 @@ contract AutoCompounder is IActionBase {
     ////////////////////////////////////////////////////////////// */
 
     error PriceToleranceExceeded();
+    error CallerIsNotAccount();
+    error MaxToleranceExceeded();
 
     /* //////////////////////////////////////////////////////////////
                             CONSTRUCTOR
@@ -102,10 +109,13 @@ contract AutoCompounder is IActionBase {
         address swapRouter,
         uint256 tolerance
     ) {
+        // Tolerance should never be higher than 50%
+        if (tolerance > 5000) revert MaxToleranceExceeded();
         UNI_V3_FACTORY = IUniswapV3Factory(uniswapV3Factory);
         REGISTRY = IRegistry(registry);
         NONFUNGIBLE_POSITIONMANAGER = INonfungiblePositionManager(nonfungiblePositionManager);
         SWAP_ROUTER = ISwapRouter(swapRouter);
+        TOLERANCE = tolerance;
 
         // sqrtPrice to price has a quadratic relationship thus we need to take the square root of max percentage price deviation.
         MAX_UPPER_SQRT_PRICE_DEVIATION = FixedPointMathLib.sqrt((BIPS + tolerance) * BIPS);
@@ -118,11 +128,14 @@ contract AutoCompounder is IActionBase {
 
     /**
      * @notice This function will compound the fees earned by a position owned by an Arcadia Account.
-     * @param account The Arcadia Account owning the position.
+     * @param account_ The Arcadia Account owning the position.
      * @param assetId The position id to compound the fees for.
      */
     // TODO : trigger for compounding ? Earned fee ?
-    function compoundFeesForAccount(address account, uint256 assetId) external {
+    function compoundFeesForAccount(address account_, uint256 assetId) external {
+        // Cache Account in storage, used to validate caller for executeAction()
+        account = account_;
+
         address[] memory assets_ = new address[](1);
         assets_[0] = address(NONFUNGIBLE_POSITIONMANAGER);
         uint256[] memory assetIds_ = new uint256[](1);
@@ -144,7 +157,7 @@ contract AutoCompounder is IActionBase {
         bytes memory actionData = abi.encode(assetData, transferFromOwner, permit, signature, compounderData);
 
         // Trigger flashAction with actionTarget as this contract
-        IAccount(account).flashAction(address(this), actionData);
+        IAccount(account_).flashAction(address(this), actionData);
 
         // executeAction() triggered as callback function
     }
@@ -161,6 +174,8 @@ contract AutoCompounder is IActionBase {
      */
     function executeAction(bytes calldata actionData) external override returns (ActionData memory assetData) {
         // Position transferred from Account
+        // Caller should be the Account provided as input in compoundFeesForAccount()
+        if (msg.sender != account) revert CallerIsNotAccount();
 
         // Decode bytes data
         address initiator;
@@ -251,14 +266,12 @@ contract AutoCompounder is IActionBase {
         usdPriceToken1 = valuesAndRiskFactors[1].assetValue;
 
         // Recalculate sqrtPriceX96 based on external prices
-        uint256 sqrtPriceX96Calculated = _getSqrtPriceX96(usdPriceToken0, usdPriceToken1);
+        uint160 sqrtPriceX96Calculated = _getSqrtPriceX96(usdPriceToken0, usdPriceToken1);
+        int24 currentTickCalculated = TickMath.getTickAtSqrtRatio(sqrtPriceX96Calculated);
 
         // Check price deviation tolerance
-        uint256 sqrtPriceRatio = uint256(sqrtPriceX96) * BIPS / sqrtPriceX96Calculated;
-        if (sqrtPriceX96 > sqrtPriceX96Calculated && sqrtPriceRatio > MAX_UPPER_SQRT_PRICE_DEVIATION) {
-            revert PriceToleranceExceeded();
-        }
-        if (sqrtPriceX96 < sqrtPriceX96Calculated && sqrtPriceRatio < MAX_LOWER_SQRT_PRICE_DEVIATION) {
+        int24 tolerance = int24(uint24(TOLERANCE));
+        if (currentTick < currentTickCalculated - tolerance || currentTick > currentTickCalculated + tolerance) {
             revert PriceToleranceExceeded();
         }
     }
