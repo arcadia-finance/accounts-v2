@@ -18,7 +18,7 @@ import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { INonfungiblePositionManagerExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
-import { ISwapRouter } from "../../../utils/fixtures/uniswap-v3/extensions/interfaces/ISwapRouter.sol";
+import { SwapRouter02Fixture, ISwapRouter02 } from "../../../utils/fixtures/swap-router-02/SwapRouter02Fixture.f.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 import { UniswapV3Fixture } from "../../../utils/fixtures/uniswap-v3/UniswapV3Fixture.f.sol";
 import { Utils } from "../../../utils/Utils.sol";
@@ -26,7 +26,7 @@ import { Utils } from "../../../utils/Utils.sol";
 /**
  * @notice Common logic needed by all "AutoCompounder" fuzz tests.
  */
-abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
+abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapRouter02Fixture {
     using FixedPointMathLib for uint256;
     /*////////////////////////////////////////////////////////////////
                             CONSTANTS
@@ -62,7 +62,6 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
 
     AutoCompounderExtension internal autoCompounder;
     IUniswapV3PoolExtension internal usdStablePool;
-    ISwapRouter internal swapRouter;
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -105,21 +104,9 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
         usdStablePool = createPool(token0, token1, sqrtPriceX96, 300);
 
         // Deploy SwapRouter fixture
-        // Get the bytecode of the UniswapV3PoolExtension.
-        bytes memory args = abi.encode();
-        bytes memory bytecode = abi.encodePacked(vm.getCode("UniswapV3PoolExtension.sol"), args);
-        bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
-
-        args = abi.encode(address(uniswapV3Factory), address(weth9));
-        bytecode = abi.encodePacked(vm.getCode("SwapRouterExtension.sol"), args);
-
-        // Overwrite constant in bytecode of SwapRouter.
-        // -> Replace the code hash of UniswapV3Pool.sol with the code hash of UniswapV3PoolExtension.sol
-        bytes32 POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
-        bytecode = Utils.veryBadBytesReplacer(bytecode, POOL_INIT_CODE_HASH, poolExtensionInitCodeHash);
-
-        address swapRouter_ = Utils.deployBytecode(bytecode);
-        swapRouter = ISwapRouter(swapRouter_);
+        SwapRouter02Fixture.deploySwapRouter02(
+            address(0), address(uniswapV3Factory), address(nonfungiblePositionManager), address(weth9)
+        );
 
         vm.prank(users.creatorAddress);
         autoCompounder = new AutoCompounderExtension(
@@ -222,12 +209,11 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
         vm.startPrank(users.swapper);
         token0.approve(address(swapRouter), amount0ToSwap);
 
-        ISwapRouter.ExactInputSingleParams memory exactInputParams = ISwapRouter.ExactInputSingleParams({
+        ISwapRouter02.ExactInputSingleParams memory exactInputParams = ISwapRouter02.ExactInputSingleParams({
             tokenIn: address(token0),
             tokenOut: address(token1),
             fee: POOL_FEE,
             recipient: users.swapper,
-            deadline: block.timestamp,
             amountIn: amount0ToSwap,
             amountOutMinimum: 0,
             sqrtPriceLimitX96: 0
@@ -240,12 +226,11 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
         mintERC20TokenTo(address(token1), users.swapper, amount1ToSwap);
         token1.approve(address(swapRouter), amount1ToSwap);
 
-        exactInputParams = ISwapRouter.ExactInputSingleParams({
+        exactInputParams = ISwapRouter02.ExactInputSingleParams({
             tokenIn: address(token1),
             tokenOut: address(token0),
             fee: POOL_FEE,
             recipient: users.swapper,
-            deadline: block.timestamp,
             amountIn: amount1ToSwap,
             amountOutMinimum: 0,
             sqrtPriceLimitX96: 0

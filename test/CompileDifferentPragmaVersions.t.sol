@@ -14,7 +14,7 @@ import { NonfungiblePositionManagerExtension } from
     "./utils/fixtures/uniswap-v3/extensions/NonfungiblePositionManagerExtension.sol";
 import { UniswapV3FactoryExtension } from "./utils/fixtures/uniswap-v3/extensions/UniswapV3FactoryExtension.sol";
 import { UniswapV3PoolExtension } from "./utils/fixtures/uniswap-v3/extensions/UniswapV3PoolExtension.sol";
-import { SwapRouterExtension } from "./utils/fixtures/uniswap-v3/extensions/SwapRouterExtension.sol";
+import { SwapRouter02 } from "../lib/swap-router-contracts/contracts/SwapRouter02.sol";
 
 contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is Test {
     function test() public { }

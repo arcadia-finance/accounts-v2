@@ -17,7 +17,7 @@ import { FixedPoint96 } from "../asset-modules/UniswapV3/libraries/FixedPoint96.
 import { IAccount } from "./interfaces/IAccount.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
-import { ISwapRouter, ExactInputSingleParams } from "./interfaces/ISwapRouter.sol";
+import { ISwapRouter02, ExactInputSingleParams } from "./interfaces/ISwapRouter02.sol";
 import { IUniswapV3Factory } from "./interfaces/IUniswapV3Factory.sol";
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { SafeCastLib } from "../../lib/solmate/src/utils/SafeCastLib.sol";
@@ -46,7 +46,7 @@ contract AutoCompounder is IActionBase {
     // The Uniswap V3 NonfungiblePositionManager contract.
     INonfungiblePositionManager public immutable NONFUNGIBLE_POSITIONMANAGER;
     // The UniswapV3 SwapRouter contract.
-    ISwapRouter public immutable SWAP_ROUTER;
+    ISwapRouter02 public immutable SWAP_ROUTER;
 
     // Max upper deviation in sqrtPriceX96 (reflecting the upper limit for the actual price increase)
     uint256 public immutable MAX_UPPER_SQRT_PRICE_DEVIATION;
@@ -114,7 +114,7 @@ contract AutoCompounder is IActionBase {
         UNI_V3_FACTORY = IUniswapV3Factory(uniswapV3Factory);
         REGISTRY = IRegistry(registry);
         NONFUNGIBLE_POSITIONMANAGER = INonfungiblePositionManager(nonfungiblePositionManager);
-        SWAP_ROUTER = ISwapRouter(swapRouter);
+        SWAP_ROUTER = ISwapRouter02(swapRouter);
         TOLERANCE = tolerance;
 
         // sqrtPrice to price has a quadratic relationship thus we need to take the square root of max percentage price deviation.
@@ -350,7 +350,6 @@ contract AutoCompounder is IActionBase {
             tokenOut: toToken,
             fee: fee_,
             recipient: address(this),
-            deadline: block.timestamp,
             amountIn: amount,
             amountOutMinimum: 0,
             sqrtPriceLimitX96: SafeCastLib.safeCastTo160(sqrtPriceLimitX96_)
