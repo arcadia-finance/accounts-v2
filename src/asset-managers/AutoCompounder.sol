@@ -20,6 +20,7 @@ import { IRegistry } from "./interfaces/IRegistry.sol";
 import { ISwapRouter, ExactInputSingleParams } from "./interfaces/ISwapRouter.sol";
 import { IUniswapV3Factory } from "./interfaces/IUniswapV3Factory.sol";
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
+import { SafeCastLib } from "../../lib/solmate/src/utils/SafeCastLib.sol";
 import { TickMath } from "../asset-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
@@ -47,9 +48,11 @@ contract AutoCompounder is IActionBase {
     // The UniswapV3 SwapRouter contract.
     ISwapRouter public immutable SWAP_ROUTER;
 
-    // Max deviation in quadratic value
-    uint256 public immutable MAX_SQRT_PRICE_DEVIATION;
-    // Basis Points (one basis point is equivalnent to 0.01%)
+    // Max upper deviation in sqrtPriceX96 (reflecting the upper limit for the actual price increase)
+    uint256 public immutable MAX_UPPER_SQRT_PRICE_DEVIATION;
+    // Max lower deviation in sqrtPriceX96 (reflecting the lower limit for the actual price increase)
+    uint256 public immutable MAX_LOWER_SQRT_PRICE_DEVIATION;
+    // Basis Points (one basis point is equivalent to 0.01%)
     uint256 internal constant BIPS = 10_000;
 
     /* //////////////////////////////////////////////////////////////
@@ -89,7 +92,7 @@ contract AutoCompounder is IActionBase {
      * @param nonfungiblePositionManager The contract address of Uniswap V3 NonFungiblePositionManager.
      * @param swapRouter The contract address of the Uniswap V3 SwapRouter.
      * @param tolerance The max deviation of the internal pool price of assets compared to external price of assets (relative price), in BIPS.
-     * @dev The tolerance will be converted to a quadratic value "MAX_SQRT_PRICE_DEVIATION". We use the quadratic value for price deviation as the relationship between
+     * @dev The tolerance will be converted to an upper and lower max sqrtPrice deviation, using the square root of basis + tolerance value. As the relationship between
      * sqrtPriceX96 and actual price is quadratic, amplifying changes in the latter when the former alters slightly.
      */
     constructor(
@@ -104,9 +107,9 @@ contract AutoCompounder is IActionBase {
         NONFUNGIBLE_POSITIONMANAGER = INonfungiblePositionManager(nonfungiblePositionManager);
         SWAP_ROUTER = ISwapRouter(swapRouter);
 
-        uint256 maxPriceDiffRatio = BIPS + tolerance;
-        // Calculate quadratic value for max sqrtPriceX96 deviation.
-        MAX_SQRT_PRICE_DEVIATION = FixedPointMathLib.sqrt(maxPriceDiffRatio * BIPS);
+        // sqrtPrice to price has a quadratic relationship thus we need to take the square root of max percentage price deviation.
+        MAX_UPPER_SQRT_PRICE_DEVIATION = FixedPointMathLib.sqrt((BIPS + tolerance) * BIPS);
+        MAX_LOWER_SQRT_PRICE_DEVIATION = FixedPointMathLib.sqrt((BIPS - tolerance) * BIPS);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -172,7 +175,8 @@ contract AutoCompounder is IActionBase {
         // Check that sqrtPriceX96 is in limits to avoid front-running
         FeeData memory feeData;
         int24 currentTick;
-        (currentTick, feeData.usdPriceToken0, feeData.usdPriceToken1) =
+        uint160 sqrtPriceX96;
+        (currentTick, sqrtPriceX96, feeData.usdPriceToken0, feeData.usdPriceToken1) =
             _sqrtPriceX96InLimits(posData.token0, posData.token1, posData.fee);
 
         // Collect fees
@@ -186,7 +190,7 @@ contract AutoCompounder is IActionBase {
         (feeData.feeAmount0, feeData.feeAmount1) = NONFUNGIBLE_POSITIONMANAGER.collect(collectParams);
 
         // Get amounts to deposit for current range of position
-        _handleFeeRatiosForDeposit(currentTick, posData, feeData);
+        _handleFeeRatiosForDeposit(currentTick, posData, feeData, sqrtPriceX96);
 
         // Increase liquidity in pool
         uint256 amount0ToDeposit = ERC20(posData.token0).balanceOf(address(this));
@@ -218,18 +222,18 @@ contract AutoCompounder is IActionBase {
      * @param token1 The contract address of token 1 of the position.
      * @param fee The fee of the pool to which the position is related.
      * @return currentTick The current tick of the pool.
+     * @return sqrtPriceX96 The current value of sqrtPriceX96 in the pool.
      * @return usdPriceToken0 The oracle price of token0 for 1e18 tokens.
      * @return usdPriceToken1 The oracle price of token1 for 1e18 tokens.
      */
     function _sqrtPriceX96InLimits(address token0, address token1, uint24 fee)
         internal
         view
-        returns (int24 currentTick, uint256 usdPriceToken0, uint256 usdPriceToken1)
+        returns (int24 currentTick, uint160 sqrtPriceX96, uint256 usdPriceToken0, uint256 usdPriceToken1)
     {
         // Get sqrtPriceX96 from pool
         address pool = UNI_V3_FACTORY.getPool(token0, token1, fee);
-        (uint160 sqrtPriceX96, int24 currentTick_,,,,,) = IUniswapV3Pool(pool).slot0();
-        currentTick = currentTick_;
+        (sqrtPriceX96, currentTick,,,,,) = IUniswapV3Pool(pool).slot0();
 
         // Get current prices for 1e18 amount of assets
         address[] memory assets = new address[](2);
@@ -250,11 +254,13 @@ contract AutoCompounder is IActionBase {
         uint256 sqrtPriceX96Calculated = _getSqrtPriceX96(usdPriceToken0, usdPriceToken1);
 
         // Check price deviation tolerance
-        uint256 sqrtPriceRatio = sqrtPriceX96Calculated > sqrtPriceX96
-            ? sqrtPriceX96Calculated * BIPS / sqrtPriceX96
-            : uint256(sqrtPriceX96) * BIPS / sqrtPriceX96Calculated;
-
-        if (sqrtPriceRatio >= MAX_SQRT_PRICE_DEVIATION) revert PriceToleranceExceeded();
+        uint256 sqrtPriceRatio = uint256(sqrtPriceX96) * BIPS / sqrtPriceX96Calculated;
+        if (sqrtPriceX96 > sqrtPriceX96Calculated && sqrtPriceRatio > MAX_UPPER_SQRT_PRICE_DEVIATION) {
+            revert PriceToleranceExceeded();
+        }
+        if (sqrtPriceX96 < sqrtPriceX96Calculated && sqrtPriceRatio < MAX_LOWER_SQRT_PRICE_DEVIATION) {
+            revert PriceToleranceExceeded();
+        }
     }
 
     /**
@@ -262,18 +268,22 @@ contract AutoCompounder is IActionBase {
      * @param currentTick The current tick of the pool.
      * @param posData A struct with variables to track for a specific position.
      * @param feeData A struct containing the accumulated fees of the position as well as the external token prices.
+     * @param sqrtPriceX96 The current value of sqrtPriceX96 in the pool.
      */
-    function _handleFeeRatiosForDeposit(int24 currentTick, PositionData memory posData, FeeData memory feeData)
-        internal
-    {
+    function _handleFeeRatiosForDeposit(
+        int24 currentTick,
+        PositionData memory posData,
+        FeeData memory feeData,
+        uint160 sqrtPriceX96
+    ) internal {
         if (currentTick >= posData.tickUpper) {
             // Position is fully in token 1
             // Swap full amount of token0 to token1
-            _swap(posData.token0, posData.token1, posData.fee, feeData.feeAmount0);
+            _swap(posData.token0, posData.token1, posData.fee, feeData.feeAmount0, sqrtPriceX96, true);
         } else if (currentTick <= posData.tickLower) {
             // Position is fully in token 0
             // Swap full amount of token1 to token0
-            _swap(posData.token1, posData.token0, posData.fee, feeData.feeAmount1);
+            _swap(posData.token1, posData.token0, posData.fee, feeData.feeAmount1, sqrtPriceX96, false);
         } else {
             // Get ratio of current tick for range
             uint256 ticksInRange = uint256(int256(-posData.tickLower + posData.tickUpper));
@@ -282,22 +292,21 @@ contract AutoCompounder is IActionBase {
             // Get ratio of token0/token1 based on tick ratio
             uint256 totalFee0Value = feeData.usdPriceToken0 * feeData.feeAmount0 / 1e18;
             uint256 totalFee1Value = feeData.usdPriceToken1 * feeData.feeAmount1 / 1e18;
-            uint256 totalFeeValue = totalFee0Value + totalFee1Value;
 
             // Ticks in range can't be zero (upper bound should be strictly higher than lower bound for a position)
             uint256 token0Ratio = ticksFromCurrentToUpperTick * type(uint24).max / ticksInRange;
-            uint256 targetToken0Value = token0Ratio * totalFeeValue / type(uint24).max;
+            uint256 targetToken0Value = token0Ratio * (totalFee0Value + totalFee1Value) / type(uint24).max;
 
             if (targetToken0Value < totalFee0Value) {
                 // sell token0 to token1
                 uint256 amount0ToSwap = (totalFee0Value - targetToken0Value) * feeData.feeAmount0 / totalFee0Value;
-                _swap(posData.token0, posData.token1, posData.fee, amount0ToSwap);
+                _swap(posData.token0, posData.token1, posData.fee, amount0ToSwap, sqrtPriceX96, true);
             } else {
                 // sell token1 for token0
                 uint256 token1Ratio = type(uint24).max - token0Ratio;
-                uint256 targetToken1Value = token1Ratio * totalFeeValue / type(uint24).max;
+                uint256 targetToken1Value = token1Ratio * (totalFee0Value + totalFee1Value) / type(uint24).max;
                 uint256 amount1ToSwap = (totalFee1Value - targetToken1Value) * feeData.feeAmount1 / totalFee1Value;
-                _swap(posData.token1, posData.token0, posData.fee, amount1ToSwap);
+                _swap(posData.token1, posData.token0, posData.fee, amount1ToSwap, sqrtPriceX96, false);
             }
         }
     }
@@ -308,8 +317,21 @@ contract AutoCompounder is IActionBase {
      * @param toToken The address of the token to swap to.
      * @param fee_ The fee of the pool to swap through (will be the same as the pool of the position).
      * @param amount The amount of "fromToken" to swap.
+     * @param sqrtPriceX96 The current value of sqrtPriceX96 in the pool.
+     * @param zeroToOne "true" if swap from token0 to token1 and "false" if from token1 to token0.
      */
-    function _swap(address fromToken, address toToken, uint24 fee_, uint256 amount) internal {
+    function _swap(
+        address fromToken,
+        address toToken,
+        uint24 fee_,
+        uint256 amount,
+        uint160 sqrtPriceX96,
+        bool zeroToOne
+    ) internal {
+        uint256 sqrtPriceLimitX96_ = zeroToOne
+            ? sqrtPriceX96 * MAX_LOWER_SQRT_PRICE_DEVIATION / BIPS
+            : sqrtPriceX96 * MAX_UPPER_SQRT_PRICE_DEVIATION / BIPS;
+
         ExactInputSingleParams memory exactInputParams = ExactInputSingleParams({
             tokenIn: fromToken,
             tokenOut: toToken,
@@ -318,8 +340,7 @@ contract AutoCompounder is IActionBase {
             deadline: block.timestamp,
             amountIn: amount,
             amountOutMinimum: 0,
-            // TODO : calculate sqrtPriceX96 for max slippage, or do the sqrtPriceX96 in limits after ?
-            sqrtPriceLimitX96: 0
+            sqrtPriceLimitX96: SafeCastLib.safeCastTo160(sqrtPriceLimitX96_)
         });
 
         ERC20(fromToken).approve(address(SWAP_ROUTER), amount);

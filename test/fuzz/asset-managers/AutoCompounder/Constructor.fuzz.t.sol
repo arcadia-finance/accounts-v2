@@ -38,6 +38,7 @@ contract Constructor_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
         assertEq(address(autoCompounder.NONFUNGIBLE_POSITIONMANAGER()), address(nonfungiblePositionManager));
         assertEq(address(autoCompounder.SWAP_ROUTER()), address(swapRouter));
         // Sqrt of (BIPS + 1000) * BIPS is 10488
-        assertEq(autoCompounder.MAX_SQRT_PRICE_DEVIATION(), 10_488);
+        assertEq(autoCompounder.MAX_UPPER_SQRT_PRICE_DEVIATION(), 10_488);
+        assertEq(autoCompounder.MAX_LOWER_SQRT_PRICE_DEVIATION(), 9486);
     }
 }

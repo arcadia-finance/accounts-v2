@@ -65,8 +65,9 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
 
         assert(token0.balanceOf(address(autoCompounder)) > 0);
 
+        // Given : sqrtPriceX96 set to zero below as we will test max slippage for swap function separately
         // When : calling handleFeeRatiosForDeposit()
-        autoCompounder.handleFeeRatiosForDeposit(currentTick, posData, feeData);
+        autoCompounder.handleFeeRatiosForDeposit(currentTick, posData, feeData, 0);
 
         // Then : feeAmount0 should have been swapped to token1
         assertEq(token0.balanceOf(address(autoCompounder)), 0);
@@ -115,8 +116,9 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
 
         assert(token1.balanceOf(address(autoCompounder)) > 0);
 
+        // Given : sqrtPriceX96 set to zero below as we will test max slippage for swap function separately
         // When : calling handleFeeRatiosForDeposit()
-        autoCompounder.handleFeeRatiosForDeposit(currentTick, posData, feeData);
+        autoCompounder.handleFeeRatiosForDeposit(currentTick, posData, feeData, 0);
 
         // Then : feeAmount1 should have been swapped to token0
         assertEq(token1.balanceOf(address(autoCompounder)), 0);
@@ -157,8 +159,9 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
 
         assert(token0.balanceOf(address(autoCompounder)) > 0);
 
+        // Given : sqrtPriceX96 set to zero below as we will test max slippage for swap function separately
         // When : calling handleFeeRatiosForDeposit()
-        autoCompounder.handleFeeRatiosForDeposit(usdStablePool.getCurrentTick(), posData, feeData);
+        autoCompounder.handleFeeRatiosForDeposit(usdStablePool.getCurrentTick(), posData, feeData, 0);
 
         // Then : part of feeAmount0 should have been swapped to token1
         assert(token0.balanceOf(address(autoCompounder)) < testVars.feeAmount0 * 10 ** token0.decimals());
@@ -201,8 +204,9 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
 
         assert(token1.balanceOf(address(autoCompounder)) > 0);
 
+        // Given : sqrtPriceX96 set to zero below as we will test max slippage for swap function separately
         // When : calling handleFeeRatiosForDeposit()
-        autoCompounder.handleFeeRatiosForDeposit(usdStablePool.getCurrentTick(), posData, feeData);
+        autoCompounder.handleFeeRatiosForDeposit(usdStablePool.getCurrentTick(), posData, feeData, 0);
 
         // Then : part of feeAmount1 should have been swapped to token1
         assert(token1.balanceOf(address(autoCompounder)) < testVars.feeAmount1 * 10 ** token1.decimals());

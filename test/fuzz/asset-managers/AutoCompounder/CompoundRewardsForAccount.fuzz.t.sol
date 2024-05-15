@@ -71,7 +71,6 @@ contract CompoundFeesForAccount_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_
 
         // Then : Liquidity of position should have increased
         (,,,,,,, uint128 newLiquidity,,,,) = nonfungiblePositionManager.positions(tokenId);
-
         assertGt(newLiquidity, initialLiquidity);
     }
 }

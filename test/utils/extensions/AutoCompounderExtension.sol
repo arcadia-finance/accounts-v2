@@ -18,17 +18,24 @@ contract AutoCompounderExtension is AutoCompounder {
     function sqrtPriceX96InLimits(address token0, address token1, uint24 fee)
         public
         view
-        returns (int24 currentTick, uint256 usdPriceToken0, uint256 usdPriceToken1)
+        returns (int24 currentTick, uint160 sqrtPriceX96, uint256 usdPriceToken0, uint256 usdPriceToken1)
     {
-        (currentTick, usdPriceToken0, usdPriceToken1) = _sqrtPriceX96InLimits(token0, token1, fee);
+        (currentTick, sqrtPriceX96, usdPriceToken0, usdPriceToken1) = _sqrtPriceX96InLimits(token0, token1, fee);
     }
 
-    function handleFeeRatiosForDeposit(int24 currentTick, PositionData memory posData, FeeData memory feeData) public {
-        _handleFeeRatiosForDeposit(currentTick, posData, feeData);
+    function handleFeeRatiosForDeposit(
+        int24 currentTick,
+        PositionData memory posData,
+        FeeData memory feeData,
+        uint160 sqrtPriceX96
+    ) public {
+        _handleFeeRatiosForDeposit(currentTick, posData, feeData, sqrtPriceX96);
     }
 
-    function swap(address fromToken, address toToken, uint24 fee, uint256 amount) public {
-        _swap(fromToken, toToken, fee, amount);
+    function swap(address fromToken, address toToken, uint24 fee, uint256 amount, uint160 sqrtPriceX96, bool zeroToOne)
+        public
+    {
+        _swap(fromToken, toToken, fee, amount, sqrtPriceX96, zeroToOne);
     }
 
     function getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) public pure returns (uint160 sqrtPriceX96) {
