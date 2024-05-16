@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Base_Script } from "../Base.s.sol";
 
-import { ArcadiaSafes, DeployAddresses } from "../utils/Constants.sol";
+import { ArcadiaSafes } from "../utils/Constants.sol";
 
 contract DeployAerodromeStep3 is Base_Script {
     constructor() { }
