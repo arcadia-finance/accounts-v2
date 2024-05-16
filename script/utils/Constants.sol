@@ -10,14 +10,14 @@ library ArcadiaContracts {
     address internal constant ERC20_PRIMARY_AM = address(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
     address internal constant FACTORY = address(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
     address internal constant REGISTRY = address(0xd0690557600eb8Be8391D1d97346e2aab5300d5f);
-    address internal constant SLIPSTREAM_AM = address(0x17B5826382e3a5257b829cF0546A08Bd77409270); // TODo:fork address!!
-    address internal constant STAKED_AERO_AM = address(0xd3A7055bBcDA4F8F49e5c5dE7E83B09a33633F44); // TODo:fork address!!
+    address internal constant SLIPSTREAM_AM = address(0xd3A7055bBcDA4F8F49e5c5dE7E83B09a33633F44); // TODo:fork address!!
+    address internal constant STAKED_AERO_AM = address(0x9f42361B7602Df1A8Ae28Bf63E6cb1883CD44C27); // TODo:fork address!!
     address internal constant STAKED_STARGATE_AM = address(0xae909e19fd13C01c28d5Ee439D403920CF7f9Eea);
     address internal constant STARGATE_AM = address(0x20f7903290bF98716B62Dc1c9DA634291b8cfeD4);
     address internal constant UNISWAPV3_AM = address(0x21bd524cC54CA78A7c48254d4676184f781667dC);
     address internal constant LENDINGPOOL_USDC = address(0x3ec4a293Fb906DD2Cd440c20dECB250DeF141dF1);
     address internal constant LENDINGPOOL_WETH = address(0x803ea69c7e87D1d6C86adeB40CB636cC0E6B98E2);
-    address internal constant WRAPPED_AERO_AM = address(0x9f42361B7602Df1A8Ae28Bf63E6cb1883CD44C27); // TODo:fork address!!
+    address internal constant WRAPPED_AERO_AM = address(0x17B5826382e3a5257b829cF0546A08Bd77409270); // TODo:fork address!!
 }
 
 library ArcadiaSafes {
