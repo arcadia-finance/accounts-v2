@@ -5,19 +5,19 @@
 pragma solidity 0.8.22;
 
 library ArcadiaContracts {
-    address internal constant AERO_POOL_AM = address(0);
+    address internal constant AERO_POOL_AM = address(0xfe0FA1FD8F8E889062F03e2f126Fc7B9DE6091A5); // TODo:fork address!!
     address internal constant CHAINLINK_OM = address(0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31);
     address internal constant ERC20_PRIMARY_AM = address(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
     address internal constant FACTORY = address(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
     address internal constant REGISTRY = address(0xd0690557600eb8Be8391D1d97346e2aab5300d5f);
-    address internal constant SLIPSTREAM_AM = address(0);
-    address internal constant STAKED_AERO_AM = address(0);
+    address internal constant SLIPSTREAM_AM = address(0x17B5826382e3a5257b829cF0546A08Bd77409270); // TODo:fork address!!
+    address internal constant STAKED_AERO_AM = address(0xd3A7055bBcDA4F8F49e5c5dE7E83B09a33633F44); // TODo:fork address!!
     address internal constant STAKED_STARGATE_AM = address(0xae909e19fd13C01c28d5Ee439D403920CF7f9Eea);
     address internal constant STARGATE_AM = address(0x20f7903290bF98716B62Dc1c9DA634291b8cfeD4);
     address internal constant UNISWAPV3_AM = address(0x21bd524cC54CA78A7c48254d4676184f781667dC);
     address internal constant LENDINGPOOL_USDC = address(0x3ec4a293Fb906DD2Cd440c20dECB250DeF141dF1);
     address internal constant LENDINGPOOL_WETH = address(0x803ea69c7e87D1d6C86adeB40CB636cC0E6B98E2);
-    address internal constant WRAPPED_AERO_AM = address(0);
+    address internal constant WRAPPED_AERO_AM = address(0x9f42361B7602Df1A8Ae28Bf63E6cb1883CD44C27); // TODo:fork address!!
 }
 
 library ArcadiaSafes {
@@ -230,27 +230,31 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_WSTETH_WETH = uint112(400 * 10 ** Decimals.WSTETH);
     uint112 internal constant EXPOSURE_WSTETH_USDC = uint112(300 * 10 ** Decimals.WSTETH);
 
-    uint16 internal constant COL_FAC_AERO_WETH = 0;
-    uint16 internal constant COL_FAC_AERO_USDC = 0;
-    uint16 internal constant LIQ_FAC_AERO_WETH = 0;
-    uint16 internal constant LIQ_FAC_AERO_USDC = 0;
-    uint112 internal constant EXPOSURE_AERO_WETH = 1; // Cannot be deposited as primary asset, but still as yield source
-    uint112 internal constant EXPOSURE_AERO_USDC = 1; // Cannot be deposited as primary asset, but still as yield source
+    // ToDo: change before deployment
+    uint16 internal constant COL_FAC_AERO_WETH = 8000;
+    uint16 internal constant COL_FAC_AERO_USDC = 8000;
+    uint16 internal constant LIQ_FAC_AERO_WETH = 9000;
+    uint16 internal constant LIQ_FAC_AERO_USDC = 9000;
+    uint112 internal constant EXPOSURE_AERO_WETH = uint112(1e6 * 10 ** Decimals.AERO);
+    uint112 internal constant EXPOSURE_AERO_USDC = uint112(1e6 * 10 ** Decimals.AERO);
 
-    uint16 internal constant RISK_FAC_AERO_POOL_AM_WETH = 0;
-    uint16 internal constant RISK_FAC_AERO_POOL_AM_USDC = 0;
-    uint112 internal constant EXPOSURE_AERO_POOL_AM_WETH = uint112(0);
-    uint112 internal constant EXPOSURE_AERO_POOL_AM_USDC = uint112(0);
+    // ToDo: change before deployment
+    uint16 internal constant RISK_FAC_AERO_POOL_AM_WETH = 9800;
+    uint16 internal constant RISK_FAC_AERO_POOL_AM_USDC = 9800;
+    uint112 internal constant EXPOSURE_AERO_POOL_AM_WETH = uint112(2_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_AERO_POOL_AM_USDC = uint112(2_000_000 * 1e18);
 
-    uint16 internal constant RISK_FAC_STAKED_AERO_AM_WETH = 0;
-    uint16 internal constant RISK_FAC_STAKED_AERO_AM_USDC = 0;
-    uint112 internal constant EXPOSURE_STAKED_AERO_AM_WETH = uint112(0);
-    uint112 internal constant EXPOSURE_STAKED_AERO_AM_USDC = uint112(0);
+    // ToDo: change before deployment
+    uint16 internal constant RISK_FAC_STAKED_AERO_AM_WETH = 9800;
+    uint16 internal constant RISK_FAC_STAKED_AERO_AM_USDC = 9800;
+    uint112 internal constant EXPOSURE_STAKED_AERO_AM_WETH = uint112(2_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_STAKED_AERO_AM_USDC = uint112(2_000_000 * 1e18);
 
-    uint16 internal constant RISK_FAC_WRAPPED_AERO_AM_WETH = 0;
-    uint16 internal constant RISK_FAC_WRAPPED_AERO_AM_USDC = 0;
-    uint112 internal constant EXPOSURE_WRAPPED_AERO_AM_WETH = uint112(0);
-    uint112 internal constant EXPOSURE_WRAPPED_AERO_AM_USDC = uint112(0);
+    // ToDo: change before deployment
+    uint16 internal constant RISK_FAC_WRAPPED_AERO_AM_WETH = 9800;
+    uint16 internal constant RISK_FAC_WRAPPED_AERO_AM_USDC = 9800;
+    uint112 internal constant EXPOSURE_WRAPPED_AERO_AM_WETH = uint112(2_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_WRAPPED_AERO_AM_USDC = uint112(2_000_000 * 1e18);
 
     uint16 internal constant RISK_FAC_STAKED_STARGATE_AM_WETH = 9800;
     uint16 internal constant RISK_FAC_STAKED_STARGATE_AM_USDC = 9800;
@@ -267,6 +271,7 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_UNISWAPV3_AM_WETH = uint112(2_000_000 * 1e18);
     uint112 internal constant EXPOSURE_UNISWAPV3_AM_USDC = uint112(2_000_000 * 1e18);
 
+    // ToDo: change before deployment
     uint16 internal constant RISK_FAC_SLIPSTREAM_WETH = 9800;
     uint16 internal constant RISK_FAC_SLIPSTREAM_USDC = 9800;
     uint112 internal constant EXPOSURE_SLIPSTREAM_WETH = uint112(2_000_000 * 1e18);
