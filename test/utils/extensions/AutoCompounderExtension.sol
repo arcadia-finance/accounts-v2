@@ -13,8 +13,19 @@ contract AutoCompounderExtension is AutoCompounder {
         address nonfungiblePositionManager,
         address swapRouter,
         uint256 tolerance_,
-        uint256 minUsdFeeValue
-    ) AutoCompounder(registry, uniswapV3Factory, nonfungiblePositionManager, swapRouter, tolerance_, minUsdFeeValue) { }
+        uint256 minUsdFeeValue,
+        uint256 initiatorFee
+    )
+        AutoCompounder(
+            registry,
+            uniswapV3Factory,
+            nonfungiblePositionManager,
+            swapRouter,
+            tolerance_,
+            minUsdFeeValue,
+            initiatorFee
+        )
+    { }
 
     function sqrtPriceX96InLimits(address token0, address token1, uint24 fee)
         public

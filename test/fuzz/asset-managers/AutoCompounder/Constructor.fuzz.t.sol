@@ -30,8 +30,23 @@ contract Constructor_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
             address(uniswapV3Factory),
             address(nonfungiblePositionManager),
             address(swapRouter),
-            5001,
-            MIN_USD_FEES_VALUE
+            TOLERANCE + 1,
+            MIN_USD_FEES_VALUE,
+            INITIATOR_FEE
+        );
+    }
+
+    function testFuzz_Revert_Constructor_MaxInitiatorFee() public {
+        vm.startPrank(users.creatorAddress);
+        vm.expectRevert(AutoCompounder.MaxInitiatorFeeExceeded.selector);
+        autoCompounder = new AutoCompounderExtension(
+            address(registryExtension),
+            address(uniswapV3Factory),
+            address(nonfungiblePositionManager),
+            address(swapRouter),
+            TOLERANCE,
+            MIN_USD_FEES_VALUE,
+            INITIATOR_FEE + 1
         );
     }
 
@@ -43,7 +58,8 @@ contract Constructor_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
             address(nonfungiblePositionManager),
             address(swapRouter),
             TOLERANCE,
-            MIN_USD_FEES_VALUE
+            MIN_USD_FEES_VALUE,
+            INITIATOR_FEE
         );
 
         assertEq(address(autoCompounder.UNI_V3_FACTORY()), address(uniswapV3Factory));
@@ -55,5 +71,6 @@ contract Constructor_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
         assertEq(autoCompounder.MAX_LOWER_SQRT_PRICE_DEVIATION(), 9486);
         assertEq(autoCompounder.TOLERANCE(), 1000);
         assertEq(autoCompounder.MIN_USD_FEES_VALUE(), MIN_USD_FEES_VALUE);
+        assertEq(autoCompounder.INITIATOR_FEE(), INITIATOR_FEE);
     }
 }

@@ -56,14 +56,16 @@ contract AutoCompounder is IActionBase {
     uint256 internal constant BIPS = 10_000;
     // Tolerance in BIPS for max price deviation and slippage
     uint256 public immutable TOLERANCE;
-    // Minimum fees value in USD to trigger the compounding of a position
+    // Minimum fees value in USD to trigger the compounding of a position, with 18 decimals.
     uint256 public immutable MIN_USD_FEES_VALUE;
+    // The fee paid on accumulated fees to the initiator, in BIPS
+    uint256 public immutable INITIATOR_FEE;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Storage variable for the Account for which to compound fees.
+    // Storage variable for the Account to compound fees for.
     address internal account;
 
     // A struct with variables to track for a specific position.
@@ -87,10 +89,11 @@ contract AutoCompounder is IActionBase {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
-    error PriceToleranceExceeded();
     error CallerIsNotAccount();
-    error MaxToleranceExceeded();
     error FeeValueBelowTreshold();
+    error MaxToleranceExceeded();
+    error MaxInitiatorFeeExceeded();
+    error PriceToleranceExceeded();
 
     /* //////////////////////////////////////////////////////////////
                             CONSTRUCTOR
@@ -103,6 +106,7 @@ contract AutoCompounder is IActionBase {
      * @param swapRouter The contract address of the Uniswap V3 SwapRouter.
      * @param tolerance The max deviation of the internal pool price of assets compared to external price of assets (relative price), in BIPS.
      * @param minFeeValueInUsd The minimum USD value of the fees accumulated by a position in order to trigger the compounding. USD value with 18 decimals.
+     * @param initiatorFee The fee paid to the initiator for compounding the fees, as a percentage of the accumulated fees in BIPS.
      * @dev The tolerance will be converted to an upper and lower max sqrtPrice deviation, using the square root of basis + tolerance value. As the relationship between
      * sqrtPriceX96 and actual price is quadratic, amplifying changes in the latter when the former alters slightly.
      */
@@ -112,16 +116,21 @@ contract AutoCompounder is IActionBase {
         address nonfungiblePositionManager,
         address swapRouter,
         uint256 tolerance,
-        uint256 minFeeValueInUsd
+        uint256 minFeeValueInUsd,
+        uint256 initiatorFee
     ) {
         // Tolerance should never be higher than 50%
         if (tolerance > 5000) revert MaxToleranceExceeded();
+        // Initiator fee should never be higher than 20%
+        if (initiatorFee > 2000) revert MaxInitiatorFeeExceeded();
+
         UNI_V3_FACTORY = IUniswapV3Factory(uniswapV3Factory);
         REGISTRY = IRegistry(registry);
         NONFUNGIBLE_POSITIONMANAGER = INonfungiblePositionManager(nonfungiblePositionManager);
         SWAP_ROUTER = ISwapRouter02(swapRouter);
         TOLERANCE = tolerance;
         MIN_USD_FEES_VALUE = minFeeValueInUsd;
+        INITIATOR_FEE = initiatorFee;
 
         // sqrtPrice to price has a quadratic relationship thus we need to take the square root of max percentage price deviation.
         MAX_UPPER_SQRT_PRICE_DEVIATION = FixedPointMathLib.sqrt((BIPS + tolerance) * BIPS);
@@ -137,7 +146,6 @@ contract AutoCompounder is IActionBase {
      * @param account_ The Arcadia Account owning the position.
      * @param assetId The position id to compound the fees for.
      */
-    // TODO : Earned fee ?
     function compoundFeesForAccount(address account_, uint256 assetId) external {
         // Cache Account in storage, used to validate caller for executeAction()
         account = account_;
@@ -210,12 +218,20 @@ contract AutoCompounder is IActionBase {
 
         (feeData.feeAmount0, feeData.feeAmount1) = NONFUNGIBLE_POSITIONMANAGER.collect(collectParams);
 
+        // Calculate and remove initiator fee from amounts to rebalance
+        uint256 initiatorFee0 = feeData.feeAmount0 * INITIATOR_FEE / BIPS;
+        uint256 initiatorFee1 = feeData.feeAmount1 * INITIATOR_FEE / BIPS;
+
+        feeData.feeAmount0 -= initiatorFee0;
+        feeData.feeAmount1 -= initiatorFee1;
+
         // Get amounts to deposit for current range of position
         _handleFeeRatiosForDeposit(currentTick, posData, feeData, sqrtPriceX96);
 
+        uint256 amount0ToDeposit = ERC20(posData.token0).balanceOf(address(this)) - initiatorFee0;
+        uint256 amount1ToDeposit = ERC20(posData.token1).balanceOf(address(this)) - initiatorFee1;
+
         // Increase liquidity in pool
-        uint256 amount0ToDeposit = ERC20(posData.token0).balanceOf(address(this));
-        uint256 amount1ToDeposit = ERC20(posData.token1).balanceOf(address(this));
         IncreaseLiquidityParams memory increaseLiquidityParams = IncreaseLiquidityParams({
             tokenId: tokenId,
             amount0Desired: amount0ToDeposit,
@@ -229,7 +245,7 @@ contract AutoCompounder is IActionBase {
         ERC20(posData.token1).approve(address(NONFUNGIBLE_POSITIONMANAGER), amount1ToDeposit);
         INonfungiblePositionManager(address(NONFUNGIBLE_POSITIONMANAGER)).increaseLiquidity(increaseLiquidityParams);
 
-        // Dust amounts are transfered to the initiator
+        // Dust amounts + fees are transfered to the initiator
         ERC20(posData.token0).safeTransfer(initiator, ERC20(posData.token0).balanceOf(address(this)));
         ERC20(posData.token1).safeTransfer(initiator, ERC20(posData.token1).balanceOf(address(this)));
 
@@ -316,8 +332,8 @@ contract AutoCompounder is IActionBase {
 
             // Get ratio of token0/token1 based on tick ratio
             // Ticks in range can't be zero (upper bound should be strictly higher than lower bound for a position)
-            uint256 token0Ratio = ticksFromCurrentToUpperTick * type(uint24).max / ticksInRange;
-            uint256 targetToken0Value = token0Ratio * (totalFee0Value + totalFee1Value) / type(uint24).max;
+            uint256 token0Ratio = (ticksFromCurrentToUpperTick << 24) / ticksInRange;
+            uint256 targetToken0Value = (token0Ratio * (totalFee0Value + totalFee1Value)) >> 24;
 
             if (targetToken0Value < totalFee0Value) {
                 // sell token0 to token1
@@ -326,7 +342,7 @@ contract AutoCompounder is IActionBase {
             } else {
                 // sell token1 for token0
                 uint256 token1Ratio = type(uint24).max - token0Ratio;
-                uint256 targetToken1Value = token1Ratio * (totalFee0Value + totalFee1Value) / type(uint24).max;
+                uint256 targetToken1Value = (token1Ratio * (totalFee0Value + totalFee1Value)) >> 24;
                 uint256 amount1ToSwap = (totalFee1Value - targetToken1Value) * feeData.feeAmount1 / totalFee1Value;
                 _swap(posData.token1, posData.token0, posData.fee, amount1ToSwap, sqrtPriceX96, false);
             }

@@ -40,6 +40,7 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
     uint256 public TOLERANCE = 1000;
     // $10
     uint256 public MIN_USD_FEES_VALUE = 10 * 1e18;
+    uint256 public INITIATOR_FEE = 1000;
 
     /*////////////////////////////////////////////////////////////////
                             VARIABLES
@@ -117,7 +118,8 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
             address(nonfungiblePositionManager),
             address(swapRouter),
             TOLERANCE,
-            MIN_USD_FEES_VALUE
+            MIN_USD_FEES_VALUE,
+            INITIATOR_FEE
         );
     }
 
@@ -164,9 +166,9 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
     {
         // Given : ticks should be in range
         int24 currentTick = usdStablePool.getCurrentTick();
-        // Min value of tickUpper is current + 2 as we need a minimum gap to play with in tests
-        // Such as moving the currentTick doesn't directly results in being equal to tickUpper or tickLower
-        testVars.tickUpper = int24(bound(testVars.tickUpper, currentTick + 2, currentTick + type(int8).max));
+
+        // And : tickRange is minimum 40
+        testVars.tickUpper = int24(bound(testVars.tickUpper, currentTick + 40, currentTick + type(int16).max));
         // And : Liquidity is added in 50/50
         testVars.tickLower = currentTick - (testVars.tickUpper - currentTick);
 
@@ -205,9 +207,7 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
 
     function generateFees(uint256 amount0ToGenerate, uint256 amount1ToGenerate) public {
         // Swap token0 for token1
-        uint256 amount0ToSwap = ((amount0ToGenerate * (BIPS / POOL_FEE)) * 10 ** token0.decimals());
-        // TODO : Pool doesn't seem to be generating 1% fee ?
-        amount0ToSwap *= 100;
+        uint256 amount0ToSwap = ((amount0ToGenerate * (1e6 / POOL_FEE)) * 10 ** token0.decimals());
 
         mintERC20TokenTo(address(token0), users.swapper, amount0ToSwap);
 
@@ -227,9 +227,7 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
         swapRouter.exactInputSingle(exactInputParams);
 
         // Swap token1 for token0
-        uint256 amount1ToSwap = ((amount1ToGenerate * (BIPS / POOL_FEE)) * 10 ** token1.decimals());
-        // TODO : Pool doesn't seem to be generating 1% fee ?
-        amount1ToSwap *= 100;
+        uint256 amount1ToSwap = ((amount1ToGenerate * (1e6 / POOL_FEE)) * 10 ** token1.decimals());
 
         mintERC20TokenTo(address(token1), users.swapper, amount1ToSwap);
         token1.approve(address(swapRouter), amount1ToSwap);
