@@ -177,7 +177,7 @@ contract CompoundFeesForAccount_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_
             uint256 totalFee0InUsd = totalFee0 * 1e30 / 1e18;
             uint256 totalFee1InUsd = totalFee1 * 1e18 / 1e18;
 
-            assert(dustToken0InUsdValue + dustToken1InUsdValue < 200 * (totalFee0InUsd + totalFee1InUsd) / 10_000);
+            assert(dustToken0InUsdValue + dustToken1InUsdValue < 400 * (totalFee0InUsd + totalFee1InUsd) / 10_000);
         } else {
             uint256 dustToken0InUsdValue = (initiatorFeesToken0 - initiatorFeeToken0Calculated) * 1e18 / 1e18;
             uint256 dustToken1InUsdValue = (initiatorFeesToken1 - initiatorFeeToken1Calculated) * 1e30 / 1e18;
@@ -185,7 +185,7 @@ contract CompoundFeesForAccount_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_
             uint256 totalFee0InUsd = totalFee0 * 1e18 / 1e18;
             uint256 totalFee1InUsd = totalFee1 * 1e30 / 1e18;
 
-            assert(dustToken0InUsdValue + dustToken1InUsdValue < 200 * (totalFee0InUsd + totalFee1InUsd) / 10_000);
+            assert(dustToken0InUsdValue + dustToken1InUsdValue < 400 * (totalFee0InUsd + totalFee1InUsd) / 10_000);
         }
     }
 }

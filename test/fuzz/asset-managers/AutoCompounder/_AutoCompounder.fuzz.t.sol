@@ -168,7 +168,7 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
         int24 currentTick = usdStablePool.getCurrentTick();
 
         // And : tickRange is minimum 40
-        testVars.tickUpper = int24(bound(testVars.tickUpper, currentTick + 40, currentTick + type(int16).max));
+        testVars.tickUpper = int24(bound(testVars.tickUpper, currentTick + 10, currentTick + type(int16).max));
         // And : Liquidity is added in 50/50
         testVars.tickLower = currentTick - (testVars.tickUpper - currentTick);
 
