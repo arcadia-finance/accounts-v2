@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { AutoCompounder_Fuzz_Test, AutoCompounder, ERC20Mock } from "./_AutoCompounder.fuzz.t.sol";
+import { AutoCompounder_Fuzz_Test, AutoCompounder, ERC20Mock, TickMath } from "./_AutoCompounder.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "handleFeeRatiosForDeposit" of contract "AutoCompounder".
@@ -51,22 +51,32 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
 
     function testFuzz_success_currentTickGreaterOrEqualToTickUpper(TestVariables memory testVars) public {
         // Given : Valid State
-        (testVars,) = givenValidBalancedState(testVars);
+        bool token0HasLowestDecimals;
+        (testVars, token0HasLowestDecimals) = givenValidBalancedState(testVars);
 
         // And : State is persisted
         setState(testVars, usdStablePool);
 
-        // And : currentTick = tickUpper
-        int24 currentTick = testVars.tickUpper;
+        // And : newTick = tickLower
+        int24 newTick = testVars.tickUpper;
+        usdStablePool.setCurrentTick(newTick);
+
+        // And : Update sqrtPriceX96 in slot0
+        uint160 sqrtPriceX96AtCurrentTick = TickMath.getSqrtRatioAtTick(newTick);
+        usdStablePool.setSqrtPriceX96(sqrtPriceX96AtCurrentTick);
 
         // Deposit feeAmount0 at currentTick range (to enable swap)
         addLiquidity(
             usdStablePool,
-            testVars.feeAmount0 * 10 ** token0.decimals(),
-            testVars.feeAmount1 * 10 ** token1.decimals(),
+            token0HasLowestDecimals
+                ? type(uint32).max * 10 ** token0.decimals()
+                : type(uint24).max * 10 ** token0.decimals(),
+            token0HasLowestDecimals
+                ? type(uint24).max * 10 ** token0.decimals()
+                : type(uint32).max * 10 ** token0.decimals(),
             users.liquidityProvider,
-            currentTick - 10,
-            currentTick + 10
+            newTick - 20,
+            newTick + 20
         );
 
         AutoCompounder.PositionData memory posData = AutoCompounder.PositionData({
@@ -93,30 +103,42 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
 
         // Given : sqrtPriceX96 set to zero below as we will test max slippage for swap function separately
         // When : calling handleFeeRatiosForDeposit()
-        autoCompounder.handleFeeRatiosForDeposit(address(usdStablePool), currentTick, posData, feeData, 0);
+        autoCompounder.handleFeeRatiosForDeposit(
+            address(usdStablePool), newTick, posData, feeData, sqrtPriceX96AtCurrentTick
+        );
 
         // Then : feeAmount0 should have been swapped to token1
         assertEq(token0.balanceOf(address(autoCompounder)), 0);
     }
 
-    function testFuzz_success_currentTickSmallerOrEqualToTickUpper(TestVariables memory testVars) public {
+    function testFuzz_success_currentTickSmallerOrEqualToTickLower(TestVariables memory testVars) public {
         // Given : Valid State
-        (testVars,) = givenValidBalancedState(testVars);
+        bool token0HasLowestDecimals;
+        (testVars, token0HasLowestDecimals) = givenValidBalancedState(testVars);
 
         // And : State is persisted
         setState(testVars, usdStablePool);
 
-        // And : currentTick = tickUpper
-        int24 currentTick = testVars.tickLower;
+        // And : newTick = tickLower
+        int24 newTick = testVars.tickLower;
+        usdStablePool.setCurrentTick(newTick);
+
+        // And : Update sqrtPriceX96 in slot0
+        uint160 sqrtPriceX96AtCurrentTick = TickMath.getSqrtRatioAtTick(newTick);
+        usdStablePool.setSqrtPriceX96(sqrtPriceX96AtCurrentTick);
 
         // Deposit feeAmount1 at currentTick range (to enable swap)
         addLiquidity(
             usdStablePool,
-            testVars.feeAmount0 * 10 ** token0.decimals(),
-            testVars.feeAmount1 * 10 ** token1.decimals(),
+            token0HasLowestDecimals
+                ? type(uint32).max * 10 ** token0.decimals()
+                : type(uint24).max * 10 ** token0.decimals(),
+            token0HasLowestDecimals
+                ? type(uint24).max * 10 ** token0.decimals()
+                : type(uint32).max * 10 ** token0.decimals(),
             users.liquidityProvider,
-            currentTick - 10,
-            currentTick + 10
+            newTick - 20,
+            newTick + 20
         );
 
         AutoCompounder.PositionData memory posData = AutoCompounder.PositionData({
@@ -143,7 +165,9 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
 
         // Given : sqrtPriceX96 set to zero below as we will test max slippage for swap function separately
         // When : calling handleFeeRatiosForDeposit()
-        autoCompounder.handleFeeRatiosForDeposit(address(usdStablePool), currentTick, posData, feeData, 0);
+        autoCompounder.handleFeeRatiosForDeposit(
+            address(usdStablePool), newTick, posData, feeData, sqrtPriceX96AtCurrentTick
+        );
 
         // Then : feeAmount1 should have been swapped to token0
         assertEq(token1.balanceOf(address(autoCompounder)), 0);
@@ -185,8 +209,9 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
 
         // Given : sqrtPriceX96 set to zero below as we will test max slippage for swap function separately
         // When : calling handleFeeRatiosForDeposit()
+        (uint160 sqrtPriceX96,,,,,,) = usdStablePool.slot0();
         autoCompounder.handleFeeRatiosForDeposit(
-            address(usdStablePool), usdStablePool.getCurrentTick(), posData, feeData, 0
+            address(usdStablePool), usdStablePool.getCurrentTick(), posData, feeData, sqrtPriceX96
         );
 
         // Then : part of feeAmount0 should have been swapped to token1
@@ -231,8 +256,9 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
 
         // Given : sqrtPriceX96 set to zero below as we will test max slippage for swap function separately
         // When : calling handleFeeRatiosForDeposit()
+        (uint160 sqrtPriceX96,,,,,,) = usdStablePool.slot0();
         autoCompounder.handleFeeRatiosForDeposit(
-            address(usdStablePool), usdStablePool.getCurrentTick(), posData, feeData, 0
+            address(usdStablePool), usdStablePool.getCurrentTick(), posData, feeData, sqrtPriceX96
         );
 
         // Then : part of feeAmount1 should have been swapped to token1
