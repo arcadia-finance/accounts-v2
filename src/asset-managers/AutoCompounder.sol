@@ -17,7 +17,6 @@ import { FixedPoint96 } from "../asset-modules/UniswapV3/libraries/FixedPoint96.
 import { IAccount } from "./interfaces/IAccount.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
-import { ISwapRouter02, ExactInputSingleParams } from "./interfaces/ISwapRouter02.sol";
 import { IUniswapV3Factory } from "./interfaces/IUniswapV3Factory.sol";
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { SafeCastLib } from "../../lib/solmate/src/utils/SafeCastLib.sol";
@@ -45,8 +44,6 @@ contract AutoCompounder is IActionBase {
     IRegistry public immutable REGISTRY;
     // The Uniswap V3 NonfungiblePositionManager contract.
     INonfungiblePositionManager public immutable NONFUNGIBLE_POSITIONMANAGER;
-    // The UniswapV3 SwapRouter contract.
-    ISwapRouter02 public immutable SWAP_ROUTER;
 
     // Max upper deviation in sqrtPriceX96 (reflecting the upper limit for the actual price increase)
     uint256 public immutable MAX_UPPER_SQRT_PRICE_DEVIATION;
@@ -90,6 +87,7 @@ contract AutoCompounder is IActionBase {
     ////////////////////////////////////////////////////////////// */
 
     error CallerIsNotAccount();
+    error CallerIsNotPool();
     error FeeValueBelowTreshold();
     error MaxToleranceExceeded();
     error MaxInitiatorFeeExceeded();
@@ -103,7 +101,6 @@ contract AutoCompounder is IActionBase {
      * @param registry The contract address of the Registry.
      * @param uniswapV3Factory The contract address of the Uniswap V3 Factory.
      * @param nonfungiblePositionManager The contract address of Uniswap V3 NonFungiblePositionManager.
-     * @param swapRouter The contract address of the Uniswap V3 SwapRouter.
      * @param tolerance The max deviation of the internal pool price of assets compared to external price of assets (relative price), in BIPS.
      * @param minFeeValueInUsd The minimum USD value of the fees accumulated by a position in order to trigger the compounding. USD value with 18 decimals.
      * @param initiatorFee The fee paid to the initiator for compounding the fees, as a percentage of the accumulated fees in BIPS.
@@ -114,7 +111,6 @@ contract AutoCompounder is IActionBase {
         address registry,
         address uniswapV3Factory,
         address nonfungiblePositionManager,
-        address swapRouter,
         uint256 tolerance,
         uint256 minFeeValueInUsd,
         uint256 initiatorFee
@@ -127,7 +123,6 @@ contract AutoCompounder is IActionBase {
         UNI_V3_FACTORY = IUniswapV3Factory(uniswapV3Factory);
         REGISTRY = IRegistry(registry);
         NONFUNGIBLE_POSITIONMANAGER = INonfungiblePositionManager(nonfungiblePositionManager);
-        SWAP_ROUTER = ISwapRouter02(swapRouter);
         TOLERANCE = tolerance;
         MIN_USD_FEES_VALUE = minFeeValueInUsd;
         INITIATOR_FEE = initiatorFee;
@@ -176,6 +171,27 @@ contract AutoCompounder is IActionBase {
         // executeAction() triggered as callback function
     }
 
+    /// @notice Called to `msg.sender` after executing a swap via IUniswapV3Pool#swap.
+    /// @dev In the implementation you must pay the pool tokens owed for the swap.
+    /// The caller of this method must be checked to be a UniswapV3Pool deployed by the canonical UniswapV3Factory.
+    /// amount0Delta and amount1Delta can both be 0 if no tokens were swapped.
+    /// @param amount0Delta The amount of token0 that was sent (negative) or must be received (positive) by the pool by
+    /// the end of the swap. If positive, the callback must send that amount of token0 to the pool.
+    /// @param amount1Delta The amount of token1 that was sent (negative) or must be received (positive) by the pool by
+    /// the end of the swap. If positive, the callback must send that amount of token1 to the pool.
+    /// @param data Any data passed through by the caller via the IUniswapV3PoolActions#swap call
+    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external {
+        (address fromToken, address pool) = abi.decode(data, (address, address));
+
+        if (pool != msg.sender) revert CallerIsNotPool();
+
+        if (amount0Delta > 0) {
+            ERC20(fromToken).transfer(msg.sender, uint256(amount0Delta));
+        } else {
+            ERC20(fromToken).transfer(msg.sender, uint256(amount1Delta));
+        }
+    }
+
     /**
      * @notice Callback function called in the Arcadia Account.
      * @param actionData A bytes object containing one actionData struct and the address of the initiator.
@@ -205,7 +221,8 @@ contract AutoCompounder is IActionBase {
         FeeData memory feeData;
         int24 currentTick;
         uint160 sqrtPriceX96;
-        (currentTick, sqrtPriceX96, feeData.usdPriceToken0, feeData.usdPriceToken1) =
+        address pool;
+        (currentTick, sqrtPriceX96, feeData.usdPriceToken0, feeData.usdPriceToken1, pool) =
             _sqrtPriceX96InLimits(posData.token0, posData.token1, posData.fee);
 
         // Collect fees
@@ -226,7 +243,7 @@ contract AutoCompounder is IActionBase {
         feeData.feeAmount1 -= initiatorFee1;
 
         // Get amounts to deposit for current range of position
-        _handleFeeRatiosForDeposit(currentTick, posData, feeData, sqrtPriceX96);
+        _handleFeeRatiosForDeposit(pool, currentTick, posData, feeData, sqrtPriceX96);
 
         uint256 amount0ToDeposit = ERC20(posData.token0).balanceOf(address(this)) - initiatorFee0;
         uint256 amount1ToDeposit = ERC20(posData.token1).balanceOf(address(this)) - initiatorFee1;
@@ -266,10 +283,10 @@ contract AutoCompounder is IActionBase {
     function _sqrtPriceX96InLimits(address token0, address token1, uint24 fee)
         internal
         view
-        returns (int24 currentTick, uint160 sqrtPriceX96, uint256 usdPriceToken0, uint256 usdPriceToken1)
+        returns (int24 currentTick, uint160 sqrtPriceX96, uint256 usdPriceToken0, uint256 usdPriceToken1, address pool)
     {
         // Get sqrtPriceX96 from pool
-        address pool = UNI_V3_FACTORY.getPool(token0, token1, fee);
+        pool = UNI_V3_FACTORY.getPool(token0, token1, fee);
         (sqrtPriceX96, currentTick,,,,,) = IUniswapV3Pool(pool).slot0();
 
         // Get current prices for 1e18 amount of assets
@@ -306,6 +323,7 @@ contract AutoCompounder is IActionBase {
      * @param sqrtPriceX96 The current value of sqrtPriceX96 in the pool.
      */
     function _handleFeeRatiosForDeposit(
+        address pool,
         int24 currentTick,
         PositionData memory posData,
         FeeData memory feeData,
@@ -320,11 +338,11 @@ contract AutoCompounder is IActionBase {
         if (currentTick >= posData.tickUpper) {
             // Position is fully in token 1
             // Swap full amount of token0 to token1
-            _swap(posData.token0, posData.token1, posData.fee, feeData.feeAmount0, sqrtPriceX96, true);
+            _swap(pool, posData.token0, int256(feeData.feeAmount0), sqrtPriceX96, true);
         } else if (currentTick <= posData.tickLower) {
             // Position is fully in token 0
             // Swap full amount of token1 to token0
-            _swap(posData.token1, posData.token0, posData.fee, feeData.feeAmount1, sqrtPriceX96, false);
+            _swap(pool, posData.token1, int256(feeData.feeAmount1), sqrtPriceX96, false);
         } else {
             // Get ratio of current tick for range
             uint256 ticksInRange = uint256(int256(-posData.tickLower + posData.tickUpper));
@@ -338,51 +356,37 @@ contract AutoCompounder is IActionBase {
             if (targetToken0Value < totalFee0Value) {
                 // sell token0 to token1
                 uint256 amount0ToSwap = (totalFee0Value - targetToken0Value) * feeData.feeAmount0 / totalFee0Value;
-                _swap(posData.token0, posData.token1, posData.fee, amount0ToSwap, sqrtPriceX96, true);
+                _swap(pool, posData.token0, int256(amount0ToSwap), sqrtPriceX96, true);
             } else {
                 // sell token1 for token0
                 uint256 token1Ratio = type(uint24).max - token0Ratio;
                 uint256 targetToken1Value = (token1Ratio * (totalFee0Value + totalFee1Value)) >> 24;
                 uint256 amount1ToSwap = (totalFee1Value - targetToken1Value) * feeData.feeAmount1 / totalFee1Value;
-                _swap(posData.token1, posData.token0, posData.fee, amount1ToSwap, sqrtPriceX96, false);
+                _swap(pool, posData.token1, int256(amount1ToSwap), sqrtPriceX96, false);
             }
         }
     }
 
     /**
      * @notice Internal function to swap one asset for another.
+     * @param pool The address of the pool to execute the swap in.
      * @param fromToken The address of the token to swap.
-     * @param toToken The address of the token to swap to.
-     * @param fee_ The fee of the pool to swap through (will be the same as the pool of the position).
      * @param amount The amount of "fromToken" to swap.
      * @param sqrtPriceX96 The current value of sqrtPriceX96 in the pool.
      * @param zeroToOne "true" if swap from token0 to token1 and "false" if from token1 to token0.
      */
-    function _swap(
-        address fromToken,
-        address toToken,
-        uint24 fee_,
-        uint256 amount,
-        uint160 sqrtPriceX96,
-        bool zeroToOne
-    ) internal {
+    function _swap(address pool, address fromToken, int256 amount, uint160 sqrtPriceX96, bool zeroToOne) internal {
         uint256 sqrtPriceLimitX96_ = zeroToOne
             ? sqrtPriceX96 * MAX_LOWER_SQRT_PRICE_DEVIATION / BIPS
             : sqrtPriceX96 * MAX_UPPER_SQRT_PRICE_DEVIATION / BIPS;
 
-        ExactInputSingleParams memory exactInputParams = ExactInputSingleParams({
-            tokenIn: fromToken,
-            tokenOut: toToken,
-            fee: fee_,
-            recipient: address(this),
-            amountIn: amount,
-            amountOutMinimum: 0,
-            sqrtPriceLimitX96: SafeCastLib.safeCastTo160(sqrtPriceLimitX96_)
-        });
+        bytes memory data = abi.encode(fromToken, pool);
+        (int256 deltaAmount0, int256 deltaAmount1) =
+            IUniswapV3Pool(pool).swap(address(this), zeroToOne, amount, uint160(sqrtPriceLimitX96_), data);
 
-        ERC20(fromToken).approve(address(SWAP_ROUTER), amount);
-
-        SWAP_ROUTER.exactInputSingle(exactInputParams);
+        if ((zeroToOne && deltaAmount0 < amount) || (!zeroToOne && deltaAmount1 < amount)) {
+            revert MaxToleranceExceeded();
+        }
     }
 
     /**

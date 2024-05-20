@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
-import { AutoCompounder, ExactInputSingleParams } from "../../../../src/asset-managers/AutoCompounder.sol";
+import { AutoCompounder } from "../../../../src/asset-managers/AutoCompounder.sol";
 import { AutoCompounderExtension } from "../../../utils/extensions/AutoCompounderExtension.sol";
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
@@ -117,7 +117,6 @@ abstract contract AutoCompounder_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, SwapR
             address(registryExtension),
             address(uniswapV3Factory),
             address(nonfungiblePositionManager),
-            address(swapRouter),
             TOLERANCE,
             MIN_USD_FEES_VALUE,
             INITIATOR_FEE

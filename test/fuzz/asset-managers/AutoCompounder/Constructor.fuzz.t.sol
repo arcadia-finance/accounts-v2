@@ -29,7 +29,6 @@ contract Constructor_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
             address(registryExtension),
             address(uniswapV3Factory),
             address(nonfungiblePositionManager),
-            address(swapRouter),
             5001,
             MIN_USD_FEES_VALUE,
             INITIATOR_FEE
@@ -43,7 +42,6 @@ contract Constructor_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
             address(registryExtension),
             address(uniswapV3Factory),
             address(nonfungiblePositionManager),
-            address(swapRouter),
             TOLERANCE,
             MIN_USD_FEES_VALUE,
             2001
@@ -56,7 +54,6 @@ contract Constructor_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
             address(registryExtension),
             address(uniswapV3Factory),
             address(nonfungiblePositionManager),
-            address(swapRouter),
             TOLERANCE,
             MIN_USD_FEES_VALUE,
             INITIATOR_FEE
@@ -65,7 +62,6 @@ contract Constructor_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
         assertEq(address(autoCompounder.UNI_V3_FACTORY()), address(uniswapV3Factory));
         assertEq(address(autoCompounder.REGISTRY()), address(registryExtension));
         assertEq(address(autoCompounder.NONFUNGIBLE_POSITIONMANAGER()), address(nonfungiblePositionManager));
-        assertEq(address(autoCompounder.SWAP_ROUTER()), address(swapRouter));
         // Sqrt of (BIPS + 1000) * BIPS is 10488
         assertEq(autoCompounder.MAX_UPPER_SQRT_PRICE_DEVIATION(), 10_198);
         assertEq(autoCompounder.MAX_LOWER_SQRT_PRICE_DEVIATION(), 9797);

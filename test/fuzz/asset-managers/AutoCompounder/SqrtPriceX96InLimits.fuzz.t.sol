@@ -89,7 +89,7 @@ contract SqrtPriceX96InLimits_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Te
         usdStablePool.setSqrtPriceX96(sqrtPriceX96AtCurrentTick);
 
         // When : calling  sqrtPriceX96InLimits()
-        (int24 tick, uint160 sqrtPriceX96, uint256 usdPriceToken0, uint256 usdPriceToken1) =
+        (int24 tick, uint160 sqrtPriceX96, uint256 usdPriceToken0, uint256 usdPriceToken1, address pool) =
             autoCompounder.sqrtPriceX96InLimits(address(token0), address(token1), POOL_FEE);
 
         // Then : It should return the correct values
@@ -99,5 +99,6 @@ contract SqrtPriceX96InLimits_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Te
         assertEq(usdPriceToken0, usdPriceToken0_);
         assertEq(usdPriceToken1, usdPriceToken1_);
         assertEq(sqrtPriceX96, sqrtPriceX96AtCurrentTick);
+        assertEq(pool, address(usdStablePool));
     }
 }
