@@ -21,34 +21,6 @@ contract HandleFeeRatiosForDeposit_AutoCompounder_Fuzz_Test is AutoCompounder_Fu
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-
-    function testFuzz_revert_FeeValueBelowTreshold(TestVariables memory testVars) public {
-        // Given : Valid State
-        (testVars,) = givenValidBalancedState(testVars);
-
-        testVars.feeAmount0 = ((MIN_USD_FEES_VALUE / 2e18) - 1) * 10 ** token0.decimals();
-        testVars.feeAmount1 = ((MIN_USD_FEES_VALUE / 2e18) - 1) * 10 ** token1.decimals();
-
-        // And : State is persisted
-        setState(testVars, usdStablePool);
-
-        AutoCompounder.PositionData memory posData;
-
-        (uint256 usdPriceToken0, uint256 usdPriceToken1) = getPrices();
-
-        AutoCompounder.FeeData memory feeData = AutoCompounder.FeeData({
-            usdPriceToken0: usdPriceToken0,
-            usdPriceToken1: usdPriceToken1,
-            feeAmount0: testVars.feeAmount0,
-            feeAmount1: testVars.feeAmount1
-        });
-
-        // When : Calling handleFeeRatiosForDeposit()
-        // Then : It should revert as fees value in USD is below treshold for compounding
-        vm.expectRevert(AutoCompounder.FeeValueBelowTreshold.selector);
-        autoCompounder.handleFeeRatiosForDeposit(address(usdStablePool), 0, posData, feeData, 0);
-    }
-
     function testFuzz_success_currentTickGreaterOrEqualToTickUpper(TestVariables memory testVars) public {
         // Given : Valid State
         bool token0HasLowestDecimals;

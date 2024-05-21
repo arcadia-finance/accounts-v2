@@ -16,6 +16,6 @@ import { UniswapV3FactoryExtension } from "./utils/fixtures/uniswap-v3/extension
 import { UniswapV3PoolExtension } from "./utils/fixtures/uniswap-v3/extensions/UniswapV3PoolExtension.sol";
 import { SwapRouter02 } from "../lib/swap-router-contracts/contracts/SwapRouter02.sol";
 
-contract Swap_AutoCompounder_Fuzz_Test is Test {
+contract CompoundFeesForAccount_AutoCompounder_Fuzz_Test is Test {
     function test() public { }
 }

@@ -235,7 +235,15 @@ contract AutoCompounder is IActionBase {
 
         (feeData.feeAmount0, feeData.feeAmount1) = NONFUNGIBLE_POSITIONMANAGER.collect(collectParams);
 
-        // Calculate and remove initiator fee from amounts to rebalance
+        {
+            // Check value of totalFees in USD
+            uint256 totalFee0Value = feeData.usdPriceToken0 * feeData.feeAmount0 / 1e18;
+            uint256 totalFee1Value = feeData.usdPriceToken1 * feeData.feeAmount1 / 1e18;
+
+            if (totalFee0Value + totalFee1Value < MIN_USD_FEES_VALUE) revert FeeValueBelowTreshold();
+        }
+
+        // Calculate and remove initiator fee from fees to rebalance
         uint256 initiatorFee0 = feeData.feeAmount0 * INITIATOR_FEE / BIPS;
         uint256 initiatorFee1 = feeData.feeAmount1 * INITIATOR_FEE / BIPS;
 
@@ -332,9 +340,6 @@ contract AutoCompounder is IActionBase {
         // Check value of totalFees in USD
         uint256 totalFee0Value = feeData.usdPriceToken0 * feeData.feeAmount0 / 1e18;
         uint256 totalFee1Value = feeData.usdPriceToken1 * feeData.feeAmount1 / 1e18;
-
-        // TODO: feeValue is without initiator fee at this point
-        if (totalFee0Value + totalFee1Value < MIN_USD_FEES_VALUE) revert FeeValueBelowTreshold();
 
         if (currentTick >= posData.tickUpper) {
             // Position is fully in token 1

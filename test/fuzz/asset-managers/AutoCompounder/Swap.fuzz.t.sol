@@ -33,7 +33,7 @@ contract Swap_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
         usdStablePool = createPool(token0, token1, sqrtPriceX96, 300);
 
         // And : Liquidity has been added for both tokens
-        uint256 tokenId = addLiquidity(
+        addLiquidity(
             usdStablePool,
             100_000 * 10 ** mockERC20.stable1.decimals(),
             100_000 * 10 ** mockERC20.stable1.decimals(),
@@ -41,8 +41,6 @@ contract Swap_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
             -1000,
             1000
         );
-
-        uint256 limitSqrtPriceX96 = sqrtPriceX96 * autoCompounder.MAX_UPPER_SQRT_PRICE_DEVIATION() / BIPS;
 
         // When : Swapping an amount that will move the price out of tolerance zone, token1 to token0
         // AmountToSwap just above tolerance
@@ -66,7 +64,7 @@ contract Swap_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
         usdStablePool = createPool(token0, token1, sqrtPriceX96, 300);
 
         // And : Liquidity has been added for both tokens
-        uint256 tokenId = addLiquidity(
+        addLiquidity(
             usdStablePool,
             100_000 * 10 ** mockERC20.stable1.decimals(),
             100_000 * 10 ** mockERC20.stable1.decimals(),
@@ -74,8 +72,6 @@ contract Swap_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
             -1000,
             1000
         );
-
-        uint256 limitSqrtPriceX96 = sqrtPriceX96 * autoCompounder.MAX_LOWER_SQRT_PRICE_DEVIATION() / BIPS;
 
         // When : Swapping an amount that will move the price out of tolerance zone, token0 to token1
         // AmountToSwap just above tolerance
@@ -99,7 +95,7 @@ contract Swap_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
         usdStablePool = createPool(token0, token1, sqrtPriceX96, 300);
 
         // And : Liquidity has been added for both tokens
-        uint256 tokenId = addLiquidity(
+        addLiquidity(
             usdStablePool,
             100_000 * 10 ** mockERC20.stable1.decimals(),
             100_000 * 10 ** mockERC20.stable1.decimals(),
@@ -134,7 +130,7 @@ contract Swap_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
         usdStablePool = createPool(token0, token1, sqrtPriceX96, 300);
 
         // And : Liquidity has been added for both tokens
-        uint256 tokenId = addLiquidity(
+        addLiquidity(
             usdStablePool,
             100_000 * 10 ** mockERC20.stable1.decimals(),
             100_000 * 10 ** mockERC20.stable1.decimals(),
