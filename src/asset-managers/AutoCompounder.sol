@@ -171,27 +171,6 @@ contract AutoCompounder is IActionBase {
         // executeAction() triggered as callback function
     }
 
-    /// @notice Called to `msg.sender` after executing a swap via IUniswapV3Pool#swap.
-    /// @dev In the implementation you must pay the pool tokens owed for the swap.
-    /// The caller of this method must be checked to be a UniswapV3Pool deployed by the canonical UniswapV3Factory.
-    /// amount0Delta and amount1Delta can both be 0 if no tokens were swapped.
-    /// @param amount0Delta The amount of token0 that was sent (negative) or must be received (positive) by the pool by
-    /// the end of the swap. If positive, the callback must send that amount of token0 to the pool.
-    /// @param amount1Delta The amount of token1 that was sent (negative) or must be received (positive) by the pool by
-    /// the end of the swap. If positive, the callback must send that amount of token1 to the pool.
-    /// @param data Any data passed through by the caller via the IUniswapV3PoolActions#swap call
-    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external {
-        (address fromToken, address pool) = abi.decode(data, (address, address));
-
-        if (pool != msg.sender) revert CallerIsNotPool();
-
-        if (amount0Delta > 0) {
-            ERC20(fromToken).safeTransfer(msg.sender, uint256(amount0Delta));
-        } else {
-            ERC20(fromToken).safeTransfer(msg.sender, uint256(amount1Delta));
-        }
-    }
-
     /**
      * @notice Callback function called in the Arcadia Account.
      * @param actionData A bytes object containing one actionData struct and the address of the initiator.
@@ -279,51 +258,6 @@ contract AutoCompounder is IActionBase {
     }
 
     /**
-     * @notice Internal function to ensure the pool's current price remains within the specified tolerance range of the external price.
-     * @param token0 The contract address of token 0 of the position.
-     * @param token1 The contract address of token 1 of the position.
-     * @param fee The fee of the pool to which the position is related.
-     * @return currentTick The current tick of the pool.
-     * @return sqrtPriceX96 The current value of sqrtPriceX96 in the pool.
-     * @return usdPriceToken0 The oracle price of token0 for 1e18 tokens.
-     * @return usdPriceToken1 The oracle price of token1 for 1e18 tokens.
-     */
-    function _sqrtPriceX96InLimits(address token0, address token1, uint24 fee)
-        internal
-        view
-        returns (int24 currentTick, uint160 sqrtPriceX96, uint256 usdPriceToken0, uint256 usdPriceToken1, address pool)
-    {
-        // Get sqrtPriceX96 from pool
-        pool = UNI_V3_FACTORY.getPool(token0, token1, fee);
-        (sqrtPriceX96, currentTick,,,,,) = IUniswapV3Pool(pool).slot0();
-
-        // Get current prices for 1e18 amount of assets
-        address[] memory assets = new address[](2);
-        assets[0] = token0;
-        assets[1] = token1;
-        uint256[] memory assetIds = new uint256[](2);
-        uint256[] memory assetAmounts = new uint256[](2);
-        assetAmounts[0] = 1e18;
-        assetAmounts[1] = 1e18;
-
-        AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
-            REGISTRY.getValuesInUsd(address(0), assets, assetIds, assetAmounts);
-
-        usdPriceToken0 = valuesAndRiskFactors[0].assetValue;
-        usdPriceToken1 = valuesAndRiskFactors[1].assetValue;
-
-        // Recalculate sqrtPriceX96 based on external prices
-        uint160 sqrtPriceX96Calculated = _getSqrtPriceX96(usdPriceToken0, usdPriceToken1);
-        int24 currentTickCalculated = TickMath.getTickAtSqrtRatio(sqrtPriceX96Calculated);
-
-        // Check price deviation tolerance
-        int24 tolerance = int24(uint24(TOLERANCE));
-        if (currentTick < currentTickCalculated - tolerance || currentTick > currentTickCalculated + tolerance) {
-            revert PriceToleranceExceeded();
-        }
-    }
-
-    /**
      * @notice Calculates the current ratio at which fees should be deposited in the position, swaps one token to another if needed.
      * @param currentTick The current tick of the pool.
      * @param posData A struct with variables to track for a specific position.
@@ -373,6 +307,31 @@ contract AutoCompounder is IActionBase {
         }
     }
 
+    /* ///////////////////////////////////////////////////////////////
+                             UNISWAP V3 SWAP LOGIC
+    /////////////////////////////////////////////////////////////// */
+
+    /// @notice Called to `msg.sender` after executing a swap via IUniswapV3Pool#swap.
+    /// @dev In the implementation you must pay the pool tokens owed for the swap.
+    /// The caller of this method must be checked to be a UniswapV3Pool deployed by the canonical UniswapV3Factory.
+    /// amount0Delta and amount1Delta can both be 0 if no tokens were swapped.
+    /// @param amount0Delta The amount of token0 that was sent (negative) or must be received (positive) by the pool by
+    /// the end of the swap. If positive, the callback must send that amount of token0 to the pool.
+    /// @param amount1Delta The amount of token1 that was sent (negative) or must be received (positive) by the pool by
+    /// the end of the swap. If positive, the callback must send that amount of token1 to the pool.
+    /// @param data Any data passed through by the caller via the IUniswapV3PoolActions#swap call
+    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external {
+        (address fromToken, address pool) = abi.decode(data, (address, address));
+
+        if (pool != msg.sender) revert CallerIsNotPool();
+
+        if (amount0Delta > 0) {
+            ERC20(fromToken).safeTransfer(msg.sender, uint256(amount0Delta));
+        } else {
+            ERC20(fromToken).safeTransfer(msg.sender, uint256(amount1Delta));
+        }
+    }
+
     /**
      * @notice Internal function to swap one asset for another.
      * @param pool The address of the pool to execute the swap in.
@@ -392,6 +351,55 @@ contract AutoCompounder is IActionBase {
 
         if ((zeroToOne && deltaAmount0 < amount) || (!zeroToOne && deltaAmount1 < amount)) {
             revert MaxToleranceExceeded();
+        }
+    }
+
+    /* ///////////////////////////////////////////////////////////////
+                     POOL PRICING TOLERANCE LOGIC
+    /////////////////////////////////////////////////////////////// */
+
+    /**
+     * @notice Internal function to ensure the pool's current price remains within the specified tolerance range of the external price.
+     * @param token0 The contract address of token 0 of the position.
+     * @param token1 The contract address of token 1 of the position.
+     * @param fee The fee of the pool to which the position is related.
+     * @return currentTick The current tick of the pool.
+     * @return sqrtPriceX96 The current value of sqrtPriceX96 in the pool.
+     * @return usdPriceToken0 The oracle price of token0 for 1e18 tokens.
+     * @return usdPriceToken1 The oracle price of token1 for 1e18 tokens.
+     */
+    function _sqrtPriceX96InLimits(address token0, address token1, uint24 fee)
+        internal
+        view
+        returns (int24 currentTick, uint160 sqrtPriceX96, uint256 usdPriceToken0, uint256 usdPriceToken1, address pool)
+    {
+        // Get sqrtPriceX96 from pool
+        pool = UNI_V3_FACTORY.getPool(token0, token1, fee);
+        (sqrtPriceX96, currentTick,,,,,) = IUniswapV3Pool(pool).slot0();
+
+        // Get current prices for 1e18 amount of assets
+        address[] memory assets = new address[](2);
+        assets[0] = token0;
+        assets[1] = token1;
+        uint256[] memory assetIds = new uint256[](2);
+        uint256[] memory assetAmounts = new uint256[](2);
+        assetAmounts[0] = 1e18;
+        assetAmounts[1] = 1e18;
+
+        AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
+            REGISTRY.getValuesInUsd(address(0), assets, assetIds, assetAmounts);
+
+        usdPriceToken0 = valuesAndRiskFactors[0].assetValue;
+        usdPriceToken1 = valuesAndRiskFactors[1].assetValue;
+
+        // Recalculate sqrtPriceX96 based on external prices
+        uint160 sqrtPriceX96Calculated = _getSqrtPriceX96(usdPriceToken0, usdPriceToken1);
+        int24 currentTickCalculated = TickMath.getTickAtSqrtRatio(sqrtPriceX96Calculated);
+
+        // Check price deviation tolerance
+        int24 tolerance = int24(uint24(TOLERANCE));
+        if (currentTick < currentTickCalculated - tolerance || currentTick > currentTickCalculated + tolerance) {
+            revert PriceToleranceExceeded();
         }
     }
 
@@ -422,6 +430,10 @@ contract AutoCompounder is IActionBase {
         // Unsafe cast: Cast will only overflow when priceToken0/priceToken1 >= 2^128.
         sqrtPriceX96 = uint160((sqrtPriceXd14 << FixedPoint96.RESOLUTION) / 1e14);
     }
+
+    /* ///////////////////////////////////////////////////////////////
+                      ERC721 HANDLER FUNCTION
+    /////////////////////////////////////////////////////////////// */
 
     /* 
     @notice Returns the onERC721Received selector.
