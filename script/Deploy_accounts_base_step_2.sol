@@ -5,21 +5,19 @@
 pragma solidity 0.8.22;
 
 import "../lib/forge-std/src/Test.sol";
-import { DeployAddresses, DeployNumbers, DeployRiskConstantsBase } from "./Constants/DeployConstants.sol";
-
-import { Factory } from "../src/Factory.sol";
-import { AccountV1 } from "../src/accounts/AccountV1.sol";
-import { Registry } from "../src/Registry.sol";
-import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
-import { ERC20PrimaryAM } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
-import { UniswapV3AM } from "../src/asset-modules/UniswapV3/UniswapV3AM.sol";
-import { StargateAM } from "./../src/asset-modules/Stargate-Finance/StargateAM.sol";
-import { StakedStargateAM } from "./../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
 
 import { ActionMultiCall } from "../src/actions/MultiCall.sol";
-
-import { ILendingPool } from "./interfaces/ILendingPool.sol";
+import { ArcadiaSafes, PrimaryAssets, RiskParameters } from "./utils/Constants.sol";
+import { AccountV1 } from "../src/accounts/AccountV1.sol";
+import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
+import { ERC20PrimaryAM } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
+import { Factory } from "../src/Factory.sol";
+import { ILendingPool } from "./interfaces/ILendingPool.sol";
+import { Registry } from "../src/Registry.sol";
+import { StakedStargateAM } from "./../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
+import { StargateAM } from "./../src/asset-modules/Stargate-Finance/StargateAM.sol";
+import { UniswapV3AM } from "../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 
 contract ArcadiaAccountDeploymentStep2 is Test {
     Factory internal factory;
@@ -52,20 +50,20 @@ contract ArcadiaAccountDeploymentStep2 is Test {
         //                   ADDRESSES
         // ///////////////////////////////////////////////////////////////*/
 
-        comp = ERC20(DeployAddresses.comp_base);
-        dai = ERC20(DeployAddresses.dai_base);
-        weth = ERC20(DeployAddresses.weth_base);
-        usdc = ERC20(DeployAddresses.usdc_base);
-        usdbc = ERC20(DeployAddresses.usdbc_base);
-        cbeth = ERC20(DeployAddresses.cbeth_base);
-        reth = ERC20(DeployAddresses.reth_base);
-        stg = ERC20(DeployAddresses.stg_base);
+        comp = ERC20(PrimaryAssets.COMP);
+        dai = ERC20(PrimaryAssets.DAI);
+        weth = ERC20(PrimaryAssets.WETH);
+        usdc = ERC20(PrimaryAssets.USDC);
+        usdbc = ERC20(PrimaryAssets.USDBC);
+        cbeth = ERC20(PrimaryAssets.CBETH);
+        reth = ERC20(PrimaryAssets.RETH);
+        stg = ERC20(PrimaryAssets.STG);
     }
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_DEPLOYER_BASE");
         address deployerAddress = vm.addr(deployerPrivateKey);
-        address protocolOwnerAddress = DeployAddresses.protocolOwner_base;
+        address protocolOwnerAddress = ArcadiaSafes.OWNER;
         assertEq(deployerAddress, protocolOwnerAddress);
 
         factory = Factory(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
@@ -83,182 +81,182 @@ contract ArcadiaAccountDeploymentStep2 is Test {
         vm.startBroadcast(deployerPrivateKey);
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
-            DeployAddresses.comp_base,
+            PrimaryAssets.COMP,
             0,
-            DeployRiskConstantsBase.comp_exposure_eth,
-            DeployRiskConstantsBase.comp_collFact_eth,
-            DeployRiskConstantsBase.comp_liqFact_eth
+            RiskParameters.EXPOSURE_COMP_WETH,
+            RiskParameters.COL_FAC_COMP_WETH,
+            RiskParameters.LIQ_FAC_COMP_WETH
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
-            DeployAddresses.dai_base,
+            PrimaryAssets.DAI,
             0,
-            DeployRiskConstantsBase.dai_exposure_eth,
-            DeployRiskConstantsBase.dai_collFact_eth,
-            DeployRiskConstantsBase.dai_liqFact_eth
+            RiskParameters.EXPOSURE_DAI_WETH,
+            RiskParameters.COL_FAC_DAI_WETH,
+            RiskParameters.LIQ_FAC_DAI_WETH
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
-            DeployAddresses.weth_base,
+            PrimaryAssets.WETH,
             0,
-            DeployRiskConstantsBase.eth_exposure_eth,
-            DeployRiskConstantsBase.eth_collFact_eth,
-            DeployRiskConstantsBase.eth_liqFact_eth
+            RiskParameters.EXPOSURE_WETH_WETH,
+            RiskParameters.COL_FAC_WETH_WETH,
+            RiskParameters.LIQ_FAC_WETH_WETH
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
-            DeployAddresses.usdc_base,
+            PrimaryAssets.USDC,
             0,
-            DeployRiskConstantsBase.usdc_exposure_eth,
-            DeployRiskConstantsBase.usdc_collFact_eth,
-            DeployRiskConstantsBase.usdc_liqFact_eth
+            RiskParameters.EXPOSURE_USDC_WETH,
+            RiskParameters.COL_FAC_USDC_WETH,
+            RiskParameters.LIQ_FAC_USDC_WETH
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
-            DeployAddresses.usdbc_base,
+            PrimaryAssets.USDBC,
             0,
-            DeployRiskConstantsBase.usdbc_exposure_eth,
-            DeployRiskConstantsBase.usdbc_collFact_eth,
-            DeployRiskConstantsBase.usdbc_liqFact_eth
+            RiskParameters.EXPOSURE_USDBC_WETH,
+            RiskParameters.COL_FAC_USDBC_WETH,
+            RiskParameters.LIQ_FAC_USDBC_WETH
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
-            DeployAddresses.cbeth_base,
+            PrimaryAssets.CBETH,
             0,
-            DeployRiskConstantsBase.cbeth_exposure_eth,
-            DeployRiskConstantsBase.cbeth_collFact_eth,
-            DeployRiskConstantsBase.cbeth_liqFact_eth
+            RiskParameters.EXPOSURE_CBETH_WETH,
+            RiskParameters.COL_FAC_CBETH_WETH,
+            RiskParameters.LIQ_FAC_CBETH_WETH
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
-            DeployAddresses.reth_base,
+            PrimaryAssets.RETH,
             0,
-            DeployRiskConstantsBase.reth_exposure_eth,
-            DeployRiskConstantsBase.reth_collFact_eth,
-            DeployRiskConstantsBase.reth_liqFact_eth
+            RiskParameters.EXPOSURE_RETH_WETH,
+            RiskParameters.COL_FAC_RETH_WETH,
+            RiskParameters.LIQ_FAC_RETH_WETH
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
-            DeployAddresses.stg_base,
+            PrimaryAssets.STG,
             0,
-            DeployRiskConstantsBase.stg_exposure_eth,
-            DeployRiskConstantsBase.stg_collFact_eth,
-            DeployRiskConstantsBase.stg_liqFact_eth
+            RiskParameters.EXPOSURE_STG_WETH,
+            RiskParameters.COL_FAC_STG_WETH,
+            RiskParameters.LIQ_FAC_STG_WETH
         );
 
         registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
-            DeployAddresses.comp_base,
+            PrimaryAssets.COMP,
             0,
-            DeployRiskConstantsBase.comp_exposure_usdc,
-            DeployRiskConstantsBase.comp_collFact_usdc,
-            DeployRiskConstantsBase.comp_liqFact_usdc
+            RiskParameters.EXPOSURE_COMP_USDC,
+            RiskParameters.COL_FAC_COMP_USDC,
+            RiskParameters.LIQ_FAC_COMP_USDC
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
-            DeployAddresses.dai_base,
+            PrimaryAssets.DAI,
             0,
-            DeployRiskConstantsBase.dai_exposure_usdc,
-            DeployRiskConstantsBase.dai_collFact_usdc,
-            DeployRiskConstantsBase.dai_liqFact_usdc
+            RiskParameters.EXPOSURE_DAI_USDC,
+            RiskParameters.COL_FAC_DAI_USDC,
+            RiskParameters.LIQ_FAC_DAI_USDC
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
-            DeployAddresses.weth_base,
+            PrimaryAssets.WETH,
             0,
-            DeployRiskConstantsBase.eth_exposure_usdc,
-            DeployRiskConstantsBase.eth_collFact_usdc,
-            DeployRiskConstantsBase.eth_liqFact_usdc
+            RiskParameters.EXPOSURE_WETH_USDC,
+            RiskParameters.COL_FAC_WETH_USDC,
+            RiskParameters.LIQ_FAC_WETH_USDC
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
-            DeployAddresses.usdc_base,
+            PrimaryAssets.USDC,
             0,
-            DeployRiskConstantsBase.usdc_exposure_usdc,
-            DeployRiskConstantsBase.usdc_collFact_usdc,
-            DeployRiskConstantsBase.usdc_liqFact_usdc
+            RiskParameters.EXPOSURE_USDC_USDC,
+            RiskParameters.COL_FAC_USDC_USDC,
+            RiskParameters.LIQ_FAC_USDC_USDC
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
-            DeployAddresses.usdbc_base,
+            PrimaryAssets.USDBC,
             0,
-            DeployRiskConstantsBase.usdbc_exposure_usdc,
-            DeployRiskConstantsBase.usdbc_collFact_usdc,
-            DeployRiskConstantsBase.usdbc_liqFact_usdc
+            RiskParameters.EXPOSURE_USDBC_USDC,
+            RiskParameters.COL_FAC_USDBC_USDC,
+            RiskParameters.LIQ_FAC_USDBC_USDC
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
-            DeployAddresses.cbeth_base,
+            PrimaryAssets.CBETH,
             0,
-            DeployRiskConstantsBase.cbeth_exposure_usdc,
-            DeployRiskConstantsBase.cbeth_collFact_usdc,
-            DeployRiskConstantsBase.cbeth_liqFact_usdc
+            RiskParameters.EXPOSURE_CBETH_USDC,
+            RiskParameters.COL_FAC_CBETH_USDC,
+            RiskParameters.LIQ_FAC_CBETH_USDC
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
-            DeployAddresses.reth_base,
+            PrimaryAssets.RETH,
             0,
-            DeployRiskConstantsBase.reth_exposure_usdc,
-            DeployRiskConstantsBase.reth_collFact_usdc,
-            DeployRiskConstantsBase.reth_liqFact_usdc
+            RiskParameters.EXPOSURE_RETH_USDC,
+            RiskParameters.COL_FAC_RETH_USDC,
+            RiskParameters.LIQ_FAC_RETH_USDC
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
-            DeployAddresses.stg_base,
+            PrimaryAssets.STG,
             0,
-            DeployRiskConstantsBase.stg_exposure_usdc,
-            DeployRiskConstantsBase.stg_collFact_usdc,
-            DeployRiskConstantsBase.stg_liqFact_usdc
+            RiskParameters.EXPOSURE_STG_USDC,
+            RiskParameters.COL_FAC_STG_USDC,
+            RiskParameters.LIQ_FAC_STG_USDC
         );
 
         registry.setRiskParametersOfDerivedAM(
             address(usdcLendingPool),
             address(uniswapV3AM),
-            DeployRiskConstantsBase.uniswapV3AM_exposure_usdc,
-            DeployRiskConstantsBase.uniswapV3AM_riskFact_usdc
+            RiskParameters.EXPOSURE_UNISWAPV3_AM_USDC,
+            RiskParameters.RISK_FAC_UNISWAPV3_AM_USDC
         );
         registry.setRiskParametersOfDerivedAM(
             address(wethLendingPool),
             address(uniswapV3AM),
-            DeployRiskConstantsBase.uniswapV3AM_exposure_eth,
-            DeployRiskConstantsBase.uniswapV3AM_riskFact_eth
+            RiskParameters.EXPOSURE_UNISWAPV3_AM_WETH,
+            RiskParameters.RISK_FAC_UNISWAPV3_AM_WETH
         );
         registry.setRiskParametersOfDerivedAM(
             address(usdcLendingPool),
             address(stargateAM),
-            DeployRiskConstantsBase.stargateAM_exposure_usdc,
-            DeployRiskConstantsBase.stargateAM_riskFact_usdc
+            RiskParameters.EXPOSURE_STARGATE_AM_USDC,
+            RiskParameters.RISK_FAC_STARGATE_AM_USDC
         );
         registry.setRiskParametersOfDerivedAM(
             address(wethLendingPool),
             address(stargateAM),
-            DeployRiskConstantsBase.stargateAM_exposure_eth,
-            DeployRiskConstantsBase.stargateAM_riskFact_eth
+            RiskParameters.EXPOSURE_STARGATE_AM_WETH,
+            RiskParameters.RISK_FAC_STARGATE_AM_WETH
         );
         registry.setRiskParametersOfDerivedAM(
             address(usdcLendingPool),
             address(stakedStargateAM),
-            DeployRiskConstantsBase.stakedStargateAM_exposure_usdc,
-            DeployRiskConstantsBase.stakedStargateAM_riskFact_usdc
+            RiskParameters.EXPOSURE_STAKED_STARGATE_AM_USDC,
+            RiskParameters.RISK_FAC_STAKED_STARGATE_AM_USDC
         );
         registry.setRiskParametersOfDerivedAM(
             address(wethLendingPool),
             address(stakedStargateAM),
-            DeployRiskConstantsBase.stakedStargateAM_exposure_eth,
-            DeployRiskConstantsBase.stakedStargateAM_riskFact_eth
+            RiskParameters.EXPOSURE_STAKED_STARGATE_AM_WETH,
+            RiskParameters.RISK_FAC_STAKED_STARGATE_AM_WETH
         );
 
         registry.setRiskParameters(
             address(usdcLendingPool),
-            DeployRiskConstantsBase.minUsdValue_usdc,
-            DeployRiskConstantsBase.gracePeriod_usdc,
-            DeployRiskConstantsBase.maxRecursiveCalls_usdc
+            RiskParameters.MIN_USD_VALUE_USDC,
+            RiskParameters.GRACE_PERIOD_USDC,
+            RiskParameters.MAX_RECURSIVE_CALLS_USDC
         );
         registry.setRiskParameters(
             address(wethLendingPool),
-            DeployRiskConstantsBase.minUsdValue_eth,
-            DeployRiskConstantsBase.gracePeriod_eth,
-            DeployRiskConstantsBase.maxRecursiveCalls_eth
+            RiskParameters.MIN_USD_VALUE_WETH,
+            RiskParameters.GRACE_PERIOD_WETH,
+            RiskParameters.MAX_RECURSIVE_CALLS_WETH
         );
 
         vm.stopBroadcast();
@@ -288,113 +286,113 @@ contract ArcadiaAccountDeploymentStep2 is Test {
 
         (uint16[] memory collateralFactors_weth, uint16[] memory liquidationFactors_weth) =
             registry.getRiskFactors(address(wethLendingPool), assetAddresses, assetIds);
-        assertEq(collateralFactors_weth[0], DeployRiskConstantsBase.comp_collFact_eth);
-        assertEq(liquidationFactors_weth[0], DeployRiskConstantsBase.comp_liqFact_eth);
-        assertEq(collateralFactors_weth[1], DeployRiskConstantsBase.dai_collFact_eth);
-        assertEq(liquidationFactors_weth[1], DeployRiskConstantsBase.dai_liqFact_eth);
-        assertEq(collateralFactors_weth[2], DeployRiskConstantsBase.eth_collFact_eth);
-        assertEq(liquidationFactors_weth[2], DeployRiskConstantsBase.eth_liqFact_eth);
-        assertEq(collateralFactors_weth[3], DeployRiskConstantsBase.usdc_collFact_eth);
-        assertEq(liquidationFactors_weth[3], DeployRiskConstantsBase.usdc_liqFact_eth);
-        assertEq(collateralFactors_weth[4], DeployRiskConstantsBase.usdbc_collFact_eth);
-        assertEq(liquidationFactors_weth[4], DeployRiskConstantsBase.usdbc_liqFact_eth);
-        assertEq(collateralFactors_weth[5], DeployRiskConstantsBase.cbeth_collFact_eth);
-        assertEq(liquidationFactors_weth[5], DeployRiskConstantsBase.cbeth_liqFact_eth);
-        assertEq(collateralFactors_weth[6], DeployRiskConstantsBase.reth_collFact_eth);
-        assertEq(liquidationFactors_weth[6], DeployRiskConstantsBase.reth_liqFact_eth);
-        assertEq(collateralFactors_weth[7], DeployRiskConstantsBase.stg_collFact_eth);
-        assertEq(liquidationFactors_weth[7], DeployRiskConstantsBase.stg_liqFact_eth);
+        assertEq(collateralFactors_weth[0], RiskParameters.COL_FAC_COMP_WETH);
+        assertEq(liquidationFactors_weth[0], RiskParameters.LIQ_FAC_COMP_WETH);
+        assertEq(collateralFactors_weth[1], RiskParameters.COL_FAC_DAI_WETH);
+        assertEq(liquidationFactors_weth[1], RiskParameters.LIQ_FAC_DAI_WETH);
+        assertEq(collateralFactors_weth[2], RiskParameters.COL_FAC_WETH_WETH);
+        assertEq(liquidationFactors_weth[2], RiskParameters.LIQ_FAC_WETH_WETH);
+        assertEq(collateralFactors_weth[3], RiskParameters.COL_FAC_USDC_WETH);
+        assertEq(liquidationFactors_weth[3], RiskParameters.LIQ_FAC_USDC_WETH);
+        assertEq(collateralFactors_weth[4], RiskParameters.COL_FAC_USDBC_WETH);
+        assertEq(liquidationFactors_weth[4], RiskParameters.LIQ_FAC_USDBC_WETH);
+        assertEq(collateralFactors_weth[5], RiskParameters.COL_FAC_CBETH_WETH);
+        assertEq(liquidationFactors_weth[5], RiskParameters.LIQ_FAC_CBETH_WETH);
+        assertEq(collateralFactors_weth[6], RiskParameters.COL_FAC_RETH_WETH);
+        assertEq(liquidationFactors_weth[6], RiskParameters.LIQ_FAC_RETH_WETH);
+        assertEq(collateralFactors_weth[7], RiskParameters.COL_FAC_STG_WETH);
+        assertEq(liquidationFactors_weth[7], RiskParameters.LIQ_FAC_STG_WETH);
 
         (uint16[] memory collateralFactors_usdc, uint16[] memory liquidationFactors_usdc) =
             registry.getRiskFactors(address(usdcLendingPool), assetAddresses, assetIds);
-        assertEq(collateralFactors_usdc[0], DeployRiskConstantsBase.comp_collFact_usdc);
-        assertEq(liquidationFactors_usdc[0], DeployRiskConstantsBase.comp_liqFact_usdc);
-        assertEq(collateralFactors_usdc[1], DeployRiskConstantsBase.dai_collFact_usdc);
-        assertEq(liquidationFactors_usdc[1], DeployRiskConstantsBase.dai_liqFact_usdc);
-        assertEq(collateralFactors_usdc[2], DeployRiskConstantsBase.eth_collFact_usdc);
-        assertEq(liquidationFactors_usdc[2], DeployRiskConstantsBase.eth_liqFact_usdc);
-        assertEq(collateralFactors_usdc[3], DeployRiskConstantsBase.usdc_collFact_usdc);
-        assertEq(liquidationFactors_usdc[3], DeployRiskConstantsBase.usdc_liqFact_usdc);
-        assertEq(collateralFactors_usdc[4], DeployRiskConstantsBase.usdbc_collFact_usdc);
-        assertEq(liquidationFactors_usdc[4], DeployRiskConstantsBase.usdbc_liqFact_usdc);
-        assertEq(collateralFactors_usdc[5], DeployRiskConstantsBase.cbeth_collFact_usdc);
-        assertEq(liquidationFactors_usdc[5], DeployRiskConstantsBase.cbeth_liqFact_usdc);
-        assertEq(collateralFactors_usdc[6], DeployRiskConstantsBase.reth_collFact_usdc);
-        assertEq(liquidationFactors_usdc[6], DeployRiskConstantsBase.reth_liqFact_usdc);
-        assertEq(collateralFactors_usdc[7], DeployRiskConstantsBase.stg_collFact_usdc);
-        assertEq(liquidationFactors_usdc[7], DeployRiskConstantsBase.stg_liqFact_usdc);
+        assertEq(collateralFactors_usdc[0], RiskParameters.COL_FAC_COMP_USDC);
+        assertEq(liquidationFactors_usdc[0], RiskParameters.LIQ_FAC_COMP_USDC);
+        assertEq(collateralFactors_usdc[1], RiskParameters.COL_FAC_DAI_USDC);
+        assertEq(liquidationFactors_usdc[1], RiskParameters.LIQ_FAC_DAI_USDC);
+        assertEq(collateralFactors_usdc[2], RiskParameters.COL_FAC_WETH_USDC);
+        assertEq(liquidationFactors_usdc[2], RiskParameters.LIQ_FAC_WETH_USDC);
+        assertEq(collateralFactors_usdc[3], RiskParameters.COL_FAC_USDC_USDC);
+        assertEq(liquidationFactors_usdc[3], RiskParameters.LIQ_FAC_USDC_USDC);
+        assertEq(collateralFactors_usdc[4], RiskParameters.COL_FAC_USDBC_USDC);
+        assertEq(liquidationFactors_usdc[4], RiskParameters.LIQ_FAC_USDBC_USDC);
+        assertEq(collateralFactors_usdc[5], RiskParameters.COL_FAC_CBETH_USDC);
+        assertEq(liquidationFactors_usdc[5], RiskParameters.LIQ_FAC_CBETH_USDC);
+        assertEq(collateralFactors_usdc[6], RiskParameters.COL_FAC_RETH_USDC);
+        assertEq(liquidationFactors_usdc[6], RiskParameters.LIQ_FAC_RETH_USDC);
+        assertEq(collateralFactors_usdc[7], RiskParameters.COL_FAC_STG_USDC);
+        assertEq(liquidationFactors_usdc[7], RiskParameters.LIQ_FAC_STG_USDC);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(comp)));
         (, uint112 exposure,,) = erc20PrimaryAM.riskParams(address(wethLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.comp_exposure_eth);
+        assertEq(exposure, RiskParameters.EXPOSURE_COMP_WETH);
         (, exposure,,) = erc20PrimaryAM.riskParams(address(usdcLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.comp_exposure_usdc);
+        assertEq(exposure, RiskParameters.EXPOSURE_COMP_USDC);
         assetKey = bytes32(abi.encodePacked(uint96(0), address(dai)));
         (, exposure,,) = erc20PrimaryAM.riskParams(address(wethLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.dai_exposure_eth);
+        assertEq(exposure, RiskParameters.EXPOSURE_DAI_WETH);
         (, exposure,,) = erc20PrimaryAM.riskParams(address(usdcLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.dai_exposure_usdc);
+        assertEq(exposure, RiskParameters.EXPOSURE_DAI_USDC);
         assetKey = bytes32(abi.encodePacked(uint96(0), address(weth)));
         (, exposure,,) = erc20PrimaryAM.riskParams(address(wethLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.eth_exposure_eth);
+        assertEq(exposure, RiskParameters.EXPOSURE_WETH_WETH);
         (, exposure,,) = erc20PrimaryAM.riskParams(address(usdcLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.eth_exposure_usdc);
+        assertEq(exposure, RiskParameters.EXPOSURE_WETH_USDC);
         assetKey = bytes32(abi.encodePacked(uint96(0), address(usdc)));
         (, exposure,,) = erc20PrimaryAM.riskParams(address(wethLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.usdc_exposure_eth);
+        assertEq(exposure, RiskParameters.EXPOSURE_USDC_WETH);
         (, exposure,,) = erc20PrimaryAM.riskParams(address(usdcLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.usdc_exposure_usdc);
+        assertEq(exposure, RiskParameters.EXPOSURE_USDC_USDC);
         assetKey = bytes32(abi.encodePacked(uint96(0), address(usdbc)));
         (, exposure,,) = erc20PrimaryAM.riskParams(address(wethLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.usdbc_exposure_eth);
+        assertEq(exposure, RiskParameters.EXPOSURE_USDBC_WETH);
         (, exposure,,) = erc20PrimaryAM.riskParams(address(usdcLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.usdbc_exposure_usdc);
+        assertEq(exposure, RiskParameters.EXPOSURE_USDBC_USDC);
         assetKey = bytes32(abi.encodePacked(uint96(0), address(cbeth)));
         (, exposure,,) = erc20PrimaryAM.riskParams(address(wethLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.cbeth_exposure_eth);
+        assertEq(exposure, RiskParameters.EXPOSURE_CBETH_WETH);
         (, exposure,,) = erc20PrimaryAM.riskParams(address(usdcLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.cbeth_exposure_usdc);
+        assertEq(exposure, RiskParameters.EXPOSURE_CBETH_USDC);
         assetKey = bytes32(abi.encodePacked(uint96(0), address(reth)));
         (, exposure,,) = erc20PrimaryAM.riskParams(address(wethLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.reth_exposure_eth);
+        assertEq(exposure, RiskParameters.EXPOSURE_RETH_WETH);
         (, exposure,,) = erc20PrimaryAM.riskParams(address(usdcLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.reth_exposure_usdc);
+        assertEq(exposure, RiskParameters.EXPOSURE_RETH_USDC);
         assetKey = bytes32(abi.encodePacked(uint96(0), address(stg)));
         (, exposure,,) = erc20PrimaryAM.riskParams(address(wethLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.stg_exposure_eth);
+        assertEq(exposure, RiskParameters.EXPOSURE_STG_WETH);
         (, exposure,,) = erc20PrimaryAM.riskParams(address(usdcLendingPool), assetKey);
-        assertEq(exposure, DeployRiskConstantsBase.stg_exposure_usdc);
+        assertEq(exposure, RiskParameters.EXPOSURE_STG_USDC);
 
         uint16 riskFactor;
         (, exposure, riskFactor) = uniswapV3AM.riskParams(address(wethLendingPool));
-        assertEq(exposure, DeployRiskConstantsBase.uniswapV3AM_exposure_eth);
-        assertEq(riskFactor, DeployRiskConstantsBase.uniswapV3AM_riskFact_eth);
+        assertEq(exposure, RiskParameters.EXPOSURE_UNISWAPV3_AM_WETH);
+        assertEq(riskFactor, RiskParameters.RISK_FAC_UNISWAPV3_AM_WETH);
         (, exposure, riskFactor) = uniswapV3AM.riskParams(address(usdcLendingPool));
-        assertEq(exposure, DeployRiskConstantsBase.uniswapV3AM_exposure_usdc);
-        assertEq(riskFactor, DeployRiskConstantsBase.uniswapV3AM_riskFact_usdc);
+        assertEq(exposure, RiskParameters.EXPOSURE_UNISWAPV3_AM_USDC);
+        assertEq(riskFactor, RiskParameters.RISK_FAC_UNISWAPV3_AM_USDC);
         (, exposure, riskFactor) = stargateAM.riskParams(address(wethLendingPool));
-        assertEq(exposure, DeployRiskConstantsBase.stargateAM_exposure_eth);
-        assertEq(riskFactor, DeployRiskConstantsBase.stargateAM_riskFact_eth);
+        assertEq(exposure, RiskParameters.EXPOSURE_STARGATE_AM_WETH);
+        assertEq(riskFactor, RiskParameters.RISK_FAC_STARGATE_AM_WETH);
         (, exposure, riskFactor) = stargateAM.riskParams(address(usdcLendingPool));
-        assertEq(exposure, DeployRiskConstantsBase.stargateAM_exposure_usdc);
-        assertEq(riskFactor, DeployRiskConstantsBase.stargateAM_riskFact_usdc);
+        assertEq(exposure, RiskParameters.EXPOSURE_STARGATE_AM_USDC);
+        assertEq(riskFactor, RiskParameters.RISK_FAC_STARGATE_AM_USDC);
         (, exposure, riskFactor) = stakedStargateAM.riskParams(address(wethLendingPool));
-        assertEq(exposure, DeployRiskConstantsBase.stakedStargateAM_exposure_eth);
-        assertEq(riskFactor, DeployRiskConstantsBase.stakedStargateAM_riskFact_eth);
+        assertEq(exposure, RiskParameters.EXPOSURE_STAKED_STARGATE_AM_WETH);
+        assertEq(riskFactor, RiskParameters.RISK_FAC_STAKED_STARGATE_AM_WETH);
         (, exposure, riskFactor) = stakedStargateAM.riskParams(address(usdcLendingPool));
-        assertEq(exposure, DeployRiskConstantsBase.stakedStargateAM_exposure_usdc);
-        assertEq(riskFactor, DeployRiskConstantsBase.stakedStargateAM_riskFact_usdc);
+        assertEq(exposure, RiskParameters.EXPOSURE_STAKED_STARGATE_AM_USDC);
+        assertEq(riskFactor, RiskParameters.RISK_FAC_STAKED_STARGATE_AM_USDC);
 
-        (uint128 minUsdValue_weth, uint64 gracePeriod_weth, uint64 maxRecursiveCalls_weth) =
+        (uint128 minUsdValueWeth, uint64 gracePeriodWeth, uint64 maxRecursiveCallsWeth) =
             registry.riskParams(address(wethLendingPool));
-        assertEq(minUsdValue_weth, DeployRiskConstantsBase.minUsdValue_eth);
-        assertEq(gracePeriod_weth, DeployRiskConstantsBase.gracePeriod_eth);
-        assertEq(maxRecursiveCalls_weth, DeployRiskConstantsBase.maxRecursiveCalls_eth);
+        assertEq(minUsdValueWeth, RiskParameters.MIN_USD_VALUE_WETH);
+        assertEq(gracePeriodWeth, RiskParameters.GRACE_PERIOD_WETH);
+        assertEq(maxRecursiveCallsWeth, RiskParameters.MAX_RECURSIVE_CALLS_WETH);
 
-        (uint128 minUsdValue_usdc, uint64 gracePeriod_usdc, uint64 maxRecursiveCalls_usdc) =
+        (uint128 minUsdValueUsdc, uint64 gracePeriodUsdc, uint64 maxRecursiveCallsUsdc) =
             registry.riskParams(address(usdcLendingPool));
-        assertEq(minUsdValue_usdc, DeployRiskConstantsBase.minUsdValue_usdc);
-        assertEq(gracePeriod_usdc, DeployRiskConstantsBase.gracePeriod_usdc);
-        assertEq(maxRecursiveCalls_usdc, DeployRiskConstantsBase.maxRecursiveCalls_usdc);
+        assertEq(minUsdValueUsdc, RiskParameters.MIN_USD_VALUE_USDC);
+        assertEq(gracePeriodUsdc, RiskParameters.GRACE_PERIOD_USDC);
+        assertEq(maxRecursiveCallsUsdc, RiskParameters.MAX_RECURSIVE_CALLS_USDC);
     }
 }

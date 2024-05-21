@@ -5,16 +5,14 @@
 pragma solidity 0.8.22;
 
 import "../lib/forge-std/src/Test.sol";
-import { DeployAddresses, DeployNumbers, DeployRiskConstantsBase } from "./Constants/DeployConstants.sol";
 
+import { ArcadiaSafes, CutOffTimes, OracleIds, Oracles, PrimaryAssets, RiskParameters } from "./utils/Constants.sol";
 import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
-
-import { Registry } from "../src/Registry.sol";
 import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
-import { ERC20PrimaryAM } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
-
-import { ILendingPool } from "./interfaces/ILendingPool.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
+import { ERC20PrimaryAM } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
+import { ILendingPool } from "./interfaces/ILendingPool.sol";
+import { Registry } from "../src/Registry.sol";
 
 contract ArcadiaAccountDeploymentAddWsteth is Test {
     ERC20 internal wsteth;
@@ -37,7 +35,7 @@ contract ArcadiaAccountDeploymentAddWsteth is Test {
         //                   ADDRESSES
         // ///////////////////////////////////////////////////////////////*/
 
-        wsteth = ERC20(DeployAddresses.wsteth_base);
+        wsteth = ERC20(PrimaryAssets.WSTETH);
         BA_TO_QA_DOUBLE[0] = true;
         BA_TO_QA_DOUBLE[1] = true;
     }
@@ -49,38 +47,32 @@ contract ArcadiaAccountDeploymentAddWsteth is Test {
         chainlinkOM = ChainlinkOM(0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31);
         erc20PrimaryAM = ERC20PrimaryAM(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
 
-        vm.startBroadcast(DeployAddresses.protocolOwner_base);
-        oracleWstethToEthId = uint80(
-            chainlinkOM.addOracle(
-                DeployAddresses.oracleWstethToEth_base, "wstETH", "ETH", DeployNumbers.wsteth_eth_cutOffTime
-            )
-        );
+        vm.startBroadcast(ArcadiaSafes.OWNER);
+        oracleWstethToEthId = uint80(chainlinkOM.addOracle(Oracles.WSTETH_ETH, "wstETH", "ETH", CutOffTimes.WSTETH_ETH));
 
         oracleWstethToEthToUsdArr[0] = oracleWstethToEthId;
-        oracleWstethToEthToUsdArr[1] = DeployNumbers.EthToUsdOracleId;
+        oracleWstethToEthToUsdArr[1] = OracleIds.ETH_USD;
 
-        erc20PrimaryAM.addAsset(
-            DeployAddresses.wsteth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleWstethToEthToUsdArr)
-        );
+        erc20PrimaryAM.addAsset(PrimaryAssets.WSTETH, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleWstethToEthToUsdArr));
         vm.stopBroadcast();
 
-        vm.startBroadcast(DeployAddresses.riskManager_base);
+        vm.startBroadcast(ArcadiaSafes.RISK_MANAGER);
         registry.setRiskParametersOfPrimaryAsset(
             address(wethLendingPool),
-            DeployAddresses.wsteth_base,
+            PrimaryAssets.WSTETH,
             0,
-            DeployRiskConstantsBase.wsteth_exposure_eth,
-            DeployRiskConstantsBase.wsteth_collFact_eth,
-            DeployRiskConstantsBase.wsteth_liqFact_eth
+            RiskParameters.EXPOSURE_WSTETH_WETH,
+            RiskParameters.COL_FAC_WSTETH_WETH,
+            RiskParameters.LIQ_FAC_WSTETH_WETH
         );
 
         registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
-            DeployAddresses.wsteth_base,
+            PrimaryAssets.WSTETH,
             0,
-            DeployRiskConstantsBase.wsteth_exposure_usdc,
-            DeployRiskConstantsBase.wsteth_collFact_usdc,
-            DeployRiskConstantsBase.wsteth_liqFact_usdc
+            RiskParameters.EXPOSURE_WSTETH_USDC,
+            RiskParameters.COL_FAC_WSTETH_USDC,
+            RiskParameters.LIQ_FAC_WSTETH_USDC
         );
 
         vm.stopBroadcast();
