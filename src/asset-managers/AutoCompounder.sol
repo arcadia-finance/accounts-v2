@@ -186,9 +186,9 @@ contract AutoCompounder is IActionBase {
         if (pool != msg.sender) revert CallerIsNotPool();
 
         if (amount0Delta > 0) {
-            ERC20(fromToken).transfer(msg.sender, uint256(amount0Delta));
+            ERC20(fromToken).safeTransfer(msg.sender, uint256(amount0Delta));
         } else {
-            ERC20(fromToken).transfer(msg.sender, uint256(amount1Delta));
+            ERC20(fromToken).safeTransfer(msg.sender, uint256(amount1Delta));
         }
     }
 
