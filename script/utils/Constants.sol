@@ -230,27 +230,23 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_WSTETH_WETH = uint112(400 * 10 ** Decimals.WSTETH);
     uint112 internal constant EXPOSURE_WSTETH_USDC = uint112(300 * 10 ** Decimals.WSTETH);
 
-    // ToDo: change before deployment
-    uint16 internal constant COL_FAC_AERO_WETH = 8000;
-    uint16 internal constant COL_FAC_AERO_USDC = 8000;
-    uint16 internal constant LIQ_FAC_AERO_WETH = 9000;
-    uint16 internal constant LIQ_FAC_AERO_USDC = 9000;
-    uint112 internal constant EXPOSURE_AERO_WETH = uint112(1e6 * 10 ** Decimals.AERO);
-    uint112 internal constant EXPOSURE_AERO_USDC = uint112(1e6 * 10 ** Decimals.AERO);
+    uint16 internal constant COL_FAC_AERO_WETH = 7500;
+    uint16 internal constant COL_FAC_AERO_USDC = 6700;
+    uint16 internal constant LIQ_FAC_AERO_WETH = 8700;
+    uint16 internal constant LIQ_FAC_AERO_USDC = 8000;
+    uint112 internal constant EXPOSURE_AERO_WETH = uint112(3e6 * 10 ** Decimals.AERO);
+    uint112 internal constant EXPOSURE_AERO_USDC = uint112(3e6 * 10 ** Decimals.AERO);
 
-    // ToDo: change before deployment
     uint16 internal constant RISK_FAC_AERO_POOL_AM_WETH = 9800;
     uint16 internal constant RISK_FAC_AERO_POOL_AM_USDC = 9800;
     uint112 internal constant EXPOSURE_AERO_POOL_AM_WETH = uint112(2_000_000 * 1e18);
     uint112 internal constant EXPOSURE_AERO_POOL_AM_USDC = uint112(2_000_000 * 1e18);
 
-    // ToDo: change before deployment
     uint16 internal constant RISK_FAC_STAKED_AERO_AM_WETH = 9800;
     uint16 internal constant RISK_FAC_STAKED_AERO_AM_USDC = 9800;
     uint112 internal constant EXPOSURE_STAKED_AERO_AM_WETH = uint112(2_000_000 * 1e18);
     uint112 internal constant EXPOSURE_STAKED_AERO_AM_USDC = uint112(2_000_000 * 1e18);
 
-    // ToDo: change before deployment
     uint16 internal constant RISK_FAC_WRAPPED_AERO_AM_WETH = 9800;
     uint16 internal constant RISK_FAC_WRAPPED_AERO_AM_USDC = 9800;
     uint112 internal constant EXPOSURE_WRAPPED_AERO_AM_WETH = uint112(2_000_000 * 1e18);
@@ -277,11 +273,11 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_SLIPSTREAM_WETH = uint112(2_000_000 * 1e18);
     uint112 internal constant EXPOSURE_SLIPSTREAM_USDC = uint112(2_000_000 * 1e18);
 
-    uint128 internal constant MIN_USD_VALUE_WETH = 1 * 1e18; // 1 USD?
+    uint128 internal constant MIN_USD_VALUE_WETH = 1 * 1e18;
     uint64 internal constant GRACE_PERIOD_WETH = 15 minutes;
     uint64 internal constant MAX_RECURSIVE_CALLS_WETH = 5;
 
-    uint128 internal constant MIN_USD_VALUE_USDC = 1 * 1e18; // 1 USD?
+    uint128 internal constant MIN_USD_VALUE_USDC = 1 * 1e18;
     uint64 internal constant GRACE_PERIOD_USDC = 15 minutes;
     uint64 internal constant MAX_RECURSIVE_CALLS_USDC = 5;
 }
