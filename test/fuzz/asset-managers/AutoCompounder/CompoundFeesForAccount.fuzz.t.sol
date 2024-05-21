@@ -4,16 +4,8 @@
  */
 pragma solidity 0.8.22;
 
-import {
-    AutoCompounder_Fuzz_Test,
-    AutoCompounder,
-    ERC20Mock,
-    FixedPointMathLib,
-    TickMath,
-    ISwapRouter02
-} from "./_AutoCompounder.fuzz.t.sol";
+import { AutoCompounder_Fuzz_Test, AutoCompounder, ISwapRouter02 } from "./_AutoCompounder.fuzz.t.sol";
 import { ERC721 } from "../../../utils/mocks/tokens/ERC721Mock.sol";
-import { SqrtPriceMathPartial } from "../../../utils/fixtures/uniswap-V3/extensions/libraries/SqrtPriceMathPartial.sol";
 
 /**
  * @notice Fuzz tests for the function "CompoundFeesForAccount" of contract "AutoCompounder".

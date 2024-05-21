@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import { AutoCompounder_Fuzz_Test, AutoCompounder, ERC20Mock, TickMath } from "./_AutoCompounder.fuzz.t.sol";
+import { AutoCompounder_Fuzz_Test, AutoCompounder, TickMath } from "./_AutoCompounder.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "sqrtPriceX96" of contract "AutoCompounder".
