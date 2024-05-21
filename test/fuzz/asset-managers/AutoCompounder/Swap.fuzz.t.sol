@@ -18,41 +18,142 @@ contract Swap_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
         AutoCompounder_Fuzz_Test.setUp();
     }
 
-    // TODO: delete below
-    event Log(uint256);
-
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_revert_swap_ToleranceExceeded_Right(TestVariables memory testVars) public {
-        // Add liquidity for stable 1 and stable 2
-        // Swap an amount that will move the price out of tolerance zone
+    function testFuzz_revert_swap_ToleranceExceeded_Right() public {
+        // Given : New balanced stable pool 1:1
+        ERC20Mock token0;
+        ERC20Mock token1;
+        token0 = mockERC20.stable1;
+        token1 = mockERC20.stable2;
+
+        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
+        uint160 sqrtPriceX96 = getSqrtPriceX96(1e18, 1e18);
+        usdStablePool = createPool(token0, token1, sqrtPriceX96, 300);
+
+        // And : Liquidity has been added for both tokens
+        uint256 tokenId = addLiquidity(
+            usdStablePool,
+            100_000 * 10 ** mockERC20.stable1.decimals(),
+            100_000 * 10 ** mockERC20.stable1.decimals(),
+            users.liquidityProvider,
+            -1000,
+            1000
+        );
+
+        uint256 limitSqrtPriceX96 = sqrtPriceX96 * autoCompounder.MAX_UPPER_SQRT_PRICE_DEVIATION() / BIPS;
+
+        // When : Swapping an amount that will move the price out of tolerance zone, token1 to token0
+        // AmountToSwap just above tolerance
+        // Then : It should revert
+        uint256 amountToSwap = TOLERANCE * 102 * 10 ** mockERC20.stable1.decimals();
+        mintERC20TokenTo(address(token1), address(autoCompounder), amountToSwap);
+        approveERC20TokenFor(address(token1), address(usdStablePool), amountToSwap, address(autoCompounder));
+        vm.expectRevert(AutoCompounder.MaxToleranceExceeded.selector);
+        autoCompounder.swap(address(usdStablePool), address(token1), int256(amountToSwap), sqrtPriceX96, false);
     }
 
-    /* 
-    function testFuzz_revert_swap_ToleranceExceeded_Left(TestVariables memory testVars) public {
-        // Given : Valid State
-        (testVars,) = givenValidBalancedState(testVars);
+    function testFuzz_revert_swap_ToleranceExceeded_Left() public {
+        // Given : New balanced stable pool 1:1
+        ERC20Mock token0;
+        ERC20Mock token1;
+        token0 = mockERC20.stable1;
+        token1 = mockERC20.stable2;
 
-        // And : totalFee0 is greater than totalFee1
-        // And : currentTick unchanged (50/50)
-        // Case for targetToken0Value < totalFee0Value
-        vm.assume(testVars.feeAmount0 > testVars.feeAmount1);
+        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
+        uint160 sqrtPriceX96 = getSqrtPriceX96(1e18, 1e18);
+        usdStablePool = createPool(token0, token1, sqrtPriceX96, 300);
 
-        // And : State is persisted
-        setState(testVars, usdStablePool);
+        // And : Liquidity has been added for both tokens
+        uint256 tokenId = addLiquidity(
+            usdStablePool,
+            100_000 * 10 ** mockERC20.stable1.decimals(),
+            100_000 * 10 ** mockERC20.stable1.decimals(),
+            users.liquidityProvider,
+            -1000,
+            1000
+        );
+
+        uint256 limitSqrtPriceX96 = sqrtPriceX96 * autoCompounder.MAX_LOWER_SQRT_PRICE_DEVIATION() / BIPS;
+
+        // When : Swapping an amount that will move the price out of tolerance zone, token0 to token1
+        // AmountToSwap just above tolerance
+        // Then : It should revert
+        uint256 amountToSwap = TOLERANCE * 107 * 10 ** mockERC20.stable1.decimals();
+        mintERC20TokenTo(address(token0), address(autoCompounder), amountToSwap);
+        approveERC20TokenFor(address(token0), address(usdStablePool), amountToSwap, address(autoCompounder));
+        vm.expectRevert(AutoCompounder.MaxToleranceExceeded.selector);
+        autoCompounder.swap(address(usdStablePool), address(token0), int256(amountToSwap), sqrtPriceX96, true);
     }
 
-    function testFuzz_success_swap(TestVariables memory testVars) public {
-        // Given : Valid State
-        (testVars,) = givenValidBalancedState(testVars);
+    function testFuzz_success_swap_zeroToOne() public {
+        // Given : New balanced stable pool 1:1
+        ERC20Mock token0;
+        ERC20Mock token1;
+        token0 = mockERC20.stable1;
+        token1 = mockERC20.stable2;
 
-        // And : totalFee1 is greater than totalFee0
-        // And : currentTick unchanged (50/50)
-        // Case for targetToken0Value <= totalFee0Value
-        vm.assume(testVars.feeAmount1 > uint256(testVars.feeAmount0));
+        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
+        uint160 sqrtPriceX96 = getSqrtPriceX96(1e18, 1e18);
+        usdStablePool = createPool(token0, token1, sqrtPriceX96, 300);
 
-        // And : State is persisted
-        setState(testVars, usdStablePool);
-    } */
+        // And : Liquidity has been added for both tokens
+        uint256 tokenId = addLiquidity(
+            usdStablePool,
+            100_000 * 10 ** mockERC20.stable1.decimals(),
+            100_000 * 10 ** mockERC20.stable1.decimals(),
+            users.liquidityProvider,
+            -1000,
+            1000
+        );
+
+        uint256 limitSqrtPriceX96 = sqrtPriceX96 * autoCompounder.MAX_LOWER_SQRT_PRICE_DEVIATION() / BIPS;
+
+        // When : Swapping an amount that will move the price out of tolerance zone, token0 to token1
+        // AmountToSwap just above tolerance
+        uint256 amountToSwap = TOLERANCE * 106 * 10 ** mockERC20.stable1.decimals();
+        mintERC20TokenTo(address(token0), address(autoCompounder), amountToSwap);
+        approveERC20TokenFor(address(token0), address(usdStablePool), amountToSwap, address(autoCompounder));
+        autoCompounder.swap(address(usdStablePool), address(token0), int256(amountToSwap), sqrtPriceX96, true);
+
+        // Then : updatedSqrtPriceX96 should be > limitSqrtPriceX96
+        (uint160 updatedSqrtPriceX96,,,,,,) = usdStablePool.slot0();
+        assert(updatedSqrtPriceX96 > limitSqrtPriceX96);
+    }
+
+    function testFuzz_success_swap_OneToZero() public {
+        // Given : New balanced stable pool 1:1
+        ERC20Mock token0;
+        ERC20Mock token1;
+        token0 = mockERC20.stable1;
+        token1 = mockERC20.stable2;
+
+        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
+        uint160 sqrtPriceX96 = getSqrtPriceX96(1e18, 1e18);
+        usdStablePool = createPool(token0, token1, sqrtPriceX96, 300);
+
+        // And : Liquidity has been added for both tokens
+        uint256 tokenId = addLiquidity(
+            usdStablePool,
+            100_000 * 10 ** mockERC20.stable1.decimals(),
+            100_000 * 10 ** mockERC20.stable1.decimals(),
+            users.liquidityProvider,
+            -1000,
+            1000
+        );
+
+        uint256 limitSqrtPriceX96 = sqrtPriceX96 * autoCompounder.MAX_UPPER_SQRT_PRICE_DEVIATION() / BIPS;
+
+        // When : Swapping an amount that will move the price out of tolerance zone, token0 to token1
+        // AmountToSwap just above tolerance
+        uint256 amountToSwap = TOLERANCE * 101 * 10 ** mockERC20.stable1.decimals();
+        mintERC20TokenTo(address(token1), address(autoCompounder), amountToSwap);
+        approveERC20TokenFor(address(token1), address(usdStablePool), amountToSwap, address(autoCompounder));
+        autoCompounder.swap(address(usdStablePool), address(token1), int256(amountToSwap), sqrtPriceX96, false);
+
+        // Then : updatedSqrtPriceX96 should be < limitSqrtPriceX96
+        (uint160 updatedSqrtPriceX96,,,,,,) = usdStablePool.slot0();
+        assert(updatedSqrtPriceX96 < limitSqrtPriceX96);
+    }
 }
