@@ -333,6 +333,7 @@ contract AutoCompounder is IActionBase {
         uint256 totalFee0Value = feeData.usdPriceToken0 * feeData.feeAmount0 / 1e18;
         uint256 totalFee1Value = feeData.usdPriceToken1 * feeData.feeAmount1 / 1e18;
 
+        // TODO: feeValue is without initiator fee at this point
         if (totalFee0Value + totalFee1Value < MIN_USD_FEES_VALUE) revert FeeValueBelowTreshold();
 
         if (currentTick >= posData.tickUpper) {

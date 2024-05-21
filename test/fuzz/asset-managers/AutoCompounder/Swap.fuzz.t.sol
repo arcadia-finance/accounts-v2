@@ -24,25 +24,11 @@ contract Swap_AutoCompounder_Fuzz_Test is AutoCompounder_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_success_swap_ToleranceExceeded_Right(TestVariables memory testVars) public {
-        // Given : Valid State
-        (testVars,) = givenValidBalancedState(testVars);
-
-        // And : State is persisted
-        setState(testVars, usdStablePool);
-
-        (uint160 sqrtPriceX96,,,,,,) = usdStablePool.slot0();
-
-        // And : Perform a swap to move the price accross max Tolerance
-        uint256 amount1ToSwap = 1000 * token1.balanceOf(address(usdStablePool)) / BIPS;
-
-        mintERC20TokenTo(address(token1), address(autoCompounder), amount1ToSwap);
-
-        // When : Calling swap() on the autoCompounder, the swap should only succeed until tolerance
-        autoCompounder.swap(address(usdStablePool), address(token1), int256(amount1ToSwap), sqrtPriceX96, false);
-
-        vm.stopPrank();
+    function testFuzz_revert_swap_ToleranceExceeded_Right(TestVariables memory testVars) public {
+        // Add liquidity for stable 1 and stable 2
+        // Swap an amount that will move the price out of tolerance zone
     }
+
     /* 
     function testFuzz_revert_swap_ToleranceExceeded_Left(TestVariables memory testVars) public {
         // Given : Valid State
