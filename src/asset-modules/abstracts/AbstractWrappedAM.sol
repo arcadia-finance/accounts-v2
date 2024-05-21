@@ -146,7 +146,6 @@ abstract contract WrappedAM is DerivedAM, ERC721, ReentrancyGuard {
 
     /**
      * @notice Adds an asset that can be wrapped through this contract.
-     * @param customAsset The contract address of the custom Asset.
      * @param asset_ The contract address of the Asset.
      * @param rewards_ An array with all reward addresses for a specific custom Asset.
      * @return customAsset The combination of asset and rewards that are hashed together and converted to an address
