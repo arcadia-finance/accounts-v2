@@ -19,4 +19,12 @@ contract MoonwellAMExtension is MoonwellAM {
         address[] memory emptyArr;
         _claimRewards(asset, emptyArr);
     }
+
+    function getCurrentRewards(address asset, address[] memory rewards)
+        public
+        view
+        returns (uint256[] memory currentRewards)
+    {
+        currentRewards = _getCurrentRewards(asset, rewards);
+    }
 }
