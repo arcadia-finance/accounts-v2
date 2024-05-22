@@ -13,4 +13,10 @@ interface IUniswapV3PoolExtension is IUniswapV3Pool {
     function token1() external view returns (address token1);
 
     function fee() external view returns (uint24 fee);
+
+    function setCurrentTick(int24) external;
+
+    function getCurrentTick() external view returns (int24 currentTick);
+
+    function setSqrtPriceX96(uint160) external;
 }
