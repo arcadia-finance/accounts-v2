@@ -191,6 +191,33 @@ library Utils {
         revert();
     }
 
+    function veryBadBytesReplacer(bytes memory bytecode, bytes memory target, bytes memory replacement, bool replaceFirstOnly)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        require(target.length <= bytecode.length);
+        require(target.length == replacement.length);
+
+        uint256 lengthTarget = target.length;
+        uint256 lengthBytecode = bytecode.length - lengthTarget + 1;
+        for (uint256 i; i < lengthBytecode; ++i) {
+            uint256 j = 0;
+            for (j; j < lengthTarget; ++j) {
+                if (bytecode[i + j] == target[j]) {
+                    if (j == lengthTarget - 1) {
+                        // Target found, replace with replacement.
+                        bytecode = replaceBytes(bytecode, replacement, i);
+                        if (replaceFirstOnly) return bytecode;
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+        return bytecode;
+    }
+
     /**
      * @dev Reverts if startPosition + replacement.length is bigger than bytecode.length.
      */
