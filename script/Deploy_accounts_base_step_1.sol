@@ -5,23 +5,30 @@
 pragma solidity 0.8.22;
 
 import "../lib/forge-std/src/Test.sol";
-import { DeployAddresses, DeployNumbers, DeployBytes, DeployRiskConstantsBase } from "./Constants/DeployConstants.sol";
 
-import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
-import { Factory } from "../src/Factory.sol";
 import { AccountV1 } from "../src/accounts/AccountV1.sol";
-import { Registry } from "../src/Registry.sol";
-import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
-import { ERC20PrimaryAM } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
-import { AssetModule } from "../src/asset-modules/abstracts/AbstractAM.sol";
-import { UniswapV3AM } from "../src/asset-modules/UniswapV3/UniswapV3AM.sol";
-import { StargateAM } from "./../src/asset-modules/Stargate-Finance/StargateAM.sol";
-import { StakedStargateAM } from "./../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
-
 import { ActionMultiCall } from "../src/actions/MultiCall.sol";
-
-import { ILendingPool } from "./interfaces/ILendingPool.sol";
+import {
+    ArcadiaSafes,
+    CutOffTimes,
+    ExternalContracts,
+    MerkleRoots,
+    Oracles,
+    PrimaryAssets,
+    StargatePids,
+    StargatePoolIds
+} from "./utils/Constants.sol";
+import { AssetModule } from "../src/asset-modules/abstracts/AbstractAM.sol";
+import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
+import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";
+import { ERC20PrimaryAM } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
+import { Factory } from "../src/Factory.sol";
+import { ILendingPool } from "./interfaces/ILendingPool.sol";
+import { Registry } from "../src/Registry.sol";
+import { StakedStargateAM } from "./../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
+import { StargateAM } from "./../src/asset-modules/Stargate-Finance/StargateAM.sol";
+import { UniswapV3AM } from "../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 
 contract ArcadiaAccountDeploymentStep1 is Test {
     Factory internal factory;
@@ -75,14 +82,14 @@ contract ArcadiaAccountDeploymentStep1 is Test {
         //                   ADDRESSES
         // ///////////////////////////////////////////////////////////////*/
 
-        comp = ERC20(DeployAddresses.comp_base);
-        dai = ERC20(DeployAddresses.dai_base);
-        weth = ERC20(DeployAddresses.weth_base);
-        usdc = ERC20(DeployAddresses.usdc_base);
-        usdbc = ERC20(DeployAddresses.usdbc_base);
-        cbeth = ERC20(DeployAddresses.cbeth_base);
-        reth = ERC20(DeployAddresses.reth_base);
-        stg = ERC20(DeployAddresses.stg_base);
+        comp = ERC20(PrimaryAssets.COMP);
+        dai = ERC20(PrimaryAssets.DAI);
+        weth = ERC20(PrimaryAssets.WETH);
+        usdc = ERC20(PrimaryAssets.USDC);
+        usdbc = ERC20(PrimaryAssets.USDBC);
+        cbeth = ERC20(PrimaryAssets.CBETH);
+        reth = ERC20(PrimaryAssets.RETH);
+        stg = ERC20(PrimaryAssets.STG);
 
         BA_TO_QA_SINGLE[0] = true;
         BA_TO_QA_DOUBLE[0] = true;
@@ -92,7 +99,7 @@ contract ArcadiaAccountDeploymentStep1 is Test {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_DEPLOYER_BASE");
         address deployerAddress = vm.addr(deployerPrivateKey);
-        address protocolOwnerAddress = DeployAddresses.protocolOwner_base;
+        address protocolOwnerAddress = ArcadiaSafes.OWNER;
 
         assertEq(deployerAddress, protocolOwnerAddress);
 
@@ -103,7 +110,7 @@ contract ArcadiaAccountDeploymentStep1 is Test {
         wethLendingPool.setRiskManager(protocolOwnerAddress);
         usdcLendingPool.setRiskManager(protocolOwnerAddress);
 
-        registry = new Registry(address(factory), DeployAddresses.sequencerUptimeOracle_base);
+        registry = new Registry(address(factory), ExternalContracts.SEQUENCER_UPTIME_ORACLE);
 
         chainlinkOM = new ChainlinkOM(address(registry));
 
@@ -116,35 +123,13 @@ contract ArcadiaAccountDeploymentStep1 is Test {
 
         registry.addOracleModule(address(chainlinkOM));
 
-        oracleCompToUsdId = uint80(
-            chainlinkOM.addOracle(
-                DeployAddresses.oracleCompToUsd_base, "COMP", "USD", DeployNumbers.comp_usd_cutOffTime
-            )
-        );
-        oracleDaiToUsdId = uint80(
-            chainlinkOM.addOracle(DeployAddresses.oracleDaiToUsd_base, "DAI", "USD", DeployNumbers.dai_usd_cutOffTime)
-        );
-        oracleEthToUsdId = uint80(
-            chainlinkOM.addOracle(DeployAddresses.oracleEthToUsd_base, "ETH", "USD", DeployNumbers.eth_usd_cutOffTime)
-        );
-        oracleUsdcToUsdId = uint80(
-            chainlinkOM.addOracle(
-                DeployAddresses.oracleUsdcToUsd_base, "USDC", "USD", DeployNumbers.usdc_usd_cutOffTime
-            )
-        );
-        oracleCbethToUsdId = uint80(
-            chainlinkOM.addOracle(
-                DeployAddresses.oracleCbethToUsd_base, "CBETH", "USD", DeployNumbers.cbeth_usd_cutOffTime
-            )
-        );
-        oracleRethToEthId = uint80(
-            chainlinkOM.addOracle(
-                DeployAddresses.oracleRethToEth_base, "RETH", "ETH", DeployNumbers.reth_eth_cutOffTime
-            )
-        );
-        oracleStgToUsdId = uint80(
-            chainlinkOM.addOracle(DeployAddresses.oracleStgToUsd_base, "STG", "USD", DeployNumbers.stg_usd_cutOffTime)
-        );
+        oracleCompToUsdId = uint80(chainlinkOM.addOracle(Oracles.COMP_USD, "COMP", "USD", CutOffTimes.COMP_USD));
+        oracleDaiToUsdId = uint80(chainlinkOM.addOracle(Oracles.DAI_USD, "DAI", "USD", CutOffTimes.DAI_USD));
+        oracleEthToUsdId = uint80(chainlinkOM.addOracle(Oracles.ETH_USD, "ETH", "USD", CutOffTimes.ETH_USD));
+        oracleUsdcToUsdId = uint80(chainlinkOM.addOracle(Oracles.USDC_USD, "USDC", "USD", CutOffTimes.USDC_USD));
+        oracleCbethToUsdId = uint80(chainlinkOM.addOracle(Oracles.CBETH_USD, "CBETH", "USD", CutOffTimes.CBETH_USD));
+        oracleRethToEthId = uint80(chainlinkOM.addOracle(Oracles.RETH_ETH, "RETH", "ETH", CutOffTimes.RETH_ETH));
+        oracleStgToUsdId = uint80(chainlinkOM.addOracle(Oracles.STG_USD, "STG", "USD", CutOffTimes.STG_USD));
 
         oracleCompToUsdArr[0] = oracleCompToUsdId;
         oracleDaiToUsdArr[0] = oracleDaiToUsdId;
@@ -156,19 +141,19 @@ contract ArcadiaAccountDeploymentStep1 is Test {
         oracleRethToEthToUsdArr[1] = oracleEthToUsdId;
         oracleStgToUsdArr[0] = oracleStgToUsdId;
 
-        erc20PrimaryAM.addAsset(DeployAddresses.comp_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleCompToUsdArr));
-        erc20PrimaryAM.addAsset(DeployAddresses.dai_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleDaiToUsdArr));
-        erc20PrimaryAM.addAsset(DeployAddresses.weth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleEthToUsdArr));
-        erc20PrimaryAM.addAsset(DeployAddresses.usdc_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdcToUsdArr));
-        erc20PrimaryAM.addAsset(DeployAddresses.usdbc_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdbcToUsdArr));
-        erc20PrimaryAM.addAsset(DeployAddresses.cbeth_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleCbethToUsdArr));
-        erc20PrimaryAM.addAsset(DeployAddresses.reth_base, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleRethToEthToUsdArr));
-        erc20PrimaryAM.addAsset(DeployAddresses.stg_base, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStgToUsdArr));
+        erc20PrimaryAM.addAsset(PrimaryAssets.COMP, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleCompToUsdArr));
+        erc20PrimaryAM.addAsset(PrimaryAssets.DAI, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleDaiToUsdArr));
+        erc20PrimaryAM.addAsset(PrimaryAssets.WETH, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleEthToUsdArr));
+        erc20PrimaryAM.addAsset(PrimaryAssets.USDC, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdcToUsdArr));
+        erc20PrimaryAM.addAsset(PrimaryAssets.USDBC, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleUsdbcToUsdArr));
+        erc20PrimaryAM.addAsset(PrimaryAssets.CBETH, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleCbethToUsdArr));
+        erc20PrimaryAM.addAsset(PrimaryAssets.RETH, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleRethToEthToUsdArr));
+        erc20PrimaryAM.addAsset(PrimaryAssets.STG, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStgToUsdArr));
 
-        uniswapV3AM = new UniswapV3AM(address(registry), DeployAddresses.uniswapV3PositionMgr_base);
+        uniswapV3AM = new UniswapV3AM(address(registry), ExternalContracts.UNISWAPV3_POS_MNGR);
 
-        stargateAM = new StargateAM(address(registry), DeployAddresses.stargateFactory_base);
-        stakedStargateAM = new StakedStargateAM(address(registry), DeployAddresses.stargateLpStakingTime_base);
+        stargateAM = new StargateAM(address(registry), ExternalContracts.STARGATE_FACTORY);
+        stakedStargateAM = new StakedStargateAM(address(registry), ExternalContracts.STARGATE_LP_STAKING);
 
         registry.addAssetModule(address(uniswapV3AM));
         registry.addAssetModule(address(stargateAM));
@@ -176,12 +161,12 @@ contract ArcadiaAccountDeploymentStep1 is Test {
 
         uniswapV3AM.setProtocol();
 
-        stargateAM.addAsset(DeployNumbers.stargateUsdbcPoolId);
+        stargateAM.addAsset(StargatePoolIds.USDBC);
 
         stakedStargateAM.initialize();
-        stakedStargateAM.addAsset(DeployNumbers.stargateUsdbcPid);
+        stakedStargateAM.addAsset(StargatePids.USDBC);
 
-        factory.setNewAccountInfo(address(registry), address(account), DeployBytes.upgradeRoot1To1, "");
+        factory.setNewAccountInfo(address(registry), address(account), MerkleRoots.UPGRADE_ROOT_1_TO_1, "");
         factory.changeGuardian(protocolOwnerAddress);
 
         registry.changeGuardian(protocolOwnerAddress);
@@ -197,7 +182,7 @@ contract ArcadiaAccountDeploymentStep1 is Test {
     function test_deploy() public {
         vm.skip(true);
 
-        address protocolOwnerAddress = DeployAddresses.protocolOwner_base;
+        address protocolOwnerAddress = ArcadiaSafes.OWNER;
 
         assertEq(factory.owner(), protocolOwnerAddress);
         assertEq(factory.guardian(), protocolOwnerAddress);
@@ -235,6 +220,6 @@ contract ArcadiaAccountDeploymentStep1 is Test {
         assertTrue(erc20PrimaryAM.inAssetModule(address(reth)));
         assertTrue(erc20PrimaryAM.inAssetModule(address(stg)));
 
-        assertTrue(uniswapV3AM.inAssetModule(DeployAddresses.uniswapV3PositionMgr_base));
+        assertTrue(uniswapV3AM.inAssetModule(ExternalContracts.UNISWAPV3_POS_MNGR));
     }
 }
