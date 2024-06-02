@@ -331,7 +331,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
      * @return collateralFactor The collateral factor of the asset for a given Creditor, with 4 decimals precision.
      * @return liquidationFactor The liquidation factor of the asset for a given Creditor, with 4 decimals precision.
-     * @dev We take the most conservative (lowest) risk factor of all underlying assets.
+     * @dev We take the most conservative (lowest) risk factor of the principal assets of the Liquidity Position.
      */
     function _calculateValueAndRiskFactors(
         address creditor,
@@ -475,10 +475,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @return rewards The current amount of reward tokens claimable by the owner of the position.
      */
     function rewardOf(uint256 positionId) public view returns (uint256 rewards) {
-        // Cache Gauge.
-        address gauge = positionState[positionId].gauge;
-
-        rewards = ICLGauge(gauge).earned(address(this), positionId);
+        rewards = ICLGauge(positionState[positionId].gauge).earned(address(this), positionId);
     }
 
     /*///////////////////////////////////////////////////////////////

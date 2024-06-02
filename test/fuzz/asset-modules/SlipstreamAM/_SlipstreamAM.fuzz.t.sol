@@ -11,7 +11,7 @@ import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
-import { AerodromeVoterMock } from "../../../utils/mocks/Aerodrome/AerodromeVoterMock.sol";
+import { VoterMock } from "../../../utils/mocks/Aerodrome/VoterMock.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { INonfungiblePositionManagerExtension } from
@@ -45,7 +45,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    AerodromeVoterMock internal voter;
+    VoterMock internal voter;
     SlipstreamAMExtension internal slipstreamAM;
     ICLPoolExtension internal poolStable1Stable2;
     NonfungiblePositionManagerMock internal nonfungiblePositionManagerMock;
@@ -76,7 +76,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         SlipstreamFixture.setUp();
 
         // Deploy Aerodrome Voter.
-        voter = new AerodromeVoterMock();
+        voter = new VoterMock(address(0));
 
         // Deploy fixture for Slipstream.
         deploySlipstream(address(voter));
