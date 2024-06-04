@@ -71,4 +71,8 @@ contract StakedSlipstreamAMExtension is StakedSlipstreamAM {
         (valueInUsd, collateralFactor, liquidationFactor) =
             _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }
+
+    function setPoolToGauge(address pool, address gauge) public {
+        poolToGauge[pool] = gauge;
+    }
 }

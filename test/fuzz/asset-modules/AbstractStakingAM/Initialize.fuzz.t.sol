@@ -24,7 +24,7 @@ contract Initialize_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_revert_initialize_NotOwner(address _unprivilegedAddress) public {
+    function testFuzz_Revert_initialize_NotOwner(address _unprivilegedAddress) public {
         vm.prank(users.creatorAddress);
         StakingAMMock assetModule =
             new StakingAMMock(address(registryExtension), "StakingAMTest", "SMT", address(rewardToken));

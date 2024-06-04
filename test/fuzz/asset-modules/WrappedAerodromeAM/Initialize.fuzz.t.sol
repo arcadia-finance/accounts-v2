@@ -24,7 +24,7 @@ contract Initialize_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_revert_initialize_NotOwner(address unprivilegedAddress) public {
+    function testFuzz_Revert_initialize_NotOwner(address unprivilegedAddress) public {
         // Given : unprivileged address is not the owner of the AM.
         vm.assume(unprivilegedAddress != users.creatorAddress);
 

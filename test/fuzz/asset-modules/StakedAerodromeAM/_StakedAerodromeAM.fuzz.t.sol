@@ -117,7 +117,7 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
         gauge = new Gauge(msg.sender, stakingToken, msg.sender, rewardToken_, address(voter), false);
 
         voter.setGauge(address(gauge));
-        voter.setAlive(address(gauge));
+        voter.setAlive(address(gauge), true);
     }
 
     function addEmissionsToGauge(uint256 emissions) public {

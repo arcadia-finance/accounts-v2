@@ -18,7 +18,7 @@ contract VoterMock {
         isGauge[gauge] = true;
     }
 
-    function setAlive(address gauge) public {
-        isAlive[gauge] = true;
+    function setAlive(address gauge, bool _isAlive) public {
+        isAlive[gauge] = _isAlive;
     }
 }

@@ -35,7 +35,7 @@ contract AddGauge_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_revert_addGauge_NotOwner(address unprivilegedAddress) public {
+    function testFuzz_Revert_addGauge_NotOwner(address unprivilegedAddress) public {
         // Given : unprivileged address is not the owner of the AM.
         vm.assume(unprivilegedAddress != users.creatorAddress);
 
@@ -46,7 +46,7 @@ contract AddGauge_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         stakedSlipstreamAM.addGauge(address(gauge));
     }
 
-    function testFuzz_revert_addGauge_NonGauge(address nonGauge) public {
+    function testFuzz_Revert_addGauge_NonGauge(address nonGauge) public {
         // Given : address is not a Gauge.
         vm.assume(nonGauge != address(gauge));
 
@@ -57,7 +57,7 @@ contract AddGauge_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         stakedSlipstreamAM.addGauge(nonGauge);
     }
 
-    function testFuzz_revert_addGauge_NonRewardToken(address nonRewardToken) public {
+    function testFuzz_Revert_addGauge_NonRewardToken(address nonRewardToken) public {
         // Given : Reward token is aero.
         vm.assume(nonRewardToken != AERO);
 
@@ -71,7 +71,7 @@ contract AddGauge_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         stakedSlipstreamAM.addGauge(address(gauge));
     }
 
-    function testFuzz_revert_addGauge_Token0NotAllowed() public {
+    function testFuzz_Revert_addGauge_Token0NotAllowed() public {
         // Given : Token0 is not allowed.
         assertFalse(registryExtension.isAllowed(address(token0), 0));
 
@@ -82,7 +82,7 @@ contract AddGauge_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         stakedSlipstreamAM.addGauge(address(gauge));
     }
 
-    function testFuzz_revert_addGauge_Token1NotAllowed() public {
+    function testFuzz_Revert_addGauge_Token1NotAllowed() public {
         // Given : Token0 is allowed.
         addUnderlyingTokenToArcadia(address(token0), 1e18);
 

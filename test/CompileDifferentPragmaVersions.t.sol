@@ -17,6 +17,6 @@ import { NonfungiblePositionManagerExtension } from
 import { UniswapV3FactoryExtension } from "./utils/fixtures/uniswap-v3/extensions/UniswapV3FactoryExtension.sol";
 import { UniswapV3PoolExtension } from "./utils/fixtures/uniswap-v3/extensions/UniswapV3PoolExtension.sol";
 
-contract CompileDifferentPragmaVersions is Test {
+contract RewardOf_StakedSlipstreamAM_Fuzz_Test is Test {
     function test() public { }
 }

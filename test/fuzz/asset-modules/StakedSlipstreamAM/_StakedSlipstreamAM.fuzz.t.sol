@@ -132,7 +132,7 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         gauge = ICLGauge(gauge_);
 
         voter.setGauge(address(gauge));
-        voter.setAlive(address(gauge));
+        voter.setAlive(address(gauge), true);
     }
 
     function addUnderlyingTokenToArcadia(address token, int256 price) internal {
@@ -155,10 +155,14 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
     }
 
     function deployAndAddGauge() internal {
+        deployAndAddGauge(0);
+    }
+
+    function deployAndAddGauge(int24 tick) internal {
         ERC20Mock tokenA = new ERC20Mock("Token A", "TOKENA", 18);
         ERC20Mock tokenB = new ERC20Mock("Token B", "TOKENB", 18);
         (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        deployPoolAndGauge(token0, token1, TickMath.getSqrtRatioAtTick(0), 300);
+        deployPoolAndGauge(token0, token1, TickMath.getSqrtRatioAtTick(tick), 300);
         addUnderlyingTokenToArcadia(address(token0), 1e18);
         addUnderlyingTokenToArcadia(address(token1), 1e18);
 
@@ -171,12 +175,20 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         view
         returns (StakedSlipstreamAM.PositionState memory)
     {
-        // Given: Ticks are within allowed ranges.
-        vm.assume(position.tickLower < position.tickUpper);
-        vm.assume(isWithinAllowedRange(position.tickLower));
-        vm.assume(isWithinAllowedRange(position.tickUpper));
+        int24 tickSpacing = pool.tickSpacing();
+        return givenValidPosition(position, tickSpacing);
+    }
 
-        uint256 maxLiquidityPerTick = tickSpacingToMaxLiquidityPerTick(pool.tickSpacing());
+    function givenValidPosition(StakedSlipstreamAM.PositionState memory position, int24 tickSpacing)
+        internal
+        view
+        returns (StakedSlipstreamAM.PositionState memory)
+    {
+        // Given: Ticks are within allowed ranges.
+        position.tickLower = int24(bound(position.tickLower, TickMath.MIN_TICK, TickMath.MAX_TICK - 1));
+        position.tickUpper = int24(bound(position.tickUpper, position.tickLower + 1, TickMath.MAX_TICK));
+
+        uint256 maxLiquidityPerTick = tickSpacingToMaxLiquidityPerTick(tickSpacing);
         position.liquidity = uint128(bound(position.liquidity, 1, maxLiquidityPerTick));
 
         return position;
@@ -189,8 +201,25 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         return type(uint128).max / numTicks;
     }
 
-    function isWithinAllowedRange(int24 tick) public pure returns (bool) {
-        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(TickMath.MAX_TICK));
+    function getActualLiquidity(StakedSlipstreamAM.PositionState memory position)
+        public
+        view
+        returns (uint256 liquidity)
+    {
+        (uint160 sqrtPrice,,,,,) = pool.slot0();
+        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtPrice,
+            TickMath.getSqrtRatioAtTick(position.tickLower),
+            TickMath.getSqrtRatioAtTick(position.tickUpper),
+            position.liquidity
+        );
+        liquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
+            sqrtPrice,
+            TickMath.getSqrtRatioAtTick(position.tickLower),
+            TickMath.getSqrtRatioAtTick(position.tickUpper),
+            amount0,
+            amount1
+        );
     }
 
     function addLiquidity(StakedSlipstreamAM.PositionState memory position) public returns (uint256 tokenId) {
