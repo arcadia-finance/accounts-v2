@@ -4,4 +4,10 @@
  */
 pragma solidity 0.8.22;
 
-interface ICLGaugeFactory { }
+interface ICLGaugeFactory {
+    function createGauge(address, address _pool, address _feesVotingReward, address _rewardToken, bool _isPool)
+        external
+        returns (address _gauge);
+
+    function setNonfungiblePositionManager(address nft) external;
+}

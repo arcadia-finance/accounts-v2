@@ -39,14 +39,14 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
-    // The contract address of the Slipstream (or exact clone) Factory.
+    // The contract address of the Slipstream Factory.
     address internal immutable CL_FACTORY;
 
     // The reward token.
     ERC20 public immutable REWARD_TOKEN;
 
     // The Aerodrome voter contract.
-    IAeroVoter public immutable AERO_VOTER;
+    IAeroVoter internal immutable AERO_VOTER;
 
     // The contract address of the NonfungiblePositionManager.
     INonfungiblePositionManager internal immutable NON_FUNGIBLE_POSITION_MANAGER;
@@ -62,7 +62,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) public assetToUnderlyingAssets;
 
     // The allowed gauges.
-    mapping(address pool => address gauge) internal poolToGauge;
+    mapping(address pool => address gauge) public poolToGauge;
 
     // Map a position id to its corresponding struct with the position state.
     mapping(uint256 position => PositionState) public positionState;
@@ -497,5 +497,12 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      */
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory uri) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
+    }
+
+    /**
+     * @notice Returns the onERC721Received selector.
+     */
+    function onERC721Received(address, address, uint256, bytes calldata) public pure returns (bytes4) {
+        return this.onERC721Received.selector;
     }
 }
