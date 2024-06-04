@@ -486,7 +486,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @notice Function that stores a new base URI.
      * @param newBaseURI The new base URI to store.
      */
-    function setBaseURI(string calldata newBaseURI) external virtual onlyOwner {
+    function setBaseURI(string calldata newBaseURI) external onlyOwner {
         baseURI = newBaseURI;
     }
 
@@ -495,7 +495,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param tokenId The id of the Account.
      * @return uri The token URI.
      */
-    function tokenURI(uint256 tokenId) public view virtual override returns (string memory uri) {
+    function tokenURI(uint256 tokenId) public view override returns (string memory uri) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 
