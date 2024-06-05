@@ -60,7 +60,7 @@ contract GetSqrtPriceX96_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz
         // Function will overFlow, not realistic.
         priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e28);
         // Cast to uint160 will overflow, not realistic.
-        vm.assume(priceToken0 / priceToken1 < 2 ** 128);
+        if (priceToken1 < 2 ** 128) priceToken0 = bound(priceToken0, 0, priceToken1 * 2 ** 128);
 
         uint256 priceXd28 = priceToken0 * 1e28 / priceToken1;
         uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);

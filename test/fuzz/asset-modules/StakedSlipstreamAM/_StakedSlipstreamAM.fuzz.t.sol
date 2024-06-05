@@ -94,7 +94,7 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         // Mock Aero
         ERC20Mock rewardToken = new ERC20Mock("Aerodrome", "AERO", 18);
         vm.etch(AERO, address(rewardToken).code);
-        aeroOracle = initMockedOracle(8, "AERO / USD", rates.token1ToUsd);
+        aeroOracle = initMockedOracle(18, "AERO / USD", rates.token1ToUsd);
 
         // Add AERO to the ERC20PrimaryAM.
         vm.startPrank(users.creatorAddress);
