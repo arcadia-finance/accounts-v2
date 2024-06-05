@@ -18,7 +18,7 @@ contract SlipstreamFixture is WETH9Fixture {
 
     ICLFactoryExtension internal cLFactory;
     ICLGaugeFactory internal cLGaugeFactory;
-    INonfungiblePositionManagerExtension internal nonfungiblePositionManager;
+    INonfungiblePositionManagerExtension internal slipstreamPositionManager;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -51,7 +51,7 @@ contract SlipstreamFixture is WETH9Fixture {
         args = abi.encode(cLFactory_, address(weth9), address(0), "", "");
         bytecode = abi.encodePacked(vm.getCode("periphery/NonfungiblePositionManager.sol"), args);
         address nonfungiblePositionManager_ = Utils.deployBytecode(bytecode);
-        nonfungiblePositionManager = INonfungiblePositionManagerExtension(nonfungiblePositionManager_);
+        slipstreamPositionManager = INonfungiblePositionManagerExtension(nonfungiblePositionManager_);
     }
 
     function deployCLGaugeFactory(address voter) internal {

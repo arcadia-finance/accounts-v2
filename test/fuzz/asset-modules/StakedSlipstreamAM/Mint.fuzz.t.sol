@@ -56,9 +56,9 @@ contract Mint_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         uint256 assetId = addLiquidity(position);
 
         // And : Position has zero liquidity.
-        (,,,,,,, uint128 liquidity,,,,) = nonfungiblePositionManager.positions(assetId);
+        (,,,,,,, uint128 liquidity,,,,) = slipstreamPositionManager.positions(assetId);
         vm.prank(users.liquidityProvider);
-        nonfungiblePositionManager.decreaseLiquidity(
+        slipstreamPositionManager.decreaseLiquidity(
             INonfungiblePositionManagerExtension.DecreaseLiquidityParams({
                 tokenId: assetId,
                 liquidity: liquidity,
@@ -70,7 +70,7 @@ contract Mint_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
         // And : Transfer is approved.
         vm.prank(users.liquidityProvider);
-        nonfungiblePositionManager.approve(address(stakedSlipstreamAM), assetId);
+        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
 
         // When : Calling mint().
         // Then : It should revert.
@@ -89,7 +89,7 @@ contract Mint_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
         // And : Transfer is approved.
         vm.prank(users.liquidityProvider);
-        nonfungiblePositionManager.approve(address(stakedSlipstreamAM), assetId);
+        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
 
         // When : Calling mint().
         // Then : It should revert.
@@ -108,7 +108,7 @@ contract Mint_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
         // And : Transfer is approved.
         vm.prank(users.liquidityProvider);
-        nonfungiblePositionManager.approve(address(stakedSlipstreamAM), assetId);
+        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
 
         // When : Calling mint().
         // Then : It should revert.
@@ -124,7 +124,7 @@ contract Mint_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
         // And : Transfer is approved.
         vm.prank(users.liquidityProvider);
-        nonfungiblePositionManager.approve(address(stakedSlipstreamAM), assetId);
+        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
 
         // When : Calling mint().
         vm.prank(users.liquidityProvider);

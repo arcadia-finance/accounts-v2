@@ -168,9 +168,9 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         deal(token0, liquidityProvider_, amount0);
         deal(token1, liquidityProvider_, amount1);
         vm.startPrank(liquidityProvider_);
-        ERC20(token0).approve(address(nonfungiblePositionManager), type(uint256).max);
-        ERC20(token1).approve(address(nonfungiblePositionManager), type(uint256).max);
-        (tokenId,,,) = nonfungiblePositionManager.mint(
+        ERC20(token0).approve(address(slipstreamPositionManager), type(uint256).max);
+        ERC20(token1).approve(address(slipstreamPositionManager), type(uint256).max);
+        (tokenId,,,) = slipstreamPositionManager.mint(
             INonfungiblePositionManagerExtension.MintParams({
                 token0: token0,
                 token1: token1,
@@ -199,7 +199,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         // Check if test should revert or be skipped when liquidity is zero.
         // This is hard to check with assumes of the fuzzed inputs due to rounding errors.
         (,, address token0, address token1,, int24 tickLower, int24 tickUpper,,,,,) =
-            nonfungiblePositionManager.positions(tokenId);
+            slipstreamPositionManager.positions(tokenId);
         if (!revertsOnZeroLiquidity) {
             (uint160 sqrtPrice,,,,,) = pool.slot0();
             uint256 liquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
@@ -214,9 +214,9 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
 
         deal(token0, address(this), 100);
         deal(token1, address(this), 100);
-        ERC20(token0).approve(address(nonfungiblePositionManager), type(uint256).max);
-        ERC20(token1).approve(address(nonfungiblePositionManager), type(uint256).max);
-        nonfungiblePositionManager.increaseLiquidity(
+        ERC20(token0).approve(address(slipstreamPositionManager), type(uint256).max);
+        ERC20(token1).approve(address(slipstreamPositionManager), type(uint256).max);
+        slipstreamPositionManager.increaseLiquidity(
             INonfungiblePositionManagerExtension.IncreaseLiquidityParams({
                 tokenId: tokenId,
                 amount0Desired: amount0,

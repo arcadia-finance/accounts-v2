@@ -32,7 +32,7 @@ contract Initialize_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test
         // And : Asset Module is deployed.
         vm.prank(users.creatorAddress);
         StakedSlipstreamAM assetModule = new StakedSlipstreamAM(
-            address(registryExtension), address(nonfungiblePositionManager), address(voter), address(AERO)
+            address(registryExtension), address(slipstreamPositionManager), address(voter), address(AERO)
         );
 
         // When : Calling initialize().
@@ -46,7 +46,7 @@ contract Initialize_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test
         // Given : Asset Module is deployed.
         vm.prank(users.creatorAddress);
         StakedSlipstreamAM assetModule = new StakedSlipstreamAM(
-            address(registryExtension), address(nonfungiblePositionManager), address(voter), address(AERO)
+            address(registryExtension), address(slipstreamPositionManager), address(voter), address(AERO)
         );
 
         // And : Asset Module is added to the Registry.
@@ -68,7 +68,7 @@ contract Initialize_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test
         // Given : Asset Module is deployed.
         vm.prank(users.creatorAddress);
         StakedSlipstreamAM assetModule = new StakedSlipstreamAM(
-            address(registryExtension), address(nonfungiblePositionManager), address(voter), address(AERO)
+            address(registryExtension), address(slipstreamPositionManager), address(voter), address(AERO)
         );
 
         // And : Asset Module is added to the Registry.
