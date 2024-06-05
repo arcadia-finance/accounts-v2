@@ -23,12 +23,10 @@ import { TickMath } from "../UniswapV3/libraries/TickMath.sol";
 /**
  * @title Asset Module for Staked Slipstream Liquidity Positions
  * @author Pragma Labs
- * @notice The pricing logic and basic information for Slipstream Liquidity Positions.
- * @dev The StakedSlipstreamAM will not price the LP tokens via direct price oracles,
+ * @notice The pricing logic and basic information for Slipstream Slipstream Liquidity Positions.
+ * @dev The StakedSlipstreamAM will not price the underlying LP tokens via direct price oracles,
  * it will break down liquidity positions in the underlying tokens (ERC20s).
  * Only LP tokens for which the underlying tokens are allowed as collateral can be priced.
- * @dev No end-user should directly interact with the SlipstreamAM, only the Registry,
- * or the contract owner.
  */
 contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     using FixedPointMathLib for uint256;
@@ -42,7 +40,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     // The contract address of the Slipstream Factory.
     address internal immutable CL_FACTORY;
 
-    // The reward token.
+    // The Reward Token.
     ERC20 public immutable REWARD_TOKEN;
 
     // The Aerodrome voter contract.
@@ -61,7 +59,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     // The unique identifiers of the Underlying Assets of a Liquidity Position.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) public assetToUnderlyingAssets;
 
-    // The allowed gauges.
+    // The allowed Gauges.
     mapping(address pool => address gauge) public poolToGauge;
 
     // Map a position id to its corresponding struct with the position state.
@@ -102,17 +100,17 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     ////////////////////////////////////////////////////////////// */
 
     /**
-     * @param registry_ The contract address of the Registry.
+     * @param registry The contract address of the Arcadia Registry.
      * @param nonFungiblePositionManager The contract address of the protocols NonFungiblePositionManager.
      * @param aerodromeVoter The contract address of the Aerodrome Finance Voter contract.
-     * @param rewardToken The contract address of the reward token.
+     * @param rewardToken The contract address of the Reward Token.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Slipstream Liquidity Positions (ERC721).
      */
-    constructor(address registry_, address nonFungiblePositionManager, address aerodromeVoter, address rewardToken)
-        DerivedAM(registry_, 2)
+    constructor(address registry, address nonFungiblePositionManager, address aerodromeVoter, address rewardToken)
+        DerivedAM(registry, 2)
         ERC721("Arcadia Staked Slipstream Positions", "aSSLIPP")
     {
-        if (!IRegistry(registry_).isAllowed(rewardToken, 0)) revert RewardTokenNotAllowed();
+        if (!IRegistry(registry).isAllowed(rewardToken, 0)) revert RewardTokenNotAllowed();
 
         AERO_VOTER = IAeroVoter(aerodromeVoter);
         REWARD_TOKEN = ERC20(rewardToken);
@@ -346,6 +344,8 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         uint256 valueReward = underlyingAssetsAmounts[2].mulDivDown(rateUnderlyingAssetsToUsd[2].assetValue, 1e18);
         valueInUsd = valuePrincipal + valueReward;
 
+        if (valueInUsd == 0) return (0, 0, 0);
+
         // Keep the lowest risk factor of the principal assets.
         collateralFactor = rateUnderlyingAssetsToUsd[0].collateralFactor < rateUnderlyingAssetsToUsd[1].collateralFactor
             ? rateUnderlyingAssetsToUsd[0].collateralFactor
@@ -356,15 +356,13 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
             : rateUnderlyingAssetsToUsd[1].liquidationFactor;
 
         // Calculate weighted risk factors of principal and reward.
-        if (valueInUsd > 0) {
-            unchecked {
-                collateralFactor = (
-                    valuePrincipal * collateralFactor + valueReward * rateUnderlyingAssetsToUsd[2].collateralFactor
-                ) / valueInUsd;
-                liquidationFactor = (
-                    valuePrincipal * liquidationFactor + valueReward * rateUnderlyingAssetsToUsd[2].liquidationFactor
-                ) / valueInUsd;
-            }
+        unchecked {
+            collateralFactor = (
+                valuePrincipal * collateralFactor + valueReward * rateUnderlyingAssetsToUsd[2].collateralFactor
+            ) / valueInUsd;
+            liquidationFactor = (
+                valuePrincipal * liquidationFactor + valueReward * rateUnderlyingAssetsToUsd[2].liquidationFactor
+            ) / valueInUsd;
         }
 
         // Lower risk factors with the protocol wide risk factor.
