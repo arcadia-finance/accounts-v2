@@ -15,6 +15,7 @@ import { Registry } from "../src/Registry.sol";
 import { SafeTransactionBuilder } from "./utils/SafeTransactionBuilder.sol";
 import { SlipstreamAM } from "../src/asset-modules/Slipstream/SlipstreamAM.sol";
 import { StakedAerodromeAM } from "../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
+import { StakedSlipstreamAM } from "../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
 import { WrappedAerodromeAM } from "../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 abstract contract Base_Script is Test, SafeTransactionBuilder {
@@ -31,6 +32,7 @@ abstract contract Base_Script is Test, SafeTransactionBuilder {
     Registry internal registry = Registry(ArcadiaContracts.REGISTRY);
     SlipstreamAM internal slipstreamAM = SlipstreamAM(ArcadiaContracts.SLIPSTREAM_AM);
     StakedAerodromeAM internal stakedAerodromeAM = StakedAerodromeAM(ArcadiaContracts.STAKED_AERO_AM);
+    StakedSlipstreamAM internal stakedSlipstreamAM = StakedSlipstreamAM(ArcadiaContracts.STAKED_SLIPSTREAM_AM);
     WrappedAerodromeAM internal wrappedAerodromeAM = WrappedAerodromeAM(ArcadiaContracts.WRAPPED_AERO_AM);
 
     constructor() {
