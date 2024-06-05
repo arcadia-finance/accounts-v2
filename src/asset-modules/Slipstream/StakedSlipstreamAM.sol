@@ -139,6 +139,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     /**
      * @notice Adds a new Gauge to the StakedSlipstreamAM.
      * @param gauge The contract address of the gauge to stake Slipstream LP.
+     * @dev Killed Gauges can be added, but no positions can be minted.
      */
     function addGauge(address gauge) external onlyOwner {
         if (AERO_VOTER.isGauge(gauge) != true) revert GaugeNotValid();
@@ -188,7 +189,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param underlyingAssetKeys The unique identifiers of the Underlying Assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 1e18 tokens of Underlying Asset, with 18 decimals precision.
-     * @dev External price feeds of the Underlying Assets are used to calculate the flashloan resistant amounts.
+     * @dev External price feeds of the Underlying Liquidity Position are used to calculate the flashloan resistant amounts.
      * This approach accommodates scenarios where an underlying asset could be
      * a derived asset itself (e.g., USDC/aUSDC pool), ensuring more versatile and accurate price calculations.
      */
@@ -330,6 +331,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @return collateralFactor The collateral factor of the asset for a given Creditor, with 4 decimals precision.
      * @return liquidationFactor The liquidation factor of the asset for a given Creditor, with 4 decimals precision.
      * @dev We take the most conservative (lowest) risk factor of the principal assets of the Liquidity Position.
+     * Next we take a USD-value weighted average of the risk factors of the principal and staking rewards.
      */
     function _calculateValueAndRiskFactors(
         address creditor,
