@@ -137,6 +137,7 @@ contract ActionMultiCallV2 is IActionBase, ERC721TokenReceiver {
 
     /**
      * @notice Helper function to wrap an Aerodrome LP token.
+     * @param assetModule The contract address of the Aerodrome asset module.
      * @param pool The contract address of the Aerodrome Pool.
      * @param amount The amount of lp tokens to wrap.
      * @dev Asset address and ID is temporarily stored in this contract.
