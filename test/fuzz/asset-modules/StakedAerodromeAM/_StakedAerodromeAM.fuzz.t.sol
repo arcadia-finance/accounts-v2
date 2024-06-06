@@ -9,7 +9,7 @@ import { Fuzz_Test, Constants, ERC20Mock, ArcadiaOracle, BitPackingLib } from ".
 import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
 import { StakedAerodromeAM, ERC20 } from "../../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
 import { StakedAerodromeAMExtension } from "../../../utils/extensions/StakedAerodromeAMExtension.sol";
-import { AerodromeVoterMock } from "../../../utils/mocks/Aerodrome/AerodromeVoterMock.sol";
+import { VoterMock } from "../../../utils/mocks/Aerodrome/VoterMock.sol";
 import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
 import { PoolFactory } from "../../../utils/fixtures/aerodrome/AeroPoolFactoryFixture.f.sol";
 import { Gauge } from "../../../utils/fixtures/aerodrome/AeroGaugeFixture.f.sol";
@@ -35,13 +35,13 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AerodromePoolAM public aerodromePoolAM;
-    StakedAerodromeAMExtension public stakedAerodromeAM;
-    AerodromeVoterMock public voter;
-    Pool public pool;
-    Pool public implementation;
-    PoolFactory public poolFactory;
-    Gauge public gauge;
+    AerodromePoolAM internal aerodromePoolAM;
+    StakedAerodromeAMExtension internal stakedAerodromeAM;
+    VoterMock internal voter;
+    Pool internal pool;
+    Pool internal implementation;
+    PoolFactory internal poolFactory;
+    Gauge internal gauge;
     ArcadiaOracle internal aeroOracle;
 
     /* ///////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
         poolFactory = new PoolFactory(address(implementation));
 
         // Deploy mock voter contract
-        voter = new AerodromeVoterMock();
+        voter = new VoterMock(address(0));
 
         // Deploy Aerodrome AM.
         aerodromePoolAM = new AerodromePoolAM(address(registryExtension), address(poolFactory));
@@ -117,7 +117,7 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
         gauge = new Gauge(msg.sender, stakingToken, msg.sender, rewardToken_, address(voter), false);
 
         voter.setGauge(address(gauge));
-        voter.setAlive(address(gauge));
+        voter.setAlive(address(gauge), true);
     }
 
     function addEmissionsToGauge(uint256 emissions) public {

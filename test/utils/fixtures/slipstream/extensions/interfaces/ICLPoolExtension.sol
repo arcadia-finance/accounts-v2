@@ -8,6 +8,10 @@ interface ICLPoolExtension is ICLPool {
 
     function maxLiquidityPerTick() external view returns (uint128 maxLiquidityPerTick);
 
+    function rewardGrowthGlobalX128() external view returns (uint256 rewardGrowthGlobalX128_);
+
+    function rewardReserve() external view returns (uint256 rewardReserve_);
+
     function token0() external view returns (address token0);
 
     function token1() external view returns (address token1);
