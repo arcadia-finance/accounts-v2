@@ -23,7 +23,7 @@ import { TickMath } from "../UniswapV3/libraries/TickMath.sol";
 /**
  * @title Asset Module for Staked Slipstream Liquidity Positions
  * @author Pragma Labs
- * @notice The pricing logic and basic information for Slipstream Slipstream Liquidity Positions.
+ * @notice The pricing logic and basic information for Staked Slipstream Liquidity Positions.
  * @dev The StakedSlipstreamAM will not price the underlying LP tokens via direct price oracles,
  * it will break down liquidity positions in the underlying tokens (ERC20s).
  * Only LP tokens for which the underlying tokens are allowed as collateral can be priced.
