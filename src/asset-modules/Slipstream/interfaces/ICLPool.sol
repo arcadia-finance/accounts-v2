@@ -33,4 +33,8 @@ interface ICLPool {
     function feeGrowthGlobal0X128() external view returns (uint256 feeGrowthGlobal0X128);
 
     function feeGrowthGlobal1X128() external view returns (uint256 feeGrowthGlobal1X128);
+
+    function token0() external returns (address);
+
+    function token1() external returns (address);
 }

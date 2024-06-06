@@ -4,20 +4,21 @@
  */
 pragma solidity 0.8.22;
 
-import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
+import { StakedSlipstreamAM_Fuzz_Test } from "./_StakedSlipstreamAM.fuzz.t.sol";
 
-import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+import { StakedSlipstreamAM } from "../../../../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
 
 /**
- * @notice Fuzz tests for the function "initialize" of contract "WrappedAerodromeAM".
+ * @notice Fuzz tests for the function "initialize" of contract "StakedSlipstreamAM".
  */
-contract Initialize_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
+contract Initialize_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        WrappedAerodromeAM_Fuzz_Test.setUp();
+        StakedSlipstreamAM_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -30,7 +31,9 @@ contract Initialize_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test
 
         // And : Asset Module is deployed.
         vm.prank(users.creatorAddress);
-        WrappedAerodromeAM assetModule = new WrappedAerodromeAM(address(registryExtension));
+        StakedSlipstreamAM assetModule = new StakedSlipstreamAM(
+            address(registryExtension), address(slipstreamPositionManager), address(voter), address(AERO)
+        );
 
         // When : Calling initialize().
         // Then : It should revert.
@@ -39,10 +42,34 @@ contract Initialize_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test
         assetModule.initialize();
     }
 
+    function testFuzz_Revert_initialize_AlreadyInitialized() public {
+        // Given : Asset Module is deployed.
+        vm.prank(users.creatorAddress);
+        StakedSlipstreamAM assetModule = new StakedSlipstreamAM(
+            address(registryExtension), address(slipstreamPositionManager), address(voter), address(AERO)
+        );
+
+        // And : Asset Module is added to the Registry.
+        vm.prank(users.creatorAddress);
+        registryExtension.addAssetModule(address(assetModule));
+
+        // And : Asset Module is Initialized.
+        vm.prank(users.creatorAddress);
+        assetModule.initialize();
+
+        // When : Calling initialize().
+        // Then : It should revert.
+        vm.prank(users.creatorAddress);
+        vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
+        assetModule.initialize();
+    }
+
     function testFuzz_success_initialize() public {
         // Given : Asset Module is deployed.
         vm.prank(users.creatorAddress);
-        WrappedAerodromeAM assetModule = new WrappedAerodromeAM(address(registryExtension));
+        StakedSlipstreamAM assetModule = new StakedSlipstreamAM(
+            address(registryExtension), address(slipstreamPositionManager), address(voter), address(AERO)
+        );
 
         // And : Asset Module is added to the Registry.
         vm.prank(users.creatorAddress);

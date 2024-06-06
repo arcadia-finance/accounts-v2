@@ -25,12 +25,12 @@ contract Constructor_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.creatorAddress);
-        SlipstreamAMExtension slipstreamAM_ = new SlipstreamAMExtension(registry_, address(nonfungiblePositionManager));
+        SlipstreamAMExtension slipstreamAM_ = new SlipstreamAMExtension(registry_, address(slipstreamPositionManager));
         vm.stopPrank();
 
         assertEq(slipstreamAM_.REGISTRY(), registry_);
         assertEq(slipstreamAM_.ASSET_TYPE(), 2);
-        assertEq(slipstreamAM_.getNonFungiblePositionManager(), address(nonfungiblePositionManager));
+        assertEq(slipstreamAM_.getNonFungiblePositionManager(), address(slipstreamPositionManager));
         assertEq(slipstreamAM_.getUniswapV3Factory(), address(cLFactory));
     }
 }

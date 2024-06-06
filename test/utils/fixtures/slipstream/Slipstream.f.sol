@@ -7,6 +7,7 @@ pragma solidity 0.8.22;
 import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
 
 import { ICLFactoryExtension } from "./extensions/interfaces/ICLFactoryExtension.sol";
+import { ICLGaugeFactory } from "./interfaces/ICLGaugeFactory.sol";
 import { INonfungiblePositionManagerExtension } from "./extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
@@ -15,9 +16,9 @@ contract SlipstreamFixture is WETH9Fixture {
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    // Slipstream is a for of UniswapV3 -> use existing interfaces.
     ICLFactoryExtension internal cLFactory;
-    INonfungiblePositionManagerExtension internal nonfungiblePositionManager;
+    ICLGaugeFactory internal cLGaugeFactory;
+    INonfungiblePositionManagerExtension internal slipstreamPositionManager;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -50,6 +51,20 @@ contract SlipstreamFixture is WETH9Fixture {
         args = abi.encode(cLFactory_, address(weth9), address(0), "", "");
         bytecode = abi.encodePacked(vm.getCode("periphery/NonfungiblePositionManager.sol"), args);
         address nonfungiblePositionManager_ = Utils.deployBytecode(bytecode);
-        nonfungiblePositionManager = INonfungiblePositionManagerExtension(nonfungiblePositionManager_);
+        slipstreamPositionManager = INonfungiblePositionManagerExtension(nonfungiblePositionManager_);
+    }
+
+    function deployCLGaugeFactory(address voter) internal {
+        // Deploy CLGauge implementation.
+        bytes memory args = abi.encode();
+        bytes memory bytecode = abi.encodePacked(vm.getCode("CLGauge.sol"), args);
+        address cLGauge_ = Utils.deployBytecode(bytecode);
+
+        // Deploy the CLGaugeFactory.
+        // Deploy the CLFactory.
+        args = abi.encode(voter, cLGauge_);
+        bytecode = abi.encodePacked(vm.getCode("CLGaugeFactory.sol"), args);
+        address cLGaugeFactory_ = Utils.deployBytecode(bytecode);
+        cLGaugeFactory = ICLGaugeFactory(cLGaugeFactory_);
     }
 }

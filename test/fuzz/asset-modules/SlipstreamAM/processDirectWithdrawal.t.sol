@@ -36,7 +36,7 @@ contract ProcessDirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Tes
     function setUp() public override {
         SlipstreamAM_Fuzz_Test.setUp();
 
-        deploySlipstreamAM(address(nonfungiblePositionManager));
+        deploySlipstreamAM(address(slipstreamPositionManager));
 
         token0 = new ERC20Mock("Token 0", "TOK0", 18);
         token1 = new ERC20Mock("Token 1", "TOK1", 18);
@@ -89,7 +89,7 @@ contract ProcessDirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Tes
             // Calculate amounts of underlying tokens.
             // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
             // This is because there might be some small differences due to rounding errors.
-            (,,,,,,, liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+            (,,,,,,, liquidity_,,,,) = slipstreamPositionManager.positions(tokenId);
             (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
             );
@@ -110,7 +110,7 @@ contract ProcessDirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Tes
         {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
-                slipstreamAM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+                slipstreamAM.getValue(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
             vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
@@ -121,16 +121,16 @@ contract ProcessDirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Tes
         );
 
         vm.prank(address(registryExtension));
-        slipstreamAM.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+        slipstreamAM.processDirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
 
         vm.prank(address(registryExtension));
-        slipstreamAM.processDirectWithdrawal(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+        slipstreamAM.processDirectWithdrawal(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
 
         assertEq(slipstreamAM.getAssetToLiquidity(tokenId), 0);
 
         {
             // And: Exposure of the asset is zero.
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(nonfungiblePositionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(slipstreamPositionManager)));
             (uint256 lastExposureAsset,) = slipstreamAM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 0);
 
@@ -195,7 +195,7 @@ contract ProcessDirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Tes
             // Calculate amounts of underlying tokens.
             // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
             // This is because there might be some small differences due to rounding errors.
-            (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+            (,,,,,,, uint128 liquidity_,,,,) = slipstreamPositionManager.positions(tokenId);
             (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
             );
@@ -216,7 +216,7 @@ contract ProcessDirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Tes
         {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
-                slipstreamAM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+                slipstreamAM.getValue(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
             vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
@@ -227,13 +227,13 @@ contract ProcessDirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Tes
         );
 
         vm.prank(address(registryExtension));
-        slipstreamAM.processDirectWithdrawal(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0);
+        slipstreamAM.processDirectWithdrawal(address(creditorUsd), address(slipstreamPositionManager), tokenId, 0);
 
         assertEq(slipstreamAM.getAssetToLiquidity(tokenId), 0);
 
         {
             // And: Exposure of the asset is zero.
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(nonfungiblePositionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(slipstreamPositionManager)));
             (uint256 lastExposureAsset,) = slipstreamAM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 0);
 
@@ -298,7 +298,7 @@ contract ProcessDirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Tes
             // Calculate amounts of underlying tokens.
             // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
             // This is because there might be some small differences due to rounding errors.
-            (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+            (,,,,,,, uint128 liquidity_,,,,) = slipstreamPositionManager.positions(tokenId);
             (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
             );
@@ -319,7 +319,7 @@ contract ProcessDirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Tes
         {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
-                slipstreamAM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+                slipstreamAM.getValue(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
             vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
@@ -330,19 +330,19 @@ contract ProcessDirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Tes
         );
 
         vm.prank(address(registryExtension));
-        slipstreamAM.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+        slipstreamAM.processDirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
 
         vm.prank(address(registryExtension));
-        slipstreamAM.processDirectWithdrawal(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0);
+        slipstreamAM.processDirectWithdrawal(address(creditorUsd), address(slipstreamPositionManager), tokenId, 0);
 
         {
             // And: Exposure of the asset is one.
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(nonfungiblePositionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(slipstreamPositionManager)));
             (uint256 lastExposureAsset,) = slipstreamAM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 1);
 
             // And: Exposures to the underlying assets are updated.
-            (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+            (,,,,,,, uint128 liquidity_,,,,) = slipstreamPositionManager.positions(tokenId);
             (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
             );

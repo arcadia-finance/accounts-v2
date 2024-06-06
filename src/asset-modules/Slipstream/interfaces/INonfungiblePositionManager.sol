@@ -5,6 +5,7 @@ pragma solidity 0.8.22;
 /// @notice Wraps Slipstream positions in a non-fungible token interface which allows for them to be transferred
 /// and authorized.
 interface INonfungiblePositionManager {
+    function approve(address to, uint256 tokenId) external;
     function positions(uint256 tokenId)
         external
         view
@@ -24,6 +25,8 @@ interface INonfungiblePositionManager {
         );
 
     function factory() external returns (address factory);
+
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
 
     function totalSupply() external view returns (uint256 totalSupply);
 }

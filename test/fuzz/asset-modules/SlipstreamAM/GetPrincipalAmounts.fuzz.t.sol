@@ -20,7 +20,7 @@ contract GetPrincipalAmounts_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     function setUp() public override {
         SlipstreamAM_Fuzz_Test.setUp();
 
-        deploySlipstreamAM(address(nonfungiblePositionManager));
+        deploySlipstreamAM(address(slipstreamPositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////

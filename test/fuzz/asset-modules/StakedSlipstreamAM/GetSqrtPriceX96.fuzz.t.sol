@@ -4,23 +4,23 @@
  */
 pragma solidity 0.8.22;
 
-import { SlipstreamAM_Fuzz_Test } from "./_SlipstreamAM.fuzz.t.sol";
+import { StakedSlipstreamAM_Fuzz_Test } from "./_StakedSlipstreamAM.fuzz.t.sol";
 
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
- * @notice Fuzz tests for the function "getSqrtPriceX96" of contract "SlipstreamAM".
+ * @notice Fuzz tests for the function "getSqrtPriceX96" of contract "StakedSlipstreamAM".
  */
-contract GetSqrtPriceX96_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
+contract GetSqrtPriceX96_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        SlipstreamAM_Fuzz_Test.setUp();
+        StakedSlipstreamAM_Fuzz_Test.setUp();
 
-        deploySlipstreamAM(address(slipstreamPositionManager));
+        deployStakedSlipstreamAM();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ contract GetSqrtPriceX96_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         uint256 priceToken1 = 0;
 
         uint256 expectedSqrtPriceX96 = TickMath.MAX_SQRT_RATIO;
-        uint256 actualSqrtPriceX96 = slipstreamAM.getSqrtPriceX96(priceToken0, priceToken1);
+        uint256 actualSqrtPriceX96 = stakedSlipstreamAM.getSqrtPriceX96(priceToken0, priceToken1);
 
         assertEq(actualSqrtPriceX96, expectedSqrtPriceX96);
     }
@@ -49,7 +49,7 @@ contract GetSqrtPriceX96_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
 
         uint256 expectedSqrtPriceX96 = sqrtPriceXd14 * 2 ** 96 / 1e14;
-        uint256 actualSqrtPriceX96 = slipstreamAM.getSqrtPriceX96(priceToken0, priceToken1);
+        uint256 actualSqrtPriceX96 = stakedSlipstreamAM.getSqrtPriceX96(priceToken0, priceToken1);
 
         assertLt(actualSqrtPriceX96, expectedSqrtPriceX96);
     }
@@ -60,13 +60,13 @@ contract GetSqrtPriceX96_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         // Function will overFlow, not realistic.
         priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e28);
         // Cast to uint160 will overflow, not realistic.
-        vm.assume(priceToken0 / priceToken1 < 2 ** 128);
+        if (priceToken1 < 2 ** 128) priceToken0 = bound(priceToken0, 0, priceToken1 * 2 ** 128);
 
         uint256 priceXd28 = priceToken0 * 1e28 / priceToken1;
         uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
 
         uint256 expectedSqrtPriceX96 = sqrtPriceXd14 * 2 ** 96 / 1e14;
-        uint256 actualSqrtPriceX96 = slipstreamAM.getSqrtPriceX96(priceToken0, priceToken1);
+        uint256 actualSqrtPriceX96 = stakedSlipstreamAM.getSqrtPriceX96(priceToken0, priceToken1);
 
         assertEq(actualSqrtPriceX96, expectedSqrtPriceX96);
     }

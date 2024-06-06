@@ -26,7 +26,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     function setUp() public override {
         SlipstreamAM_Fuzz_Test.setUp();
 
-        deploySlipstreamAM(address(nonfungiblePositionManager));
+        deploySlipstreamAM(address(slipstreamPositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -78,7 +78,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         // Calculate amounts of underlying tokens.
         // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
         // This is because there might be some small differences due to rounding errors.
-        (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+        (,,,,,,, uint128 liquidity_,,,,) = slipstreamPositionManager.positions(tokenId);
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96,
             TickMath.getSqrtRatioAtTick(vars.tickLower),
@@ -99,7 +99,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         uint256 valueToken1 = uint256(vars.priceToken1) * amount1 / 10 ** vars.decimals1;
 
         (uint256 actualValueInUsd,,) =
-            slipstreamAM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+            slipstreamAM.getValue(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
 
         assertEq(actualValueInUsd, valueToken0 + valueToken1);
     }
@@ -159,7 +159,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         expectedLiqFactor = expectedLiqFactor * riskFactorSlipstream / AssetValuationLib.ONE_4;
 
         (, uint256 actualCollFactor, uint256 actualLiqFactor) =
-            slipstreamAM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+            slipstreamAM.getValue(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
 
         assertEq(actualCollFactor, expectedCollFactor);
         assertEq(actualLiqFactor, expectedLiqFactor);

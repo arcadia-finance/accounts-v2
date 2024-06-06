@@ -22,20 +22,20 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     function setUp() public override {
         SlipstreamAM_Fuzz_Test.setUp();
 
-        deploySlipstreamAM(address(nonfungiblePositionManager));
+        deploySlipstreamAM(address(slipstreamPositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_isAllowed_Negative_UnknownAsset(address asset, uint256 assetId) public {
-        vm.assume(asset != address(nonfungiblePositionManager));
+        vm.assume(asset != address(slipstreamPositionManager));
 
         assertFalse(slipstreamAM.isAllowed(asset, assetId));
     }
 
     function testFuzz_Success_isAllowed_Negative_UnknownId(uint256 assetId) public {
-        assertFalse(slipstreamAM.isAllowed(address(nonfungiblePositionManager), assetId));
+        assertFalse(slipstreamAM.isAllowed(address(slipstreamPositionManager), assetId));
     }
 
     function testFuzz_Success_isAllowListed_Negative_NonAllowedUnderlyingAsset(address lp) public {
@@ -53,9 +53,9 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         deal(address(tokenA), lp, 1e8);
         deal(address(tokenB), lp, 1e8);
         vm.startPrank(lp);
-        tokenA.approve(address(nonfungiblePositionManager), type(uint256).max);
-        tokenB.approve(address(nonfungiblePositionManager), type(uint256).max);
-        (uint256 tokenId,,,) = nonfungiblePositionManager.mint(
+        tokenA.approve(address(slipstreamPositionManager), type(uint256).max);
+        tokenB.approve(address(slipstreamPositionManager), type(uint256).max);
+        (uint256 tokenId,,,) = slipstreamPositionManager.mint(
             INonfungiblePositionManagerExtension.MintParams({
                 token0: address(tokenA),
                 token1: address(tokenB),
@@ -74,7 +74,7 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         vm.stopPrank();
 
         // No maxExposures for tokenA and tokenB are set.
-        assertFalse(slipstreamAM.isAllowed(address(nonfungiblePositionManager), tokenId));
+        assertFalse(slipstreamAM.isAllowed(address(slipstreamPositionManager), tokenId));
     }
 
     function testFuzz_Success_isAllowed_Negative_ZeroLiquidity(address lp, uint128 maxExposureA, uint128 maxExposureB)
@@ -95,9 +95,9 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         deal(address(tokenA), lp, 1e8);
         deal(address(tokenB), lp, 1e8);
         vm.startPrank(lp);
-        tokenA.approve(address(nonfungiblePositionManager), type(uint256).max);
-        tokenB.approve(address(nonfungiblePositionManager), type(uint256).max);
-        (uint256 tokenId,,,) = nonfungiblePositionManager.mint(
+        tokenA.approve(address(slipstreamPositionManager), type(uint256).max);
+        tokenB.approve(address(slipstreamPositionManager), type(uint256).max);
+        (uint256 tokenId,,,) = slipstreamPositionManager.mint(
             INonfungiblePositionManagerExtension.MintParams({
                 token0: address(tokenA),
                 token1: address(tokenB),
@@ -115,8 +115,8 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         );
 
         // Set liquidity to 0
-        (,,,,,,, uint128 liquidity,,,,) = nonfungiblePositionManager.positions(tokenId);
-        nonfungiblePositionManager.decreaseLiquidity(
+        (,,,,,,, uint128 liquidity,,,,) = slipstreamPositionManager.positions(tokenId);
+        slipstreamPositionManager.decreaseLiquidity(
             INonfungiblePositionManagerExtension.DecreaseLiquidityParams({
                 tokenId: tokenId,
                 liquidity: liquidity,
@@ -130,7 +130,7 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         // Exposures are greater than 0 for both token 1 and token 2, see Fuzz.t.sol
 
         // Test that Slipstream LP token with allowed exposure to the underlying assets but with 0 liquidity is not allowed.
-        assertFalse(slipstreamAM.isAllowed(address(nonfungiblePositionManager), tokenId));
+        assertFalse(slipstreamAM.isAllowed(address(slipstreamPositionManager), tokenId));
     }
 
     function testFuzz_Success_isAllowed_Positive(address lp, uint128 maxExposureA, uint128 maxExposureB) public {
@@ -149,9 +149,9 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         deal(address(tokenA), lp, 1e8);
         deal(address(tokenB), lp, 1e8);
         vm.startPrank(lp);
-        tokenA.approve(address(nonfungiblePositionManager), type(uint256).max);
-        tokenB.approve(address(nonfungiblePositionManager), type(uint256).max);
-        (uint256 tokenId,,,) = nonfungiblePositionManager.mint(
+        tokenA.approve(address(slipstreamPositionManager), type(uint256).max);
+        tokenB.approve(address(slipstreamPositionManager), type(uint256).max);
+        (uint256 tokenId,,,) = slipstreamPositionManager.mint(
             INonfungiblePositionManagerExtension.MintParams({
                 token0: address(tokenA),
                 token1: address(tokenB),
@@ -172,6 +172,6 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         // Exposures are greater than 0 for both token 1 and token 2, see Fuzz.t.sol
 
         // Test that Slipstream LP token with allowed exposure to the underlying assets is allowlisted.
-        assertTrue(slipstreamAM.isAllowed(address(nonfungiblePositionManager), tokenId));
+        assertTrue(slipstreamAM.isAllowed(address(slipstreamPositionManager), tokenId));
     }
 }
