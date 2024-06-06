@@ -7,7 +7,6 @@ pragma solidity 0.8.22;
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
 import { ERC721TokenReceiver } from "../../lib/solmate/src/tokens/ERC721.sol";
-import { IPermit2 } from "../interfaces/IPermit2.sol";
 import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
 import { IAeroAM } from "./interfaces/IAeroAM.sol";
 
@@ -25,9 +24,6 @@ contract ActionMultiCallV2 is IActionBase, ERC721TokenReceiver {
 
     address[] internal mintedAssets;
     uint256[] internal mintedIds;
-
-    IAeroAM internal constant wrappedAeroAM = IAeroAM(0x17B5826382e3a5257b829cF0546A08Bd77409270);
-    IAeroAM internal constant stakedAeroAM = IAeroAM(0x9f42361B7602Df1A8Ae28Bf63E6cb1883CD44C27);
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -145,35 +141,16 @@ contract ActionMultiCallV2 is IActionBase, ERC721TokenReceiver {
      * @param amount The amount of lp tokens to wrap.
      * @dev Asset address and ID is temporarily stored in this contract.
      */
-    function mintWrappedAero(address pool, uint128 amount) external {
+    function mintAeroPosition(address assetModule, address pool, uint128 amount) external {
         if (msg.sender != address(this)) revert OnlyInternal();
 
         if (amount == 0) {
             amount = uint128(IERC20(pool).balanceOf(address(this)));
         }
 
-        uint256 tokenId = wrappedAeroAM.mint(pool, amount);
+        uint256 tokenId = IAeroAM(assetModule).mint(pool, amount);
 
-        mintedAssets.push(address(wrappedAeroAM));
-        mintedIds.push(tokenId);
-    }
-
-    /**
-     * @notice Helper function to stake an Aerodrome LP token.
-     * @param pool The contract address of the Aerodrome Pool.
-     * @param amount The amount of lp tokens to stake.
-     * @dev Asset address and ID is temporarily stored in this contract.
-     */
-    function mintStakedAero(address pool, uint128 amount) external {
-        if (msg.sender != address(this)) revert OnlyInternal();
-
-        if (amount == 0) {
-            amount = uint128(IERC20(pool).balanceOf(address(this)));
-        }
-
-        uint256 tokenId = stakedAeroAM.mint(pool, amount);
-
-        mintedAssets.push(address(stakedAeroAM));
+        mintedAssets.push(assetModule);
         mintedIds.push(tokenId);
     }
 
