@@ -13,6 +13,7 @@ library ArcadiaContracts {
     address internal constant SLIPSTREAM_AM = address(0xd3A7055bBcDA4F8F49e5c5dE7E83B09a33633F44);
     address internal constant STAKED_AERO_AM = address(0x9f42361B7602Df1A8Ae28Bf63E6cb1883CD44C27);
     address internal constant STAKED_STARGATE_AM = address(0xae909e19fd13C01c28d5Ee439D403920CF7f9Eea);
+    address internal constant STAKED_SLIPSTREAM_AM = address(0x7110d609d4743a65e8F26dbF815f3556eD2de6E6); // ToDo: change after deployment.
     address internal constant STARGATE_AM = address(0x20f7903290bF98716B62Dc1c9DA634291b8cfeD4);
     address internal constant UNISWAPV3_AM = address(0x21bd524cC54CA78A7c48254d4676184f781667dC);
     address internal constant LENDINGPOOL_USDC = address(0x3ec4a293Fb906DD2Cd440c20dECB250DeF141dF1);
@@ -272,13 +273,18 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_SLIPSTREAM_WETH = uint112(2_000_000 * 1e18);
     uint112 internal constant EXPOSURE_SLIPSTREAM_USDC = uint112(2_000_000 * 1e18);
 
+    uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_WETH = 9800;
+    uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_USDC = 9800;
+    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_WETH = uint112(2_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_USDC = uint112(2_000_000 * 1e18);
+
     uint128 internal constant MIN_USD_VALUE_WETH = 1 * 1e18;
     uint64 internal constant GRACE_PERIOD_WETH = 15 minutes;
-    uint64 internal constant MAX_RECURSIVE_CALLS_WETH = 5;
+    uint64 internal constant MAX_RECURSIVE_CALLS_WETH = 6;
 
     uint128 internal constant MIN_USD_VALUE_USDC = 1 * 1e18;
     uint64 internal constant GRACE_PERIOD_USDC = 15 minutes;
-    uint64 internal constant MAX_RECURSIVE_CALLS_USDC = 5;
+    uint64 internal constant MAX_RECURSIVE_CALLS_USDC = 6;
 }
 
 library ExternalContracts {
@@ -301,6 +307,12 @@ library StargatePids {
 }
 
 library AerodromeGauges {
+    address internal constant CL1_CBETH_WETH = address(0xF5550F8F0331B8CAA165046667f4E6628E9E3Aac);
+    address internal constant CL1_USDC_USDBC = address(0x4a3E1294d7869567B387FC3d5e5Ccf14BE2Bbe0a);
+    address internal constant CL1_WETH_WSTETH = address(0x2A1f7bf46bd975b5004b61c6040597E1B6117040);
+    address internal constant CL100_WETH_USDC = address(0xF33a96b5932D9E9B9A0eDA447AbD8C9d48d2e0c8);
+    address internal constant CL200_AERO_WSTETH = address(0x45F8b8eC9c92D09BA8495074436fD97073423041);
+    address internal constant CL200_WETH_AERO = address(0xdE8FF0D3e8ab225110B088a250b546015C567E27);
     address internal constant V_AERO_USDBC = address(0x9a202c932453fB3d04003979B121E80e5A14eE7b);
     address internal constant V_AERO_WSTETH = address(0x26D6D4E9e3fAf1C7C19992B1Ca792e4A9ea4F833);
     address internal constant V_CBETH_WETH = address(0xDf9D427711CCE46b52fEB6B2a20e4aEaeA12B2b7);

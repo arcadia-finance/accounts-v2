@@ -36,7 +36,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
     function setUp() public override {
         SlipstreamAM_Fuzz_Test.setUp();
 
-        deploySlipstreamAM(address(nonfungiblePositionManager));
+        deploySlipstreamAM(address(slipstreamPositionManager));
 
         token0 = new ERC20Mock("Token 0", "TOK0", 18);
         token1 = new ERC20Mock("Token 1", "TOK1", 18);
@@ -79,7 +79,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert(AssetModule.OnlyRegistry.selector);
         slipstreamAM.processIndirectDeposit(
-            address(creditorUsd), address(nonfungiblePositionManager), tokenId, exposureUpperAssetToAsset, 1
+            address(creditorUsd), address(slipstreamPositionManager), tokenId, exposureUpperAssetToAsset, 1
         );
         vm.stopPrank();
     }
@@ -118,7 +118,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         vm.prank(address(registryExtension));
         vm.expectRevert(SlipstreamAM.InvalidAmount.selector);
         slipstreamAM.processIndirectDeposit(
-            address(creditorUsd), address(nonfungiblePositionManager), tokenId, exposureUpperAssetToAsset, amount
+            address(creditorUsd), address(slipstreamPositionManager), tokenId, exposureUpperAssetToAsset, amount
         );
     }
 
@@ -163,7 +163,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
             // Calculate amounts of underlying tokens.
             // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
             // This is because there might be some small differences due to rounding errors.
-            (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+            (,,,,,,, uint128 liquidity_,,,,) = slipstreamPositionManager.positions(tokenId);
             (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
             );
@@ -184,7 +184,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
-                slipstreamAM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+                slipstreamAM.getValue(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
             vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
@@ -197,19 +197,19 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         {
             vm.prank(address(registryExtension));
             (uint256 recursiveCalls,) = slipstreamAM.processIndirectDeposit(
-                address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0, 1
+                address(creditorUsd), address(slipstreamPositionManager), tokenId, 0, 1
             );
             assertEq(recursiveCalls, 3);
         }
 
         {
             // And: Exposure of the asset is one.
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(nonfungiblePositionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(slipstreamPositionManager)));
             (uint256 lastExposureAsset,) = slipstreamAM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 1);
 
             // And: Exposures to the underlying assets are updated.
-            (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+            (,,,,,,, uint128 liquidity_,,,,) = slipstreamPositionManager.positions(tokenId);
             (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
             );
@@ -273,7 +273,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
             // Calculate amounts of underlying tokens.
             // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
             // This is because there might be some small differences due to rounding errors.
-            (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+            (,,,,,,, uint128 liquidity_,,,,) = slipstreamPositionManager.positions(tokenId);
             (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
             );
@@ -294,7 +294,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
-                slipstreamAM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+                slipstreamAM.getValue(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
             vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
@@ -308,7 +308,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
             // When: processDirectDeposit is called with amount 0.
             vm.prank(address(registryExtension));
             (uint256 recursiveCalls,) = slipstreamAM.processIndirectDeposit(
-                address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0, 0
+                address(creditorUsd), address(slipstreamPositionManager), tokenId, 0, 0
             );
 
             // Then: Correct variables are returned.
@@ -317,7 +317,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
 
         {
             // And: Exposure of the asset is one.
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(nonfungiblePositionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(slipstreamPositionManager)));
             (uint256 lastExposureAsset,) = slipstreamAM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 0);
 
@@ -383,7 +383,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
                 // Calculate amounts of underlying tokens.
                 // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
                 // This is because there might be some small differences due to rounding errors.
-                (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+                (,,,,,,, uint128 liquidity_,,,,) = slipstreamPositionManager.positions(tokenId);
                 (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
                     sqrtPriceX96,
                     TickMath.getSqrtRatioAtTick(ticks[1]),
@@ -407,7 +407,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
             {
                 // And: usd exposure to protocol below max usd exposure.
                 (uint256 usdExposureProtocol,,) =
-                    slipstreamAM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+                    slipstreamAM.getValue(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
                 vm.assume(usdExposureProtocol < type(uint112).max);
                 maxUsdExposureProtocol =
                     uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
@@ -420,7 +420,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
 
             // Given: Slipstream position is deposited.
             vm.prank(address(registryExtension));
-            slipstreamAM.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+            slipstreamAM.processDirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
         }
 
         {
@@ -429,12 +429,10 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
 
             // When: processDirectDeposit is called with amount 0.
             vm.prank(address(registryExtension));
-            slipstreamAM.processIndirectDeposit(
-                address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0, 0
-            );
+            slipstreamAM.processIndirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 0, 0);
 
             // Then: Exposure of the asset is still one.
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(nonfungiblePositionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(slipstreamPositionManager)));
             (uint256 lastExposureAsset,) = slipstreamAM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 1);
 

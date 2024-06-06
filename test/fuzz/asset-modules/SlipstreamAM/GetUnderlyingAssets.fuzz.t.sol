@@ -30,7 +30,7 @@ contract GetUnderlyingAssets_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
             ? (address(mockERC20.stable1), address(mockERC20.stable2))
             : (address(mockERC20.stable2), address(mockERC20.stable1));
 
-        deploySlipstreamAM(address(nonfungiblePositionManager));
+        deploySlipstreamAM(address(slipstreamPositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////

@@ -52,7 +52,7 @@ contract Burn_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
         // And: Position is staked.
         vm.startPrank(users.liquidityProvider);
-        nonfungiblePositionManager.approve(address(stakedSlipstreamAM), assetId);
+        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
         stakedSlipstreamAM.mint(assetId);
         vm.stopPrank();
 
@@ -86,7 +86,7 @@ contract Burn_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
         // And: Position is staked.
         vm.startPrank(users.liquidityProvider);
-        nonfungiblePositionManager.approve(address(stakedSlipstreamAM), assetId);
+        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
         stakedSlipstreamAM.mint(assetId);
         vm.stopPrank();
 
@@ -123,7 +123,7 @@ contract Burn_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         assertEq(ERC20(AERO).balanceOf(users.liquidityProvider), rewardsExpected);
 
         // And: Asset is transferred back to the owner.
-        assertEq(nonfungiblePositionManager.ownerOf(assetId), users.liquidityProvider);
+        assertEq(slipstreamPositionManager.ownerOf(assetId), users.liquidityProvider);
     }
 
     function testFuzz_Success_burn_ZeroReward(StakedSlipstreamAM.PositionState memory position) public {
@@ -136,7 +136,7 @@ contract Burn_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
         // And: Position is staked.
         vm.startPrank(users.liquidityProvider);
-        nonfungiblePositionManager.approve(address(stakedSlipstreamAM), assetId);
+        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
         stakedSlipstreamAM.mint(assetId);
         vm.stopPrank();
 
@@ -151,6 +151,6 @@ contract Burn_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         assertEq(rewards, 0);
 
         // And: Asset is transferred back to the owner.
-        assertEq(nonfungiblePositionManager.ownerOf(assetId), users.liquidityProvider);
+        assertEq(slipstreamPositionManager.ownerOf(assetId), users.liquidityProvider);
     }
 }

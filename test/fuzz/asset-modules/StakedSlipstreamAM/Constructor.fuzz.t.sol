@@ -33,17 +33,17 @@ contract Constructor_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
         // Then: It reverts.
         vm.expectRevert(StakedSlipstreamAM.RewardTokenNotAllowed.selector);
         new StakedSlipstreamAMExtension(
-            address(registryExtension), address(nonfungiblePositionManager), address(voter), address(AERO)
+            address(registryExtension), address(slipstreamPositionManager), address(voter), address(AERO)
         );
     }
 
     function testFuzz_success_constructor() public {
         stakedSlipstreamAM = new StakedSlipstreamAMExtension(
-            address(registryExtension), address(nonfungiblePositionManager), address(voter), address(AERO)
+            address(registryExtension), address(slipstreamPositionManager), address(voter), address(AERO)
         );
 
         assertEq(stakedSlipstreamAM.REGISTRY(), address(registryExtension));
-        assertEq(stakedSlipstreamAM.getNonfungiblePositionManager(), address(nonfungiblePositionManager));
+        assertEq(stakedSlipstreamAM.getNonfungiblePositionManager(), address(slipstreamPositionManager));
         assertEq(stakedSlipstreamAM.getAeroVoter(), address(voter));
         assertEq(address(stakedSlipstreamAM.REWARD_TOKEN()), address(AERO));
         assertEq(stakedSlipstreamAM.getCLFactory(), address(cLFactory));

@@ -79,7 +79,7 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
 
         // Deploy fixture for CLGaugeFactory.
         deployCLGaugeFactory(address(voter));
-        cLGaugeFactory.setNonfungiblePositionManager(address(nonfungiblePositionManager));
+        cLGaugeFactory.setNonfungiblePositionManager(address(slipstreamPositionManager));
         factoryRegistry.setFactoriesToPoolFactory(address(cLFactory), address(0), address(cLGaugeFactory));
 
         // Deploy AERO reward token.
@@ -109,7 +109,7 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         // Deploy StakedSlipstreamAM.
         vm.startPrank(users.creatorAddress);
         stakedSlipstreamAM = new StakedSlipstreamAMExtension(
-            address(registryExtension), address(nonfungiblePositionManager), address(voter), address(AERO)
+            address(registryExtension), address(slipstreamPositionManager), address(voter), address(AERO)
         );
 
         // Add the Asset Module to the Registry.
@@ -276,9 +276,9 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         deal(token0_, liquidityProvider_, amount0);
         deal(token1_, liquidityProvider_, amount1);
         vm.startPrank(liquidityProvider_);
-        ERC20(token0_).approve(address(nonfungiblePositionManager), type(uint256).max);
-        ERC20(token1_).approve(address(nonfungiblePositionManager), type(uint256).max);
-        (tokenId,,,) = nonfungiblePositionManager.mint(
+        ERC20(token0_).approve(address(slipstreamPositionManager), type(uint256).max);
+        ERC20(token1_).approve(address(slipstreamPositionManager), type(uint256).max);
+        (tokenId,,,) = slipstreamPositionManager.mint(
             INonfungiblePositionManagerExtension.MintParams({
                 token0: token0_,
                 token1: token1_,

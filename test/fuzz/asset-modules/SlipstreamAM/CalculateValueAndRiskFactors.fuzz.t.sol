@@ -20,7 +20,7 @@ contract CalculateValueAndRiskFactors_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuz
     function setUp() public virtual override {
         SlipstreamAM_Fuzz_Test.setUp();
 
-        deploySlipstreamAM(address(nonfungiblePositionManager));
+        deploySlipstreamAM(address(slipstreamPositionManager));
     }
 
     /* ///////////////////////////////////////////////////////////////

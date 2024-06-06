@@ -20,7 +20,7 @@ contract SetProtocol_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     function setUp() public override {
         SlipstreamAM_Fuzz_Test.setUp();
 
-        deploySlipstreamAM(address(nonfungiblePositionManager));
+        deploySlipstreamAM(address(slipstreamPositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -37,7 +37,7 @@ contract SetProtocol_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
 
     function testFuzz_Revert_setProtocol_ProtocolNotAddedToReg() public {
         vm.prank(users.creatorAddress);
-        slipstreamAM = new SlipstreamAMExtension(address(registryExtension), address(nonfungiblePositionManager));
+        slipstreamAM = new SlipstreamAMExtension(address(registryExtension), address(slipstreamPositionManager));
 
         vm.startPrank(users.creatorAddress);
         vm.expectRevert(RegistryErrors.OnlyAssetModule.selector);

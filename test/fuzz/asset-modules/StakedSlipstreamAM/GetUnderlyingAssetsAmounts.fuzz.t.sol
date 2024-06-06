@@ -89,7 +89,7 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
 
             // And: Position is staked.
             vm.startPrank(users.liquidityProvider);
-            nonfungiblePositionManager.approve(address(stakedSlipstreamAM), assetId);
+            slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
             stakedSlipstreamAM.mint(assetId);
             vm.stopPrank();
 
@@ -173,7 +173,7 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
 
             // And: Position is staked.
             vm.startPrank(users.liquidityProvider);
-            nonfungiblePositionManager.approve(address(stakedSlipstreamAM), assetId);
+            slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
             stakedSlipstreamAM.mint(assetId);
             vm.stopPrank();
 

@@ -53,7 +53,7 @@ contract ClaimReward_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
 
         // And: Position is staked.
         vm.startPrank(users.liquidityProvider);
-        nonfungiblePositionManager.approve(address(stakedSlipstreamAM), assetId);
+        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
         stakedSlipstreamAM.mint(assetId);
         vm.stopPrank();
 
@@ -87,7 +87,7 @@ contract ClaimReward_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
 
         // And: Position is staked.
         vm.startPrank(users.liquidityProvider);
-        nonfungiblePositionManager.approve(address(stakedSlipstreamAM), assetId);
+        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
         stakedSlipstreamAM.mint(assetId);
         vm.stopPrank();
 
@@ -132,7 +132,7 @@ contract ClaimReward_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
 
         // And: Position is staked.
         vm.startPrank(users.liquidityProvider);
-        nonfungiblePositionManager.approve(address(stakedSlipstreamAM), assetId);
+        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
         stakedSlipstreamAM.mint(assetId);
         vm.stopPrank();
 
