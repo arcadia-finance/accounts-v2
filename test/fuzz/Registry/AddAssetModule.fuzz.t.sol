@@ -50,7 +50,6 @@ contract AddAssetModule_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.assume(assetModule != address(erc20AM));
         vm.assume(assetModule != address(floorERC721AM));
         vm.assume(assetModule != address(floorERC1155AM));
-        vm.assume(assetModule != address(uniV3AM));
         vm.assume(assetModule != address(derivedAM));
         vm.assume(assetModule != address(primaryAM));
 

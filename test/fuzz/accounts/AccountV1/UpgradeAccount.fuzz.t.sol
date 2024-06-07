@@ -32,6 +32,12 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     /* ///////////////////////////////////////////////////////////////
+                              TEST CONTRACTS
+    /////////////////////////////////////////////////////////////// */
+
+    AccountV2 internal accountV2Logic;
+
+    /* ///////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
@@ -56,8 +62,10 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         AccountV1_Fuzz_Test.setUp();
 
         // Set a Mocked V2 Account Logic contract in the Factory.
-        vm.prank(users.owner);
+        vm.startPrank(users.owner);
+        accountV2Logic = new AccountV2(address(factory));
         factory.setNewAccountInfo(address(registry), address(accountV2Logic), Constants.upgradeRoot1To2, "");
+        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////

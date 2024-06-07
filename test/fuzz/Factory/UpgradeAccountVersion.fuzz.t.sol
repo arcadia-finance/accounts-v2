@@ -6,6 +6,7 @@ pragma solidity 0.8.22;
 
 import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
+import { AccountV2 } from "../../utils/mocks/accounts/AccountV2.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { Factory } from "../../../src/Factory.sol";
 
@@ -14,6 +15,12 @@ import { Factory } from "../../../src/Factory.sol";
  */
 contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
+                              TEST CONTRACTS
+    /////////////////////////////////////////////////////////////// */
+
+    AccountV2 internal accountV2Logic;
+
+    /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
@@ -21,8 +28,10 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         Factory_Fuzz_Test.setUp();
 
         // Set a Mocked V2 Account Logic contract in the Factory.
-        vm.prank(users.owner);
+        vm.startPrank(users.owner);
+        accountV2Logic = new AccountV2(address(factory));
         factory.setNewAccountInfo(address(registry), address(accountV2Logic), Constants.upgradeRoot1To2, "");
+        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////

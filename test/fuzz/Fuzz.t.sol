@@ -4,19 +4,22 @@
  */
 pragma solidity 0.8.22;
 
-import { Base_Test, Constants } from "../Base.t.sol";
+import { Base_Test } from "../Base.t.sol";
 import { ArcadiaAccountsFixture } from "../utils/fixtures/arcadia-accounts/ArcadiaAccountsFixture.f.sol";
 
-import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
-import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
-import { Registry } from "../../src/Registry.sol";
+import { AccountV1 } from "../../src/accounts/AccountV1.sol";
+import { ArcadiaOracle } from "../utils/mocks/oracles/ArcadiaOracle.sol";
 import { AssetModule } from "../../src/asset-modules/abstracts/AbstractAM.sol";
+import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
+import { Constants } from "../utils/Constants.sol";
 import { CreditorMock } from "../utils/mocks/creditors/CreditorMock.sol";
 import { ERC20Mock } from "../utils/mocks/tokens/ERC20Mock.sol";
 import { ERC721Mock } from "../utils/mocks/tokens/ERC721Mock.sol";
 import { ERC1155Mock } from "../utils/mocks/tokens/ERC1155Mock.sol";
-import { ArcadiaOracle } from "../utils/mocks/oracles/ArcadiaOracle.sol";
-import { AccountV1 } from "../../src/accounts/AccountV1.sol";
+import { FloorERC721AMExtension } from "../utils/extensions/FloorERC721AMExtension.sol";
+import { FloorERC1155AMExtension } from "../utils/extensions/FloorERC1155AMExtension.sol";
+import { MockERC20, MockERC721, MockERC1155, MockOracles, Rates } from "../utils/Types.sol";
+import { Registry } from "../../src/Registry.sol";
 
 /**
  * @notice Common logic needed by all fuzz tests.
@@ -32,6 +35,8 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
+    FloorERC721AMExtension internal floorERC721AM;
+    FloorERC1155AMExtension internal floorERC1155AM;
     MockOracles internal mockOracles;
     MockERC20 internal mockERC20;
     MockERC721 internal mockERC721;
@@ -66,7 +71,6 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
         vm.assume(fuzzedAddress != address(sequencerUptimeOracle));
         vm.assume(fuzzedAddress != address(factory));
         vm.assume(fuzzedAddress != address(accountV1Logic));
-        vm.assume(fuzzedAddress != address(accountV2Logic));
         vm.assume(fuzzedAddress != address(account));
         vm.assume(fuzzedAddress != address(registry));
         vm.assume(fuzzedAddress != address(vm));
@@ -75,7 +79,6 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
         vm.assume(fuzzedAddress != address(erc20AM));
         vm.assume(fuzzedAddress != address(floorERC1155AM));
         vm.assume(fuzzedAddress != address(floorERC721AM));
-        vm.assume(fuzzedAddress != address(uniV3AM));
         vm.assume(fuzzedAddress != address(creditorUsd));
         vm.assume(fuzzedAddress != address(creditorStable1));
         vm.assume(fuzzedAddress != address(creditorToken1));
@@ -115,6 +118,17 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
 
         // Warp to have a timestamp of at least two days old.
         vm.warp(2 days);
+
+        // Deploy mocked Asset Modules.
+        vm.startPrank(users.owner);
+        floorERC721AM = new FloorERC721AMExtension(address(registry));
+        floorERC1155AM = new FloorERC1155AMExtension(address(registry));
+        registry.addAssetModule(address(floorERC721AM));
+        registry.addAssetModule(address(floorERC1155AM));
+        vm.stopPrank();
+
+        vm.label({ account: address(floorERC721AM), newLabel: "ERC721 Asset Module" });
+        vm.label({ account: address(floorERC1155AM), newLabel: "ERC1155 Asset Module" });
 
         // Create mock ERC20 tokens for testing
         vm.startPrank(users.tokenCreator);

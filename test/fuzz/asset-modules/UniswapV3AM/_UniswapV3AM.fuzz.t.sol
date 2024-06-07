@@ -4,8 +4,10 @@
  */
 pragma solidity 0.8.22;
 
+import { Base_Test } from "../../../Base.t.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { UniswapV3Fixture } from "../../../utils/fixtures/uniswap-v3/UniswapV3Fixture.f.sol";
+import { UniswapV3AMFixture } from "../../../utils/fixtures/arcadia-accounts/UniswapV3AMFixture.f.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -29,7 +31,7 @@ import { UniswapV3AM } from "../../../../src/asset-modules/UniswapV3/UniswapV3AM
 /**
  * @notice Common logic needed by all "UniswapV3AM" fuzz tests.
  */
-abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
+abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, UniswapV3AMFixture {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                               CONSTANTS
@@ -68,7 +70,7 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(Fuzz_Test, UniswapV3Fixture) {
+    function setUp() public virtual override(Fuzz_Test, UniswapV3Fixture, Base_Test) {
         Fuzz_Test.setUp();
         // Deploy fixture for Uniswap.
         UniswapV3Fixture.setUp();

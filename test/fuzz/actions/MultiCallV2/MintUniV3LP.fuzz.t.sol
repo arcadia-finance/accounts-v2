@@ -4,15 +4,17 @@
  */
 pragma solidity 0.8.22;
 
+import { Base_Test } from "../../../Base.t.sol";
 import { MultiCallV2_Fuzz_Test } from "./_MultiCallV2.fuzz.t.sol";
+import { UniswapV3AMFixture } from "../../../utils/fixtures/arcadia-accounts/UniswapV3AMFixture.f.sol";
 
-import { ERC20Mock } from "../../.././utils/mocks/tokens/ERC20Mock.sol";
-import { NonfungiblePositionManagerMock } from "../../.././utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { NonfungiblePositionManagerMock } from "../../../utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
 
 /**
  * @notice Fuzz tests for the "mintUniV3LP" function of contract "MultiCall".
  */
-contract MintUniV3LP_MultiCallV2_Fuzz_Test is MultiCallV2_Fuzz_Test {
+contract MintUniV3LP_MultiCallV2_Fuzz_Test is MultiCallV2_Fuzz_Test, UniswapV3AMFixture {
     /* ///////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -27,7 +29,7 @@ contract MintUniV3LP_MultiCallV2_Fuzz_Test is MultiCallV2_Fuzz_Test {
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public override(MultiCallV2_Fuzz_Test) {
+    function setUp() public override(MultiCallV2_Fuzz_Test, Base_Test) {
         MultiCallV2_Fuzz_Test.setUp();
         univ3PosMgr = new NonfungiblePositionManagerMock(address(factory));
 
@@ -50,7 +52,6 @@ contract MintUniV3LP_MultiCallV2_Fuzz_Test is MultiCallV2_Fuzz_Test {
         vm.assume(notV3Contract != address(univ3PosMgr));
         vm.assume(notV3Contract != address(account));
         vm.assume(notV3Contract != address(accountV1Logic));
-        vm.assume(notV3Contract != address(accountV2Logic));
         vm.assume(notV3Contract != address(vm));
 
         vm.prank(address(action));
