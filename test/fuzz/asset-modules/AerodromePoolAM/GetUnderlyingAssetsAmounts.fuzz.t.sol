@@ -951,7 +951,10 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
 
         // Given : Deploy two tokens for the new Aerodrome tokenPair
         ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", 18);
-        ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", 6);
+        ERC20Mock token1;
+        while (token1 < token0) {
+            token1 = new ERC20Mock("Token 1", "TOK1", 6);
+        }
 
         deployAerodromeFixture(address(token0), address(token1), false);
 
@@ -1016,7 +1019,10 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         {
             // Given : Deploy two tokens for the new Aerodrome tokenPair
             ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", decimals0);
-            ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", decimals1);
+            ERC20Mock token1;
+            while (token1 < token0) {
+                token1 = new ERC20Mock("Token 1", "TOK1", decimals1);
+            }
             deployAerodromeFixture(address(token0), address(token1), true);
 
             // And : The tokens of the pool are added to the Arcadia protocol with price of 1

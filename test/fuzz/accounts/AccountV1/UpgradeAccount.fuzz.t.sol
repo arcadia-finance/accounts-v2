@@ -38,12 +38,12 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function createCompareStruct() public view returns (Checks memory) {
         Checks memory checks;
 
-        checks.numeraire = proxyAccount.numeraire();
-        checks.owner = proxyAccount.owner();
-        checks.liquidator = proxyAccount.liquidator();
-        checks.registry = proxyAccount.registry();
-        checks.creditor = proxyAccount.creditor();
-        (checks.assetAddresses, checks.assetIds, checks.assetAmounts) = proxyAccount.generateAssetData();
+        checks.numeraire = account.numeraire();
+        checks.owner = account.owner();
+        checks.liquidator = account.liquidator();
+        checks.registry = account.registry();
+        checks.creditor = account.creditor();
+        (checks.assetAddresses, checks.assetIds, checks.assetAmounts) = account.generateAssetData();
 
         return checks;
     }
@@ -76,7 +76,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Should revert if not called by the Factory.
         vm.startPrank(nonFactory);
         vm.expectRevert(AccountErrors.OnlyFactory.selector);
-        proxyAccount.upgradeAccount(newImplementation, newRegistry, newVersion, data);
+        account.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
     }
 
@@ -119,13 +119,13 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     ) public {
         // Given: Creditor is set.
         vm.prank(users.accountOwner);
-        proxyAccount.openMarginAccount(address(creditorStable1));
+        account.openMarginAccount(address(creditorStable1));
         // Check in creditor if new version is allowed should fail.
         creditorStable1.setCallResult(false);
 
         vm.startPrank(address(factory));
         vm.expectRevert(AccountErrors.InvalidAccountVersion.selector);
-        proxyAccount.upgradeAccount(newImplementation, address(registry), newVersion, data);
+        account.upgradeAccount(newImplementation, address(registry), newVersion, data);
         vm.stopPrank();
     }
 
@@ -134,11 +134,11 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         notTestContracts(newImplementation)
     {
         vm.assume(newImplementation > address(10));
-        vm.assume(newImplementation != address(proxyAccount));
+        vm.assume(newImplementation != address(account));
 
         // Given: Creditor is set.
         vm.prank(users.accountOwner);
-        proxyAccount.openMarginAccount(address(creditorStable1));
+        account.openMarginAccount(address(creditorStable1));
 
         uint256 accountVersion = factory.latestAccountVersion() + 1;
         AccountVariableVersion accountVarVersion = new AccountVariableVersion(accountVersion, address(factory));
@@ -155,7 +155,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.startPrank(address(factory));
         vm.expectRevert(AccountErrors.InvalidRegistry.selector);
-        proxyAccount.upgradeAccount(newImplementation, address(registry2), uint16(accountVersion), data);
+        account.upgradeAccount(newImplementation, address(registry2), uint16(accountVersion), data);
         vm.stopPrank();
     }
 
@@ -172,7 +172,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // And: an account in a random state (with assets, a creditor and debt).
         vm.prank(users.accountOwner);
-        proxyAccount.openMarginAccount(address(creditorStable1)); // Mocked Creditor, approves all account-versions by default.
+        account.openMarginAccount(address(creditorStable1)); // Mocked Creditor, approves all account-versions by default.
 
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.token1);
@@ -193,16 +193,16 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         mockERC721.nft1.mint(users.accountOwner, erc721Id);
         mockERC1155.sft1.mint(users.accountOwner, 1, erc1155Amount);
         vm.startPrank(users.accountOwner);
-        mockERC20.token1.approve(address(proxyAccount), type(uint256).max);
-        mockERC721.nft1.setApprovalForAll(address(proxyAccount), true);
-        mockERC1155.sft1.setApprovalForAll(address(proxyAccount), true);
+        mockERC20.token1.approve(address(account), type(uint256).max);
+        mockERC721.nft1.setApprovalForAll(address(account), true);
+        mockERC1155.sft1.setApprovalForAll(address(account), true);
         vm.stopPrank();
 
         vm.prank(users.accountOwner);
-        proxyAccount.deposit(assetAddresses, assetIds, assetAmounts);
+        account.deposit(assetAddresses, assetIds, assetAmounts);
 
         // Mock initial debt.
-        creditorStable1.setOpenPosition(address(proxyAccount), debt);
+        creditorStable1.setOpenPosition(address(account), debt);
 
         Checks memory checkBefore = createCompareStruct();
 
@@ -214,24 +214,24 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // When: "users.accountOwner" Upgrade the account to AccountV2Logic.
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
-        emit Factory.AccountUpgraded(address(proxyAccount), 2);
-        factory.upgradeAccountVersion(address(proxyAccount), factory.latestAccountVersion(), proofs);
+        emit Factory.AccountUpgraded(address(account), 2);
+        factory.upgradeAccountVersion(address(account), factory.latestAccountVersion(), proofs);
         vm.stopPrank();
 
         // Then: Hook on new logic contract was called.
-        assertEq(AccountV2(address(proxyAccount)).storageV2(), 5);
+        assertEq(AccountV2(address(account)).storageV2(), 5);
 
         // And: Proxy formwards calls to new logic contract.
-        assertEq(AccountV2(address(proxyAccount)).returnFive(), 5);
+        assertEq(AccountV2(address(account)).returnFive(), 5);
 
         // And: The storage slots of all persisted data on the proxy contract are not overwritten.
         Checks memory checkAfter = createCompareStruct();
         assertEq(keccak256(abi.encode(checkAfter)), keccak256(abi.encode(checkBefore)));
 
         // And: The Account version is updated.
-        assertEq(proxyAccount.ACCOUNT_VERSION(), factory.latestAccountVersion());
+        assertEq(account.ACCOUNT_VERSION(), factory.latestAccountVersion());
 
         // And: lastActionTimestamp is updated.
-        assertEq(proxyAccount.lastActionTimestamp(), time);
+        assertEq(account.lastActionTimestamp(), time);
     }
 }

@@ -63,8 +63,9 @@ contract AddAsset_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
         ArcadiaOracle oracle = initMockedOracle(0, "ASSET / USD");
         vm.prank(users.transmitter);
         oracle.transmit(0);
-        vm.startPrank(users.tokenCreator);
+        vm.prank(users.tokenCreator);
         ERC20Mock asset = new ERC20Mock("ASSET", "ASSET", 19);
+        vm.prank(users.owner);
         chainlinkOM.addOracle(address(oracle), "ASSET", "USD", 2 days);
         vm.stopPrank();
 

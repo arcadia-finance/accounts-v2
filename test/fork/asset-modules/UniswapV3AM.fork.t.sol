@@ -201,12 +201,12 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
             uint256[] memory assetAmount = new uint256[](1);
             assetAmount[0] = 1;
             vm.startPrank(users.accountOwner);
-            ERC721(address(NONFUNGIBLE_POSITION_MANAGER)).approve(address(proxyAccount), tokenId);
-            proxyAccount.deposit(assetAddress, assetId, assetAmount);
+            ERC721(address(NONFUNGIBLE_POSITION_MANAGER)).approve(address(account), tokenId);
+            account.deposit(assetAddress, assetId, assetAmount);
             vm.stopPrank();
         }
 
-        uint256 actualValue = proxyAccount.getAccountValue(address(0));
+        uint256 actualValue = account.getAccountValue(address(0));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(DAI);

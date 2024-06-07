@@ -71,7 +71,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(vm));
         vm.assume(logic != address(accountV1Logic));
         vm.assume(logic != address(accountV2Logic));
-        vm.assume(logic != address(proxyAccount));
+        vm.assume(logic != address(account));
         vm.assume(logic != address(sequencerUptimeOracle));
         vm.assume(logic != address(accountVarVersion));
         vm.assume(newAssetAddress != address(0));
@@ -124,7 +124,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(vm));
         vm.assume(logic != address(accountV1Logic));
         vm.assume(logic != address(accountV2Logic));
-        vm.assume(logic != address(proxyAccount));
+        vm.assume(logic != address(account));
         vm.assume(logic != address(sequencerUptimeOracle));
         vm.assume(logic != address(accountVarVersion));
 

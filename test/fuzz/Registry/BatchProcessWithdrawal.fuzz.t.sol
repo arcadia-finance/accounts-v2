@@ -61,7 +61,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken2;
 
-        vm.prank(address(proxyAccount));
+        vm.prank(address(account));
         registry.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         // When: Registry is paused
@@ -72,14 +72,14 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         registry.pause();
 
         // Then: Withdrawal is reverted due to paused Registry
-        vm.startPrank(address(proxyAccount));
+        vm.startPrank(address(account));
         vm.expectRevert(GuardianErrors.FunctionIsPaused.selector);
         registry.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
 
     function testFuzz_Revert_batchProcessWithdrawal_NonAccount(address unprivilegedAddress_) public {
-        vm.assume(unprivilegedAddress_ != address(proxyAccount));
+        vm.assume(unprivilegedAddress_ != address(account));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -107,7 +107,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = 1000;
 
-        vm.startPrank(address(proxyAccount));
+        vm.startPrank(address(account));
         vm.expectRevert(RegistryErrors.LengthMismatch.selector);
         registry.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
@@ -138,7 +138,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         assetAmounts[0] = amountWithdrawn;
 
-        vm.prank(address(proxyAccount));
+        vm.prank(address(account));
         vm.expectRevert(RegistryErrors.UnknownAsset.selector);
         registry.batchProcessWithdrawal(address(0), assetAddresses, assetIds, assetAmounts);
     }
@@ -169,7 +169,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         assetAmounts[0] = amountWithdrawn;
 
-        vm.prank(address(proxyAccount));
+        vm.prank(address(account));
         vm.expectRevert(bytes(""));
         registry.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
@@ -199,14 +199,14 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 1;
         assetAmounts[2] = erc1155Amount;
 
-        vm.prank(address(proxyAccount));
+        vm.prank(address(account));
         registry.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
 
         // When: zero amounts are withdrawn.
         assetAmounts = new uint256[](3);
-        vm.prank(address(proxyAccount));
+        vm.prank(address(account));
         vm.expectEmit();
-        emit Registry.Withdrawal(address(proxyAccount));
+        emit Registry.Withdrawal(address(account));
         uint256[] memory assetTypes =
             registry.batchProcessWithdrawal(address(0), assetAddresses, assetIds, assetAmounts);
 
@@ -254,14 +254,14 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 1;
         assetAmounts[2] = erc1155Amount;
 
-        vm.prank(address(proxyAccount));
+        vm.prank(address(account));
         registry.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         // When: zero amounts are withdrawn.
         assetAmounts = new uint256[](3);
-        vm.prank(address(proxyAccount));
+        vm.prank(address(account));
         vm.expectEmit();
-        emit Registry.Withdrawal(address(proxyAccount));
+        emit Registry.Withdrawal(address(account));
         uint256[] memory assetTypes =
             registry.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
@@ -300,7 +300,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountDeposited;
 
-        vm.prank(address(proxyAccount));
+        vm.prank(address(account));
         registry.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
@@ -310,9 +310,9 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         assetAmounts[0] = amountWithdrawn;
 
-        vm.prank(address(proxyAccount));
+        vm.prank(address(account));
         vm.expectEmit();
-        emit Registry.Withdrawal(address(proxyAccount));
+        emit Registry.Withdrawal(address(account));
         uint256[] memory assetTypes =
             registry.batchProcessWithdrawal(address(0), assetAddresses, assetIds, assetAmounts);
 
@@ -339,7 +339,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountDeposited;
 
-        vm.prank(address(proxyAccount));
+        vm.prank(address(account));
         registry.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
@@ -349,9 +349,9 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         assetAmounts[0] = amountWithdrawn;
 
-        vm.prank(address(proxyAccount));
+        vm.prank(address(account));
         vm.expectEmit();
-        emit Registry.Withdrawal(address(proxyAccount));
+        emit Registry.Withdrawal(address(account));
         uint256[] memory assetTypes =
             registry.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
@@ -375,13 +375,13 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken2;
 
-        vm.startPrank(address(proxyAccount));
+        vm.startPrank(address(account));
         registry.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 
-        vm.startPrank(address(proxyAccount));
+        vm.startPrank(address(account));
         vm.expectEmit();
-        emit Registry.Withdrawal(address(proxyAccount));
+        emit Registry.Withdrawal(address(account));
         registry.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 

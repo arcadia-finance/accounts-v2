@@ -48,7 +48,7 @@ contract MintUniV3LP_MultiCallV2_Fuzz_Test is MultiCallV2_Fuzz_Test {
         public
     {
         vm.assume(notV3Contract != address(univ3PosMgr));
-        vm.assume(notV3Contract != address(proxyAccount));
+        vm.assume(notV3Contract != address(account));
         vm.assume(notV3Contract != address(accountV1Logic));
         vm.assume(notV3Contract != address(accountV2Logic));
         vm.assume(notV3Contract != address(vm));

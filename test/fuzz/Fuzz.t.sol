@@ -5,6 +5,8 @@
 pragma solidity 0.8.22;
 
 import { Base_Test, Constants } from "../Base.t.sol";
+import { ArcadiaAccountsFixture } from "../utils/fixtures/arcadia-accounts/ArcadiaAccountsFixture.f.sol";
+
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
 import { Registry } from "../../src/Registry.sol";
@@ -25,7 +27,7 @@ import { AccountV1 } from "../../src/accounts/AccountV1.sol";
  * (eg. a uint256 from 0 to type(uint256).max), unless the parameter/variable is bound by an invariant.
  * If this case, said invariant must be explicitly tested in the invariant tests.
  */
-abstract contract Fuzz_Test is Base_Test {
+abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -65,7 +67,7 @@ abstract contract Fuzz_Test is Base_Test {
         vm.assume(fuzzedAddress != address(factory));
         vm.assume(fuzzedAddress != address(accountV1Logic));
         vm.assume(fuzzedAddress != address(accountV2Logic));
-        vm.assume(fuzzedAddress != address(proxyAccount));
+        vm.assume(fuzzedAddress != address(account));
         vm.assume(fuzzedAddress != address(registry));
         vm.assume(fuzzedAddress != address(vm));
         vm.assume(fuzzedAddress != address(this));
@@ -109,6 +111,7 @@ abstract contract Fuzz_Test is Base_Test {
 
     function setUp() public virtual override {
         Base_Test.setUp();
+        deployArcadiaAccounts();
 
         // Warp to have a timestamp of at least two days old.
         vm.warp(2 days);

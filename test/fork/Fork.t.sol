@@ -5,6 +5,7 @@
 pragma solidity 0.8.22;
 
 import { Base_Test } from "../Base.t.sol";
+import { ArcadiaAccountsFixture } from "../utils/fixtures/arcadia-accounts/ArcadiaAccountsFixture.f.sol";
 
 import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
@@ -15,7 +16,7 @@ import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
  * @dev While not always possible (since unlike with the fuzz tests, it is not possible to work with extension with the necessary getters and setter),
  * as much of the possible state configurations must be tested.
  */
-abstract contract Fork_Test is Base_Test {
+abstract contract Fork_Test is Base_Test, ArcadiaAccountsFixture {
     /*///////////////////////////////////////////////////////////////
                             CONSTANTS
     ///////////////////////////////////////////////////////////////*/
@@ -48,6 +49,7 @@ abstract contract Fork_Test is Base_Test {
         vm.selectFork(fork);
 
         Base_Test.setUp();
+        deployArcadiaAccounts();
 
         vm.startPrank(users.owner);
         // Add USDC to the protocol (same oracle will be used for USDBC).

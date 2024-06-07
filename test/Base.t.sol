@@ -42,6 +42,7 @@ abstract contract Base_Test is Test {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
+    AccountV1 internal account;
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
     ChainlinkOMExtension internal chainlinkOM;
@@ -49,7 +50,6 @@ abstract contract Base_Test is Test {
     Factory internal factory;
     FloorERC721AMExtension internal floorERC721AM;
     FloorERC1155AMExtension internal floorERC1155AM;
-    AccountV1 internal proxyAccount;
     RegistryExtension internal registry;
     SequencerUptimeOracle internal sequencerUptimeOracle;
     UniswapV3AMExtension internal uniV3AM;
@@ -79,55 +79,6 @@ abstract contract Base_Test is Test {
             treasury: createUser("treasury"),
             unprivilegedAddress: createUser("unprivilegedAddress")
         });
-
-        // Deploy the sequencer uptime oracle.
-        sequencerUptimeOracle = new SequencerUptimeOracle();
-
-        // Deploy the base test contracts.
-        vm.startPrank(users.owner);
-        factory = new Factory();
-        registry = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
-        chainlinkOM = new ChainlinkOMExtension(address(registry));
-        erc20AM = new ERC20PrimaryAMExtension(address(registry));
-        floorERC721AM = new FloorERC721AMExtension(address(registry));
-        floorERC1155AM = new FloorERC1155AMExtension(address(registry));
-
-        accountV1Logic = new AccountV1(address(factory));
-        accountV2Logic = new AccountV2(address(factory));
-        factory.setNewAccountInfo(address(registry), address(accountV1Logic), Constants.upgradeProof1To2, "");
-
-        // Set the Guardians.
-        vm.startPrank(users.owner);
-        factory.changeGuardian(users.guardian);
-        registry.changeGuardian(users.guardian);
-
-        // Add Asset Modules to the Registry.
-        vm.startPrank(users.owner);
-        registry.addAssetModule(address(erc20AM));
-        registry.addAssetModule(address(floorERC721AM));
-        registry.addAssetModule(address(floorERC1155AM));
-        vm.stopPrank();
-
-        // Add Oracle Modules to the Registry.
-        vm.startPrank(users.owner);
-        registry.addOracleModule(address(chainlinkOM));
-        vm.stopPrank();
-
-        // Label the base test contracts.
-        vm.label({ account: address(factory), newLabel: "Factory" });
-        vm.label({ account: address(registry), newLabel: "Registry" });
-        vm.label({ account: address(chainlinkOM), newLabel: "Chainlink Oracle Module" });
-        vm.label({ account: address(erc20AM), newLabel: "Standard ERC20 Asset Module" });
-        vm.label({ account: address(floorERC721AM), newLabel: "ERC721 Asset Module" });
-        vm.label({ account: address(floorERC1155AM), newLabel: "ERC1155 Asset Module" });
-        vm.label({ account: address(accountV1Logic), newLabel: "Account V1 Logic" });
-        vm.label({ account: address(accountV2Logic), newLabel: "Account V2 Logic" });
-
-        // Deploy an initial Account with all inputs to zero
-        vm.startPrank(users.accountOwner);
-        address proxyAddress = factory.createAccount(0, 0, address(0));
-        proxyAccount = AccountV1(proxyAddress);
-        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////////////////

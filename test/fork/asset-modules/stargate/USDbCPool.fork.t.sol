@@ -66,7 +66,7 @@ contract StargateAM_USDBC_Fork_Test is StargateBase_Fork_Test {
         uint256 tokenId = stakedStargateAM.mint(address(pool), uint128(stakedAmount));
 
         // The user deposits the position (ERC721 minted) in its Account.
-        stakedStargateAM.approve(address(proxyAccount), 1);
+        stakedStargateAM.approve(address(account), 1);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(stakedStargateAM);
@@ -77,8 +77,8 @@ contract StargateAM_USDBC_Fork_Test is StargateBase_Fork_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = 1;
 
-        proxyAccount.deposit(assetAddresses, assetIds, assetAmounts);
-        assert(stakedStargateAM.balanceOf(address(proxyAccount)) == 1);
+        account.deposit(assetAddresses, assetIds, assetAmounts);
+        assert(stakedStargateAM.balanceOf(address(account)) == 1);
 
         vm.stopPrank();
     }
