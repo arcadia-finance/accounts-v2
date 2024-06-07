@@ -7,25 +7,15 @@ pragma solidity 0.8.22;
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { SlipstreamFixture } from "../../../utils/fixtures/slipstream/Slipstream.f.sol";
 
-import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
-import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
-
-import { VoterMock } from "../../../utils/mocks/Aerodrome/VoterMock.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { INonfungiblePositionManagerExtension } from
-    "../../../utils/fixtures/slipstream/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
-import { ICLFactoryExtension } from "../../../utils/fixtures/slipstream/extensions/interfaces/ICLFactoryExtension.sol";
+import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { ICLPoolExtension } from "../../../utils/fixtures/slipstream/extensions/interfaces/ICLPoolExtension.sol";
-import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
-import { LiquidityAmountsExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/Slipstream/NonfungiblePositionManager.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
-import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
-import { Utils } from "../../../utils/Utils.sol";
 import { SlipstreamAMExtension } from "../../../utils/extensions/SlipstreamAMExtension.sol";
+import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
+import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
+import { VoterMock } from "../../../utils/mocks/Aerodrome/VoterMock.sol";
 
 /**
  * @notice Common logic needed by all "SlipstreamAM" fuzz tests.

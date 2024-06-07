@@ -4,8 +4,9 @@
  */
 pragma solidity 0.8.22;
 
-import { UniswapV3AM_Fuzz_Test, AssetModule, UniswapV3AM } from "./_UniswapV3AM.fuzz.t.sol";
+import { UniswapV3AM_Fuzz_Test, UniswapV3AM } from "./_UniswapV3AM.fuzz.t.sol";
 
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
 
 /**

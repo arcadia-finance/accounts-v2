@@ -27,13 +27,13 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AerodromePoolAM public aerodromePoolAM;
-    ERC20Mock asset0;
-    ERC20Mock asset1;
-    Pool public pool;
-    Pool public implementation;
-    PoolFactory public poolFactory;
-    WrappedAerodromeAMExtension public wrappedAerodromeAM;
+    AerodromePoolAM internal aerodromePoolAM;
+    ERC20Mock internal asset0;
+    ERC20Mock internal asset1;
+    Pool internal pool;
+    Pool internal implementation;
+    PoolFactory internal poolFactory;
+    WrappedAerodromeAMExtension internal wrappedAerodromeAM;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
