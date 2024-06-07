@@ -7,8 +7,11 @@ pragma solidity 0.8.22;
 import { Base_Test } from "../../../Base.t.sol";
 
 import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
+import { ArcadiaOracle } from "../../mocks/oracles/ArcadiaOracle.sol";
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ChainlinkOMExtension } from "../../extensions/ChainlinkOMExtension.sol";
 import { Constants } from "../../Constants.sol";
+import { ERC20Mock } from "../../mocks/tokens/ERC20Mock.sol";
 import { ERC20PrimaryAMExtension } from "../../extensions/ERC20PrimaryAMExtension.sol";
 import { Factory } from "../../../../src/Factory.sol";
 import { RegistryExtension } from "../../extensions/RegistryExtension.sol";
@@ -16,10 +19,6 @@ import { SequencerUptimeOracle } from "../../mocks/oracles/SequencerUptimeOracle
 import { Utils } from "../../Utils.sol";
 
 contract ArcadiaAccountsFixture is Base_Test {
-    /*//////////////////////////////////////////////////////////////////////////
-                                  HELPER FUNCTIONS
-    //////////////////////////////////////////////////////////////////////////*/
-
     function deployArcadiaAccounts() public {
         // Deploy the sequencer uptime oracle.
         vm.prank(users.oracleOwner);
@@ -61,5 +60,45 @@ contract ArcadiaAccountsFixture is Base_Test {
         vm.label({ account: address(chainlinkOM), newLabel: "Chainlink Oracle Module" });
         vm.label({ account: address(erc20AM), newLabel: "Standard ERC20 Asset Module" });
         vm.label({ account: address(accountV1Logic), newLabel: "Account V1 Logic" });
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                  HELPER FUNCTIONS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    function initMockedOracle(string memory description, int256 price) public returns (address) {
+        vm.startPrank(users.oracleOwner);
+        ArcadiaOracle oracle = new ArcadiaOracle(18, description, address(0));
+        oracle.setOffchainTransmitter(users.transmitter);
+        vm.stopPrank();
+
+        vm.prank(users.transmitter);
+        oracle.transmit(price);
+
+        return address(oracle);
+    }
+
+    function initAndAddAsset(string memory name, string memory symbol, uint8 decimals, int256 price)
+        public
+        returns (address)
+    {
+        vm.prank(users.tokenCreator);
+        ERC20Mock asset = new ERC20Mock(name, symbol, decimals);
+
+        AddAsset(asset, price);
+
+        return address(asset);
+    }
+
+    function AddAsset(ERC20Mock asset, int256 price) public {
+        address oracle = initMockedOracle(string.concat(asset.name(), " / USD"), price);
+
+        vm.startPrank(users.owner);
+        chainlinkOM.addOracle(oracle, bytes16(bytes(asset.name())), "USD", 2 days);
+
+        uint80[] memory oracles = new uint80[](1);
+        oracles[0] = uint80(chainlinkOM.oracleToOracleId(oracle));
+        erc20AM.addAsset(address(asset), BitPackingLib.pack(BA_TO_QA_SINGLE, oracles));
+        vm.stopPrank();
     }
 }

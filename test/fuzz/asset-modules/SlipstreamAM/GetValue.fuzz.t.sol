@@ -72,7 +72,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         // Check that Liquidity is within allowed ranges.
         vm.assume(vars.liquidity <= pool.maxLiquidityPerTick());
         // Mint liquidity position.
-        uint256 tokenId =
+        (uint256 tokenId,,) =
             addLiquidity(pool, vars.liquidity, users.liquidityProvider, vars.tickLower, vars.tickUpper, false);
 
         // Calculate amounts of underlying tokens.
@@ -132,7 +132,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         }
 
         ICLPoolExtension pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(0), 300);
-        uint256 tokenId = addLiquidity(pool, 1e5, users.liquidityProvider, 0, 10, true);
+        (uint256 tokenId,,) = addLiquidity(pool, 1e5, users.liquidityProvider, 0, 10, true);
 
         // Add underlying tokens and its oracles to Arcadia.
         addUnderlyingTokenToArcadia(address(token0), 1);

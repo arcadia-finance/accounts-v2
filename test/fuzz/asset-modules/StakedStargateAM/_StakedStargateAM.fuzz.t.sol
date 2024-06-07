@@ -6,11 +6,11 @@ pragma solidity 0.8.22;
 
 import { StargateAM_Fuzz_Test } from "../StargateAM/_StargateAM.fuzz.t.sol";
 
-import { StakedStargateAMExtension } from "../../../utils/extensions/StakedStargateAMExtension.sol";
-import { LPStakingTimeMock } from "../../../utils/mocks/Stargate/StargateLpStakingMock.sol";
-import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { LPStakingTimeMock } from "../../../utils/mocks/Stargate/StargateLpStakingMock.sol";
+import { StakedStargateAMExtension } from "../../../utils/extensions/StakedStargateAMExtension.sol";
 
 /**
  * @notice Common logic needed by "StakedStargateAM" fuzz tests.

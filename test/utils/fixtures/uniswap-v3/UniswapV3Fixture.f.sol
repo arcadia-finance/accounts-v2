@@ -6,8 +6,10 @@ pragma solidity 0.8.22;
 
 import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
 
+import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { INonfungiblePositionManagerExtension } from "./extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { IUniswapV3Factory } from "./extensions/interfaces/IUniswapV3Factory.sol";
+import { IUniswapV3PoolExtension } from "./extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
 contract UniswapV3Fixture is WETH9Fixture {
@@ -53,5 +55,54 @@ contract UniswapV3Fixture is WETH9Fixture {
         // Deploy NonfungiblePositionManagerExtension with modified bytecode.
         address nonfungiblePositionManager_ = Utils.deployBytecode(bytecode);
         nonfungiblePositionManager = INonfungiblePositionManagerExtension(nonfungiblePositionManager_);
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                HELPER FUNCTIONS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    function createPool(address token0, address token1, uint24 fee, uint160 sqrtPriceX96, uint16 observationCardinality)
+        public
+        returns (IUniswapV3PoolExtension uniV3Pool_)
+    {
+        address poolAddress =
+            nonfungiblePositionManager.createAndInitializePoolIfNecessary(token0, token1, fee, sqrtPriceX96);
+        uniV3Pool_ = IUniswapV3PoolExtension(poolAddress);
+        uniV3Pool_.increaseObservationCardinalityNext(observationCardinality);
+    }
+
+    function addLiquidity(
+        IUniswapV3PoolExtension pool_,
+        uint256 amount0,
+        uint256 amount1,
+        address liquidityProvider_,
+        int24 tickLower,
+        int24 tickUpper
+    ) public returns (uint256 tokenId, uint256 amount0_, uint256 amount1_) {
+        address token0 = pool_.token0();
+        address token1 = pool_.token1();
+        uint24 fee = pool_.fee();
+
+        deal(token0, liquidityProvider_, amount0, true);
+        deal(token1, liquidityProvider_, amount1, true);
+        vm.startPrank(liquidityProvider_);
+        ERC20(token0).approve(address(nonfungiblePositionManager), type(uint256).max);
+        ERC20(token1).approve(address(nonfungiblePositionManager), type(uint256).max);
+        (tokenId,, amount0_, amount1_) = nonfungiblePositionManager.mint(
+            INonfungiblePositionManagerExtension.MintParams({
+                token0: token0,
+                token1: token1,
+                fee: fee,
+                tickLower: tickLower,
+                tickUpper: tickUpper,
+                amount0Desired: amount0,
+                amount1Desired: amount1,
+                amount0Min: 0,
+                amount1Min: 0,
+                recipient: liquidityProvider_,
+                deadline: type(uint256).max
+            })
+        );
+        vm.stopPrank();
     }
 }
