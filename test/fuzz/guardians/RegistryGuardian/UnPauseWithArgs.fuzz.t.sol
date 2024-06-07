@@ -24,7 +24,7 @@ contract UnPause_WithArgs_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz_Te
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_unPause_OnlyOwner(address nonOwner, Flags memory flags) public {
-        vm.assume(nonOwner != users.creatorAddress);
+        vm.assume(nonOwner != users.owner);
 
         vm.startPrank(nonOwner);
         vm.expectRevert("UNAUTHORIZED");
@@ -53,7 +53,7 @@ contract UnPause_WithArgs_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz_Te
         vm.warp(lastPauseTimestamp + timePassed);
 
         // When: A "owner" un-pauses.
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectEmit(true, true, true, true);
         emit RegistryGuardian.PauseFlagsUpdated(
             initialFlags.withdrawPaused && flags.withdrawPaused, initialFlags.depositPaused && flags.depositPaused

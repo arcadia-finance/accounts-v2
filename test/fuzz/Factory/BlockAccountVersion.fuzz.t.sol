@@ -26,7 +26,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Revert_blockAccountVersion_NonOwner(uint256 accountVersion, address unprivilegedAddress_)
         public
     {
-        vm.assume(unprivilegedAddress_ != users.creatorAddress);
+        vm.assume(unprivilegedAddress_ != users.owner);
 
         uint256 currentVersion = factory.latestAccountVersion();
         accountVersion = bound(accountVersion, 1, currentVersion);
@@ -38,7 +38,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     function testFuzz_Revert_blockAccountVersion_BlockZeroVersion() public {
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectRevert(FactoryErrors.InvalidAccountVersion.selector);
         factory.blockAccountVersion(0);
         vm.stopPrank();
@@ -48,7 +48,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint256 currentVersion = factory.latestAccountVersion();
         accountVersion = bound(accountVersion, currentVersion + 1, type(uint256).max);
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectRevert(FactoryErrors.InvalidAccountVersion.selector);
         factory.blockAccountVersion(accountVersion);
         vm.stopPrank();
@@ -58,7 +58,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint256 currentVersion = factory.latestAccountVersion();
         accountVersion = bound(accountVersion, 1, currentVersion);
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectEmit(true, true, true, true);
         emit Factory.AccountVersionBlocked(uint88(accountVersion));
         factory.blockAccountVersion(accountVersion);

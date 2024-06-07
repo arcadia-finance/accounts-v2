@@ -25,7 +25,7 @@ contract SetBaseURI_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_setBaseURI_NonOwner(string calldata uri, address unprivilegedAddress_) public {
-        vm.assume(address(unprivilegedAddress_) != users.creatorAddress);
+        vm.assume(address(unprivilegedAddress_) != users.owner);
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
@@ -34,7 +34,7 @@ contract SetBaseURI_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test
     }
 
     function testFuzz_Success_setBaseURI(string calldata uri) public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         wrappedAerodromeAM.setBaseURI(uri);
 
         string memory expectedUri = wrappedAerodromeAM.baseURI();
@@ -44,7 +44,7 @@ contract SetBaseURI_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test
 
     function testFuzz_Success_UriOfId(string calldata uri, uint256 id) public {
         vm.assume(bytes(uri).length > 0);
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         wrappedAerodromeAM.setBaseURI(uri);
 
         string memory actualUri = wrappedAerodromeAM.tokenURI(id);

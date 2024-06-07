@@ -31,7 +31,7 @@ contract Skim_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
 
     function testFuzz_Revert_skim_NotOwner(address unprivilegedAddress, address pool_) public {
         // Given : unprivileged address is not the owner of the AM.
-        vm.assume(unprivilegedAddress != users.creatorAddress);
+        vm.assume(unprivilegedAddress != users.owner);
 
         // When : Calling skim().
         // Then : It should revert.
@@ -43,7 +43,7 @@ contract Skim_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
     function testFuzz_Revert_skim_NonExistingPool(address pool_) public {
         // When : Owner Calls skim() for non existing pool.
         // Then : It should revert.
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(WrappedAerodromeAM.PoolNotAllowed.selector);
         wrappedAerodromeAM.skim(pool_);
     }
@@ -71,14 +71,14 @@ contract Skim_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
         deal(pool.token1(), pool.poolFees(), fee1, true);
 
         // When : Owner calls skim()
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         wrappedAerodromeAM.skim(address(pool));
 
         // Then  Balance of the AM equals 0.
         assertEq(pool.balanceOf(address(wrappedAerodromeAM)), 0);
 
         // And : Owner gets the excess pool tokens.
-        assertEq(pool.balanceOf(users.creatorAddress), balanceOf);
+        assertEq(pool.balanceOf(users.owner), balanceOf);
 
         // And : The fees are send to the AM.
         assertEq(ERC20(pool.token0()).balanceOf(address(wrappedAerodromeAM)), fee0);
@@ -124,14 +124,14 @@ contract Skim_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
         deal(pool.token1(), pool.poolFees(), fee1, true);
 
         // When : Owner calls skim()
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         wrappedAerodromeAM.skim(address(pool));
 
         // Then  Balance of the AM equals poolState.totalWrapped.
         assertEq(pool.balanceOf(address(wrappedAerodromeAM)), poolState.totalWrapped);
 
         // And : Owner gets the excess pool tokens.
-        assertEq(pool.balanceOf(users.creatorAddress), balanceOf - poolState.totalWrapped);
+        assertEq(pool.balanceOf(users.owner), balanceOf - poolState.totalWrapped);
 
         // And : The fees are send to the AM.
         assertEq(ERC20(pool.token0()).balanceOf(address(wrappedAerodromeAM)), fee0);

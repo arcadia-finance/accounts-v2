@@ -30,7 +30,7 @@ contract SetRiskParameters_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         uint112 maxExposureInUsd,
         uint16 riskFactor
     ) public {
-        vm.assume(unprivilegedAddress_ != address(registryExtension));
+        vm.assume(unprivilegedAddress_ != address(registry));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert(AssetModule.OnlyRegistry.selector);
@@ -45,7 +45,7 @@ contract SetRiskParameters_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
     ) public {
         riskFactor = uint16(bound(riskFactor, AssetValuationLib.ONE_4 + 1, type(uint16).max));
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(DerivedAM.RiskFactorNotInLimits.selector);
         derivedAM.setRiskParameters(creditor, maxExposureInUsd, riskFactor);
         vm.stopPrank();
@@ -54,7 +54,7 @@ contract SetRiskParameters_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
     function testFuzz_Success_setRiskParameters(address creditor, uint112 maxExposureInUsd, uint16 riskFactor) public {
         riskFactor = uint16(bound(riskFactor, 0, AssetValuationLib.ONE_4));
 
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         derivedAM.setRiskParameters(creditor, maxExposureInUsd, riskFactor);
 
         (, uint128 actualMaxExposureInUsd, uint16 actualRiskFactor) = derivedAM.riskParams(creditor);

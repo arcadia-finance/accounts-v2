@@ -40,7 +40,7 @@ contract GetRiskFactors_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         uint256 expectedLiquidationFactor = uint256(liquidationFactor) * riskFactor / AssetValuationLib.ONE_4;
 
         // And riskFactor is set.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         stargateAssetModule.setRiskParameters(creditor, 0, riskFactor);
 
         // And: pool is added
@@ -49,10 +49,8 @@ contract GetRiskFactors_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         stargateAssetModule.addAsset(poolId);
 
         // And riskFactor is set for token1.
-        vm.prank(address(registryExtension));
-        erc20AssetModule.setRiskParameters(
-            creditor, address(mockERC20.token1), 0, 0, collateralFactor, liquidationFactor
-        );
+        vm.prank(address(registry));
+        erc20AM.setRiskParameters(creditor, address(mockERC20.token1), 0, 0, collateralFactor, liquidationFactor);
 
         (uint256 collateralFactor_, uint256 liquidationFactor_) =
             stargateAssetModule.getRiskFactors(creditor, address(poolMock), 0);

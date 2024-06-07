@@ -32,10 +32,10 @@ contract IsSequencerDown_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         // And: A random gracePeriod.
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         // When: "_isSequencerDown()" is called.
-        (bool success, bool sequencerDown) = registryExtension.isSequencerDown(address(creditorUsd));
+        (bool success, bool sequencerDown) = registry.isSequencerDown(address(creditorUsd));
 
         // Then: Correct variables are returned.
         assertTrue(success);
@@ -58,10 +58,10 @@ contract IsSequencerDown_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.assume(currentTime - startedAt < type(uint32).max);
         gracePeriod = uint32(bound(gracePeriod, currentTime - startedAt + 1, type(uint32).max));
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         // When: "_isSequencerDown()" is called.
-        (bool success, bool sequencerDown) = registryExtension.isSequencerDown(address(creditorUsd));
+        (bool success, bool sequencerDown) = registry.isSequencerDown(address(creditorUsd));
 
         // Then: Correct variables are returned.
         assertTrue(success);
@@ -82,10 +82,10 @@ contract IsSequencerDown_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // And: Grace period did pass.
         gracePeriod = uint32(bound(gracePeriod, 0, currentTime - startedAt));
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         // When: "_isSequencerDown()" is called.
-        (bool success, bool sequencerDown) = registryExtension.isSequencerDown(address(creditorUsd));
+        (bool success, bool sequencerDown) = registry.isSequencerDown(address(creditorUsd));
 
         // Then: Correct variables are returned.
         assertTrue(success);
@@ -101,10 +101,10 @@ contract IsSequencerDown_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         // And: a random gracePeriod.
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         // When: "_isSequencerDown()" is called.
-        (bool success, bool sequencerDown) = registryExtension.isSequencerDown(address(creditorUsd));
+        (bool success, bool sequencerDown) = registry.isSequencerDown(address(creditorUsd));
 
         // Then: Correct variables are returned.
         assertFalse(success);
@@ -129,10 +129,10 @@ contract IsSequencerDown_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // And: Grace period did pass.
         gracePeriod = uint32(bound(gracePeriod, 0, currentTime - startedAt));
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         // When: "_isSequencerDown()" is called.
-        (bool success, bool sequencerDown) = registryExtension.isSequencerDown(address(creditorUsd));
+        (bool success, bool sequencerDown) = registry.isSequencerDown(address(creditorUsd));
 
         // Then: Correct variables are returned.
         assertTrue(success);

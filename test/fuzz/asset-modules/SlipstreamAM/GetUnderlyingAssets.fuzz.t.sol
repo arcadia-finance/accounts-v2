@@ -37,7 +37,7 @@ contract GetUnderlyingAssets_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_getUnderlyingAssets_InAssetModule() public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         slipstreamAM.addAsset(id);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(id), address(nonfungiblePositionManagerMock)));

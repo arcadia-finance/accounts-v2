@@ -26,7 +26,7 @@ abstract contract FloorERC1155AM_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         chainlinkOM.addOracle(address(mockOracles.sft2ToUsd), "SFT2", "USD", 2 days);
 
         uint80[] memory oracleSft2ToUsdArr = new uint80[](1);

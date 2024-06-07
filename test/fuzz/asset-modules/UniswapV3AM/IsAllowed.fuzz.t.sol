@@ -31,11 +31,11 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
     function testFuzz_Success_isAllowed_Negative_UnknownAsset(address asset, uint256 assetId) public {
         vm.assume(asset != address(nonfungiblePositionManager));
 
-        assertFalse(uniV3AssetModule.isAllowed(asset, assetId));
+        assertFalse(uniV3AM.isAllowed(asset, assetId));
     }
 
     function testFuzz_Success_isAllowed_Negative_UnknownId(uint256 assetId) public {
-        assertFalse(uniV3AssetModule.isAllowed(address(nonfungiblePositionManager), assetId));
+        assertFalse(uniV3AM.isAllowed(address(nonfungiblePositionManager), assetId));
     }
 
     function testFuzz_Success_isAllowListed_Negative_NonAllowedUnderlyingAsset(address lp) public {
@@ -75,7 +75,7 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.stopPrank();
 
         // No maxExposures for tokenA and tokenB are set.
-        assertFalse(uniV3AssetModule.isAllowed(address(nonfungiblePositionManager), tokenId));
+        assertFalse(uniV3AM.isAllowed(address(nonfungiblePositionManager), tokenId));
     }
 
     function testFuzz_Success_isAllowed_Negative_ZeroLiquidity(address lp, uint128 maxExposureA, uint128 maxExposureB)
@@ -132,7 +132,7 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // Exposures are greater than 0 for both token 1 and token 2, see Fuzz.t.sol
 
         // Test that Uni V3 LP token with allowed exposure to the underlying assets but with 0 liquidity is not allowed.
-        assertFalse(uniV3AssetModule.isAllowed(address(nonfungiblePositionManager), tokenId));
+        assertFalse(uniV3AM.isAllowed(address(nonfungiblePositionManager), tokenId));
     }
 
     function testFuzz_Success_isAllowed_Positive(address lp, uint128 maxExposureA, uint128 maxExposureB) public {
@@ -175,6 +175,6 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // Exposures are greater than 0 for both token 1 and token 2, see Fuzz.t.sol
 
         // Test that Uni V3 LP token with allowed exposure to the underlying assets is allowlisted.
-        assertTrue(uniV3AssetModule.isAllowed(address(nonfungiblePositionManager), tokenId));
+        assertTrue(uniV3AM.isAllowed(address(nonfungiblePositionManager), tokenId));
     }
 }

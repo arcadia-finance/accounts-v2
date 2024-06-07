@@ -24,7 +24,7 @@ contract ChangeGuardian_BaseGuardian_Fuzz_Test is BaseGuardian_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_changeGuardian_onlyOwner(address nonOwner, address newGuardian) public {
-        vm.assume(nonOwner != users.creatorAddress);
+        vm.assume(nonOwner != users.owner);
 
         vm.startPrank(nonOwner);
         vm.expectRevert("UNAUTHORIZED");
@@ -33,9 +33,9 @@ contract ChangeGuardian_BaseGuardian_Fuzz_Test is BaseGuardian_Fuzz_Test {
     }
 
     function testFuzz_Success_changeGuardian(address newGuardian) public {
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectEmit(true, true, true, true);
-        emit BaseGuardian.GuardianChanged(users.creatorAddress, newGuardian);
+        emit BaseGuardian.GuardianChanged(users.owner, newGuardian);
         baseGuardian.changeGuardian(newGuardian);
         vm.stopPrank();
 

@@ -46,7 +46,7 @@ contract GetValue_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vars.decimals0 = bound(vars.decimals0, 6, 18);
         vars.decimals1 = bound(vars.decimals1, 6, 18);
 
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.startPrank(users.tokenCreator);
         ERC20 token0 = new ERC20Mock("TOKEN0", "TOK0", uint8(vars.decimals0));
         ERC20 token1 = new ERC20Mock("TOKEN1", "TOK1", uint8(vars.decimals1));
         if (token0 > token1) {
@@ -60,7 +60,7 @@ contract GetValue_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // Cast to uint160 will overflow, not realistic.
         vm.assume(vars.priceToken0 / vars.priceToken1 < 2 ** 128);
         // Check that sqrtPriceX96 is within allowed Uniswap V3 ranges.
-        uint160 sqrtPriceX96 = uniV3AssetModule.getSqrtPriceX96(
+        uint160 sqrtPriceX96 = uniV3AM.getSqrtPriceX96(
             vars.priceToken0 * 10 ** (18 - vars.decimals0), vars.priceToken1 * 10 ** (18 - vars.decimals1)
         );
 
@@ -100,7 +100,7 @@ contract GetValue_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         uint256 valueToken1 = uint256(vars.priceToken1) * amount1 / 10 ** vars.decimals1;
 
         (uint256 actualValueInUsd,,) =
-            uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+            uniV3AM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
 
         assertEq(actualValueInUsd, valueToken0 + valueToken1);
     }
@@ -124,7 +124,7 @@ contract GetValue_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         decimals0 = bound(decimals0, 6, 18);
         decimals1 = bound(decimals1, 6, 18);
 
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.startPrank(users.tokenCreator);
         ERC20 token0 = new ERC20Mock("TOKEN0", "TOK0", uint8(decimals0));
         ERC20 token1 = new ERC20Mock("TOKEN1", "TOK1", uint8(decimals1));
         if (token0 > token1) {
@@ -140,14 +140,14 @@ contract GetValue_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         addUnderlyingTokenToArcadia(address(token1), 1);
 
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(token0), 0, type(uint112).max, uint16(collFactor0), uint16(liqFactor0)
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(token1), 0, type(uint112).max, uint16(collFactor1), uint16(liqFactor1)
         );
-        registryExtension.setRiskParametersOfDerivedAM(
-            address(creditorUsd), address(uniV3AssetModule), type(uint112).max, uint16(riskFactorUniV3)
+        registry.setRiskParametersOfDerivedAM(
+            address(creditorUsd), address(uniV3AM), type(uint112).max, uint16(riskFactorUniV3)
         );
         vm.stopPrank();
 
@@ -160,7 +160,7 @@ contract GetValue_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         expectedLiqFactor = expectedLiqFactor * riskFactorUniV3 / AssetValuationLib.ONE_4;
 
         (, uint256 actualCollFactor, uint256 actualLiqFactor) =
-            uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+            uniV3AM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
 
         assertEq(actualCollFactor, expectedCollFactor);
         assertEq(actualLiqFactor, expectedLiqFactor);

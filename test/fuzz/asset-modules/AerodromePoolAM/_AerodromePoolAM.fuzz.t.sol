@@ -69,9 +69,9 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test {
         aeroPoolMock = new Pool();
 
         // Deploy the Aerodrome AssetModule.
-        vm.startPrank(users.creatorAddress);
-        aeroPoolAM = new AerodromePoolAMExtension(address(registryExtension), address(aeroFactoryMock));
-        registryExtension.addAssetModule(address(aeroPoolAM));
+        vm.startPrank(users.owner);
+        aeroPoolAM = new AerodromePoolAMExtension(address(registry), address(aeroFactoryMock));
+        registry.addAssetModule(address(aeroPoolAM));
         vm.stopPrank();
     }
 
@@ -128,18 +128,18 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test {
         address[] memory oracleArr = new address[](1);
         oracleArr[0] = address(oracle);
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         oracle.transmit(price);
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD", 2 days));
         uint80[] memory oracleAssetToUsdArr = new uint80[](1);
         oracleAssetToUsdArr[0] = oracleId;
 
-        erc20AssetModule.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
+        erc20AM.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
         vm.stopPrank();
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
     }
 
     function givenValidTestVarsVolatile(TestVariables memory testVars)

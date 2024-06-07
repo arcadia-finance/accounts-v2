@@ -117,7 +117,7 @@ contract IncreaseOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         time = uint32(bound(time, 2 days, type(uint32).max));
         vm.warp(time);
         // Update updatedAt to avoid InactiveOracle() reverts.
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.stable1ToUsd.transmit(int256(rates.stable1ToUsd));
 
         // When: The Creditor tries to take more margin against the Account

@@ -36,12 +36,12 @@ abstract contract Registry_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.startPrank(users.creatorAddress);
-        primaryAM = new PrimaryAMMock(address(registryExtension), 0);
-        registryExtension.addAssetModule(address(primaryAM));
+        vm.startPrank(users.owner);
+        primaryAM = new PrimaryAMMock(address(registry), 0);
+        registry.addAssetModule(address(primaryAM));
 
-        derivedAM = new DerivedAMMock(address(registryExtension), 0);
-        registryExtension.addAssetModule(address(derivedAM));
+        derivedAM = new DerivedAMMock(address(registry), 0);
+        registry.addAssetModule(address(derivedAM));
         vm.stopPrank();
     }
 
@@ -53,7 +53,7 @@ abstract contract Registry_Fuzz_Test is Fuzz_Test {
         public
     {
         oracleModule.setOracle(oracleId, baseAsset, quoteAsset, active);
-        registryExtension.setOracleToOracleModule(oracleId, address(oracleModule));
+        registry.setOracleToOracleModule(oracleId, address(oracleModule));
         oracleModule.setRate(oracleId, rate);
     }
 

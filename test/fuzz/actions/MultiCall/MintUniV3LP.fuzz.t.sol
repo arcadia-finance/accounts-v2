@@ -36,8 +36,8 @@ contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         token0 = new ERC20Mock("Token 0", "TOK0", 18);
         token1 = new ERC20Mock("Token 1", "TOK1", 18);
         (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
-        token0.mint(users.creatorAddress, 10 ** 38);
-        token1.mint(users.creatorAddress, 10 ** 38);
+        token0.mint(users.owner, 10 ** 38);
+        token1.mint(users.owner, 10 ** 38);
     }
 
     /*//////////////////////////////////////////////////////////////

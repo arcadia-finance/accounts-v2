@@ -35,11 +35,11 @@ contract GetValue_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
             type(uint256).max
         );
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsdNew));
 
         vm.expectRevert(bytes(""));
-        erc20AssetModule.getValue(address(creditorUsd), address(mockERC20.token1), 0, amountToken1);
+        erc20AM.getValue(address(creditorUsd), address(mockERC20.token1), 0, amountToken1);
     }
 
     function testFuzz_Success_getValue(uint256 rateToken1ToUsdNew, uint256 amountToken1) public {
@@ -54,14 +54,14 @@ contract GetValue_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
             );
         }
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsdNew));
 
         uint256 expectedValueInUsd = amountToken1 * rateToken1ToUsdNew * 10 ** (18 - Constants.tokenOracleDecimals)
             / 10 ** Constants.tokenDecimals;
 
         (uint256 actualValueInUsd,,) =
-            erc20AssetModule.getValue(address(creditorUsd), address(mockERC20.token1), 0, amountToken1);
+            erc20AM.getValue(address(creditorUsd), address(mockERC20.token1), 0, amountToken1);
 
         assertEq(actualValueInUsd, expectedValueInUsd);
     }

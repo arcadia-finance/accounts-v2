@@ -26,7 +26,7 @@ contract IsAllowed_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
         end = bound(end, start + 1, type(uint256).max);
         id = bound(id, start, end);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
 
         assertTrue(floorERC721AM.isAllowed(address(mockERC721.nft2), id));
@@ -44,7 +44,7 @@ contract IsAllowed_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
         end = bound(end, start + 1, type(uint256).max);
         id = bound(id, 0, start - 1);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
 
         assertFalse(floorERC721AM.isAllowed(address(mockERC721.nft2), id));
@@ -55,7 +55,7 @@ contract IsAllowed_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
         end = bound(end, start + 1, type(uint256).max - 1);
         id = bound(id, end + 1, type(uint256).max);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
 
         assertFalse(floorERC721AM.isAllowed(address(mockERC721.nft2), id));

@@ -27,7 +27,7 @@ contract AddAsset_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_addAsset_NonOwner(address unprivilegedAddress_) public {
-        vm.assume(unprivilegedAddress_ != users.creatorAddress);
+        vm.assume(unprivilegedAddress_ != users.owner);
 
         vm.prank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
@@ -35,7 +35,7 @@ contract AddAsset_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Test {
     }
 
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
         vm.expectRevert(FloorERC1155AM.AssetAlreadyInAM.selector);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
@@ -45,7 +45,7 @@ contract AddAsset_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Test {
     function testFuzz_Revert_addAsset_InvalidId(uint256 id) public {
         id = bound(id, uint256(type(uint96).max) + 1, type(uint256).max);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(FloorERC1155AM.InvalidId.selector);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), id, oraclesSft2ToUsd);
     }
@@ -57,13 +57,13 @@ contract AddAsset_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Test {
         oracleSft2ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.sft2ToUsd)));
         bytes32 badSequence = BitPackingLib.pack(badDirection, oracleSft2ToUsdArr);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(PrimaryAM.BadOracleSequence.selector);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), 1, badSequence);
     }
 
     function testFuzz_Success_addAsset_FirstId() public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
 
         assertTrue(floorERC1155AM.inAssetModule(address(mockERC1155.sft2)));
@@ -73,14 +73,14 @@ contract AddAsset_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Test {
         assertEq(assetUnit, 1);
         assertEq(oracles, oraclesSft2ToUsd);
 
-        assertTrue(registryExtension.inRegistry(address(mockERC1155.sft2)));
-        (uint256 assetType, address assetModule) = registryExtension.assetToAssetInformation(address(mockERC1155.sft2));
+        assertTrue(registry.inRegistry(address(mockERC1155.sft2)));
+        (uint256 assetType, address assetModule) = registry.assetToAssetInformation(address(mockERC1155.sft2));
         assertEq(assetType, 3);
         assertEq(assetModule, address(floorERC1155AM));
     }
 
     function testFuzz_Success_addAsset_SecondId() public {
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), 2, oraclesSft2ToUsd);
         vm.stopPrank();

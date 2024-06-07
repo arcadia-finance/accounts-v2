@@ -47,7 +47,7 @@ contract CalculateValueAndRiskFactors_StargateAM_Fuzz_Test is StargateAM_Fuzz_Te
         uint256 expectedLiquidationFactor = uint256(liquidationFactor) * riskFactor / AssetValuationLib.ONE_4;
 
         // And riskFactor is set.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         stargateAssetModule.setRiskParameters(creditor, 0, riskFactor);
 
         uint256[] memory underlyingAssetsAmounts = new uint256[](1);

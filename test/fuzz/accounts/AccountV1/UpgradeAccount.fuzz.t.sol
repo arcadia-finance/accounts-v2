@@ -56,8 +56,8 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         AccountV1_Fuzz_Test.setUp();
 
         // Set a Mocked V2 Account Logic contract in the Factory.
-        vm.prank(users.creatorAddress);
-        factory.setNewAccountInfo(address(registryExtension), address(accountV2Logic), Constants.upgradeRoot1To2, "");
+        vm.prank(users.owner);
+        factory.setNewAccountInfo(address(registry), address(accountV2Logic), Constants.upgradeRoot1To2, "");
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -125,7 +125,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.startPrank(address(factory));
         vm.expectRevert(AccountErrors.InvalidAccountVersion.selector);
-        proxyAccount.upgradeAccount(newImplementation, address(registryExtension), newVersion, data);
+        proxyAccount.upgradeAccount(newImplementation, address(registry), newVersion, data);
         vm.stopPrank();
     }
 
@@ -147,7 +147,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         AccountVariableVersion(newImplementation).setAccountVersion(accountVersion);
         AccountVariableVersion(newImplementation).setFactory(address(factory));
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         RegistryExtension registry2 = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
         vm.assume(newImplementation != address(registry2));
         factory.setNewAccountInfo(address(registry2), newImplementation, Constants.upgradeRoot1To2, data);

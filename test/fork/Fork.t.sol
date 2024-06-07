@@ -49,7 +49,7 @@ abstract contract Fork_Test is Base_Test {
 
         Base_Test.setUp();
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         // Add USDC to the protocol (same oracle will be used for USDBC).
         uint256 oracleId = chainlinkOM.addOracle(oracleUSDC, "USDC", "USD", 2 days);
         bool[] memory boolValues = new bool[](1);
@@ -57,20 +57,20 @@ abstract contract Fork_Test is Base_Test {
         uint80[] memory uintValues = new uint80[](1);
         uintValues[0] = uint80(oracleId);
         bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
-        erc20AssetModule.addAsset(address(USDC), oracleSequence);
-        erc20AssetModule.addAsset(address(USDBC), oracleSequence);
+        erc20AM.addAsset(address(USDC), oracleSequence);
+        erc20AM.addAsset(address(USDBC), oracleSequence);
 
         // Add DAI to the protocol.
         oracleId = chainlinkOM.addOracle(oracleDAI, "DAI", "USD", 2 days);
         uintValues[0] = uint80(oracleId);
         oracleSequence = BitPackingLib.pack(boolValues, uintValues);
-        erc20AssetModule.addAsset(address(DAI), oracleSequence);
+        erc20AM.addAsset(address(DAI), oracleSequence);
 
         // Add WETH to the protocol.
         oracleId = chainlinkOM.addOracle(oracleETH, "WETH", "USD", 2 days);
         uintValues[0] = uint80(oracleId);
         oracleSequence = BitPackingLib.pack(boolValues, uintValues);
-        erc20AssetModule.addAsset(address(WETH), oracleSequence);
+        erc20AM.addAsset(address(WETH), oracleSequence);
 
         vm.stopPrank();
 

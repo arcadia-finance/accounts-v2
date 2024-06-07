@@ -38,18 +38,18 @@ contract Initialize_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Revert_initialize_AlreadyInitialized() public {
-        accountNotInitialised.initialize(users.accountOwner, address(registryExtension), address(0));
+        accountNotInitialised.initialize(users.accountOwner, address(registry), address(0));
 
         vm.expectRevert(AccountErrors.AlreadyInitialized.selector);
-        accountNotInitialised.initialize(users.accountOwner, address(registryExtension), address(0));
+        accountNotInitialised.initialize(users.accountOwner, address(registry), address(0));
     }
 
     function testFuzz_Success_initialize_WithoutCreditor(address owner_) public {
-        accountNotInitialised.initialize(owner_, address(registryExtension), address(0));
+        accountNotInitialised.initialize(owner_, address(registry), address(0));
 
         assertEq(accountNotInitialised.owner(), owner_);
         assertEq(accountNotInitialised.getLocked(), 1);
-        assertEq(accountNotInitialised.registry(), address(registryExtension));
+        assertEq(accountNotInitialised.registry(), address(registry));
         assertEq(accountNotInitialised.numeraire(), address(0));
         assertEq(accountNotInitialised.creditor(), address(0));
     }
@@ -57,11 +57,11 @@ contract Initialize_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_initialize_WithCreditor(address owner_) public {
         vm.expectEmit(true, true, true, true);
         emit AccountV1.NumeraireSet(address(mockERC20.stable1));
-        accountNotInitialised.initialize(owner_, address(registryExtension), address(creditorStable1));
+        accountNotInitialised.initialize(owner_, address(registry), address(creditorStable1));
 
         assertEq(accountNotInitialised.owner(), owner_);
         assertEq(accountNotInitialised.getLocked(), 1);
-        assertEq(accountNotInitialised.registry(), address(registryExtension));
+        assertEq(accountNotInitialised.registry(), address(registry));
         assertEq(accountNotInitialised.numeraire(), address(mockERC20.stable1));
         assertEq(accountNotInitialised.creditor(), address(creditorStable1));
     }

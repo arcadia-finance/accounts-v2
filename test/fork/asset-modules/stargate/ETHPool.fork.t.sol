@@ -32,7 +32,7 @@ contract StargateAM_ETH_Fork_Test is StargateBase_Fork_Test {
     function setUp() public override {
         StargateBase_Fork_Test.setUp();
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
 
         // Add SGETH to the protocol.
         // Here we use WETH oracle as no available oracle for SGETH.
@@ -43,7 +43,7 @@ contract StargateAM_ETH_Fork_Test is StargateBase_Fork_Test {
         uintValues[0] = uint80(oracleId);
         bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
 
-        erc20AssetModule.addAsset(address(SGETH), oracleSequence);
+        erc20AM.addAsset(address(SGETH), oracleSequence);
 
         // Add the ETH pool LP token to the StargateAssetModule.
         stargateAssetModule.addAsset(poolId);

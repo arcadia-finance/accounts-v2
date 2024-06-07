@@ -21,8 +21,8 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         Factory_Fuzz_Test.setUp();
 
         // Set a Mocked V2 Account Logic contract in the Factory.
-        vm.prank(users.creatorAddress);
-        factory.setNewAccountInfo(address(registryExtension), address(accountV2Logic), Constants.upgradeRoot1To2, "");
+        vm.prank(users.owner);
+        factory.setNewAccountInfo(address(registry), address(accountV2Logic), Constants.upgradeRoot1To2, "");
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     function testFuzz_Revert_upgradeAccountVersion_BlockedVersion(bytes32[] calldata proofs) public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         factory.blockAccountVersion(2);
 
         vm.startPrank(users.accountOwner);

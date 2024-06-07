@@ -25,6 +25,14 @@ import { Utils } from "./utils/Utils.sol";
 /// @notice Base test contract with common logic needed by all tests.
 abstract contract Base_Test is Test {
     /*//////////////////////////////////////////////////////////////////////////
+                                  CONSTANTS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    // baseToQuoteAsset arrays
+    bool[] internal BA_TO_QA_SINGLE = new bool[](1);
+    bool[] internal BA_TO_QA_DOUBLE = new bool[](2);
+
+    /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -34,92 +42,82 @@ abstract contract Base_Test is Test {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    Factory internal factory;
-    RegistryExtension internal registryExtension;
-    ChainlinkOMExtension internal chainlinkOM;
-    ERC20PrimaryAMExtension internal erc20AssetModule;
-    FloorERC721AMExtension internal floorERC721AM;
-    FloorERC1155AMExtension internal floorERC1155AM;
-    UniswapV3AMExtension internal uniV3AssetModule;
     AccountV1 internal accountV1Logic;
     AccountV2 internal accountV2Logic;
+    ChainlinkOMExtension internal chainlinkOM;
+    ERC20PrimaryAMExtension internal erc20AM;
+    Factory internal factory;
+    FloorERC721AMExtension internal floorERC721AM;
+    FloorERC1155AMExtension internal floorERC1155AM;
     AccountV1 internal proxyAccount;
+    RegistryExtension internal registry;
     SequencerUptimeOracle internal sequencerUptimeOracle;
-
-    /*//////////////////////////////////////////////////////////////////////////
-                                   MODIFIERS
-    //////////////////////////////////////////////////////////////////////////*/
-
-    modifier canReceiveERC721(address to) {
-        vm.assume(to != address(0));
-        if (to.code.length != 0) {
-            try ERC721TokenReceiver(to).onERC721Received(to, address(0), 0, "") returns (bytes4 response) {
-                vm.assume(response == ERC721TokenReceiver.onERC721Received.selector);
-            } catch {
-                vm.assume(false);
-            }
-        }
-        _;
-    }
+    UniswapV3AMExtension internal uniV3AM;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
 
+    constructor() {
+        BA_TO_QA_SINGLE[0] = true;
+        BA_TO_QA_DOUBLE[0] = true;
+        BA_TO_QA_DOUBLE[1] = true;
+    }
+
     function setUp() public virtual {
         // Create users for testing
         users = Users({
-            creatorAddress: createUser("creatorAddress"),
-            tokenCreatorAddress: createUser("creatorAddress"),
-            oracleOwner: createUser("oracleOwner"),
-            unprivilegedAddress: createUser("unprivilegedAddress"),
             accountOwner: createUser("accountOwner"),
-            liquidityProvider: createUser("liquidityProvider"),
-            defaultCreatorAddress: createUser("defaultCreatorAddress"),
-            defaultTransmitter: createUser("defaultTransmitter"),
-            swapper: createUser("swapper"),
             guardian: createUser("guardian"),
-            riskManager: createUser("riskManager")
+            liquidityProvider: createUser("liquidityProvider"),
+            oracleOwner: createUser("oracleOwner"),
+            owner: createUser("owner"),
+            riskManager: createUser("riskManager"),
+            swapper: createUser("swapper"),
+            tokenCreator: createUser("tokenCreator"),
+            transmitter: createUser("transmitter"),
+            treasury: createUser("treasury"),
+            unprivilegedAddress: createUser("unprivilegedAddress")
         });
 
         // Deploy the sequencer uptime oracle.
         sequencerUptimeOracle = new SequencerUptimeOracle();
 
         // Deploy the base test contracts.
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         factory = new Factory();
-        registryExtension = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
-        chainlinkOM = new ChainlinkOMExtension(address(registryExtension));
-        erc20AssetModule = new ERC20PrimaryAMExtension(address(registryExtension));
-        floorERC721AM = new FloorERC721AMExtension(address(registryExtension));
-        floorERC1155AM = new FloorERC1155AMExtension(address(registryExtension));
+        registry = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
+        chainlinkOM = new ChainlinkOMExtension(address(registry));
+        erc20AM = new ERC20PrimaryAMExtension(address(registry));
+        floorERC721AM = new FloorERC721AMExtension(address(registry));
+        floorERC1155AM = new FloorERC1155AMExtension(address(registry));
 
         accountV1Logic = new AccountV1(address(factory));
         accountV2Logic = new AccountV2(address(factory));
-        factory.setNewAccountInfo(address(registryExtension), address(accountV1Logic), Constants.upgradeProof1To2, "");
+        factory.setNewAccountInfo(address(registry), address(accountV1Logic), Constants.upgradeProof1To2, "");
 
         // Set the Guardians.
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         factory.changeGuardian(users.guardian);
-        registryExtension.changeGuardian(users.guardian);
+        registry.changeGuardian(users.guardian);
 
         // Add Asset Modules to the Registry.
-        vm.startPrank(users.creatorAddress);
-        registryExtension.addAssetModule(address(erc20AssetModule));
-        registryExtension.addAssetModule(address(floorERC721AM));
-        registryExtension.addAssetModule(address(floorERC1155AM));
+        vm.startPrank(users.owner);
+        registry.addAssetModule(address(erc20AM));
+        registry.addAssetModule(address(floorERC721AM));
+        registry.addAssetModule(address(floorERC1155AM));
         vm.stopPrank();
 
         // Add Oracle Modules to the Registry.
-        vm.startPrank(users.creatorAddress);
-        registryExtension.addOracleModule(address(chainlinkOM));
+        vm.startPrank(users.owner);
+        registry.addOracleModule(address(chainlinkOM));
         vm.stopPrank();
 
         // Label the base test contracts.
         vm.label({ account: address(factory), newLabel: "Factory" });
-        vm.label({ account: address(registryExtension), newLabel: "Registry" });
+        vm.label({ account: address(registry), newLabel: "Registry" });
         vm.label({ account: address(chainlinkOM), newLabel: "Chainlink Oracle Module" });
-        vm.label({ account: address(erc20AssetModule), newLabel: "Standard ERC20 Asset Module" });
+        vm.label({ account: address(erc20AM), newLabel: "Standard ERC20 Asset Module" });
         vm.label({ account: address(floorERC721AM), newLabel: "ERC721 Asset Module" });
         vm.label({ account: address(floorERC1155AM), newLabel: "ERC1155 Asset Module" });
         vm.label({ account: address(accountV1Logic), newLabel: "Account V1 Logic" });
@@ -133,7 +131,7 @@ abstract contract Base_Test is Test {
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                      HELPERS
+                                HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev Generates a user, labels its address, and funds it with test assets.
@@ -143,6 +141,18 @@ abstract contract Base_Test is Test {
         return user;
     }
 
+    modifier canReceiveERC721(address to) {
+        vm.assume(to != address(0));
+        if (to.code.length != 0) {
+            try ERC721TokenReceiver(to).onERC721Received(to, address(0), 0, "") returns (bytes4 response) {
+                vm.assume(response == ERC721TokenReceiver.onERC721Received.selector);
+            } catch {
+                vm.assume(false);
+            }
+        }
+        _;
+    }
+
     function deployUniswapV3AM(address nonfungiblePositionManager_) internal {
         // Get the bytecode of the UniswapV3PoolExtension.
         bytes memory args = abi.encode();
@@ -150,7 +160,7 @@ abstract contract Base_Test is Test {
         bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
 
         // Get the bytecode of UniswapV3AMExtension.
-        args = abi.encode(address(registryExtension), nonfungiblePositionManager_);
+        args = abi.encode(address(registry), nonfungiblePositionManager_);
         bytecode = abi.encodePacked(vm.getCode("UniswapV3AMExtension.sol:UniswapV3AMExtension"), args);
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.
@@ -159,16 +169,16 @@ abstract contract Base_Test is Test {
         bytecode = Utils.veryBadBytesReplacer(bytecode, POOL_INIT_CODE_HASH, poolExtensionInitCodeHash);
 
         // Deploy UniswapV3PoolExtension with modified bytecode.
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         address uniV3AssetModule_ = Utils.deployBytecode(bytecode);
-        uniV3AssetModule = UniswapV3AMExtension(uniV3AssetModule_);
+        uniV3AM = UniswapV3AMExtension(uniV3AssetModule_);
 
-        vm.label({ account: address(uniV3AssetModule), newLabel: "Uniswap V3 Asset Module" });
+        vm.label({ account: address(uniV3AM), newLabel: "Uniswap V3 Asset Module" });
 
         // Add the Asset Module to the Registry.
-        vm.startPrank(users.creatorAddress);
-        registryExtension.addAssetModule(address(uniV3AssetModule));
-        uniV3AssetModule.setProtocol();
+        vm.startPrank(users.owner);
+        registry.addAssetModule(address(uniV3AM));
+        uniV3AM.setProtocol();
         vm.stopPrank();
     }
 }

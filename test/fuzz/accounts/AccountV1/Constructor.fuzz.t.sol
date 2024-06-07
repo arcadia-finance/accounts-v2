@@ -22,7 +22,7 @@ contract Constructor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address factory_) public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         AccountV1 account_ = new AccountV1(factory_);
 
         assertEq(account_.FACTORY(), factory_);

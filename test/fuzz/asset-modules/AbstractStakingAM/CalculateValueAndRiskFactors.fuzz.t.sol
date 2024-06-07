@@ -52,7 +52,7 @@ contract CalculateValueAndRiskFactors_AbstractStakingAM_Fuzz_Test is AbstractSta
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], AssetValuationLib.ONE_4));
 
         // And riskFactor is set.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         stakingAM.setRiskParameters(creditor, 0, riskFactor);
 
         uint256 expectedCollateralFactor = (value0 * collateralFactors[0] + value1 * collateralFactors[1])
@@ -90,7 +90,7 @@ contract CalculateValueAndRiskFactors_AbstractStakingAM_Fuzz_Test is AbstractSta
     ) public {
         // And riskFactor is set.
         riskFactor = uint16(bound(riskFactor, 0, AssetValuationLib.ONE_4));
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         stakingAM.setRiskParameters(creditor, 0, riskFactor);
 
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](2);

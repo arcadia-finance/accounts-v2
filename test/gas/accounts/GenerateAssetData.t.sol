@@ -35,7 +35,7 @@ contract GenerateAssetData_Accounts_Gas_Test is Gas_Test {
         vm.pauseGasMetering();
         AccountV1 account = AccountV1(newAccount);
 
-        vm.prank(users.tokenCreatorAddress);
+        vm.prank(users.tokenCreator);
         mockERC20.stable1.mint(users.accountOwner, 1000 * 10 ** 18);
 
         vm.startPrank(users.accountOwner);

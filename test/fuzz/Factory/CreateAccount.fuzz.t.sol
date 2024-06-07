@@ -65,15 +65,15 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
             //the first account version to add is 2, so we add 2 to the index
             account_.setAccountVersion(uint16(i + 2));
 
-            vm.prank(users.creatorAddress);
-            factory.setNewAccountInfo(address(registryExtension), address(account_), Constants.upgradeRoot1To2, "");
+            vm.prank(users.owner);
+            factory.setNewAccountInfo(address(registry), address(account_), Constants.upgradeRoot1To2, "");
         }
 
         for (uint256 y; y < versionsToBlock.length; ++y) {
             if (versionsToBlock[y] == 0 || versionsToBlock[y] > factory.latestAccountVersion()) {
                 continue;
             }
-            vm.prank(users.creatorAddress);
+            vm.prank(users.owner);
             factory.blockAccountVersion(versionsToBlock[y]);
         }
 

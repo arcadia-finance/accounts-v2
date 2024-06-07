@@ -39,7 +39,7 @@ contract GetValuesInUsd_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = assetAmount;
 
         vm.expectRevert(bytes(""));
-        registryExtension.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+        registry.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Success_getValuesInUsd(
@@ -65,16 +65,16 @@ contract GetValuesInUsd_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // And: Grace period did pass.
         gracePeriod = uint32(bound(gracePeriod, 0, currentTime - startedAt - 1));
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         collateralFactor = uint16(bound(collateralFactor, 0, AssetValuationLib.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, AssetValuationLib.ONE_4));
 
-        registryExtension.setAssetModule(asset, address(primaryAM));
+        registry.setAssetModule(asset, address(primaryAM));
         primaryAM.setUsdValue(usdValue);
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
 
@@ -86,7 +86,7 @@ contract GetValuesInUsd_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = assetAmount;
 
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
-            registryExtension.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+            registry.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         assertEq(valuesAndRiskFactors[0].assetValue, usdValue);
         assertEq(valuesAndRiskFactors[0].collateralFactor, collateralFactor);
@@ -108,14 +108,14 @@ contract GetValuesInUsd_Registry_Fuzz_Test is Registry_Fuzz_Test {
         usdValue = uint128(bound(usdValue, 0, type(uint128).max - 1));
         minUsdValue = uint128(bound(minUsdValue, usdValue + 1, type(uint128).max));
 
-        registryExtension.setAssetModule(asset, address(primaryAM));
+        registry.setAssetModule(asset, address(primaryAM));
         primaryAM.setUsdValue(usdValue);
 
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
-        registryExtension.setRiskParameters(address(creditorUsd), minUsdValue, 0, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), minUsdValue, 0, type(uint64).max);
         vm.stopPrank();
 
         address[] memory assetAddresses = new address[](1);
@@ -126,7 +126,7 @@ contract GetValuesInUsd_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = assetAmount;
 
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
-            registryExtension.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+            registry.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         assertEq(valuesAndRiskFactors[0].assetValue, 0);
         assertEq(valuesAndRiskFactors[0].collateralFactor, collateralFactor);

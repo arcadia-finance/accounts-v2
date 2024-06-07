@@ -24,28 +24,28 @@ contract AddOracle_Registry_Fuzz_Test is Registry_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_addOracle_NonAssetModule(address unprivilegedAddress_) public {
-        vm.assume(!registryExtension.isOracleModule(unprivilegedAddress_));
+        vm.assume(!registry.isOracleModule(unprivilegedAddress_));
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(RegistryErrors.OnlyOracleModule.selector);
-        registryExtension.addOracle();
+        registry.addOracle();
     }
 
     function testFuzz_Success_addOracle(address oracleModule_, uint256 oracleCounterLast) public {
-        vm.assume(!registryExtension.isOracleModule(oracleModule_));
-        vm.prank(users.creatorAddress);
-        registryExtension.addOracleModule(oracleModule_);
+        vm.assume(!registry.isOracleModule(oracleModule_));
+        vm.prank(users.owner);
+        registry.addOracleModule(oracleModule_);
 
         oracleCounterLast = bound(oracleCounterLast, 0, type(uint80).max);
-        registryExtension.setOracleCounter(oracleCounterLast);
+        registry.setOracleCounter(oracleCounterLast);
 
         vm.prank(oracleModule_);
         vm.expectEmit();
         emit Registry.OracleAdded(oracleCounterLast, oracleModule_);
-        uint256 oracleId = registryExtension.addOracle();
+        uint256 oracleId = registry.addOracle();
 
         assertEq(oracleId, oracleCounterLast);
-        assertEq(registryExtension.getOracleToOracleModule(oracleId), oracleModule_);
-        assertEq(registryExtension.getOracleCounter(), oracleCounterLast + 1);
+        assertEq(registry.getOracleToOracleModule(oracleId), oracleModule_);
+        assertEq(registry.getOracleCounter(), oracleCounterLast + 1);
     }
 }

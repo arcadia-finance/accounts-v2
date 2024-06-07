@@ -24,7 +24,7 @@ contract Constructor_StakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_, string memory name_, string memory symbol_) public {
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         StakingAMMock assetModule_ = new StakingAMMock(registry_, name_, symbol_, address(rewardToken));
         vm.stopPrank();
 

@@ -76,7 +76,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         // Then: The transaction overflows.
         bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
         vm.expectRevert(bytes(""));
-        uniV3AssetModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
+        uniV3AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
     }
 
     function testFuzz_Revert_GetUnderlyingAssetsAmounts_Overflow_PriceToken1(
@@ -116,7 +116,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         // Then: The transaction overflows.
         bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
         vm.expectRevert(bytes(""));
-        uniV3AssetModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
+        uniV3AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
     }
 
     function testFuzz_Success_GetUnderlyingAssetsAmounts(
@@ -169,7 +169,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         {
             bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
             (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
-                uniV3AssetModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
+                uniV3AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
         }
 
         // Then: The correct "rateUnderlyingAssetsToUsd" are returned.
@@ -180,7 +180,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
 
         // And: The correct "underlyingAssetsAmounts" rates are returned.
         uint160 sqrtPriceX96 =
-            uniV3AssetModule.getSqrtPriceX96(expectedRateUnderlyingAssetsToUsd0, expectedRateUnderlyingAssetsToUsd1);
+            uniV3AM.getSqrtPriceX96(expectedRateUnderlyingAssetsToUsd0, expectedRateUnderlyingAssetsToUsd1);
         (uint256 expectedUnderlyingAssetsAmount0, uint256 expectedUnderlyingAssetsAmount1) = LiquidityAmounts
             .getAmountsForLiquidity(
             sqrtPriceX96,
@@ -200,7 +200,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
 
         // When: "getUnderlyingAssetsAmounts" is called.
         (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
-            uniV3AssetModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, amount, new bytes32[](0));
+            uniV3AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, amount, new bytes32[](0));
 
         // Then: Values returned should be zero.
         assertEq(underlyingAssetsAmounts[0], 0);

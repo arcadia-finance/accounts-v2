@@ -139,11 +139,11 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_withdraw_UnknownAssetType(uint96 assetType) public {
         vm.assume(assetType > 3);
 
-        vm.startPrank(users.creatorAddress);
-        AssetModuleMock assetModule = new AssetModuleMock(address(registryExtension), assetType);
-        registryExtension.addAssetModule(address(assetModule));
+        vm.startPrank(users.owner);
+        AssetModuleMock assetModule = new AssetModuleMock(address(registry), assetType);
+        registry.addAssetModule(address(assetModule));
         vm.stopPrank();
-        registryExtension.setAssetInformation(address(mockERC20.token1), assetType, address(assetModule));
+        registry.setAssetInformation(address(mockERC20.token1), assetType, address(assetModule));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -164,9 +164,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(amountWithdraw > maxExposure);
 
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC20.token1), 0, maxExposure, 0, 0
-        );
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC20.token1), 0, maxExposure, 0, 0);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -187,7 +185,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.prank(users.accountOwner);
         accountExtension.closeMarginAccount();
 
-        vm.assume(!registryExtension.inRegistry(asset));
+        vm.assume(!registry.inRegistry(asset));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;
@@ -205,7 +203,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Revert_withdraw_WithCreditor_UnknownAsset(address asset, uint256 id, uint256 amount) public {
-        vm.assume(!registryExtension.inRegistry(asset));
+        vm.assume(!registry.inRegistry(asset));
 
         amount = bound(amount, 1, type(uint256).max);
 
@@ -265,7 +263,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Given: At least one nft of same collection is deposited in other account.
         // (otherwise processWithdrawal underflows when arrLength is 0: account didn't deposit any nfts yet).
         AccountV1Extension account2 = new AccountV1Extension(address(factory));
-        account2.initialize(users.accountOwner, address(registryExtension), address(creditorStable1));
+        account2.initialize(users.accountOwner, address(registry), address(creditorStable1));
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(account2)).checked_write(
             true
         );

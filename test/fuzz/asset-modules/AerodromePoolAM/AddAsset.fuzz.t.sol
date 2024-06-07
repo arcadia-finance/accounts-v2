@@ -24,7 +24,7 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
     function testFuzz_Revert_addAsset_Stable_NotOwner(address sender, address asset) public {
         // Given : sender is not the owner.
-        vm.assume(sender != users.creatorAddress);
+        vm.assume(sender != users.owner);
 
         // When : An asset is added to the AM.
         // Then : It should revert.
@@ -38,7 +38,7 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
 
         // When : An asset is added to the AM.
         // Then : It should revert.
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(AerodromePoolAM.InvalidPool.selector);
         aeroPoolAM.addAsset(asset);
     }
@@ -55,7 +55,7 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
 
         // When : An asset is added to the AM.
         // Then : It should revert.
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(AerodromePoolAM.AssetNotAllowed.selector);
         aeroPoolAM.addAsset(address(aeroPoolMock));
     }
@@ -72,7 +72,7 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
 
         // When : An asset is added to the AM.
         // Then : It should revert.
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(AerodromePoolAM.AssetNotAllowed.selector);
         aeroPoolAM.addAsset(address(aeroPoolMock));
     }
@@ -82,11 +82,11 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
         setMockState(false);
 
         // When : An asset is added to the AM.
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         aeroPoolAM.addAsset(address(aeroPoolMock));
 
         // Then : It should return the correct values
-        assertTrue(registryExtension.inRegistry(address(aeroPoolMock)));
+        assertTrue(registry.inRegistry(address(aeroPoolMock)));
         assertTrue(aeroPoolAM.inAssetModule(address(aeroPoolMock)));
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPoolMock)));
         bytes32[] memory underlyingAssetKeys = aeroPoolAM.getUnderlyingAssets(assetKey);
@@ -106,11 +106,11 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
         setMockState(true);
 
         // When : An asset is added to the AM by owner.
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         aeroPoolAM.addAsset(address(aeroPoolMock));
 
         // Then : It should return the correct values
-        assertTrue(registryExtension.inRegistry(address(aeroPoolMock)));
+        assertTrue(registry.inRegistry(address(aeroPoolMock)));
         assertTrue(aeroPoolAM.inAssetModule(address(aeroPoolMock)));
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPoolMock)));
 

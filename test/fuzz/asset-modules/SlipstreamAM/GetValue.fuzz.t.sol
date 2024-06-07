@@ -45,7 +45,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         vars.decimals0 = bound(vars.decimals0, 6, 18);
         vars.decimals1 = bound(vars.decimals1, 6, 18);
 
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.startPrank(users.tokenCreator);
         ERC20 token0 = new ERC20Mock("TOKEN0", "TOK0", uint8(vars.decimals0));
         ERC20 token1 = new ERC20Mock("TOKEN1", "TOK1", uint8(vars.decimals1));
         if (token0 > token1) {
@@ -123,7 +123,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         decimals0 = bound(decimals0, 6, 18);
         decimals1 = bound(decimals1, 6, 18);
 
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.startPrank(users.tokenCreator);
         ERC20 token0 = new ERC20Mock("TOKEN0", "TOK0", uint8(decimals0));
         ERC20 token1 = new ERC20Mock("TOKEN1", "TOK1", uint8(decimals1));
         if (token0 > token1) {
@@ -139,13 +139,13 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         addUnderlyingTokenToArcadia(address(token1), 1);
 
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(token0), 0, type(uint112).max, uint16(collFactor0), uint16(liqFactor0)
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(token1), 0, type(uint112).max, uint16(collFactor1), uint16(liqFactor1)
         );
-        registryExtension.setRiskParametersOfDerivedAM(
+        registry.setRiskParametersOfDerivedAM(
             address(creditorUsd), address(slipstreamAM), type(uint112).max, uint16(riskFactorSlipstream)
         );
         vm.stopPrank();

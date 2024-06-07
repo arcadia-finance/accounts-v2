@@ -27,7 +27,7 @@ contract ProcessDirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_F
         uint256 amount
     ) public {
         // Given "caller" is not the Registry.
-        vm.assume(unprivilegedAddress_ != address(registryExtension));
+        vm.assume(unprivilegedAddress_ != address(registry));
 
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
@@ -55,7 +55,7 @@ contract ProcessDirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_F
 
         // When: "amount" is deposited.
         // Then: The transaction reverts with AssetModule.ExposureNotInLimits.selector.
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         assetModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
         vm.stopPrank();
@@ -73,7 +73,7 @@ contract ProcessDirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_F
         setPrimaryAMAssetState(assetState);
 
         // When: "amount" is deposited.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         uint256 recursiveCalls =
             assetModule.processDirectDeposit(assetState.creditor, assetState.asset, assetState.assetId, amount);
 

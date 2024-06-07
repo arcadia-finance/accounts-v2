@@ -52,9 +52,9 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
         Fork_Test.setUp();
 
         // Deploy uniV3AM_.
-        vm.startPrank(users.creatorAddress);
-        uniV3AM_ = new UniswapV3AM(address(registryExtension), address(NONFUNGIBLE_POSITION_MANAGER));
-        registryExtension.addAssetModule(address(uniV3AM_));
+        vm.startPrank(users.owner);
+        uniV3AM_ = new UniswapV3AM(address(registry), address(NONFUNGIBLE_POSITION_MANAGER));
+        registry.addAssetModule(address(uniV3AM_));
         uniV3AM_.setProtocol();
         vm.stopPrank();
 
@@ -218,8 +218,7 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
         assetAmounts[0] = amountDai;
         assetAmounts[1] = amountWeth;
 
-        uint256 expectedValue =
-            registryExtension.getTotalValue(address(0), address(0), assetAddresses, assetIds, assetAmounts);
+        uint256 expectedValue = registry.getTotalValue(address(0), address(0), assetAddresses, assetIds, assetAmounts);
 
         // Precision Chainlink oracles is often in the order of percentages.
         assertApproxEqRel(actualValue, expectedValue, 1e16);

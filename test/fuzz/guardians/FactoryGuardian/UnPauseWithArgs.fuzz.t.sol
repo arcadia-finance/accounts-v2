@@ -24,7 +24,7 @@ contract Unpause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_unpause_OnlyOwner(address nonOwner, bool flag) public {
-        vm.assume(nonOwner != users.creatorAddress);
+        vm.assume(nonOwner != users.owner);
 
         vm.startPrank(nonOwner);
         vm.expectRevert("UNAUTHORIZED");
@@ -50,7 +50,7 @@ contract Unpause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test
         vm.warp(lastPauseTimestamp + timePassed);
 
         // When: A "owner" un-pauses.
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectEmit(true, true, true, true);
         emit FactoryGuardian.PauseFlagsUpdated(initialFlag && flag);
         factoryGuardian.unpause(flag);

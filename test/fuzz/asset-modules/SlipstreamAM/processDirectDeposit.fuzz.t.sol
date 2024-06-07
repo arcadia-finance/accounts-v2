@@ -54,7 +54,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         uint256 priceToken0,
         uint256 priceToken1
     ) public {
-        vm.assume(unprivilegedAddress != address(registryExtension));
+        vm.assume(unprivilegedAddress != address(registry));
 
         // Check that ticks are within allowed ranges.
         vm.assume(tickLower < tickUpper);
@@ -104,7 +104,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
             })
         );
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(SlipstreamAM.ZeroLiquidity.selector);
         slipstreamAM.processDirectDeposit(creditor, address(slipstreamPositionManager), tokenId, 1);
         vm.stopPrank();
@@ -155,7 +155,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         addUnderlyingTokenToArcadia(address(token0), int256(priceToken0), initialExposure0, maxExposure0);
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         slipstreamAM.processDirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
         vm.stopPrank();
@@ -212,7 +212,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         addUnderlyingTokenToArcadia(address(token0), int256(priceToken0), 0, type(uint112).max);
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1), initialExposure1, maxExposure1);
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         slipstreamAM.processDirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
         vm.stopPrank();
@@ -288,11 +288,9 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         }
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfDerivedAM(
-            address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100
-        );
+        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100);
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         slipstreamAM.processDirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
         vm.stopPrank();
@@ -366,13 +364,11 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         }
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfDerivedAM(
-            address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100
-        );
+        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100);
 
         {
             // When: processDirectDeposit is called with amount 1.
-            vm.prank(address(registryExtension));
+            vm.prank(address(registry));
             uint256 recursiveCalls =
                 slipstreamAM.processDirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
 
@@ -397,7 +393,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
                 slipstreamAM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 amount0
             );
-            (uint128 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, amount0 + initialExposure0);
             // Token1:
             UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
@@ -405,7 +401,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
                 slipstreamAM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 amount1
             );
-            (exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, amount1 + initialExposure1);
         }
     }
@@ -478,13 +474,11 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         }
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfDerivedAM(
-            address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100
-        );
+        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100);
 
         {
             // When: processDirectDeposit is called with amount 0.
-            vm.prank(address(registryExtension));
+            vm.prank(address(registry));
             uint256 recursiveCalls =
                 slipstreamAM.processDirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 0);
 
@@ -505,7 +499,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
                 slipstreamAM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 0
             );
-            (uint128 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, initialExposure0);
             // Token1:
             UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
@@ -513,7 +507,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
                 slipstreamAM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 0
             );
-            (exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, initialExposure1);
         }
     }
@@ -591,12 +585,12 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
             }
 
             vm.prank(users.riskManager);
-            registryExtension.setRiskParametersOfDerivedAM(
+            registry.setRiskParametersOfDerivedAM(
                 address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100
             );
 
             // Given: Slipstream position is deposited.
-            vm.prank(address(registryExtension));
+            vm.prank(address(registry));
             slipstreamAM.processDirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
         }
 
@@ -605,7 +599,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
             increaseLiquidity(pool, tokenId, 100, 100, false);
 
             // When: processDirectDeposit is called with amount 0.
-            vm.prank(address(registryExtension));
+            vm.prank(address(registry));
             slipstreamAM.processDirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 0);
 
             // Then: Exposure of the asset is still one.
@@ -620,7 +614,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
                 slipstreamAM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 amount0
             );
-            (uint128 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, amount0 + initialExposure0);
             // Token1:
             UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
@@ -628,7 +622,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
                 slipstreamAM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 amount1
             );
-            (exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, amount1 + initialExposure1);
         }
     }

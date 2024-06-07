@@ -42,7 +42,7 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         // Deploy implementation of Aerodrome pool contract
         implementation = new Pool();
 
@@ -50,12 +50,12 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
         poolFactory = new PoolFactory(address(implementation));
 
         // Deploy Aerodrome AM.
-        aerodromePoolAM = new AerodromePoolAM(address(registryExtension), address(poolFactory));
-        registryExtension.addAssetModule(address(aerodromePoolAM));
+        aerodromePoolAM = new AerodromePoolAM(address(registry), address(poolFactory));
+        registry.addAssetModule(address(aerodromePoolAM));
 
         // Deploy WrappedAerodromeAM.
-        wrappedAerodromeAM = new WrappedAerodromeAMExtension(address(registryExtension));
-        registryExtension.addAssetModule(address(wrappedAerodromeAM));
+        wrappedAerodromeAM = new WrappedAerodromeAMExtension(address(registry));
+        registry.addAssetModule(address(wrappedAerodromeAM));
         wrappedAerodromeAM.initialize();
         vm.stopPrank();
 
@@ -82,7 +82,7 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
     function deployAerodromePoolFixture(address token0, address token1, bool stable) public {
         pool = Pool(poolFactory.createPool(token0, token1, stable));
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         aerodromePoolAM.addAsset(address(pool));
     }
 
@@ -91,14 +91,14 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
         address[] memory oracleArr = new address[](1);
         oracleArr[0] = address(oracle);
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         oracle.transmit(1e18);
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD", 2 days));
         uint80[] memory oracleAssetToUsdArr = new uint80[](1);
         oracleAssetToUsdArr[0] = oracleId;
 
-        erc20AssetModule.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
+        erc20AM.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
         vm.stopPrank();
     }
 

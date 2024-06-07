@@ -56,7 +56,7 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         uint256 priceToken0,
         uint256 priceToken1
     ) public {
-        vm.assume(unprivilegedAddress != address(registryExtension));
+        vm.assume(unprivilegedAddress != address(registry));
 
         // Check that ticks are within allowed ranges.
         vm.assume(tickLower < tickUpper);
@@ -80,7 +80,7 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
 
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert(AssetModule.OnlyRegistry.selector);
-        uniV3AssetModule.processDirectDeposit(creditor, address(nonfungiblePositionManager), tokenId, 1);
+        uniV3AM.processDirectDeposit(creditor, address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -106,9 +106,9 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
             })
         );
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(UniswapV3AM.ZeroLiquidity.selector);
-        uniV3AssetModule.processDirectDeposit(creditor, address(nonfungiblePositionManager), tokenId, 1);
+        uniV3AM.processDirectDeposit(creditor, address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -157,9 +157,9 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         addUnderlyingTokenToArcadia(address(token0), int256(priceToken0), initialExposure0, maxExposure0);
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
-        uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+        uniV3AM.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -214,9 +214,9 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         addUnderlyingTokenToArcadia(address(token0), int256(priceToken0), 0, type(uint112).max);
         addUnderlyingTokenToArcadia(address(token1), int256(priceToken1), initialExposure1, maxExposure1);
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
-        uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+        uniV3AM.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -284,19 +284,17 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
-                uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+                uniV3AM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
             vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, 0, usdExposureProtocol));
         }
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfDerivedAM(
-            address(creditorUsd), address(uniV3AssetModule), maxUsdExposureProtocol, 100
-        );
+        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniV3AM), maxUsdExposureProtocol, 100);
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
-        uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+        uniV3AM.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         vm.stopPrank();
     }
 
@@ -362,22 +360,19 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
-                uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+                uniV3AM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
             vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfDerivedAM(
-            address(creditorUsd), address(uniV3AssetModule), maxUsdExposureProtocol, 100
-        );
+        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniV3AM), maxUsdExposureProtocol, 100);
 
         {
             // When: processDirectDeposit is called with amount 1.
-            vm.prank(address(registryExtension));
-            uint256 recursiveCalls = uniV3AssetModule.processDirectDeposit(
-                address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1
-            );
+            vm.prank(address(registry));
+            uint256 recursiveCalls =
+                uniV3AM.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
 
             // Then: Correct variables are returned.
             assertEq(recursiveCalls, 3);
@@ -386,7 +381,7 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         {
             // And: Exposure of the asset is one.
             bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(nonfungiblePositionManager)));
-            (uint256 lastExposureAsset,) = uniV3AssetModule.getAssetExposureLast(address(creditorUsd), assetKey);
+            (uint256 lastExposureAsset,) = uniV3AM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 1);
 
             // And: Exposures to the underlying assets are updated.
@@ -397,22 +392,18 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
             // Token0:
             bytes32 UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
             assertEq(
-                uniV3AssetModule.getExposureAssetToUnderlyingAssetsLast(
-                    address(creditorUsd), assetKey, UnderlyingAssetKey
-                ),
+                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 amount0
             );
-            (uint128 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, amount0 + initialExposure0);
             // Token1:
             UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
             assertEq(
-                uniV3AssetModule.getExposureAssetToUnderlyingAssetsLast(
-                    address(creditorUsd), assetKey, UnderlyingAssetKey
-                ),
+                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 amount1
             );
-            (exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, amount1 + initialExposure1);
         }
     }
@@ -479,22 +470,19 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
-                uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+                uniV3AM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
             vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfDerivedAM(
-            address(creditorUsd), address(uniV3AssetModule), maxUsdExposureProtocol, 100
-        );
+        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniV3AM), maxUsdExposureProtocol, 100);
 
         {
             // When: processDirectDeposit is called with amount 0.
-            vm.prank(address(registryExtension));
-            uint256 recursiveCalls = uniV3AssetModule.processDirectDeposit(
-                address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0
-            );
+            vm.prank(address(registry));
+            uint256 recursiveCalls =
+                uniV3AM.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0);
 
             // Then: Correct variables are returned.
             assertEq(recursiveCalls, 3);
@@ -503,29 +491,23 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         {
             // And: Exposure of the asset is one.
             bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(nonfungiblePositionManager)));
-            (uint256 lastExposureAsset,) = uniV3AssetModule.getAssetExposureLast(address(creditorUsd), assetKey);
+            (uint256 lastExposureAsset,) = uniV3AM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 0);
 
             // And: Exposures to the underlying assets are updated.
             // Token0:
             bytes32 UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
             assertEq(
-                uniV3AssetModule.getExposureAssetToUnderlyingAssetsLast(
-                    address(creditorUsd), assetKey, UnderlyingAssetKey
-                ),
-                0
+                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey), 0
             );
-            (uint128 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, initialExposure0);
             // Token1:
             UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
             assertEq(
-                uniV3AssetModule.getExposureAssetToUnderlyingAssetsLast(
-                    address(creditorUsd), assetKey, UnderlyingAssetKey
-                ),
-                0
+                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey), 0
             );
-            (exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, initialExposure1);
         }
     }
@@ -596,20 +578,18 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
             {
                 // And: usd exposure to protocol below max usd exposure.
                 (uint256 usdExposureProtocol,,) =
-                    uniV3AssetModule.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+                    uniV3AM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
                 vm.assume(usdExposureProtocol < type(uint112).max);
                 maxUsdExposureProtocol =
                     uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
             }
 
             vm.prank(users.riskManager);
-            registryExtension.setRiskParametersOfDerivedAM(
-                address(creditorUsd), address(uniV3AssetModule), maxUsdExposureProtocol, 100
-            );
+            registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniV3AM), maxUsdExposureProtocol, 100);
 
             // Given: uniV3 position is deposited.
-            vm.prank(address(registryExtension));
-            uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+            vm.prank(address(registry));
+            uniV3AM.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
         }
 
         {
@@ -617,34 +597,30 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
             increaseLiquidity(pool, tokenId, 100, 100, false);
 
             // When: processDirectDeposit is called with amount 0.
-            vm.prank(address(registryExtension));
-            uniV3AssetModule.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0);
+            vm.prank(address(registry));
+            uniV3AM.processDirectDeposit(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 0);
 
             // Then: Exposure of the asset is still one.
             bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(nonfungiblePositionManager)));
-            (uint256 lastExposureAsset,) = uniV3AssetModule.getAssetExposureLast(address(creditorUsd), assetKey);
+            (uint256 lastExposureAsset,) = uniV3AM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 1);
 
             // And: Exposures to the underlying assets are of the old liquidity.
             // Token0:
             bytes32 UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
             assertEq(
-                uniV3AssetModule.getExposureAssetToUnderlyingAssetsLast(
-                    address(creditorUsd), assetKey, UnderlyingAssetKey
-                ),
+                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 amount0
             );
-            (uint128 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, amount0 + initialExposure0);
             // Token1:
             UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
             assertEq(
-                uniV3AssetModule.getExposureAssetToUnderlyingAssetsLast(
-                    address(creditorUsd), assetKey, UnderlyingAssetKey
-                ),
+                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 amount1
             );
-            (exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, amount1 + initialExposure1);
         }
     }

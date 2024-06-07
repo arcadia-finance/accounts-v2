@@ -27,7 +27,7 @@ contract GetUnderlyingAssets_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_T
         setMockState(stable);
 
         // And : Asset has been added to the AM
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         aeroPoolAM.addAsset(address(aeroPoolMock));
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPoolMock)));

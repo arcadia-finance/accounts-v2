@@ -22,7 +22,7 @@ contract GetUnderlyingAssets_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_getUnderlyingAssets_InAssetModule() public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         uniswapV2AM.addAsset(address(pairToken1Token2));
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pairToken1Token2)));

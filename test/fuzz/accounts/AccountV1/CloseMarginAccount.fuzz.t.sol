@@ -90,7 +90,7 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Assert creditor has exposure.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
-        (uint128 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorStable1), assetKey);
+        (uint128 actualExposure,,,) = erc20AM.riskParams(address(creditorStable1), assetKey);
         assertEq(actualExposure, exposure);
 
         // When: Margin account is closed.
@@ -109,7 +109,7 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.numeraire(), address(mockERC20.stable1));
 
         // Exposure from Creditor is updated.
-        (actualExposure,,,) = erc20AssetModule.riskParams(address(creditorStable1), assetKey);
+        (actualExposure,,,) = erc20AM.riskParams(address(creditorStable1), assetKey);
         assertEq(actualExposure, 0);
     }
 }

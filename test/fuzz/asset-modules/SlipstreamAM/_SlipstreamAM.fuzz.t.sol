@@ -92,7 +92,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
     ////////////////////////////////////////////////////////////////*/
 
     function deployNonfungiblePositionManagerMock() public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         nonfungiblePositionManagerMock = new NonfungiblePositionManagerMock(address(cLFactory));
 
         vm.label({ account: address(nonfungiblePositionManagerMock), newLabel: "NonfungiblePositionManagerMock" });
@@ -100,13 +100,13 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
 
     function deploySlipstreamAM(address nonfungiblePositionManager_) internal {
         // Deploy SlipstreamAM.
-        vm.startPrank(users.creatorAddress);
-        slipstreamAM = new SlipstreamAMExtension(address(registryExtension), nonfungiblePositionManager_);
+        vm.startPrank(users.owner);
+        slipstreamAM = new SlipstreamAMExtension(address(registry), nonfungiblePositionManager_);
 
         vm.label({ account: address(slipstreamAM), newLabel: "Slipstream Asset Module" });
 
         // Add the Asset Module to the Registry.
-        registryExtension.addAssetModule(address(slipstreamAM));
+        registry.addAssetModule(address(slipstreamAM));
         slipstreamAM.setProtocol();
         vm.stopPrank();
     }
@@ -238,7 +238,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         internal
     {
         addUnderlyingTokenToArcadia(token, price);
-        erc20AssetModule.setExposure(address(creditorUsd), token, initialExposure, maxExposure);
+        erc20AM.setExposure(address(creditorUsd), token, initialExposure, maxExposure);
     }
 
     function addUnderlyingTokenToArcadia(address token, int256 price) internal {
@@ -246,18 +246,18 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         address[] memory oracleArr = new address[](1);
         oracleArr[0] = address(oracle);
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         oracle.transmit(price);
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD", 2 days));
         uint80[] memory oracleAssetToUsdArr = new uint80[](1);
         oracleAssetToUsdArr[0] = oracleId;
 
-        erc20AssetModule.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
+        erc20AM.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
         vm.stopPrank();
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
     }
 
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)

@@ -31,7 +31,7 @@ contract StargateAM_USDBC_Fork_Test is StargateBase_Fork_Test {
     function setUp() public override {
         StargateBase_Fork_Test.setUp();
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
 
         // Add the USDBC pool LP token to the StargateAssetModule.
         stargateAssetModule.addAsset(poolId);

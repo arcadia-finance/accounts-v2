@@ -198,7 +198,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
 
         // And : Pool is added to the AM
         aeroFactoryMock.setPool(address(pool));
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         aeroPoolAM.addAsset(address(pool));
 
         // When : Calling getUnderlyingAssetsAmounts()
@@ -256,7 +256,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
 
         // And : Pool is added to the AM
         aeroFactoryMock.setPool(address(pool));
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         aeroPoolAM.addAsset(address(pool));
 
         // When : Calling getUnderlyingAssetsAmounts()
@@ -317,7 +317,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
 
         // And : Pool is added to the AM
         aeroFactoryMock.setPool(address(pool));
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         aeroPoolAM.addAsset(address(pool));
 
         // When : Calling getUnderlyingAssetsAmounts()
@@ -377,7 +377,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
 
         // And : Pool is added to the AM
         aeroFactoryMock.setPool(address(pool));
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         aeroPoolAM.addAsset(address(pool));
 
         // When : Calling getUnderlyingAssetsAmounts()
@@ -445,7 +445,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
 
         // And : Pool is added to the AM
         aeroFactoryMock.setPool(address(pool));
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         aeroPoolAM.addAsset(address(pool));
 
         // When : Calling getUnderlyingAssetsAmounts()
@@ -518,7 +518,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
 
         // And : Pool is added to the AM
         aeroFactoryMock.setPool(address(pool));
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         aeroPoolAM.addAsset(address(pool));
 
         // When : Calling getUnderlyingAssetsAmounts()
@@ -551,8 +551,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         assertEq(underlyingAssetsAmounts[0], 0);
         assertEq(underlyingAssetsAmounts[1], 0);
 
-        (uint256 token0Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
-        (uint256 token1Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
+        (uint256 token0Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
+        (uint256 token1Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
 
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, token0Value);
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
@@ -582,8 +582,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         assertEq(underlyingAssetsAmounts[0], 0);
         assertEq(underlyingAssetsAmounts[1], 0);
 
-        (uint256 token0Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
-        (uint256 token1Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
+        (uint256 token0Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
+        (uint256 token1Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
 
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, token0Value);
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
@@ -630,8 +630,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         assertEq(underlyingAssetsAmounts[0], trustedReserve0.mulDivDown(testVars.assetAmount, pool.totalSupply()));
         assertEq(underlyingAssetsAmounts[1], trustedReserve1.mulDivDown(testVars.assetAmount, pool.totalSupply()));
 
-        (uint256 token0Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
-        (uint256 token1Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
+        (uint256 token0Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
+        (uint256 token1Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
 
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, token0Value);
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
@@ -714,8 +714,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         assertEq(underlyingAssetsAmounts[0], trustedReserve0.mulDivDown(testVars.assetAmount, pool.totalSupply()));
         assertEq(underlyingAssetsAmounts[1], trustedReserve1.mulDivDown(testVars.assetAmount, pool.totalSupply()));
 
-        (uint256 token0Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
-        (uint256 token1Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
+        (uint256 token0Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
+        (uint256 token1Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
 
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, token0Value);
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
@@ -750,8 +750,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         assertEq(underlyingAssetsAmounts[0], 0);
         assertEq(underlyingAssetsAmounts[1], 0);
 
-        (uint256 token0Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
-        (uint256 token1Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
+        (uint256 token0Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
+        (uint256 token1Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
 
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, token0Value);
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
@@ -781,8 +781,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         assertEq(underlyingAssetsAmounts[0], 0);
         assertEq(underlyingAssetsAmounts[1], 0);
 
-        (uint256 token0Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
-        (uint256 token1Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
+        (uint256 token0Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
+        (uint256 token1Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
 
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, token0Value);
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
@@ -810,7 +810,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
 
             // And : Pool is added to the AM
             aeroFactoryMock.setPool(address(pool));
-            vm.prank(users.creatorAddress);
+            vm.prank(users.owner);
             aeroPoolAM.addAsset(address(pool));
 
             // When : Calling getUnderlyingAssetsAmounts()
@@ -841,8 +841,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         assertEq(underlyingAssetsAmounts[0], trustedReserve0.mulDivDown(testVars.assetAmount, pool.totalSupply()));
         assertEq(underlyingAssetsAmounts[1], trustedReserve1.mulDivDown(testVars.assetAmount, pool.totalSupply()));
 
-        (uint256 token0Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
-        (uint256 token1Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
+        (uint256 token0Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
+        (uint256 token1Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
 
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, token0Value);
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
@@ -906,7 +906,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
 
             // And : Pool is added to the AM
             aeroFactoryMock.setPool(address(pool));
-            vm.prank(users.creatorAddress);
+            vm.prank(users.owner);
             aeroPoolAM.addAsset(address(pool));
 
             // When : Calling getUnderlyingAssetsAmounts()
@@ -933,8 +933,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         assertEq(underlyingAssetsAmounts[0], trustedReserve0.mulDivDown(testVars.assetAmount, pool.totalSupply()));
         assertEq(underlyingAssetsAmounts[1], trustedReserve1.mulDivDown(testVars.assetAmount, pool.totalSupply()));
 
-        (uint256 token0Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
-        (uint256 token1Value,,) = erc20AssetModule.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
+        (uint256 token0Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
+        (uint256 token1Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
 
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, token0Value);
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
@@ -1031,7 +1031,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
 
             // And : Add the pool to the AM
             aeroFactoryMock.setPool(address(pool));
-            vm.prank(users.creatorAddress);
+            vm.prank(users.owner);
             aeroPoolAM.addAsset(address(pool));
 
             (reserve0_, reserve1_,) = pool.getReserves();

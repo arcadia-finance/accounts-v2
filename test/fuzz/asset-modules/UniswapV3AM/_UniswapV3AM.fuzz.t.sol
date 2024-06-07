@@ -85,7 +85,7 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
     ////////////////////////////////////////////////////////////////*/
 
     function deployNonfungiblePositionManagerMock() public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         nonfungiblePositionManagerMock = new NonfungiblePositionManagerMock(address(uniswapV3Factory));
 
         vm.label({ account: address(nonfungiblePositionManagerMock), newLabel: "NonfungiblePositionManagerMock" });
@@ -219,7 +219,7 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
         internal
     {
         addUnderlyingTokenToArcadia(token, price);
-        erc20AssetModule.setExposure(address(creditorUsd), token, initialExposure, maxExposure);
+        erc20AM.setExposure(address(creditorUsd), token, initialExposure, maxExposure);
     }
 
     function addUnderlyingTokenToArcadia(address token, int256 price) internal {
@@ -227,18 +227,18 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
         address[] memory oracleArr = new address[](1);
         oracleArr[0] = address(oracle);
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         oracle.transmit(price);
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD", 2 days));
         uint80[] memory oracleAssetToUsdArr = new uint80[](1);
         oracleAssetToUsdArr[0] = oracleId;
 
-        erc20AssetModule.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
+        erc20AM.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
         vm.stopPrank();
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
     }
 
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)

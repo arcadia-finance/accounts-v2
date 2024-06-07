@@ -45,16 +45,17 @@ contract GetRiskFactors_Registry_Fuzz_Test is Registry_Fuzz_Test {
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], AssetValuationLib.ONE_4));
 
         // And: Underlying assets are in primaryAM.
-        registryExtension.setAssetModule(assets[0], address(primaryAM));
-        registryExtension.setAssetModule(assets[1], address(primaryAM));
-        vm.startPrank(address(registryExtension));
+        registry.setAssetModule(assets[0], address(primaryAM));
+        registry.setAssetModule(assets[1], address(primaryAM));
+        vm.startPrank(address(registry));
         primaryAM.setRiskParameters(creditor, assets[0], assetIds[0], 0, collateralFactors[0], liquidationFactors[0]);
         primaryAM.setRiskParameters(creditor, assets[1], assetIds[1], 0, collateralFactors[1], liquidationFactors[1]);
         vm.stopPrank();
 
         // When: "getRiskFactors" is called.
-        (uint16[] memory actualCollateralFactors, uint16[] memory actualLiquidationFactors) = registryExtension
-            .getRiskFactors(creditor, Utils.castArrayStaticToDynamic(assets), Utils.castArrayStaticToDynamic(assetIds));
+        (uint16[] memory actualCollateralFactors, uint16[] memory actualLiquidationFactors) = registry.getRiskFactors(
+            creditor, Utils.castArrayStaticToDynamic(assets), Utils.castArrayStaticToDynamic(assetIds)
+        );
 
         // Then: Transaction returns correct risk factors.
         assertEq(actualCollateralFactors[0], collateralFactors[0]);

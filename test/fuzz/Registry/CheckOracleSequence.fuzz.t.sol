@@ -20,7 +20,7 @@ contract CheckOracleSequence_Registry_Fuzz_Test is Registry_Fuzz_Test {
     function setUp() public override {
         Registry_Fuzz_Test.setUp();
 
-        oracleModule = new OracleModuleMock(address(registryExtension));
+        oracleModule = new OracleModuleMock(address(registry));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -56,12 +56,12 @@ contract CheckOracleSequence_Registry_Fuzz_Test is Registry_Fuzz_Test {
         oracleSequence = oracleSequence << 2;
 
         vm.expectRevert(RegistryErrors.Min1Oracle.selector);
-        registryExtension.checkOracleSequence(oracleSequence);
+        registry.checkOracleSequence(oracleSequence);
     }
 
     function testFuzz_Revert_checkOracleSequence_UnknownOracle(bool direction, uint80 oracleId) public {
         // Given: An oracle not added to the "Registry".
-        oracleId = uint80(bound(oracleId, registryExtension.getOracleCounter(), type(uint80).max));
+        oracleId = uint80(bound(oracleId, registry.getOracleCounter(), type(uint80).max));
 
         uint80[] memory oraclesIds = new uint80[](1);
         oraclesIds[0] = oracleId;
@@ -71,7 +71,7 @@ contract CheckOracleSequence_Registry_Fuzz_Test is Registry_Fuzz_Test {
         bytes32 oracleSequence = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
         vm.expectRevert(bytes(""));
-        registryExtension.checkOracleSequence(oracleSequence);
+        registry.checkOracleSequence(oracleSequence);
     }
 
     function testFuzz_Success_checkOracleSequence_Negative_InactiveOracle(
@@ -106,7 +106,7 @@ contract CheckOracleSequence_Registry_Fuzz_Test is Registry_Fuzz_Test {
             }
         }
 
-        bool success = registryExtension.checkOracleSequence(oracleSequence);
+        bool success = registry.checkOracleSequence(oracleSequence);
 
         assertFalse(success);
     }
@@ -135,7 +135,7 @@ contract CheckOracleSequence_Registry_Fuzz_Test is Registry_Fuzz_Test {
             addMockedOracle(oracles[2], 0, baseAsset, quoteAsset, true);
         }
 
-        bool success = registryExtension.checkOracleSequence(oracleSequence);
+        bool success = registry.checkOracleSequence(oracleSequence);
 
         assertFalse(success);
     }
@@ -171,7 +171,7 @@ contract CheckOracleSequence_Registry_Fuzz_Test is Registry_Fuzz_Test {
             }
         }
 
-        bool success = registryExtension.checkOracleSequence(oracleSequence);
+        bool success = registry.checkOracleSequence(oracleSequence);
 
         assertFalse(success);
     }
@@ -207,7 +207,7 @@ contract CheckOracleSequence_Registry_Fuzz_Test is Registry_Fuzz_Test {
             }
         }
 
-        bool success = registryExtension.checkOracleSequence(oracleSequence);
+        bool success = registry.checkOracleSequence(oracleSequence);
 
         assertTrue(success);
     }

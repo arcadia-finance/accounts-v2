@@ -130,10 +130,10 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: MaxExposure for stable1 is set for both creditors.
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC20.stable1), 0, type(uint112).max, 0, 0
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1), address(mockERC20.stable1), 0, maxExposure, 0, 0
         );
         vm.stopPrank();
@@ -169,10 +169,10 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: MaxExposure for stable1 is set for both creditors.
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC20.stable1), 0, type(uint112).max, 0, 0
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1), address(mockERC20.stable1), 0, maxExposure, 0, 0
         );
         vm.stopPrank();
@@ -388,11 +388,11 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: Exposure of old Creditor is removed.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
-        (uint128 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorToken1), assetKey);
+        (uint128 actualExposure,,,) = erc20AM.riskParams(address(creditorToken1), assetKey);
         assertEq(actualExposure, 0);
 
         // And: Exposure of new creditor is increased.
-        (actualExposure,,,) = erc20AssetModule.riskParams(address(creditorStable1), assetKey);
+        (actualExposure,,,) = erc20AM.riskParams(address(creditorStable1), assetKey);
         assertEq(actualExposure, collateralAmount);
     }
 
@@ -442,7 +442,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: Exposure of new creditor is increased.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
-        (uint256 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorStable1), assetKey);
+        (uint256 actualExposure,,,) = erc20AM.riskParams(address(creditorStable1), assetKey);
         assertEq(actualExposure, collateralAmount);
     }
 
@@ -472,7 +472,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
             );
 
             // We increase the price of token 2 in order to avoid to end up with unhealthy state of accountExtension
-            vm.startPrank(users.defaultTransmitter);
+            vm.startPrank(users.transmitter);
             mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
             vm.stopPrank();
 
@@ -497,10 +497,10 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
             // exposure token 2 does not exceed maxExposure.
             vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint112).max);
-            vm.prank(users.tokenCreatorAddress);
+            vm.prank(users.tokenCreator);
             mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
 
-            vm.prank(users.tokenCreatorAddress);
+            vm.prank(users.tokenCreator);
             mockERC20.token1.mint(address(action), debtAmount);
 
             to[0] = address(mockERC20.token1);
@@ -550,7 +550,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         vm.warp(time);
 
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
         mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
         // We transmit price to token 1 oracle in order to have the oracle active

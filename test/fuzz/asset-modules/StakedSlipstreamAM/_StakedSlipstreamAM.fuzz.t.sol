@@ -97,23 +97,23 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         aeroOracle = initMockedOracle(18, "AERO / USD", rates.token1ToUsd);
 
         // Add AERO to the ERC20PrimaryAM.
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         chainlinkOM.addOracle(address(aeroOracle), "AERO", "USD", 2 days);
         uint80[] memory oracleAeroToUsdArr = new uint80[](1);
         oracleAeroToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(aeroOracle)));
-        erc20AssetModule.addAsset(AERO, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAeroToUsdArr));
+        erc20AM.addAsset(AERO, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAeroToUsdArr));
         vm.stopPrank();
     }
 
     function deployStakedSlipstreamAM() internal {
         // Deploy StakedSlipstreamAM.
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         stakedSlipstreamAM = new StakedSlipstreamAMExtension(
-            address(registryExtension), address(slipstreamPositionManager), address(voter), address(AERO)
+            address(registry), address(slipstreamPositionManager), address(voter), address(AERO)
         );
 
         // Add the Asset Module to the Registry.
-        registryExtension.addAssetModule(address(stakedSlipstreamAM));
+        registry.addAssetModule(address(stakedSlipstreamAM));
         stakedSlipstreamAM.initialize();
         vm.stopPrank();
     }
@@ -140,18 +140,18 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         address[] memory oracleArr = new address[](1);
         oracleArr[0] = address(oracle);
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         oracle.transmit(price);
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD", 2 days));
         uint80[] memory oracleAssetToUsdArr = new uint80[](1);
         oracleAssetToUsdArr[0] = oracleId;
 
-        erc20AssetModule.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
+        erc20AM.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
         vm.stopPrank();
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
     }
 
     function deployAndAddGauge() internal {
@@ -166,7 +166,7 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         addUnderlyingTokenToArcadia(address(token0), 1e18);
         addUnderlyingTokenToArcadia(address(token1), 1e18);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         stakedSlipstreamAM.addGauge(address(gauge));
     }
 

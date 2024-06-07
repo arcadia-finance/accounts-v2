@@ -58,7 +58,7 @@ contract SetNumeraire_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_setNumeraire_NumeraireNotFound(address numeraire_) public {
         vm.assume(numeraire_ != address(0));
-        vm.assume(!registryExtension.inRegistry(numeraire_));
+        vm.assume(!registry.inRegistry(numeraire_));
 
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.NumeraireNotFound.selector);

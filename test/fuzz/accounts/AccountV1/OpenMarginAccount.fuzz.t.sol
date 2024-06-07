@@ -69,10 +69,10 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // And: MaxExposure is set for both creditors.
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC20.stable1), 0, type(uint112).max, 0, 0
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC20.stable1), 0, maxExposure, 0, 0
         );
         vm.stopPrank();
@@ -92,7 +92,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Assert old creditor has exposure.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
-        (uint128 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
+        (uint128 actualExposure,,,) = erc20AM.riskParams(address(creditorUsd), assetKey);
         assertEq(actualExposure, exposure);
 
         // When: Open a margin account with a new creditor.
@@ -120,7 +120,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // And: MaxExposure is set for creditor.
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC20.stable1), 0, maxExposure, 0, 0
         );
 
@@ -152,7 +152,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // And: the exposure of the Creditors is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
-        (uint128 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorStable1), assetKey);
+        (uint128 actualExposure,,,) = erc20AM.riskParams(address(creditorStable1), assetKey);
         assertEq(actualExposure, exposure);
     }
 
@@ -167,10 +167,8 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // And: MaxExposure is set for both creditors.
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC20.stable1), 0, maxExposure, 0, 0
-        );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC20.stable1), 0, maxExposure, 0, 0);
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC20.stable1), 0, maxExposure, 0, 0
         );
         vm.stopPrank();
@@ -190,7 +188,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // Assert old creditor has exposure.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
-        (uint128 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
+        (uint128 actualExposure,,,) = erc20AM.riskParams(address(creditorUsd), assetKey);
         assertEq(actualExposure, exposure);
 
         vm.warp(time);
@@ -210,9 +208,9 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assertEq(proxyAccount.lastActionTimestamp(), time);
 
         // And: the exposure of the Creditors is updated.
-        (actualExposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
+        (actualExposure,,,) = erc20AM.riskParams(address(creditorUsd), assetKey);
         assertEq(actualExposure, 0);
-        (actualExposure,,,) = erc20AssetModule.riskParams(address(creditorStable1), assetKey);
+        (actualExposure,,,) = erc20AM.riskParams(address(creditorStable1), assetKey);
         assertEq(actualExposure, exposure);
     }
 

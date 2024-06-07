@@ -32,7 +32,7 @@ contract SetRiskParametersOfDerivedAM_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert(RegistryErrors.Unauthorized.selector);
-        registryExtension.setRiskParametersOfDerivedAM(
+        registry.setRiskParametersOfDerivedAM(
             address(creditorUsd), address(derivedAM), maxUsdExposureProtocol, riskFactor
         );
         vm.stopPrank();
@@ -42,7 +42,7 @@ contract SetRiskParametersOfDerivedAM_Registry_Fuzz_Test is Registry_Fuzz_Test {
         riskFactor = uint16(bound(riskFactor, 0, AssetValuationLib.ONE_4));
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfDerivedAM(
+        registry.setRiskParametersOfDerivedAM(
             address(creditorUsd), address(derivedAM), maxUsdExposureProtocol, riskFactor
         );
 

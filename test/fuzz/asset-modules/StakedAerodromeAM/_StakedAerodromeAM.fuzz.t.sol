@@ -51,7 +51,7 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
     function setUp() public virtual override(Fuzz_Test, AbstractStakingAM_Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         // Deploy implementation of Aerodrome pool contract
         implementation = new Pool();
 
@@ -62,8 +62,8 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
         voter = new VoterMock(address(0));
 
         // Deploy Aerodrome AM.
-        aerodromePoolAM = new AerodromePoolAM(address(registryExtension), address(poolFactory));
-        registryExtension.addAssetModule(address(aerodromePoolAM));
+        aerodromePoolAM = new AerodromePoolAM(address(registry), address(poolFactory));
+        registry.addAssetModule(address(aerodromePoolAM));
 
         // Deploy StakedAerodromeAM.
         // First we need to add the reward token to the Registry
@@ -72,15 +72,15 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
         aeroOracle = initMockedOracle(8, "AERO / USD", rates.token1ToUsd);
 
         // Add AERO to the ERC20PrimaryAM.
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         chainlinkOM.addOracle(address(aeroOracle), "AERO", "USD", 2 days);
         uint80[] memory oracleAeroToUsdArr = new uint80[](1);
         oracleAeroToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(aeroOracle)));
-        erc20AssetModule.addAsset(AERO, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAeroToUsdArr));
+        erc20AM.addAsset(AERO, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAeroToUsdArr));
 
         // Deploy StakedAerodromeAM.
-        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registryExtension), address(voter));
-        registryExtension.addAssetModule(address(stakedAerodromeAM));
+        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registry), address(voter));
+        registry.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
 
         vm.stopPrank();
@@ -109,7 +109,7 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
         address newPool = poolFactory.createPool(token0, token1, stable);
         pool = Pool(newPool);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         aerodromePoolAM.addAsset(address(pool));
     }
 

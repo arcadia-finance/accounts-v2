@@ -75,13 +75,13 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         assetAmounts[0] = depositAmountToken1;
 
         // Initialize Account and set open position on creditor
-        accountExtension2.initialize(users.accountOwner, address(registryExtension), address(creditorToken1));
+        accountExtension2.initialize(users.accountOwner, address(registry), address(creditorToken1));
         accountExtension2.setMinimumMargin(minimumMargin);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 
-        AssetValueAndRiskFactors[] memory assetAndRiskValues = registryExtension.getValuesInNumeraire(
+        AssetValueAndRiskFactors[] memory assetAndRiskValues = registry.getValuesInNumeraire(
             accountExtension2.numeraire(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
         );
 
@@ -89,7 +89,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.assume(openDebt + minimumMargin <= assetValuationLib.calculateLiquidationValue(assetAndRiskValues));
 
         // Mint and approve token1 tokens
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.startPrank(users.tokenCreator);
         mockERC20.token1.mint(users.accountOwner, depositAmountToken1);
         vm.startPrank(users.accountOwner);
         mockERC20.token1.approve(address(accountExtension2), type(uint256).max);
@@ -112,7 +112,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256 openDebt = 0;
 
         // Initialize Account and set open position on creditor
-        accountExtension2.initialize(users.accountOwner, address(registryExtension), address(creditorToken1));
+        accountExtension2.initialize(users.accountOwner, address(registry), address(creditorToken1));
         accountExtension2.setMinimumMargin(minimumMargin);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
@@ -153,13 +153,13 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             assetAmounts[0] = depositAmountToken1;
 
             // Given: Account is initialized and an open position is set on creditor
-            accountExtension2.initialize(users.accountOwner, address(registryExtension), address(creditorToken1));
+            accountExtension2.initialize(users.accountOwner, address(registry), address(creditorToken1));
             accountExtension2.setMinimumMargin(minimumMargin);
             creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
             stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
                 .checked_write(true);
 
-            assetAndRiskValues = registryExtension.getValuesInNumeraire(
+            assetAndRiskValues = registry.getValuesInNumeraire(
                 accountExtension2.numeraire(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
             );
 
@@ -167,7 +167,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             vm.assume(openDebt + minimumMargin > assetValuationLib.calculateLiquidationValue(assetAndRiskValues));
 
             // Mint and approve stable1 tokens
-            vm.prank(users.tokenCreatorAddress);
+            vm.prank(users.tokenCreator);
             mockERC20.token1.mint(users.accountOwner, depositAmountToken1);
             vm.startPrank(users.accountOwner);
             mockERC20.token1.approve(address(accountExtension2), type(uint256).max);
@@ -181,7 +181,7 @@ contract startLiquidation_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         time = uint32(bound(time, 2 days, type(uint32).max));
         vm.warp(time);
         // Update updatedAt to avoid InactiveOracle() reverts.
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
 
         // When: The liquidator initiates a liquidation

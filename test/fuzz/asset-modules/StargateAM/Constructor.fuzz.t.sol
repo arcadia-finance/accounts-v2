@@ -25,10 +25,10 @@ contract Constructor_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     function testFuzz_success_constructor(address stargateFactory) public {
-        StargateAMExtension assetModule = new StargateAMExtension(address(registryExtension), stargateFactory);
+        StargateAMExtension assetModule = new StargateAMExtension(address(registry), stargateFactory);
 
         assertEq(address(assetModule.SG_FACTORY()), stargateFactory);
         assertEq(assetModule.ASSET_TYPE(), 1);
-        assertEq(assetModule.REGISTRY(), address(registryExtension));
+        assertEq(assetModule.REGISTRY(), address(registry));
     }
 }

@@ -63,7 +63,7 @@ contract AddAsset_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         stargateAssetModule.addAsset(poolId);
 
         // Then : Information should be set and correct
-        assertTrue(registryExtension.inRegistry(address(poolMock)));
+        assertTrue(registry.inRegistry(address(poolMock)));
 
         assertTrue(stargateAssetModule.inAssetModule(address(poolMock)));
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(poolMock)));

@@ -24,7 +24,7 @@ contract Constructor_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         FloorERC721AMExtension floorERC721AM_ = new FloorERC721AMExtension(registry_);
         vm.stopPrank();
 
