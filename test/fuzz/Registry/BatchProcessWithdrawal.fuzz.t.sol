@@ -4,9 +4,11 @@
  */
 pragma solidity 0.8.22;
 
-import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
 
+import { GuardianErrors } from "../../../src/libraries/Errors.sol";
 import { Registry } from "../../../src/Registry.sol";
+import { RegistryErrors } from "../../../src/libraries/Errors.sol";
 import { StdStorage, stdStorage } from "../../../lib/forge-std/src/Test.sol";
 
 /**
@@ -40,7 +42,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = 1;
 
         vm.startPrank(sender);
-        vm.expectRevert(FunctionIsPaused.selector);
+        vm.expectRevert(GuardianErrors.FunctionIsPaused.selector);
         registryExtension.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -71,7 +73,7 @@ contract BatchProcessWithdrawal_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         // Then: Withdrawal is reverted due to paused Registry
         vm.startPrank(address(proxyAccount));
-        vm.expectRevert(FunctionIsPaused.selector);
+        vm.expectRevert(GuardianErrors.FunctionIsPaused.selector);
         registryExtension.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }

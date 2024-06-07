@@ -19,12 +19,11 @@ import { FloorERC1155AMExtension } from "./utils/extensions/FloorERC1155AMExtens
 import { RegistryExtension } from "./utils/extensions/RegistryExtension.sol";
 import { SequencerUptimeOracle } from "./utils/mocks/oracles/SequencerUptimeOracle.sol";
 import { UniswapV3AMExtension } from "./utils/extensions/UniswapV3AMExtension.sol";
-import { Errors } from "./utils/Errors.sol";
 import { Users } from "./utils/Types.sol";
 import { Utils } from "./utils/Utils.sol";
 
 /// @notice Base test contract with common logic needed by all tests.
-abstract contract Base_Test is Test, Errors {
+abstract contract Base_Test is Test {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/

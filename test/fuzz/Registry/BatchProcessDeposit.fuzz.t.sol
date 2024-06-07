@@ -4,14 +4,16 @@
  */
 pragma solidity 0.8.22;
 
-import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
+import { Registry_Fuzz_Test } from "./_Registry.fuzz.t.sol";
 
 import { AssetModule } from "../../../src/asset-modules/abstracts/AbstractAM.sol";
+import { GuardianErrors } from "../../../src/libraries/Errors.sol";
 import { Registry } from "../../../src/Registry.sol";
-
+import { RegistryErrors } from "../../../src/libraries/Errors.sol";
 /**
  * @notice Fuzz tests for the function "batchProcessDeposit" of contract "Registry".
  */
+
 contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -39,7 +41,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = 1;
 
         vm.startPrank(sender);
-        vm.expectRevert(FunctionIsPaused.selector);
+        vm.expectRevert(GuardianErrors.FunctionIsPaused.selector);
         registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -72,7 +74,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         // Then: batchProcessDeposit should reverted
         vm.prank(address(proxyAccount));
-        vm.expectRevert(FunctionIsPaused.selector);
+        vm.expectRevert(GuardianErrors.FunctionIsPaused.selector);
         registryExtension.batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
     }
 

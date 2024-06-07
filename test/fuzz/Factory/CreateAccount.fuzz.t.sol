@@ -11,6 +11,7 @@ import { AccountVariableVersion } from "../../utils/mocks/accounts/AccountVariab
 import { Constants } from "../../utils/Constants.sol";
 import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
 import { Factory } from "../../../src/Factory.sol";
+import { GuardianErrors } from "../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "createAccount" of contract "Factory".
@@ -35,7 +36,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         // Then: Reverted
         vm.prank(sender);
-        vm.expectRevert(FunctionIsPaused.selector);
+        vm.expectRevert(GuardianErrors.FunctionIsPaused.selector);
         factory.createAccount(salt, 0, address(0));
     }
 

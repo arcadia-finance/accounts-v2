@@ -7,6 +7,7 @@ pragma solidity 0.8.22;
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
 import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
+import { CreditorMock } from "../../../utils/mocks/creditors/CreditorMock.sol";
 
 /**
  * @notice Fuzz tests for the function "closeMarginAccount" of contract "AccountV1".
@@ -71,7 +72,7 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         creditorStable1.setOpenPosition(address(proxyAccount), debt_);
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(OpenPositionNonZero.selector);
+        vm.expectRevert(CreditorMock.OpenPositionNonZero.selector);
         proxyAccount.closeMarginAccount();
         vm.stopPrank();
     }

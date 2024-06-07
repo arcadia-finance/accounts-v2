@@ -4,16 +4,17 @@
  */
 pragma solidity 0.8.22;
 
-import { Constants, AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors, Constants } from "./_AccountV1.fuzz.t.sol";
 
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
+import { CreditorMock } from "../../../utils/mocks/creditors/CreditorMock.sol";
 import { IActionBase, ActionData } from "../../../../src/interfaces/IActionBase.sol";
-import { MultiActionMock } from "../../.././utils/mocks/actions/MultiActionMock.sol";
-import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { IPermit2 } from "../../../utils/Interfaces.sol";
-import { Utils } from "../../../utils/Utils.sol";
+import { MultiActionMock } from "../../.././utils/mocks/actions/MultiActionMock.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
+import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
+import { Utils } from "../../../utils/Utils.sol";
 
 /**
  * @notice Fuzz tests for the function "flashActionByCreditor" of contract "AccountV1".
@@ -232,7 +233,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         // When: The approved Creditor calls flashAction.
         // Then: Transaction should revert with OpenPositionNonZero.
         vm.prank(address(creditorToken1));
-        vm.expectRevert(OpenPositionNonZero.selector);
+        vm.expectRevert(CreditorMock.OpenPositionNonZero.selector);
         accountExtension.flashActionByCreditor(callbackData, address(action), emptyActionData);
     }
 
