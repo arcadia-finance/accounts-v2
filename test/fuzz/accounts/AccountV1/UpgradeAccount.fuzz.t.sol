@@ -9,6 +9,7 @@ import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 import { AccountV2 } from "../../../utils/mocks/accounts/AccountV2.sol";
 import { AccountVariableVersion } from "../../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../../utils/Constants.sol";
+import { Factory } from "../../../../src/Factory.sol";
 import { RegistryExtension } from "../../../utils/extensions/RegistryExtension.sol";
 
 /**
@@ -213,7 +214,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // When: "users.accountOwner" Upgrade the account to AccountV2Logic.
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
-        emit AccountUpgraded(address(proxyAccount), 2);
+        emit Factory.AccountUpgraded(address(proxyAccount), 2);
         factory.upgradeAccountVersion(address(proxyAccount), factory.latestAccountVersion(), proofs);
         vm.stopPrank();
 

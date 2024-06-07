@@ -6,6 +6,8 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
+import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
+
 /**
  * @notice Fuzz tests for the function "closeMarginAccount" of contract "AccountV1".
  */
@@ -93,7 +95,7 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // When: Margin account is closed.
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
-        emit MarginAccountChanged(address(0), address(0));
+        emit AccountV1.MarginAccountChanged(address(0), address(0));
         proxyAccount.closeMarginAccount();
         vm.stopPrank();
 

@@ -6,6 +6,8 @@ pragma solidity 0.8.22;
 
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
+import { Registry } from "../../../src/Registry.sol";
+
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "Registry".
  */
@@ -71,7 +73,7 @@ contract AddAsset_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // When: erc20AssetModule calls addAsset with input of address(eth)
         vm.startPrank(address(erc20AssetModule));
         vm.expectEmit();
-        emit AssetAdded(newAsset, address(erc20AssetModule));
+        emit Registry.AssetAdded(newAsset, address(erc20AssetModule));
         registryExtension.addAsset(assetType, newAsset);
         vm.stopPrank();
 

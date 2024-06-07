@@ -6,6 +6,8 @@ pragma solidity 0.8.22;
 
 import { FactoryGuardian_Fuzz_Test } from "./_FactoryGuardian.fuzz.t.sol";
 
+import { FactoryGuardian } from "../../../../src/guardians/FactoryGuardian.sol";
+
 /**
  * @notice Fuzz tests for the function "unpause" of contract "FactoryGuardian".
  */
@@ -50,7 +52,7 @@ contract Unpause_WithArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test
         // When: A "owner" un-pauses.
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
-        emit PauseFlagsUpdated(initialFlag && flag);
+        emit FactoryGuardian.PauseFlagsUpdated(initialFlag && flag);
         factoryGuardian.unpause(flag);
         vm.stopPrank();
 

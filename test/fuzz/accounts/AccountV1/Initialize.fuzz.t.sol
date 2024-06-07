@@ -6,6 +6,7 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
+import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
 import { AccountV1Extension } from "../../../utils/extensions/AccountV1Extension.sol";
 
 /**
@@ -55,7 +56,7 @@ contract Initialize_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Success_initialize_WithCreditor(address owner_) public {
         vm.expectEmit(true, true, true, true);
-        emit NumeraireSet(address(mockERC20.stable1));
+        emit AccountV1.NumeraireSet(address(mockERC20.stable1));
         accountNotInitialised.initialize(owner_, address(registryExtension), address(creditorStable1));
 
         assertEq(accountNotInitialised.owner(), owner_);

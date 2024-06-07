@@ -140,7 +140,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
-        emit AccountVersionAdded(uint16(latestAccountVersionPre + 1), address(registry2), logic);
+        emit Factory.AccountVersionAdded(uint16(latestAccountVersionPre + 1), address(registry2), logic);
         factory.setNewAccountInfo(address(registry2), logic, Constants.upgradeRoot1To2, data);
         vm.stopPrank();
 

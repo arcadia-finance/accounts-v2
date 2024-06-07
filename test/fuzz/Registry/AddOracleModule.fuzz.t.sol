@@ -6,6 +6,8 @@ pragma solidity 0.8.22;
 
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
+import { Registry } from "../../../src/Registry.sol";
+
 /**
  * @notice Fuzz tests for the function "addOracleModule" of contract "Registry".
  */
@@ -53,7 +55,7 @@ contract AddOracleModule_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // When: users.creatorAddress calls addOracleModule for oracleModule.
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
-        emit OracleModuleAdded(oracleModule_);
+        emit Registry.OracleModuleAdded(oracleModule_);
         registryExtension.addOracleModule(oracleModule_);
         vm.stopPrank();
 

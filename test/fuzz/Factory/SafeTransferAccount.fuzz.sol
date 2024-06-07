@@ -7,6 +7,7 @@ pragma solidity 0.8.22;
 import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
 import { BadERC721TokenReceiver } from "../../utils/mocks/BadERC721TokenReceiver.sol";
+import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
 
 /**
  * @notice Fuzz tests for the functions "safeTransferAccount" of contract "Factory".
@@ -68,7 +69,7 @@ contract SafeTransferAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit Transfer(users.accountOwner, to, id);
+        emit ERC721.Transfer(users.accountOwner, to, id);
         factory.safeTransferAccount(to);
 
         assertEq(factory.ownerOfAccount(address(proxyAccount)), to);

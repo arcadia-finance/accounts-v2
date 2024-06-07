@@ -6,6 +6,8 @@ pragma solidity 0.8.22;
 
 import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
+import { Factory } from "../../../src/Factory.sol";
+
 /**
  * @notice Fuzz tests for the function "blockAccountVersion" of contract "Factory".
  */
@@ -58,7 +60,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.startPrank(users.creatorAddress);
         vm.expectEmit(true, true, true, true);
-        emit AccountVersionBlocked(uint88(accountVersion));
+        emit Factory.AccountVersionBlocked(uint88(accountVersion));
         factory.blockAccountVersion(accountVersion);
         vm.stopPrank();
 

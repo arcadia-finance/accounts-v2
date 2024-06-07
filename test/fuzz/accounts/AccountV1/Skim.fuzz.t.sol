@@ -6,6 +6,9 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
+import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
+import { ERC721 } from "../../../../lib/solmate/src/tokens/ERC721.sol";
+import { ERC1155 } from "../../../../lib/solmate/src/tokens/ERC1155.sol";
 import { RevertingReceive } from "../../../utils/mocks/RevertingReceive.sol";
 
 /**
@@ -78,9 +81,8 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.warp(time);
 
         vm.startPrank(users.accountOwner);
-        // Can't check Transfer of both ERC20 and ERC721 in same test-file.
-        //vm.expectEmit(true, true, true, true);
-        //emit Transfer(address(accountExtension), users.accountOwner, transferAmount);
+        vm.expectEmit(true, true, true, true);
+        emit ERC20.Transfer(address(accountExtension), users.accountOwner, transferAmount);
         accountExtension.skim(address(mockERC20.token1), 0, 1);
         vm.stopPrank();
 
@@ -136,7 +138,7 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
-        emit Transfer(address(accountExtension), users.accountOwner, 100);
+        emit ERC721.Transfer(address(accountExtension), users.accountOwner, 100);
         accountExtension.skim(address(mockERC721.nft1), 100, 2);
         vm.stopPrank();
 
@@ -201,7 +203,9 @@ contract Skim_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
-        emit TransferSingle(address(accountExtension), address(accountExtension), users.accountOwner, 1, transferAmount);
+        emit ERC1155.TransferSingle(
+            address(accountExtension), address(accountExtension), users.accountOwner, 1, transferAmount
+        );
         accountExtension.skim(address(mockERC1155.sft1), 1, 3);
         vm.stopPrank();
 

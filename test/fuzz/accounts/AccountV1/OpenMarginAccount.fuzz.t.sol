@@ -6,7 +6,8 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
-import { AccountV1Extension, AccountV1 } from "../../../utils/extensions/AccountV1Extension.sol";
+import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
+import { AccountV1Extension } from "../../../utils/extensions/AccountV1Extension.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { Constants } from "../../../utils/Constants.sol";
 
@@ -138,7 +139,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Open a margin account
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
-        emit MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
+        emit AccountV1.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
         proxyAccount.openMarginAccount(address(creditorStable1));
         vm.stopPrank();
 
@@ -197,7 +198,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // When: Open a margin account with a new creditor.
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
-        emit MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
+        emit AccountV1.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
         proxyAccount.openMarginAccount(address(creditorStable1));
         vm.stopPrank();
 
@@ -234,9 +235,9 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
-        emit NumeraireSet(address(mockERC20.token1));
+        emit AccountV1.NumeraireSet(address(mockERC20.token1));
         vm.expectEmit();
-        emit MarginAccountChanged(address(creditorStable1), liquidator);
+        emit AccountV1.MarginAccountChanged(address(creditorStable1), liquidator);
         proxyAccount.openMarginAccount(address(creditorStable1));
         vm.stopPrank();
 
@@ -257,7 +258,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.warp(time);
 
         vm.expectEmit();
-        emit MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
+        emit AccountV1.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
         AccountV1(deployedAccount).openMarginAccount(address(creditorStable1));
 
         assertEq(AccountV1(deployedAccount).liquidator(), Constants.initLiquidator);

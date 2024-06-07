@@ -5,26 +5,26 @@
 pragma solidity 0.8.22;
 
 import { Test } from "../lib/forge-std/src/Test.sol";
-import { Users } from "./utils/Types.sol";
-import { Factory } from "../src/Factory.sol";
+
 import { AccountV1 } from "../src/accounts/AccountV1.sol";
 import { AccountV2 } from "./utils/mocks/accounts/AccountV2.sol";
-import { SequencerUptimeOracle } from "./utils/mocks/oracles/SequencerUptimeOracle.sol";
-import { ChainlinkOMExtension } from "./utils/extensions/ChainlinkOMExtension.sol";
-import { RegistryExtension } from "./utils/extensions/RegistryExtension.sol";
 import { AssetModule } from "../src/asset-modules/abstracts/AbstractAM.sol";
+import { ChainlinkOMExtension } from "./utils/extensions/ChainlinkOMExtension.sol";
+import { Constants } from "./utils/Constants.sol";
 import { ERC20PrimaryAMExtension } from "./utils/extensions/ERC20PrimaryAMExtension.sol";
+import { ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";
+import { Factory } from "../src/Factory.sol";
 import { FloorERC721AMExtension } from "./utils/extensions/FloorERC721AMExtension.sol";
 import { FloorERC1155AMExtension } from "./utils/extensions/FloorERC1155AMExtension.sol";
+import { RegistryExtension } from "./utils/extensions/RegistryExtension.sol";
+import { SequencerUptimeOracle } from "./utils/mocks/oracles/SequencerUptimeOracle.sol";
 import { UniswapV3AMExtension } from "./utils/extensions/UniswapV3AMExtension.sol";
-import { Constants } from "./utils/Constants.sol";
-import { Events } from "./utils/Events.sol";
 import { Errors } from "./utils/Errors.sol";
+import { Users } from "./utils/Types.sol";
 import { Utils } from "./utils/Utils.sol";
-import { ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";
 
 /// @notice Base test contract with common logic needed by all tests.
-abstract contract Base_Test is Test, Events, Errors {
+abstract contract Base_Test is Test, Errors {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/

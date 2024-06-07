@@ -5,7 +5,9 @@
 pragma solidity 0.8.22;
 
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
+
 import { AssetModule } from "../../../src/asset-modules/abstracts/AbstractAM.sol";
+import { Registry } from "../../../src/Registry.sol";
 
 /**
  * @notice Fuzz tests for the function "batchProcessDeposit" of contract "Registry".
@@ -232,7 +234,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit Deposit(address(proxyAccount));
+        emit Registry.Deposit(address(proxyAccount));
         registryExtension.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
@@ -263,7 +265,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit Deposit(address(proxyAccount));
+        emit Registry.Deposit(address(proxyAccount));
         registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
@@ -301,7 +303,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit Deposit(address(proxyAccount));
+        emit Registry.Deposit(address(proxyAccount));
         registryExtension.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
@@ -328,7 +330,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit Deposit(address(proxyAccount));
+        emit Registry.Deposit(address(proxyAccount));
         registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
@@ -358,7 +360,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.prank(address(proxyAccount));
         vm.expectEmit();
-        emit Deposit(address(proxyAccount));
+        emit Registry.Deposit(address(proxyAccount));
         registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
@@ -385,7 +387,7 @@ contract BatchProcessDeposit_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.startPrank(address(proxyAccount));
         vm.expectEmit();
-        emit Deposit(address(proxyAccount));
+        emit Registry.Deposit(address(proxyAccount));
         registryExtension.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 
