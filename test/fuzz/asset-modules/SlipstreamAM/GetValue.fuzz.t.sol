@@ -67,7 +67,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         vm.assume(sqrtPriceX96 <= 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342);
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
-        ICLPoolExtension pool = createPool(token0, token1, sqrtPriceX96, 300);
+        ICLPoolExtension pool = createPool(address(token0), address(token1), 1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(vars.liquidity <= pool.maxLiquidityPerTick());
@@ -131,7 +131,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
             (decimals0, decimals1) = (decimals1, decimals0);
         }
 
-        ICLPoolExtension pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(0), 300);
+        ICLPoolExtension pool = createPool(address(token0), address(token1), 1, TickMath.getSqrtRatioAtTick(0), 300);
         (uint256 tokenId,,) = addLiquidity(pool, 1e5, users.liquidityProvider, 0, 10, true);
 
         // Add underlying tokens and its oracles to Arcadia.

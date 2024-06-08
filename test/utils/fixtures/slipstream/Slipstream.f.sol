@@ -72,12 +72,15 @@ contract SlipstreamFixture is WETH9Fixture {
     /*//////////////////////////////////////////////////////////////////////////
                                   HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
-    function createPool(ERC20 token0, ERC20 token1, uint160 sqrtPriceX96, uint16 observationCardinality)
-        public
-        returns (ICLPoolExtension pool)
-    {
+    function createPool(
+        address token0,
+        address token1,
+        int24 tickSpacing,
+        uint160 sqrtPriceX96,
+        uint16 observationCardinality
+    ) public returns (ICLPoolExtension pool) {
         (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
-        address poolAddress = cLFactory.createPool(address(token0), address(token1), 1, sqrtPriceX96); // Set initial price to lowest possible price.
+        address poolAddress = cLFactory.createPool(token0, token1, tickSpacing, sqrtPriceX96); // Set initial price to lowest possible price.
         pool = ICLPoolExtension(poolAddress);
         pool.increaseObservationCardinalityNext(observationCardinality);
     }

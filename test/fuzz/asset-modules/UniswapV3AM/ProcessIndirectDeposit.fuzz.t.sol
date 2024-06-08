@@ -67,7 +67,7 @@ contract ProcessIndirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
+        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
@@ -106,7 +106,7 @@ contract ProcessIndirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
+        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
@@ -144,7 +144,7 @@ contract ProcessIndirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
+        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
@@ -251,7 +251,7 @@ contract ProcessIndirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
+        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
@@ -353,7 +353,7 @@ contract ProcessIndirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
+        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         liquidity = uint128(bound(liquidity, 1, pool.maxLiquidityPerTick() / 2));

@@ -69,7 +69,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         // And: State is persisted.
         addUnderlyingTokenToArcadia(address(token0), int256(asset0.usdValue));
         addUnderlyingTokenToArcadia(address(token1), int256(asset1.usdValue));
-        IUniswapV3PoolExtension pool = createPool(token0, token1, 1e18, 300);
+        IUniswapV3PoolExtension pool = createPool(address(token0), address(token1), 100, 1e18, 300);
         nonfungiblePositionManagerMock.setPosition(address(pool), tokenId, position);
 
         // When: "getUnderlyingAssetsAmounts" is called.
@@ -109,7 +109,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         // And: State is persisted.
         addUnderlyingTokenToArcadia(address(token0), int256(asset0.usdValue));
         addUnderlyingTokenToArcadia(address(token1), int256(asset1.usdValue));
-        IUniswapV3PoolExtension pool = createPool(token0, token1, 1e18, 300);
+        IUniswapV3PoolExtension pool = createPool(address(token0), address(token1), 100, 1e18, 300);
         nonfungiblePositionManagerMock.setPosition(address(pool), tokenId, position);
 
         // When: "getUnderlyingAssetsAmounts" is called.
@@ -160,7 +160,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         // And: State is persisted.
         addUnderlyingTokenToArcadia(address(token0), int256(asset0.usdValue));
         addUnderlyingTokenToArcadia(address(token1), int256(asset1.usdValue));
-        IUniswapV3PoolExtension pool = createPool(token0, token1, 1e18, 300);
+        IUniswapV3PoolExtension pool = createPool(address(token0), address(token1), 100, 1e18, 300);
         nonfungiblePositionManagerMock.setPosition(address(pool), tokenId, position);
 
         // When: "getUnderlyingAssetsAmounts" is called.

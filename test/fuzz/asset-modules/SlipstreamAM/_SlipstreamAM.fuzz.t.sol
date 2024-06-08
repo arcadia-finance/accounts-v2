@@ -74,7 +74,8 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         // Deploy mock for the Nonfungibleposition manager for tests where state of position must be fuzzed.
         deployNonfungiblePositionManagerMock();
 
-        poolStable1Stable2 = createPool(mockERC20.stable1, mockERC20.stable2, TickMath.getSqrtRatioAtTick(0), 300);
+        poolStable1Stable2 =
+            createPool(address(mockERC20.stable1), address(mockERC20.stable2), 1, TickMath.getSqrtRatioAtTick(0), 300);
     }
 
     /*////////////////////////////////////////////////////////////////

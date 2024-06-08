@@ -68,7 +68,7 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
+        pool = createPool(address(token0), address(token1), 1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
@@ -172,7 +172,7 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
+        pool = createPool(address(token0), address(token1), 1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
@@ -273,7 +273,7 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
+        pool = createPool(address(token0), address(token1), 1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());

@@ -68,7 +68,7 @@ contract GetUnderlyingAssetsAmounts_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_
         // And: State is persisted.
         addUnderlyingTokenToArcadia(address(token0), int256(asset0.usdValue));
         addUnderlyingTokenToArcadia(address(token1), int256(asset1.usdValue));
-        ICLPoolExtension pool = createPool(token0, token1, 1e18, 300);
+        ICLPoolExtension pool = createPool(address(token0), address(token1), 1, 1e18, 300);
         nonfungiblePositionManagerMock.setPosition(address(pool), tokenId, position);
 
         // When: "getUnderlyingAssetsAmounts" is called.
@@ -108,7 +108,7 @@ contract GetUnderlyingAssetsAmounts_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_
         // And: State is persisted.
         addUnderlyingTokenToArcadia(address(token0), int256(asset0.usdValue));
         addUnderlyingTokenToArcadia(address(token1), int256(asset1.usdValue));
-        ICLPoolExtension pool = createPool(token0, token1, 1e18, 300);
+        ICLPoolExtension pool = createPool(address(token0), address(token1), 1, 1e18, 300);
         nonfungiblePositionManagerMock.setPosition(address(pool), tokenId, position);
 
         // When: "getUnderlyingAssetsAmounts" is called.
@@ -159,7 +159,7 @@ contract GetUnderlyingAssetsAmounts_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_
         // And: State is persisted.
         addUnderlyingTokenToArcadia(address(token0), int256(asset0.usdValue));
         addUnderlyingTokenToArcadia(address(token1), int256(asset1.usdValue));
-        ICLPoolExtension pool = createPool(token0, token1, 1e18, 300);
+        ICLPoolExtension pool = createPool(address(token0), address(token1), 1, 1e18, 300);
         nonfungiblePositionManagerMock.setPosition(address(pool), tokenId, position);
 
         // When: "getUnderlyingAssetsAmounts" is called.
