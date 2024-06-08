@@ -136,8 +136,8 @@ contract SlipstreamFixture is WETH9Fixture {
         address token1_ = pool_.token1();
         int24 tickSpacing = pool_.tickSpacing();
 
-        deal(token0_, liquidityProvider_, amount0);
-        deal(token1_, liquidityProvider_, amount1);
+        deal(token0_, liquidityProvider_, amount0, true);
+        deal(token1_, liquidityProvider_, amount1, true);
         vm.startPrank(liquidityProvider_);
         ERC20(token0_).approve(address(slipstreamPositionManager), type(uint256).max);
         ERC20(token1_).approve(address(slipstreamPositionManager), type(uint256).max);
@@ -183,8 +183,8 @@ contract SlipstreamFixture is WETH9Fixture {
             vm.assume(liquidity > 0);
         }
 
-        deal(token0, address(this), 100);
-        deal(token1, address(this), 100);
+        deal(token0, address(this), amount0, true);
+        deal(token1, address(this), amount1, true);
         ERC20(token0).approve(address(slipstreamPositionManager), type(uint256).max);
         ERC20(token1).approve(address(slipstreamPositionManager), type(uint256).max);
         slipstreamPositionManager.increaseLiquidity(

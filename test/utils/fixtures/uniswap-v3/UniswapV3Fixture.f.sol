@@ -123,8 +123,8 @@ contract UniswapV3Fixture is WETH9Fixture {
         address token1 = pool.token1();
         uint24 fee = pool.fee();
 
-        deal(token0, liquidityProvider_, amount0);
-        deal(token1, liquidityProvider_, amount1);
+        deal(token0, liquidityProvider_, amount0, true);
+        deal(token1, liquidityProvider_, amount1, true);
         vm.startPrank(liquidityProvider_);
         ERC20(token0).approve(address(nonfungiblePositionManager), type(uint256).max);
         ERC20(token1).approve(address(nonfungiblePositionManager), type(uint256).max);
@@ -169,8 +169,8 @@ contract UniswapV3Fixture is WETH9Fixture {
             vm.assume(liquidity > 0);
         }
 
-        deal(token0, address(this), 100);
-        deal(token1, address(this), 100);
+        deal(token0, address(this), amount0, true);
+        deal(token1, address(this), amount1, true);
         ERC20(token0).approve(address(nonfungiblePositionManager), type(uint256).max);
         ERC20(token1).approve(address(nonfungiblePositionManager), type(uint256).max);
         nonfungiblePositionManager.increaseLiquidity(
