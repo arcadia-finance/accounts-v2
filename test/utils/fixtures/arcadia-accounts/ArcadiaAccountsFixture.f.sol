@@ -11,6 +11,7 @@ import { ArcadiaOracle } from "../../mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ChainlinkOMExtension } from "../../extensions/ChainlinkOMExtension.sol";
 import { Constants } from "../../Constants.sol";
+import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../mocks/tokens/ERC20Mock.sol";
 import { ERC20PrimaryAMExtension } from "../../extensions/ERC20PrimaryAMExtension.sol";
 import { Factory } from "../../../../src/Factory.sol";
@@ -85,20 +86,20 @@ contract ArcadiaAccountsFixture is Base_Test {
         vm.prank(users.tokenCreator);
         ERC20Mock asset = new ERC20Mock(name, symbol, decimals);
 
-        AddAsset(asset, price);
+        AddAsset(address(asset), price);
 
         return address(asset);
     }
 
-    function AddAsset(ERC20Mock asset, int256 price) public {
-        address oracle = initMockedOracle(string.concat(asset.name(), " / USD"), price);
+    function AddAsset(address asset, int256 price) public {
+        address oracle = initMockedOracle(string.concat(ERC20(asset).name(), " / USD"), price);
 
         vm.startPrank(users.owner);
-        chainlinkOM.addOracle(oracle, bytes16(bytes(asset.name())), "USD", 2 days);
+        chainlinkOM.addOracle(oracle, bytes16(bytes(ERC20(asset).name())), "USD", 2 days);
 
         uint80[] memory oracles = new uint80[](1);
         oracles[0] = uint80(chainlinkOM.oracleToOracleId(oracle));
-        erc20AM.addAsset(address(asset), BitPackingLib.pack(BA_TO_QA_SINGLE, oracles));
+        erc20AM.addAsset(asset, BitPackingLib.pack(BA_TO_QA_SINGLE, oracles));
         vm.stopPrank();
     }
 }
