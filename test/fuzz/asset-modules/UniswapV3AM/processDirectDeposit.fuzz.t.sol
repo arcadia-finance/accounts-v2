@@ -70,13 +70,13 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
+        pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+        (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert(AssetModule.OnlyRegistry.selector);
@@ -86,10 +86,10 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
 
     function testFuzz_Revert_processDirectDeposit_ZeroLiquidity(address creditor) public {
         // Create Uniswap V3 pool initiated at tick 0 with cardinality 300.
-        pool = createPool(address(token0), address(token1), 100, TickMath.getSqrtRatioAtTick(0), 300);
+        pool = createPoolUniV3(address(token0), address(token1), 100, TickMath.getSqrtRatioAtTick(0), 300);
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, 1000, users.liquidityProvider, -60, 60, true);
+        (uint256 tokenId,,) = addLiquidityUniV3(pool, 1000, users.liquidityProvider, -60, 60, true);
 
         // Decrease liquidity so that position has 0 liquidity.
         // Fetch liquidity from position instead of using input liquidity
@@ -133,13 +133,13 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
+        pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+        (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         // Calculate amounts of underlying tokens.
         // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
@@ -184,13 +184,13 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
+        pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+        (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         // Calculate amounts of underlying tokens.
         // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
@@ -243,13 +243,13 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
+        pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+        (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         // Hacky way to avoid stack to deep.
         int24[] memory ticks = new int24[](3);
@@ -321,13 +321,13 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
+        pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+        (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         // Hacky way to avoid stack to deep.
         int24[] memory ticks = new int24[](3);
@@ -431,13 +431,13 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
+        pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+        (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         // Hacky way to avoid stack to deep.
         int24[] memory ticks = new int24[](3);
@@ -533,13 +533,13 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
+        pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         liquidity = uint128(bound(liquidity, 1, pool.maxLiquidityPerTick() / 2));
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+        (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         uint256 amount0;
         uint256 amount1;
@@ -594,7 +594,7 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
 
         {
             // And: liquidity of the deposited position is increased.
-            increaseLiquidity(pool, tokenId, 100, 100, false);
+            increaseLiquidityUniV3(pool, tokenId, 100, 100, false);
 
             // When: processDirectDeposit is called with amount 0.
             vm.prank(address(registry));

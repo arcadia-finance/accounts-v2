@@ -76,8 +76,9 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, UniswapV
         // (we can't use the Fixture since most variables of the NonfungiblepositionExtension are private).
         deployNonfungiblePositionManagerMock();
 
-        poolStable1Stable2 =
-            createPool(address(mockERC20.stable1), address(mockERC20.stable2), 100, TickMath.getSqrtRatioAtTick(0), 300);
+        poolStable1Stable2 = createPoolUniV3(
+            address(mockERC20.stable1), address(mockERC20.stable2), 100, TickMath.getSqrtRatioAtTick(0), 300
+        );
     }
 
     /*////////////////////////////////////////////////////////////////

@@ -64,10 +64,13 @@ contract UniswapV3Fixture is WETH9Fixture {
                                 HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    function createPool(address token0, address token1, uint24 fee, uint160 sqrtPriceX96, uint16 observationCardinality)
-        public
-        returns (IUniswapV3PoolExtension uniV3Pool_)
-    {
+    function createPoolUniV3(
+        address token0,
+        address token1,
+        uint24 fee,
+        uint160 sqrtPriceX96,
+        uint16 observationCardinality
+    ) public returns (IUniswapV3PoolExtension uniV3Pool_) {
         (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
         address poolAddress =
             nonfungiblePositionManager.createAndInitializePoolIfNecessary(token0, token1, fee, sqrtPriceX96);
@@ -75,24 +78,25 @@ contract UniswapV3Fixture is WETH9Fixture {
         uniV3Pool_.increaseObservationCardinalityNext(observationCardinality);
     }
 
-    function addLiquidity(
+    function addLiquidityUniV3(
         IUniswapV3PoolExtension pool,
         uint128 liquidity,
         address liquidityProvider_,
         int24 tickLower,
         int24 tickUpper,
         bool revertsOnZeroLiquidity
-    ) public returns (uint256 tokenId) {
+    ) public returns (uint256 tokenId, uint256 amount0_, uint256 amount1_) {
         (uint160 sqrtPrice,,,,,,) = pool.slot0();
 
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPrice, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity
         );
 
-        tokenId = addLiquidity(pool, amount0, amount1, liquidityProvider_, tickLower, tickUpper, revertsOnZeroLiquidity);
+        return
+            addLiquidityUniV3(pool, amount0, amount1, liquidityProvider_, tickLower, tickUpper, revertsOnZeroLiquidity);
     }
 
-    function addLiquidity(
+    function addLiquidityUniV3(
         IUniswapV3PoolExtension pool,
         uint256 amount0,
         uint256 amount1,
@@ -100,7 +104,7 @@ contract UniswapV3Fixture is WETH9Fixture {
         int24 tickLower,
         int24 tickUpper,
         bool revertsOnZeroLiquidity
-    ) public returns (uint256 tokenId) {
+    ) public returns (uint256 tokenId, uint256 amount0_, uint256 amount1_) {
         // Check if test should revert or be skipped when liquidity is zero.
         // This is hard to check with assumes of the fuzzed inputs due to rounding errors.
         if (!revertsOnZeroLiquidity) {
@@ -124,7 +128,7 @@ contract UniswapV3Fixture is WETH9Fixture {
         vm.startPrank(liquidityProvider_);
         ERC20(token0).approve(address(nonfungiblePositionManager), type(uint256).max);
         ERC20(token1).approve(address(nonfungiblePositionManager), type(uint256).max);
-        (tokenId,,,) = nonfungiblePositionManager.mint(
+        (tokenId,, amount0_, amount1_) = nonfungiblePositionManager.mint(
             INonfungiblePositionManagerExtension.MintParams({
                 token0: token0,
                 token1: token1,
@@ -142,7 +146,7 @@ contract UniswapV3Fixture is WETH9Fixture {
         vm.stopPrank();
     }
 
-    function increaseLiquidity(
+    function increaseLiquidityUniV3(
         IUniswapV3PoolExtension pool,
         uint256 tokenId,
         uint256 amount0,

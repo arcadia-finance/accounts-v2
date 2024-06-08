@@ -43,7 +43,7 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
         aeroPoolAM.addAsset(asset);
     }
 
-    function testFuzz_Revert_addAsset_Token0NotAllowed(bool isStable, address token0) public notTestContracts(token0) {
+    function testFuzz_Revert_addAsset_Token0NotAllowed(bool isStable, address token0) public canReceiveERC721(token0) {
         // Given : The asset is a pool in the the Aerodrome Factory.
         aeroFactoryMock.setPool(address(aeroPoolMock));
 
@@ -60,7 +60,7 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
         aeroPoolAM.addAsset(address(aeroPoolMock));
     }
 
-    function testFuzz_Revert_addAsset_Token1NotAllowed(bool isStable, address token1) public notTestContracts(token1) {
+    function testFuzz_Revert_addAsset_Token1NotAllowed(bool isStable, address token1) public canReceiveERC721(token1) {
         // Given : The asset is a pool in the the Aerodrome Factory.
         aeroFactoryMock.setPool(address(aeroPoolMock));
 

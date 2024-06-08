@@ -139,7 +139,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_upgradeAccount_InvalidRegistry(address newImplementation, bytes calldata data)
         public
-        notTestContracts(newImplementation)
+        canReceiveERC721(newImplementation)
     {
         vm.assume(newImplementation > address(10));
         vm.assume(newImplementation != address(account));

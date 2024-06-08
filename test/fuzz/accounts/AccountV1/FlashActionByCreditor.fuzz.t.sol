@@ -57,7 +57,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         address creditor,
         address approvedCreditor,
         bytes calldata callbackData
-    ) public notTestContracts(sender) {
+    ) public canReceiveERC721(sender) {
         vm.assume(sender != creditor);
         vm.assume(sender != approvedCreditor);
 

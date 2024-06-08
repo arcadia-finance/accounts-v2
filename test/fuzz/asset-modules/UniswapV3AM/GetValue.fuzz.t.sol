@@ -6,14 +6,12 @@ pragma solidity 0.8.22;
 
 import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 
+import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
-
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
@@ -68,13 +66,13 @@ contract GetValue_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(sqrtPriceX96 <= 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342);
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        IUniswapV3PoolExtension pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
+        IUniswapV3PoolExtension pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(vars.liquidity <= pool.maxLiquidityPerTick());
         // Mint liquidity position.
-        uint256 tokenId =
-            addLiquidity(pool, vars.liquidity, users.liquidityProvider, vars.tickLower, vars.tickUpper, false);
+        (uint256 tokenId,,) =
+            addLiquidityUniV3(pool, vars.liquidity, users.liquidityProvider, vars.tickLower, vars.tickUpper, false);
 
         // Calculate amounts of underlying tokens.
         // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
@@ -133,8 +131,8 @@ contract GetValue_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         }
 
         IUniswapV3PoolExtension pool =
-            createPool(address(token0), address(token1), 100, TickMath.getSqrtRatioAtTick(0), 300);
-        uint256 tokenId = addLiquidity(pool, 1e5, users.liquidityProvider, 0, 10, true);
+            createPoolUniV3(address(token0), address(token1), 100, TickMath.getSqrtRatioAtTick(0), 300);
+        (uint256 tokenId,,) = addLiquidityUniV3(pool, 1e5, users.liquidityProvider, 0, 10, true);
 
         // Add underlying tokens and its oracles to Arcadia.
         addUnderlyingTokenToArcadia(address(token0), 1);

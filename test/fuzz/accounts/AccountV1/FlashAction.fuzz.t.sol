@@ -46,7 +46,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_flashAction_NonAssetManager(address sender, address assetManager)
         public
-        notTestContracts(sender)
+        canReceiveERC721(sender)
     {
         vm.assume(sender != users.accountOwner);
         vm.assume(sender != assetManager);

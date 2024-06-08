@@ -56,7 +56,7 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         bytes16 baseAsset,
         bytes16 quoteAsset,
         uint32 cutOffTime
-    ) public notTestContracts(oracle) {
+    ) public canReceiveERC721(oracle) {
         vm.prank(users.owner);
         vm.expectRevert(bytes(""));
         chainlinkOM.addOracle(oracle, baseAsset, quoteAsset, cutOffTime);

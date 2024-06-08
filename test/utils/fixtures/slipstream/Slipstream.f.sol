@@ -72,7 +72,7 @@ contract SlipstreamFixture is WETH9Fixture {
     /*//////////////////////////////////////////////////////////////////////////
                                   HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
-    function createPool(
+    function createPoolCL(
         address token0,
         address token1,
         int24 tickSpacing,
@@ -92,7 +92,7 @@ contract SlipstreamFixture is WETH9Fixture {
         return type(uint128).max / numTicks;
     }
 
-    function addLiquidity(
+    function addLiquidityCL(
         ICLPoolExtension pool_,
         uint128 liquidity,
         address liquidityProvider_,
@@ -106,10 +106,10 @@ contract SlipstreamFixture is WETH9Fixture {
             sqrtPrice, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity
         );
 
-        return addLiquidity(pool_, amount0, amount1, liquidityProvider_, tickLower, tickUpper, revertsOnZeroLiquidity);
+        return addLiquidityCL(pool_, amount0, amount1, liquidityProvider_, tickLower, tickUpper, revertsOnZeroLiquidity);
     }
 
-    function addLiquidity(
+    function addLiquidityCL(
         ICLPoolExtension pool_,
         uint256 amount0,
         uint256 amount1,
@@ -160,7 +160,7 @@ contract SlipstreamFixture is WETH9Fixture {
         vm.stopPrank();
     }
 
-    function increaseLiquidity(
+    function increaseLiquidityCL(
         ICLPoolExtension pool,
         uint256 tokenId,
         uint256 amount0,

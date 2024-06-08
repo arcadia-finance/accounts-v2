@@ -27,7 +27,7 @@ contract GetPosition_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
     function setUp() public override {
         UniswapV3AM_Fuzz_Test.setUp();
 
-        assetId = addLiquidity(poolStable1Stable2, 100, 100, users.liquidityProvider, 0, 1, true);
+        (assetId,,) = addLiquidityUniV3(poolStable1Stable2, 100, 100, users.liquidityProvider, 0, 1, true);
         (token0, token1) = address(mockERC20.stable1) < address(mockERC20.stable2)
             ? (address(mockERC20.stable1), address(mockERC20.stable2))
             : (address(mockERC20.stable2), address(mockERC20.stable1));

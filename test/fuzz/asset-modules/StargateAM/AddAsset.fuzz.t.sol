@@ -35,7 +35,7 @@ contract AddAsset_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
 
     function testFuzz_Revert_addAsset_UnderlyingAssetNotAllowed(uint256 poolId, address sender, address underlyingAsset)
         public
-        notTestContracts(underlyingAsset)
+        canReceiveERC721(underlyingAsset)
     {
         // Given : Valid pool
         sgFactoryMock.setPool(poolId, address(poolMock));

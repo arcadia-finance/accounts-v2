@@ -216,7 +216,7 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
     }
 
     function addLiquidity(StakedSlipstreamAM.PositionState memory position) public returns (uint256 tokenId) {
-        (tokenId,,) = addLiquidity(
+        (tokenId,,) = addLiquidityCL(
             pool, position.liquidity, users.liquidityProvider, position.tickLower, position.tickUpper, false
         );
     }

@@ -68,13 +68,13 @@ contract ProcessIndirectWithdrawal_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Tes
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
+        pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+        (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         // Hacky way to avoid stack to deep.
         int24[] memory ticks = new int24[](3);
@@ -170,13 +170,13 @@ contract ProcessIndirectWithdrawal_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Tes
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
+        pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+        (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         // Hacky way to avoid stack to deep.
         int24[] memory ticks = new int24[](3);
@@ -269,13 +269,13 @@ contract ProcessIndirectWithdrawal_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Tes
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(address(token0), address(token1), 100, sqrtPriceX96, 300);
+        pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+        (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         // Hacky way to avoid stack to deep.
         int24[] memory ticks = new int24[](3);

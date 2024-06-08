@@ -28,7 +28,7 @@ contract AddAsset_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
 
     function testFuzz_Revert_AddAsset_PoolNotAllowed(address randomToken)
         public
-        notTestContracts(randomToken)
+        canReceiveERC721(randomToken)
         notTestContracts2(randomToken)
     {
         // When :  Calling addAsset()
