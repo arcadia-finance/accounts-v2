@@ -211,8 +211,4 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
             })
         );
     }
-
-    function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
-        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(TickMath.MAX_TICK));
-    }
 }
