@@ -36,7 +36,7 @@ contract GetUnderlyingAssets_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getUnderlyingAssets_InAssetModule() public {
+    function testFuzz_Success_getUnderlyingAssets_InAssetModulea() public {
         vm.prank(users.owner);
         slipstreamAM.addAsset(id);
 

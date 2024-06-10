@@ -69,7 +69,8 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
                 (token0, token1) = (tokenB, tokenA);
                 (priceTokenA, priceTokenB) = (priceToken1, priceToken0);
             }
-            deployPoolAndGauge(token0, token1, TickMath.getSqrtRatioAtTick(tick), 300);
+            pool = createPoolCL(address(token0), address(token1), 1, TickMath.getSqrtRatioAtTick(tick), 300);
+            gauge = createGaugeCL(pool);
             addAssetToArcadia(address(tokenA), int256(priceTokenA));
             addAssetToArcadia(address(tokenB), int256(priceTokenB));
             vm.prank(users.owner);
@@ -153,7 +154,8 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
                 (token0, token1) = (tokenB, tokenA);
                 (priceTokenA, priceTokenB) = (priceToken1, priceToken0);
             }
-            deployPoolAndGauge(token0, token1, TickMath.getSqrtRatioAtTick(tick), 300);
+            pool = createPoolCL(address(token0), address(token1), 1, TickMath.getSqrtRatioAtTick(tick), 300);
+            gauge = createGaugeCL(pool);
             addAssetToArcadia(address(tokenA), int256(priceTokenA));
             addAssetToArcadia(address(tokenB), int256(priceTokenB));
             vm.prank(users.owner);

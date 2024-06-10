@@ -70,7 +70,7 @@ contract UniswapV3Fixture is WETH9Fixture {
         uint24 fee,
         uint160 sqrtPriceX96,
         uint16 observationCardinality
-    ) public returns (IUniswapV3PoolExtension uniV3Pool_) {
+    ) internal returns (IUniswapV3PoolExtension uniV3Pool_) {
         (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
         address poolAddress =
             nonfungiblePositionManager.createAndInitializePoolIfNecessary(token0, token1, fee, sqrtPriceX96);
@@ -85,7 +85,7 @@ contract UniswapV3Fixture is WETH9Fixture {
         int24 tickLower,
         int24 tickUpper,
         bool revertsOnZeroLiquidity
-    ) public returns (uint256 tokenId, uint256 amount0_, uint256 amount1_) {
+    ) internal returns (uint256 tokenId, uint256 amount0_, uint256 amount1_) {
         (uint160 sqrtPrice,,,,,,) = pool.slot0();
 
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
@@ -104,7 +104,7 @@ contract UniswapV3Fixture is WETH9Fixture {
         int24 tickLower,
         int24 tickUpper,
         bool revertsOnZeroLiquidity
-    ) public returns (uint256 tokenId, uint256 amount0_, uint256 amount1_) {
+    ) internal returns (uint256 tokenId, uint256 amount0_, uint256 amount1_) {
         // Check if test should revert or be skipped when liquidity is zero.
         // This is hard to check with assumes of the fuzzed inputs due to rounding errors.
         if (!revertsOnZeroLiquidity) {
@@ -152,7 +152,7 @@ contract UniswapV3Fixture is WETH9Fixture {
         uint256 amount0,
         uint256 amount1,
         bool revertsOnZeroLiquidity
-    ) public {
+    ) internal {
         // Check if test should revert or be skipped when liquidity is zero.
         // This is hard to check with assumes of the fuzzed inputs due to rounding errors.
         (,, address token0, address token1,, int24 tickLower, int24 tickUpper,,,,,) =
@@ -183,5 +183,9 @@ contract UniswapV3Fixture is WETH9Fixture {
                 deadline: type(uint256).max
             })
         );
+    }
+
+    function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
+        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(TickMath.MAX_TICK));
     }
 }

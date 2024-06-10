@@ -4,10 +4,12 @@
  */
 pragma solidity 0.8.22;
 
+import { AerodromeFixture } from "../aerodrome/AerodromeFixture.f.sol";
 import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ICLFactoryExtension } from "./extensions/interfaces/ICLFactoryExtension.sol";
+import { ICLGauge } from "../../../../src/asset-modules/Slipstream/interfaces/ICLGauge.sol";
 import { ICLGaugeFactory } from "./interfaces/ICLGaugeFactory.sol";
 import { ICLPoolExtension } from "./extensions/interfaces/ICLPoolExtension.sol";
 import { INonfungiblePositionManagerExtension } from "./extensions/interfaces/INonfungiblePositionManagerExtension.sol";
@@ -16,7 +18,7 @@ import { LiquidityAmountsExtension } from "../uniswap-v3/extensions/libraries/Li
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 import { Utils } from "../../Utils.sol";
 
-contract SlipstreamFixture is WETH9Fixture {
+contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -33,7 +35,7 @@ contract SlipstreamFixture is WETH9Fixture {
         WETH9Fixture.setUp();
     }
 
-    function deploySlipstream(address voter) internal {
+    function deploySlipstream() internal {
         // Since Slipstream uses different a pragma version as us, we can't directly deploy the code
         // -> use getCode to get bytecode from artefacts and deploy directly.
 
@@ -43,7 +45,7 @@ contract SlipstreamFixture is WETH9Fixture {
         address cLPool_ = Utils.deployBytecode(bytecode);
 
         // Deploy the CLFactory.
-        args = abi.encode(voter, cLPool_);
+        args = abi.encode(address(voter), cLPool_);
         bytecode = abi.encodePacked(vm.getCode("CLFactory.sol"), args);
         address cLFactory_ = Utils.deployBytecode(bytecode);
         cLFactory = ICLFactoryExtension(cLFactory_);
@@ -55,7 +57,7 @@ contract SlipstreamFixture is WETH9Fixture {
         slipstreamPositionManager = INonfungiblePositionManagerExtension(nonfungiblePositionManager_);
     }
 
-    function deployCLGaugeFactory(address voter) internal {
+    function deployCLGaugeFactory() internal {
         // Deploy CLGauge implementation.
         bytes memory args = abi.encode();
         bytes memory bytecode = abi.encodePacked(vm.getCode("CLGauge.sol"), args);
@@ -63,10 +65,13 @@ contract SlipstreamFixture is WETH9Fixture {
 
         // Deploy the CLGaugeFactory.
         // Deploy the CLFactory.
-        args = abi.encode(voter, cLGauge_);
+        args = abi.encode(address(voter), cLGauge_);
         bytecode = abi.encodePacked(vm.getCode("CLGaugeFactory.sol"), args);
         address cLGaugeFactory_ = Utils.deployBytecode(bytecode);
         cLGaugeFactory = ICLGaugeFactory(cLGaugeFactory_);
+
+        cLGaugeFactory.setNonfungiblePositionManager(address(slipstreamPositionManager));
+        factoryRegistry.setFactoriesToPoolFactory(address(cLFactory), address(0), address(cLGaugeFactory));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -78,11 +83,19 @@ contract SlipstreamFixture is WETH9Fixture {
         int24 tickSpacing,
         uint160 sqrtPriceX96,
         uint16 observationCardinality
-    ) public returns (ICLPoolExtension pool) {
+    ) internal returns (ICLPoolExtension pool) {
         (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
         address poolAddress = cLFactory.createPool(token0, token1, tickSpacing, sqrtPriceX96); // Set initial price to lowest possible price.
         pool = ICLPoolExtension(poolAddress);
         pool.increaseObservationCardinalityNext(observationCardinality);
+    }
+
+    function createGaugeCL(ICLPoolExtension pool) internal returns (ICLGauge gauge) {
+        vm.prank(address(voter));
+        gauge = ICLGauge(cLGaugeFactory.createGauge(address(0), address(pool), address(0), AERO, true));
+
+        voter.setGauge(address(gauge));
+        voter.setAlive(address(gauge), true);
     }
 
     function tickSpacingToMaxLiquidityPerTick(int24 tickSpacing) internal pure returns (uint128) {
@@ -99,7 +112,7 @@ contract SlipstreamFixture is WETH9Fixture {
         int24 tickLower,
         int24 tickUpper,
         bool revertsOnZeroLiquidity
-    ) public returns (uint256 tokenId, uint256 amount0_, uint256 amount1_) {
+    ) internal returns (uint256 tokenId, uint256 amount0_, uint256 amount1_) {
         (uint160 sqrtPrice,,,,,) = pool_.slot0();
 
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
@@ -117,7 +130,7 @@ contract SlipstreamFixture is WETH9Fixture {
         int24 tickLower,
         int24 tickUpper,
         bool revertsOnZeroLiquidity
-    ) public returns (uint256 tokenId, uint256 amount0_, uint256 amount1_) {
+    ) internal returns (uint256 tokenId, uint256 amount0_, uint256 amount1_) {
         // Check if test should revert or be skipped when liquidity is zero.
         // This is hard to check with assumes of the fuzzed inputs due to rounding errors.
         if (!revertsOnZeroLiquidity) {
@@ -166,7 +179,7 @@ contract SlipstreamFixture is WETH9Fixture {
         uint256 amount0,
         uint256 amount1,
         bool revertsOnZeroLiquidity
-    ) public {
+    ) internal {
         // Check if test should revert or be skipped when liquidity is zero.
         // This is hard to check with assumes of the fuzzed inputs due to rounding errors.
         (,, address token0, address token1,, int24 tickLower, int24 tickUpper,,,,,) =
@@ -197,5 +210,9 @@ contract SlipstreamFixture is WETH9Fixture {
                 deadline: type(uint256).max
             })
         );
+    }
+
+    function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
+        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(TickMath.MAX_TICK));
     }
 }

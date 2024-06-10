@@ -15,7 +15,6 @@ import { NonfungiblePositionManagerMock } from "../../../utils/mocks/Slipstream/
 import { SlipstreamAMExtension } from "../../../utils/extensions/SlipstreamAMExtension.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
-import { VoterMock } from "../../../utils/mocks/Aerodrome/VoterMock.sol";
 
 /**
  * @notice Common logic needed by all "SlipstreamAM" fuzz tests.
@@ -35,7 +34,6 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    VoterMock internal voter;
     SlipstreamAMExtension internal slipstreamAM;
     ICLPoolExtension internal poolStable1Stable2;
     NonfungiblePositionManagerMock internal nonfungiblePositionManagerMock;
@@ -65,11 +63,9 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         Fuzz_Test.setUp();
         SlipstreamFixture.setUp();
 
-        // Deploy Aerodrome Voter.
-        voter = new VoterMock(address(0));
-
         // Deploy fixture for Slipstream.
-        deploySlipstream(address(voter));
+        deployAerodromePeriphery();
+        deploySlipstream();
 
         // Deploy mock for the Nonfungibleposition manager for tests where state of position must be fuzzed.
         deployNonfungiblePositionManagerMock();
@@ -100,12 +96,6 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         registry.addAssetModule(address(slipstreamAM));
         slipstreamAM.setProtocol();
         vm.stopPrank();
-    }
-
-    function isWithinAllowedRange(int24 tick) public pure returns (bool) {
-        int24 MIN_TICK = -887_272;
-        int24 MAX_TICK = -MIN_TICK;
-        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
     }
 
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)

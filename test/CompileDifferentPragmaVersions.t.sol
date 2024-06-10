@@ -18,5 +18,5 @@ import { UniswapV3FactoryExtension } from "./utils/fixtures/uniswap-v3/extension
 import { UniswapV3PoolExtension } from "./utils/fixtures/uniswap-v3/extensions/UniswapV3PoolExtension.sol";
 
 contract CompileDifferentPragmaVersions is Test {
-    function testFuzz_Revert_AddAsset_GaugeNotValid() public { }
+    function test() public { }
 }

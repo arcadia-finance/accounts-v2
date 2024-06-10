@@ -24,7 +24,7 @@ contract Mint_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         StakedSlipstreamAM_Fuzz_Test.setUp();
 
         deployStakedSlipstreamAM();
-        deployAndAddGauge();
+        deployAndAddGauge(0);
     }
 
     /* ///////////////////////////////////////////////////////////////

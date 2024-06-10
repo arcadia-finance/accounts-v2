@@ -8,6 +8,7 @@ import { Test } from "../../../../lib/forge-std/src/Test.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../mocks/tokens/ERC20Mock.sol";
+import { FactoryRegistryMock } from "../../mocks/Aerodrome/FactoryRegistryMock.sol";
 import { Gauge } from "../../mocks/Aerodrome/AeroGaugeMock.sol";
 import { Pool } from "../../mocks/Aerodrome/AeroPoolMock.sol";
 import { PoolFactory } from "../../mocks/Aerodrome/AeroPoolFactoryMock.sol";
@@ -24,6 +25,7 @@ contract AerodromeFixture is Test {
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
+    FactoryRegistryMock internal factoryRegistry;
     PoolFactory internal aeroPoolFactory;
     VoterMock internal voter;
 
@@ -32,8 +34,9 @@ contract AerodromeFixture is Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function deployAerodromePeriphery() internal {
-        // Deploy mock voter contract.
-        voter = new VoterMock(address(0));
+        // Deploy Aerodrome Mocks.
+        factoryRegistry = new FactoryRegistryMock();
+        voter = new VoterMock(address(factoryRegistry));
 
         // Create Aero.
         ERC20Mock rewardToken = new ERC20Mock("Aerodrome", "AERO", 18);
@@ -60,7 +63,7 @@ contract AerodromeFixture is Test {
         voter.setAlive(address(gauge), true);
     }
 
-    function addEmissionsToGauge(Gauge gauge, uint256 emissions) public {
+    function addEmissionsToGauge(Gauge gauge, uint256 emissions) internal {
         deal(AERO, address(voter), emissions);
         vm.startPrank(address(voter));
         ERC20(AERO).approve(address(gauge), emissions);

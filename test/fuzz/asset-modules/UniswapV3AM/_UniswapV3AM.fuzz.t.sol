@@ -9,27 +9,16 @@ import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { UniswapV3Fixture } from "../../../utils/fixtures/uniswap-v3/UniswapV3Fixture.f.sol";
 import { UniswapV3AMFixture } from "../../../utils/fixtures/arcadia-accounts/UniswapV3AMFixture.f.sol";
 
-import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
-import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { INonfungiblePositionManagerExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
-import { LiquidityAmountsExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
-import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
-import { Utils } from "../../../utils/Utils.sol";
-import { UniswapV3AM } from "../../../../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV3AM" fuzz tests.
  */
 abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, UniswapV3AMFixture {
-    using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                               CONSTANTS
     /////////////////////////////////////////////////////////////// */
@@ -90,10 +79,6 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, UniswapV
         nonfungiblePositionManagerMock = new NonfungiblePositionManagerMock(address(uniswapV3Factory));
 
         vm.label({ account: address(nonfungiblePositionManagerMock), newLabel: "NonfungiblePositionManagerMock" });
-    }
-
-    function isWithinAllowedRange(int24 tick) public pure returns (bool) {
-        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(TickMath.MAX_TICK));
     }
 
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)
