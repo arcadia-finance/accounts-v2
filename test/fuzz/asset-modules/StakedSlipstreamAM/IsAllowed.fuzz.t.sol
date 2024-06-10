@@ -45,7 +45,7 @@ contract IsAllowed_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test 
         assertFalse(allowed);
     }
 
-    function testFuzz_Success_isAllowed_True(address to, uint256 positionId) public {
+    function testFuzz_Success_isAllowed_True(address to, uint256 positionId) public canReceiveERC721(to) {
         // Given: positionId is minted.
         stakedSlipstreamAM.mint(to, positionId);
 
