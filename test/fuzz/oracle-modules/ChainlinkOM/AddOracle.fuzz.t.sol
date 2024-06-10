@@ -69,7 +69,7 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         uint8 decimals
     ) public {
         decimals = uint8(bound(decimals, 19, type(uint8).max));
-        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD", address(0));
+        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD");
 
         vm.prank(users.owner);
         vm.expectRevert(ChainlinkOM.Max18Decimals.selector);
@@ -84,7 +84,7 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         uint256 oracleCounterLast
     ) public {
         decimals = uint8(bound(decimals, 0, 18));
-        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD", address(0));
+        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD");
 
         oracleCounterLast = bound(oracleCounterLast, 0, type(uint80).max);
         registry.setOracleCounter(oracleCounterLast);

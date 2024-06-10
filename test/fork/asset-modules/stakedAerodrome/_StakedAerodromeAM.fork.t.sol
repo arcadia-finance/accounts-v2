@@ -52,7 +52,7 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
 
         // Deploy a mock oracle for AERO
         vm.startPrank(users.owner);
-        ArcadiaOracle aeroOracle = new ArcadiaOracle(18, "AERO / USD", AERO);
+        ArcadiaOracle aeroOracle = new ArcadiaOracle(18, "AERO / USD");
         aeroOracle.setOffchainTransmitter(users.transmitter);
         vm.stopPrank();
 

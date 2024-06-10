@@ -80,7 +80,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         uint256 lowerBound = (poolState.totalWrapped < 1e18)
             ? uint256(type(uint128).max).mulDivUp(poolState.totalWrapped, 1e18)
             : uint256(type(uint128).max) * poolState.totalWrapped / 1e18 + poolState.totalWrapped;
-        fee0 = bound(fee0, lowerBound, type(uint256).max);
+        fee0 = bound(fee0, lowerBound + 1, type(uint256).max);
 
         // And: deltaFee1PerLiquidity does not overflow.
         fee1 = bound(fee1, 0, type(uint256).max / 1e18);
@@ -107,7 +107,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         uint256 lowerBound = (poolState.totalWrapped < 1e18)
             ? uint256(type(uint128).max).mulDivUp(poolState.totalWrapped, 1e18)
             : uint256(type(uint128).max) * poolState.totalWrapped / 1e18 + poolState.totalWrapped;
-        fee1 = bound(fee1, lowerBound, type(uint256).max);
+        fee1 = bound(fee1, lowerBound + 1, type(uint256).max);
 
         // When: Calling _getFeeBalances().
         // Then: transaction reverts.

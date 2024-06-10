@@ -66,17 +66,28 @@ contract ArcadiaAccountsFixture is Base_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                   HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
+    function initMockedOracle(string memory description, int256 price) internal returns (ArcadiaOracle oracle) {
+        oracle = initMockedOracle(18, description, price);
+    }
 
-    function initMockedOracle(string memory description, int256 price) internal returns (address) {
+    function initMockedOracle(uint8 decimals, string memory description, uint256 price)
+        public
+        returns (ArcadiaOracle oracle)
+    {
+        oracle = initMockedOracle(decimals, description, int256(price));
+    }
+
+    function initMockedOracle(uint8 decimals, string memory description, int256 price)
+        public
+        returns (ArcadiaOracle oracle)
+    {
         vm.startPrank(users.oracleOwner);
-        ArcadiaOracle oracle = new ArcadiaOracle(18, description, address(0));
+        oracle = new ArcadiaOracle(uint8(decimals), description);
         oracle.setOffchainTransmitter(users.transmitter);
         vm.stopPrank();
 
         vm.prank(users.transmitter);
         oracle.transmit(price);
-
-        return address(oracle);
     }
 
     function initAndAddAsset(string memory name, string memory symbol, uint8 decimals, int256 price)
@@ -92,13 +103,13 @@ contract ArcadiaAccountsFixture is Base_Test {
     }
 
     function addAssetToArcadia(address asset, int256 price) internal virtual {
-        address oracle = initMockedOracle(string.concat(ERC20(asset).name(), " / USD"), price);
+        ArcadiaOracle oracle = initMockedOracle(string.concat(ERC20(asset).name(), " / USD"), price);
 
         vm.startPrank(users.owner);
-        chainlinkOM.addOracle(oracle, bytes16(bytes(ERC20(asset).name())), "USD", 2 days);
+        chainlinkOM.addOracle(address(oracle), bytes16(bytes(ERC20(asset).name())), "USD", 2 days);
 
         uint80[] memory oracles = new uint80[](1);
-        oracles[0] = uint80(chainlinkOM.oracleToOracleId(oracle));
+        oracles[0] = uint80(chainlinkOM.oracleToOracleId(address(oracle)));
         erc20AM.addAsset(asset, BitPackingLib.pack(BA_TO_QA_SINGLE, oracles));
         vm.stopPrank();
     }

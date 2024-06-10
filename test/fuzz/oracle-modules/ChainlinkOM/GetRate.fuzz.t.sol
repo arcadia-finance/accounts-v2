@@ -47,7 +47,7 @@ contract GetRate_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         rate = bound(rate, type(uint256).max / 10 ** (18 - decimals) + 1, type(uint256).max);
         vm.assume(rate <= uint256(type(int256).max));
 
-        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD", address(0));
+        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD");
         oracle.setOffchainTransmitter(users.transmitter);
         vm.prank(users.transmitter);
         oracle.transmit(int256(rate));
@@ -65,7 +65,7 @@ contract GetRate_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         rate = bound(rate, 0, type(uint256).max / 10 ** (18 - decimals));
         vm.assume(rate <= uint256(type(int256).max));
 
-        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD", address(0));
+        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD");
         oracle.setOffchainTransmitter(users.transmitter);
         vm.prank(users.transmitter);
         oracle.transmit(int256(rate));

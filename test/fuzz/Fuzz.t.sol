@@ -353,34 +353,4 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
         addAssetToArcadia(asset, price);
         erc20AM.setExposure(address(creditorUsd), asset, initialExposure, maxExposure);
     }
-
-    function initMockedOracle(uint8 decimals, string memory description, uint256 answer)
-        public
-        returns (ArcadiaOracle)
-    {
-        vm.startPrank(users.oracleOwner);
-        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
-        oracle.setOffchainTransmitter(users.transmitter);
-        vm.stopPrank();
-        vm.startPrank(users.transmitter);
-        int256 convertedAnswer = int256(answer);
-        oracle.transmit(convertedAnswer);
-        vm.stopPrank();
-        return oracle;
-    }
-
-    function initMockedOracle(uint8 decimals, string memory description, int256 answer)
-        public
-        returns (ArcadiaOracle)
-    {
-        vm.startPrank(users.oracleOwner);
-        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
-        oracle.setOffchainTransmitter(users.transmitter);
-        vm.stopPrank();
-
-        vm.prank(users.transmitter);
-        oracle.transmit(answer);
-
-        return oracle;
-    }
 }
