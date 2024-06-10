@@ -15,7 +15,7 @@ import { NonfungiblePositionManagerMock } from "../../../utils/mocks/Slipstream/
 import { SlipstreamAMExtension } from "../../../utils/extensions/SlipstreamAMExtension.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
-import { VoterMock } from "../../../utils/mocks/Aerodrome/VoterMock.sol";
+import { VoterMock } from "../../../utils/mocks/aerodrome/VoterMock.sol";
 
 /**
  * @notice Common logic needed by all "SlipstreamAM" fuzz tests.

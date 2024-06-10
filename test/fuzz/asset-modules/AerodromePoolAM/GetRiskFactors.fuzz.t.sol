@@ -55,10 +55,10 @@ contract GetRiskFactors_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
         vm.prank(address(registry));
         aeroPoolAM.setRiskParameters(creditor, 0, riskFactor);
 
-        // And: pool is added
-        setMockState(stable);
+        // And: aeroPool is added
+        aeroPool.setStable(stable);
         vm.prank(users.owner);
-        aeroPoolAM.addAsset(address(aeroPoolMock));
+        aeroPoolAM.addAsset(address(aeroPool));
 
         // And riskFactors are set for token0.
         vm.startPrank(address(registry));
@@ -70,7 +70,7 @@ contract GetRiskFactors_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
         // When : calling getRiskFactors()
         // Then : It should return correct values
         (uint256 collateralFactor_, uint256 liquidationFactor_) =
-            aeroPoolAM.getRiskFactors(creditor, address(aeroPoolMock), 0);
+            aeroPoolAM.getRiskFactors(creditor, address(aeroPool), 0);
         assertEq(collateralFactor_, expectedCollateralFactor);
         assertEq(liquidationFactor_, expectedLiquidationFactor);
     }

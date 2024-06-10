@@ -5,21 +5,18 @@
 pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+import { AerodromeFixture } from "../../../utils/fixtures/aerodrome/AerodromeFixture.f.sol";
 
-import { AerodromeFactoryMock } from "../../../utils/mocks/Aerodrome/AerodromeFactoryMock.sol";
 import { AerodromePoolAMExtension } from "../../../utils/extensions/AerodromePoolAMExtension.sol";
-import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
-import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { FullMath } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
-import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
-import { PoolFactory } from "../../../utils/fixtures/aerodrome/AeroPoolFactoryFixture.f.sol";
+import { Pool } from "../../../utils/mocks/aerodrome/AeroPoolMock.sol";
 
 /**
  * @notice Common logic needed by "AerodromePoolAM" fuzz tests.
  */
-abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test {
+abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
     using FixedPointMathLib for uint256;
     /*////////////////////////////////////////////////////////////////
                             CONSTANTS
@@ -51,11 +48,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     AerodromePoolAMExtension internal aeroPoolAM;
-    AerodromeFactoryMock internal aeroFactoryMock;
-    Pool internal aeroPoolMock;
-    PoolFactory internal poolFactory;
-    Pool internal pool;
-    Pool internal implementation;
+    Pool internal aeroPool;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -65,12 +58,12 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         // Deploy mocked Aerodrome contracts
-        aeroFactoryMock = new AerodromeFactoryMock();
-        aeroPoolMock = new Pool();
+        deployAerodrome();
+        aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
 
         // Deploy the Aerodrome AssetModule.
         vm.startPrank(users.owner);
-        aeroPoolAM = new AerodromePoolAMExtension(address(registry), address(aeroFactoryMock));
+        aeroPoolAM = new AerodromePoolAMExtension(address(registry), address(aeroPoolFactory));
         registry.addAssetModule(address(aeroPoolAM));
         vm.stopPrank();
     }
@@ -78,26 +71,6 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
-
-    function setMockState(bool stable) public {
-        // Given : The asset is a pool in the the Aerodrome Factory.
-        aeroFactoryMock.setPool(address(aeroPoolMock));
-
-        // Given : The asset is an Aerodrome Volatile pool.
-        aeroPoolMock.setStable(stable);
-
-        // Given : Token0 and token1 are added to the Registry
-        aeroPoolMock.setTokens(address(mockERC20.token1), address(mockERC20.stable1));
-    }
-
-    function deployAerodromeFixture(address token0, address token1, bool stable) public {
-        implementation = new Pool();
-        poolFactory = new PoolFactory(address(implementation));
-
-        address newPool = poolFactory.createPool(token0, token1, stable);
-        pool = Pool(newPool);
-    }
-
     function initAndSetValidStateInPoolFixture(TestVariables memory testVars)
         public
         returns (TestVariables memory testVars_)
@@ -108,17 +81,17 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test {
             token1 = new ERC20Mock("Token 1", "TOK1", uint8(testVars.decimals1));
         }
 
-        deployAerodromeFixture(address(token0), address(token1), testVars.stable);
+        aeroPool = createPoolAerodrome(address(token0), address(token1), testVars.stable);
 
-        // And : The tokens of the pool are added to the Arcadia protocol
+        // And : The tokens of the aeroPool are added to the Arcadia protocol
         addAssetToArcadia(address(token0), int256(testVars.priceToken0));
         addAssetToArcadia(address(token1), int256(testVars.priceToken1));
 
-        deal(address(token0), address(pool), testVars.reserve0);
-        deal(address(token1), address(pool), testVars.reserve1);
+        deal(address(token0), address(aeroPool), testVars.reserve0);
+        deal(address(token1), address(aeroPool), testVars.reserve1);
 
         // And : A first position is minted
-        testVars.liquidityAmount = pool.mint(users.accountOwner);
+        testVars.liquidityAmount = aeroPool.mint(users.accountOwner);
 
         testVars.token0 = address(token0);
         testVars.token1 = address(token1);
@@ -172,7 +145,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test {
             testVars.assetAmount = bound(testVars.assetAmount, 0, type(uint256).max / trustedReserve1);
         }
 
-        // And : assetAmount is maximum equal to pool totalSupply.
+        // And : assetAmount is maximum equal to aeroPool totalSupply.
         testVars.assetAmount = bound(testVars.assetAmount, 0, totalSupply);
 
         testVars_ = testVars;
@@ -236,7 +209,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test {
             testVars.assetAmount = bound(testVars.assetAmount, 0, type(uint256).max / trustedReserve1);
         }
 
-        // And : assetAmount is maximum equal to pool totalSupply.
+        // And : assetAmount is maximum equal to aeroPool totalSupply.
         uint256 totalSupply = FixedPointMathLib.sqrt(testVars.reserve0 * testVars.reserve1);
         testVars.assetAmount = bound(testVars.assetAmount, 0, totalSupply);
 

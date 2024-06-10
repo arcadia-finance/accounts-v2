@@ -5,20 +5,18 @@
 pragma solidity 0.8.22;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+import { AerodromeFixture } from "../../../utils/fixtures/aerodrome/AerodromeFixture.f.sol";
 
 import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
-import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
-import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
-import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
-import { PoolFactory } from "../../../utils/fixtures/aerodrome/AeroPoolFactoryFixture.f.sol";
+import { Pool } from "../../../utils/mocks/aerodrome/AeroPoolMock.sol";
 import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 import { WrappedAerodromeAMExtension } from "../../../utils/extensions/WrappedAerodromeAMExtension.sol";
 
 /**
  * @notice Common logic needed by "WrappedAerodromeAM" fuzz tests.
  */
-abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
+abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
     /*////////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -30,9 +28,7 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
     AerodromePoolAM internal aerodromePoolAM;
     ERC20Mock internal asset0;
     ERC20Mock internal asset1;
-    Pool internal pool;
-    Pool internal implementation;
-    PoolFactory internal poolFactory;
+    Pool internal aeroPool;
     WrappedAerodromeAMExtension internal wrappedAerodromeAM;
 
     /* ///////////////////////////////////////////////////////////////
@@ -42,15 +38,12 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.startPrank(users.owner);
-        // Deploy implementation of Aerodrome pool contract
-        implementation = new Pool();
-
-        // Deploy Aerodrome pool factory contract
-        poolFactory = new PoolFactory(address(implementation));
+        // Deploy mocked Aerodrome contracts
+        deployAerodrome();
 
         // Deploy Aerodrome AM.
-        aerodromePoolAM = new AerodromePoolAM(address(registry), address(poolFactory));
+        vm.startPrank(users.owner);
+        aerodromePoolAM = new AerodromePoolAM(address(registry), address(aeroPoolFactory));
         registry.addAssetModule(address(aerodromePoolAM));
 
         // Deploy WrappedAerodromeAM.
@@ -59,7 +52,7 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
         wrappedAerodromeAM.initialize();
         vm.stopPrank();
 
-        // Create a pool where both assets have a a usd value equal to their amount.
+        // Create a aeroPool where both assets have a a usd value equal to their amount.
         asset0 = new ERC20Mock("Asset 0", "ASSET0", 18);
         asset1 = new ERC20Mock("Asset 1", "ASSET1", 18);
         addAssetToArcadia(address(asset0), 1e18);
@@ -69,13 +62,6 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
-    function deployAerodromePoolFixture(address token0, address token1, bool stable) public {
-        pool = Pool(poolFactory.createPool(token0, token1, stable));
-
-        vm.prank(users.owner);
-        aerodromePoolAM.addAsset(address(pool));
-    }
-
     function givenValidAMState(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,

@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
 
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
-import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
+import { Pool } from "../../../utils/mocks/aerodrome/AeroPoolMock.sol";
 import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 /**
@@ -35,8 +35,8 @@ contract GetUnderlyingAssetsAmounts_WrappedAerodromeAM_Fuzz_Test is WrappedAerod
         uint96 positionId,
         uint256 amount
     ) public {
-        // Given : Valid pool.
-        pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
+        // Given : Valid aeroPool.
+        aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
 
         // And : amount is greater than zero.
         amount = bound(amount, 1, type(uint256).max);
@@ -45,16 +45,16 @@ contract GetUnderlyingAssetsAmounts_WrappedAerodromeAM_Fuzz_Test is WrappedAerod
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
 
         // And: State is persisted.
-        setAMState(pool, positionId, poolState, positionState);
-        pool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
-        deal(pool.token0(), pool.poolFees(), fee0, true);
-        deal(pool.token1(), pool.poolFees(), fee1, true);
+        setAMState(aeroPool, positionId, poolState, positionState);
+        aeroPool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
+        deal(aeroPool.token0(), aeroPool.poolFees(), fee0, true);
+        deal(aeroPool.token1(), aeroPool.poolFees(), fee1, true);
 
         bytes32 assetKey = wrappedAerodromeAM.getKeyFromAsset(address(wrappedAerodromeAM), positionId);
         bytes32[] memory underlyingAssetKeys = new bytes32[](3);
-        underlyingAssetKeys[0] = wrappedAerodromeAM.getKeyFromAsset(address(pool), 0);
-        underlyingAssetKeys[1] = wrappedAerodromeAM.getKeyFromAsset(address(pool.token0()), 0);
-        underlyingAssetKeys[2] = wrappedAerodromeAM.getKeyFromAsset(address(pool.token1()), 0);
+        underlyingAssetKeys[0] = wrappedAerodromeAM.getKeyFromAsset(address(aeroPool), 0);
+        underlyingAssetKeys[1] = wrappedAerodromeAM.getKeyFromAsset(address(aeroPool.token0()), 0);
+        underlyingAssetKeys[2] = wrappedAerodromeAM.getKeyFromAsset(address(aeroPool.token1()), 0);
 
         // When : Calling getUnderlyingAssetsAmounts.
         (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
@@ -78,18 +78,18 @@ contract GetUnderlyingAssetsAmounts_WrappedAerodromeAM_Fuzz_Test is WrappedAerod
         uint256 fee1,
         uint96 positionId
     ) public {
-        // Given : Valid pool.
-        pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
+        // Given : Valid aeroPool.
+        aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
 
         // And: State is persisted.
-        setAMState(pool, positionId, poolState, positionState);
-        pool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
+        setAMState(aeroPool, positionId, poolState, positionState);
+        aeroPool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
 
         bytes32 assetKey = wrappedAerodromeAM.getKeyFromAsset(address(wrappedAerodromeAM), positionId);
         bytes32[] memory underlyingAssetKeys = new bytes32[](3);
-        underlyingAssetKeys[0] = wrappedAerodromeAM.getKeyFromAsset(address(pool), 0);
-        underlyingAssetKeys[1] = wrappedAerodromeAM.getKeyFromAsset(address(pool.token0()), 0);
-        underlyingAssetKeys[2] = wrappedAerodromeAM.getKeyFromAsset(address(pool.token1()), 0);
+        underlyingAssetKeys[0] = wrappedAerodromeAM.getKeyFromAsset(address(aeroPool), 0);
+        underlyingAssetKeys[1] = wrappedAerodromeAM.getKeyFromAsset(address(aeroPool.token0()), 0);
+        underlyingAssetKeys[2] = wrappedAerodromeAM.getKeyFromAsset(address(aeroPool.token1()), 0);
 
         // When : Calling getUnderlyingAssetsAmounts.
         (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =

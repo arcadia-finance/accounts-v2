@@ -32,7 +32,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
     function testFuzz_Revert_getUnderlyingAssetsAmounts_Volatile_OverflowReserve0(TestVariables memory testVars)
         public
     {
-        // Given : pool is volatile.
+        // Given : aeroPool is volatile.
         testVars.stable = false;
 
         // And : decimals should be max equal to 18
@@ -62,7 +62,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // Only happens with absurdly big reserve1 and p1 -> USD value exceeding type(uint256).max.
         vm.assume(k / p0 > type(uint256).max / p1);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
@@ -77,7 +77,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
     function testFuzz_Revert_getUnderlyingAssetsAmounts_Volatile_OverflowUnderlyingAssetAmount0(
         TestVariables memory testVars
     ) public {
-        // Given : pool is volatile.
+        // Given : aeroPool is volatile.
         testVars.stable = false;
 
         // And : decimals should be max equal to 18
@@ -111,7 +111,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         vm.assume(trustedReserve0 > 1);
         testVars.assetAmount = bound(testVars.assetAmount, type(uint256).max / trustedReserve0 + 1, type(uint256).max);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
@@ -126,7 +126,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
     function testFuzz_Revert_getUnderlyingAssetsAmounts_Volatile_OverflowUnderlyingAssetAmount1(
         TestVariables memory testVars
     ) public {
-        // Given : pool is volatile.
+        // Given : aeroPool is volatile.
         testVars.stable = false;
 
         // And : decimals should be max equal to 18
@@ -161,7 +161,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         vm.assume(trustedReserve1 > 1);
         testVars.assetAmount = bound(testVars.assetAmount, type(uint256).max / trustedReserve1 + 1, type(uint256).max);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
@@ -187,19 +187,18 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And reserves are increased to that k reverts.
         reserve0_ = bound(reserve0_, 15_511_800_965 * 10 ** testVars.decimals0, type(uint256).max);
         reserve1_ = bound(reserve1_, 15_511_800_965 * 10 ** testVars.decimals1, type(uint256).max);
-        stdstore.target(address(pool)).sig(pool.reserve0.selector).checked_write(reserve0_);
-        stdstore.target(address(pool)).sig(pool.reserve1.selector).checked_write(reserve1_);
+        stdstore.target(address(aeroPool)).sig(aeroPool.reserve0.selector).checked_write(reserve0_);
+        stdstore.target(address(aeroPool)).sig(aeroPool.reserve1.selector).checked_write(reserve1_);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
 
         // And : Pool is added to the AM
-        aeroFactoryMock.setPool(address(pool));
         vm.prank(users.owner);
-        aeroPoolAM.addAsset(address(pool));
+        aeroPoolAM.addAsset(address(aeroPool));
 
         // When : Calling getUnderlyingAssetsAmounts()
         // Then: It should revert
@@ -208,7 +207,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
     }
 
     function testFuzz_Revert_getUnderlyingAssetsAmounts_Stable_COverflows(TestVariables memory testVars) public {
-        // Given : pool is stable.
+        // Given : aeroPool is stable.
         testVars.stable = true;
 
         // And : decimals should be max equal to 18.
@@ -248,16 +247,16 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
 
         // And : Pool is added to the AM
-        aeroFactoryMock.setPool(address(pool));
+
         vm.prank(users.owner);
-        aeroPoolAM.addAsset(address(pool));
+        aeroPoolAM.addAsset(address(aeroPool));
 
         // When : Calling getUnderlyingAssetsAmounts()
         // Then: It should revert
@@ -266,7 +265,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
     }
 
     function testFuzz_Revert_getUnderlyingAssetsAmounts_Stable_DOverflows(TestVariables memory testVars) public {
-        // Given : pool is stable.
+        // Given : aeroPool is stable.
         testVars.stable = true;
 
         // And : decimals should be max equal to 18.
@@ -309,16 +308,16 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
 
         // And : Pool is added to the AM
-        aeroFactoryMock.setPool(address(pool));
+
         vm.prank(users.owner);
-        aeroPoolAM.addAsset(address(pool));
+        aeroPoolAM.addAsset(address(aeroPool));
 
         // When : Calling getUnderlyingAssetsAmounts()
         // Then: It should revert
@@ -327,7 +326,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
     }
 
     function testFuzz_Revert_getUnderlyingAssetsAmounts_Stable_XOverflows(TestVariables memory testVars) public {
-        // Given : pool is stable.
+        // Given : aeroPool is stable.
         testVars.stable = true;
 
         // And : decimals should be max equal to 18.
@@ -369,16 +368,16 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
 
         // And : Pool is added to the AM
-        aeroFactoryMock.setPool(address(pool));
+
         vm.prank(users.owner);
-        aeroPoolAM.addAsset(address(pool));
+        aeroPoolAM.addAsset(address(aeroPool));
 
         // When : Calling getUnderlyingAssetsAmounts()
         // Then: It should revert
@@ -389,7 +388,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
     function testFuzz_Revert_getUnderlyingAssetsAmounts_Stable_OverflowUnderlyingAssetAmount0(
         TestVariables memory testVars
     ) public {
-        // Given : pool is stable.
+        // Given : aeroPool is stable.
         testVars.stable = true;
 
         // And : decimals should be max equal to 18.
@@ -437,16 +436,16 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
 
         // And : Pool is added to the AM
-        aeroFactoryMock.setPool(address(pool));
+
         vm.prank(users.owner);
-        aeroPoolAM.addAsset(address(pool));
+        aeroPoolAM.addAsset(address(aeroPool));
 
         // When : Calling getUnderlyingAssetsAmounts()
         // Then: It should revert
@@ -457,7 +456,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
     function testFuzz_Revert_getUnderlyingAssetsAmounts_Stable_OverflowUnderlyingAssetAmount1(
         TestVariables memory testVars
     ) public {
-        // Given : pool is stable.
+        // Given : aeroPool is stable.
         testVars.stable = true;
 
         // And : decimals should be max equal to 18.
@@ -510,16 +509,16 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
 
         // And : Pool is added to the AM
-        aeroFactoryMock.setPool(address(pool));
+
         vm.prank(users.owner);
-        aeroPoolAM.addAsset(address(pool));
+        aeroPoolAM.addAsset(address(aeroPool));
 
         // When : Calling getUnderlyingAssetsAmounts()
         // Then: It should revert
@@ -537,7 +536,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
@@ -568,7 +567,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
@@ -602,7 +601,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         uint256[] memory underlyingAssetsAmounts;
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
         {
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
             bytes32[] memory underlyingAssetKeys = new bytes32[](2);
             underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
@@ -615,7 +614,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         }
 
         uint256 k = uint256(testVars.reserve0) * testVars.reserve1;
-        (uint256 reserve0_, uint256 reserve1_,) = pool.getReserves();
+        (uint256 reserve0_, uint256 reserve1_,) = aeroPool.getReserves();
         assertEq(k, reserve0_ * reserve1_);
 
         uint256 trustedReserve0 = FixedPointMathLib.sqrt(
@@ -627,8 +626,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         );
 
         // Then : It should return the correct values
-        assertEq(underlyingAssetsAmounts[0], trustedReserve0.mulDivDown(testVars.assetAmount, pool.totalSupply()));
-        assertEq(underlyingAssetsAmounts[1], trustedReserve1.mulDivDown(testVars.assetAmount, pool.totalSupply()));
+        assertEq(underlyingAssetsAmounts[0], trustedReserve0.mulDivDown(testVars.assetAmount, aeroPool.totalSupply()));
+        assertEq(underlyingAssetsAmounts[1], trustedReserve1.mulDivDown(testVars.assetAmount, aeroPool.totalSupply()));
 
         (uint256 token0Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
         (uint256 token1Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
@@ -660,7 +659,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
             }
         }
 
-        // And: k-value of the pool with trustedReserves remains the same.
+        // And: k-value of the aeroPool with trustedReserves remains the same.
         // For very low reserves, a rounding error already invalidates the assertions.
         // "assertApproxEqRel()" should not overflow.
         uint256 kNew = trustedReserve0 * trustedReserve1;
@@ -686,7 +685,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         uint256[] memory underlyingAssetsAmounts;
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
         {
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
             bytes32[] memory underlyingAssetKeys = new bytes32[](2);
             underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
@@ -699,7 +698,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         }
 
         uint256 k = uint256(testVars.reserve0) * testVars.reserve1;
-        (uint256 reserve0_, uint256 reserve1_,) = pool.getReserves();
+        (uint256 reserve0_, uint256 reserve1_,) = aeroPool.getReserves();
         assertEq(k, reserve0_ * reserve1_);
 
         uint256 trustedReserve0 = FixedPointMathLib.sqrt(
@@ -711,8 +710,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         );
 
         // Then : It should return the correct values
-        assertEq(underlyingAssetsAmounts[0], trustedReserve0.mulDivDown(testVars.assetAmount, pool.totalSupply()));
-        assertEq(underlyingAssetsAmounts[1], trustedReserve1.mulDivDown(testVars.assetAmount, pool.totalSupply()));
+        assertEq(underlyingAssetsAmounts[0], trustedReserve0.mulDivDown(testVars.assetAmount, aeroPool.totalSupply()));
+        assertEq(underlyingAssetsAmounts[1], trustedReserve1.mulDivDown(testVars.assetAmount, aeroPool.totalSupply()));
 
         (uint256 token0Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
         (uint256 token1Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
@@ -720,7 +719,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, token0Value);
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
 
-        // And: k-value of the pool with trustedReserves should be strictly smaller.
+        // And: k-value of the aeroPool with trustedReserves should be strictly smaller.
         // All errors due to precision loss should always underestimate k.
         uint256 kNew = trustedReserve0 * trustedReserve1;
         assertGe(k, kNew);
@@ -736,7 +735,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
@@ -767,7 +766,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
@@ -802,16 +801,16 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
         uint256 k;
         {
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
             bytes32[] memory underlyingAssetKeys = new bytes32[](2);
             underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
             underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
 
             // And : Pool is added to the AM
-            aeroFactoryMock.setPool(address(pool));
+
             vm.prank(users.owner);
-            aeroPoolAM.addAsset(address(pool));
+            aeroPoolAM.addAsset(address(aeroPool));
 
             // When : Calling getUnderlyingAssetsAmounts()
             (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) = aeroPoolAM.getUnderlyingAssetsAmounts(
@@ -838,8 +837,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         );
 
         // Then : It should return the correct values
-        assertEq(underlyingAssetsAmounts[0], trustedReserve0.mulDivDown(testVars.assetAmount, pool.totalSupply()));
-        assertEq(underlyingAssetsAmounts[1], trustedReserve1.mulDivDown(testVars.assetAmount, pool.totalSupply()));
+        assertEq(underlyingAssetsAmounts[0], trustedReserve0.mulDivDown(testVars.assetAmount, aeroPool.totalSupply()));
+        assertEq(underlyingAssetsAmounts[1], trustedReserve1.mulDivDown(testVars.assetAmount, aeroPool.totalSupply()));
 
         (uint256 token0Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
         (uint256 token1Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
@@ -871,7 +870,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
             }
         }
 
-        // And: k-value of the pool with trustedReserves remains the same.
+        // And: k-value of the aeroPool with trustedReserves remains the same.
         // For very low reserves, a rounding error already invalidates the assertions.
         uint256 kNew = getK(trustedReserve0, trustedReserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
         if (k > type(uint256).max / 1e18) {
@@ -898,16 +897,16 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
         uint256 k;
         {
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
             bytes32[] memory underlyingAssetKeys = new bytes32[](2);
             underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
             underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
 
             // And : Pool is added to the AM
-            aeroFactoryMock.setPool(address(pool));
+
             vm.prank(users.owner);
-            aeroPoolAM.addAsset(address(pool));
+            aeroPoolAM.addAsset(address(aeroPool));
 
             // When : Calling getUnderlyingAssetsAmounts()
             (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) = aeroPoolAM.getUnderlyingAssetsAmounts(
@@ -930,8 +929,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         );
 
         // Then : It should return the correct values
-        assertEq(underlyingAssetsAmounts[0], trustedReserve0.mulDivDown(testVars.assetAmount, pool.totalSupply()));
-        assertEq(underlyingAssetsAmounts[1], trustedReserve1.mulDivDown(testVars.assetAmount, pool.totalSupply()));
+        assertEq(underlyingAssetsAmounts[0], trustedReserve0.mulDivDown(testVars.assetAmount, aeroPool.totalSupply()));
+        assertEq(underlyingAssetsAmounts[1], trustedReserve1.mulDivDown(testVars.assetAmount, aeroPool.totalSupply()));
 
         (uint256 token0Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token0, 0, 1e18);
         (uint256 token1Value,,) = erc20AM.getValue(address(creditorUsd), testVars.token1, 0, 1e18);
@@ -939,7 +938,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, token0Value);
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
 
-        // And: k-value of the pool with trustedReserves should be strictly smaller.
+        // And: k-value of the aeroPool with trustedReserves should be strictly smaller.
         // All errors due to precision loss should always underestimate k.
         uint256 kNew = getK(trustedReserve0, trustedReserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
         assertGe(k, kNew);
@@ -956,31 +955,31 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
             token1 = new ERC20Mock("Token 1", "TOK1", 6);
         }
 
-        deployAerodromeFixture(address(token0), address(token1), false);
+        aeroPool = createPoolAerodrome(address(token0), address(token1), false);
 
-        // And : The tokens of the pool are added to the Arcadia protocol with price 1e18
+        // And : The tokens of the aeroPool are added to the Arcadia protocol with price 1e18
         addAssetToArcadia(address(token0), int256(1e18));
         addAssetToArcadia(address(token1), int256(1e18));
 
-        deal(address(token0), address(pool), initReserve0);
-        deal(address(token1), address(pool), initReserve1);
+        deal(address(token0), address(aeroPool), initReserve0);
+        deal(address(token1), address(aeroPool), initReserve1);
 
         // And : A first position is minted
-        pool.mint(users.accountOwner);
+        aeroPool.mint(users.accountOwner);
 
         uint256 amount0In = 990_999 * 1e18;
-        uint256 amount1Out = pool.getAmountOut(amount0In, address(token0));
+        uint256 amount1Out = aeroPool.getAmountOut(amount0In, address(token0));
 
         // And : We swap tokens (but do not change relative price)
         deal(address(token0), users.accountOwner, amount0In);
         vm.prank(users.accountOwner);
-        token0.transfer(address(pool), amount0In);
+        token0.transfer(address(aeroPool), amount0In);
 
-        pool.swap(0, amount1Out, users.accountOwner, "");
+        aeroPool.swap(0, amount1Out, users.accountOwner, "");
 
-        (uint256 reserve0_, uint256 reserve1_,) = pool.getReserves();
+        (uint256 reserve0_, uint256 reserve1_,) = aeroPool.getReserves();
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), address(token0)));
@@ -1023,37 +1022,37 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
             while (token1 < token0) {
                 token1 = new ERC20Mock("Token 1", "TOK1", decimals1);
             }
-            deployAerodromeFixture(address(token0), address(token1), true);
+            aeroPool = createPoolAerodrome(address(token0), address(token1), true);
 
-            // And : The tokens of the pool are added to the Arcadia protocol with price of 1
+            // And : The tokens of the aeroPool are added to the Arcadia protocol with price of 1
             addAssetToArcadia(address(token0), int256(1e18));
             addAssetToArcadia(address(token1), int256(1e18));
 
-            deal(address(token0), address(pool), initReserve0);
-            deal(address(token1), address(pool), initReserve1);
+            deal(address(token0), address(aeroPool), initReserve0);
+            deal(address(token1), address(aeroPool), initReserve1);
 
             // And : A first position is minted
-            pool.mint(users.accountOwner);
+            aeroPool.mint(users.accountOwner);
 
-            // And : Add the pool to the AM
-            aeroFactoryMock.setPool(address(pool));
+            // And : Add the aeroPool to the AM
+
             vm.prank(users.owner);
-            aeroPoolAM.addAsset(address(pool));
+            aeroPoolAM.addAsset(address(aeroPool));
 
-            (reserve0_, reserve1_,) = pool.getReserves();
+            (reserve0_, reserve1_,) = aeroPool.getReserves();
 
             uint256 amount0In = 10_000 * 10 ** decimals0;
-            uint256 amount1Out = pool.getAmountOut(amount0In, address(token0));
+            uint256 amount1Out = aeroPool.getAmountOut(amount0In, address(token0));
 
             // And : We swap tokens (but do not change relative price)
             deal(address(token0), users.accountOwner, amount0In);
             vm.startPrank(users.accountOwner);
-            token0.transfer(address(pool), amount0In);
+            token0.transfer(address(aeroPool), amount0In);
 
-            pool.swap(0, amount1Out, users.accountOwner, "");
+            aeroPool.swap(0, amount1Out, users.accountOwner, "");
             vm.stopPrank();
 
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pool)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
             bytes32[] memory underlyingAssetKeys = new bytes32[](2);
             underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), address(token0)));
@@ -1063,7 +1062,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
                 aeroPoolAM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 100, underlyingAssetKeys);
         }
 
-        (reserve0_, reserve1_,) = pool.getReserves();
+        (reserve0_, reserve1_,) = aeroPool.getReserves();
 
         // x = ∜[k(r0, r1) * p1³ / (p0 * p1² + p0³)].
         uint256 trustedReserve0;

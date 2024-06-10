@@ -8,7 +8,7 @@ import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
+import { Pool } from "../../../utils/mocks/aerodrome/AeroPoolMock.sol";
 import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 /**
@@ -37,8 +37,8 @@ contract FeesOf_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
         uint256 fee1,
         bool stable
     ) public {
-        // Given : Valid pool
-        pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
+        // Given : Valid aeroPool
+        aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
 
         // Given : Valid state
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
@@ -47,8 +47,8 @@ contract FeesOf_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
         vm.assume(positionState.amountWrapped > 0);
 
         // And: State is persisted.
-        setAMState(pool, positionId, poolState, positionState);
-        pool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
+        setAMState(aeroPool, positionId, poolState, positionState);
+        aeroPool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
 
         // When : Calling feesOf()
         (uint256 fee0_, uint256 fee1_) = wrappedAerodromeAM.feesOf(positionId);
