@@ -342,6 +342,18 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
                                       HELPERS
     //////////////////////////////////////////////////////////////////////////*/
 
+    function addAssetToArcadia(address asset, int256 price) internal override {
+        super.addAssetToArcadia(asset, price);
+
+        vm.prank(users.riskManager);
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), asset, 0, type(uint112).max, 80, 90);
+    }
+
+    function addAssetToArcadia(address asset, int256 price, uint112 initialExposure, uint112 maxExposure) internal {
+        addAssetToArcadia(asset, price);
+        erc20AM.setExposure(address(creditorUsd), asset, initialExposure, maxExposure);
+    }
+
     function initMockedOracle(uint8 decimals, string memory description, uint256 answer)
         public
         returns (ArcadiaOracle)
@@ -353,14 +365,6 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
         vm.startPrank(users.transmitter);
         int256 convertedAnswer = int256(answer);
         oracle.transmit(convertedAnswer);
-        vm.stopPrank();
-        return oracle;
-    }
-
-    function initMockedOracle(uint8 decimals, string memory description) public returns (ArcadiaOracle) {
-        vm.startPrank(users.oracleOwner);
-        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
-        oracle.setOffchainTransmitter(users.transmitter);
         vm.stopPrank();
         return oracle;
     }
@@ -378,59 +382,5 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
         oracle.transmit(answer);
 
         return oracle;
-    }
-
-    function transmitOracle(ArcadiaOracle oracle, int256 answer, address transmitter) public {
-        vm.startPrank(transmitter);
-        oracle.transmit(answer);
-        vm.stopPrank();
-    }
-
-    function transmitOracle(ArcadiaOracle oracle, int256 answer) public {
-        vm.startPrank(users.transmitter);
-        oracle.transmit(answer);
-        vm.stopPrank();
-    }
-
-    function depositTokenInAccount(AccountV1 account_, ERC20Mock token, uint256 amount) public {
-        address[] memory assets = new address[](1);
-        assets[0] = address(token);
-
-        uint256[] memory ids = new uint256[](1);
-        ids[0] = 0;
-
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
-
-        deal(address(token), account_.owner(), amount);
-        vm.startPrank(account_.owner());
-        token.approve(address(account_), amount);
-        account_.deposit(assets, ids, amounts);
-        vm.stopPrank();
-    }
-
-    function mintERC20TokenTo(address token, address to, uint256 amount) public {
-        ERC20Mock(token).mint(to, amount);
-    }
-
-    function mintERC20TokensTo(address[] memory tokens, address to, uint256[] memory amounts) public {
-        for (uint8 i = 0; i < tokens.length; ++i) {
-            ERC20Mock(tokens[i]).mint(to, amounts[i]);
-        }
-    }
-
-    function approveERC20TokenFor(address token, address spender, uint256 amount, address user) public {
-        vm.prank(user);
-        ERC20Mock(token).approve(spender, amount);
-    }
-
-    function approveERC20TokensFor(address[] memory tokens, address spender, uint256[] memory amounts, address user)
-        public
-    {
-        vm.startPrank(user);
-        for (uint8 i = 0; i < tokens.length; ++i) {
-            ERC20Mock(tokens[i]).approve(spender, amounts[i]);
-        }
-        vm.stopPrank();
     }
 }

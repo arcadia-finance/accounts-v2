@@ -124,9 +124,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
                     / 10 ** (Constants.tokenOracleDecimals - token2Decimals)
         );
 
-        ArcadiaOracle oracle = initMockedOracle(0, "LINK / USD");
-        vm.prank(users.transmitter);
-        oracle.transmit(0);
+        ArcadiaOracle oracle = initMockedOracle(uint8(0), "LINK / USD", int256(0));
         vm.startPrank(users.owner);
         mockERC20.token2 = new ERC20Mock("TOKEN2", "T2", token2Decimals);
 

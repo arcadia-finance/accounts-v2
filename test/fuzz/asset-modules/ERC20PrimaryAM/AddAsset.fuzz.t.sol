@@ -60,9 +60,7 @@ contract AddAsset_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
     }
 
     function testFuzz_Revert_addAsset_MoreThan18Decimals() public {
-        ArcadiaOracle oracle = initMockedOracle(0, "ASSET / USD");
-        vm.prank(users.transmitter);
-        oracle.transmit(0);
+        ArcadiaOracle oracle = initMockedOracle(uint8(0), "ASSET / USD", int256(0));
         vm.prank(users.tokenCreator);
         ERC20Mock asset = new ERC20Mock("ASSET", "ASSET", 19);
         vm.prank(users.owner);

@@ -67,7 +67,7 @@ contract ArcadiaAccountsFixture is Base_Test {
                                   HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    function initMockedOracle(string memory description, int256 price) public returns (address) {
+    function initMockedOracle(string memory description, int256 price) internal returns (address) {
         vm.startPrank(users.oracleOwner);
         ArcadiaOracle oracle = new ArcadiaOracle(18, description, address(0));
         oracle.setOffchainTransmitter(users.transmitter);
@@ -80,18 +80,18 @@ contract ArcadiaAccountsFixture is Base_Test {
     }
 
     function initAndAddAsset(string memory name, string memory symbol, uint8 decimals, int256 price)
-        public
+        internal
         returns (address)
     {
         vm.prank(users.tokenCreator);
         ERC20Mock asset = new ERC20Mock(name, symbol, decimals);
 
-        AddAsset(address(asset), price);
+        addAssetToArcadia(address(asset), price);
 
         return address(asset);
     }
 
-    function AddAsset(address asset, int256 price) public {
+    function addAssetToArcadia(address asset, int256 price) internal virtual {
         address oracle = initMockedOracle(string.concat(ERC20(asset).name(), " / USD"), price);
 
         vm.startPrank(users.owner);
@@ -100,6 +100,23 @@ contract ArcadiaAccountsFixture is Base_Test {
         uint80[] memory oracles = new uint80[](1);
         oracles[0] = uint80(chainlinkOM.oracleToOracleId(oracle));
         erc20AM.addAsset(asset, BitPackingLib.pack(BA_TO_QA_SINGLE, oracles));
+        vm.stopPrank();
+    }
+
+    function depositERC20InAccount(AccountV1 account_, ERC20Mock token, uint256 amount) public {
+        address[] memory assets = new address[](1);
+        assets[0] = address(token);
+
+        uint256[] memory ids = new uint256[](1);
+        ids[0] = 0;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amount;
+
+        deal(address(token), account_.owner(), amount);
+        vm.startPrank(account_.owner());
+        token.approve(address(account_), amount);
+        account_.deposit(assets, ids, amounts);
         vm.stopPrank();
     }
 }

@@ -62,44 +62,18 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test {
         // Create a pool where both assets have a a usd value equal to their amount.
         asset0 = new ERC20Mock("Asset 0", "ASSET0", 18);
         asset1 = new ERC20Mock("Asset 1", "ASSET1", 18);
-        addUnderlyingTokenToArcadia(address(asset0));
-        addUnderlyingTokenToArcadia(address(asset1));
+        addAssetToArcadia(address(asset0), 1e18);
+        addAssetToArcadia(address(asset1), 1e18);
     }
 
     /* ///////////////////////////////////////////////////////////////
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
-    modifier notTestContracts2(address fuzzedAddress) {
-        vm.assume(fuzzedAddress != address(aerodromePoolAM));
-        vm.assume(fuzzedAddress != address(asset0));
-        vm.assume(fuzzedAddress != address(asset1));
-        vm.assume(fuzzedAddress != address(implementation));
-        vm.assume(fuzzedAddress != address(poolFactory));
-        vm.assume(fuzzedAddress != address(wrappedAerodromeAM));
-        _;
-    }
-
     function deployAerodromePoolFixture(address token0, address token1, bool stable) public {
         pool = Pool(poolFactory.createPool(token0, token1, stable));
 
         vm.prank(users.owner);
         aerodromePoolAM.addAsset(address(pool));
-    }
-
-    function addUnderlyingTokenToArcadia(address token) internal {
-        ArcadiaOracle oracle = initMockedOracle(18, "Token / USD");
-        address[] memory oracleArr = new address[](1);
-        oracleArr[0] = address(oracle);
-
-        vm.prank(users.transmitter);
-        oracle.transmit(1e18);
-        vm.startPrank(users.owner);
-        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD", 2 days));
-        uint80[] memory oracleAssetToUsdArr = new uint80[](1);
-        oracleAssetToUsdArr[0] = oracleId;
-
-        erc20AM.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
-        vm.stopPrank();
     }
 
     function givenValidAMState(

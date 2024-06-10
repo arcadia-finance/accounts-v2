@@ -177,8 +177,8 @@ contract ProcessIndirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         }
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
-        addUnderlyingTokenToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
+        addAssetToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
+        addAssetToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
 
         {
             // And: usd exposure to protocol below max usd exposure.
@@ -284,8 +284,8 @@ contract ProcessIndirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         }
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
-        addUnderlyingTokenToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
+        addAssetToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
+        addAssetToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
 
         {
             // And: usd exposure to protocol below max usd exposure.
@@ -392,8 +392,8 @@ contract ProcessIndirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
             }
 
             // Add underlying tokens and its oracles to Arcadia.
-            addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
-            addUnderlyingTokenToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
+            addAssetToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
+            addAssetToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
 
             {
                 // And: usd exposure to protocol below max usd exposure.

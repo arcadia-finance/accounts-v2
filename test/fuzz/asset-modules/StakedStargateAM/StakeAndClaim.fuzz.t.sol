@@ -28,7 +28,7 @@ contract StakeAndClaim_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test 
         address poolLpToken = address(new ERC20Mock("stakingToken", "STK", 0));
 
         // And: Tokens are transfered directly to the AM (transferFrom happens in external stake() and is covered by our testing of the staking module).
-        mintERC20TokenTo(poolLpToken, address(stakedStargateAM), amount);
+        deal(poolLpToken, address(stakedStargateAM), amount, true);
 
         // And : Pool token is set for specific pool id in the LPStaking contract.
         lpStakingTimeMock.setInfoForPoolId(pid, 0, poolLpToken);

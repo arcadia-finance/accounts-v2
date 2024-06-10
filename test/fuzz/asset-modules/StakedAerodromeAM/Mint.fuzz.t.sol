@@ -33,25 +33,20 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
         stakedAerodromeAM.mint(asset, 0);
     }
 
-    function testFuzz_Revert_mint_AssetNotAllowed(uint8 assetDecimals, uint128 amount, address account) public {
+    function testFuzz_Revert_mint_AssetNotAllowed(uint8 assetDecimals, uint128 amount, address account_) public {
         // Given : Amount is greater than zero
         vm.assume(amount > 0);
 
         assetDecimals = uint8(bound(assetDecimals, 0, 18));
         address asset = address(new ERC20Mock("Asset", "AST", assetDecimals));
 
-        address[] memory tokens = new address[](1);
-        tokens[0] = asset;
-
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
-
-        mintERC20TokensTo(tokens, account, amounts);
-        approveERC20TokensFor(tokens, address(stakedAerodromeAM), amounts, account);
+        deal(asset, account_, amount, true);
+        vm.prank(account_);
+        ERC20Mock(asset).approve(address(stakedAerodromeAM), amount);
 
         // When : Calling Stake
         // Then : The function should revert as the asset has not been added to the stakedAerodromeAM.
-        vm.prank(account);
+        vm.prank(account_);
         vm.expectRevert(StakingAM.AssetNotAllowed.selector);
         stakedAerodromeAM.mint(asset, amount);
     }
@@ -59,19 +54,19 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
     function testFuzz_Success_mint_TotalStakedForAssetGreaterThan0(
         AbstractStakingAM_Fuzz_Test.StakingAMStateForAsset memory assetState,
         uint128 amount,
-        address account
-    ) public canReceiveERC721(account) {
-        vm.assume(account != address(0));
+        address account_
+    ) public canReceiveERC721(account_) {
+        vm.assume(account_ != address(0));
 
         // Given : the pool is allowed in the Registry
         deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
-        vm.assume(account != address(pool));
-        vm.assume(account != pool.poolFees());
+        vm.assume(account_ != address(pool));
+        vm.assume(account_ != pool.poolFees());
 
         // Given : Valid gauge
         deployAerodromeGaugeFixture(address(pool), AERO);
-        vm.assume(account != address(gauge));
-        vm.assume(account != address(voter));
+        vm.assume(account_ != address(gauge));
+        vm.assume(account_ != address(voter));
 
         // And : Add asset and gauge to the AM
         stakedAerodromeAM.addAsset(address(gauge));
@@ -89,12 +84,13 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
             vm.assume(assetState.totalStaked < type(uint128).max);
             amount = uint128(bound(amount, 1, type(uint128).max - assetState.totalStaked));
 
-            deal(address(pool), account, amount);
-            approveERC20TokenFor(address(pool), address(stakedAerodromeAM), amount, account);
+            deal(address(pool), account_, amount);
+            vm.prank(account_);
+            ERC20Mock(address(pool)).approve(address(stakedAerodromeAM), amount);
         }
 
         // When:  A user is staking via the Staking Module.
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.LiquidityIncreased(1, address(pool), amount);
         uint256 positionId = stakedAerodromeAM.mint(address(pool), amount);
@@ -103,7 +99,7 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
         assertEq(gauge.balanceOf(address(stakedAerodromeAM)), amount);
 
         // And: New position has been minted to Account.
-        assertEq(stakedAerodromeAM.ownerOf(positionId), account);
+        assertEq(stakedAerodromeAM.ownerOf(positionId), account_);
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
@@ -135,19 +131,19 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
     function testFuzz_Success_mint_TotalStakedForAssetIsZero(
         StakingAMStateForAsset memory assetState,
         uint128 amount,
-        address account
-    ) public canReceiveERC721(account) {
-        vm.assume(account != address(0));
+        address account_
+    ) public canReceiveERC721(account_) {
+        vm.assume(account_ != address(0));
 
         // Given : the pool is allowed in the Registry
         deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
-        vm.assume(account != address(pool));
-        vm.assume(account != pool.poolFees());
+        vm.assume(account_ != address(pool));
+        vm.assume(account_ != pool.poolFees());
 
         // Given : Valid gauge
         deployAerodromeGaugeFixture(address(pool), AERO);
-        vm.assume(account != address(gauge));
-        vm.assume(account != address(voter));
+        vm.assume(account_ != address(gauge));
+        vm.assume(account_ != address(voter));
 
         // And : Add asset and gauge to the AM
         stakedAerodromeAM.addAsset(address(gauge));
@@ -166,11 +162,12 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
         amount = uint128(bound(amount, 1, type(uint128).max));
 
         // And : Account has a balanceOf pool LP tokens
-        deal(address(pool), account, amount);
-        approveERC20TokenFor(address(pool), address(stakedAerodromeAM), amount, account);
+        deal(address(pool), account_, amount);
+        vm.prank(account_);
+        ERC20Mock(address(pool)).approve(address(stakedAerodromeAM), amount);
 
         // When: A user is staking via the Staking Module.
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.LiquidityIncreased(1, address(pool), amount);
         uint256 positionId = stakedAerodromeAM.mint(address(pool), amount);
@@ -179,7 +176,7 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
         assertEq(gauge.balanceOf(address(stakedAerodromeAM)), amount);
 
         // And: New position has been minted to Account.
-        assertEq(stakedAerodromeAM.ownerOf(positionId), account);
+        assertEq(stakedAerodromeAM.ownerOf(positionId), account_);
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;

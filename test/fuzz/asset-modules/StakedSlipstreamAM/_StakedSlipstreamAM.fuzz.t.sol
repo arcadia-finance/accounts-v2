@@ -135,25 +135,6 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         voter.setAlive(address(gauge), true);
     }
 
-    function addUnderlyingTokenToArcadia(address token, int256 price) internal {
-        ArcadiaOracle oracle = initMockedOracle(18, "Token / USD");
-        address[] memory oracleArr = new address[](1);
-        oracleArr[0] = address(oracle);
-
-        vm.prank(users.transmitter);
-        oracle.transmit(price);
-        vm.startPrank(users.owner);
-        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD", 2 days));
-        uint80[] memory oracleAssetToUsdArr = new uint80[](1);
-        oracleAssetToUsdArr[0] = oracleId;
-
-        erc20AM.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
-        vm.stopPrank();
-
-        vm.prank(users.riskManager);
-        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
-    }
-
     function deployAndAddGauge() internal {
         deployAndAddGauge(0);
     }
@@ -163,8 +144,8 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         ERC20Mock tokenB = new ERC20Mock("Token B", "TOKENB", 18);
         (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         deployPoolAndGauge(token0, token1, TickMath.getSqrtRatioAtTick(tick), 300);
-        addUnderlyingTokenToArcadia(address(token0), 1e18);
-        addUnderlyingTokenToArcadia(address(token1), 1e18);
+        addAssetToArcadia(address(token0), 1e18);
+        addAssetToArcadia(address(token1), 1e18);
 
         vm.prank(users.owner);
         stakedSlipstreamAM.addGauge(address(gauge));

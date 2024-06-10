@@ -959,8 +959,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         deployAerodromeFixture(address(token0), address(token1), false);
 
         // And : The tokens of the pool are added to the Arcadia protocol with price 1e18
-        addUnderlyingTokenToArcadia(address(token0), int256(1e18));
-        addUnderlyingTokenToArcadia(address(token1), int256(1e18));
+        addAssetToArcadia(address(token0), int256(1e18));
+        addAssetToArcadia(address(token1), int256(1e18));
 
         deal(address(token0), address(pool), initReserve0);
         deal(address(token1), address(pool), initReserve1);
@@ -1026,8 +1026,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
             deployAerodromeFixture(address(token0), address(token1), true);
 
             // And : The tokens of the pool are added to the Arcadia protocol with price of 1
-            addUnderlyingTokenToArcadia(address(token0), int256(1e18));
-            addUnderlyingTokenToArcadia(address(token1), int256(1e18));
+            addAssetToArcadia(address(token0), int256(1e18));
+            addAssetToArcadia(address(token1), int256(1e18));
 
             deal(address(token0), address(pool), initReserve0);
             deal(address(token1), address(pool), initReserve1);

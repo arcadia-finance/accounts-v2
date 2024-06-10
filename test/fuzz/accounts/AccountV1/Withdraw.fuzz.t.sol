@@ -341,7 +341,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         creditorStable1.setOpenPosition(address(accountExtension), debt);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
 
         // When: "accountOwner" withdraws assets.
         // Then: Transaction should revert with AccountErrors.UnknownAsset.selector.
@@ -652,7 +652,7 @@ contract Withdraw_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         creditorStable1.setOpenPosition(address(accountExtension), debt);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
 
         // When: "accountOwner" withdraws assets.
         address[] memory assetAddresses = new address[](1);

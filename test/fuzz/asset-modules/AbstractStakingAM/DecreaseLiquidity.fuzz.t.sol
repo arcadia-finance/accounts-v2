@@ -58,16 +58,16 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
 
     function testFuzz_Revert_decreaseLiquidity_RemainingBalanceTooLow(
         uint96 positionId,
-        address account,
+        address account_,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
         address asset,
         uint128 amount
-    ) public canReceiveERC721(account) {
-        // Given : account != zero address
-        vm.assume(account != address(0));
-        vm.assume(account != address(stakingAM));
-        vm.assume(account != address(rewardToken));
+    ) public canReceiveERC721(account_) {
+        // Given : account_ != zero address
+        vm.assume(account_ != address(0));
+        vm.assume(account_ != address(stakingAM));
+        vm.assume(account_ != address(rewardToken));
         // Given : Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
 
@@ -80,14 +80,14 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         setStakingAMState(assetState, positionState, asset, positionId);
 
         // Given : Position is minted to the Account
-        stakingAM.mintIdTo(account, positionId);
+        stakingAM.mintIdTo(account_, positionId);
 
         // And: amount withdrawn is bigger than the balance.
         amount = uint128(bound(amount, positionState.amountStaked + 1, type(uint128).max));
 
         // When : Calling decreaseLiquidity().
         // Then : It should revert as remaining balance is too low.
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectRevert(stdError.arithmeticError);
         stakingAM.decreaseLiquidity(positionId, amount);
         vm.stopPrank();
@@ -96,17 +96,17 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
     function testFuzz_Success_decreaseLiquidity_NonZeroReward_FullWithdraw(
         uint8 assetDecimals,
         uint96 positionId,
-        address account,
+        address account_,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState
-    ) public canReceiveERC721(account) {
-        // Given : account != zero address
-        vm.assume(account != address(0));
-        vm.assume(account != address(stakingAM));
-        vm.assume(account != address(rewardToken));
+    ) public canReceiveERC721(account_) {
+        // Given : account_ != zero address
+        vm.assume(account_ != address(0));
+        vm.assume(account_ != address(stakingAM));
+        vm.assume(account_ != address(rewardToken));
         // Given : Add an Asset + reward token pair
         (address asset) = addAsset(assetDecimals);
-        vm.assume(account != asset);
+        vm.assume(account_ != asset);
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -118,25 +118,17 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         setStakingAMState(assetState, positionState, asset, positionId);
 
         // Given : Position is minted to the Account
-        stakingAM.mintIdTo(account, positionId);
+        stakingAM.mintIdTo(account_, positionId);
 
         // Given : transfer Asset and rewardToken to stakingAM, as _withdrawAndClaim and _claimReward are not implemented on external staking contract
-        address[] memory tokens = new address[](2);
-        tokens[0] = asset;
-        tokens[1] = address(rewardToken);
-
-        uint256[] memory amounts = new uint256[](2);
-        amounts[0] = positionState.amountStaked;
-        uint256 currentRewardAccount = stakingAM.rewardOf(positionId);
-        amounts[1] = currentRewardAccount;
-
         // And reward is non-zero.
+        deal(asset, address(stakingAM), positionState.amountStaked, true);
+        uint256 currentRewardAccount = stakingAM.rewardOf(positionId);
         vm.assume(currentRewardAccount > 0);
-
-        mintERC20TokensTo(tokens, address(stakingAM), amounts);
+        deal(address(rewardToken), address(stakingAM), currentRewardAccount, true);
 
         // When : Account withdraws full position from stakingAM
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
         vm.expectEmit();
@@ -145,14 +137,14 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         vm.stopPrank();
 
         // Then : Account should get the staking and reward tokens
-        assertEq(ERC20Mock(tokens[0]).balanceOf(account), positionState.amountStaked);
-        assertEq(ERC20Mock(tokens[1]).balanceOf(account), currentRewardAccount);
+        assertEq(ERC20Mock(asset).balanceOf(account_), positionState.amountStaked);
+        assertEq(rewardToken.balanceOf(account_), currentRewardAccount);
 
         // And : Claimed rewards are returned.
         assertEq(rewards, currentRewardAccount);
 
         // And : positionId should be burned.
-        assertEq(stakingAM.balanceOf(account), 0);
+        assertEq(stakingAM.balanceOf(account_), 0);
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
@@ -183,21 +175,21 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
     function testFuzz_Success_decreaseLiquidity_NonZeroReward_PartialWithdraw(
         uint8 assetDecimals,
         uint96 positionId,
-        address account,
+        address account_,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
         uint128 amount
-    ) public canReceiveERC721(account) {
-        // Given : account != zero address
-        vm.assume(account != address(0));
-        vm.assume(account != address(stakingAM));
-        vm.assume(account != address(rewardToken));
+    ) public canReceiveERC721(account_) {
+        // Given : account_ != zero address
+        vm.assume(account_ != address(0));
+        vm.assume(account_ != address(stakingAM));
+        vm.assume(account_ != address(rewardToken));
         address asset;
         uint256 currentRewardAccount;
         {
             // Given : Add an Asset + reward token pair
             asset = addAsset(assetDecimals);
-            vm.assume(account != asset);
+            vm.assume(account_ != asset);
 
             // Given : Valid state
             (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -209,29 +201,21 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
             setStakingAMState(assetState, positionState, asset, positionId);
 
             // Given : Position is minted to the Account
-            stakingAM.mintIdTo(account, positionId);
+            stakingAM.mintIdTo(account_, positionId);
 
             // Given : transfer Asset and rewardToken to stakingAM, as _withdrawAndClaim and _claimReward are not implemented on external staking contract
-            address[] memory tokens = new address[](2);
-            tokens[0] = asset;
-            tokens[1] = address(rewardToken);
-
-            uint256[] memory amounts = new uint256[](2);
-            amounts[0] = positionState.amountStaked;
-            currentRewardAccount = stakingAM.rewardOf(positionId);
-            amounts[1] = currentRewardAccount;
-
             // And reward is non-zero.
+            deal(asset, address(stakingAM), positionState.amountStaked, true);
+            currentRewardAccount = stakingAM.rewardOf(positionId);
             vm.assume(currentRewardAccount > 0);
-
-            mintERC20TokensTo(tokens, address(stakingAM), amounts);
+            deal(address(rewardToken), address(stakingAM), currentRewardAccount, true);
         }
 
         // And : amount withdrawn is smaller as the staked balance.
         amount = uint128(bound(amount, 1, positionState.amountStaked - 1));
 
         // When : Account withdraws from stakingAM
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
         vm.expectEmit();
@@ -240,14 +224,14 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         vm.stopPrank();
 
         // Then : Account should get the withdrawed amount and reward tokens.
-        assertEq(ERC20Mock(asset).balanceOf(account), amount);
-        assertEq(rewardToken.balanceOf(account), currentRewardAccount);
+        assertEq(ERC20Mock(asset).balanceOf(account_), amount);
+        assertEq(rewardToken.balanceOf(account_), currentRewardAccount);
 
         // And : Claimed rewards are returned.
         assertEq(rewards, currentRewardAccount);
 
         // And : positionId should not be burned.
-        assertEq(stakingAM.balanceOf(account), 1);
+        assertEq(stakingAM.balanceOf(account_), 1);
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
@@ -276,18 +260,18 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
 
     function testFuzz_Success_decreaseLiquidity_ZeroReward_FullWithdraw(
         uint96 positionId,
-        address account,
+        address account_,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
         uint8 assetDecimals
-    ) public canReceiveERC721(account) {
-        // Given : account != zero address
-        vm.assume(account != address(0));
-        vm.assume(account != address(stakingAM));
-        vm.assume(account != address(rewardToken));
+    ) public canReceiveERC721(account_) {
+        // Given : account_ != zero address
+        vm.assume(account_ != address(0));
+        vm.assume(account_ != address(stakingAM));
+        vm.assume(account_ != address(rewardToken));
         // Given : Add an Asset + reward token pair
         (address asset) = addAsset(assetDecimals);
-        vm.assume(account != asset);
+        vm.assume(account_ != asset);
 
         // Given : Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -304,34 +288,28 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         setStakingAMState(assetState, positionState, asset, positionId);
 
         // Given : Position is minted to the Account
-        stakingAM.mintIdTo(account, positionId);
+        stakingAM.mintIdTo(account_, positionId);
 
         // Given : transfer Asset and rewardToken to stakingAM, as _withdrawAndClaim and _claimReward are not implemented on external staking contract
-        address[] memory tokens = new address[](2);
-        tokens[0] = asset;
-        tokens[1] = address(rewardToken);
-
-        uint256[] memory amounts = new uint256[](2);
-        amounts[0] = positionState.amountStaked;
-
-        mintERC20TokensTo(tokens, address(stakingAM), amounts);
+        // And reward is non-zero.
+        deal(asset, address(stakingAM), positionState.amountStaked, true);
 
         // When : Account withdraws full position from stakingAM
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.LiquidityDecreased(positionId, asset, positionState.amountStaked);
         uint256 rewards = stakingAM.decreaseLiquidity(positionId, positionState.amountStaked);
         vm.stopPrank();
 
         // Then : Account should get the staking and reward tokens
-        assertEq(ERC20Mock(tokens[0]).balanceOf(account), positionState.amountStaked);
-        assertEq(ERC20Mock(tokens[1]).balanceOf(account), 0);
+        assertEq(ERC20Mock(asset).balanceOf(account_), positionState.amountStaked);
+        assertEq(rewardToken.balanceOf(account_), 0);
 
         // And : No claimed rewards are returned.
         assertEq(rewards, 0);
 
         // And : positionId should be burned.
-        assertEq(stakingAM.balanceOf(account), 0);
+        assertEq(stakingAM.balanceOf(account_), 0);
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
@@ -356,20 +334,20 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
     function testFuzz_Success_decreaseLiquidity_ZeroReward_PartialWithdraw(
         uint8 assetDecimals,
         uint96 positionId,
-        address account,
+        address account_,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
         uint128 amount
-    ) public canReceiveERC721(account) {
-        // Given : account != zero address
-        vm.assume(account != address(0));
-        vm.assume(account != address(stakingAM));
-        vm.assume(account != address(rewardToken));
+    ) public canReceiveERC721(account_) {
+        // Given : account_ != zero address
+        vm.assume(account_ != address(0));
+        vm.assume(account_ != address(stakingAM));
+        vm.assume(account_ != address(rewardToken));
         address asset;
         {
             // Given : Add an Asset + reward token pair
             asset = addAsset(assetDecimals);
-            vm.assume(account != asset);
+            vm.assume(account_ != asset);
 
             // Given : Valid state
             (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -386,38 +364,31 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
             setStakingAMState(assetState, positionState, asset, positionId);
 
             // Given : Position is minted to the Account
-            stakingAM.mintIdTo(account, positionId);
+            stakingAM.mintIdTo(account_, positionId);
 
             // Given : transfer Asset and rewardToken to stakingAM, as _withdrawAndClaim and _claimReward are not implemented on external staking contract
-            address[] memory tokens = new address[](2);
-            tokens[0] = asset;
-            tokens[1] = address(rewardToken);
-
-            uint256[] memory amounts = new uint256[](2);
-            amounts[0] = positionState.amountStaked;
-
-            mintERC20TokensTo(tokens, address(stakingAM), amounts);
+            deal(asset, address(stakingAM), positionState.amountStaked, true);
         }
 
         // And : amount withdrawn is smaller as the staked balance.
         amount = uint128(bound(amount, 1, positionState.amountStaked - 1));
 
         // When : Account withdraws from stakingAM
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.LiquidityDecreased(positionId, asset, amount);
         uint256 rewards = stakingAM.decreaseLiquidity(positionId, amount);
         vm.stopPrank();
 
         // Then : Account should get the withdrawed amount and reward tokens.
-        assertEq(ERC20Mock(asset).balanceOf(account), amount);
-        assertEq(rewardToken.balanceOf(account), 0);
+        assertEq(ERC20Mock(asset).balanceOf(account_), amount);
+        assertEq(rewardToken.balanceOf(account_), 0);
 
         // And : No claimed rewards are returned.
         assertEq(rewards, 0);
 
         // And : positionId should not be burned.
-        assertEq(stakingAM.balanceOf(account), 1);
+        assertEq(stakingAM.balanceOf(account_), 1);
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
@@ -448,15 +419,17 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
 
         // Given : Fund both users with amount of Assets
         address asset = address(mockERC20.stable1);
-        mintERC20TokenTo(asset, user1, user1InitBalance);
-        mintERC20TokenTo(asset, user2, user2InitBalance);
+        deal(asset, user1, user1InitBalance, true);
+        deal(asset, user2, user2InitBalance, true);
 
         // Given : Add asset to stakingAM
         stakingAM.addAsset(asset);
 
         // Given : Both users stake in the stakingAM
-        approveERC20TokenFor(asset, address(stakingAM), user1InitBalance, user1);
-        approveERC20TokenFor(asset, address(stakingAM), user2InitBalance, user2);
+        vm.prank(user1);
+        ERC20Mock(asset).approve(address(stakingAM), user1InitBalance);
+        vm.prank(user2);
+        ERC20Mock(asset).approve(address(stakingAM), user2InitBalance);
 
         vm.prank(user1);
         stakingAM.mint(asset, user1InitBalance);
@@ -466,7 +439,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         // Given : Mock rewards
         uint128 rewardAmount1 = uint128(1_000_000 * (10 ** Constants.tokenDecimals));
         stakingAM.setActualRewardBalance(asset, rewardAmount1);
-        mintERC20TokenTo(address(rewardToken), address(stakingAM), type(uint256).max);
+        deal(address(rewardToken), address(stakingAM), type(uint256).max, true);
 
         // When : User1 claims rewards
         // Then : He should receive 1/5 of the rewardAmount1
@@ -477,8 +450,9 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
 
         // Given : User 1 stakes additional tokens and stakes
         uint128 user1AddedBalance = uint128(3_000_000 * (10 ** Constants.stableDecimals));
-        mintERC20TokenTo(asset, user1, user1AddedBalance);
-        approveERC20TokenFor(asset, address(stakingAM), user1AddedBalance, user1);
+        deal(asset, user1, user1AddedBalance, true);
+        vm.prank(user1);
+        ERC20Mock(asset).approve(address(stakingAM), user1AddedBalance);
 
         vm.prank(user1);
         stakingAM.increaseLiquidity(1, user1AddedBalance);
@@ -489,8 +463,9 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
 
         // Given : A third user stakes while there is no reward increase (this shouldn't accrue rewards for him and not impact other user rewards)
         address user3 = address(0x3);
-        mintERC20TokenTo(asset, user3, user1AddedBalance);
-        approveERC20TokenFor(asset, address(stakingAM), user1AddedBalance, user3);
+        deal(asset, user3, user1AddedBalance, true);
+        vm.prank(user3);
+        ERC20Mock(asset).approve(address(stakingAM), user1AddedBalance);
 
         vm.prank(user3);
         stakingAM.mint(asset, user1AddedBalance);

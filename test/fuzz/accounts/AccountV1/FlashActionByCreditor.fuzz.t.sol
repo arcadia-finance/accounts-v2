@@ -146,7 +146,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorToken1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: the flashAction is initiated on the Creditor for the Account.
         creditorToken1.setCallbackAccount(address(accountExtension));
@@ -185,7 +185,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorToken1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: the flashAction is initiated on the Creditor for the Account.
         creditorToken1.setCallbackAccount(address(accountExtension));
@@ -217,7 +217,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorToken1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: Both the old Creditor has an open position for the Account.
         oldCreditorDebtAmount = uint128(bound(oldCreditorDebtAmount, 1, type(uint128).max));
@@ -254,7 +254,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         assertEq(accountExtension.creditor(), address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The Creditor has an open position for the Account.
         accountExtension.setMinimumMargin(minimumMargin);
@@ -292,7 +292,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The new Creditor will have an open position after the flashAction.
         creditorStable1.setMinimumMargin(minimumMargin);
@@ -325,7 +325,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         assertEq(accountExtension.creditor(), address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The Creditor has an open position for the Account.
         accountExtension.setMinimumMargin(minimumMargin);
@@ -364,7 +364,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The new Creditor will have an open position after the flashAction.
         creditorStable1.setMinimumMargin(minimumMargin);
@@ -418,7 +418,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The new Creditor will have an open position after the flashAction.
         creditorStable1.setMinimumMargin(minimumMargin);

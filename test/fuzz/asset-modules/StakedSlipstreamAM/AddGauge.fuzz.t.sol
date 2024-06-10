@@ -84,7 +84,7 @@ contract AddGauge_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
     function testFuzz_Revert_addGauge_Token1NotAllowed() public {
         // Given : Token0 is allowed.
-        addUnderlyingTokenToArcadia(address(token0), 1e18);
+        addAssetToArcadia(address(token0), 1e18);
 
         // And : Token1 is not allowed.
         assertFalse(registry.isAllowed(address(token1), 0));
@@ -98,10 +98,10 @@ contract AddGauge_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
     function testFuzz_success_addGauge() public {
         // Given : Token0 is allowed.
-        addUnderlyingTokenToArcadia(address(token0), 1e18);
+        addAssetToArcadia(address(token0), 1e18);
 
         // And : Token1 is allowed.
-        addUnderlyingTokenToArcadia(address(token1), 1e18);
+        addAssetToArcadia(address(token1), 1e18);
 
         // When : Calling addGauge().
         vm.prank(users.owner);

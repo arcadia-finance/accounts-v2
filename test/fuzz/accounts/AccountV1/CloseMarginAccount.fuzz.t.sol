@@ -86,7 +86,7 @@ contract CloseMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         account.openMarginAccount(address(creditorStable1));
 
         // And: The account has assets deposited.
-        depositTokenInAccount(account, mockERC20.stable1, exposure);
+        depositERC20InAccount(account, mockERC20.stable1, exposure);
 
         // Assert creditor has exposure.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));

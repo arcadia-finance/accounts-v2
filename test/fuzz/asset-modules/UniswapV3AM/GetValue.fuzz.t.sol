@@ -90,8 +90,8 @@ contract GetValue_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(amount1 < type(uint104).max);
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(uint256(vars.priceToken0)));
-        addUnderlyingTokenToArcadia(address(token1), int256(uint256(vars.priceToken1)));
+        addAssetToArcadia(address(token0), int256(uint256(vars.priceToken0)));
+        addAssetToArcadia(address(token1), int256(uint256(vars.priceToken1)));
 
         // Calculate the expected value
         uint256 valueToken0 = uint256(vars.priceToken0) * amount0 / 10 ** vars.decimals0;
@@ -135,8 +135,8 @@ contract GetValue_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         (uint256 tokenId,,) = addLiquidityUniV3(pool, 1e5, users.liquidityProvider, 0, 10, true);
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), 1);
-        addUnderlyingTokenToArcadia(address(token1), 1);
+        addAssetToArcadia(address(token0), 1);
+        addAssetToArcadia(address(token1), 1);
 
         vm.startPrank(users.riskManager);
         registry.setRiskParametersOfPrimaryAsset(

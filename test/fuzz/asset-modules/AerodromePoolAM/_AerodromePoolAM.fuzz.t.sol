@@ -111,8 +111,8 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test {
         deployAerodromeFixture(address(token0), address(token1), testVars.stable);
 
         // And : The tokens of the pool are added to the Arcadia protocol
-        addUnderlyingTokenToArcadia(address(token0), int256(testVars.priceToken0));
-        addUnderlyingTokenToArcadia(address(token1), int256(testVars.priceToken1));
+        addAssetToArcadia(address(token0), int256(testVars.priceToken0));
+        addAssetToArcadia(address(token1), int256(testVars.priceToken1));
 
         deal(address(token0), address(pool), testVars.reserve0);
         deal(address(token1), address(pool), testVars.reserve1);
@@ -124,25 +124,6 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test {
         testVars.token1 = address(token1);
 
         testVars_ = testVars;
-    }
-
-    function addUnderlyingTokenToArcadia(address token, int256 price) internal {
-        ArcadiaOracle oracle = initMockedOracle(18, "Token / USD");
-        address[] memory oracleArr = new address[](1);
-        oracleArr[0] = address(oracle);
-
-        vm.prank(users.transmitter);
-        oracle.transmit(price);
-        vm.startPrank(users.owner);
-        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD", 2 days));
-        uint80[] memory oracleAssetToUsdArr = new uint80[](1);
-        oracleAssetToUsdArr[0] = oracleId;
-
-        erc20AM.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
-        vm.stopPrank();
-
-        vm.prank(users.riskManager);
-        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
     }
 
     function givenValidTestVarsVolatile(TestVariables memory testVars)

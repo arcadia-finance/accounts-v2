@@ -82,7 +82,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         account.openMarginAccount(address(creditorUsd));
 
         // And: The account has assets deposited.
-        depositTokenInAccount(account, mockERC20.stable1, exposure);
+        depositERC20InAccount(account, mockERC20.stable1, exposure);
 
         // Assert old creditor has been set.
         assertEq(account.creditor(), address(creditorUsd));
@@ -125,7 +125,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         );
 
         // And: The account has assets deposited.
-        depositTokenInAccount(account, mockERC20.stable1, exposure);
+        depositERC20InAccount(account, mockERC20.stable1, exposure);
 
         // Assert no creditor has been set on deployment
         assertEq(account.creditor(), address(0));
@@ -178,7 +178,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         account.openMarginAccount(address(creditorUsd));
 
         // And: The account has assets deposited.
-        depositTokenInAccount(account, mockERC20.stable1, exposure);
+        depositERC20InAccount(account, mockERC20.stable1, exposure);
 
         // Assert old creditor has been set.
         assertEq(account.creditor(), address(creditorUsd));

@@ -54,7 +54,7 @@ contract IsAccountUnhealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         creditorStable1.setOpenPosition(address(accountExtension), debtInitial);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralValue);
 
         // When: Calling isAccountHealthy()
         bool isUnhealthy = accountExtension.isAccountUnhealthy();
@@ -83,7 +83,7 @@ contract IsAccountUnhealthy_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         creditorStable1.setOpenPosition(address(accountExtension), debtInitial);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralValue);
 
         // When: Calling isAccountHealthy()
         bool isUnhealthy = accountExtension.isAccountUnhealthy();

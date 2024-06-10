@@ -71,7 +71,7 @@ contract IncreaseOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setMinimumMargin(uint96(minimumMargin));
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralValue);
 
         // When: An Authorised protocol tries to take more margin against the Account
         // Then: Transaction should revert with AccountErrors.AccountUnhealthy.selector.
@@ -111,7 +111,7 @@ contract IncreaseOpenPosition_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         accountExtension.setMinimumMargin(uint96(minimumMargin));
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralValue);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralValue);
 
         // Warp time
         time = uint32(bound(time, 2 days, type(uint32).max));

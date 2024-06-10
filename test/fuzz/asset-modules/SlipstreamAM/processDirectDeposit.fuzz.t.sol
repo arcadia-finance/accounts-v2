@@ -152,8 +152,8 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         vm.assume(amount0 + initialExposure0 >= maxExposure0);
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(priceToken0), initialExposure0, maxExposure0);
-        addUnderlyingTokenToArcadia(address(token1), int256(priceToken1));
+        addAssetToArcadia(address(token0), int256(priceToken0), initialExposure0, maxExposure0);
+        addAssetToArcadia(address(token1), int256(priceToken1));
 
         vm.startPrank(address(registry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
@@ -209,8 +209,8 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         vm.assume(amount0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(priceToken0), 0, type(uint112).max);
-        addUnderlyingTokenToArcadia(address(token1), int256(priceToken1), initialExposure1, maxExposure1);
+        addAssetToArcadia(address(token0), int256(priceToken0), 0, type(uint112).max);
+        addAssetToArcadia(address(token1), int256(priceToken1), initialExposure1, maxExposure1);
 
         vm.startPrank(address(registry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
@@ -276,8 +276,8 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         }
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
-        addUnderlyingTokenToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
+        addAssetToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
+        addAssetToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
 
         {
             // And: usd exposure to protocol below max usd exposure.
@@ -352,8 +352,8 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         }
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
-        addUnderlyingTokenToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
+        addAssetToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
+        addAssetToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
 
         {
             // And: usd exposure to protocol below max usd exposure.
@@ -462,8 +462,8 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         }
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
-        addUnderlyingTokenToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
+        addAssetToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
+        addAssetToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
 
         {
             // And: usd exposure to protocol below max usd exposure.
@@ -572,8 +572,8 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
             }
 
             // Add underlying tokens and its oracles to Arcadia.
-            addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
-            addUnderlyingTokenToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
+            addAssetToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
+            addAssetToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
 
             {
                 // And: usd exposure to protocol below max usd exposure.

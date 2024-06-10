@@ -26,11 +26,7 @@ contract AddAsset_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_Revert_AddAsset_PoolNotAllowed(address randomToken)
-        public
-        canReceiveERC721(randomToken)
-        notTestContracts2(randomToken)
-    {
+    function testFuzz_Revert_AddAsset_PoolNotAllowed(address randomToken) public canReceiveERC721(randomToken) {
         // When :  Calling addAsset()
         // Then : It should revert as the pool has not been added to the registry
         vm.expectRevert(WrappedAerodromeAM.PoolNotAllowed.selector);

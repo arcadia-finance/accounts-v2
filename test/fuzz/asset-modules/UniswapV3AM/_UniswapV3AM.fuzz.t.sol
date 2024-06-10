@@ -96,32 +96,6 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, UniswapV
         return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(TickMath.MAX_TICK));
     }
 
-    function addUnderlyingTokenToArcadia(address token, int256 price, uint112 initialExposure, uint112 maxExposure)
-        internal
-    {
-        addUnderlyingTokenToArcadia(token, price);
-        erc20AM.setExposure(address(creditorUsd), token, initialExposure, maxExposure);
-    }
-
-    function addUnderlyingTokenToArcadia(address token, int256 price) internal {
-        ArcadiaOracle oracle = initMockedOracle(18, "Token / USD");
-        address[] memory oracleArr = new address[](1);
-        oracleArr[0] = address(oracle);
-
-        vm.prank(users.transmitter);
-        oracle.transmit(price);
-        vm.startPrank(users.owner);
-        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD", 2 days));
-        uint80[] memory oracleAssetToUsdArr = new uint80[](1);
-        oracleAssetToUsdArr[0] = oracleId;
-
-        erc20AM.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
-        vm.stopPrank();
-
-        vm.prank(users.riskManager);
-        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
-    }
-
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)
         internal
         pure
