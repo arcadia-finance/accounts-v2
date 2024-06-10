@@ -31,7 +31,7 @@ contract SetRiskParameters_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert(RegistryErrors.Unauthorized.selector);
-        registryExtension.setRiskParameters(address(creditorUsd), minUsdValue, gracePeriod, maxRecursiveCalls);
+        registry.setRiskParameters(address(creditorUsd), minUsdValue, gracePeriod, maxRecursiveCalls);
         vm.stopPrank();
     }
 
@@ -39,10 +39,10 @@ contract SetRiskParameters_Registry_Fuzz_Test is Registry_Fuzz_Test {
         public
     {
         vm.prank(users.riskManager);
-        registryExtension.setRiskParameters(address(creditorUsd), minUsdValue, gracePeriod, maxRecursiveCalls);
+        registry.setRiskParameters(address(creditorUsd), minUsdValue, gracePeriod, maxRecursiveCalls);
 
         (uint256 minUsdValue_, uint256 gracePeriod_, uint256 maxRecursiveCalls_) =
-            registryExtension.riskParams(address(creditorUsd));
+            registry.riskParams(address(creditorUsd));
 
         assertEq(minUsdValue_, minUsdValue);
         assertEq(gracePeriod_, gracePeriod);

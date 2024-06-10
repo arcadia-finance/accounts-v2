@@ -26,61 +26,68 @@ contract WithdrawAndClaim_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_
         stakedAmount = bound(stakedAmount, 1, type(uint256).max);
         toWithdraw = bound(toWithdraw, 1, stakedAmount);
 
-        // Given : the pool is allowed in the Registry
-        deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
+        // Given : the aeroPool is allowed in the Registry
+        aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
+        vm.prank(users.owner);
+        aerodromePoolAM.addAsset(address(aeroPool));
 
-        // Given : Valid gauge
-        deployAerodromeGaugeFixture(address(pool), AERO);
+        // Given : Valid aeroGauge
+        aeroGauge = createGaugeAerodrome(aeroPool, AERO);
 
-        // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(gauge));
+        // And : Add asset and aeroGauge to the AM
+        stakedAerodromeAM.addAsset(address(aeroGauge));
 
-        // Given : Send pool tokens to the AM.
-        deal(address(pool), address(stakedAerodromeAM), stakedAmount);
+        // Given : Send aeroPool tokens to the AM.
+        deal(address(aeroPool), address(stakedAerodromeAM), stakedAmount);
 
         // And : LP is staked via the stakedAerodromeAM
-        stakedAerodromeAM.stakeAndClaim(address(pool), stakedAmount);
+        stakedAerodromeAM.stakeAndClaim(address(aeroPool), stakedAmount);
 
-        // When : Withdrawing LP's from the gauge
-        stakedAerodromeAM.withdrawAndClaim(address(pool), toWithdraw);
+        // When : Withdrawing LP's from the aeroGauge
+        stakedAerodromeAM.withdrawAndClaim(address(aeroPool), toWithdraw);
 
         // Then : The updated balance should be correct
-        assertEq(gauge.balanceOf(address(stakedAerodromeAM)), stakedAmount - toWithdraw);
-        assertEq(pool.balanceOf(address(stakedAerodromeAM)), toWithdraw);
+        assertEq(aeroGauge.balanceOf(address(stakedAerodromeAM)), stakedAmount - toWithdraw);
+        assertEq(aeroPool.balanceOf(address(stakedAerodromeAM)), toWithdraw);
     }
 
     function testFuzz_Success_WithdrawAndClaim(uint256 stakedAmount, uint256 toWithdraw, uint256 emissions) public {
         stakedAmount = bound(stakedAmount, 1, type(uint256).max);
         toWithdraw = bound(toWithdraw, 1, stakedAmount);
 
-        // Given : the pool is allowed in the Registry
-        deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
+        // Given : the aeroPool is allowed in the Registry
+        aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
+        vm.prank(users.owner);
+        aerodromePoolAM.addAsset(address(aeroPool));
 
-        // Given : Valid gauge
-        deployAerodromeGaugeFixture(address(pool), AERO);
+        // Given : Valid aeroGauge
+        aeroGauge = createGaugeAerodrome(aeroPool, AERO);
 
-        // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(gauge));
+        // And : Add asset and aeroGauge to the AM
+        stakedAerodromeAM.addAsset(address(aeroGauge));
 
-        // And : Send pool tokens to the AM.
-        deal(address(pool), address(stakedAerodromeAM), stakedAmount);
+        // And : Send aeroPool tokens to the AM.
+        deal(address(aeroPool), address(stakedAerodromeAM), stakedAmount);
 
         // And : LP is staked via the stakedAerodromeAM
-        stakedAerodromeAM.stakeAndClaim(address(pool), stakedAmount);
+        stakedAerodromeAM.stakeAndClaim(address(aeroPool), stakedAmount);
 
-        // And : Add emissions to gauge
-        addEmissionsToGauge(emissions);
+        // And : Add emissions to aeroGauge
+        // In order to avoid earned() to overflow we limit emissions to uint128.max.
+        // Such an amount should never be distributed to a specific aeroGauge.
+        emissions = bound(emissions, 1e18, type(uint128).max);
+        addEmissionsToGauge(aeroGauge, emissions);
 
         // Given : Let rewards accumulate
         vm.warp(block.timestamp + 3 days);
-        uint256 earned = gauge.earned(address(stakedAerodromeAM));
+        uint256 earned = aeroGauge.earned(address(stakedAerodromeAM));
 
-        // When : Withdrawing LP's from the gauge
-        stakedAerodromeAM.withdrawAndClaim(address(pool), toWithdraw);
+        // When : Withdrawing LP's from the aeroGauge
+        stakedAerodromeAM.withdrawAndClaim(address(aeroPool), toWithdraw);
 
         // Then : The updated balance should be correct
-        assertEq(gauge.balanceOf(address(stakedAerodromeAM)), stakedAmount - toWithdraw);
-        assertEq(pool.balanceOf(address(stakedAerodromeAM)), toWithdraw);
+        assertEq(aeroGauge.balanceOf(address(stakedAerodromeAM)), stakedAmount - toWithdraw);
+        assertEq(aeroPool.balanceOf(address(stakedAerodromeAM)), toWithdraw);
         assertEq(stakedAerodromeAM.REWARD_TOKEN().balanceOf(address(stakedAerodromeAM)), earned);
     }
 }

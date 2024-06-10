@@ -68,13 +68,13 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
+        pool = createPoolCL(address(token0), address(token1), 1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+        (uint256 tokenId,,) = addLiquidityCL(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         // Hacky way to avoid stack to deep.
         int24[] memory ticks = new int24[](3);
@@ -102,8 +102,8 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
         }
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
-        addUnderlyingTokenToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
+        addAssetToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
+        addAssetToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
 
         {
             // And: usd exposure to protocol below max usd exposure.
@@ -114,14 +114,12 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
         }
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfDerivedAM(
-            address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100
-        );
+        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100);
 
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         slipstreamAM.processIndirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 0, 1);
 
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         slipstreamAM.processIndirectWithdrawal(address(creditorUsd), address(slipstreamPositionManager), tokenId, 0, -1);
         assertEq(slipstreamAM.getAssetToLiquidity(tokenId), 0);
 
@@ -138,7 +136,7 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
                 slipstreamAM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 0
             );
-            (uint128 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, initialExposure0);
             // Token1:
             UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
@@ -146,7 +144,7 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
                 slipstreamAM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 0
             );
-            (exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, initialExposure1);
         }
     }
@@ -174,13 +172,13 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
+        pool = createPoolCL(address(token0), address(token1), 1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+        (uint256 tokenId,,) = addLiquidityCL(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         // Hacky way to avoid stack to deep.
         int24[] memory ticks = new int24[](3);
@@ -207,8 +205,8 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
         }
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
-        addUnderlyingTokenToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
+        addAssetToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
+        addAssetToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
 
         {
             // And: usd exposure to protocol below max usd exposure.
@@ -219,11 +217,9 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
         }
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfDerivedAM(
-            address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100
-        );
+        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100);
 
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         slipstreamAM.processIndirectWithdrawal(address(creditorUsd), address(slipstreamPositionManager), tokenId, 0, 0);
 
         assertEq(slipstreamAM.getAssetToLiquidity(tokenId), 0);
@@ -241,7 +237,7 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
                 slipstreamAM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 0
             );
-            (uint128 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, initialExposure0);
             // Token1:
             UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
@@ -249,7 +245,7 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
                 slipstreamAM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 0
             );
-            (exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, initialExposure1);
         }
     }
@@ -277,13 +273,13 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
         vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
-        pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(TickMath.getTickAtSqrtRatio(sqrtPriceX96)), 300);
+        pool = createPoolCL(address(token0), address(token1), 1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(liquidity <= pool.maxLiquidityPerTick());
 
         // Mint liquidity position.
-        uint256 tokenId = addLiquidity(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
+        (uint256 tokenId,,) = addLiquidityCL(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
         // Hacky way to avoid stack to deep.
         int24[] memory ticks = new int24[](3);
@@ -310,8 +306,8 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
         }
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
-        addUnderlyingTokenToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
+        addAssetToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
+        addAssetToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
 
         {
             // And: usd exposure to protocol below max usd exposure.
@@ -322,14 +318,12 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
         }
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfDerivedAM(
-            address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100
-        );
+        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(slipstreamAM), maxUsdExposureProtocol, 100);
 
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         slipstreamAM.processDirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
 
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         slipstreamAM.processIndirectWithdrawal(address(creditorUsd), address(slipstreamPositionManager), tokenId, 0, 0);
 
         {
@@ -349,7 +343,7 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
                 slipstreamAM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 amount0
             );
-            (uint128 exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, amount0 + initialExposure0);
             // Token1:
             UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
@@ -357,7 +351,7 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
                 slipstreamAM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
                 amount1
             );
-            (exposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
             assertEq(exposure, amount1 + initialExposure1);
 
             assertEq(slipstreamAM.getAssetToLiquidity(tokenId), liquidity_);

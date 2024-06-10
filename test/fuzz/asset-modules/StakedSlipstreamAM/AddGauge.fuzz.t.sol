@@ -28,7 +28,8 @@ contract AddGauge_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         ERC20Mock tokenA = new ERC20Mock("Token A", "TOKENA", 18);
         ERC20Mock tokenB = new ERC20Mock("Token B", "TOKENB", 18);
         (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        deployPoolAndGauge(token0, token1, TickMath.getSqrtRatioAtTick(0), 300);
+        pool = createPoolCL(address(token0), address(token1), 1, TickMath.getSqrtRatioAtTick(0), 300);
+        gauge = createGaugeCL(pool);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -37,7 +38,7 @@ contract AddGauge_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
     function testFuzz_Revert_addGauge_NotOwner(address unprivilegedAddress) public {
         // Given : unprivileged address is not the owner of the AM.
-        vm.assume(unprivilegedAddress != users.creatorAddress);
+        vm.assume(unprivilegedAddress != users.owner);
 
         // When : Calling addGauge().
         // Then : It should revert.
@@ -52,7 +53,7 @@ contract AddGauge_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
         // When : Calling addGauge().
         // Then : It should revert.
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(StakedSlipstreamAM.GaugeNotValid.selector);
         stakedSlipstreamAM.addGauge(nonGauge);
     }
@@ -66,45 +67,45 @@ contract AddGauge_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
         // When : Calling addGauge().
         // Then : It should revert.
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(StakedSlipstreamAM.RewardTokenNotValid.selector);
         stakedSlipstreamAM.addGauge(address(gauge));
     }
 
     function testFuzz_Revert_addGauge_Token0NotAllowed() public {
         // Given : Token0 is not allowed.
-        assertFalse(registryExtension.isAllowed(address(token0), 0));
+        assertFalse(registry.isAllowed(address(token0), 0));
 
         // When : Calling addGauge().
         // Then : It should revert.
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(StakedSlipstreamAM.AssetNotAllowed.selector);
         stakedSlipstreamAM.addGauge(address(gauge));
     }
 
     function testFuzz_Revert_addGauge_Token1NotAllowed() public {
         // Given : Token0 is allowed.
-        addUnderlyingTokenToArcadia(address(token0), 1e18);
+        addAssetToArcadia(address(token0), 1e18);
 
         // And : Token1 is not allowed.
-        assertFalse(registryExtension.isAllowed(address(token1), 0));
+        assertFalse(registry.isAllowed(address(token1), 0));
 
         // When : Calling addGauge().
         // Then : It should revert.
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(StakedSlipstreamAM.AssetNotAllowed.selector);
         stakedSlipstreamAM.addGauge(address(gauge));
     }
 
     function testFuzz_success_addGauge() public {
         // Given : Token0 is allowed.
-        addUnderlyingTokenToArcadia(address(token0), 1e18);
+        addAssetToArcadia(address(token0), 1e18);
 
         // And : Token1 is allowed.
-        addUnderlyingTokenToArcadia(address(token1), 1e18);
+        addAssetToArcadia(address(token1), 1e18);
 
         // When : Calling addGauge().
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         stakedSlipstreamAM.addGauge(address(gauge));
 
         // Then : the gauge is added.

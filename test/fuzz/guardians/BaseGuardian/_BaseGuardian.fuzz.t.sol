@@ -29,7 +29,7 @@ abstract contract BaseGuardian_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         baseGuardian = new BaseGuardianExtension();
     }
 }

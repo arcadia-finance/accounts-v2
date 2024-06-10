@@ -26,11 +26,11 @@ contract Initialize_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test
 
     function testFuzz_Revert_initialize_NotOwner(address unprivilegedAddress) public {
         // Given : unprivileged address is not the owner of the AM.
-        vm.assume(unprivilegedAddress != users.creatorAddress);
+        vm.assume(unprivilegedAddress != users.owner);
 
         // And : Asset Module is deployed.
-        vm.prank(users.creatorAddress);
-        WrappedAerodromeAM assetModule = new WrappedAerodromeAM(address(registryExtension));
+        vm.prank(users.owner);
+        WrappedAerodromeAM assetModule = new WrappedAerodromeAM(address(registry));
 
         // When : Calling initialize().
         // Then : It should revert.
@@ -41,19 +41,19 @@ contract Initialize_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test
 
     function testFuzz_success_initialize() public {
         // Given : Asset Module is deployed.
-        vm.prank(users.creatorAddress);
-        WrappedAerodromeAM assetModule = new WrappedAerodromeAM(address(registryExtension));
+        vm.prank(users.owner);
+        WrappedAerodromeAM assetModule = new WrappedAerodromeAM(address(registry));
 
         // And : Asset Module is added to the Registry.
-        vm.prank(users.creatorAddress);
-        registryExtension.addAssetModule(address(assetModule));
+        vm.prank(users.owner);
+        registry.addAssetModule(address(assetModule));
 
         // When : Calling initialize().
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         assetModule.initialize();
 
         // Then : The Asset Module should be added to the Registry as an asset.
-        assertTrue(registryExtension.inRegistry(address(assetModule)));
+        assertTrue(registry.inRegistry(address(assetModule)));
 
         // And : The assetModule is added to itself as an asset.
         assertTrue(assetModule.inAssetModule(address(assetModule)));

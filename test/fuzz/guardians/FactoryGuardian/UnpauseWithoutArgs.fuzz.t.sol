@@ -6,6 +6,8 @@ pragma solidity 0.8.22;
 
 import { FactoryGuardian_Fuzz_Test } from "./_FactoryGuardian.fuzz.t.sol";
 
+import { FactoryGuardian } from "../../../../src/guardians/FactoryGuardian.sol";
+
 /**
  * @notice Fuzz tests for the function "unpause" of contract "FactoryGuardian".
  */
@@ -24,7 +26,7 @@ contract Unpause_WithoutArgs_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_T
 
     function testFuzz_Revert_unpause(address random) public {
         vm.startPrank(random);
-        vm.expectRevert(FunctionNotImplemented.selector);
+        vm.expectRevert(FactoryGuardian.FunctionNotImplemented.selector);
         factoryGuardian.unpause();
         vm.stopPrank();
     }

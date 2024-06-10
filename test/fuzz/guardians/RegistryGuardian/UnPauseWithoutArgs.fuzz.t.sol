@@ -7,6 +7,7 @@ pragma solidity 0.8.22;
 import { RegistryGuardian_Fuzz_Test } from "./_RegistryGuardian.fuzz.t.sol";
 
 import { GuardianErrors } from "../../../../src/libraries/Errors.sol";
+import { RegistryGuardian } from "../../../../src/guardians/RegistryGuardian.sol";
 
 /**
  * @notice Fuzz tests for the function "unPause" of contract "RegistryGuardian".
@@ -69,7 +70,7 @@ contract UnPause_WithoutArgs_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz
         // When: A "sender" un-pauses.
         vm.startPrank(sender);
         vm.expectEmit(true, true, true, true);
-        emit PauseFlagsUpdated(false, initialFlags.depositPaused);
+        emit RegistryGuardian.PauseFlagsUpdated(false, initialFlags.depositPaused);
         registryGuardian.unpause();
         vm.stopPrank();
 

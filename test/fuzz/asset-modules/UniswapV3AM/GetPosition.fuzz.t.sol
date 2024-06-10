@@ -27,7 +27,7 @@ contract GetPosition_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
     function setUp() public override {
         UniswapV3AM_Fuzz_Test.setUp();
 
-        assetId = addLiquidity(poolStable1Stable2, 100, 100, users.liquidityProvider, 0, 1, true);
+        (assetId,,) = addLiquidityUniV3(poolStable1Stable2, 100, 100, users.liquidityProvider, 0, 1, true);
         (token0, token1) = address(mockERC20.stable1) < address(mockERC20.stable2)
             ? (address(mockERC20.stable1), address(mockERC20.stable2))
             : (address(mockERC20.stable2), address(mockERC20.stable1));
@@ -52,7 +52,7 @@ contract GetPosition_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), assetId, position);
 
         // And: The Uniswap V3 position is added to the Asset Module.
-        uniV3AssetModule.addAsset(assetId);
+        uniV3AM.addAsset(assetId);
 
         // And: The Liquidity of the position changes
         uint256 oldLiquidity = position.liquidity;
@@ -61,7 +61,7 @@ contract GetPosition_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
 
         // When: "getPosition is called."
         (address token0_, address token1_, int24 tickLower, int24 tickUpper, uint128 liquidity) =
-            uniV3AssetModule.getPosition(assetId);
+            uniV3AM.getPosition(assetId);
 
         // Then: The correct return variables are returned.
         assertEq(token0_, token0);
@@ -85,7 +85,7 @@ contract GetPosition_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
 
         // When: "getPosition is called."
         (address token0_, address token1_, int24 tickLower, int24 tickUpper, uint128 liquidity) =
-            uniV3AssetModule.getPosition(assetId);
+            uniV3AM.getPosition(assetId);
 
         // Then: The correct return variables are returned.
         assertEq(token0_, token0);
@@ -97,7 +97,7 @@ contract GetPosition_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // And: The actual Liquidity is returned.
         position.liquidity = newLiquidity;
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), assetId, position);
-        (,,,, liquidity) = uniV3AssetModule.getPosition(assetId);
+        (,,,, liquidity) = uniV3AM.getPosition(assetId);
         assertEq(liquidity, newLiquidity);
     }
 }

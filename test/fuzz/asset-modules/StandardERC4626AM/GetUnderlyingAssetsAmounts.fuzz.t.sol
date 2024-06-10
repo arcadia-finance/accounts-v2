@@ -22,7 +22,7 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626AM_Fuzz_Test is StandardERC46
     function setUp() public override {
         StandardERC4626AM_Fuzz_Test.setUp();
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         erc4626AM.addAsset(address(ybToken1));
     }
 

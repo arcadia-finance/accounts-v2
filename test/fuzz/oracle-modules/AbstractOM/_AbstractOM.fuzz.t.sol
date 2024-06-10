@@ -24,7 +24,7 @@ abstract contract AbstractOM_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.prank(users.creatorAddress);
-        oracleModule = new OracleModuleMock(address(registryExtension));
+        vm.prank(users.owner);
+        oracleModule = new OracleModuleMock(address(registry));
     }
 }

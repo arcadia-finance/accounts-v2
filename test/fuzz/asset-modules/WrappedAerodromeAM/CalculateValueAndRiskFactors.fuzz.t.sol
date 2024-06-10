@@ -57,7 +57,7 @@ contract CalculateValueAndRiskFactors_WrappedAerodromeAM_Fuzz_Test is WrappedAer
         liquidationFactors[2] = uint16(bound(liquidationFactors[2], collateralFactors[2], AssetValuationLib.ONE_4));
 
         // And riskFactor is set.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         wrappedAerodromeAM.setRiskParameters(creditor, 0, riskFactor);
 
         uint256 expectedCollateralFactor = (
@@ -102,7 +102,7 @@ contract CalculateValueAndRiskFactors_WrappedAerodromeAM_Fuzz_Test is WrappedAer
     ) public {
         // And riskFactor is set.
         riskFactor = uint16(bound(riskFactor, 0, AssetValuationLib.ONE_4));
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         wrappedAerodromeAM.setRiskParameters(creditor, 0, riskFactor);
 
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](3);

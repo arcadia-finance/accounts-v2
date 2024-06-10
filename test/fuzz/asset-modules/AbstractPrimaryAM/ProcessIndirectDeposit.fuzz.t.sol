@@ -28,7 +28,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
         int256 deltaExposureUpperAssetToAsset
     ) public {
         // Given "caller" is not the Registry.
-        vm.assume(unprivilegedAddress_ != address(registryExtension));
+        vm.assume(unprivilegedAddress_ != address(registry));
 
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
@@ -66,7 +66,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
 
         // When: Asset is indirectly deposited.
         // Then: The transaction reverts with AssetModule.ExposureNotInLimits.
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         assetModule.processIndirectDeposit(
             assetState.creditor,
@@ -95,7 +95,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
 
         // When: Asset is indirectly deposited.
         // Then: The transaction reverts with AssetModule.ExposureNotInLimits.
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         assetModule.processIndirectDeposit(
             assetState.creditor,
@@ -124,7 +124,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
         setPrimaryAMAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
@@ -161,7 +161,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
         setPrimaryAMAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
@@ -196,7 +196,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
         setPrimaryAMAssetState(assetState);
 
         // When: Asset is indirectly deposited.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = assetModule.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,

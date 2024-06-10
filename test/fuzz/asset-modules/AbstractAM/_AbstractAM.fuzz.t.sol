@@ -40,7 +40,7 @@ abstract contract AbstractAM_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.prank(users.creatorAddress);
-        assetModule = new AssetModuleMock(address(registryExtension), 0);
+        vm.prank(users.owner);
+        assetModule = new AssetModuleMock(address(registry), 0);
     }
 }

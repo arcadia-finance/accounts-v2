@@ -27,41 +27,41 @@ contract SetProtocol_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_setProtocol_NonOwner(address unprivilegedAddress_) public {
-        vm.assume(unprivilegedAddress_ != users.creatorAddress);
+        vm.assume(unprivilegedAddress_ != users.owner);
         vm.startPrank(unprivilegedAddress_);
 
         vm.expectRevert("UNAUTHORIZED");
-        uniV3AssetModule.setProtocol();
+        uniV3AM.setProtocol();
         vm.stopPrank();
     }
 
     function testFuzz_Revert_setProtocol_ProtocolNotAddedToReg() public {
-        vm.prank(users.creatorAddress);
-        uniV3AssetModule = new UniswapV3AMExtension(address(registryExtension), address(nonfungiblePositionManager));
+        vm.prank(users.owner);
+        uniV3AM = new UniswapV3AMExtension(address(registry), address(nonfungiblePositionManager));
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectRevert(RegistryErrors.OnlyAssetModule.selector);
-        uniV3AssetModule.setProtocol();
+        uniV3AM.setProtocol();
         vm.stopPrank();
     }
 
     function testFuzz_Revert_setProtocol_OverwriteExistingProtocol() public {
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
-        uniV3AssetModule.setProtocol();
+        uniV3AM.setProtocol();
         vm.stopPrank();
     }
 
     function testFuzz_Success_setProtocol() public {
-        vm.startPrank(users.creatorAddress);
-        uniV3AssetModule = new UniswapV3AMExtension(address(registryExtension), address(nonfungiblePositionManagerMock));
-        registryExtension.addAssetModule(address(uniV3AssetModule));
+        vm.startPrank(users.owner);
+        uniV3AM = new UniswapV3AMExtension(address(registry), address(nonfungiblePositionManagerMock));
+        registry.addAssetModule(address(uniV3AM));
         vm.stopPrank();
 
-        vm.prank(users.creatorAddress);
-        uniV3AssetModule.setProtocol();
+        vm.prank(users.owner);
+        uniV3AM.setProtocol();
 
-        assertTrue(uniV3AssetModule.inAssetModule(address(nonfungiblePositionManagerMock)));
-        assertTrue(registryExtension.inRegistry(address(nonfungiblePositionManagerMock)));
+        assertTrue(uniV3AM.inAssetModule(address(nonfungiblePositionManagerMock)));
+        assertTrue(registry.inRegistry(address(nonfungiblePositionManagerMock)));
     }
 }

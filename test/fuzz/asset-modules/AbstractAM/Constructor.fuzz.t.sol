@@ -26,7 +26,7 @@ contract Constructor_AbstractAM_Fuzz_Test is AbstractAM_Fuzz_Test {
     function testFuzz_Success_deployment(address registry_, uint256 assetType_) public {
         vm.assume(assetType_ > 0);
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         AssetModuleMock assetModule_ = new AssetModuleMock(registry_, assetType_);
         vm.stopPrank();
 

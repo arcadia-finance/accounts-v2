@@ -6,7 +6,8 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
-import { AccountV1Extension, AccountV1 } from "../../../utils/extensions/AccountV1Extension.sol";
+import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
+import { AccountV1Extension } from "../../../utils/extensions/AccountV1Extension.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { Constants } from "../../../utils/Constants.sol";
 
@@ -28,7 +29,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_openMarginAccount_NotOwner() public {
         // Should revert if not called by the owner
         vm.expectRevert(AccountErrors.OnlyOwner.selector);
-        proxyAccount.openMarginAccount(address(creditorStable1));
+        account.openMarginAccount(address(creditorStable1));
     }
 
     function testFuzz_Revert_openeMarginAccount_Reentered() public {
@@ -54,11 +55,11 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_openMarginAccount_AlreadySet() public {
         // Open a margin account => will set a creditor
         vm.startPrank(users.accountOwner);
-        proxyAccount.openMarginAccount(address(creditorStable1));
+        account.openMarginAccount(address(creditorStable1));
 
         // Should revert if the creditor is already set
         vm.expectRevert(AccountErrors.CreditorAlreadySet.selector);
-        proxyAccount.openMarginAccount(address(creditorStable1));
+        account.openMarginAccount(address(creditorStable1));
     }
 
     function testFuzz_Revert_openMarginAccount_ExposureNotInLimits(uint112 exposure, uint112 maxExposure) public {
@@ -68,37 +69,37 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // And: MaxExposure is set for both creditors.
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC20.stable1), 0, type(uint112).max, 0, 0
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC20.stable1), 0, maxExposure, 0, 0
         );
         vm.stopPrank();
 
         // And: The account has a different Creditor set.
         vm.prank(users.accountOwner);
-        proxyAccount.openMarginAccount(address(creditorUsd));
+        account.openMarginAccount(address(creditorUsd));
 
         // And: The account has assets deposited.
-        depositTokenInAccount(proxyAccount, mockERC20.stable1, exposure);
+        depositERC20InAccount(account, mockERC20.stable1, exposure);
 
         // Assert old creditor has been set.
-        assertEq(proxyAccount.creditor(), address(creditorUsd));
-        assertEq(proxyAccount.liquidator(), address(0));
-        assertEq(proxyAccount.minimumMargin(), 0);
-        assertEq(proxyAccount.numeraire(), address(0)); // USD
+        assertEq(account.creditor(), address(creditorUsd));
+        assertEq(account.liquidator(), address(0));
+        assertEq(account.minimumMargin(), 0);
+        assertEq(account.numeraire(), address(0)); // USD
 
         // Assert old creditor has exposure.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
-        (uint128 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
+        (uint128 actualExposure,,,) = erc20AM.riskParams(address(creditorUsd), assetKey);
         assertEq(actualExposure, exposure);
 
         // When: Open a margin account with a new creditor.
         // Then: Should revert if the creditor is already set
         vm.prank(users.accountOwner);
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
-        proxyAccount.openMarginAccount(address(creditorStable1));
+        account.openMarginAccount(address(creditorStable1));
     }
 
     function testFuzz_Revert_openMarginAccount_InvalidAccountVersion() public {
@@ -106,7 +107,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         creditorStable1.setCallResult(false);
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.InvalidAccountVersion.selector);
-        proxyAccount.openMarginAccount((address(creditorStable1)));
+        account.openMarginAccount((address(creditorStable1)));
         vm.stopPrank();
     }
 
@@ -119,39 +120,39 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // And: MaxExposure is set for creditor.
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC20.stable1), 0, maxExposure, 0, 0
         );
 
         // And: The account has assets deposited.
-        depositTokenInAccount(proxyAccount, mockERC20.stable1, exposure);
+        depositERC20InAccount(account, mockERC20.stable1, exposure);
 
         // Assert no creditor has been set on deployment
-        assertEq(proxyAccount.creditor(), address(0));
+        assertEq(account.creditor(), address(0));
         // Assert no liquidator, numeraire and liquidation costs have been defined on deployment
-        assertEq(proxyAccount.liquidator(), address(0));
-        assertEq(proxyAccount.minimumMargin(), 0);
-        assertEq(proxyAccount.numeraire(), address(0));
+        assertEq(account.liquidator(), address(0));
+        assertEq(account.minimumMargin(), 0);
+        assertEq(account.numeraire(), address(0));
 
         vm.warp(time);
 
         // Open a margin account
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
-        emit MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
-        proxyAccount.openMarginAccount(address(creditorStable1));
+        emit AccountV1.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
+        account.openMarginAccount(address(creditorStable1));
         vm.stopPrank();
 
         // Assert a creditor has been set and other variables updated
-        assertEq(proxyAccount.creditor(), address(creditorStable1));
-        assertEq(proxyAccount.liquidator(), Constants.initLiquidator);
-        assertEq(proxyAccount.minimumMargin(), Constants.initLiquidationCost);
-        assertEq(proxyAccount.numeraire(), address(mockERC20.stable1));
-        assertEq(proxyAccount.lastActionTimestamp(), time);
+        assertEq(account.creditor(), address(creditorStable1));
+        assertEq(account.liquidator(), Constants.initLiquidator);
+        assertEq(account.minimumMargin(), Constants.initLiquidationCost);
+        assertEq(account.numeraire(), address(mockERC20.stable1));
+        assertEq(account.lastActionTimestamp(), time);
 
         // And: the exposure of the Creditors is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
-        (uint128 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorStable1), assetKey);
+        (uint128 actualExposure,,,) = erc20AM.riskParams(address(creditorStable1), assetKey);
         assertEq(actualExposure, exposure);
     }
 
@@ -166,30 +167,28 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         // And: MaxExposure is set for both creditors.
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC20.stable1), 0, maxExposure, 0, 0
-        );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC20.stable1), 0, maxExposure, 0, 0);
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC20.stable1), 0, maxExposure, 0, 0
         );
         vm.stopPrank();
 
         // And: The account has a different Creditor set.
         vm.prank(users.accountOwner);
-        proxyAccount.openMarginAccount(address(creditorUsd));
+        account.openMarginAccount(address(creditorUsd));
 
         // And: The account has assets deposited.
-        depositTokenInAccount(proxyAccount, mockERC20.stable1, exposure);
+        depositERC20InAccount(account, mockERC20.stable1, exposure);
 
         // Assert old creditor has been set.
-        assertEq(proxyAccount.creditor(), address(creditorUsd));
-        assertEq(proxyAccount.liquidator(), address(0));
-        assertEq(proxyAccount.minimumMargin(), 0);
-        assertEq(proxyAccount.numeraire(), address(0)); // USD
+        assertEq(account.creditor(), address(creditorUsd));
+        assertEq(account.liquidator(), address(0));
+        assertEq(account.minimumMargin(), 0);
+        assertEq(account.numeraire(), address(0)); // USD
 
         // Assert old creditor has exposure.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
-        (uint128 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
+        (uint128 actualExposure,,,) = erc20AM.riskParams(address(creditorUsd), assetKey);
         assertEq(actualExposure, exposure);
 
         vm.warp(time);
@@ -197,21 +196,21 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // When: Open a margin account with a new creditor.
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
-        emit MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
-        proxyAccount.openMarginAccount(address(creditorStable1));
+        emit AccountV1.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
+        account.openMarginAccount(address(creditorStable1));
         vm.stopPrank();
 
         // Then: A creditor has been set and other variables updated
-        assertEq(proxyAccount.creditor(), address(creditorStable1));
-        assertEq(proxyAccount.liquidator(), Constants.initLiquidator);
-        assertEq(proxyAccount.minimumMargin(), Constants.initLiquidationCost);
-        assertEq(proxyAccount.numeraire(), address(mockERC20.stable1));
-        assertEq(proxyAccount.lastActionTimestamp(), time);
+        assertEq(account.creditor(), address(creditorStable1));
+        assertEq(account.liquidator(), Constants.initLiquidator);
+        assertEq(account.minimumMargin(), Constants.initLiquidationCost);
+        assertEq(account.numeraire(), address(mockERC20.stable1));
+        assertEq(account.lastActionTimestamp(), time);
 
         // And: the exposure of the Creditors is updated.
-        (actualExposure,,,) = erc20AssetModule.riskParams(address(creditorUsd), assetKey);
+        (actualExposure,,,) = erc20AM.riskParams(address(creditorUsd), assetKey);
         assertEq(actualExposure, 0);
-        (actualExposure,,,) = erc20AssetModule.riskParams(address(creditorStable1), assetKey);
+        (actualExposure,,,) = erc20AM.riskParams(address(creditorStable1), assetKey);
         assertEq(actualExposure, exposure);
     }
 
@@ -221,7 +220,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint32 time
     ) public {
         // Confirm initial numeraire is not set for the Account
-        assertEq(proxyAccount.numeraire(), address(0));
+        assertEq(account.numeraire(), address(0));
 
         // Update numeraire of the creditor to TOKEN1
         creditorStable1.setNumeraire(address(mockERC20.token1));
@@ -234,17 +233,17 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
-        emit NumeraireSet(address(mockERC20.token1));
+        emit AccountV1.NumeraireSet(address(mockERC20.token1));
         vm.expectEmit();
-        emit MarginAccountChanged(address(creditorStable1), liquidator);
-        proxyAccount.openMarginAccount(address(creditorStable1));
+        emit AccountV1.MarginAccountChanged(address(creditorStable1), liquidator);
+        account.openMarginAccount(address(creditorStable1));
         vm.stopPrank();
 
-        assertEq(proxyAccount.creditor(), address(creditorStable1));
-        assertEq(proxyAccount.liquidator(), liquidator);
-        assertEq(proxyAccount.numeraire(), address(mockERC20.token1));
-        assertEq(proxyAccount.minimumMargin(), minimumMargin);
-        assertEq(proxyAccount.lastActionTimestamp(), time);
+        assertEq(account.creditor(), address(creditorStable1));
+        assertEq(account.liquidator(), liquidator);
+        assertEq(account.numeraire(), address(mockERC20.token1));
+        assertEq(account.minimumMargin(), minimumMargin);
+        assertEq(account.lastActionTimestamp(), time);
     }
 
     function testFuzz_Success_openMarginAccount_SameNumeraire(uint32 time) public {
@@ -257,7 +256,7 @@ contract OpenMarginAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.warp(time);
 
         vm.expectEmit();
-        emit MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
+        emit AccountV1.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
         AccountV1(deployedAccount).openMarginAccount(address(creditorStable1));
 
         assertEq(AccountV1(deployedAccount).liquidator(), Constants.initLiquidator);

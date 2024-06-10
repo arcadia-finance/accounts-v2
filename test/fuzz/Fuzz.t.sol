@@ -4,17 +4,22 @@
  */
 pragma solidity 0.8.22;
 
-import { Base_Test, Constants } from "../Base.t.sol";
-import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
-import { MockOracles, MockERC20, MockERC721, MockERC1155, Rates } from "../utils/Types.sol";
-import { Registry } from "../../src/Registry.sol";
+import { Base_Test } from "../Base.t.sol";
+import { ArcadiaAccountsFixture } from "../utils/fixtures/arcadia-accounts/ArcadiaAccountsFixture.f.sol";
+
+import { AccountV1 } from "../../src/accounts/AccountV1.sol";
+import { ArcadiaOracle } from "../utils/mocks/oracles/ArcadiaOracle.sol";
 import { AssetModule } from "../../src/asset-modules/abstracts/AbstractAM.sol";
+import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
+import { Constants } from "../utils/Constants.sol";
 import { CreditorMock } from "../utils/mocks/creditors/CreditorMock.sol";
 import { ERC20Mock } from "../utils/mocks/tokens/ERC20Mock.sol";
 import { ERC721Mock } from "../utils/mocks/tokens/ERC721Mock.sol";
 import { ERC1155Mock } from "../utils/mocks/tokens/ERC1155Mock.sol";
-import { ArcadiaOracle } from "../utils/mocks/oracles/ArcadiaOracle.sol";
-import { AccountV1 } from "../../src/accounts/AccountV1.sol";
+import { FloorERC721AMExtension } from "../utils/extensions/FloorERC721AMExtension.sol";
+import { FloorERC1155AMExtension } from "../utils/extensions/FloorERC1155AMExtension.sol";
+import { MockERC20, MockERC721, MockERC1155, MockOracles, Rates } from "../utils/Types.sol";
+import { Registry } from "../../src/Registry.sol";
 
 /**
  * @notice Common logic needed by all fuzz tests.
@@ -25,20 +30,18 @@ import { AccountV1 } from "../../src/accounts/AccountV1.sol";
  * (eg. a uint256 from 0 to type(uint256).max), unless the parameter/variable is bound by an invariant.
  * If this case, said invariant must be explicitly tested in the invariant tests.
  */
-abstract contract Fuzz_Test is Base_Test {
+abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
+    FloorERC721AMExtension internal floorERC721AM;
+    FloorERC1155AMExtension internal floorERC1155AM;
     MockOracles internal mockOracles;
     MockERC20 internal mockERC20;
     MockERC721 internal mockERC721;
     MockERC1155 internal mockERC1155;
     Rates internal rates;
-
-    // baseToQuoteAsset arrays
-    bool[] internal BA_TO_QA_SINGLE = new bool[](1);
-    bool[] internal BA_TO_QA_DOUBLE = new bool[](2);
 
     // ERC20 oracle arrays
     uint80[] internal oracleStable1ToUsdArr = new uint80[](1);
@@ -61,64 +64,29 @@ abstract contract Fuzz_Test is Base_Test {
     CreditorMock internal creditorToken1;
 
     /*//////////////////////////////////////////////////////////////////////////
-                                   MODIFIERS
-    //////////////////////////////////////////////////////////////////////////*/
-
-    modifier notTestContracts(address fuzzedAddress) {
-        vm.assume(fuzzedAddress != address(sequencerUptimeOracle));
-        vm.assume(fuzzedAddress != address(factory));
-        vm.assume(fuzzedAddress != address(accountV1Logic));
-        vm.assume(fuzzedAddress != address(accountV2Logic));
-        vm.assume(fuzzedAddress != address(proxyAccount));
-        vm.assume(fuzzedAddress != address(registryExtension));
-        vm.assume(fuzzedAddress != address(vm));
-        vm.assume(fuzzedAddress != address(this));
-        vm.assume(fuzzedAddress != address(chainlinkOM));
-        vm.assume(fuzzedAddress != address(erc20AssetModule));
-        vm.assume(fuzzedAddress != address(floorERC1155AM));
-        vm.assume(fuzzedAddress != address(floorERC721AM));
-        vm.assume(fuzzedAddress != address(uniV3AssetModule));
-        vm.assume(fuzzedAddress != address(creditorUsd));
-        vm.assume(fuzzedAddress != address(creditorStable1));
-        vm.assume(fuzzedAddress != address(creditorToken1));
-        vm.assume(fuzzedAddress != address(mockERC20.stable1));
-        vm.assume(fuzzedAddress != address(mockERC20.stable2));
-        vm.assume(fuzzedAddress != address(mockERC20.token1));
-        vm.assume(fuzzedAddress != address(mockERC20.token2));
-        vm.assume(fuzzedAddress != address(mockERC20.token3));
-        vm.assume(fuzzedAddress != address(mockERC20.token4));
-        vm.assume(fuzzedAddress != address(mockERC721.nft1));
-        vm.assume(fuzzedAddress != address(mockERC721.nft2));
-        vm.assume(fuzzedAddress != address(mockERC721.nft3));
-        vm.assume(fuzzedAddress != address(mockERC1155.sft1));
-        vm.assume(fuzzedAddress != address(mockERC1155.sft2));
-        vm.assume(fuzzedAddress != address(mockOracles.stable1ToUsd));
-        vm.assume(fuzzedAddress != address(mockOracles.stable2ToUsd));
-        vm.assume(fuzzedAddress != address(mockOracles.token1ToUsd));
-        vm.assume(fuzzedAddress != address(mockOracles.token2ToUsd));
-        vm.assume(fuzzedAddress != address(mockOracles.token3ToToken4));
-        vm.assume(fuzzedAddress != address(mockOracles.token4ToUsd));
-        vm.assume(fuzzedAddress != address(mockOracles.nft1ToToken1));
-        vm.assume(fuzzedAddress != address(mockOracles.nft2ToUsd));
-        vm.assume(fuzzedAddress != address(mockOracles.nft3ToToken1));
-        vm.assume(fuzzedAddress != address(mockOracles.sft1ToToken1));
-        vm.assume(fuzzedAddress != address(mockOracles.sft2ToUsd));
-        assumeNotForgeAddress(fuzzedAddress);
-        _;
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
 
     function setUp() public virtual override {
         Base_Test.setUp();
+        deployArcadiaAccounts();
 
         // Warp to have a timestamp of at least two days old.
         vm.warp(2 days);
 
+        // Deploy mocked Asset Modules.
+        vm.startPrank(users.owner);
+        floorERC721AM = new FloorERC721AMExtension(address(registry));
+        floorERC1155AM = new FloorERC1155AMExtension(address(registry));
+        registry.addAssetModule(address(floorERC721AM));
+        registry.addAssetModule(address(floorERC1155AM));
+        vm.stopPrank();
+
+        vm.label({ account: address(floorERC721AM), newLabel: "ERC721 Asset Module" });
+        vm.label({ account: address(floorERC1155AM), newLabel: "ERC1155 Asset Module" });
+
         // Create mock ERC20 tokens for testing
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.startPrank(users.tokenCreator);
 
         mockERC20 = MockERC20({
             stable1: new ERC20Mock("STABLE1", "S1", uint8(Constants.stableDecimals)),
@@ -201,7 +169,7 @@ abstract contract Fuzz_Test is Base_Test {
         });
 
         // Add Chainlink Oracles to the Chainlink Oracles Module.
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         chainlinkOM.addOracle(address(mockOracles.stable1ToUsd), "STABLE1", "USD", 2 days);
         chainlinkOM.addOracle(address(mockOracles.stable2ToUsd), "STABLE2", "USD", 2 days);
         chainlinkOM.addOracle(address(mockOracles.token1ToUsd), "TOKEN1", "USD", 2 days);
@@ -210,11 +178,7 @@ abstract contract Fuzz_Test is Base_Test {
         chainlinkOM.addOracle(address(mockOracles.sft1ToToken1), "SFT1", "TOKEN1", 2 days);
         vm.stopPrank();
 
-        vm.startPrank(registryExtension.owner());
-        // Create the oracle-direction arrays.
-        BA_TO_QA_SINGLE[0] = true;
-        BA_TO_QA_DOUBLE[0] = true;
-        BA_TO_QA_DOUBLE[1] = true;
+        vm.startPrank(registry.owner());
 
         // Add STABLE1, STABLE2, TOKEN1 and TOKEN2 to the ERC20PrimaryAM.
         oracleStable1ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.stable1ToUsd)));
@@ -222,14 +186,10 @@ abstract contract Fuzz_Test is Base_Test {
         oracleToken1ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token1ToUsd)));
         oracleToken2ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token2ToUsd)));
 
-        erc20AssetModule.addAsset(
-            address(mockERC20.stable1), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStable1ToUsdArr)
-        );
-        erc20AssetModule.addAsset(
-            address(mockERC20.stable2), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStable2ToUsdArr)
-        );
-        erc20AssetModule.addAsset(address(mockERC20.token1), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleToken1ToUsdArr));
-        erc20AssetModule.addAsset(address(mockERC20.token2), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleToken2ToUsdArr));
+        erc20AM.addAsset(address(mockERC20.stable1), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStable1ToUsdArr));
+        erc20AM.addAsset(address(mockERC20.stable2), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStable2ToUsdArr));
+        erc20AM.addAsset(address(mockERC20.token1), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleToken1ToUsdArr));
+        erc20AM.addAsset(address(mockERC20.token2), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleToken2ToUsdArr));
 
         // Add NFT1 to the floorERC721AM.
         oracleNft1ToToken1ToUsd[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.nft1ToToken1)));
@@ -251,11 +211,11 @@ abstract contract Fuzz_Test is Base_Test {
 
         // Set Risk Variables.
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParameters(address(creditorUsd), 0, 15 minutes, type(uint64).max);
-        registryExtension.setRiskParameters(address(creditorStable1), 0, 15 minutes, type(uint64).max);
-        registryExtension.setRiskParameters(address(creditorToken1), 0, 15 minutes, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, 15 minutes, type(uint64).max);
+        registry.setRiskParameters(address(creditorStable1), 0, 15 minutes, type(uint64).max);
+        registry.setRiskParameters(address(creditorToken1), 0, 15 minutes, type(uint64).max);
 
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.stable1),
             0,
@@ -263,7 +223,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.stable1),
             0,
@@ -271,7 +231,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.stable1),
             0,
@@ -280,7 +240,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToStableLiqFactor
         );
 
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.stable2),
             0,
@@ -288,7 +248,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.stable2),
             0,
@@ -296,7 +256,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.stableToStableCollFactor,
             Constants.stableToStableLiqFactor
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.stable2),
             0,
@@ -305,7 +265,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToStableLiqFactor
         );
 
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.token1),
             0,
@@ -313,7 +273,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.token1),
             0,
@@ -321,7 +281,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.token1),
             0,
@@ -330,7 +290,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToTokenLiqFactor
         );
 
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.token2),
             0,
@@ -338,7 +298,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.token2),
             0,
@@ -346,7 +306,7 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToStableCollFactor,
             Constants.tokenToStableLiqFactor
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.token2),
             0,
@@ -355,23 +315,23 @@ abstract contract Fuzz_Test is Base_Test {
             Constants.tokenToTokenLiqFactor
         );
 
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC721.nft1), 0, type(uint112).max, 0, 0
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC721.nft1), 0, type(uint112).max, 0, 0
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1), address(mockERC721.nft1), 0, type(uint112).max, 0, 0
         );
 
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC1155.sft1), 1, type(uint112).max, 0, 0
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC1155.sft1), 1, type(uint112).max, 0, 0
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1), address(mockERC1155.sft1), 1, type(uint112).max, 0, 0
         );
 
@@ -382,95 +342,15 @@ abstract contract Fuzz_Test is Base_Test {
                                       HELPERS
     //////////////////////////////////////////////////////////////////////////*/
 
-    function initMockedOracle(uint8 decimals, string memory description, uint256 answer)
-        public
-        returns (ArcadiaOracle)
-    {
-        vm.startPrank(users.defaultCreatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
-        oracle.setOffchainTransmitter(users.defaultTransmitter);
-        vm.stopPrank();
-        vm.startPrank(users.defaultTransmitter);
-        int256 convertedAnswer = int256(answer);
-        oracle.transmit(convertedAnswer);
-        vm.stopPrank();
-        return oracle;
+    function addAssetToArcadia(address asset, int256 price) internal override {
+        super.addAssetToArcadia(asset, price);
+
+        vm.prank(users.riskManager);
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), asset, 0, type(uint112).max, 80, 90);
     }
 
-    function initMockedOracle(uint8 decimals, string memory description) public returns (ArcadiaOracle) {
-        vm.startPrank(users.defaultCreatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
-        oracle.setOffchainTransmitter(users.defaultTransmitter);
-        vm.stopPrank();
-        return oracle;
-    }
-
-    function initMockedOracle(uint8 decimals, string memory description, int256 answer)
-        public
-        returns (ArcadiaOracle)
-    {
-        vm.startPrank(users.defaultCreatorAddress);
-        ArcadiaOracle oracle = new ArcadiaOracle(uint8(decimals), description, address(73));
-        oracle.setOffchainTransmitter(users.defaultTransmitter);
-        vm.stopPrank();
-
-        vm.prank(users.defaultTransmitter);
-        oracle.transmit(answer);
-
-        return oracle;
-    }
-
-    function transmitOracle(ArcadiaOracle oracle, int256 answer, address transmitter) public {
-        vm.startPrank(transmitter);
-        oracle.transmit(answer);
-        vm.stopPrank();
-    }
-
-    function transmitOracle(ArcadiaOracle oracle, int256 answer) public {
-        vm.startPrank(users.defaultTransmitter);
-        oracle.transmit(answer);
-        vm.stopPrank();
-    }
-
-    function depositTokenInAccount(AccountV1 account_, ERC20Mock token, uint256 amount) public {
-        address[] memory assets = new address[](1);
-        assets[0] = address(token);
-
-        uint256[] memory ids = new uint256[](1);
-        ids[0] = 0;
-
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
-
-        deal(address(token), account_.owner(), amount);
-        vm.startPrank(account_.owner());
-        token.approve(address(account_), amount);
-        account_.deposit(assets, ids, amounts);
-        vm.stopPrank();
-    }
-
-    function mintERC20TokenTo(address token, address to, uint256 amount) public {
-        ERC20Mock(token).mint(to, amount);
-    }
-
-    function mintERC20TokensTo(address[] memory tokens, address to, uint256[] memory amounts) public {
-        for (uint8 i = 0; i < tokens.length; ++i) {
-            ERC20Mock(tokens[i]).mint(to, amounts[i]);
-        }
-    }
-
-    function approveERC20TokenFor(address token, address spender, uint256 amount, address user) public {
-        vm.prank(user);
-        ERC20Mock(token).approve(spender, amount);
-    }
-
-    function approveERC20TokensFor(address[] memory tokens, address spender, uint256[] memory amounts, address user)
-        public
-    {
-        vm.startPrank(user);
-        for (uint8 i = 0; i < tokens.length; ++i) {
-            ERC20Mock(tokens[i]).approve(spender, amounts[i]);
-        }
-        vm.stopPrank();
+    function addAssetToArcadia(address asset, int256 price, uint112 initialExposure, uint112 maxExposure) internal {
+        addAssetToArcadia(asset, price);
+        erc20AM.setExposure(address(creditorUsd), asset, initialExposure, maxExposure);
     }
 }

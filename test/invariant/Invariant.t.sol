@@ -4,11 +4,11 @@
  */
 pragma solidity 0.8.22;
 
-import { StdInvariant } from "../../lib/forge-std/src/StdInvariant.sol";
 import { Base_Test } from "../Base.t.sol";
+import { ArcadiaAccountsFixture } from "../utils/fixtures/arcadia-accounts/ArcadiaAccountsFixture.f.sol";
 
 /// @notice Common logic needed by all invariant tests.
-abstract contract Invariant_Test is Base_Test {
+abstract contract Invariant_Test is Base_Test, ArcadiaAccountsFixture {
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -22,5 +22,6 @@ abstract contract Invariant_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
         Base_Test.setUp();
+        deployArcadiaAccounts();
     }
 }

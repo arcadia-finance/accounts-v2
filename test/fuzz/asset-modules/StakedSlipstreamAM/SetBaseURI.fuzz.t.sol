@@ -27,7 +27,7 @@ contract SetBaseURI_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_setBaseURI_NonOwner(string calldata uri, address unprivilegedAddress_) public {
-        vm.assume(address(unprivilegedAddress_) != users.creatorAddress);
+        vm.assume(address(unprivilegedAddress_) != users.owner);
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
@@ -36,7 +36,7 @@ contract SetBaseURI_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test
     }
 
     function testFuzz_Success_setBaseURI(string calldata uri) public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         stakedSlipstreamAM.setBaseURI(uri);
 
         string memory expectedUri = stakedSlipstreamAM.baseURI();
@@ -46,7 +46,7 @@ contract SetBaseURI_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test
 
     function testFuzz_Success_UriOfId(string calldata uri, uint256 id) public {
         vm.assume(bytes(uri).length > 0);
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         stakedSlipstreamAM.setBaseURI(uri);
 
         string memory actualUri = stakedSlipstreamAM.tokenURI(id);

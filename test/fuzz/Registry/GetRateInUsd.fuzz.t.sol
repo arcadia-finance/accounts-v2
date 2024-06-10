@@ -20,7 +20,7 @@ contract GetRateInUsd_Registry_Fuzz_Test is Registry_Fuzz_Test {
     function setUp() public override {
         Registry_Fuzz_Test.setUp();
 
-        oracleModule = new OracleModuleMock(address(registryExtension));
+        oracleModule = new OracleModuleMock(address(registry));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@ contract GetRateInUsd_Registry_Fuzz_Test is Registry_Fuzz_Test {
         bytes32 oracleSequence = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
         vm.expectRevert(bytes(""));
-        registryExtension.getRateInUsd(oracleSequence);
+        registry.getRateInUsd(oracleSequence);
     }
 
     function testFuzz_Success_getRateInUsd_BaseAssetToQuoteAsset(uint80 oracleId, uint256 rate) public {
@@ -54,7 +54,7 @@ contract GetRateInUsd_Registry_Fuzz_Test is Registry_Fuzz_Test {
         baseToQuoteAsset[0] = true;
         bytes32 oracleSequence = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
-        uint256 actualRate = registryExtension.getRateInUsd(oracleSequence);
+        uint256 actualRate = registry.getRateInUsd(oracleSequence);
         assertEq(actualRate, expectedRate);
     }
 
@@ -71,7 +71,7 @@ contract GetRateInUsd_Registry_Fuzz_Test is Registry_Fuzz_Test {
         baseToQuoteAsset[0] = false;
         bytes32 oracleSequence = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
-        uint256 actualRate = registryExtension.getRateInUsd(oracleSequence);
+        uint256 actualRate = registry.getRateInUsd(oracleSequence);
         assertEq(actualRate, expectedRate);
     }
 }

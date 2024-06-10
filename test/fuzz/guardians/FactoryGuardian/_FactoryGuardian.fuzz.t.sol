@@ -6,8 +6,8 @@ pragma solidity 0.8.22;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 
-import { FactoryGuardianExtension } from "../../../utils/extensions/FactoryGuardianExtension.sol";
 import { BaseGuardian } from "../../../../src/guardians/BaseGuardian.sol";
+import { FactoryGuardianExtension } from "../../../utils/extensions/FactoryGuardianExtension.sol";
 
 /**
  * @notice Common logic needed by all "FactoryGuardian" fuzz tests.
@@ -32,7 +32,7 @@ abstract contract FactoryGuardian_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         factoryGuardian = new FactoryGuardianExtension();
         factoryGuardian.changeGuardian(users.guardian);
         vm.stopPrank();

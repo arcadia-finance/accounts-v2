@@ -24,16 +24,21 @@ contract GetUnderlyingAssets_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_T
 
     function testFuzz_Success_getUnderlyingAssets_InAssetModule(bool stable) public {
         // Given : Valid initial state
-        setMockState(stable);
+        aeroPool.setStable(stable);
 
         // And : Asset has been added to the AM
-        vm.prank(users.creatorAddress);
-        aeroPoolAM.addAsset(address(aeroPoolMock));
+        vm.prank(users.owner);
+        aeroPoolAM.addAsset(address(aeroPool));
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPoolMock)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
         bytes32[] memory expectedUnderlyingAssetKeys = new bytes32[](2);
-        expectedUnderlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
-        expectedUnderlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
+        if (mockERC20.token1 < mockERC20.stable1) {
+            expectedUnderlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
+            expectedUnderlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
+        } else {
+            expectedUnderlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
+            expectedUnderlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
+        }
 
         bytes32[] memory actualUnderlyingAssetKeys = aeroPoolAM.getUnderlyingAssets(assetKey);
 
@@ -42,7 +47,7 @@ contract GetUnderlyingAssets_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_T
     }
 
     function testFuzz_Success_getUnderlyingAssets_NotInAssetModule() public {
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPoolMock)));
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = aeroPoolAM.getUnderlyingAssets(assetKey);
 

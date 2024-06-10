@@ -28,7 +28,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
         int256 deltaExposureUpperAssetToAsset
     ) public {
         // Given "caller" is not the Registry.
-        vm.assume(unprivilegedAddress_ != address(registryExtension));
+        vm.assume(unprivilegedAddress_ != address(registry));
 
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
@@ -68,7 +68,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
 
         // When: Asset is indirectly withdrawn.
         // Then: The transaction reverts with "Overflow".
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(AssetModule.Overflow.selector);
         assetModule.processIndirectWithdrawal(
             assetState.creditor,
@@ -96,7 +96,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
         setPrimaryAMAssetState(assetState);
 
         // When: Asset is indirectly withdrawn.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         uint256 usdExposureUpperAssetToAsset = assetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
@@ -127,7 +127,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
         setPrimaryAMAssetState(assetState);
 
         // When: Asset is indirectly withdrawn.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         uint256 usdExposureUpperAssetToAsset = assetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
@@ -157,7 +157,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
         setPrimaryAMAssetState(assetState);
 
         // When: Asset is indirectly withdrawn.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         uint256 usdExposureUpperAssetToAsset = assetModule.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,

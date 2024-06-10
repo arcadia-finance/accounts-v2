@@ -24,14 +24,14 @@ contract ProcessIndirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Te
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_processIndirectDeposit_NonRegistry(address unprivilegedAddress_, uint256 assetId) public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC721.nft2), 0, type(uint112).max, 0, 0
         );
 
-        vm.assume(unprivilegedAddress_ != address(registryExtension));
+        vm.assume(unprivilegedAddress_ != address(registry));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert(AssetModule.OnlyRegistry.selector);
@@ -41,12 +41,12 @@ contract ProcessIndirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Te
 
     function testFuzz_Revert_processIndirectDeposit_WrongID(uint256 assetId) public {
         vm.assume(assetId > 1); //Not in range
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), 0, 1, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC721.nft2), 0, 1, 0, 0);
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC721.nft2), 0, 1, 0, 0);
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(FloorERC721AM.AssetNotAllowed.selector);
         floorERC721AM.processIndirectDeposit(address(creditorUsd), address(mockERC721.nft2), assetId, 0, 0);
         vm.stopPrank();
@@ -57,12 +57,12 @@ contract ProcessIndirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Te
     }
 
     function testFuzz_Revert_processIndirectDeposit_OverExposure(uint256 assetId) public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC721.nft2), 0, 2, 0, 0);
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC721.nft2), 0, 2, 0, 0);
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         floorERC721AM.processIndirectDeposit(address(creditorUsd), address(mockERC721.nft2), assetId, 1, 1);
 
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
@@ -81,18 +81,16 @@ contract ProcessIndirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Te
         // To avoid overflow when calculating "usdExposureUpperAssetToAsset"
         vm.assume(exposureUpperAssetToAsset < type(uint112).max);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(mockERC721.nft2), 0, maxExposure, 0, 0
-        );
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC721.nft2), 0, maxExposure, 0, 0);
 
         (uint256 actualValueInUsd,,) = floorERC721AM.getValue(address(creditorUsd), address(mockERC721.nft2), 0, 1);
 
         vm.assume(actualValueInUsd * exposureUpperAssetToAsset < type(uint256).max);
 
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = floorERC721AM.processIndirectDeposit(
             address(creditorUsd),
             address(mockERC721.nft2),
@@ -123,12 +121,12 @@ contract ProcessIndirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Te
         // To avoid overflow when calculating "usdExposureUpperAssetToAsset"
         exposureUpperAssetToAsset = bound(exposureUpperAssetToAsset, 0, type(uint112).max);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC721.nft2), 0, 4, 0, 0);
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC721.nft2), 0, 4, 0, 0);
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         floorERC721AM.processDirectDeposit(address(creditorUsd), address(mockERC721.nft2), 1, 1);
         floorERC721AM.processDirectDeposit(address(creditorUsd), address(mockERC721.nft2), 2, 1);
         floorERC721AM.processDirectDeposit(address(creditorUsd), address(mockERC721.nft2), 3, 1);
@@ -136,7 +134,7 @@ contract ProcessIndirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Te
 
         (uint256 actualValueInUsd,,) = floorERC721AM.getValue(address(creditorUsd), address(mockERC721.nft2), 0, 1);
 
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = floorERC721AM.processIndirectDeposit(
             address(creditorUsd),
             address(mockERC721.nft2),
@@ -167,12 +165,12 @@ contract ProcessIndirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Te
         // To avoid overflow when calculating "usdExposureUpperAssetToAsset"
         exposureUpperAssetToAsset = bound(exposureUpperAssetToAsset, 0, type(uint112).max);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC721.nft2), 0, 4, 0, 0);
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC721.nft2), 0, 4, 0, 0);
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         floorERC721AM.processDirectDeposit(address(creditorUsd), address(mockERC721.nft2), 1, 1);
         floorERC721AM.processDirectDeposit(address(creditorUsd), address(mockERC721.nft2), 2, 1);
         floorERC721AM.processDirectDeposit(address(creditorUsd), address(mockERC721.nft2), 3, 1);
@@ -180,7 +178,7 @@ contract ProcessIndirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Te
 
         (uint256 actualValueInUsd,,) = floorERC721AM.getValue(address(creditorUsd), address(mockERC721.nft2), 0, 1);
 
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = floorERC721AM.processIndirectDeposit(
             address(creditorUsd),
             address(mockERC721.nft2),

@@ -47,7 +47,7 @@ contract ClaimReward_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
         vm.assume(nonOwner != users.liquidityProvider);
 
         // And: assetId is minted.
-        deployAndAddGauge();
+        deployAndAddGauge(0);
         position = givenValidPosition(position);
         uint256 assetId = addLiquidity(position);
 
@@ -125,7 +125,7 @@ contract ClaimReward_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
     function testFuzz_Success_claimReward_ZeroReward(StakedSlipstreamAM.PositionState memory position) public {
         // Given : a valid position.
         position = givenValidPosition(position, 1);
-        deployAndAddGauge();
+        deployAndAddGauge(0);
 
         // And : assetId is minted.
         uint256 assetId = addLiquidity(position);

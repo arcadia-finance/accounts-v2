@@ -25,7 +25,7 @@ contract IsActive_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_isActive_NotInRegistry(address sender, uint80 oracleId) public {
         // Given: An oracle not added to the "Registry".
-        oracleId = uint80(bound(oracleId, registryExtension.getOracleCounter(), type(uint80).max));
+        oracleId = uint80(bound(oracleId, registry.getOracleCounter(), type(uint80).max));
 
         vm.startPrank(sender);
         vm.expectRevert(bytes(""));
@@ -36,7 +36,7 @@ contract IsActive_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
     function testFuzz_Success_isActive_RevertingOracle(address sender, uint32 cutOffTime) public {
         RevertingOracle revertingOracle = new RevertingOracle();
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         uint256 oracleId = chainlinkOM.addOracle(address(revertingOracle), "REVERT", "USD", cutOffTime);
 
         vm.prank(sender);
@@ -44,7 +44,7 @@ contract IsActive_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
     }
 
     function testFuzz_Success_isActive_ZeroRoundId(address sender, uint32 cutOffTime) public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         uint256 oracleId = chainlinkOM.addOracle(address(mockOracles.token3ToToken4), "TOKEN3", "TOKEN4", cutOffTime);
 
         mockOracles.token3ToToken4.setLatestRoundId(0);
@@ -57,10 +57,10 @@ contract IsActive_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         price = int192(int256(bound(price, 1, type(int192).max)));
         price = -price;
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         uint256 oracleId = chainlinkOM.addOracle(address(mockOracles.token3ToToken4), "TOKEN3", "TOKEN4", cutOffTime);
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.token3ToToken4.transmit(price);
 
         vm.prank(sender);
@@ -73,10 +73,10 @@ contract IsActive_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         price = int192(int256(bound(price, 0, type(int192).max)));
         timePassed = uint32(bound(timePassed, cutOffTime, type(uint32).max));
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         uint256 oracleId = chainlinkOM.addOracle(address(mockOracles.token3ToToken4), "TOKEN3", "TOKEN4", cutOffTime);
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.token3ToToken4.transmit(price);
 
         vm.warp(block.timestamp + timePassed);
@@ -89,13 +89,13 @@ contract IsActive_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         price = int192(int256(bound(price, 0, type(int192).max)));
         cutOffTime = uint32(bound(cutOffTime, 1, type(uint32).max));
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         uint256 oracleId = chainlinkOM.addOracle(address(mockOracles.token3ToToken4), "TOKEN3", "TOKEN4", cutOffTime);
 
         //to not run into an underflow
         vm.warp(uint256(cutOffTime) + 1);
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.token3ToToken4.transmit(price);
 
         vm.warp(cutOffTime);
@@ -111,13 +111,13 @@ contract IsActive_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         cutOffTime = uint32(bound(cutOffTime, 1, type(uint32).max));
         timePassed = uint32(bound(timePassed, 0, cutOffTime - 1));
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         uint256 oracleId = chainlinkOM.addOracle(address(mockOracles.token3ToToken4), "TOKEN3", "TOKEN4", cutOffTime);
 
         //to not run into an underflow
         vm.warp(cutOffTime);
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.token3ToToken4.transmit(price);
 
         vm.warp(block.timestamp + timePassed);
@@ -136,13 +136,13 @@ contract IsActive_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         cutOffTime = uint32(bound(cutOffTime, 1, type(uint32).max));
         timePassed = uint32(bound(timePassed, cutOffTime, type(uint32).max));
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         uint256 oracleId = chainlinkOM.addOracle(address(mockOracles.token3ToToken4), "TOKEN3", "TOKEN4", cutOffTime);
 
         //to not run into an underflow
         vm.warp(cutOffTime);
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.token3ToToken4.transmit(price);
 
         vm.warp(block.timestamp + timePassed);
@@ -151,7 +151,7 @@ contract IsActive_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         assertFalse(chainlinkOM.isActive(oracleId));
 
         // Given: Oracle is operating again.
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.token3ToToken4.transmit(price);
 
         vm.prank(sender);

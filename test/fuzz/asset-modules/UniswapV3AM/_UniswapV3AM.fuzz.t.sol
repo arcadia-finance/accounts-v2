@@ -4,33 +4,21 @@
  */
 pragma solidity 0.8.22;
 
+import { Base_Test } from "../../../Base.t.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { UniswapV3Fixture } from "../../../utils/fixtures/uniswap-v3/UniswapV3Fixture.f.sol";
+import { UniswapV3AMFixture } from "../../../utils/fixtures/arcadia-accounts/UniswapV3AMFixture.f.sol";
 
-import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
-
-import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
-import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { INonfungiblePositionManagerExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
-import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
-import { LiquidityAmountsExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
-import { Utils } from "../../../utils/Utils.sol";
-import { UniswapV3AM } from "../../../../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV3AM" fuzz tests.
  */
-abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
-    using stdStorage for StdStorage;
+abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, UniswapV3AMFixture {
     /* ///////////////////////////////////////////////////////////////
                               CONSTANTS
     /////////////////////////////////////////////////////////////// */
@@ -68,7 +56,7 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(Fuzz_Test, UniswapV3Fixture) {
+    function setUp() public virtual override(Fuzz_Test, UniswapV3Fixture, Base_Test) {
         Fuzz_Test.setUp();
         // Deploy fixture for Uniswap.
         UniswapV3Fixture.setUp();
@@ -77,7 +65,9 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
         // (we can't use the Fixture since most variables of the NonfungiblepositionExtension are private).
         deployNonfungiblePositionManagerMock();
 
-        poolStable1Stable2 = createPool(mockERC20.stable1, mockERC20.stable2, TickMath.getSqrtRatioAtTick(0), 300);
+        poolStable1Stable2 = createPoolUniV3(
+            address(mockERC20.stable1), address(mockERC20.stable2), 100, TickMath.getSqrtRatioAtTick(0), 300
+        );
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -85,160 +75,10 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture {
     ////////////////////////////////////////////////////////////////*/
 
     function deployNonfungiblePositionManagerMock() public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         nonfungiblePositionManagerMock = new NonfungiblePositionManagerMock(address(uniswapV3Factory));
 
         vm.label({ account: address(nonfungiblePositionManagerMock), newLabel: "NonfungiblePositionManagerMock" });
-    }
-
-    function createPool(ERC20 token0, ERC20 token1, uint160 sqrtPriceX96, uint16 observationCardinality)
-        public
-        returns (IUniswapV3PoolExtension pool)
-    {
-        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
-        address poolAddress = nonfungiblePositionManager.createAndInitializePoolIfNecessary(
-            address(token0), address(token1), 100, sqrtPriceX96
-        ); // Set initial price to lowest possible price.
-        pool = IUniswapV3PoolExtension(poolAddress);
-        pool.increaseObservationCardinalityNext(observationCardinality);
-    }
-
-    function addLiquidity(
-        IUniswapV3PoolExtension pool,
-        uint128 liquidity,
-        address liquidityProvider_,
-        int24 tickLower,
-        int24 tickUpper,
-        bool revertsOnZeroLiquidity
-    ) public returns (uint256 tokenId) {
-        (uint160 sqrtPrice,,,,,,) = pool.slot0();
-
-        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtPrice, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity
-        );
-
-        tokenId = addLiquidity(pool, amount0, amount1, liquidityProvider_, tickLower, tickUpper, revertsOnZeroLiquidity);
-    }
-
-    function addLiquidity(
-        IUniswapV3PoolExtension pool,
-        uint256 amount0,
-        uint256 amount1,
-        address liquidityProvider_,
-        int24 tickLower,
-        int24 tickUpper,
-        bool revertsOnZeroLiquidity
-    ) public returns (uint256 tokenId) {
-        // Check if test should revert or be skipped when liquidity is zero.
-        // This is hard to check with assumes of the fuzzed inputs due to rounding errors.
-        if (!revertsOnZeroLiquidity) {
-            (uint160 sqrtPrice,,,,,,) = pool.slot0();
-            uint256 liquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
-                sqrtPrice,
-                TickMath.getSqrtRatioAtTick(tickLower),
-                TickMath.getSqrtRatioAtTick(tickUpper),
-                amount0,
-                amount1
-            );
-            vm.assume(liquidity > 0);
-        }
-
-        address token0 = pool.token0();
-        address token1 = pool.token1();
-        uint24 fee = pool.fee();
-
-        deal(token0, liquidityProvider_, amount0);
-        deal(token1, liquidityProvider_, amount1);
-        vm.startPrank(liquidityProvider_);
-        ERC20(token0).approve(address(nonfungiblePositionManager), type(uint256).max);
-        ERC20(token1).approve(address(nonfungiblePositionManager), type(uint256).max);
-        (tokenId,,,) = nonfungiblePositionManager.mint(
-            INonfungiblePositionManagerExtension.MintParams({
-                token0: token0,
-                token1: token1,
-                fee: fee,
-                tickLower: tickLower,
-                tickUpper: tickUpper,
-                amount0Desired: amount0,
-                amount1Desired: amount1,
-                amount0Min: 0,
-                amount1Min: 0,
-                recipient: liquidityProvider_,
-                deadline: type(uint256).max
-            })
-        );
-        vm.stopPrank();
-    }
-
-    function increaseLiquidity(
-        IUniswapV3PoolExtension pool,
-        uint256 tokenId,
-        uint256 amount0,
-        uint256 amount1,
-        bool revertsOnZeroLiquidity
-    ) public {
-        // Check if test should revert or be skipped when liquidity is zero.
-        // This is hard to check with assumes of the fuzzed inputs due to rounding errors.
-        (,, address token0, address token1,, int24 tickLower, int24 tickUpper,,,,,) =
-            nonfungiblePositionManager.positions(tokenId);
-        if (!revertsOnZeroLiquidity) {
-            (uint160 sqrtPrice,,,,,,) = pool.slot0();
-            uint256 liquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
-                sqrtPrice,
-                TickMath.getSqrtRatioAtTick(tickLower),
-                TickMath.getSqrtRatioAtTick(tickUpper),
-                amount0,
-                amount1
-            );
-            vm.assume(liquidity > 0);
-        }
-
-        deal(token0, address(this), 100);
-        deal(token1, address(this), 100);
-        ERC20(token0).approve(address(nonfungiblePositionManager), type(uint256).max);
-        ERC20(token1).approve(address(nonfungiblePositionManager), type(uint256).max);
-        nonfungiblePositionManager.increaseLiquidity(
-            INonfungiblePositionManagerExtension.IncreaseLiquidityParams({
-                tokenId: tokenId,
-                amount0Desired: amount0,
-                amount1Desired: amount1,
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: type(uint256).max
-            })
-        );
-    }
-
-    function isWithinAllowedRange(int24 tick) public pure returns (bool) {
-        int24 MIN_TICK = -887_272;
-        int24 MAX_TICK = -MIN_TICK;
-        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
-    }
-
-    function addUnderlyingTokenToArcadia(address token, int256 price, uint112 initialExposure, uint112 maxExposure)
-        internal
-    {
-        addUnderlyingTokenToArcadia(token, price);
-        erc20AssetModule.setExposure(address(creditorUsd), token, initialExposure, maxExposure);
-    }
-
-    function addUnderlyingTokenToArcadia(address token, int256 price) internal {
-        ArcadiaOracle oracle = initMockedOracle(18, "Token / USD");
-        address[] memory oracleArr = new address[](1);
-        oracleArr[0] = address(oracle);
-
-        vm.prank(users.defaultTransmitter);
-        oracle.transmit(price);
-        vm.startPrank(users.creatorAddress);
-        uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "Token", "USD", 2 days));
-        uint80[] memory oracleAssetToUsdArr = new uint80[](1);
-        oracleAssetToUsdArr[0] = oracleId;
-
-        erc20AssetModule.addAsset(token, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
-        vm.stopPrank();
-
-        vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(address(creditorUsd), token, 0, type(uint112).max, 80, 90);
     }
 
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)

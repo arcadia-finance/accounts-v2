@@ -24,7 +24,7 @@ contract Constructor_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         UniswapV2AMExtension uniswapV2AM_ = new UniswapV2AMExtension(registry_, address(uniswapV2Factory));
         vm.stopPrank();
         assertEq(uniswapV2AM_.REGISTRY(), registry_);

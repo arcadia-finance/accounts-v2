@@ -24,7 +24,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Te
     function setUp() public override {
         UniswapV2AM_Fuzz_Test.setUp();
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         uniswapV2AM.addAsset(address(pairToken1Token2));
     }
 
@@ -63,7 +63,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Te
         // And the pool is balanced.
         uint256 priceToken0 = reserve1;
         uint256 priceToken1 = reserve0;
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(priceToken1));
         mockOracles.token2ToUsd.transmit(int256(priceToken0));
         vm.stopPrank();

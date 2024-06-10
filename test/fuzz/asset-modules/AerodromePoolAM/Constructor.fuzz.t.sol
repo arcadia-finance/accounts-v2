@@ -25,11 +25,10 @@ contract Constructor_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     function testFuzz_success_constructor(address aerodromeFactory) public {
-        AerodromePoolAMExtension assetModule =
-            new AerodromePoolAMExtension(address(registryExtension), aerodromeFactory);
+        AerodromePoolAMExtension assetModule = new AerodromePoolAMExtension(address(registry), aerodromeFactory);
 
         assertEq(address(assetModule.AERO_FACTORY()), aerodromeFactory);
         assertEq(assetModule.ASSET_TYPE(), 1);
-        assertEq(assetModule.REGISTRY(), address(registryExtension));
+        assertEq(assetModule.REGISTRY(), address(registry));
     }
 }

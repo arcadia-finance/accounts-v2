@@ -25,54 +25,61 @@ contract StakeAndClaim_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Tes
     function testFuzz_Success_StakeAndClaim_ZeroClaim(uint256 lpBalance) public {
         lpBalance = bound(lpBalance, 1, type(uint256).max);
 
-        // Given : the pool is allowed in the Registry
-        deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
+        // Given : the aeroPool is allowed in the Registry
+        aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
+        vm.prank(users.owner);
+        aerodromePoolAM.addAsset(address(aeroPool));
 
-        // Given : Valid gauge
-        deployAerodromeGaugeFixture(address(pool), AERO);
+        // Given : Valid aeroGauge
+        aeroGauge = createGaugeAerodrome(aeroPool, AERO);
 
-        // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(gauge));
+        // And : Add asset and aeroGauge to the AM
+        stakedAerodromeAM.addAsset(address(aeroGauge));
 
-        // Given : Send pool tokens to the AM.
-        deal(address(pool), address(stakedAerodromeAM), lpBalance);
+        // Given : Send aeroPool tokens to the AM.
+        deal(address(aeroPool), address(stakedAerodromeAM), lpBalance);
 
         // When : LP is staked via the stakedAerodromeAM
-        stakedAerodromeAM.stakeAndClaim(address(pool), lpBalance);
+        stakedAerodromeAM.stakeAndClaim(address(aeroPool), lpBalance);
 
         // Then : The updated balance should be correct
-        assertEq(gauge.balanceOf(address(stakedAerodromeAM)), lpBalance);
+        assertEq(aeroGauge.balanceOf(address(stakedAerodromeAM)), lpBalance);
     }
 
     function testFuzz_Success_StakeAndClaim(uint256 lpBalance, uint256 emissions) public {
         lpBalance = bound(lpBalance, 1, type(uint128).max);
 
-        // Given : the pool is allowed in the Registry
-        deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
+        // Given : the aeroPool is allowed in the Registry
+        aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
+        vm.prank(users.owner);
+        aerodromePoolAM.addAsset(address(aeroPool));
 
-        // Given : Valid gauge
-        deployAerodromeGaugeFixture(address(pool), AERO);
+        // Given : Valid aeroGauge
+        aeroGauge = createGaugeAerodrome(aeroPool, AERO);
 
-        // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(gauge));
+        // And : Add asset and aeroGauge to the AM
+        stakedAerodromeAM.addAsset(address(aeroGauge));
 
         // Given : An initial stake via the stakedAerodromeAM
-        deal(address(pool), address(stakedAerodromeAM), lpBalance);
-        stakedAerodromeAM.stakeAndClaim(address(pool), lpBalance);
+        deal(address(aeroPool), address(stakedAerodromeAM), lpBalance);
+        stakedAerodromeAM.stakeAndClaim(address(aeroPool), lpBalance);
 
-        // Given : Add emissions to gauge
-        addEmissionsToGauge(emissions);
+        // Given : Add emissions to aeroGauge
+        // In order to avoid earned() to overflow we limit emissions to uint128.max.
+        // Such an amount should never be distributed to a specific aeroGauge.
+        emissions = bound(emissions, 1e18, type(uint128).max);
+        addEmissionsToGauge(aeroGauge, emissions);
 
         // Given : Let rewards accumulate
         vm.warp(block.timestamp + 3 days);
-        uint256 earned = gauge.earned(address(stakedAerodromeAM));
+        uint256 earned = aeroGauge.earned(address(stakedAerodromeAM));
 
         // When : An additional amount is staked via the AM
-        deal(address(pool), address(stakedAerodromeAM), lpBalance);
-        stakedAerodromeAM.stakeAndClaim(address(pool), lpBalance);
+        deal(address(aeroPool), address(stakedAerodromeAM), lpBalance);
+        stakedAerodromeAM.stakeAndClaim(address(aeroPool), lpBalance);
 
         // Then : The updated balance should be correct and rewards should have been claimed
-        assertEq(gauge.balanceOf(address(stakedAerodromeAM)), lpBalance * 2);
+        assertEq(aeroGauge.balanceOf(address(stakedAerodromeAM)), lpBalance * 2);
         assertEq(stakedAerodromeAM.REWARD_TOKEN().balanceOf(address(stakedAerodromeAM)), earned);
     }
 }

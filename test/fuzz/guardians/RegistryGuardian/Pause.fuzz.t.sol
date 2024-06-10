@@ -7,6 +7,7 @@ pragma solidity 0.8.22;
 import { RegistryGuardian_Fuzz_Test } from "./_RegistryGuardian.fuzz.t.sol";
 
 import { GuardianErrors } from "../../../../src/libraries/Errors.sol";
+import { RegistryGuardian } from "../../../../src/guardians/RegistryGuardian.sol";
 
 /**
  * @notice Fuzz tests for the function "pause" of contract "RegistryGuardian".
@@ -70,7 +71,7 @@ contract Pause_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz_Test {
         // When: the Guardian pauses.
         vm.startPrank(users.guardian);
         vm.expectEmit();
-        emit PauseFlagsUpdated(true, true);
+        emit RegistryGuardian.PauseFlagsUpdated(true, true);
         registryGuardian.pause();
         vm.stopPrank();
 

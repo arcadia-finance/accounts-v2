@@ -5,9 +5,11 @@
 pragma solidity 0.8.22;
 
 import { Invariant_Test } from "./Invariant.t.sol";
-import { FactoryHandler } from "./handlers/FactoryHandler.sol";
-import { Factory } from "../../src/Factory.sol";
+
 import { AccountV1 } from "../../src/accounts/AccountV1.sol";
+import { AccountV2 } from "../utils/mocks/accounts/AccountV2.sol";
+import { Factory } from "../../src/Factory.sol";
+import { FactoryHandler } from "./handlers/FactoryHandler.sol";
 
 /// @dev Invariant tests for { Factory }.
 contract Factory_Invariant_Test is Invariant_Test {
@@ -19,6 +21,7 @@ contract Factory_Invariant_Test is Invariant_Test {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
+    AccountV2 internal accountV2Logic;
     FactoryHandler internal factoryHandler;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -26,7 +29,11 @@ contract Factory_Invariant_Test is Invariant_Test {
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
         Invariant_Test.setUp();
-        factoryHandler = new FactoryHandler(factory, registryExtension, accountV1Logic, accountV2Logic);
+
+        vm.prank(users.owner);
+        accountV2Logic = new AccountV2(address(factory));
+
+        factoryHandler = new FactoryHandler(factory, registry, accountV1Logic, accountV2Logic);
         // We only want to target function calls inside the FactoryHandler contract
         targetContract(address(factoryHandler));
     }

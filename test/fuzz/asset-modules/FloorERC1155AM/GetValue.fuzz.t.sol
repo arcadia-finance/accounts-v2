@@ -22,11 +22,11 @@ contract GetValue_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Test {
         FloorERC1155AM_Fuzz_Test.setUp();
 
         // Add Sft2 (which has an oracle directly to usd).
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC1155.sft2), 1, type(uint112).max, 0, 0
         );
     }
@@ -45,7 +45,7 @@ contract GetValue_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Test {
             type(uint256).max
         );
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.sft2ToUsd.transmit(int256(rateSft2ToUsd));
 
         // When: getValue called
@@ -66,7 +66,7 @@ contract GetValue_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Test {
 
         uint256 expectedValueInUsd = amountSft2 * rateSft2ToUsd * 10 ** (18 - Constants.erc1155OracleDecimals);
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.sft2ToUsd.transmit(int256(rateSft2ToUsd));
 
         // When: getValue called

@@ -29,7 +29,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerive
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(unprivilegedAddress_ != address(registryExtension));
+        vm.assume(unprivilegedAddress_ != address(registry));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert(AssetModule.OnlyRegistry.selector);
@@ -63,7 +63,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerive
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // When: "Registry" calls "processIndirectWithdrawal".
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         uint256 usdExposureUpperAssetToAsset = derivedAM.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
@@ -98,7 +98,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerive
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // When: "Registry" calls "processIndirectWithdrawal".
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         uint256 usdExposureUpperAssetToAsset = derivedAM.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,
@@ -143,7 +143,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerive
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // When: "Registry" calls "processIndirectWithdrawal".
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         uint256 usdExposureUpperAssetToAsset = derivedAM.processIndirectWithdrawal(
             assetState.creditor,
             assetState.asset,

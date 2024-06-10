@@ -6,11 +6,11 @@ pragma solidity 0.8.22;
 
 import { StargateAM_Fuzz_Test } from "../StargateAM/_StargateAM.fuzz.t.sol";
 
-import { StakedStargateAMExtension } from "../../../utils/extensions/StakedStargateAMExtension.sol";
-import { LPStakingTimeMock } from "../../../utils/mocks/Stargate/StargateLpStakingMock.sol";
-import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { LPStakingTimeMock } from "../../../utils/mocks/Stargate/StargateLpStakingMock.sol";
+import { StakedStargateAMExtension } from "../../../utils/extensions/StakedStargateAMExtension.sol";
 
 /**
  * @notice Common logic needed by "StakedStargateAM" fuzz tests.
@@ -44,17 +44,15 @@ abstract contract StakedStargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         stargateOracle = initMockedOracle(8, "STG / USD", rates.token1ToUsd);
 
         // Add STG to the ERC20PrimaryAM.
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         chainlinkOM.addOracle(address(stargateOracle), "STG", "USD", 2 days);
         uint80[] memory oracleStgToUsdArr = new uint80[](1);
         oracleStgToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(stargateOracle)));
-        erc20AssetModule.addAsset(
-            address(lpStakingTimeMock.eToken()), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStgToUsdArr)
-        );
+        erc20AM.addAsset(address(lpStakingTimeMock.eToken()), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStgToUsdArr));
 
         // Deploy the Staked Stargate AssetModule.
-        stakedStargateAM = new StakedStargateAMExtension(address(registryExtension), address(lpStakingTimeMock));
-        registryExtension.addAssetModule(address(stakedStargateAM));
+        stakedStargateAM = new StakedStargateAMExtension(address(registry), address(lpStakingTimeMock));
+        registry.addAssetModule(address(stakedStargateAM));
         stakedStargateAM.initialize();
         vm.stopPrank();
     }

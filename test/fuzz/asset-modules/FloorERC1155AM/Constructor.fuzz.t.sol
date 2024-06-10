@@ -24,7 +24,7 @@ contract Constructor_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         FloorERC1155AMExtension assetModule_ = new FloorERC1155AMExtension(registry_);
         vm.stopPrank();
 

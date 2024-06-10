@@ -27,7 +27,7 @@ contract AddAsset_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_addAsset_NonOwner(address unprivilegedAddress_, uint256 start, uint256 end) public {
-        vm.assume(unprivilegedAddress_ != users.creatorAddress);
+        vm.assume(unprivilegedAddress_ != users.owner);
 
         vm.prank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
@@ -38,7 +38,7 @@ contract AddAsset_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
         start = bound(start, 1, type(uint256).max);
         end = bound(end, 0, start - 1);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(FloorERC721AM.InvalidRange.selector);
         floorERC721AM.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
     }
@@ -52,7 +52,7 @@ contract AddAsset_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
         oracleNft2ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.nft2ToUsd)));
         bytes32 badSequence = BitPackingLib.pack(badDirection, oracleNft2ToUsdArr);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(PrimaryAM.BadOracleSequence.selector);
         floorERC721AM.addAsset(address(mockERC721.nft2), start, end, badSequence);
     }
@@ -60,7 +60,7 @@ contract AddAsset_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
     function testFuzz_Revert_addAsset_OverwriteExistingAsset(uint256 start, uint256 end) public {
         end = bound(end, start, type(uint256).max);
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
         vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
         floorERC721AM.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
@@ -71,7 +71,7 @@ contract AddAsset_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
         end = bound(end, start, type(uint256).max);
         id = bound(id, start, end);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), start, end, oraclesNft2ToUsd);
 
         assertTrue(floorERC721AM.inAssetModule(address(mockERC721.nft2)));
@@ -84,8 +84,8 @@ contract AddAsset_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
         assertEq(start_, start);
         assertEq(end_, end);
 
-        assertTrue(registryExtension.inRegistry(address(mockERC721.nft2)));
-        (uint256 assetType, address assetModule) = registryExtension.assetToAssetInformation(address(mockERC721.nft2));
+        assertTrue(registry.inRegistry(address(mockERC721.nft2)));
+        (uint256 assetType, address assetModule) = registry.assetToAssetInformation(address(mockERC721.nft2));
         assertEq(assetType, 2);
         assertEq(assetModule, address(floorERC721AM));
     }

@@ -33,7 +33,7 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         bytes16 quoteAsset,
         uint32 cutOffTime
     ) public {
-        vm.assume(unprivilegedAddress != users.creatorAddress);
+        vm.assume(unprivilegedAddress != users.owner);
 
         vm.prank(users.unprivilegedAddress);
         vm.expectRevert("UNAUTHORIZED");
@@ -43,7 +43,7 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
     function testFuzz_Revert_addOracle_OverwriteOracle(bytes16 baseAsset, bytes16 quoteAsset, uint32 cutOffTime)
         public
     {
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         chainlinkOM.addOracle(address(mockOracles.token4ToUsd), baseAsset, quoteAsset, cutOffTime);
 
         vm.expectRevert(OracleModule.OracleAlreadyAdded.selector);
@@ -56,8 +56,8 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         bytes16 baseAsset,
         bytes16 quoteAsset,
         uint32 cutOffTime
-    ) public notTestContracts(oracle) {
-        vm.prank(users.creatorAddress);
+    ) public canReceiveERC721(oracle) {
+        vm.prank(users.owner);
         vm.expectRevert(bytes(""));
         chainlinkOM.addOracle(oracle, baseAsset, quoteAsset, cutOffTime);
     }
@@ -69,9 +69,9 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         uint8 decimals
     ) public {
         decimals = uint8(bound(decimals, 19, type(uint8).max));
-        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD", address(0));
+        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD");
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(ChainlinkOM.Max18Decimals.selector);
         chainlinkOM.addOracle(address(oracle), baseAsset, quoteAsset, cutOffTime);
     }
@@ -84,12 +84,12 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         uint256 oracleCounterLast
     ) public {
         decimals = uint8(bound(decimals, 0, 18));
-        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD", address(0));
+        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD");
 
         oracleCounterLast = bound(oracleCounterLast, 0, type(uint80).max);
-        registryExtension.setOracleCounter(oracleCounterLast);
+        registry.setOracleCounter(oracleCounterLast);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         uint256 oracleId = chainlinkOM.addOracle(address(oracle), baseAsset, quoteAsset, cutOffTime);
 
         assertEq(oracleId, oracleCounterLast);
@@ -103,7 +103,7 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         (bytes16 baseAsset_, bytes16 quoteAsset_) = chainlinkOM.assetPair(oracleId);
         assertEq(baseAsset_, baseAsset);
         assertEq(quoteAsset_, quoteAsset);
-        assertEq(registryExtension.getOracleToOracleModule(oracleId), address(chainlinkOM));
-        assertEq(registryExtension.getOracleCounter(), oracleCounterLast + 1);
+        assertEq(registry.getOracleToOracleModule(oracleId), address(chainlinkOM));
+        assertEq(registry.getOracleCounter(), oracleCounterLast + 1);
     }
 }

@@ -21,7 +21,7 @@ contract CheckOracleSequence_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fu
     function setUp() public override {
         AbstractPrimaryAM_Fuzz_Test.setUp();
 
-        oracleModule = new OracleModuleMock(address(registryExtension));
+        oracleModule = new OracleModuleMock(address(registry));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ contract CheckOracleSequence_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fu
         uint256 assetId,
         bytes32 oracleSequenceNew
     ) public {
-        vm.assume(unprivilegedAddress_ != users.creatorAddress);
+        vm.assume(unprivilegedAddress_ != users.owner);
 
         vm.prank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
@@ -104,7 +104,7 @@ contract CheckOracleSequence_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fu
         bytes32 oracleSequenceOld = getOracleSequence(lengthOld, directionsOld, oraclesOld);
         assetModule.setAssetInformation(asset, assetId, 0, oracleSequenceOld);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(PrimaryAM.OracleStillActive.selector);
         assetModule.setOracles(asset, assetId, oracleSequenceNew);
     }
@@ -125,7 +125,7 @@ contract CheckOracleSequence_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fu
         assetModule.setAssetInformation(asset, assetId, 0, oracleSequenceOld);
 
         // New oracle must be different from old oracles or oracles in Chainlink OM (-> unknown).
-        oracleNew = uint80(bound(oracleNew, registryExtension.getOracleCounter(), type(uint80).max));
+        oracleNew = uint80(bound(oracleNew, registry.getOracleCounter(), type(uint80).max));
         for (uint256 i; i < oraclesOld.length; ++i) {
             vm.assume(oracleNew != oraclesOld[i]);
         }
@@ -140,7 +140,7 @@ contract CheckOracleSequence_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fu
         baseToQuoteAsset[0] = directionNew;
         bytes32 oracleSequenceNew = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(bytes(""));
         assetModule.setOracles(asset, assetId, oracleSequenceNew);
     }
@@ -174,7 +174,7 @@ contract CheckOracleSequence_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fu
         baseToQuoteAsset[0] = directionNew;
         bytes32 oracleSequenceNew = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(PrimaryAM.BadOracleSequence.selector);
         assetModule.setOracles(asset, assetId, oracleSequenceNew);
     }
@@ -206,7 +206,7 @@ contract CheckOracleSequence_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fu
         addOracles(lengthNew, directionsNew, oraclesNew);
         bytes32 oracleSequenceNew = getOracleSequence(lengthNew, directionsNew, oraclesNew);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         assetModule.setOracles(asset, assetId, oracleSequenceNew);
 
         bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));

@@ -33,13 +33,13 @@ contract IncreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
     }
 
     function testFuzz_Revert_increaseLiquidity_NotOwner(
-        address account,
+        address account_,
         address randomAddress,
         uint128 amount,
         uint96 positionId,
         uint8 assetDecimals
-    ) public canReceiveERC721(account) {
-        vm.assume(account != randomAddress);
+    ) public canReceiveERC721(account_) {
+        vm.assume(account_ != randomAddress);
         // Given : Amount is greater than zero
         vm.assume(amount > 0);
         // Given : positionId is greater than 0
@@ -49,18 +49,13 @@ contract IncreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         // Given : A staking token is added to the stakingAM
         address asset = addAsset(assetDecimals);
 
-        address[] memory tokens = new address[](1);
-        tokens[0] = asset;
-
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
-
-        mintERC20TokensTo(tokens, account, amounts);
-        approveERC20TokensFor(tokens, address(stakingAM), amounts, account);
+        deal(asset, account_, amount, true);
+        vm.prank(account_);
+        ERC20Mock(asset).approve(address(stakingAM), amount);
 
         // When : Calling Stake
         // Then : The function should revert as the Account is not the owner of the positionId.
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectRevert(StakingAM.NotOwner.selector);
         stakingAM.increaseLiquidity(positionId, amount);
         vm.stopPrank();
@@ -72,8 +67,8 @@ contract IncreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         StakingAM.PositionState memory positionState,
         uint96 positionId,
         uint128 amount,
-        address account
-    ) public canReceiveERC721(account) {
+        address account_
+    ) public canReceiveERC721(account_) {
         address asset;
         {
             // Given : A staking token is added to the stakingAM
@@ -86,25 +81,20 @@ contract IncreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
             setStakingAMState(assetState, positionState, asset, positionId);
 
             // Given : Owner of positionId is Account
-            stakingAM.setOwnerOfPositionId(account, positionId);
+            stakingAM.setOwnerOfPositionId(account_, positionId);
 
             // And: updated totalStake should not be greater than uint128.
             // And: Amount staked is greater than zero.
             vm.assume(assetState.totalStaked < type(uint128).max);
             amount = uint128(bound(amount, 1, type(uint128).max - assetState.totalStaked));
 
-            address[] memory tokens = new address[](1);
-            tokens[0] = asset;
-
-            uint256[] memory amounts = new uint256[](1);
-            amounts[0] = amount;
-
-            mintERC20TokensTo(tokens, account, amounts);
-            approveERC20TokensFor(tokens, address(stakingAM), amounts, account);
+            deal(asset, account_, amount, true);
+            vm.prank(account_);
+            ERC20Mock(asset).approve(address(stakingAM), amount);
         }
 
         // When :  A user is increasing liquidity via the Staking Module
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.LiquidityIncreased(positionId, asset, amount);
         stakingAM.increaseLiquidity(positionId, amount);

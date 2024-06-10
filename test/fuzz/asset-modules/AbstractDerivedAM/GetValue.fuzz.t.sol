@@ -75,13 +75,12 @@ contract GetValue_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
         assets[0] = assetState.underlyingAsset;
         assetIds[0] = assetState.underlyingAssetId;
         assetAmounts[0] = 1e18;
-        bytes memory data = abi.encodeCall(
-            registryExtension.getValuesInUsdRecursive, (assetState.creditor, assets, assetIds, assetAmounts)
-        );
+        bytes memory data =
+            abi.encodeCall(registry.getValuesInUsdRecursive, (assetState.creditor, assets, assetIds, assetAmounts));
 
         // When: "getValue" is called.
         // Then: The Function "getUsdValue" on "Registry" is called with correct parameters.
-        vm.expectCall(address(registryExtension), data);
+        vm.expectCall(address(registry), data);
         (uint256 actualValueInUsd,,) =
             derivedAM.getValue(assetState.creditor, assetState.asset, assetState.assetId, amount);
 

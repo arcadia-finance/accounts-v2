@@ -24,7 +24,7 @@ contract Constructor_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         SlipstreamAMExtension slipstreamAM_ = new SlipstreamAMExtension(registry_, address(slipstreamPositionManager));
         vm.stopPrank();
 

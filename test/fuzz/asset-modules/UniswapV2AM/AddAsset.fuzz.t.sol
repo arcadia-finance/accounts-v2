@@ -56,7 +56,7 @@ contract AddAsset_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         vm.prank(caller);
         uniswapV2AM.addAsset(address(pairToken1Token2));
 
-        assertTrue(registryExtension.inRegistry(address(pairToken1Token2)));
+        assertTrue(registry.inRegistry(address(pairToken1Token2)));
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pairToken1Token2)));
         bytes32[] memory underlyingAssetKeys = uniswapV2AM.getUnderlyingAssets(assetKey);

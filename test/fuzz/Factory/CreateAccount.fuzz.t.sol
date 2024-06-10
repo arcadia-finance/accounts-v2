@@ -9,6 +9,9 @@ import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
 import { AccountVariableVersion } from "../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../utils/Constants.sol";
+import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
+import { Factory } from "../../../src/Factory.sol";
+import { GuardianErrors } from "../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "createAccount" of contract "Factory".
@@ -33,7 +36,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         // Then: Reverted
         vm.prank(sender);
-        vm.expectRevert(FunctionIsPaused.selector);
+        vm.expectRevert(GuardianErrors.FunctionIsPaused.selector);
         factory.createAccount(salt, 0, address(0));
     }
 
@@ -62,15 +65,15 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
             //the first account version to add is 2, so we add 2 to the index
             account_.setAccountVersion(uint16(i + 2));
 
-            vm.prank(users.creatorAddress);
-            factory.setNewAccountInfo(address(registryExtension), address(account_), Constants.upgradeRoot1To2, "");
+            vm.prank(users.owner);
+            factory.setNewAccountInfo(address(registry), address(account_), Constants.upgradeRoot1To2, "");
         }
 
         for (uint256 y; y < versionsToBlock.length; ++y) {
             if (versionsToBlock[y] == 0 || versionsToBlock[y] > factory.latestAccountVersion()) {
                 continue;
             }
-            vm.prank(users.creatorAddress);
+            vm.prank(users.owner);
             factory.blockAccountVersion(versionsToBlock[y]);
         }
 
@@ -93,9 +96,9 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint256 amountBefore = factory.allAccountsLength();
 
         vm.expectEmit();
-        emit Transfer(address(0), address(this), amountBefore + 1);
+        emit ERC721.Transfer(address(0), address(this), amountBefore + 1);
         vm.expectEmit(false, true, true, true);
-        emit AccountUpgraded(address(0), 1);
+        emit Factory.AccountUpgraded(address(0), 1);
 
         // Here we create an Account with no specific creditor
         address actualDeployed = factory.createAccount(salt, 0, address(0));
@@ -113,11 +116,11 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint256 amountBefore = factory.allAccountsLength();
 
         vm.expectEmit();
-        emit Transfer(address(0), address(this), amountBefore + 1);
+        emit ERC721.Transfer(address(0), address(this), amountBefore + 1);
         vm.expectEmit();
-        emit MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
+        emit AccountV1.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
         vm.expectEmit(false, true, true, true);
-        emit AccountUpgraded(address(0), 1);
+        emit Factory.AccountUpgraded(address(0), 1);
 
         // Here we create an Account by specifying the creditor address
         address actualDeployed = factory.createAccount(salt, 0, address(creditorStable1));
