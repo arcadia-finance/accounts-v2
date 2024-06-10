@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import { StakedAerodromeAM_Fuzz_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fuzz.t.sol";
-import { Pool } from "../../../utils/mocks/aerodrome/AeroPoolMock.sol";
+import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 /**

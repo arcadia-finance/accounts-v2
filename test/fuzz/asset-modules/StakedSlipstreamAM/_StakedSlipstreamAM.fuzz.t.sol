@@ -11,7 +11,7 @@ import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
-import { FactoryRegistryMock } from "../../../utils/mocks/aerodrome/FactoryRegistryMock.sol";
+import { FactoryRegistryMock } from "../../../utils/mocks/Aerodrome/FactoryRegistryMock.sol";
 import { ICLGauge } from "../../../../src/asset-modules/Slipstream/interfaces/ICLGauge.sol";
 import { ICLPoolExtension } from "../../../utils/fixtures/slipstream/extensions/interfaces/ICLPoolExtension.sol";
 import { INonfungiblePositionManagerExtension } from
@@ -22,7 +22,7 @@ import { LiquidityAmountsExtension } from
 import { StakedSlipstreamAM } from "../../../../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
 import { StakedSlipstreamAMExtension } from "../../../utils/extensions/StakedSlipstreamAMExtension.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
-import { VoterMock } from "../../../utils/mocks/aerodrome/VoterMock.sol";
+import { VoterMock } from "../../../utils/mocks/Aerodrome/VoterMock.sol";
 
 /**
  * @notice Common logic needed by all "StakedSlipstreamAM" fuzz tests.

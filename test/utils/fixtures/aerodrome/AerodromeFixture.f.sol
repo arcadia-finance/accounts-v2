@@ -8,10 +8,10 @@ import { Test } from "../../../../lib/forge-std/src/Test.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../mocks/tokens/ERC20Mock.sol";
-import { Gauge } from "../../mocks/aerodrome/AeroGaugeMock.sol";
-import { Pool } from "../../mocks/aerodrome/AeroPoolMock.sol";
-import { PoolFactory } from "../../mocks/aerodrome/AeroPoolFactoryMock.sol";
-import { VoterMock } from "../../mocks/aerodrome/VoterMock.sol";
+import { Gauge } from "../../mocks/Aerodrome/AeroGaugeMock.sol";
+import { Pool } from "../../mocks/Aerodrome/AeroPoolMock.sol";
+import { PoolFactory } from "../../mocks/Aerodrome/AeroPoolFactoryMock.sol";
+import { VoterMock } from "../../mocks/Aerodrome/VoterMock.sol";
 
 contract AerodromeFixture is Test {
     /*//////////////////////////////////////////////////////////////////////////

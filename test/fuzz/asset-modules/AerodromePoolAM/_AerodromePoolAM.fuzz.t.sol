@@ -11,7 +11,7 @@ import { AerodromePoolAMExtension } from "../../../utils/extensions/AerodromePoo
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { FullMath } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
-import { Pool } from "../../../utils/mocks/aerodrome/AeroPoolMock.sol";
+import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
 
 /**
  * @notice Common logic needed by "AerodromePoolAM" fuzz tests.

@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { MultiCallV2_Fuzz_Test } from "./_MultiCallV2.fuzz.t.sol";
 
 import { ERC20Mock } from "../../.././utils/mocks/tokens/ERC20Mock.sol";
-import { AerodromeAMMock } from "../../.././utils/mocks/aerodrome/AerodromeAMMock.sol";
+import { AerodromeAMMock } from "../../.././utils/mocks/Aerodrome/AerodromeAMMock.sol";
 
 /**
  * @notice Fuzz tests for the "mintUniV3LP" function of contract "MultiCall".
