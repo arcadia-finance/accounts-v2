@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import "../lib/forge-std/src/Test.sol";
+import { Test } from "../lib/forge-std/src/Test.sol";
 
 import { AerodromePoolAM } from "../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
 import { ArcadiaContracts } from "./utils/Constants.sol";

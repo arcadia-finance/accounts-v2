@@ -4,10 +4,10 @@
  */
 pragma solidity 0.8.22;
 
-import "../utils/mocks/oracles/ArcadiaOracle.sol";
-import "../utils/mocks/tokens/ERC20Mock.sol";
-import "../utils/mocks/tokens/ERC721Mock.sol";
-import "../utils/mocks/tokens/ERC1155Mock.sol";
+import { ArcadiaOracle } from "../utils/mocks/oracles/ArcadiaOracle.sol";
+import { ERC20Mock } from "../utils/mocks/tokens/ERC20Mock.sol";
+import { ERC721Mock } from "../utils/mocks/tokens/ERC721Mock.sol";
+import { ERC1155Mock } from "../utils/mocks/tokens/ERC1155Mock.sol";
 
 struct Users {
     address payable accountOwner;
