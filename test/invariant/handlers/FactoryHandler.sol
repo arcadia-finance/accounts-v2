@@ -10,7 +10,7 @@ import { AccountV2 } from "../../utils/mocks/accounts/AccountV2.sol";
 import { Factory } from "../../../src/Factory.sol";
 import { RegistryExtension } from "../../utils/extensions/RegistryExtension.sol";
 import { CreditorMock } from "../../utils/mocks/creditors/CreditorMock.sol";
-import "../../utils/Constants.sol";
+import { Constants } from "../../utils/Constants.sol";
 
 /// @dev This contract and not { Factory } is exposed to Foundry for invariant testing. The point is
 /// to bound and restrict the inputs that get passed to the real-world contract to avoid getting reverts.
