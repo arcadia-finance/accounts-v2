@@ -17,4 +17,10 @@ interface ICLPoolExtension is ICLPool {
     function token1() external view returns (address token1);
 
     function tickSpacing() external view returns (int24 tickSpacing);
+
+    function setCurrentTick(int24 currentTick) external;
+
+    function getCurrentTick() external returns (int24 currentTick);
+
+    function setSqrtPriceX96(uint160 sqrtPriceX96_) external;
 }

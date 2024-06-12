@@ -8,7 +8,7 @@ pragma experimental ABIEncoderV2;
 import { Test } from "../lib/forge-std/src/Test.sol";
 
 import { CLFactory } from "../lib/slipstream/contracts/core/CLFactory.sol";
-import { CLPool } from "../lib/slipstream/contracts/core/CLPool.sol";
+import { CLPoolExtension } from "./utils/fixtures/slipstream/extensions/CLPoolExtension.sol";
 import { CLGauge } from "../lib/slipstream/contracts/gauge/CLGauge.sol";
 import { CLGaugeFactory } from "../lib/slipstream/contracts/gauge/CLGaugeFactory.sol";
 import { NonfungiblePositionManager } from "../lib/slipstream/contracts/periphery/NonfungiblePositionManager.sol";
