@@ -41,7 +41,7 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
 
         // Deploy CLPool.
         bytes memory args = abi.encode();
-        bytes memory bytecode = abi.encodePacked(vm.getCode("CLPool.sol"), args);
+        bytes memory bytecode = abi.encodePacked(vm.getCode("CLPoolExtension.sol"), args);
         address cLPool_ = Utils.deployBytecode(bytecode);
 
         // Deploy the CLFactory.
