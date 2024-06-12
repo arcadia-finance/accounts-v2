@@ -9,6 +9,7 @@ contract VoterMock {
     address public ve;
     mapping(address pool => bool isGauge) public isGauge;
     mapping(address gauge => bool) public isAlive;
+    mapping(address => address) public gauges;
 
     constructor(address factoryRegistry_) {
         factoryRegistry = factoryRegistry_;
