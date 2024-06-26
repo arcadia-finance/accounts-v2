@@ -425,9 +425,8 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
         // Unstake the Liquidity Position.
-        uint256 rewardBalanceBefore = REWARD_TOKEN.balanceOf(address(this));
         ICLGauge(positionState[positionId].gauge).withdraw(positionId);
-        rewards = REWARD_TOKEN.balanceOf(address(this)) - rewardBalanceBefore;
+        rewards = REWARD_TOKEN.balanceOf(address(this));
 
         // Burn the position.
         delete positionState[positionId];
@@ -453,9 +452,8 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
         // Claim the rewards from the external staking contract.
-        uint256 rewardBalanceBefore = REWARD_TOKEN.balanceOf(address(this));
         ICLGauge(positionState[positionId].gauge).getReward(positionId);
-        rewards = REWARD_TOKEN.balanceOf(address(this)) - rewardBalanceBefore;
+        rewards = REWARD_TOKEN.balanceOf(address(this));
 
         // Pay out the rewards to the position owner.
         if (rewards > 0) {
