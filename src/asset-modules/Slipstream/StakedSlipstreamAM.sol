@@ -411,6 +411,13 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         NON_FUNGIBLE_POSITION_MANAGER.approve(gauge, assetId);
         ICLGauge(gauge).deposit(assetId);
 
+        // If the Liquidity Position already collected fees,
+        // these were claimed during the deposit and send to this contract.
+        uint256 balance0 = ERC20(token0).balanceOf(address(this));
+        uint256 balance1 = ERC20(token1).balanceOf(address(this));
+        if (balance0 > 0) ERC20(token0).safeTransfer(msg.sender, balance0);
+        if (balance1 > 0) ERC20(token1).safeTransfer(msg.sender, balance1);
+
         // Mint the new position, with same id as the underlying position.
         positionId = assetId;
         _safeMint(msg.sender, positionId);
