@@ -431,12 +431,9 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     function burn(uint256 positionId) external nonReentrant returns (uint256 rewards) {
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
-        // Cache Gauge.
-        address gauge = positionState[positionId].gauge;
-
         // Unstake the Liquidity Position.
-        rewards = ICLGauge(gauge).earned(address(this), positionId);
-        ICLGauge(gauge).withdraw(positionId);
+        ICLGauge(positionState[positionId].gauge).withdraw(positionId);
+        rewards = REWARD_TOKEN.balanceOf(address(this));
 
         // Burn the position.
         delete positionState[positionId];
@@ -461,12 +458,9 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     function claimReward(uint256 positionId) external nonReentrant returns (uint256 rewards) {
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
-        // Cache Gauge.
-        address gauge = positionState[positionId].gauge;
-
         // Claim the rewards from the external staking contract.
-        rewards = ICLGauge(gauge).earned(address(this), positionId);
-        ICLGauge(gauge).getReward(positionId);
+        ICLGauge(positionState[positionId].gauge).getReward(positionId);
+        rewards = REWARD_TOKEN.balanceOf(address(this));
 
         // Pay out the rewards to the position owner.
         if (rewards > 0) {
