@@ -13,7 +13,7 @@ library ArcadiaContracts {
     address internal constant SLIPSTREAM_AM = address(0xd3A7055bBcDA4F8F49e5c5dE7E83B09a33633F44);
     address internal constant STAKED_AERO_AM = address(0x9f42361B7602Df1A8Ae28Bf63E6cb1883CD44C27);
     address internal constant STAKED_STARGATE_AM = address(0xae909e19fd13C01c28d5Ee439D403920CF7f9Eea);
-    address internal constant STAKED_SLIPSTREAM_AM = address(0x7110d609d4743a65e8F26dbF815f3556eD2de6E6); // ToDo: change after deployment.
+    address internal constant STAKED_SLIPSTREAM_AM = address(0x1Dc7A0f5336F52724B650E39174cfcbbEdD67bF1);
     address internal constant STARGATE_AM = address(0x20f7903290bF98716B62Dc1c9DA634291b8cfeD4);
     address internal constant UNISWAPV3_AM = address(0x21bd524cC54CA78A7c48254d4676184f781667dC);
     address internal constant LENDINGPOOL_USDC = address(0x3ec4a293Fb906DD2Cd440c20dECB250DeF141dF1);
