@@ -37,10 +37,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
     ////////////////////////////////////////////////////////////// */
 
     // The current Account Version.
-    uint256 public constant ACCOUNT_VERSION = 100;
+    uint256 public constant ACCOUNT_VERSION = 2;
     // The cool-down period after an account action, that might be disadvantageous for a new Owner,
     // during which ownership cannot be transferred to prevent the old Owner from frontrunning a transferFrom().
-    // TODO : still needed ?
     uint256 internal constant COOL_DOWN_PERIOD = 5 minutes;
     // Storage slot with the address of the current implementation.
     // This is the hardcoded keccak-256 hash of: "eip1967.proxy.implementation" subtracted by 1.
@@ -64,14 +63,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
-
-    /**
-     * @dev Throws if called when the Account is in an auction.
-     */
-    modifier notDuringAuction() {
-        if (inAuction == true) revert AccountErrors.AccountInAuction();
-        _;
-    }
 
     /**
      * @dev Throws if function is reentered.
@@ -147,7 +138,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
      */
     function initialize(address owner_, address, address) external onlyFactory {
         owner = owner_;
-
         locked = 1;
     }
 
@@ -156,10 +146,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @param newImplementation The new contract address of the Account implementation.
      * @param newRegistry The Registry for this specific implementation (might be identical to the old registry).
      * @param data Arbitrary data, can contain instructions to execute when updating Account to new implementation.
-     * @param newVersion The new version of the Account implementation.
      * @dev This function MUST be added to new Account implementations.
      */
-    function upgradeAccount(address newImplementation, address newRegistry, uint256 newVersion, bytes calldata data)
+    function upgradeAccount(address newImplementation, address newRegistry, uint256, bytes calldata data)
         external
         onlyFactory
         nonReentrant
@@ -208,6 +197,27 @@ contract AccountV1 is AccountStorageV1, IAccount {
                           DEPOSIT / WITHDRAW LOGIC
     /////////////////////////////////////////////////////////////// */
 
+    function _deposit(ActionData memory depositData, address from) internal {
+        for (uint256 i; i < depositData.assets.length; ++i) {
+            // Skip if amount is 0 to prevent storing addresses that have 0 balance.
+            if (depositData.assetAmounts[i] == 0) continue;
+
+            if (depositData.assetTypes[i] == 1) {
+                if (depositData.assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
+                ERC20(depositData.assets[i]).safeTransferFrom(from, address(this), depositData.assetAmounts[i]);
+            } else if (depositData.assetTypes[i] == 2) {
+                if (depositData.assetAmounts[i] != 1) revert AccountErrors.InvalidERC721Amount();
+                IERC721(depositData.assets[i]).safeTransferFrom(from, address(this), depositData.assetIds[i]);
+            } else if (depositData.assetTypes[i] == 3) {
+                IERC1155(depositData.assets[i]).safeTransferFrom(
+                    from, address(this), depositData.assetIds[i], depositData.assetAmounts[i], ""
+                );
+            } else {
+                revert AccountErrors.UnknownAssetType();
+            }
+        }
+    }
+    
     /**
      * @notice Withdraws assets to the Account owner.
      */
@@ -227,27 +237,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
                 IERC721(assets[i]).safeTransferFrom(address(this), msg.sender, assetIds[i]);
             } else if (assetTypes[i] == 3) {
                 IERC1155(assets[i]).safeTransferFrom(address(this), msg.sender, assetIds[i], assetAmounts[i], "");
-            }
-        }
-    }
-
-    function _deposit(ActionData memory depositData, address from) internal {
-        for (uint256 i; i < depositData.assets.length; ++i) {
-            // Skip if amount is 0 to prevent storing addresses that have 0 balance.
-            if (depositData.assetAmounts[i] == 0) continue;
-
-            if (depositData.assetTypes[i] == 1) {
-                if (depositData.assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
-                ERC20(depositData.assets[i]).safeTransferFrom(from, address(this), depositData.assetAmounts[i]);
-            } else if (depositData.assetTypes[i] == 2) {
-                if (depositData.assetAmounts[i] != 1) revert AccountErrors.InvalidERC721Amount();
-                IERC721(depositData.assets[i]).safeTransferFrom(from, address(this), depositData.assetIds[i]);
-            } else if (depositData.assetTypes[i] == 3) {
-                IERC1155(depositData.assets[i]).safeTransferFrom(
-                    from, address(this), depositData.assetIds[i], depositData.assetAmounts[i], ""
-                );
-            } else {
-                revert AccountErrors.UnknownAssetType();
             }
         }
     }
@@ -276,25 +265,6 @@ contract AccountV1 is AccountStorageV1, IAccount {
                 revert AccountErrors.UnknownAssetType();
             }
         }
-    }
-
-    // remove nonReentrant ?
-    function withdrawERC20(address to, address ERC20Address, uint256 amount) external onlyOwner nonReentrant {
-        ERC20(ERC20Address).safeTransfer(to, amount);
-    }
-
-    // remove nonReentrant ?
-    function _withdrawERC721(address to, address ERC721Address, uint256 id) external onlyOwner nonReentrant {
-        IERC721(ERC721Address).safeTransferFrom(address(this), to, id);
-    }
-
-    // remove nonReentrant ?
-    function _withdrawERC1155(address to, address ERC1155Address, uint256 id, uint256 amount)
-        external
-        onlyOwner
-        nonReentrant
-    {
-        IERC1155(ERC1155Address).safeTransferFrom(address(this), to, id, amount, "");
     }
 
     /* ///////////////////////////////////////////////////////////////
