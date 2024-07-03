@@ -15,7 +15,7 @@ import { IFactory } from "../interfaces/IFactory.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
 
 /**
- * @title Arcadia Accounts
+ * @title Arcadia Spot Account
  * @author Pragma Labs
  * @notice Arcadia Accounts are smart contracts that act as onchain, decentralized and composable margin accounts.
  * They provide individuals, DAOs, and other protocols with a simple and flexible way to deposit and manage multiple assets as collateral.
@@ -29,7 +29,7 @@ import { IPermit2 } from "../interfaces/IPermit2.sol";
  * Arcadia's Account functions will guarantee you a certain value of the Account.
  * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
  */
-contract AccountV1 is AccountStorageV1, IAccount {
+contract AccountSpot is AccountStorageV1, IAccount {
     using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////
@@ -217,7 +217,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
             }
         }
     }
-    
+
     /**
      * @notice Withdraws assets to the Account owner.
      */
