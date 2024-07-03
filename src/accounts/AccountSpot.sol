@@ -237,6 +237,8 @@ contract AccountSpot is AccountStorageV1, IAccount {
                 IERC721(assets[i]).safeTransferFrom(address(this), msg.sender, assetIds[i]);
             } else if (assetTypes[i] == 3) {
                 IERC1155(assets[i]).safeTransferFrom(address(this), msg.sender, assetIds[i], assetAmounts[i], "");
+            } else {
+                revert AccountErrors.UnknownAssetType();
             }
         }
     }
