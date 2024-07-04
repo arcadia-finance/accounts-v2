@@ -244,9 +244,8 @@ contract AccountSpot is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Withdraws assets from the Account to the owner.
+     * @notice Withdraws assets from the Account to an address.
      * @param to The address to withdraw to.
-     * @dev (batch)ProcessWithdrawal handles the accounting of assets in the Registry.
      */
     function _withdraw(ActionData memory withdrawData, address to) internal {
         for (uint256 i; i < withdrawData.assets.length; ++i) {
