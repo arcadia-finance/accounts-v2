@@ -14,7 +14,9 @@ import { SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol
 /**
  * @title SpotToMarginMigrator.
  * @author Pragma Labs
- * @notice .
+ * @notice This contracts acts as a facilitator to upgrade an Arcadia Spot Account to a Margin Account.
+ * @notice The upgrade process consists of two steps. First, the Account owner must call upgradeAccount().
+ * Second, after any cool-down period in the Spot Account, the owner must call endUpgrade() to receive their Margin Account back.
  */
 contract SpotToMarginMigrator {
     using SafeTransferLib for IERC20;
@@ -32,19 +34,11 @@ contract SpotToMarginMigrator {
     mapping(address owner => address account) public accountOwnedBy;
 
     /* //////////////////////////////////////////////////////////////
-                                 EVENTS
-    ////////////////////////////////////////////////////////////// */
-
-    /* //////////////////////////////////////////////////////////////
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
     error NoAccountToTransfer();
     error NotOwner();
-
-    /* //////////////////////////////////////////////////////////////
-                                MODIFIERS
-    ////////////////////////////////////////////////////////////// */
 
     /* //////////////////////////////////////////////////////////////
                               CONSTRUCTOR
@@ -61,6 +55,21 @@ contract SpotToMarginMigrator {
                                MIGRATION
     ////////////////////////////////////////////////////////////// */
 
+    /**
+     * @notice This function will upgrade a Spot Account to a Margin Account.
+     * @param account The Account to upgrade.
+     * @param creditor The creditor that will be set on the Margin Account.
+     * @param newVersion The Account Version of the Margin Account.
+     * @param proofs The Merkle proofs that prove the compatibility of the upgrade from current to new account version.
+     * @param assets The assets that needs to be withdrawn from the Spot Account and deposited in the Margin Account.
+     * Only assets deposited via the deposit function in the Margin Account will be accounted as collateral.
+     * @param assetIds The assetIds of respective assets to withdraw from Spot Account and Deposit in Margin Account.
+     * @param assetAmounts The amount of respective assets to withdraw from Spot Account and Deposit in Margin Account.
+     * @param assetTypes The asset types of respective assets to withdraw from Spot Account and Deposit in Margin Account.
+     * @dev The upgrade is a two-step process. As withdraw function uses a cool-down period during which ownership cannot be transferred.
+     * This prevents the old Owner from frontrunning a transferFrom().
+     * User needs to call endUpgrade() after cool-down period to transfer the upgraded Margin Account to the user.
+     */
     function upgradeAccount(
         address account,
         address creditor,
@@ -82,8 +91,14 @@ contract SpotToMarginMigrator {
         IAccountV1(account).deposit(assets, assetIds, assetAmounts);
         // Open margin account
         IAccountV1(account).openMarginAccount(creditor);
+        // Keep track of the owner of the Account, mapping will be set to the zero address when upgrade is complete.
+        accountOwnedBy[msg.sender] = account;
     }
 
+    /**
+     * @notice Call this function after the cool-down period of the initial Spot Account has passed (following upgradeAccount()).
+     * This will finalize the upgrade and transfer the Margin Account to the caller.
+     */
     function endUpgrade() external {
         if (accountOwnedBy[msg.sender] == address(0)) revert NoAccountToTransfer();
         // Cache Acccount
