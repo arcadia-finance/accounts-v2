@@ -5,7 +5,6 @@
 pragma solidity 0.8.22;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
-import { AccountSpot } from "../../../../src/accounts/AccountSpot.sol";
 import { AccountSpotExtension } from "../../../utils/extensions/AccountSpotExtension.sol";
 import { AccountSpot_Fuzz_Test } from "./_AccountSpot.fuzz.t.sol";
 

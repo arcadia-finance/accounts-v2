@@ -14,18 +14,12 @@ import { Constants } from "./_AccountSpot.fuzz.t.sol";
 import { IPermit2 } from "../../../utils/Interfaces.sol";
 import { MultiActionMock } from "../../.././utils/mocks/actions/MultiActionMock.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
-import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
 /**
  * @notice Fuzz tests for the function "flashAction" of contract "AccountSpot".
  */
 contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixture {
-    using stdStorage for StdStorage;
-    /* ///////////////////////////////////////////////////////////////
-                             VARIABLES
-    /////////////////////////////////////////////////////////////// */
-
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

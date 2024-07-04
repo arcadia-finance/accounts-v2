@@ -10,13 +10,11 @@ import { AccountSpotExtension } from "../../../utils/extensions/AccountSpotExten
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { MultiActionMock } from "../../../utils/mocks/actions/MultiActionMock.sol";
-import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 /**
  * @notice Common logic needed by all "AccountSpot" fuzz tests.
  */
 abstract contract AccountSpot_Fuzz_Test is Fuzz_Test {
-    using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -57,17 +55,6 @@ abstract contract AccountSpot_Fuzz_Test is Fuzz_Test {
         mockERC20.token1.mint(address(accountSpot), erc20Amount);
         mockERC721.nft1.mint(address(accountSpot), erc721Id);
         mockERC1155.sft1.mint(address(accountSpot), 1, erc1155Amount);
-        vm.stopPrank();
-    }
-
-    function approveAllAssets() internal {
-        vm.startPrank(users.accountOwner);
-        mockERC20.stable1.approve(address(accountSpot), type(uint256).max);
-        mockERC20.stable2.approve(address(accountSpot), type(uint256).max);
-        mockERC20.token1.approve(address(accountSpot), type(uint256).max);
-        mockERC20.token2.approve(address(accountSpot), type(uint256).max);
-        mockERC721.nft1.setApprovalForAll(address(accountSpot), true);
-        mockERC1155.sft1.setApprovalForAll(address(accountSpot), true);
         vm.stopPrank();
     }
 }

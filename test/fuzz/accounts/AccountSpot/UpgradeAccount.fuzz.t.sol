@@ -5,7 +5,6 @@
 pragma solidity 0.8.22;
 
 import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
-import { AccountV2 } from "../../../utils/mocks/accounts/AccountV2.sol";
 import { AccountSpot_Fuzz_Test } from "./_AccountSpot.fuzz.t.sol";
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountVariableVersion } from "../../../utils/mocks/accounts/AccountVariableVersion.sol";
@@ -17,10 +16,6 @@ import { RegistryExtension } from "../../../utils/extensions/RegistryExtension.s
  * @notice Fuzz tests for the function "upgradeAccount" of contract "AccountSpot".
  */
 contract UpgradeAccount_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
-    /* ///////////////////////////////////////////////////////////////
-                              VARIABLES
-    /////////////////////////////////////////////////////////////// */
-
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -37,7 +32,6 @@ contract UpgradeAccount_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-
     function testFuzz_Revert_upgradeAccount_NonFactory(
         address newImplementation,
         address newRegistry,
