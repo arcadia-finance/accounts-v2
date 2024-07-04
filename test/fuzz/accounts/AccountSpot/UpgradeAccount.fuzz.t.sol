@@ -77,10 +77,7 @@ contract UpgradeAccount_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Success_upgradeAccountVersion(
-        uint32 time
-    ) public {
-
+    function testFuzz_Success_upgradeAccountVersion(uint32 time) public {
         bytes32[] memory proofs = new bytes32[](1);
         proofs[0] = Constants.upgradeProof1To2;
 

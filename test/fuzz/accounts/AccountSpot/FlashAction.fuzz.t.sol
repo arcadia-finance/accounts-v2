@@ -4,15 +4,13 @@
  */
 pragma solidity 0.8.22;
 
-import { Constants } from "./_AccountSpot.fuzz.t.sol";
-
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountSpot } from "../../../../src/accounts/AccountSpot.sol";
 import { AccountSpotExtension } from "../../../utils/extensions/AccountSpotExtension.sol";
 import { AccountSpot_Fuzz_Test } from "./_AccountSpot.fuzz.t.sol";
+import { ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { Constants } from "./_AccountSpot.fuzz.t.sol";
-import { IActionBase, ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { IPermit2 } from "../../../utils/Interfaces.sol";
 import { MultiActionMock } from "../../.././utils/mocks/actions/MultiActionMock.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
@@ -120,8 +118,9 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
         accountSpot.setOwner(from);
 
         // Set the account as initialized in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountSpot))
-            .checked_write(true);
+        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountSpot)).checked_write(
+            true
+        );
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = token1Amount;
@@ -160,9 +159,8 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
 
         // Get signature
         vm.prank(fromStack);
-        bytes memory signature = Utils.getPermitBatchTransferSignature(
-            permit, fromPrivateKeyStack, DOMAIN_SEPARATOR, address(accountSpot)
-        );
+        bytes memory signature =
+            Utils.getPermitBatchTransferSignature(permit, fromPrivateKeyStack, DOMAIN_SEPARATOR, address(accountSpot));
 
         IPermit2.SignatureTransferDetails[] memory transferDetails = new IPermit2.SignatureTransferDetails[](2);
         transferDetails[0] =
@@ -176,10 +174,7 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
         permit2.permitTransferFrom(permit, transferDetails, fromStack, signature);
     }
 
-    function testFuzz_Success_flashAction_Owner(
-        uint32 time,
-        bytes calldata signature
-    ) public {
+    function testFuzz_Success_flashAction_Owner(uint32 time, bytes calldata signature) public {
         vm.assume(time > 2 days);
         vm.assume(time > 2 days);
 
@@ -193,9 +188,8 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
             bytes[] memory data = new bytes[](5);
             address[] memory to = new address[](5);
 
-            data[0] = abi.encodeWithSignature(
-                "approve(address,uint256)", address(multiActionMock), token1AmountForAction
-            );
+            data[0] =
+                abi.encodeWithSignature("approve(address,uint256)", address(multiActionMock), token1AmountForAction);
             data[1] = abi.encodeWithSignature(
                 "swapAssets(address,address,uint256,uint256)",
                 address(mockERC20.token1),
@@ -204,13 +198,9 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
                 token2AmountForAction * token1ToToken2Ratio
             );
             data[2] = abi.encodeWithSignature(
-                "approve(address,uint256)",
-                address(accountSpot),
-                token2AmountForAction * token1ToToken2Ratio
+                "approve(address,uint256)", address(accountSpot), token2AmountForAction * token1ToToken2Ratio
             );
-            data[3] = abi.encodeWithSignature(
-                "approve(address,uint256)", address(accountSpot), stable1AmountForAction
-            );
+            data[3] = abi.encodeWithSignature("approve(address,uint256)", address(accountSpot), stable1AmountForAction);
             data[4] = abi.encodeWithSignature("approve(address,uint256)", address(accountSpot), 1);
 
             vm.prank(users.tokenCreator);
@@ -322,8 +312,9 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
         vm.stopPrank();
 
         // Set the account as initialised in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountSpot))
-            .checked_write(true);
+        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountSpot)).checked_write(
+            true
+        );
 
         uint256 token1AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
         uint256 token2AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
@@ -334,9 +325,8 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
             bytes[] memory data = new bytes[](3);
             address[] memory to = new address[](3);
 
-            data[0] = abi.encodeWithSignature(
-                "approve(address,uint256)", address(multiActionMock), token1AmountForAction
-            );
+            data[0] =
+                abi.encodeWithSignature("approve(address,uint256)", address(multiActionMock), token1AmountForAction);
             data[1] = abi.encodeWithSignature(
                 "swapAssets(address,address,uint256,uint256)",
                 address(mockERC20.token1),
@@ -345,9 +335,7 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
                 token2AmountForAction * token1ToToken2Ratio
             );
             data[2] = abi.encodeWithSignature(
-                "approve(address,uint256)",
-                address(accountSpot),
-                token2AmountForAction * token1ToToken2Ratio
+                "approve(address,uint256)", address(accountSpot), token2AmountForAction * token1ToToken2Ratio
             );
 
             mockERC20.token2.mint(address(multiActionMock), token2AmountForAction * token1ToToken2Ratio);
@@ -457,9 +445,8 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
 
             // Get signature
             vm.prank(from);
-            bytes memory signature = Utils.getPermitBatchTransferSignature(
-                permit, fromPrivateKey, DOMAIN_SEPARATOR, address(accountSpot)
-            );
+            bytes memory signature =
+                Utils.getPermitBatchTransferSignature(permit, fromPrivateKey, DOMAIN_SEPARATOR, address(accountSpot));
 
             ActionData memory assetDataOut;
             ActionData memory transferFromOwner;
