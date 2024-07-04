@@ -7,27 +7,18 @@ pragma solidity 0.8.22;
 import { AccountErrors } from "../libraries/Errors.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
 import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
-import { IERC721 } from "../interfaces/IERC721.sol";
-import { IERC1155 } from "../interfaces/IERC1155.sol";
 import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
 import { IAccount } from "../interfaces/IAccount.sol";
+import { IERC721 } from "../interfaces/IERC721.sol";
+import { IERC1155 } from "../interfaces/IERC1155.sol";
 import { IFactory } from "../interfaces/IFactory.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
 
 /**
  * @title Arcadia Spot Account
  * @author Pragma Labs
- * @notice Arcadia Accounts are smart contracts that act as onchain, decentralized and composable margin accounts.
- * They provide individuals, DAOs, and other protocols with a simple and flexible way to deposit and manage multiple assets as collateral.
- * The total combination of assets can be used as margin to back liabilities issued by any financial protocol (lending, leverage, futures...).
- * @dev Users can use this Account to deposit assets (fungible, non-fungible, LP positions, yiel bearing assets...).
- * The Account will denominate all the deposited assets into one Numeraire (one unit of account, like USD or ETH).
- * Users can use the single denominated value of all their assets to take margin (take credit line, financing for leverage...).
- * An increase of value of one asset will offset a decrease in value of another asset.
- * Ensure your total value denomination remains above the liquidation threshold, or risk being liquidated!
- * @dev Integrating this Account as means of margin/collateral management for your own protocol that requires collateral is encouraged.
- * Arcadia's Account functions will guarantee you a certain value of the Account.
- * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
+ * @notice  Arcadia Spot Accounts enables individuals, DAOs, and other protocols to deposit and manage a variety of assets easily through Asset Managers.
+ * Asset Managers are selected by Spot Account holders and can facilitate automation for tasks such as Liquidity Management and Compounding, among others.
  */
 contract AccountSpot is AccountStorageV1, IAccount {
     using SafeTransferLib for ERC20;
@@ -131,9 +122,7 @@ contract AccountSpot is AccountStorageV1, IAccount {
      * @notice Initiates the variables of the Account.
      * @param owner_ The sender of the 'createAccount' on the Factory
      * @dev A proxy will be used to interact with the Account implementation.
-     * Therefore everything is initialised through an init function.
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
-     * @dev The Creditor will only be set if it's a non-zero address, in this case the numeraire_ passed as input will be ignored.
      * @dev initialize has implicitly a nonReentrant guard, since the "locked" variable has value zero until the end of the function.
      */
     function initialize(address owner_, address, address) external onlyFactory {
@@ -144,7 +133,7 @@ contract AccountSpot is AccountStorageV1, IAccount {
     /**
      * @notice Upgrades the Account version and stores a new address in the EIP1967 implementation slot.
      * @param newImplementation The new contract address of the Account implementation.
-     * @param newRegistry The Registry for this specific implementation (might be identical to the old registry).
+     * @param newRegistry The Registry for this specific newImplementation.
      * @param data Arbitrary data, can contain instructions to execute when updating Account to new implementation.
      * @dev This function MUST be added to new Account implementations.
      */
@@ -197,6 +186,11 @@ contract AccountSpot is AccountStorageV1, IAccount {
                           DEPOSIT / WITHDRAW LOGIC
     /////////////////////////////////////////////////////////////// */
 
+    /**
+     * @notice Internal deposit function called by flashAction(). It will transfer all assets back from actionTarget to Account.
+     * @param depositData A struct containing the info about the assets to deposit to the Account.
+     * @param from The actionTarget.
+     */
     function _deposit(ActionData memory depositData, address from) internal {
         for (uint256 i; i < depositData.assets.length; ++i) {
             // Skip if amount is 0 to prevent storing addresses that have 0 balance.
@@ -219,7 +213,11 @@ contract AccountSpot is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Withdraws assets to the Account owner.
+     * @notice Withdraws assets from the Account.
+     * @param assets The assets to withdraw.
+     * @param assetIds The assetIds to withdraw.
+     * @param assetAmounts The amounts to withdraw.
+     * @param assetTypes The asset type to withdraw.
      */
     function withdraw(
         address[] memory assets,
@@ -244,8 +242,8 @@ contract AccountSpot is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Withdraws assets from the Account to an address.
-     * @param to The address to withdraw to.
+     * @notice Internal withdraw function used in flashAction to withdraw assets to the actionTarget.
+     * @param to The contract address of the actionTarget.
      */
     function _withdraw(ActionData memory withdrawData, address to) internal {
         for (uint256 i; i < withdrawData.assets.length; ++i) {
@@ -304,13 +302,13 @@ contract AccountSpot is AccountStorageV1, IAccount {
      * @notice Add or remove an Asset Manager.
      * @param assetManager The address of the Asset Manager.
      * @param value A boolean giving permissions to or taking permissions from an Asset Manager.
-     * @dev Only set trusted addresses as Asset Manager. Asset Managers have full control over assets in the Account,
-     * as long as the Account position remains healthy.
+     * @dev Only set trusted addresses as Asset Manager. Asset Managers have full control over assets in the Account.
      * @dev No need to set the Owner as Asset Manager as they will automatically have all permissions of an Asset Manager.
      * @dev Potential use-cases of the Asset Manager might be to:
-     * - Automate actions by keeper networks.
+     * - Liquidity Management.
      * - Do flash actions (optimistic actions).
-     * - Chain multiple interactions together (eg. deposit and trade in one transaction).
+     * - Compounding.
+     * - Chain multiple interactions together.
      * @dev Anyone can set the Asset Manager for themselves, this will not impact the current owner of the Account
      * since the combination of "stored owner -> asset manager" is used in authentication checks.
      * This guarantees that when the ownership of the Account is transferred, the asset managers of the old owner have no
@@ -334,9 +332,6 @@ contract AccountSpot is AccountStorageV1, IAccount {
      * - It can transfer assets directly from the owner to the actionTarget.
      * - It can execute external logic on the actionTarget, and interact with any DeFi protocol to swap, stake, claim...
      * - It can deposit all recipient tokens from the actionTarget back into the Account.
-     * At the very end of the flash action, the following check is performed:
-     * - The Account is in a healthy state (collateral value is greater than open liabilities).
-     * If a check fails, the whole transaction reverts.
      */
     function flashAction(address actionTarget, bytes calldata actionData)
         external
