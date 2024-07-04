@@ -26,6 +26,8 @@ abstract contract AccountSpot_Fuzz_Test is Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     AccountSpotExtension internal accountSpot;
+    AccountSpotExtension internal accountSpotLogic;
+
     MultiActionMock internal multiActionMock;
     ActionMultiCall internal action;
 
@@ -37,19 +39,13 @@ abstract contract AccountSpot_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         // Deploy Account.
-        accountSpot = new AccountSpotExtension(address(factory));
+        accountSpotLogic = new AccountSpotExtension(address(factory));
+        vm.prank(users.owner);
+        factory.setNewAccountInfo(address(registry), address(accountSpotLogic), Constants.upgradeRoot1To1And2To1, "");
 
-        // Initiate Account (set owner).
-        vm.prank(address(factory));
-        accountSpot.initialize(users.accountOwner, address(0), address(0));
-
-        // Set account in factory.
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountSpot)).checked_write(
-            true
-        );
-
-        // Initiate Reentrancy guard.
-        accountSpot.setLocked(1);
+        vm.prank(users.accountOwner);
+        address proxyAddress = factory.createAccount(1001, 2, address(0));
+        accountSpot = AccountSpotExtension(proxyAddress);
     }
 
     /* ///////////////////////////////////////////////////////////////

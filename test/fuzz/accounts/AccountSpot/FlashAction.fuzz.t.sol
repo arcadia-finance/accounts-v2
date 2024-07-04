@@ -117,11 +117,6 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
         // Set owner for Account
         accountSpot.setOwner(from);
 
-        // Set the account as initialized in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountSpot)).checked_write(
-            true
-        );
-
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = token1Amount;
         amounts[1] = stable1Amount;
@@ -310,11 +305,6 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
         vm.startPrank(users.accountOwner);
         accountSpot.setAssetManager(assetManager, true);
         vm.stopPrank();
-
-        // Set the account as initialised in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountSpot)).checked_write(
-            true
-        );
 
         uint256 token1AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
         uint256 token2AmountForAction = 1000 * 10 ** Constants.tokenDecimals;

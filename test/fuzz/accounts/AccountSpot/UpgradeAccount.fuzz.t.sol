@@ -22,12 +22,6 @@ contract UpgradeAccount_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     /* ///////////////////////////////////////////////////////////////
-                              TEST CONTRACTS
-    /////////////////////////////////////////////////////////////// */
-
-    AccountV2 internal accountV2Logic;
-
-    /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
@@ -37,7 +31,6 @@ contract UpgradeAccount_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
         // Set the accountSpot version in the Factory.
         vm.startPrank(users.owner);
         accountV1Logic = new AccountV1(address(factory));
-        factory.setNewAccountInfo(address(registry), address(accountSpot), Constants.upgradeRoot2To1, "");
         vm.stopPrank();
     }
 
@@ -79,7 +72,7 @@ contract UpgradeAccount_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
 
     function testFuzz_Success_upgradeAccountVersion(uint32 time) public {
         bytes32[] memory proofs = new bytes32[](1);
-        proofs[0] = Constants.upgradeProof1To2;
+        proofs[0] = Constants.upgradeProof2To1;
 
         vm.warp(time);
 
@@ -91,9 +84,12 @@ contract UpgradeAccount_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
         vm.stopPrank();
 
         // And: The Account version is updated.
-        assertEq(accountSpot.ACCOUNT_VERSION(), factory.latestAccountVersion());
+        assertEq(accountSpot.ACCOUNT_VERSION(), 1);
 
         // And: lastActionTimestamp is updated.
         assertEq(accountSpot.lastActionTimestamp(), time);
+
+        // And: registry is valid
+        assertEq(accountSpot.registry(), address(registry));
     }
 }
