@@ -11,4 +11,6 @@ interface IAccountSpot {
         uint256[] memory assetAmounts,
         uint256[] memory assetTypes
     ) external;
+
+    function owner() external returns (address owner_);
 }

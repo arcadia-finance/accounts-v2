@@ -4,12 +4,14 @@
  */
 pragma solidity 0.8.22;
 
-import { IAccount } from "../interfaces/IAccount.sol";
-import { IAccountSpot } from "../interfaces/IAccountSpot.sol";
-import { IAccountV1 } from "../interfaces/IAccountV1.sol";
-import { IERC20 } from "../interfaces/IERC20.sol";
-import { IFactory } from "../interfaces/IFactory.sol";
-import { SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
+import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
+import { IAccount } from "../../interfaces/IAccount.sol";
+import { IAccountSpot } from "../../interfaces/IAccountSpot.sol";
+import { IAccountV1 } from "../../interfaces/IAccountV1.sol";
+import { IERC1155 } from "../../interfaces/IERC1155.sol";
+import { IERC721 } from "../../interfaces/IERC721.sol";
+import { IFactory } from "../../interfaces/IFactory.sol";
+import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
 
 /**
  * @title SpotToMarginMigrator.
@@ -19,13 +21,13 @@ import { SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol
  * Second, after any cool-down period in the Spot Account, the owner must call endUpgrade() to receive their Margin Account back.
  */
 contract SpotToMarginMigrator {
-    using SafeTransferLib for IERC20;
+    using SafeTransferLib for ERC20;
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
-    address public immutable FACTORY;
+    IFactory public immutable FACTORY;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -37,6 +39,7 @@ contract SpotToMarginMigrator {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
+    error CreditorNotValid();
     error NoAccountToTransfer();
     error NotOwner();
 
@@ -48,7 +51,7 @@ contract SpotToMarginMigrator {
      * @param factory The contract address of the Arcadia Accounts Factory.
      */
     constructor(address factory) {
-        FACTORY = factory;
+        FACTORY = IFactory(factory);
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -80,13 +83,16 @@ contract SpotToMarginMigrator {
         uint256[] memory assetAmounts,
         uint256[] memory assetTypes
     ) external {
-        if (msg.sender != IAccountV1(account).owner()) revert NotOwner();
+        if (msg.sender != IAccountSpot(account).owner()) revert NotOwner();
+        if (creditor == address(0)) revert CreditorNotValid();
         // Transfer the Account
-        IFactory(FACTORY).safeTransferFrom(msg.sender, address(this), account);
+        FACTORY.safeTransferFrom(msg.sender, address(this), account);
         // Withdraw assets from the account
         IAccountSpot(account).withdraw(assets, assetIds, assetAmounts, assetTypes);
         // Upgrade account
-        IFactory(FACTORY).upgradeAccountVersion(account, newVersion, proofs);
+        FACTORY.upgradeAccountVersion(account, newVersion, proofs);
+        // Approve all assets to deposit in Account
+        _approveAllAssets(account, assets, assetIds, assetAmounts, assetTypes);
         // Deposit assets in new Account version
         IAccountV1(account).deposit(assets, assetIds, assetAmounts);
         // Open margin account
@@ -106,6 +112,56 @@ contract SpotToMarginMigrator {
         // Remove claimable account for owner
         accountOwnedBy[msg.sender] = address(0);
         // Transfer Account back to owner
-        IFactory(FACTORY).safeTransferFrom(address(this), msg.sender, account);
+        FACTORY.safeTransferFrom(address(this), msg.sender, account);
+    }
+
+    /* ///////////////////////////////////////////////////////////////
+                        HELPER FUNCTIONS
+    /////////////////////////////////////////////////////////////// */
+
+    /**
+     * @notice This internal function approves all assets that needs to be deposited in the Account on an upgrade.
+     * @param account The Account to upgrade.
+     * @param assets The assets to approve for deposit in the Account.
+     * @param assetIds The assetIds of respective assets to approve.
+     * @param assetAmounts The amount of respective assets to approve.
+     * @param assetTypes The asset types of respective assets to approve.
+     * @dev The same data is used for withdrawal from the Spot Account and deposit into the Margin Account.
+     * This approach eliminates the risk of leftover assets that could potentially be taken advantage of during subsequent Account upgrades.
+     */
+    function _approveAllAssets(
+        address account,
+        address[] memory assets,
+        uint256[] memory assetIds,
+        uint256[] memory assetAmounts,
+        uint256[] memory assetTypes
+    ) internal {
+        for (uint256 i; i < assets.length; ++i) {
+            // Skip if amount is 0, no approval needed.
+            if (assetAmounts[i] == 0) continue;
+            if (assetTypes[i] == 1) {
+                ERC20(assets[i]).safeApprove(account, assetAmounts[i]);
+            } else if (assetTypes[i] == 2) {
+                IERC721(assets[i]).approve(account, assetIds[i]);
+            } else if (assetTypes[i] == 3) {
+                IERC1155(assets[i]).setApprovalForAll(account, true);
+            }
+        }
+    }
+
+    /* 
+    @notice Returns the onERC721Received selector.
+    @dev Needed to receive ERC721 tokens.
+    */
+    function onERC721Received(address, address, uint256, bytes calldata) public pure returns (bytes4) {
+        return this.onERC721Received.selector;
+    }
+
+    /*
+    @notice Returns the onERC1155Received selector.
+    @dev Needed to receive ERC1155 tokens.
+    */
+    function onERC1155Received(address, address, uint256, uint256, bytes calldata) public pure returns (bytes4) {
+        return this.onERC1155Received.selector;
     }
 }
