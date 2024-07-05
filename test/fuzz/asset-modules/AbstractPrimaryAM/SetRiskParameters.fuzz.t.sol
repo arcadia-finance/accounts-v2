@@ -33,7 +33,7 @@ contract SetRiskParameters_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) public {
-        vm.assume(unprivilegedAddress_ != address(registryExtension));
+        vm.assume(unprivilegedAddress_ != address(registry));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert(AssetModule.OnlyRegistry.selector);
@@ -51,7 +51,7 @@ contract SetRiskParameters_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz
     ) public {
         collateralFactor = uint16(bound(collateralFactor, AssetValuationLib.ONE_4 + 1, type(uint16).max));
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(PrimaryAM.CollFactorNotInLimits.selector);
         assetModule.setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
         vm.stopPrank();
@@ -68,7 +68,7 @@ contract SetRiskParameters_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz
         collateralFactor = uint16(bound(collateralFactor, 0, AssetValuationLib.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, AssetValuationLib.ONE_4 + 1, type(uint16).max));
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(PrimaryAM.LiqFactorNotInLimits.selector);
         assetModule.setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
         vm.stopPrank();
@@ -85,7 +85,7 @@ contract SetRiskParameters_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz
         collateralFactor = uint16(bound(collateralFactor, 1, AssetValuationLib.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, 0, collateralFactor - 1));
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(PrimaryAM.CollFactorExceedsLiqFactor.selector);
         assetModule.setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
         vm.stopPrank();
@@ -102,7 +102,7 @@ contract SetRiskParameters_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz
         collateralFactor = uint16(bound(collateralFactor, 0, AssetValuationLib.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, AssetValuationLib.ONE_4));
 
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         assetModule.setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
 
         bytes32 assetKey = bytes32(abi.encodePacked(assetId, asset));

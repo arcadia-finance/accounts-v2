@@ -8,7 +8,7 @@ import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
+import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
 import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 /**
@@ -68,10 +68,10 @@ contract IncreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         WrappedAerodromeAM.PoolState memory poolState,
         uint128 amount
     ) public canReceiveERC721(owner) {
-        // Given : Valid pool
-        pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
-        vm.assume(owner != address(pool));
-        vm.assume(owner != pool.poolFees());
+        // Given : Valid aeroPool
+        aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
+        vm.assume(owner != address(aeroPool));
+        vm.assume(owner != aeroPool.poolFees());
 
         // And: Valid state.
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
@@ -81,24 +81,24 @@ contract IncreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         amount = uint128(bound(amount, 1, type(uint128).max - poolState.totalWrapped));
 
         // And: State is persisted.
-        setAMState(pool, positionId, poolState, positionState);
-        pool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
-        deal(address(pool), owner, amount, true);
-        deal(pool.token0(), pool.poolFees(), fee0, true);
-        deal(pool.token1(), pool.poolFees(), fee1, true);
+        setAMState(aeroPool, positionId, poolState, positionState);
+        aeroPool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
+        deal(address(aeroPool), owner, amount, true);
+        deal(aeroPool.token0(), aeroPool.poolFees(), fee0, true);
+        deal(aeroPool.token1(), aeroPool.poolFees(), fee1, true);
         wrappedAerodromeAM.setOwnerOf(owner, positionId);
 
         // When :  A user is increasing liquidity via the Staking Module
         vm.startPrank(owner);
-        pool.approve(address(wrappedAerodromeAM), amount);
+        aeroPool.approve(address(wrappedAerodromeAM), amount);
         vm.expectEmit();
-        emit WrappedAerodromeAM.LiquidityIncreased(positionId, address(pool), amount);
+        emit WrappedAerodromeAM.LiquidityIncreased(positionId, address(aeroPool), amount);
         wrappedAerodromeAM.increaseLiquidity(positionId, amount);
 
         // Then : Assets should have been transferred to the Staking Module
-        assertEq(pool.balanceOf(address(wrappedAerodromeAM)), poolState.totalWrapped + amount);
-        assertEq(ERC20(pool.token0()).balanceOf(address(wrappedAerodromeAM)), fee0);
-        assertEq(ERC20(pool.token1()).balanceOf(address(wrappedAerodromeAM)), fee1);
+        assertEq(aeroPool.balanceOf(address(wrappedAerodromeAM)), poolState.totalWrapped + amount);
+        assertEq(ERC20(aeroPool.token0()).balanceOf(address(wrappedAerodromeAM)), fee0);
+        assertEq(ERC20(aeroPool.token1()).balanceOf(address(wrappedAerodromeAM)), fee1);
 
         // And: Position state should be updated correctly.
         WrappedAerodromeAM.PositionState memory positionState_;
@@ -130,12 +130,12 @@ contract IncreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         assertEq(positionState_.fee0, positionState.fee0 + deltaFee0);
         assertEq(positionState_.fee1, positionState.fee1 + deltaFee1);
         assertEq(positionState_.amountWrapped, positionState.amountWrapped + amount);
-        assertEq(positionState_.pool, address(pool));
+        assertEq(positionState_.pool, address(aeroPool));
 
         // And : Asset values should be updated correctly
         WrappedAerodromeAM.PoolState memory poolState_;
         (poolState_.fee0PerLiquidity, poolState_.fee1PerLiquidity, poolState_.totalWrapped) =
-            wrappedAerodromeAM.poolState(address(pool));
+            wrappedAerodromeAM.poolState(address(aeroPool));
 
         assertEq(poolState_.fee0PerLiquidity, fee0PerLiquidity);
         assertEq(poolState_.fee1PerLiquidity, fee1PerLiquidity);

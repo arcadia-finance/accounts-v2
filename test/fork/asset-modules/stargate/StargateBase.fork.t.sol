@@ -40,24 +40,24 @@ contract StargateBase_Fork_Test is Fork_Test {
         Fork_Test.setUp();
 
         // Add STG and it's Chainlink oracle to the protocol.
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         uint256 oracleId = chainlinkOM.addOracle(oracleSTG, "STG", "USD", 2 days);
         bool[] memory boolValues = new bool[](1);
         boolValues[0] = true;
         uint80[] memory uintValues = new uint80[](1);
         uintValues[0] = uint80(oracleId);
         bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
-        erc20AssetModule.addAsset(address(lpStakingTime.eToken()), oracleSequence);
+        erc20AM.addAsset(address(lpStakingTime.eToken()), oracleSequence);
         vm.stopPrank();
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         // Deploy StargateAssetModule.
-        stargateAssetModule = new StargateAM(address(registryExtension), address(sgFactory));
-        registryExtension.addAssetModule(address(stargateAssetModule));
+        stargateAssetModule = new StargateAM(address(registry), address(sgFactory));
+        registry.addAssetModule(address(stargateAssetModule));
 
         // Deploy StakedStargateAssetModule.
-        stakedStargateAM = new StakedStargateAM(address(registryExtension), address(lpStakingTime));
-        registryExtension.addAssetModule(address(stakedStargateAM));
+        stakedStargateAM = new StakedStargateAM(address(registry), address(lpStakingTime));
+        registry.addAssetModule(address(stakedStargateAM));
         stakedStargateAM.initialize();
 
         // Label contracts

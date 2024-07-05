@@ -26,7 +26,7 @@ contract GetRate_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_getRate_NotInRegistry(uint80 oracleId) public {
         // Given: An oracle not added to the "Registry".
-        oracleId = uint80(bound(oracleId, registryExtension.getOracleCounter(), type(uint80).max));
+        oracleId = uint80(bound(oracleId, registry.getOracleCounter(), type(uint80).max));
 
         vm.expectRevert(bytes(""));
         chainlinkOM.getRate(oracleId);
@@ -35,7 +35,7 @@ contract GetRate_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
     function testFuzz_Revert_getRate_InactiveOracle() public {
         RevertingOracle revertingOracle = new RevertingOracle();
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         uint256 oracleId = chainlinkOM.addOracle(address(revertingOracle), "REVERT", "USD", 2 days);
 
         vm.expectRevert(OracleModule.InactiveOracle.selector);
@@ -47,12 +47,12 @@ contract GetRate_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         rate = bound(rate, type(uint256).max / 10 ** (18 - decimals) + 1, type(uint256).max);
         vm.assume(rate <= uint256(type(int256).max));
 
-        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD", address(0));
-        oracle.setOffchainTransmitter(users.defaultTransmitter);
-        vm.prank(users.defaultTransmitter);
+        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD");
+        oracle.setOffchainTransmitter(users.transmitter);
+        vm.prank(users.transmitter);
         oracle.transmit(int256(rate));
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         uint256 oracleId = chainlinkOM.addOracle(address(oracle), "STABLE1", "USD", 2 days);
 
         uint256 actualRate = chainlinkOM.getRate(oracleId);
@@ -65,12 +65,12 @@ contract GetRate_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         rate = bound(rate, 0, type(uint256).max / 10 ** (18 - decimals));
         vm.assume(rate <= uint256(type(int256).max));
 
-        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD", address(0));
-        oracle.setOffchainTransmitter(users.defaultTransmitter);
-        vm.prank(users.defaultTransmitter);
+        ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD");
+        oracle.setOffchainTransmitter(users.transmitter);
+        vm.prank(users.transmitter);
         oracle.transmit(int256(rate));
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         uint256 oracleId = chainlinkOM.addOracle(address(oracle), "STABLE1", "USD", 2 days);
 
         uint256 actualRate = chainlinkOM.getRate(oracleId);

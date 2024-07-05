@@ -35,7 +35,7 @@ abstract contract RegistryGuardian_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         registryGuardian = new RegistryGuardianExtension();
         registryGuardian.changeGuardian(users.guardian);
         vm.stopPrank();

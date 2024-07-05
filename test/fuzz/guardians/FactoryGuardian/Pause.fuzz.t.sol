@@ -6,6 +6,7 @@ pragma solidity 0.8.22;
 
 import { FactoryGuardian_Fuzz_Test } from "./_FactoryGuardian.fuzz.t.sol";
 
+import { FactoryGuardian } from "../../../../src/guardians/FactoryGuardian.sol";
 import { GuardianErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
@@ -50,7 +51,7 @@ contract Pause_FactoryGuardian_Fuzz_Test is FactoryGuardian_Fuzz_Test {
         // When: the Guardian pauses.
         vm.startPrank(users.guardian);
         vm.expectEmit();
-        emit PauseFlagsUpdated(true);
+        emit FactoryGuardian.PauseFlagsUpdated(true);
         factoryGuardian.pause();
         vm.stopPrank();
 

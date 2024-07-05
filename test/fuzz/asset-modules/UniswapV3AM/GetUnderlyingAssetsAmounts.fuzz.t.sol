@@ -6,13 +6,13 @@ pragma solidity 0.8.22;
 
 import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
@@ -67,16 +67,16 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         position = givenValidPosition(position);
 
         // And: State is persisted.
-        addUnderlyingTokenToArcadia(address(token0), int256(asset0.usdValue));
-        addUnderlyingTokenToArcadia(address(token1), int256(asset1.usdValue));
-        IUniswapV3PoolExtension pool = createPool(token0, token1, 1e18, 300);
+        addAssetToArcadia(address(token0), int256(asset0.usdValue));
+        addAssetToArcadia(address(token1), int256(asset1.usdValue));
+        IUniswapV3PoolExtension pool = createPoolUniV3(address(token0), address(token1), 100, 1e18, 300);
         nonfungiblePositionManagerMock.setPosition(address(pool), tokenId, position);
 
         // When: "getUnderlyingAssetsAmounts" is called.
         // Then: The transaction overflows.
         bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
         vm.expectRevert(bytes(""));
-        uniV3AssetModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
+        uniV3AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
     }
 
     function testFuzz_Revert_GetUnderlyingAssetsAmounts_Overflow_PriceToken1(
@@ -107,16 +107,16 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         position = givenValidPosition(position);
 
         // And: State is persisted.
-        addUnderlyingTokenToArcadia(address(token0), int256(asset0.usdValue));
-        addUnderlyingTokenToArcadia(address(token1), int256(asset1.usdValue));
-        IUniswapV3PoolExtension pool = createPool(token0, token1, 1e18, 300);
+        addAssetToArcadia(address(token0), int256(asset0.usdValue));
+        addAssetToArcadia(address(token1), int256(asset1.usdValue));
+        IUniswapV3PoolExtension pool = createPoolUniV3(address(token0), address(token1), 100, 1e18, 300);
         nonfungiblePositionManagerMock.setPosition(address(pool), tokenId, position);
 
         // When: "getUnderlyingAssetsAmounts" is called.
         // Then: The transaction overflows.
         bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
         vm.expectRevert(bytes(""));
-        uniV3AssetModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
+        uniV3AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
     }
 
     function testFuzz_Success_GetUnderlyingAssetsAmounts(
@@ -158,9 +158,9 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         position.tokensOwed1 = 0;
 
         // And: State is persisted.
-        addUnderlyingTokenToArcadia(address(token0), int256(asset0.usdValue));
-        addUnderlyingTokenToArcadia(address(token1), int256(asset1.usdValue));
-        IUniswapV3PoolExtension pool = createPool(token0, token1, 1e18, 300);
+        addAssetToArcadia(address(token0), int256(asset0.usdValue));
+        addAssetToArcadia(address(token1), int256(asset1.usdValue));
+        IUniswapV3PoolExtension pool = createPoolUniV3(address(token0), address(token1), 100, 1e18, 300);
         nonfungiblePositionManagerMock.setPosition(address(pool), tokenId, position);
 
         // When: "getUnderlyingAssetsAmounts" is called.
@@ -169,7 +169,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         {
             bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
             (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
-                uniV3AssetModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
+                uniV3AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
         }
 
         // Then: The correct "rateUnderlyingAssetsToUsd" are returned.
@@ -180,7 +180,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
 
         // And: The correct "underlyingAssetsAmounts" rates are returned.
         uint160 sqrtPriceX96 =
-            uniV3AssetModule.getSqrtPriceX96(expectedRateUnderlyingAssetsToUsd0, expectedRateUnderlyingAssetsToUsd1);
+            uniV3AM.getSqrtPriceX96(expectedRateUnderlyingAssetsToUsd0, expectedRateUnderlyingAssetsToUsd1);
         (uint256 expectedUnderlyingAssetsAmount0, uint256 expectedUnderlyingAssetsAmount1) = LiquidityAmounts
             .getAmountsForLiquidity(
             sqrtPriceX96,
@@ -200,7 +200,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
 
         // When: "getUnderlyingAssetsAmounts" is called.
         (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
-            uniV3AssetModule.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, amount, new bytes32[](0));
+            uniV3AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, amount, new bytes32[](0));
 
         // Then: Values returned should be zero.
         assertEq(underlyingAssetsAmounts[0], 0);

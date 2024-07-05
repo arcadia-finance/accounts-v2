@@ -7,7 +7,7 @@ pragma solidity 0.8.22;
 import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
 
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
+import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
 import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 /**
@@ -80,7 +80,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         uint256 lowerBound = (poolState.totalWrapped < 1e18)
             ? uint256(type(uint128).max).mulDivUp(poolState.totalWrapped, 1e18)
             : uint256(type(uint128).max) * poolState.totalWrapped / 1e18 + poolState.totalWrapped;
-        fee0 = bound(fee0, lowerBound, type(uint256).max);
+        fee0 = bound(fee0, lowerBound + 1, type(uint256).max);
 
         // And: deltaFee1PerLiquidity does not overflow.
         fee1 = bound(fee1, 0, type(uint256).max / 1e18);
@@ -107,7 +107,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         uint256 lowerBound = (poolState.totalWrapped < 1e18)
             ? uint256(type(uint128).max).mulDivUp(poolState.totalWrapped, 1e18)
             : uint256(type(uint128).max) * poolState.totalWrapped / 1e18 + poolState.totalWrapped;
-        fee1 = bound(fee1, lowerBound, type(uint256).max);
+        fee1 = bound(fee1, lowerBound + 1, type(uint256).max);
 
         // When: Calling _getFeeBalances().
         // Then: transaction reverts.

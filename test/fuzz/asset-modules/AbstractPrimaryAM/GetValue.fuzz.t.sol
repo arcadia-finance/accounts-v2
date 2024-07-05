@@ -20,7 +20,7 @@ contract GetValue_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz_Test {
     function setUp() public override {
         AbstractPrimaryAM_Fuzz_Test.setUp();
 
-        oracleModule = new OracleModuleMock(address(registryExtension));
+        oracleModule = new OracleModuleMock(address(registry));
     }
 
     /*//////////////////////////////////////////////////////////////

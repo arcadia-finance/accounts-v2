@@ -33,14 +33,14 @@ contract GetLiquidationValue_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         spotValue = uint112(bound(spotValue, 0, type(uint112).max - 1));
 
         // Set Spot Value of assets (value of "stable1" is 1:1 the amount of "stable1" tokens).
-        depositTokenInAccount(accountExtension, mockERC20.stable1, spotValue);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, spotValue);
 
         // Invariant: "liquidationFactor" cannot exceed 100%.
         liquidationFactor = uint8(bound(liquidationFactor, 0, AssetValuationLib.ONE_4));
 
         // Set Liquidation factor of "stable1" for "stable1" to "liquidationFactor".
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC20.stable1), 0, type(uint112).max, 0, liquidationFactor
         );
 

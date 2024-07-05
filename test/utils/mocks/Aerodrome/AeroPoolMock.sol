@@ -9,7 +9,7 @@ import { IPool } from "./interfaces/IPool.sol";
 import { IVoter } from "./interfaces/IVoter.sol";
 import { IPoolCallee } from "./interfaces/IPoolCallee.sol";
 import { IPoolFactory } from "./interfaces/IPoolFactory.sol";
-import { PoolFees } from "./AeroPoolFeesFixture.f.sol";
+import { PoolFees } from "./AeroPoolFeesMock.sol";
 import { SafeERC20 } from "../../mocks/openzeppelin-0.8/SafeERC20.sol";
 import { ERC20 } from "../../mocks/openzeppelin-0.8/ERC20.sol";
 import { IERC20 } from "../../mocks/openzeppelin-0.8/IERC20.sol";

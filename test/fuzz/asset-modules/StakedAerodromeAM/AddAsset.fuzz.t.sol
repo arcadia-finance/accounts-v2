@@ -5,7 +5,7 @@
 pragma solidity 0.8.22;
 
 import { StakedAerodromeAM_Fuzz_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fuzz.t.sol";
-import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
+import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 /**
@@ -32,62 +32,67 @@ contract AddAsset_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
     }
 
     function testFuzz_Revert_AddAsset_PoolNotAllowed(bool stable) public {
-        // And : Valid pool
-        address newPool = poolFactory.createPool(address(mockERC20.stable1), address(mockERC20.token1), stable);
-        pool = Pool(newPool);
+        // And : Valid aeroPool
+        aeroPool = createPoolAerodrome(address(mockERC20.stable1), address(mockERC20.token1), stable);
 
-        // And : Valid gauge
-        deployAerodromeGaugeFixture(address(pool), address(stakedAerodromeAM.REWARD_TOKEN()));
+        // And : Valid aeroGauge
+        aeroGauge = createGaugeAerodrome(aeroPool, address(stakedAerodromeAM.REWARD_TOKEN()));
 
         // When :  Calling addAsset()
-        // Then : It should revert as the pool has not been added to the registry
+        // Then : It should revert as the aeroPool has not been added to the registry
         vm.expectRevert(StakedAerodromeAM.PoolNotAllowed.selector);
-        stakedAerodromeAM.addAsset(address(gauge));
+        stakedAerodromeAM.addAsset(address(aeroGauge));
     }
 
     function testFuzz_Revert_AddAsset_AssetAlreadySet() public {
-        // Given : the pool is allowed in the Registry
-        deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
+        // Given : the aeroPool is allowed in the Registry
+        aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
+        vm.prank(users.owner);
+        aerodromePoolAM.addAsset(address(aeroPool));
 
         // And : Gauge exists
-        deployAerodromeGaugeFixture(address(pool), address(stakedAerodromeAM.REWARD_TOKEN()));
+        aeroGauge = createGaugeAerodrome(aeroPool, address(stakedAerodromeAM.REWARD_TOKEN()));
 
-        // Given : pool is already added to the AM
-        stakedAerodromeAM.setAllowed(address(pool), true);
+        // Given : aeroPool is already added to the AM
+        stakedAerodromeAM.setAllowed(address(aeroPool), true);
 
         // When :  Calling addAsset()
         // Then : It should revert
         vm.expectRevert(StakedAerodromeAM.AssetAlreadySet.selector);
-        stakedAerodromeAM.addAsset(address(gauge));
+        stakedAerodromeAM.addAsset(address(aeroGauge));
     }
 
     function testFuzz_Revert_AddAsset_RewardTokenNotValid(address notAERO) public {
         vm.assume(notAERO != AERO);
-        // Given : the pool is allowed in the Registry
-        deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
+        // Given : the aeroPool is allowed in the Registry
+        aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
+        vm.prank(users.owner);
+        aerodromePoolAM.addAsset(address(aeroPool));
 
-        // Given : Valid gauge
-        deployAerodromeGaugeFixture(address(pool), notAERO);
+        // Given : Valid aeroGauge
+        aeroGauge = createGaugeAerodrome(aeroPool, notAERO);
 
         // When :  Calling addAsset()
         // Then : It should revert
         vm.expectRevert(StakedAerodromeAM.RewardTokenNotValid.selector);
-        stakedAerodromeAM.addAsset(address(gauge));
+        stakedAerodromeAM.addAsset(address(aeroGauge));
     }
 
     function testFuzz_Success_AddAsset() public {
-        // Given : the pool is allowed in the Registry
-        deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
+        // Given : the aeroPool is allowed in the Registry
+        aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
+        vm.prank(users.owner);
+        aerodromePoolAM.addAsset(address(aeroPool));
 
-        // Given : Valid gauge
-        deployAerodromeGaugeFixture(address(pool), AERO);
+        // Given : Valid aeroGauge
+        aeroGauge = createGaugeAerodrome(aeroPool, AERO);
 
         // When : Calling addAsset()
-        stakedAerodromeAM.addAsset(address(gauge));
+        stakedAerodromeAM.addAsset(address(aeroGauge));
 
-        // Then : Asset and gauge info should be updated
-        assertEq(stakedAerodromeAM.assetToGauge(address(pool)), address(gauge));
-        (,, bool allowed) = stakedAerodromeAM.assetState(address(pool));
+        // Then : Asset and aeroGauge info should be updated
+        assertEq(stakedAerodromeAM.assetToGauge(address(aeroPool)), address(aeroGauge));
+        (,, bool allowed) = stakedAerodromeAM.assetState(address(aeroPool));
         assertEq(allowed, true);
     }
 }

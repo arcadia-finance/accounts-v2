@@ -44,7 +44,7 @@ contract GetValuesInUsdRecursive_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = assetAmount;
 
         vm.expectRevert(bytes(""));
-        registryExtension.getValuesInUsdRecursive(creditor, assetAddresses, assetIds, assetAmounts);
+        registry.getValuesInUsdRecursive(creditor, assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Success_getValuesInUsdRecursive(
@@ -62,14 +62,14 @@ contract GetValuesInUsdRecursive_Registry_Fuzz_Test is Registry_Fuzz_Test {
         usdValue = uint128(bound(usdValue, 0, type(uint128).max - 1));
         minUsdValue = uint128(bound(minUsdValue, usdValue + 1, type(uint128).max));
 
-        registryExtension.setAssetModule(asset, address(primaryAM));
+        registry.setAssetModule(asset, address(primaryAM));
         primaryAM.setUsdValue(usdValue);
 
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
-        registryExtension.setRiskParameters(address(creditorUsd), minUsdValue, 0, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), minUsdValue, 0, type(uint64).max);
         vm.stopPrank();
 
         address[] memory assetAddresses = new address[](1);
@@ -80,7 +80,7 @@ contract GetValuesInUsdRecursive_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = assetAmount;
 
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
-            registryExtension.getValuesInUsdRecursive(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+            registry.getValuesInUsdRecursive(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         assertEq(valuesAndRiskFactors[0].assetValue, usdValue);
         assertEq(valuesAndRiskFactors[0].collateralFactor, collateralFactor);

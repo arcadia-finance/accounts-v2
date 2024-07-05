@@ -4,16 +4,17 @@
  */
 pragma solidity 0.8.22;
 
-import { Constants, AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
+import { AccountV1_Fuzz_Test, AccountErrors, Constants } from "./_AccountV1.fuzz.t.sol";
 
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
+import { CreditorMock } from "../../../utils/mocks/creditors/CreditorMock.sol";
 import { IActionBase, ActionData } from "../../../../src/interfaces/IActionBase.sol";
-import { MultiActionMock } from "../../.././utils/mocks/actions/MultiActionMock.sol";
-import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { IPermit2 } from "../../../utils/Interfaces.sol";
-import { Utils } from "../../../utils/Utils.sol";
+import { MultiActionMock } from "../../.././utils/mocks/actions/MultiActionMock.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
+import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
+import { Utils } from "../../../utils/Utils.sol";
 
 /**
  * @notice Fuzz tests for the function "flashActionByCreditor" of contract "AccountV1".
@@ -56,7 +57,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         address creditor,
         address approvedCreditor,
         bytes calldata callbackData
-    ) public notTestContracts(sender) {
+    ) public canReceiveERC721(sender) {
         vm.assume(sender != creditor);
         vm.assume(sender != approvedCreditor);
 
@@ -129,10 +130,10 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: MaxExposure for stable1 is set for both creditors.
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC20.stable1), 0, type(uint112).max, 0, 0
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1), address(mockERC20.stable1), 0, maxExposure, 0, 0
         );
         vm.stopPrank();
@@ -145,7 +146,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorToken1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: the flashAction is initiated on the Creditor for the Account.
         creditorToken1.setCallbackAccount(address(accountExtension));
@@ -168,10 +169,10 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: MaxExposure for stable1 is set for both creditors.
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1), address(mockERC20.stable1), 0, type(uint112).max, 0, 0
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1), address(mockERC20.stable1), 0, maxExposure, 0, 0
         );
         vm.stopPrank();
@@ -184,7 +185,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorToken1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: the flashAction is initiated on the Creditor for the Account.
         creditorToken1.setCallbackAccount(address(accountExtension));
@@ -216,7 +217,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorToken1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: Both the old Creditor has an open position for the Account.
         oldCreditorDebtAmount = uint128(bound(oldCreditorDebtAmount, 1, type(uint128).max));
@@ -232,7 +233,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         // When: The approved Creditor calls flashAction.
         // Then: Transaction should revert with OpenPositionNonZero.
         vm.prank(address(creditorToken1));
-        vm.expectRevert(OpenPositionNonZero.selector);
+        vm.expectRevert(CreditorMock.OpenPositionNonZero.selector);
         accountExtension.flashActionByCreditor(callbackData, address(action), emptyActionData);
     }
 
@@ -253,7 +254,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         assertEq(accountExtension.creditor(), address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The Creditor has an open position for the Account.
         accountExtension.setMinimumMargin(minimumMargin);
@@ -291,7 +292,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The new Creditor will have an open position after the flashAction.
         creditorStable1.setMinimumMargin(minimumMargin);
@@ -324,7 +325,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         assertEq(accountExtension.creditor(), address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The Creditor has an open position for the Account.
         accountExtension.setMinimumMargin(minimumMargin);
@@ -363,7 +364,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The new Creditor will have an open position after the flashAction.
         creditorStable1.setMinimumMargin(minimumMargin);
@@ -387,11 +388,11 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: Exposure of old Creditor is removed.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
-        (uint128 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorToken1), assetKey);
+        (uint128 actualExposure,,,) = erc20AM.riskParams(address(creditorToken1), assetKey);
         assertEq(actualExposure, 0);
 
         // And: Exposure of new creditor is increased.
-        (actualExposure,,,) = erc20AssetModule.riskParams(address(creditorStable1), assetKey);
+        (actualExposure,,,) = erc20AM.riskParams(address(creditorStable1), assetKey);
         assertEq(actualExposure, collateralAmount);
     }
 
@@ -417,7 +418,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositTokenInAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The new Creditor will have an open position after the flashAction.
         creditorStable1.setMinimumMargin(minimumMargin);
@@ -441,7 +442,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         // And: Exposure of new creditor is increased.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
-        (uint256 actualExposure,,,) = erc20AssetModule.riskParams(address(creditorStable1), assetKey);
+        (uint256 actualExposure,,,) = erc20AM.riskParams(address(creditorStable1), assetKey);
         assertEq(actualExposure, collateralAmount);
     }
 
@@ -471,7 +472,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
             );
 
             // We increase the price of token 2 in order to avoid to end up with unhealthy state of accountExtension
-            vm.startPrank(users.defaultTransmitter);
+            vm.startPrank(users.transmitter);
             mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
             vm.stopPrank();
 
@@ -496,10 +497,10 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
             // exposure token 2 does not exceed maxExposure.
             vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint112).max);
-            vm.prank(users.tokenCreatorAddress);
+            vm.prank(users.tokenCreator);
             mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
 
-            vm.prank(users.tokenCreatorAddress);
+            vm.prank(users.tokenCreator);
             mockERC20.token1.mint(address(action), debtAmount);
 
             to[0] = address(mockERC20.token1);
@@ -549,7 +550,7 @@ contract FlashActionByCreditor_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permi
 
         vm.warp(time);
 
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
         mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
         // We transmit price to token 1 oracle in order to have the oracle active

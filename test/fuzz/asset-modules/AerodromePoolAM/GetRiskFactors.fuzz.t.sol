@@ -52,29 +52,25 @@ contract GetRiskFactors_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
             : uint256(riskFactor).mulDivDown(liquidationFactor1, AssetValuationLib.ONE_4);
 
         // And riskFactor is set.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         aeroPoolAM.setRiskParameters(creditor, 0, riskFactor);
 
-        // And: pool is added
-        setMockState(stable);
-        vm.prank(users.creatorAddress);
-        aeroPoolAM.addAsset(address(aeroPoolMock));
+        // And: aeroPool is added
+        aeroPool.setStable(stable);
+        vm.prank(users.owner);
+        aeroPoolAM.addAsset(address(aeroPool));
 
         // And riskFactors are set for token0.
-        vm.startPrank(address(registryExtension));
-        erc20AssetModule.setRiskParameters(
-            creditor, address(mockERC20.token1), 0, 0, collateralFactor0, liquidationFactor0
-        );
+        vm.startPrank(address(registry));
+        erc20AM.setRiskParameters(creditor, address(mockERC20.token1), 0, 0, collateralFactor0, liquidationFactor0);
         // And riskFactors are set for token1.
-        erc20AssetModule.setRiskParameters(
-            creditor, address(mockERC20.stable1), 0, 0, collateralFactor1, liquidationFactor1
-        );
+        erc20AM.setRiskParameters(creditor, address(mockERC20.stable1), 0, 0, collateralFactor1, liquidationFactor1);
         vm.stopPrank();
 
         // When : calling getRiskFactors()
         // Then : It should return correct values
         (uint256 collateralFactor_, uint256 liquidationFactor_) =
-            aeroPoolAM.getRiskFactors(creditor, address(aeroPoolMock), 0);
+            aeroPoolAM.getRiskFactors(creditor, address(aeroPool), 0);
         assertEq(collateralFactor_, expectedCollateralFactor);
         assertEq(liquidationFactor_, expectedLiquidationFactor);
     }

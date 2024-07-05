@@ -31,7 +31,7 @@ contract GetSqrtPriceX96_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         uint256 priceToken1 = 0;
 
         uint256 expectedSqrtPriceX96 = TickMath.MAX_SQRT_RATIO;
-        uint256 actualSqrtPriceX96 = uniV3AssetModule.getSqrtPriceX96(priceToken0, priceToken1);
+        uint256 actualSqrtPriceX96 = uniV3AM.getSqrtPriceX96(priceToken0, priceToken1);
 
         assertEq(actualSqrtPriceX96, expectedSqrtPriceX96);
     }
@@ -49,7 +49,7 @@ contract GetSqrtPriceX96_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
 
         uint256 expectedSqrtPriceX96 = sqrtPriceXd14 * 2 ** 96 / 1e14;
-        uint256 actualSqrtPriceX96 = uniV3AssetModule.getSqrtPriceX96(priceToken0, priceToken1);
+        uint256 actualSqrtPriceX96 = uniV3AM.getSqrtPriceX96(priceToken0, priceToken1);
 
         assertLt(actualSqrtPriceX96, expectedSqrtPriceX96);
     }
@@ -66,7 +66,7 @@ contract GetSqrtPriceX96_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
 
         uint256 expectedSqrtPriceX96 = sqrtPriceXd14 * 2 ** 96 / 1e14;
-        uint256 actualSqrtPriceX96 = uniV3AssetModule.getSqrtPriceX96(priceToken0, priceToken1);
+        uint256 actualSqrtPriceX96 = uniV3AM.getSqrtPriceX96(priceToken0, priceToken1);
 
         assertEq(actualSqrtPriceX96, expectedSqrtPriceX96);
     }

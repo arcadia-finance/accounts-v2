@@ -44,7 +44,7 @@ contract GetValuesInNumeraire_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         // And: A random gracePeriod.
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;
@@ -54,7 +54,7 @@ contract GetValuesInNumeraire_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = assetAmount;
 
         vm.expectRevert(RegistryErrors.SequencerDown.selector);
-        registryExtension.getValuesInNumeraire(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+        registry.getValuesInNumeraire(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Revert_getValuesInNumeraire_GracePeriodNotPassed(
@@ -77,7 +77,7 @@ contract GetValuesInNumeraire_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.assume(currentTime - startedAt < type(uint32).max);
         gracePeriod = uint32(bound(gracePeriod, currentTime - startedAt + 1, type(uint32).max));
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;
@@ -87,7 +87,7 @@ contract GetValuesInNumeraire_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = assetAmount;
 
         vm.expectRevert(RegistryErrors.SequencerDown.selector);
-        registryExtension.getValuesInNumeraire(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+        registry.getValuesInNumeraire(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Revert_getValuesInNumeraire_UnknownAsset() public {
@@ -105,12 +105,12 @@ contract GetValuesInNumeraire_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10;
 
         vm.expectRevert(bytes(""));
-        registryExtension.getValuesInNumeraire(address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+        registry.getValuesInNumeraire(address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Revert_getValuesInNumeraire_UnknownNumeraireAddress(address numeraire) public {
         vm.assume(numeraire != address(0));
-        vm.assume(!registryExtension.inRegistry(numeraire));
+        vm.assume(!registry.inRegistry(numeraire));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.stable2);
@@ -125,7 +125,7 @@ contract GetValuesInNumeraire_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10;
 
         vm.expectRevert(bytes(""));
-        registryExtension.getValuesInNumeraire(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+        registry.getValuesInNumeraire(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Success_getValuesInNumeraire_NumeraireIsUsd(
@@ -139,7 +139,7 @@ contract GetValuesInNumeraire_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.warp(currentTime);
 
         // And: Oracles are not stale.
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         mockOracles.stable1ToUsd.transmit(int256(rates.stable1ToUsd));
         mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
         mockOracles.nft1ToToken1.transmit(int256(rates.nft1ToToken1));
@@ -152,7 +152,7 @@ contract GetValuesInNumeraire_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // And: Grace period did pass.
         gracePeriod = uint32(bound(gracePeriod, 0, currentTime - startedAt));
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.stable1);
@@ -169,9 +169,8 @@ contract GetValuesInNumeraire_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10 ** Constants.tokenDecimals;
         assetAmounts[2] = 1;
 
-        AssetValueAndRiskFactors[] memory actualValuesPerAsset = registryExtension.getValuesInNumeraire(
-            address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts
-        );
+        AssetValueAndRiskFactors[] memory actualValuesPerAsset =
+            registry.getValuesInNumeraire(address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         uint256 stable1ValueInUsd = convertAssetToUsd(Constants.stableDecimals, assetAmounts[0], oracleStable1ToUsdArr);
         uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, assetAmounts[1], oracleToken1ToUsdArr);
@@ -201,7 +200,7 @@ contract GetValuesInNumeraire_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.warp(currentTime);
 
         // And: Oracles are not stale.
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         mockOracles.stable1ToUsd.transmit(int256(rates.stable1ToUsd));
         mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
         mockOracles.nft1ToToken1.transmit(int256(rates.nft1ToToken1));
@@ -214,7 +213,7 @@ contract GetValuesInNumeraire_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // And: Grace period did pass.
         gracePeriod = uint32(bound(gracePeriod, 0, currentTime - startedAt));
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.stable1);
@@ -231,7 +230,7 @@ contract GetValuesInNumeraire_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10 ** Constants.tokenDecimals;
         assetAmounts[2] = 1;
 
-        AssetValueAndRiskFactors[] memory actualValuesPerAsset = registryExtension.getValuesInNumeraire(
+        AssetValueAndRiskFactors[] memory actualValuesPerAsset = registry.getValuesInNumeraire(
             address(mockERC20.token1), address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );
 

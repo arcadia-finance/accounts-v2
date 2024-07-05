@@ -28,7 +28,7 @@ contract ProcessDirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedA
         uint256 id,
         uint128 amount
     ) public {
-        vm.assume(unprivilegedAddress_ != address(registryExtension));
+        vm.assume(unprivilegedAddress_ != address(registry));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert(AssetModule.OnlyRegistry.selector);
@@ -57,7 +57,7 @@ contract ProcessDirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedA
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // When: "Registry" calls "processDirectWithdrawal".
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         derivedAM.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, uint256(-amount));
     }
 }

@@ -28,7 +28,7 @@ contract TotalWrapped_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Te
         // Given : PoolState is set.
         wrappedAerodromeAM.setPoolState(pool_, poolState);
 
-        // When : Calling totalWrapped() for the specific pool.
+        // When : Calling totalWrapped() for the specific aeroPool.
         // Then : It should return the correct amount.
         assertEq(wrappedAerodromeAM.totalWrapped(pool_), poolState.totalWrapped);
     }

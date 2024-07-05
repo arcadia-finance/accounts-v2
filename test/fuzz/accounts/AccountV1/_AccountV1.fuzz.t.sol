@@ -42,7 +42,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
         accountExtension = new AccountV1Extension(address(factory));
 
         // Initiate Account (set owner and numeraire).
-        accountExtension.initialize(users.accountOwner, address(registryExtension), address(creditorStable1));
+        accountExtension.initialize(users.accountOwner, address(registry), address(creditorStable1));
 
         // Set account in factory.
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension))
@@ -64,7 +64,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
     }
 
     function mintDepositAssets(uint256 erc20Amount, uint8 erc721Id, uint256 erc1155Amount) internal {
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.startPrank(users.tokenCreator);
         mockERC20.token1.mint(users.accountOwner, erc20Amount);
         mockERC721.nft1.mint(users.accountOwner, erc721Id);
         mockERC1155.sft1.mint(users.accountOwner, 1, erc1155Amount);
@@ -95,7 +95,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
         assetAmounts = new uint256[](1);
         assetAmounts[0] = amount;
 
-        vm.prank(users.tokenCreatorAddress);
+        vm.prank(users.tokenCreator);
         token.mint(sender, amount);
 
         vm.startPrank(sender);
@@ -120,7 +120,7 @@ abstract contract AccountV1_Fuzz_Test is Fuzz_Test {
 
         uint256 id = 10;
         for (uint256 i; i < length; ++i) {
-            vm.prank(users.tokenCreatorAddress);
+            vm.prank(users.tokenCreator);
             mockERC721.nft1.mint(users.accountOwner, id);
             assetAddresses[i] = address(mockERC721.nft1);
             assetIds[i] = id;

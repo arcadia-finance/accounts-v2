@@ -20,14 +20,14 @@ contract SetProtocol_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     function setUp() public override {
         SlipstreamAM_Fuzz_Test.setUp();
 
-        deploySlipstreamAM(address(nonfungiblePositionManager));
+        deploySlipstreamAM(address(slipstreamPositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_setProtocol_NonOwner(address unprivilegedAddress_) public {
-        vm.assume(unprivilegedAddress_ != users.creatorAddress);
+        vm.assume(unprivilegedAddress_ != users.owner);
         vm.startPrank(unprivilegedAddress_);
 
         vm.expectRevert("UNAUTHORIZED");
@@ -36,32 +36,32 @@ contract SetProtocol_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     }
 
     function testFuzz_Revert_setProtocol_ProtocolNotAddedToReg() public {
-        vm.prank(users.creatorAddress);
-        slipstreamAM = new SlipstreamAMExtension(address(registryExtension), address(nonfungiblePositionManager));
+        vm.prank(users.owner);
+        slipstreamAM = new SlipstreamAMExtension(address(registry), address(slipstreamPositionManager));
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectRevert(RegistryErrors.OnlyAssetModule.selector);
         slipstreamAM.setProtocol();
         vm.stopPrank();
     }
 
     function testFuzz_Revert_setProtocol_OverwriteExistingProtocol() public {
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
         slipstreamAM.setProtocol();
         vm.stopPrank();
     }
 
     function testFuzz_Success_setProtocol() public {
-        vm.startPrank(users.creatorAddress);
-        slipstreamAM = new SlipstreamAMExtension(address(registryExtension), address(nonfungiblePositionManagerMock));
-        registryExtension.addAssetModule(address(slipstreamAM));
+        vm.startPrank(users.owner);
+        slipstreamAM = new SlipstreamAMExtension(address(registry), address(nonfungiblePositionManagerMock));
+        registry.addAssetModule(address(slipstreamAM));
         vm.stopPrank();
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         slipstreamAM.setProtocol();
 
         assertTrue(slipstreamAM.inAssetModule(address(nonfungiblePositionManagerMock)));
-        assertTrue(registryExtension.inRegistry(address(nonfungiblePositionManagerMock)));
+        assertTrue(registry.inRegistry(address(nonfungiblePositionManagerMock)));
     }
 }

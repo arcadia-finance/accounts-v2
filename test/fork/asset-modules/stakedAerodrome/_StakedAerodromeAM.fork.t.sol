@@ -51,31 +51,31 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
         Fork_Test.setUp();
 
         // Deploy a mock oracle for AERO
-        vm.startPrank(users.creatorAddress);
-        ArcadiaOracle aeroOracle = new ArcadiaOracle(18, "AERO / USD", AERO);
-        aeroOracle.setOffchainTransmitter(users.defaultTransmitter);
+        vm.startPrank(users.owner);
+        ArcadiaOracle aeroOracle = new ArcadiaOracle(18, "AERO / USD");
+        aeroOracle.setOffchainTransmitter(users.transmitter);
         vm.stopPrank();
 
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         aeroOracle.transmit(1e18);
 
         // Add AERO and its oracle to the protocol.
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         uint256 oracleId = chainlinkOM.addOracle(address(aeroOracle), "AERO", "USD", 2 days);
         bool[] memory boolValues = new bool[](1);
         boolValues[0] = true;
         uint80[] memory uintValues = new uint80[](1);
         uintValues[0] = uint80(oracleId);
         bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
-        erc20AssetModule.addAsset(AERO, oracleSequence);
+        erc20AM.addAsset(AERO, oracleSequence);
 
         // Deploy Aerodrome Volatile and Stable pools.
-        aerodromePoolAM = new AerodromePoolAM(address(registryExtension), address(aeroFactory));
-        registryExtension.addAssetModule(address(aerodromePoolAM));
+        aerodromePoolAM = new AerodromePoolAM(address(registry), address(aeroFactory));
+        registry.addAssetModule(address(aerodromePoolAM));
 
         // Deploy StakedAerodromeAM.
-        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registryExtension), aeroVoter);
-        registryExtension.addAssetModule(address(stakedAerodromeAM));
+        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registry), aeroVoter);
+        registry.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
 
         // Add stablePool to the AerodromePoolAM

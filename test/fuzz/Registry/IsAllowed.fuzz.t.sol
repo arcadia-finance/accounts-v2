@@ -29,14 +29,14 @@ contract IsAllowed_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.assume(randomAsset != address(mockERC721.nft1));
         vm.assume(randomAsset != address(mockERC1155.sft1));
 
-        assertFalse(registryExtension.isAllowed(randomAsset, assetId));
+        assertFalse(registry.isAllowed(randomAsset, assetId));
     }
 
     function testFuzz_Success_isAllowed_Negative_NonAllowedAsset() public {
-        assertFalse(registryExtension.isAllowed(address(mockERC1155.sft1), 2));
+        assertFalse(registry.isAllowed(address(mockERC1155.sft1), 2));
     }
 
     function testFuzz_Success_isAllowed_Positive(uint256 assetId) public {
-        assertTrue(registryExtension.isAllowed(address(mockERC20.stable1), assetId));
+        assertTrue(registry.isAllowed(address(mockERC20.stable1), assetId));
     }
 }

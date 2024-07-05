@@ -34,15 +34,15 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
                           HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function coolDownPeriodPassed(address account, uint32 lastActionTimestamp, uint32 timePassed) public {
-        AccountV1 account_ = AccountV1(account);
+    function coolDownPeriodPassed(address account_, uint32 lastActionTimestamp, uint32 timePassed) public {
+        AccountV1 account__ = AccountV1(account_);
         timePassed = uint32(bound(timePassed, coolDownPeriod + 1, type(uint32).max));
 
         vm.warp(lastActionTimestamp);
 
         // Update the lastActionTimestamp.
-        vm.prank(account_.owner());
-        account_.withdraw(new address[](0), new uint256[](0), new uint256[](0));
+        vm.prank(account__.owner());
+        account__.withdraw(new address[](0), new uint256[](0), new uint256[](0));
 
         vm.warp(uint256(lastActionTimestamp) + timePassed);
     }
@@ -303,7 +303,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notTestContracts(to) {
+    ) public canReceiveERC721(to) {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
@@ -323,7 +323,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notTestContracts(to) {
+    ) public canReceiveERC721(to) {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
@@ -346,7 +346,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notTestContracts(to) {
+    ) public canReceiveERC721(to) {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
@@ -369,7 +369,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint32 salt,
         uint32 lastActionTimestamp,
         uint32 timePassed
-    ) public notTestContracts(to) {
+    ) public canReceiveERC721(to) {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);

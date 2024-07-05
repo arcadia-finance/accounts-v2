@@ -27,7 +27,7 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryA
         uint128 amount
     ) public {
         // Given "caller" is not the Registry.
-        vm.assume(unprivilegedAddress_ != address(registryExtension));
+        vm.assume(unprivilegedAddress_ != address(registry));
 
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
@@ -50,7 +50,7 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryA
         setPrimaryAMAssetState(assetState);
 
         // When: "amount" is withdrawn.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
 
         // Then: assetExposure is updated.
@@ -72,7 +72,7 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryA
         setPrimaryAMAssetState(assetState);
 
         // When: "amount" is withdrawn.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         assetModule.processDirectWithdrawal(assetState.creditor, assetState.asset, assetState.assetId, amount);
 
         // Then: assetExposure is updated.

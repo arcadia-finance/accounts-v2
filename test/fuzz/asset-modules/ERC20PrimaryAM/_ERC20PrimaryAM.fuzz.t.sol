@@ -26,7 +26,7 @@ abstract contract ERC20PrimaryAM_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         chainlinkOM.addOracle(address(mockOracles.token4ToUsd), "TOKEN4", "USD", 2 days);
 
         uint80[] memory oracleToken4ToUsdArr = new uint80[](1);

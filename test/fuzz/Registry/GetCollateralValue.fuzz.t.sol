@@ -42,7 +42,7 @@ contract GetCollateralValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         // And: A random gracePeriod.
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;
@@ -52,7 +52,7 @@ contract GetCollateralValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = assetAmount;
 
         vm.expectRevert(RegistryErrors.SequencerDown.selector);
-        registryExtension.getCollateralValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+        registry.getCollateralValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Revert_getCollateralValue_GracePeriodNotPassed(
@@ -75,7 +75,7 @@ contract GetCollateralValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.assume(currentTime - startedAt < type(uint32).max);
         gracePeriod = uint32(bound(gracePeriod, currentTime - startedAt + 1, type(uint32).max));
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;
@@ -85,12 +85,12 @@ contract GetCollateralValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = assetAmount;
 
         vm.expectRevert(RegistryErrors.SequencerDown.selector);
-        registryExtension.getCollateralValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+        registry.getCollateralValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Revert_getCollateralValue_UnknownNumeraire(address numeraire) public {
         vm.assume(numeraire != address(0));
-        vm.assume(!registryExtension.inRegistry(numeraire));
+        vm.assume(!registry.inRegistry(numeraire));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.stable2);
@@ -105,7 +105,7 @@ contract GetCollateralValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10;
 
         vm.expectRevert(bytes(""));
-        registryExtension.getCollateralValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+        registry.getCollateralValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Success_getCollateralValue(
@@ -128,19 +128,19 @@ contract GetCollateralValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // And: Grace period did pass.
         gracePeriod = uint32(bound(gracePeriod, 0, currentTime - startedAt));
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         vm.assume(collateralFactor_ <= AssetValuationLib.ONE_4);
         vm.assume(rateToken1ToUsd > 0);
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.token1ToUsd.transmit(rateToken1ToUsd);
 
         uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, amountToken1, oracleToken1ToUsdArr);
         vm.assume(token1ValueInUsd > 0);
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd),
             address(mockERC20.token1),
             0,
@@ -158,9 +158,8 @@ contract GetCollateralValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken1;
 
-        uint256 actualCollateralValue = registryExtension.getCollateralValue(
-            address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts
-        );
+        uint256 actualCollateralValue =
+            registry.getCollateralValue(address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         uint256 expectedCollateralValue = token1ValueInUsd * collateralFactor_ / 10_000;
 

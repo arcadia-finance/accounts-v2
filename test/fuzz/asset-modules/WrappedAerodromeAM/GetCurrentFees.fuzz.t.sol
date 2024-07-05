@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
 
-import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
+import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
 import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 /**
@@ -53,7 +53,7 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
     }
 
     function setPoolFeeState(PoolFeeState memory poolFeeState) public {
-        pool.setPoolFeeState(
+        aeroPool.setPoolFeeState(
             address(wrappedAerodromeAM),
             poolFeeState.index0,
             poolFeeState.index1,
@@ -74,10 +74,10 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         WrappedAerodromeAM.PoolState memory poolState,
         PoolFeeState memory poolFeeState
     ) public {
-        // Given : Valid pool.
-        pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
+        // Given : Valid aeroPool.
+        aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
 
-        // And : Valid pool fees.
+        // And : Valid aeroPool fees.
         poolFeeState = givenValidPoolFeeState(poolFeeState);
 
         // And : totalWrapped is bigger than 0.
@@ -87,10 +87,10 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
 
         // And : State is persisted.
         setPoolFeeState(poolFeeState);
-        wrappedAerodromeAM.setPoolState(address(pool), poolState);
+        wrappedAerodromeAM.setPoolState(address(aeroPool), poolState);
 
         // When : Calling _getCurrentFees.
-        (uint256 fee0, uint256 fee1) = wrappedAerodromeAM.getCurrentFees(address(pool));
+        (uint256 fee0, uint256 fee1) = wrappedAerodromeAM.getCurrentFees(address(aeroPool));
 
         // Then : Correct fee amounts are returned.
         uint256 fee0_ =
@@ -101,9 +101,9 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         assertEq(fee1, fee1_);
 
         // And : this is equal or smaller than the actual returned fees.
-        deal(pool.token0(), pool.poolFees(), type(uint256).max, true);
-        deal(pool.token1(), pool.poolFees(), type(uint256).max, true);
-        (uint256 fee0__, uint256 fee1__) = wrappedAerodromeAM.claimFees(address(pool));
+        deal(aeroPool.token0(), aeroPool.poolFees(), type(uint256).max, true);
+        deal(aeroPool.token1(), aeroPool.poolFees(), type(uint256).max, true);
+        (uint256 fee0__, uint256 fee1__) = wrappedAerodromeAM.claimFees(address(aeroPool));
         assertLe(fee0, fee0__);
         assertLe(fee1, fee1__);
     }
@@ -113,10 +113,10 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         WrappedAerodromeAM.PoolState memory poolState,
         PoolFeeState memory poolFeeState
     ) public {
-        // Given : Valid pool.
-        pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
+        // Given : Valid aeroPool.
+        aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
 
-        // And : Valid pool fees.
+        // And : Valid aeroPool fees.
         poolFeeState = givenValidPoolFeeState(poolFeeState);
 
         // And : totalWrapped is bigger than 0.
@@ -127,10 +127,10 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
 
         // And : State is persisted.
         setPoolFeeState(poolFeeState);
-        wrappedAerodromeAM.setPoolState(address(pool), poolState);
+        wrappedAerodromeAM.setPoolState(address(aeroPool), poolState);
 
         // When : Calling _getCurrentFees.
-        (uint256 fee0, uint256 fee1) = wrappedAerodromeAM.getCurrentFees(address(pool));
+        (uint256 fee0, uint256 fee1) = wrappedAerodromeAM.getCurrentFees(address(aeroPool));
 
         // Then : Correct fee amounts are returned.
         uint256 fee0_ =
@@ -141,9 +141,9 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         assertEq(fee1, fee1_);
 
         // And : this is equal or smaller than the actual returned fees.
-        deal(pool.token0(), pool.poolFees(), type(uint256).max, true);
-        deal(pool.token1(), pool.poolFees(), type(uint256).max, true);
-        (uint256 fee0__, uint256 fee1__) = wrappedAerodromeAM.claimFees(address(pool));
+        deal(aeroPool.token0(), aeroPool.poolFees(), type(uint256).max, true);
+        deal(aeroPool.token1(), aeroPool.poolFees(), type(uint256).max, true);
+        (uint256 fee0__, uint256 fee1__) = wrappedAerodromeAM.claimFees(address(aeroPool));
         assertEq(fee0, fee0__);
         assertEq(fee1, fee1__);
     }
@@ -153,10 +153,10 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         WrappedAerodromeAM.PoolState memory poolState,
         PoolFeeState memory poolFeeState
     ) public {
-        // Given : Valid pool.
-        pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
+        // Given : Valid aeroPool.
+        aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
 
-        // And : Valid pool fees.
+        // And : Valid aeroPool fees.
         poolFeeState = givenValidPoolFeeState(poolFeeState);
 
         // And : totalWrapped is 0.
@@ -164,19 +164,19 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
 
         // And : State is persisted.
         setPoolFeeState(poolFeeState);
-        wrappedAerodromeAM.setPoolState(address(pool), poolState);
+        wrappedAerodromeAM.setPoolState(address(aeroPool), poolState);
 
         // When : Calling _getCurrentFees.
-        (uint256 fee0, uint256 fee1) = wrappedAerodromeAM.getCurrentFees(address(pool));
+        (uint256 fee0, uint256 fee1) = wrappedAerodromeAM.getCurrentFees(address(aeroPool));
 
         // Then : Correct fee amounts are returned.
         assertEq(fee0, 0);
         assertEq(fee1, 0);
 
         // And : this is equal or smaller than the actual returned fees.
-        deal(pool.token0(), pool.poolFees(), type(uint256).max, true);
-        deal(pool.token1(), pool.poolFees(), type(uint256).max, true);
-        (uint256 fee0__, uint256 fee1__) = wrappedAerodromeAM.claimFees(address(pool));
+        deal(aeroPool.token0(), aeroPool.poolFees(), type(uint256).max, true);
+        deal(aeroPool.token1(), aeroPool.poolFees(), type(uint256).max, true);
+        (uint256 fee0__, uint256 fee1__) = wrappedAerodromeAM.claimFees(address(aeroPool));
         assertLe(fee0, fee0__);
         assertLe(fee1, fee1__);
     }

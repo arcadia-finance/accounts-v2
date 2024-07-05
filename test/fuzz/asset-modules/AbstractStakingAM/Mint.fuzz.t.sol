@@ -32,7 +32,7 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         stakingAM.mint(asset, 0);
     }
 
-    function testFuzz_Revert_mint_AssetNotAllowed(uint8 assetDecimals, uint128 amount, address account) public {
+    function testFuzz_Revert_mint_AssetNotAllowed(uint8 assetDecimals, uint128 amount, address account_) public {
         // Given : Amount is greater than zero
         vm.assume(amount > 0);
 
@@ -45,12 +45,13 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
-        mintERC20TokensTo(tokens, account, amounts);
-        approveERC20TokensFor(tokens, address(stakingAM), amounts, account);
+        deal(asset, account_, amount, true);
+        vm.prank(account_);
+        ERC20Mock(asset).approve(address(stakingAM), amount);
 
         // When : Calling Stake
         // Then : The function should revert as the asset has not been added to the Staking Module.
-        vm.prank(account);
+        vm.prank(account_);
         vm.expectRevert(StakingAM.AssetNotAllowed.selector);
         stakingAM.mint(asset, amount);
     }
@@ -59,17 +60,17 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         uint8 assetDecimals,
         StakingAMStateForAsset memory assetState,
         uint128 amount,
-        address account
-    ) public canReceiveERC721(account) {
-        vm.assume(account != address(0));
-        vm.assume(account != address(stakingAM));
-        vm.assume(account != address(rewardToken));
+        address account_
+    ) public canReceiveERC721(account_) {
+        vm.assume(account_ != address(0));
+        vm.assume(account_ != address(stakingAM));
+        vm.assume(account_ != address(rewardToken));
 
         address asset;
         {
             // Given: An Asset is added to the stakingAM.
             asset = addAsset(assetDecimals);
-            vm.assume(account != asset);
+            vm.assume(account_ != asset);
 
             // And: Valid state.
             StakingAM.PositionState memory positionState;
@@ -83,18 +84,13 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
             vm.assume(assetState.totalStaked < type(uint128).max);
             amount = uint128(bound(amount, 1, type(uint128).max - assetState.totalStaked));
 
-            address[] memory tokens = new address[](1);
-            tokens[0] = asset;
-
-            uint256[] memory amounts = new uint256[](1);
-            amounts[0] = amount;
-
-            mintERC20TokensTo(tokens, account, amounts);
-            approveERC20TokensFor(tokens, address(stakingAM), amounts, account);
+            deal(asset, account_, amount, true);
+            vm.prank(account_);
+            ERC20Mock(asset).approve(address(stakingAM), amount);
         }
 
         // When:  A user is staking via the Staking Module.
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.LiquidityIncreased(1, asset, amount);
         uint256 positionId = stakingAM.mint(asset, amount);
@@ -103,7 +99,7 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         assertEq(ERC20Mock(asset).balanceOf(address(stakingAM)), amount);
 
         // And: New position has been minted to Account.
-        assertEq(stakingAM.ownerOf(positionId), account);
+        assertEq(stakingAM.ownerOf(positionId), account_);
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
@@ -134,15 +130,15 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         uint8 assetDecimals,
         StakingAMStateForAsset memory assetState,
         uint128 amount,
-        address account
-    ) public canReceiveERC721(account) {
-        vm.assume(account != address(0));
-        vm.assume(account != address(stakingAM));
-        vm.assume(account != address(rewardToken));
+        address account_
+    ) public canReceiveERC721(account_) {
+        vm.assume(account_ != address(0));
+        vm.assume(account_ != address(stakingAM));
+        vm.assume(account_ != address(rewardToken));
 
         // Given: An Asset is added to the stakingAM.
         address asset = addAsset(assetDecimals);
-        vm.assume(account != asset);
+        vm.assume(account_ != asset);
 
         // And: Valid state.
         StakingAM.PositionState memory positionState;
@@ -157,17 +153,12 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         // And: Amount staked is greater than zero.
         amount = uint128(bound(amount, 1, type(uint128).max));
 
-        address[] memory tokens = new address[](1);
-        tokens[0] = asset;
-
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
-
-        mintERC20TokensTo(tokens, account, amounts);
-        approveERC20TokensFor(tokens, address(stakingAM), amounts, account);
+        deal(asset, account_, amount, true);
+        vm.prank(account_);
+        ERC20Mock(asset).approve(address(stakingAM), amount);
 
         // When:  A user is staking via the Staking Module.
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.LiquidityIncreased(1, asset, amount);
         uint256 positionId = stakingAM.mint(asset, amount);
@@ -176,7 +167,7 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         assertEq(ERC20Mock(asset).balanceOf(address(stakingAM)), amount);
 
         // And: New position has been minted to Account.
-        assertEq(stakingAM.ownerOf(positionId), account);
+        assertEq(stakingAM.ownerOf(positionId), account_);
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;

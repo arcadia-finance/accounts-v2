@@ -6,6 +6,8 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
+import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
+
 /**
  * @notice Fuzz tests for the function "setAssetManager" of contract "AccountV1".
  */
@@ -31,14 +33,14 @@ contract SetAssetManager_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     {
         vm.startPrank(msgSender);
         vm.expectEmit(true, true, true, true);
-        emit AssetManagerSet(msgSender, assetManager, startValue);
+        emit AccountV1.AssetManagerSet(msgSender, assetManager, startValue);
         accountExtension.setAssetManager(assetManager, startValue);
         vm.stopPrank();
         assertEq(accountExtension.isAssetManager(msgSender, assetManager), startValue);
 
         vm.startPrank(msgSender);
         vm.expectEmit(true, true, true, true);
-        emit AssetManagerSet(msgSender, assetManager, endvalue);
+        emit AccountV1.AssetManagerSet(msgSender, assetManager, endvalue);
         accountExtension.setAssetManager(assetManager, endvalue);
         vm.stopPrank();
         assertEq(accountExtension.isAssetManager(msgSender, assetManager), endvalue);

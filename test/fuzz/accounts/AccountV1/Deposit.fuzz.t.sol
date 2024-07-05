@@ -119,7 +119,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = 1;
 
-        vm.prank(users.tokenCreatorAddress);
+        vm.prank(users.tokenCreator);
         mockERC20.token1.mint(users.accountOwner, 1);
 
         vm.startPrank(users.accountOwner);
@@ -173,7 +173,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         vm.prank(users.accountOwner);
         accountExtension.closeMarginAccount();
 
-        vm.assume(!registryExtension.inRegistry(asset));
+        vm.assume(!registry.inRegistry(asset));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;
@@ -191,7 +191,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     }
 
     function testFuzz_Revert_deposit_WithCreditor_UnknownAsset(address asset, uint256 id, uint256 amount) public {
-        vm.assume(!registryExtension.inRegistry(asset));
+        vm.assume(!registry.inRegistry(asset));
 
         amount = bound(amount, 1, type(uint256).max);
 
@@ -213,7 +213,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_deposit_UnknownAssetType(uint96 assetType, address assetModule) public {
         vm.assume(assetType > 3);
 
-        registryExtension.setAssetInformation(address(mockERC20.token1), assetType, assetModule);
+        registry.setAssetInformation(address(mockERC20.token1), assetType, assetModule);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -224,7 +224,7 @@ contract Deposit_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = 1;
 
-        vm.prank(users.tokenCreatorAddress);
+        vm.prank(users.tokenCreator);
         mockERC20.token1.mint(users.accountOwner, 1);
 
         vm.startPrank(users.accountOwner);

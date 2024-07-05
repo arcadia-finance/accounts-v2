@@ -28,7 +28,7 @@ contract AddAsset_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test {
 
         // When : An asset is added to the AM.
         // Then : It should revert.
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectRevert(StakedStargateAM.PoolNotAllowed.selector);
         stakedStargateAM.addAsset(pid);
         vm.stopPrank();
@@ -43,12 +43,12 @@ contract AddAsset_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test {
         // Given : An Asset is already set.
         poolMock.setToken(address(mockERC20.token1));
         lpStakingTimeMock.setInfoForPoolId(pid, 0, address(poolMock));
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         stakedStargateAM.addAsset(pid);
 
         // When : An asset is added to the AM.
         // Then : It should revert.
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectRevert(StakedStargateAM.AssetAlreadySet.selector);
         stakedStargateAM.addAsset(pid);
         vm.stopPrank();
@@ -64,7 +64,7 @@ contract AddAsset_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test {
         lpStakingTimeMock.setInfoForPoolId(pid, 0, address(poolMock));
 
         // When : An Asset is added to AM.
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         stakedStargateAM.addAsset(pid);
 
         // Then : Information should be set and correct

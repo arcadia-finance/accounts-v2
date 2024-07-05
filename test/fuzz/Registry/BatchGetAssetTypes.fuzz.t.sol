@@ -24,27 +24,27 @@ contract BatchGetAssetTypes_Registry_Fuzz_Test is Registry_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_Revert_batchGetAssetTypes_UnknownAsset(address asset) public {
-        vm.assume(!registryExtension.inRegistry(asset));
+        vm.assume(!registry.inRegistry(asset));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = asset;
 
         vm.expectRevert(RegistryErrors.UnknownAsset.selector);
-        registryExtension.batchGetAssetTypes(assetAddresses);
+        registry.batchGetAssetTypes(assetAddresses);
     }
 
     function testFuzz_Success_batchGetAssetTypes(uint96 assetType, address asset, address assetModule) public {
         vm.assume(assetType > 0);
-        vm.assume(!registryExtension.inRegistry(asset));
+        vm.assume(!registry.inRegistry(asset));
 
-        registryExtension.setAssetInformation(asset, assetType, assetModule);
+        registry.setAssetInformation(asset, assetType, assetModule);
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.token1);
         assetAddresses[1] = asset;
 
-        uint256[] memory assetTypes = registryExtension.batchGetAssetTypes(assetAddresses);
+        uint256[] memory assetTypes = registry.batchGetAssetTypes(assetAddresses);
         assertEq(assetTypes[0], 1);
         assertEq(assetTypes[1], assetType);
     }

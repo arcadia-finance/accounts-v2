@@ -158,4 +158,11 @@ contract PoolFactory {
         _isPool[pool] = true;
         emit PoolCreated(token0, token1, stable, pool, allPools.length);
     }
+
+    /* ///////////////////////////////////////////////////////////////
+                              EXTENSIONS
+    /////////////////////////////////////////////////////////////// */
+    function setPool(address pool) public {
+        _isPool[pool] = true;
+    }
 }

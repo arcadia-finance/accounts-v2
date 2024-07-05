@@ -28,7 +28,7 @@ contract WithdrawAndClaim_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Te
         address poolLpToken = address(new ERC20Mock("stakingToken", "STK", 0));
 
         // And: LP tokens are staked in Stargate staking contract.
-        mintERC20TokenTo(poolLpToken, address(lpStakingTimeMock), amount);
+        deal(poolLpToken, address(lpStakingTimeMock), amount, true);
 
         // And : Pool token is set for specific pool id in the LPStaking contract.
         lpStakingTimeMock.setInfoForPoolId(pid, 0, poolLpToken);

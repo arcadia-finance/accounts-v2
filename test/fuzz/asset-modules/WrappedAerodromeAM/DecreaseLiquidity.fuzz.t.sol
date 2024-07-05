@@ -8,7 +8,7 @@ import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { Pool } from "../../../utils/fixtures/aerodrome/AeroPoolFixture.f.sol";
+import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
@@ -68,10 +68,10 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         WrappedAerodromeAM.PoolState memory poolState,
         uint128 amount
     ) public canReceiveERC721(owner) {
-        // Given : Valid pool
-        pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
-        vm.assume(owner != address(pool));
-        vm.assume(owner != pool.poolFees());
+        // Given : Valid aeroPool
+        aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
+        vm.assume(owner != address(aeroPool));
+        vm.assume(owner != aeroPool.poolFees());
 
         // And: Valid state.
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
@@ -85,12 +85,12 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         amount = uint128(bound(amount, positionState.amountWrapped + 1, type(uint128).max));
 
         // And: State is persisted.
-        setAMState(pool, positionId, poolState, positionState);
+        setAMState(aeroPool, positionId, poolState, positionState);
         wrappedAerodromeAM.setOwnerOf(owner, positionId);
-        deal(address(pool), owner, amount, true);
-        pool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
-        deal(pool.token0(), pool.poolFees(), fee0, true);
-        deal(pool.token1(), pool.poolFees(), fee1, true);
+        deal(address(aeroPool), owner, amount, true);
+        aeroPool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
+        deal(aeroPool.token0(), aeroPool.poolFees(), fee0, true);
+        deal(aeroPool.token1(), aeroPool.poolFees(), fee1, true);
 
         // When : Calling decreaseLiquidity().
         // Then : It should revert as remaining balance is too low.
@@ -111,10 +111,10 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
     ) public canReceiveERC721(owner) {
         vm.assume(owner != address(0));
 
-        // Given : Valid pool
-        pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
-        vm.assume(owner != address(pool));
-        vm.assume(owner != pool.poolFees());
+        // Given : Valid aeroPool
+        aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
+        vm.assume(owner != address(aeroPool));
+        vm.assume(owner != aeroPool.poolFees());
 
         // And: Valid state.
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
@@ -123,24 +123,24 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         vm.assume(positionState.amountWrapped > 0);
 
         // And: State is persisted.
-        setAMState(pool, positionId, poolState, positionState);
-        pool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
-        deal(pool.token0(), pool.poolFees(), fee0, true);
-        deal(pool.token1(), pool.poolFees(), fee1, true);
+        setAMState(aeroPool, positionId, poolState, positionState);
+        aeroPool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
+        deal(aeroPool.token0(), aeroPool.poolFees(), fee0, true);
+        deal(aeroPool.token1(), aeroPool.poolFees(), fee1, true);
         wrappedAerodromeAM.mintIdTo(owner, positionId);
 
         {
             // And: AM holds sufficient funds from past fees.
             (uint256 fee0_, uint256 fee1_) = wrappedAerodromeAM.feesOf(positionId);
-            deal(pool.token0(), address(wrappedAerodromeAM), fee0_, true);
-            deal(pool.token1(), address(wrappedAerodromeAM), fee1_, true);
+            deal(aeroPool.token0(), address(wrappedAerodromeAM), fee0_, true);
+            deal(aeroPool.token1(), address(wrappedAerodromeAM), fee1_, true);
 
             // When : Owner withdraws full position from wrappedAerodromeAM
             vm.startPrank(owner);
             vm.expectEmit();
             emit WrappedAerodromeAM.FeesPaid(positionId, uint128(fee0_), uint128(fee1_));
             vm.expectEmit();
-            emit WrappedAerodromeAM.LiquidityDecreased(positionId, address(pool), positionState.amountWrapped);
+            emit WrappedAerodromeAM.LiquidityDecreased(positionId, address(aeroPool), positionState.amountWrapped);
             (uint256 fee0__, uint256 fee1__) =
                 wrappedAerodromeAM.decreaseLiquidity(positionId, positionState.amountWrapped);
             vm.stopPrank();
@@ -150,12 +150,14 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
             assertEq(fee1_, fee1__);
 
             // And : Owner should get the staking and reward tokens
-            assertEq(pool.balanceOf(owner), positionState.amountWrapped);
-            assertEq(ERC20(pool.token0()).balanceOf(owner), fee0_);
-            assertEq(ERC20(pool.token1()).balanceOf(owner), fee1_);
+            assertEq(aeroPool.balanceOf(owner), positionState.amountWrapped);
+            assertEq(ERC20(aeroPool.token0()).balanceOf(owner), fee0_);
+            assertEq(ERC20(aeroPool.token1()).balanceOf(owner), fee1_);
 
             // And : Staking Module should have the remaining tokens
-            assertEq(pool.balanceOf(address(wrappedAerodromeAM)), poolState.totalWrapped - positionState.amountWrapped);
+            assertEq(
+                aeroPool.balanceOf(address(wrappedAerodromeAM)), poolState.totalWrapped - positionState.amountWrapped
+            );
         }
 
         // And : positionId should be burned.
@@ -182,7 +184,7 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         // And: Asset state should be updated correctly.
         WrappedAerodromeAM.PoolState memory poolState_;
         (poolState_.fee0PerLiquidity, poolState_.fee1PerLiquidity, poolState_.totalWrapped) =
-            wrappedAerodromeAM.poolState(address(pool));
+            wrappedAerodromeAM.poolState(address(aeroPool));
 
         uint128 fee0PerLiquidity;
         uint128 fee1PerLiquidity;
@@ -205,10 +207,10 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         WrappedAerodromeAM.PoolState memory poolState,
         uint128 amount
     ) public canReceiveERC721(owner) {
-        // Given : Valid pool
-        pool = Pool(poolFactory.createPool(address(asset0), address(asset1), stable));
-        vm.assume(owner != address(pool));
-        vm.assume(owner != pool.poolFees());
+        // Given : Valid aeroPool
+        aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
+        vm.assume(owner != address(aeroPool));
+        vm.assume(owner != aeroPool.poolFees());
 
         // And: Valid state.
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
@@ -220,24 +222,24 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         amount = uint128(bound(amount, 1, positionState.amountWrapped - 1));
 
         // And: State is persisted.
-        setAMState(pool, positionId, poolState, positionState);
-        pool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
-        deal(pool.token0(), pool.poolFees(), fee0, true);
-        deal(pool.token1(), pool.poolFees(), fee1, true);
+        setAMState(aeroPool, positionId, poolState, positionState);
+        aeroPool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
+        deal(aeroPool.token0(), aeroPool.poolFees(), fee0, true);
+        deal(aeroPool.token1(), aeroPool.poolFees(), fee1, true);
         wrappedAerodromeAM.mintIdTo(owner, positionId);
 
         {
             // And: AM holds sufficient funds from past fees.
             (uint256 fee0_, uint256 fee1_) = wrappedAerodromeAM.feesOf(positionId);
-            deal(pool.token0(), address(wrappedAerodromeAM), fee0_, true);
-            deal(pool.token1(), address(wrappedAerodromeAM), fee1_, true);
+            deal(aeroPool.token0(), address(wrappedAerodromeAM), fee0_, true);
+            deal(aeroPool.token1(), address(wrappedAerodromeAM), fee1_, true);
 
             // When : Owner withdraws from wrappedAerodromeAM
             vm.startPrank(owner);
             vm.expectEmit();
             emit WrappedAerodromeAM.FeesPaid(positionId, uint128(fee0_), uint128(fee1_));
             vm.expectEmit();
-            emit WrappedAerodromeAM.LiquidityDecreased(positionId, address(pool), amount);
+            emit WrappedAerodromeAM.LiquidityDecreased(positionId, address(aeroPool), amount);
             (uint256 fee0__, uint256 fee1__) = wrappedAerodromeAM.decreaseLiquidity(positionId, amount);
             vm.stopPrank();
 
@@ -246,12 +248,12 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
             assertEq(fee1_, fee1__);
 
             // And : Owner should get the withdrawn amount and reward tokens.
-            assertEq(pool.balanceOf(owner), amount);
-            assertEq(ERC20(pool.token0()).balanceOf(owner), fee0_);
-            assertEq(ERC20(pool.token1()).balanceOf(owner), fee1_);
+            assertEq(aeroPool.balanceOf(owner), amount);
+            assertEq(ERC20(aeroPool.token0()).balanceOf(owner), fee0_);
+            assertEq(ERC20(aeroPool.token1()).balanceOf(owner), fee1_);
 
             // And : Staking Module should have the remaining tokens
-            assertEq(pool.balanceOf(address(wrappedAerodromeAM)), poolState.totalWrapped - amount);
+            assertEq(aeroPool.balanceOf(address(wrappedAerodromeAM)), poolState.totalWrapped - amount);
 
             // And : positionId should not be burned.
             assertEq(wrappedAerodromeAM.balanceOf(owner), 1);
@@ -279,12 +281,12 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         assertEq(positionState_.fee0, 0);
         assertEq(positionState_.fee1, 0);
         assertEq(positionState_.amountWrapped, positionState.amountWrapped - amount);
-        assertEq(positionState_.pool, address(pool));
+        assertEq(positionState_.pool, address(aeroPool));
 
         // And : Asset values should be updated correctly
         WrappedAerodromeAM.PoolState memory poolState_;
         (poolState_.fee0PerLiquidity, poolState_.fee1PerLiquidity, poolState_.totalWrapped) =
-            wrappedAerodromeAM.poolState(address(pool));
+            wrappedAerodromeAM.poolState(address(aeroPool));
 
         assertEq(poolState_.fee0PerLiquidity, fee0PerLiquidity);
         assertEq(poolState_.fee1PerLiquidity, fee1PerLiquidity);

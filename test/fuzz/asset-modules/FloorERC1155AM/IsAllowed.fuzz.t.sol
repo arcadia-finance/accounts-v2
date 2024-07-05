@@ -17,7 +17,7 @@ contract IsAllowed_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Test {
     function setUp() public override {
         FloorERC1155AM_Fuzz_Test.setUp();
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
     }
 

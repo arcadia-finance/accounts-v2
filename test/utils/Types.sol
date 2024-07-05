@@ -4,23 +4,23 @@
  */
 pragma solidity 0.8.22;
 
-import "../utils/mocks/oracles/ArcadiaOracle.sol";
-import "../utils/mocks/tokens/ERC20Mock.sol";
-import "../utils/mocks/tokens/ERC721Mock.sol";
-import "../utils/mocks/tokens/ERC1155Mock.sol";
+import { ArcadiaOracle } from "../utils/mocks/oracles/ArcadiaOracle.sol";
+import { ERC20Mock } from "../utils/mocks/tokens/ERC20Mock.sol";
+import { ERC721Mock } from "../utils/mocks/tokens/ERC721Mock.sol";
+import { ERC1155Mock } from "../utils/mocks/tokens/ERC1155Mock.sol";
 
 struct Users {
-    address payable creatorAddress;
-    address payable tokenCreatorAddress;
-    address payable oracleOwner;
-    address payable unprivilegedAddress;
     address payable accountOwner;
-    address payable liquidityProvider;
-    address payable defaultCreatorAddress;
-    address payable defaultTransmitter;
-    address payable swapper;
     address payable guardian;
+    address payable liquidityProvider;
+    address payable oracleOwner;
+    address payable owner;
     address payable riskManager;
+    address payable swapper;
+    address payable tokenCreator;
+    address payable treasury;
+    address payable transmitter;
+    address payable unprivilegedAddress;
 }
 
 struct MockOracles {
