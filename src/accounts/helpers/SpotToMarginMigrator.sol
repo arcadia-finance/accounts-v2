@@ -27,12 +27,14 @@ contract SpotToMarginMigrator {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
+    // The contract address of the Arcadia Accounts Factory.
     IFactory public immutable FACTORY;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
+    // Map an Account to its owner, used to keep track of account owner during upgrade.
     mapping(address account => address owner) internal accountToOwner;
 
     /* //////////////////////////////////////////////////////////////
@@ -104,6 +106,7 @@ contract SpotToMarginMigrator {
     /**
      * @notice Call this function after the cool-down period of the initial Spot Account has passed (following upgradeAccount()).
      * This will finalize the upgrade and transfer the Margin Account to the caller.
+     * @param account The Account to transfer back to its owner after the cool down period.
      */
     function endUpgrade(address account) external {
         if (accountToOwner[account] != msg.sender) revert NotOwner();
