@@ -9,7 +9,7 @@ import { SpotToMarginMigrator } from "../../../src/accounts/helpers/SpotToMargin
 contract SpotToMarginMigratorExtension is SpotToMarginMigrator {
     constructor(address factory) SpotToMarginMigrator(factory) { }
 
-    function getAccountOwnedBy(address owner) public view returns (address account) {
-        account = accountOwnedBy[owner];
+    function getOwnerOfAccount(address account) public view returns (address owner) {
+        owner = accountToOwner[account];
     }
 }

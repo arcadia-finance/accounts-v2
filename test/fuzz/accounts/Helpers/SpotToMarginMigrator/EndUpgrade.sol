@@ -29,8 +29,7 @@ contract EndUpgrade_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_Fuzz_
     /* ///////////////////////////////////////////////////////////////
                               TESTS
     /////////////////////////////////////////////////////////////// */
-
-    function testFuzz_revert_endUpgrade_NoOngoingUpgrade(
+    function testFuzz_revert_endUpgrade_NotOwner(
         address notOwner,
         uint112 erc20Amount,
         uint8 erc721Id,
@@ -50,8 +49,8 @@ contract EndUpgrade_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_Fuzz_
         // When : Calling upgradeAccount() from a user having no ongoing Account upgrade
         // Then : It should revert
         vm.startPrank(notOwner);
-        vm.expectRevert(SpotToMarginMigrator.NoOngoingUpgrade.selector);
-        spotToMarginMigrator.endUpgrade();
+        vm.expectRevert(SpotToMarginMigrator.NotOwner.selector);
+        spotToMarginMigrator.endUpgrade(address(accountSpot));
         vm.stopPrank();
     }
 
@@ -63,22 +62,18 @@ contract EndUpgrade_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_Fuzz_
         // And : Spot Account has assets
         mintDepositAssets(erc20Amount, erc721Id, erc1155Amount);
 
-        // When : Calling upgradeAccount()
+        // And : upgradeAccount()
         upgradeAccount(erc20Amount, erc721Id, erc1155Amount, address(creditorStable1));
 
+        // And : cool down period has passed
+        vm.warp(block.timestamp + accountSpot.getCoolDownPeriod() + 1);
+
+        // When : calling endUpgrade()
+        vm.prank(users.accountOwner);
+        spotToMarginMigrator.endUpgrade(address(accountSpot));
+
         // Then : It should return the correct values
-        assertEq(spotToMarginMigrator.getAccountOwnedBy(users.accountOwner), address(accountSpot));
-        assertEq(factory.ownerOfAccount(address(accountSpot)), address(spotToMarginMigrator));
-        assertEq(accountSpot.ACCOUNT_VERSION(), 1);
-        assertEq(accountSpot.creditor(), address(creditorStable1));
-        assertEq(accountSpot.registry(), address(registry));
-        assertEq(accountSpot.numeraire(), address(mockERC20.stable1));
-        assertEq(accountSpot.minimumMargin(), Constants.initLiquidationCost);
-        assertEq(accountSpot.liquidator(), Constants.initLiquidator);
-        assertEq(accountSpot.erc20Balances(address(mockERC20.token1)), erc20Amount);
-        assertEq(accountSpot.erc1155Balances(address(mockERC1155.sft1), 1), erc1155Amount);
-        assertEq(AccountV1Extension(address(accountSpot)).isAccountUnhealthy(), false);
-        assertEq(AccountV1Extension(address(accountSpot)).getERC721Stored(0), address(mockERC721.nft1));
-        assertEq(AccountV1Extension(address(accountSpot)).getERC721TokenIds(0), erc721Id);
+        assertEq(factory.ownerOfAccount(address(accountSpot)), users.accountOwner);
+        assertEq(spotToMarginMigrator.getOwnerOfAccount(address(accountSpot)), address(0));
     }
 }

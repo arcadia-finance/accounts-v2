@@ -31,7 +31,7 @@ contract AccountSpot is AccountStorageV1, IAccount {
     uint256 public constant ACCOUNT_VERSION = 2;
     // The cool-down period after an account action, that might be disadvantageous for a new Owner,
     // during which ownership cannot be transferred to prevent the old Owner from frontrunning a transferFrom().
-    uint256 internal constant COOL_DOWN_PERIOD = 5 minutes;
+    uint256 public constant COOL_DOWN_PERIOD = 5 minutes;
     // Storage slot with the address of the current implementation.
     // This is the hardcoded keccak-256 hash of: "eip1967.proxy.implementation" subtracted by 1.
     bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;

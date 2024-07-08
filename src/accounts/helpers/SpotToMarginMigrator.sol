@@ -33,14 +33,13 @@ contract SpotToMarginMigrator {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    mapping(address owner => address account) internal accountOwnedBy;
+    mapping(address account => address owner) internal accountToOwner;
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
     error CreditorNotValid();
-    error NoOngoingUpgrade();
     error NotOwner();
     error OngoingUpgrade();
 
@@ -85,7 +84,6 @@ contract SpotToMarginMigrator {
         uint256[] memory assetTypes
     ) external {
         if (msg.sender != IAccountSpot(account).owner()) revert NotOwner();
-        if (accountOwnedBy[msg.sender] != address(0)) revert OngoingUpgrade();
         if (creditor == address(0)) revert CreditorNotValid();
         // Transfer the Account
         FACTORY.safeTransferFrom(msg.sender, address(this), account);
@@ -100,7 +98,7 @@ contract SpotToMarginMigrator {
         // Open margin account
         IAccountV1(account).openMarginAccount(creditor);
         // Keep track of the owner of the Account, mapping will be set to the zero address when upgrade is complete.
-        accountOwnedBy[msg.sender] = account;
+        accountToOwner[account] = msg.sender;
     }
 
     /**
@@ -108,11 +106,9 @@ contract SpotToMarginMigrator {
      * This will finalize the upgrade and transfer the Margin Account to the caller.
      */
     function endUpgrade(address account) external {
-        if (accountOwnedBy[msg.sender] == address(0)) revert NoOngoingUpgrade();
-        // Cache Acccount
-        address account = accountOwnedBy[msg.sender];
-        // Remove claimable account for owner
-        accountOwnedBy[msg.sender] = address(0);
+        if (accountToOwner[account] != msg.sender) revert NotOwner();
+        // Remove owner from Account in storage
+        accountToOwner[account] = address(0);
         // Transfer Account back to owner
         FACTORY.safeTransferFrom(address(this), msg.sender, account);
     }
