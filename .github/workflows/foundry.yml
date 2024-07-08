@@ -24,7 +24,7 @@ jobs:
 
       - name: Run tests
         run: |
-          export RPC_URL=$(tenderly devnet spawn-rpc --project arcadia-finance-tenderly --template basetest --account ${TENDERLY_ACCOUNT_ID} --access_key ${TENDERLY_ACCESS_KEY} 2>&1)
+          export RPC_URL=$(tenderly devnet spawn-rpc --project arcadia-finance-tenderly --template basetest2 --account ${TENDERLY_ACCOUNT_ID} --access_key ${TENDERLY_ACCESS_KEY} 2>&1)
           FOUNDRY_PROFILE=gh forge test -vvv
         env:
           TENDERLY_ACCESS_KEY: ${{ secrets.TENDERLY_ACCESS_KEY }}
