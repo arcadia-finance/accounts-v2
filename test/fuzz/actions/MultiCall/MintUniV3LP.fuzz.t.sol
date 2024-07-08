@@ -4,15 +4,17 @@
  */
 pragma solidity 0.8.22;
 
+import { Base_Test } from "../../../Base.t.sol";
 import { MultiCall_Fuzz_Test } from "./_MultiCall.fuzz.t.sol";
+import { UniswapV3AMFixture } from "../../../utils/fixtures/arcadia-accounts/UniswapV3AMFixture.f.sol";
 
-import { ERC20Mock } from "../../.././utils/mocks/tokens/ERC20Mock.sol";
-import { NonfungiblePositionManagerMock } from "../../.././utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { NonfungiblePositionManagerMock } from "../../../utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
 
 /**
  * @notice Fuzz tests for the "mintUniV3LP" function of contract "MultiCall".
  */
-contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
+contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test, UniswapV3AMFixture {
     /* ///////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -27,7 +29,7 @@ contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public override(MultiCall_Fuzz_Test) {
+    function setUp() public override(MultiCall_Fuzz_Test, Base_Test) {
         MultiCall_Fuzz_Test.setUp();
         univ3PosMgr = new NonfungiblePositionManagerMock(address(factory));
 
@@ -36,8 +38,8 @@ contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         token0 = new ERC20Mock("Token 0", "TOK0", 18);
         token1 = new ERC20Mock("Token 1", "TOK1", 18);
         (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
-        token0.mint(users.creatorAddress, 10 ** 38);
-        token1.mint(users.creatorAddress, 10 ** 38);
+        token0.mint(users.owner, 10 ** 38);
+        token1.mint(users.owner, 10 ** 38);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -48,9 +50,8 @@ contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test {
         public
     {
         vm.assume(notV3Contract != address(univ3PosMgr));
-        vm.assume(notV3Contract != address(proxyAccount));
+        vm.assume(notV3Contract != address(account));
         vm.assume(notV3Contract != address(accountV1Logic));
-        vm.assume(notV3Contract != address(accountV2Logic));
         vm.assume(notV3Contract != address(vm));
 
         vm.prank(address(action));

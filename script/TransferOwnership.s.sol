@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import "../lib/forge-std/src/Test.sol";
+import { Test } from "../lib/forge-std/src/Test.sol";
 
 import { ArcadiaContracts, ArcadiaSafes } from "./utils/Constants.sol";
 import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";

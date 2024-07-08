@@ -24,7 +24,7 @@ contract Constructor_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         ERC20PrimaryAMExtension erc20AssetModule_ = new ERC20PrimaryAMExtension(registry_);
         vm.stopPrank();
 

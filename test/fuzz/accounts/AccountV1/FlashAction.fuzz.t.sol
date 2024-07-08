@@ -46,7 +46,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_flashAction_NonAssetManager(address sender, address assetManager)
         public
-        notTestContracts(sender)
+        canReceiveERC721(sender)
     {
         vm.assume(sender != users.accountOwner);
         vm.assume(sender != assetManager);
@@ -171,7 +171,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         accountNotInitialised.setMinimumMargin(minimumMargin);
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
-        accountNotInitialised.setRegistry(address(registryExtension));
+        accountNotInitialised.setRegistry(address(registry));
         accountNotInitialised.setNumeraire(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
         vm.stopPrank();
@@ -209,7 +209,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
             token2AmountForAction + uint256(debtAmount) * token1ToToken2Ratio
         );
 
-        vm.prank(users.tokenCreatorAddress);
+        vm.prank(users.tokenCreator);
         mockERC20.token1.mint(address(action), debtAmount);
 
         to[0] = address(mockERC20.token1);
@@ -281,7 +281,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         // Initialize Account params
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(from);
-        accountNotInitialised.setRegistry(address(registryExtension));
+        accountNotInitialised.setRegistry(address(registry));
         vm.prank(from);
         accountNotInitialised.setNumeraire(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
@@ -299,7 +299,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         tokens[1] = address(mockERC20.stable1);
 
         // Mint tokens and give unlimited approval on the Permit2 contract
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.startPrank(users.tokenCreator);
         mockERC20.token1.mint(from, token1Amount);
         mockERC20.stable1.mint(from, stable1Amount);
         vm.stopPrank();
@@ -354,7 +354,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         accountNotInitialised.setMinimumMargin(minimumMargin);
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
-        accountNotInitialised.setRegistry(address(registryExtension));
+        accountNotInitialised.setRegistry(address(registry));
         vm.prank(users.accountOwner);
         accountNotInitialised.setNumeraire(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
@@ -375,7 +375,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         );
 
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
         vm.stopPrank();
 
@@ -406,10 +406,10 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
 
             // exposure token 2 does not exceed maxExposure.
             vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint112).max);
-            vm.prank(users.tokenCreatorAddress);
+            vm.prank(users.tokenCreator);
             mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
 
-            vm.prank(users.tokenCreatorAddress);
+            vm.prank(users.tokenCreator);
             mockERC20.token1.mint(address(action), debtAmount);
 
             to[0] = address(mockERC20.token1);
@@ -495,7 +495,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         vm.warp(time);
 
         // We transmit prices to oracles in order to have the oracles active
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
         mockOracles.stable1ToUsd.transmit(int256(rates.stable1ToUsd));
         mockOracles.nft1ToToken1.transmit(int256(rates.nft1ToToken1));
@@ -531,7 +531,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
         accountNotInitialised.setAssetManager(assetManager, true);
-        accountNotInitialised.setRegistry(address(registryExtension));
+        accountNotInitialised.setRegistry(address(registry));
         accountNotInitialised.setNumeraire(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
         vm.stopPrank();
@@ -573,10 +573,10 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
 
             // exposure token 2 does not exceed maxExposure.
             vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint112).max);
-            vm.prank(users.tokenCreatorAddress);
+            vm.prank(users.tokenCreator);
             mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
 
-            vm.prank(users.tokenCreatorAddress);
+            vm.prank(users.tokenCreator);
             mockERC20.token1.mint(address(action), debtAmount);
 
             to[0] = address(mockERC20.token1);
@@ -621,7 +621,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
             mockERC20.token1, token1AmountForAction, users.accountOwner, address(accountNotInitialised)
         );
 
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
         mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
         // We transmit price to token 1 oracle in order to have the oracle active
@@ -662,7 +662,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         // Initialize Account params
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(from);
-        accountNotInitialised.setRegistry(address(registryExtension));
+        accountNotInitialised.setRegistry(address(registry));
         vm.prank(from);
         accountNotInitialised.setNumeraire(address(mockERC20.token1));
         accountNotInitialised.setCreditor(address(creditorStable1));
@@ -680,7 +680,7 @@ contract FlashAction_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test, Permit2Fixture 
         tokens[1] = address(mockERC20.stable1);
 
         // Mint tokens and give unlimited approval on the Permit2 contract
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.startPrank(users.tokenCreator);
         mockERC20.token1.mint(from, token1Amount);
         mockERC20.stable1.mint(from, stable1Amount);
         vm.stopPrank();

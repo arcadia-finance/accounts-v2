@@ -20,11 +20,11 @@ contract GetValue_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
         FloorERC721AM_Fuzz_Test.setUp();
 
         // Add Nft2 (which has an oracle directly to usd).
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(mockERC721.nft2), 0, type(uint112).max, 0, 0
         );
     }
@@ -41,7 +41,7 @@ contract GetValue_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
             amount, type(uint256).max / rateNft2ToUsd / 10 ** (18 - Constants.nftOracleDecimals) + 1, type(uint256).max
         );
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.nft2ToUsd.transmit(int256(rateNft2ToUsd));
 
         vm.expectRevert(bytes(""));
@@ -59,7 +59,7 @@ contract GetValue_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
 
         uint256 expectedValueInUsd = amount * rateNft2ToUsd * 10 ** (18 - Constants.nftOracleDecimals);
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.nft2ToUsd.transmit(int256(rateNft2ToUsd));
 
         // When: getValue called

@@ -44,7 +44,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         // And: A random gracePeriod.
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;
@@ -54,7 +54,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = assetAmount;
 
         vm.expectRevert(RegistryErrors.SequencerDown.selector);
-        registryExtension.getTotalValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+        registry.getTotalValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Revert_getTotalValue_GracePeriodNotPassed(
@@ -77,7 +77,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.assume(currentTime - startedAt < type(uint32).max);
         gracePeriod = uint32(bound(gracePeriod, currentTime - startedAt + 1, type(uint32).max));
         vm.prank(creditorUsd.riskManager());
-        registryExtension.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;
@@ -87,12 +87,12 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[0] = assetAmount;
 
         vm.expectRevert(RegistryErrors.SequencerDown.selector);
-        registryExtension.getTotalValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+        registry.getTotalValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Revert_getTotalValue_UnknownNumeraire(address numeraire) public {
         vm.assume(numeraire != address(0));
-        vm.assume(!registryExtension.inRegistry(numeraire));
+        vm.assume(!registry.inRegistry(numeraire));
 
         address[] memory assetAddresses = new address[](2);
         assetAddresses[0] = address(mockERC20.stable2);
@@ -107,7 +107,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[1] = 10;
 
         vm.expectRevert(bytes(""));
-        registryExtension.getTotalValue(numeraire, address(creditorToken1), assetAddresses, assetIds, assetAmounts);
+        registry.getTotalValue(numeraire, address(creditorToken1), assetAddresses, assetIds, assetAmounts);
     }
 
     function testFuzz_Revert_getTotalValue_CalculateValueInNumeraireFromValueInUsdOverflow(
@@ -124,24 +124,22 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
                     / 10 ** (Constants.tokenOracleDecimals - token2Decimals)
         );
 
-        ArcadiaOracle oracle = initMockedOracle(0, "LINK / USD");
-        vm.prank(users.defaultTransmitter);
-        oracle.transmit(0);
-        vm.startPrank(users.creatorAddress);
+        ArcadiaOracle oracle = initMockedOracle(uint8(0), "LINK / USD", int256(0));
+        vm.startPrank(users.owner);
         mockERC20.token2 = new ERC20Mock("TOKEN2", "T2", token2Decimals);
 
         uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracle), "TOKEN2", "USD", 2 days));
         uint80[] memory oracleAssetToUsdArr = new uint80[](1);
         oracleAssetToUsdArr[0] = oracleId;
 
-        erc20AssetModule.addAsset(address(mockERC20.token2), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
+        erc20AM.addAsset(address(mockERC20.token2), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
         vm.stopPrank();
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1), address(mockERC20.token2), 0, type(uint112).max, 0, 0
         );
 
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd));
         oracle.transmit(int256(rates.token2ToUsd));
         vm.stopPrank();
@@ -157,7 +155,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         // Then: getTotalValue should revert with arithmetic overflow
         vm.expectRevert(bytes(""));
-        registryExtension.getTotalValue(
+        registry.getTotalValue(
             address(mockERC20.token1), address(creditorToken1), assetAddresses, assetIds, assetAmounts
         );
     }
@@ -167,7 +165,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
     {
         vm.assume(amountToken2 > 0);
 
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(0));
         mockOracles.token2ToUsd.transmit(int256(rates.stable2ToUsd));
         vm.stopPrank();
@@ -183,7 +181,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
 
         // Then: getTotalValue should revert
         vm.expectRevert(bytes(""));
-        registryExtension.getTotalValue(
+        registry.getTotalValue(
             address(mockERC20.token1), address(creditorToken1), assetAddresses, assetIds, assetAmounts
         );
     }
@@ -195,7 +193,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         vm.warp(currentTime);
 
         // And: Oracles are not stale.
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
         mockOracles.token2ToUsd.transmit(int256(rates.token2ToUsd));
         mockOracles.nft1ToToken1.transmit(int256(rates.nft1ToToken1));
@@ -208,7 +206,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // And: Grace period did pass.
         gracePeriod = uint32(bound(gracePeriod, 0, currentTime - startedAt));
         vm.prank(creditorToken1.riskManager());
-        registryExtension.setRiskParameters(address(creditorToken1), 0, gracePeriod, type(uint64).max);
+        registry.setRiskParameters(address(creditorToken1), 0, gracePeriod, type(uint64).max);
 
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.token1);
@@ -226,7 +224,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         assetAmounts[2] = 1;
 
         // Numeraire for actualTotalValue is set to mockERC20.token1
-        uint256 actualTotalValue = registryExtension.getTotalValue(
+        uint256 actualTotalValue = registry.getTotalValue(
             address(mockERC20.token1), address(creditorToken1), assetAddresses, assetIds, assetAmounts
         );
 
@@ -268,7 +266,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
                 ) * 10 ** Constants.tokenDecimals
         );
 
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd));
         vm.stopPrank();
 
@@ -281,7 +279,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken2;
 
-        uint256 actualTotalValue = registryExtension.getTotalValue(
+        uint256 actualTotalValue = registry.getTotalValue(
             address(mockERC20.token1), address(creditorToken1), assetAddresses, assetIds, assetAmounts
         );
 
@@ -304,7 +302,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         // Objective is to test if calculation hold true with different token decimals (in this case mockERC20.stable tokens have 6 decimals)
         rateToken1ToUsd = bound(rateToken1ToUsd, 1, type(uint256).max / 10 ** (36 - Constants.tokenOracleDecimals));
 
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd));
         vm.stopPrank();
 
@@ -317,7 +315,7 @@ contract GetTotalValue_Registry_Fuzz_Test is Registry_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = amountToken2;
 
-        uint256 actualTotalValue = registryExtension.getTotalValue(
+        uint256 actualTotalValue = registry.getTotalValue(
             address(mockERC20.token1), address(creditorToken1), assetAddresses, assetIds, assetAmounts
         );
 

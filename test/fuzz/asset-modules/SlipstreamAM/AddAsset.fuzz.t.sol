@@ -35,7 +35,7 @@ contract AddAsset_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
 
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), tokenId, position);
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectRevert(SlipstreamAM.InvalidId.selector);
         slipstreamAM.addAsset(tokenId);
         vm.stopPrank();
@@ -53,7 +53,7 @@ contract AddAsset_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
 
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), tokenId, position);
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectRevert(SlipstreamAM.ZeroLiquidity.selector);
         slipstreamAM.addAsset(tokenId);
         vm.stopPrank();
@@ -70,7 +70,7 @@ contract AddAsset_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
 
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), tokenId, position);
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         slipstreamAM.addAsset(tokenId);
 
         assertEq(slipstreamAM.getAssetToLiquidity(tokenId), position.liquidity);

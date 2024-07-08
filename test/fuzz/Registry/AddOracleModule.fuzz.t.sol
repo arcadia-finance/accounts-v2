@@ -6,6 +6,8 @@ pragma solidity 0.8.22;
 
 import { Registry_Fuzz_Test, RegistryErrors } from "./_Registry.fuzz.t.sol";
 
+import { Registry } from "../../../src/Registry.sol";
+
 /**
  * @notice Fuzz tests for the function "addOracleModule" of contract "Registry".
  */
@@ -22,42 +24,42 @@ contract AddOracleModule_Registry_Fuzz_Test is Registry_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_addOracleModule_NonOwner(address unprivilegedAddress_, address oracleModule_) public {
-        // Given: unprivilegedAddress_ is not users.creatorAddress
-        vm.assume(unprivilegedAddress_ != users.creatorAddress);
+        // Given: unprivilegedAddress_ is not users.owner
+        vm.assume(unprivilegedAddress_ != users.owner);
         vm.startPrank(unprivilegedAddress_);
         // When: unprivilegedAddress_ calls addOracleModule
 
         // Then: addOracleModule should revert with "UNAUTHORIZED"
         vm.expectRevert("UNAUTHORIZED");
-        registryExtension.addOracleModule(oracleModule_);
+        registry.addOracleModule(oracleModule_);
         vm.stopPrank();
     }
 
     function testFuzz_Revert_addOracleModule_AddExistingOracleModule(address oracleModule_) public {
         // Given: "oracleModule" is previously added.
-        vm.assume(!registryExtension.isOracleModule(oracleModule_));
-        vm.prank(users.creatorAddress);
-        registryExtension.addOracleModule(oracleModule_);
+        vm.assume(!registry.isOracleModule(oracleModule_));
+        vm.prank(users.owner);
+        registry.addOracleModule(oracleModule_);
 
-        // When: users.creatorAddress calls addOracleModule for oracleModule.
+        // When: users.owner calls addOracleModule for oracleModule.
         // Then: addOracleModule should revert with "MR_APM: OracleMod. not unique"
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(RegistryErrors.OracleModNotUnique.selector);
-        registryExtension.addOracleModule(oracleModule_);
+        registry.addOracleModule(oracleModule_);
     }
 
     function testFuzz_Success_addOracleModule(address oracleModule_) public {
         // Given: oracleModule is different from previously deployed oracle modules.
-        vm.assume(!registryExtension.isOracleModule(oracleModule_));
+        vm.assume(!registry.isOracleModule(oracleModule_));
 
-        // When: users.creatorAddress calls addOracleModule for oracleModule.
-        vm.startPrank(users.creatorAddress);
+        // When: users.owner calls addOracleModule for oracleModule.
+        vm.startPrank(users.owner);
         vm.expectEmit(true, true, true, true);
-        emit OracleModuleAdded(oracleModule_);
-        registryExtension.addOracleModule(oracleModule_);
+        emit Registry.OracleModuleAdded(oracleModule_);
+        registry.addOracleModule(oracleModule_);
         vm.stopPrank();
 
         // Then: isOracleModule for "oracleModule" should return true
-        assertTrue(registryExtension.isOracleModule(oracleModule_));
+        assertTrue(registry.isOracleModule(oracleModule_));
     }
 }

@@ -35,7 +35,7 @@ contract AddAsset_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
 
     function testFuzz_Revert_addAsset_UnderlyingAssetNotAllowed(uint256 poolId, address sender, address underlyingAsset)
         public
-        notTestContracts(underlyingAsset)
+        canReceiveERC721(underlyingAsset)
     {
         // Given : Valid pool
         sgFactoryMock.setPool(poolId, address(poolMock));
@@ -63,7 +63,7 @@ contract AddAsset_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         stargateAssetModule.addAsset(poolId);
 
         // Then : Information should be set and correct
-        assertTrue(registryExtension.inRegistry(address(poolMock)));
+        assertTrue(registry.inRegistry(address(poolMock)));
 
         assertTrue(stargateAssetModule.inAssetModule(address(poolMock)));
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(poolMock)));

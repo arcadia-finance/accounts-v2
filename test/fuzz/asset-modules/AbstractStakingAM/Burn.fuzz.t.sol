@@ -25,21 +25,21 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
     function testFuzz_Success_burn_NonZeroReward(
         uint8 assetDecimals,
         uint96 positionId,
-        address account,
+        address account_,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState
-    ) public canReceiveERC721(account) {
-        // Given : account != zero address
-        vm.assume(account != address(0));
-        vm.assume(account != address(stakingAM));
-        vm.assume(account != address(rewardToken));
+    ) public canReceiveERC721(account_) {
+        // Given : account_ != zero address
+        vm.assume(account_ != address(0));
+        vm.assume(account_ != address(stakingAM));
+        vm.assume(account_ != address(rewardToken));
 
         address asset;
         uint256 currentRewardAccount;
         {
             // Given : Add an Asset + reward token pair
             asset = addAsset(assetDecimals);
-            vm.assume(account != asset);
+            vm.assume(account_ != asset);
 
             // Given: Valid state
             (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -51,26 +51,18 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
             setStakingAMState(assetState, positionState, asset, positionId);
 
             // Given : Position is minted to the Account
-            stakingAM.mintIdTo(account, positionId);
+            stakingAM.mintIdTo(account_, positionId);
 
             // Given : transfer Asset and rewardToken to stakingAM, as _withdrawAndClaim and _claimReward are not implemented on external staking contract
-            address[] memory tokens = new address[](2);
-            tokens[0] = asset;
-            tokens[1] = address(rewardToken);
-
-            uint256[] memory amounts = new uint256[](2);
-            amounts[0] = positionState.amountStaked;
-            currentRewardAccount = stakingAM.rewardOf(positionId);
-            amounts[1] = currentRewardAccount;
-
             // And reward is non-zero.
+            deal(asset, address(stakingAM), positionState.amountStaked, true);
+            currentRewardAccount = stakingAM.rewardOf(positionId);
             vm.assume(currentRewardAccount > 0);
-
-            mintERC20TokensTo(tokens, address(stakingAM), amounts);
+            deal(address(rewardToken), address(stakingAM), currentRewardAccount, true);
         }
 
         // When : Account withdraws from stakingAM
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.RewardPaid(positionId, address(rewardToken), uint128(currentRewardAccount));
         vm.expectEmit();
@@ -79,11 +71,11 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         vm.stopPrank();
 
         // Then : Account should get the staking and reward tokens
-        assertEq(ERC20Mock(asset).balanceOf(account), positionState.amountStaked);
-        assertEq(rewardToken.balanceOf(account), currentRewardAccount);
+        assertEq(ERC20Mock(asset).balanceOf(account_), positionState.amountStaked);
+        assertEq(rewardToken.balanceOf(account_), currentRewardAccount);
 
         // And : positionId should be burned.
-        assertEq(stakingAM.balanceOf(account), 0);
+        assertEq(stakingAM.balanceOf(account_), 0);
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
@@ -114,20 +106,20 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
     function testFuzz_Success_burn_ZeroReward(
         uint8 assetDecimals,
         uint96 positionId,
-        address account,
+        address account_,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState
-    ) public canReceiveERC721(account) {
-        // Given : account != zero address
-        vm.assume(account != address(0));
-        vm.assume(account != address(stakingAM));
-        vm.assume(account != address(rewardToken));
+    ) public canReceiveERC721(account_) {
+        // Given : account_ != zero address
+        vm.assume(account_ != address(0));
+        vm.assume(account_ != address(stakingAM));
+        vm.assume(account_ != address(rewardToken));
 
         address asset;
         {
             // Given : Add an Asset + reward token pair
             asset = addAsset(assetDecimals);
-            vm.assume(account != asset);
+            vm.assume(account_ != asset);
 
             // Given: Valid state
             (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
@@ -144,32 +136,25 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
             setStakingAMState(assetState, positionState, asset, positionId);
 
             // Given : Position is minted to the Account
-            stakingAM.mintIdTo(account, positionId);
+            stakingAM.mintIdTo(account_, positionId);
 
             // Given : transfer Asset and rewardToken to stakingAM, as _withdrawAndClaim and _claimReward are not implemented on external staking contract
-            address[] memory tokens = new address[](2);
-            tokens[0] = asset;
-            tokens[1] = address(rewardToken);
-
-            uint256[] memory amounts = new uint256[](2);
-            amounts[0] = positionState.amountStaked;
-
-            mintERC20TokensTo(tokens, address(stakingAM), amounts);
+            deal(asset, address(stakingAM), positionState.amountStaked, true);
         }
 
         // When : Account withdraws from stakingAM
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.LiquidityDecreased(positionId, asset, positionState.amountStaked);
         stakingAM.burn(positionId);
         vm.stopPrank();
 
         // Then : Account should get the staking and reward tokens
-        assertEq(ERC20Mock(asset).balanceOf(account), positionState.amountStaked);
-        assertEq(rewardToken.balanceOf(account), 0);
+        assertEq(ERC20Mock(asset).balanceOf(account_), positionState.amountStaked);
+        assertEq(rewardToken.balanceOf(account_), 0);
 
         // And : positionId should be burned.
-        assertEq(stakingAM.balanceOf(account), 0);
+        assertEq(stakingAM.balanceOf(account_), 0);
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;

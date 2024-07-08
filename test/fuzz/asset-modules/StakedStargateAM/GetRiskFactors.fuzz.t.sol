@@ -56,16 +56,16 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], AssetValuationLib.ONE_4));
 
         // And riskFactor is set.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         stakedStargateAM.setRiskParameters(creditor, 0, riskFactor);
 
         // And state stargateAssetModule is set.
         sgFactoryMock.setPool(poolId, address(poolMock));
         poolMock.setToken(address(mockERC20.token1));
         stargateAssetModule.addAsset(poolId);
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         stargateAssetModule.setRiskParameters(creditor, 0, uint16(AssetValuationLib.ONE_4));
-        erc20AssetModule.setRiskParameters(
+        erc20AM.setRiskParameters(
             creditor, address(mockERC20.token1), 0, 0, collateralFactors[0], liquidationFactors[0]
         );
         vm.stopPrank();
@@ -73,8 +73,8 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         // And staked pool is set.
         lpStakingTimeMock.setInfoForPoolId(pid, 0, address(poolMock));
         stakedStargateAM.addAsset(pid);
-        vm.startPrank(address(registryExtension));
-        erc20AssetModule.setRiskParameters(
+        vm.startPrank(address(registry));
+        erc20AM.setRiskParameters(
             creditor, address(lpStakingTimeMock.eToken()), 0, 0, collateralFactors[1], liquidationFactors[1]
         );
         vm.stopPrank();
@@ -113,7 +113,7 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         uint256 pid
     ) public {
         // Set rates to 0.
-        vm.startPrank(users.defaultTransmitter);
+        vm.startPrank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(0));
         stargateOracle.transmit(int256(0));
         vm.stopPrank();
@@ -130,16 +130,16 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], AssetValuationLib.ONE_4));
 
         // And riskFactor is set.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         stakedStargateAM.setRiskParameters(creditor, 0, riskFactor);
 
         // And state stargateAssetModule is set.
         sgFactoryMock.setPool(poolId, address(poolMock));
         poolMock.setToken(address(mockERC20.token1));
         stargateAssetModule.addAsset(poolId);
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         stargateAssetModule.setRiskParameters(creditor, 0, uint16(AssetValuationLib.ONE_4));
-        erc20AssetModule.setRiskParameters(
+        erc20AM.setRiskParameters(
             creditor, address(mockERC20.token1), 0, 0, collateralFactors[0], liquidationFactors[0]
         );
         vm.stopPrank();
@@ -147,8 +147,8 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         // And staked pool is set.
         lpStakingTimeMock.setInfoForPoolId(pid, 0, address(poolMock));
         stakedStargateAM.addAsset(pid);
-        vm.startPrank(address(registryExtension));
-        erc20AssetModule.setRiskParameters(
+        vm.startPrank(address(registry));
+        erc20AM.setRiskParameters(
             creditor, address(lpStakingTimeMock.eToken()), 0, 0, collateralFactors[1], liquidationFactors[1]
         );
         vm.stopPrank();

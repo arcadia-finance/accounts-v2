@@ -53,8 +53,8 @@ contract CalculateValueAndRiskFactors_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], AssetValuationLib.ONE_4));
 
         // And riskFactor is set.
-        vm.prank(address(registryExtension));
-        uniV3AssetModule.setRiskParameters(creditor, 0, riskFactor);
+        vm.prank(address(registry));
+        uniV3AM.setRiskParameters(creditor, 0, riskFactor);
 
         uint256 expectedCollateralFactor =
             collateralFactors[0] < collateralFactors[1] ? collateralFactors[0] : collateralFactors[1];
@@ -75,8 +75,7 @@ contract CalculateValueAndRiskFactors_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_
             liquidationFactor: liquidationFactors[1]
         });
 
-        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = uniV3AssetModule
-            .calculateValueAndRiskFactors(
+        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = uniV3AM.calculateValueAndRiskFactors(
             creditor, Utils.castArrayStaticToDynamic(underlyingAssetsAmounts), rateUnderlyingAssetsToUsd
         );
         assertEq(valueInUsd, expectedValueInUsd);

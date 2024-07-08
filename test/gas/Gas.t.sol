@@ -24,7 +24,7 @@ abstract contract Gas_Test is Fuzz_Test {
         vm.pauseGasMetering();
         account = AccountV1(newAccount);
 
-        vm.prank(users.tokenCreatorAddress);
+        vm.prank(users.tokenCreator);
         mockERC20.stable1.mint(users.accountOwner, 1000 * 10 ** 18);
 
         vm.startPrank(users.accountOwner);
@@ -48,7 +48,7 @@ abstract contract Gas_Test is Fuzz_Test {
         vm.pauseGasMetering();
         account = AccountV1(newAccount);
 
-        vm.prank(users.tokenCreatorAddress);
+        vm.prank(users.tokenCreator);
         mockERC20.stable1.mint(users.accountOwner, 1000 * 10 ** 18);
         mockERC20.stable2.mint(users.accountOwner, 1000 * 10 ** 18);
 
@@ -76,7 +76,7 @@ abstract contract Gas_Test is Fuzz_Test {
         vm.pauseGasMetering();
         account = AccountV1(newAccount);
 
-        vm.prank(users.tokenCreatorAddress);
+        vm.prank(users.tokenCreator);
         mockERC20.stable1.mint(users.accountOwner, 1000 * 10 ** 18);
         mockERC20.stable2.mint(users.accountOwner, 1000 * 10 ** 18);
         mockERC20.token1.mint(users.accountOwner, 1000 * 10 ** 18);

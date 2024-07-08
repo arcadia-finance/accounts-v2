@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import "../lib/forge-std/src/Test.sol";
+import { Test } from "../lib/forge-std/src/Test.sol";
 
 import { ArcadiaSafes, CutOffTimes, OracleIds, Oracles, PrimaryAssets, RiskParameters } from "./utils/Constants.sol";
 import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";

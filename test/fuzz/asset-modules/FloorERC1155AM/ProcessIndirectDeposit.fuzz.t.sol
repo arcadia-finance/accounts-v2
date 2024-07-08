@@ -30,7 +30,7 @@ contract ProcessIndirectDeposit_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_
         int256 deltaExposureUpperAssetToAsset,
         address unprivilegedAddress_
     ) public {
-        vm.assume(unprivilegedAddress_ != address(registryExtension));
+        vm.assume(unprivilegedAddress_ != address(registry));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert(AssetModule.OnlyRegistry.selector);
@@ -47,10 +47,10 @@ contract ProcessIndirectDeposit_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_
         int256 deltaExposureUpperAssetToAsset
     ) public {
         vm.assume(assetId > 0); //Wrong Id
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), 0, oraclesSft2ToUsd);
 
-        vm.startPrank(address(registryExtension));
+        vm.startPrank(address(registry));
         vm.expectRevert(FloorERC1155AM.AssetNotAllowed.selector);
         floorERC1155AM.processIndirectDeposit(
             address(creditorUsd), asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset

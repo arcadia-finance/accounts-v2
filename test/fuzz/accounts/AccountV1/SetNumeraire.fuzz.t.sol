@@ -6,6 +6,8 @@ pragma solidity 0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
+import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
+
 /**
  * @notice Fuzz tests for the function "setNumeraire" of contract "AccountV1".
  */
@@ -56,7 +58,7 @@ contract SetNumeraire_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
 
     function testFuzz_Revert_setNumeraire_NumeraireNotFound(address numeraire_) public {
         vm.assume(numeraire_ != address(0));
-        vm.assume(!registryExtension.inRegistry(numeraire_));
+        vm.assume(!registry.inRegistry(numeraire_));
 
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.NumeraireNotFound.selector);
@@ -67,7 +69,7 @@ contract SetNumeraire_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_setNumeraire() public {
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
-        emit NumeraireSet(address(mockERC20.token1));
+        emit AccountV1.NumeraireSet(address(mockERC20.token1));
         accountExtension.setNumeraire(address(mockERC20.token1));
         vm.stopPrank();
 

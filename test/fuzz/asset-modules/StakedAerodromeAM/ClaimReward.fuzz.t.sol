@@ -27,33 +27,38 @@ contract ClaimReward_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test 
     function testFuzz_Success_ClaimReward(uint256 lpBalance, uint256 emissions) public {
         lpBalance = bound(lpBalance, 1, type(uint112).max);
         // Given : In order to avoid earned() to overflow we limit emissions to uint128.max.
-        // Such an amount should never be distributed to a particular gauge.
+        // Such an amount should never be distributed to a particular aeroGauge.
         emissions = bound(emissions, 1e18, type(uint128).max);
 
-        // Given : the pool is allowed in the Registry
-        deployAerodromePoolFixture(address(mockERC20.token1), address(mockERC20.stable1), false);
+        // Given : the aeroPool is allowed in the Registry
+        aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
+        vm.prank(users.owner);
+        aerodromePoolAM.addAsset(address(aeroPool));
 
-        // Given : Valid gauge
-        deployAerodromeGaugeFixture(address(pool), AERO);
+        // Given : Valid aeroGauge
+        aeroGauge = createGaugeAerodrome(aeroPool, AERO);
 
-        // And : Add asset and gauge to the AM
-        stakedAerodromeAM.addAsset(address(gauge));
+        // And : Add asset and aeroGauge to the AM
+        stakedAerodromeAM.addAsset(address(aeroGauge));
 
         // And : Add emissions to the Gauge
-        addEmissionsToGauge(emissions);
+        // In order to avoid earned() to overflow we limit emissions to uint128.max.
+        // Such an amount should never be distributed to a specific aeroGauge.
+        emissions = bound(emissions, 1e18, type(uint128).max);
+        addEmissionsToGauge(aeroGauge, emissions);
 
-        // Given : Send pool tokens to the AM.
-        deal(address(pool), address(stakedAerodromeAM), lpBalance);
+        // Given : Send aeroPool tokens to the AM.
+        deal(address(aeroPool), address(stakedAerodromeAM), lpBalance);
 
         // And : LP is staked via the stakedAerodromeAM
-        stakedAerodromeAM.stakeAndClaim(address(pool), lpBalance);
+        stakedAerodromeAM.stakeAndClaim(address(aeroPool), lpBalance);
 
         // And : We let rewards accumulate
         vm.warp(block.timestamp + 3 days);
 
         // When : Calling getCurrentReward()
-        uint256 earned = gauge.earned(address(stakedAerodromeAM));
-        stakedAerodromeAM.claimReward(address(pool));
+        uint256 earned = aeroGauge.earned(address(stakedAerodromeAM));
+        stakedAerodromeAM.claimReward(address(aeroPool));
 
         // Then : Earned emissions should have been transferred to the staked Aerodrome AM
         assertEq(ERC20(AERO).balanceOf(address(stakedAerodromeAM)), earned);

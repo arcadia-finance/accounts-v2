@@ -26,7 +26,7 @@ contract IsAllowed_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
     }
 
     function testFuzz_Success_isAllowed_Positive(uint256 assetId) public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         erc4626AM.addAsset(address(ybToken1));
 
         assertTrue(erc4626AM.isAllowed(address(ybToken1), assetId));

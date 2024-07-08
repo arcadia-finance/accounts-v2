@@ -36,7 +36,7 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert(RegistryErrors.Unauthorized.selector);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
         vm.stopPrank();
@@ -52,11 +52,11 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         collateralFactor = uint16(bound(collateralFactor, 1, AssetValuationLib.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, 0, collateralFactor - 1));
 
-        registryExtension.setAssetModule(asset, address(primaryAM));
+        registry.setAssetModule(asset, address(primaryAM));
 
         vm.prank(users.riskManager);
         vm.expectRevert(PrimaryAM.CollFactorExceedsLiqFactor.selector);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
     }
@@ -71,10 +71,10 @@ contract SetRiskParametersOfPrimaryAsset_Registry_Fuzz_Test is Registry_Fuzz_Tes
         collateralFactor = uint16(bound(collateralFactor, 0, AssetValuationLib.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, AssetValuationLib.ONE_4));
 
-        registryExtension.setAssetModule(asset, address(primaryAM));
+        registry.setAssetModule(asset, address(primaryAM));
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
 

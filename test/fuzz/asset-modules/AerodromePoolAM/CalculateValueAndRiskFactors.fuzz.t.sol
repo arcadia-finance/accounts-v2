@@ -51,7 +51,7 @@ contract CalculateValueAndRiskFactors_AerodromePoolAM_Fuzz_Test is AerodromePool
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], AssetValuationLib.ONE_4));
 
         // And riskFactor is set.
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         aeroPoolAM.setRiskParameters(creditor, 0, riskFactor);
 
         uint256 expectedCollateralFactor =

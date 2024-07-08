@@ -55,7 +55,7 @@ contract GetValue_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
 
         // Mint LP
         vm.assume(uint256(amountToken2) * amountToken1 > pairToken1Token2.MINIMUM_LIQUIDITY()); //min liquidity in uniswap pool
-        pairToken1Token2.mint(users.tokenCreatorAddress, amountToken2, amountToken1);
+        pairToken1Token2.mint(users.tokenCreator, amountToken2, amountToken1);
 
         bool cond0 = uint256(_rateToken2ToUsd)
             > type(uint256).max / Constants.WAD / Constants.WAD * 10 ** _oracleToken2ToUsdDecimals; // trustedPriceToken2ToUsd overflows
@@ -105,7 +105,7 @@ contract GetValue_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
             / 10 ** (_token2Decimals + _oracleToken2ToUsdDecimals);
         vm.assume(amountToken1 < type(uint112).max); //max reserve in Uniswap pool
         vm.assume(amountToken2 * amountToken1 > pairToken1Token2.MINIMUM_LIQUIDITY()); //min liquidity in uniswap pool
-        pairToken1Token2.mint(users.tokenCreatorAddress, amountToken2, amountToken1);
+        pairToken1Token2.mint(users.tokenCreator, amountToken2, amountToken1);
 
         //No overflows
         vm.assume(

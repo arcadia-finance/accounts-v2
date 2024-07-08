@@ -4,7 +4,7 @@
  */
 pragma solidity 0.8.22;
 
-import "../lib/forge-std/src/Test.sol";
+import { Test } from "../lib/forge-std/src/Test.sol";
 
 import { AccountV1 } from "../src/accounts/AccountV1.sol";
 import { ActionMultiCall } from "../src/actions/MultiCall.sol";

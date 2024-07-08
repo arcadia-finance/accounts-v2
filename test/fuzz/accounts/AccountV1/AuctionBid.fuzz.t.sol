@@ -62,7 +62,7 @@ contract AuctionBid_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         uint256 assetId,
         uint256 assetAmount
     ) public {
-        vm.assume(!registryExtension.inRegistry(asset));
+        vm.assume(!registry.inRegistry(asset));
 
         // Given: An initial state of the account with assets.
         address[] memory assetAddresses = new address[](1);
@@ -82,11 +82,11 @@ contract AuctionBid_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Revert_AuctionBuy_UnknownAssetType(address bidder, uint96 assetType) public {
         vm.assume(assetType > 3);
 
-        vm.startPrank(users.creatorAddress);
-        AssetModuleMock assetModule = new AssetModuleMock(address(registryExtension), assetType);
-        registryExtension.addAssetModule(address(assetModule));
+        vm.startPrank(users.owner);
+        AssetModuleMock assetModule = new AssetModuleMock(address(registry), assetType);
+        registry.addAssetModule(address(assetModule));
         vm.stopPrank();
-        registryExtension.setAssetInformation(address(mockERC20.token1), assetType, address(assetModule));
+        registry.setAssetInformation(address(mockERC20.token1), assetType, address(assetModule));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
@@ -309,12 +309,12 @@ contract AuctionBid_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     ) public {
         {
             // Add Chainlink Oracles to the Chainlink Oracles Module.
-            vm.startPrank(users.creatorAddress);
+            vm.startPrank(users.owner);
             chainlinkOM.addOracle(address(mockOracles.nft2ToUsd), "NFT2", "USD", 2 days);
             chainlinkOM.addOracle(address(mockOracles.sft2ToUsd), "SFT2", "USD", 2 days);
             vm.stopPrank();
 
-            vm.startPrank(registryExtension.owner());
+            vm.startPrank(registry.owner());
             // Add NFT2 to the floorERC721AM.
             uint80[] memory oracleNft2ToUsd = new uint80[](1);
             oracleNft2ToUsd[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.nft2ToUsd)));
@@ -394,9 +394,9 @@ contract AuctionBid_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
             bidAssetAmounts[6] = bidErc1155Amount;
 
             // Mint ERC721, not deposited in Account.
-            vm.startPrank(users.tokenCreatorAddress);
-            mockERC721.nft1.mint(users.tokenCreatorAddress, bidErc721Id);
-            mockERC721.nft2.mint(users.tokenCreatorAddress, bidErc721Id);
+            vm.startPrank(users.tokenCreator);
+            mockERC721.nft1.mint(users.tokenCreator, bidErc721Id);
+            mockERC721.nft2.mint(users.tokenCreator, bidErc721Id);
             vm.stopPrank();
 
             // When: A user Fully withdraws assets.

@@ -22,7 +22,7 @@ contract GetUnderlyingAssets_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fu
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_getUnderlyingAssets_InAssetModule() public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         erc4626AM.addAsset(address(ybToken1));
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(ybToken1)));

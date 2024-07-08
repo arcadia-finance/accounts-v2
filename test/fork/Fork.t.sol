@@ -5,6 +5,7 @@
 pragma solidity 0.8.22;
 
 import { Base_Test } from "../Base.t.sol";
+import { ArcadiaAccountsFixture } from "../utils/fixtures/arcadia-accounts/ArcadiaAccountsFixture.f.sol";
 
 import { ERC20 } from "../../lib/solmate/src/tokens/ERC20.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
@@ -15,7 +16,7 @@ import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
  * @dev While not always possible (since unlike with the fuzz tests, it is not possible to work with extension with the necessary getters and setter),
  * as much of the possible state configurations must be tested.
  */
-abstract contract Fork_Test is Base_Test {
+abstract contract Fork_Test is Base_Test, ArcadiaAccountsFixture {
     /*///////////////////////////////////////////////////////////////
                             CONSTANTS
     ///////////////////////////////////////////////////////////////*/
@@ -48,8 +49,9 @@ abstract contract Fork_Test is Base_Test {
         vm.selectFork(fork);
 
         Base_Test.setUp();
+        deployArcadiaAccounts();
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         // Add USDC to the protocol (same oracle will be used for USDBC).
         uint256 oracleId = chainlinkOM.addOracle(oracleUSDC, "USDC", "USD", 2 days);
         bool[] memory boolValues = new bool[](1);
@@ -57,20 +59,20 @@ abstract contract Fork_Test is Base_Test {
         uint80[] memory uintValues = new uint80[](1);
         uintValues[0] = uint80(oracleId);
         bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
-        erc20AssetModule.addAsset(address(USDC), oracleSequence);
-        erc20AssetModule.addAsset(address(USDBC), oracleSequence);
+        erc20AM.addAsset(address(USDC), oracleSequence);
+        erc20AM.addAsset(address(USDBC), oracleSequence);
 
         // Add DAI to the protocol.
         oracleId = chainlinkOM.addOracle(oracleDAI, "DAI", "USD", 2 days);
         uintValues[0] = uint80(oracleId);
         oracleSequence = BitPackingLib.pack(boolValues, uintValues);
-        erc20AssetModule.addAsset(address(DAI), oracleSequence);
+        erc20AM.addAsset(address(DAI), oracleSequence);
 
         // Add WETH to the protocol.
         oracleId = chainlinkOM.addOracle(oracleETH, "WETH", "USD", 2 days);
         uintValues[0] = uint80(oracleId);
         oracleSequence = BitPackingLib.pack(boolValues, uintValues);
-        erc20AssetModule.addAsset(address(WETH), oracleSequence);
+        erc20AM.addAsset(address(WETH), oracleSequence);
 
         vm.stopPrank();
 

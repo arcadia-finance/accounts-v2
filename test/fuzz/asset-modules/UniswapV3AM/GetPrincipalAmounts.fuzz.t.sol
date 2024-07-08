@@ -45,13 +45,13 @@ contract GetPrincipalAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // Cast to uint160 will overflow, not realistic.
         vm.assume(priceToken0 / priceToken1 < 2 ** 128);
 
-        uint160 sqrtPriceX96 = uniV3AssetModule.getSqrtPriceX96(priceToken0, priceToken1);
+        uint160 sqrtPriceX96 = uniV3AM.getSqrtPriceX96(priceToken0, priceToken1);
         (uint256 expectedAmount0, uint256 expectedAmount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity
         );
 
         (uint256 actualAmount0, uint256 actualAmount1) =
-            uniV3AssetModule.getPrincipalAmounts(tickLower, tickUpper, liquidity, priceToken0, priceToken1);
+            uniV3AM.getPrincipalAmounts(tickLower, tickUpper, liquidity, priceToken0, priceToken1);
         assertEq(actualAmount0, expectedAmount0);
         assertEq(actualAmount1, expectedAmount1);
     }

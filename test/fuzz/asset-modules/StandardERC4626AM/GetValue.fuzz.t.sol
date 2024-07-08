@@ -47,10 +47,10 @@ contract GetValue_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
                 > type(uint256).max / (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals)
         );
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         erc4626AM.addAsset(address(ybToken1));
 
         //Cheat totalSupply
@@ -92,10 +92,10 @@ contract GetValue_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
         uint256 expectedValueInUsd = (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals)
             * (shares * totalAssets / totalSupply) / 10 ** Constants.tokenDecimals;
 
-        vm.prank(users.defaultTransmitter);
+        vm.prank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         erc4626AM.addAsset(address(ybToken1));
 
         //Cheat totalSupply

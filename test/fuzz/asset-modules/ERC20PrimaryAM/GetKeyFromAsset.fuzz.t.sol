@@ -23,7 +23,7 @@ contract GetKeyFromAsset_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_getKeyFromAsset(address asset, uint96 assetId) public {
         bytes32 expectedKey = bytes32(abi.encodePacked(uint96(0), asset));
-        bytes32 actualKey = erc20AssetModule.getKeyFromAsset(asset, assetId);
+        bytes32 actualKey = erc20AM.getKeyFromAsset(asset, assetId);
 
         assertEq(actualKey, expectedKey);
     }

@@ -24,7 +24,7 @@ contract Constructor_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Tes
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         WrappedAerodromeAM assetModule_ = new WrappedAerodromeAM(registry_);
 
         assertEq(assetModule_.REGISTRY(), registry_);

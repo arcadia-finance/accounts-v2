@@ -102,7 +102,7 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
             - int256(uint256(assetState.lastExposureAssetToUnderlyingAsset));
         bytes memory data = abi.encodeCall(
-            registryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
+            registry.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
             (
                 assetState.creditor,
                 assetState.underlyingAsset,
@@ -114,7 +114,7 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
 
         // When: "_processDeposit" is called.
         // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "Registry" is called with correct parameters.
-        vm.expectCall(address(registryExtension), data);
+        vm.expectCall(address(registry), data);
         bytes32 assetKey = derivedAM.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdExposureAsset = derivedAM.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 
@@ -174,7 +174,7 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
             - int256(uint256(assetState.lastExposureAssetToUnderlyingAsset));
         bytes memory data = abi.encodeCall(
-            registryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
+            registry.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
             (
                 assetState.creditor,
                 assetState.underlyingAsset,
@@ -186,7 +186,7 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
 
         // When: "_processDeposit" is called.
         // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "Registry" is called with correct parameters.
-        vm.expectCall(address(registryExtension), data);
+        vm.expectCall(address(registry), data);
         bytes32 assetKey = derivedAM.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdExposureAsset = derivedAM.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 
@@ -242,7 +242,7 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
             - int256(uint256(assetState.lastExposureAssetToUnderlyingAsset));
         bytes memory data = abi.encodeCall(
-            registryExtension.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
+            registry.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
             (
                 assetState.creditor,
                 assetState.underlyingAsset,
@@ -254,7 +254,7 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
 
         // When: "_processDeposit" is called.
         // Then: The Function "getUsdValueExposureToUnderlyingAssetAfterWithdrawal" on "Registry" is called with correct parameters.
-        vm.expectCall(address(registryExtension), data);
+        vm.expectCall(address(registry), data);
         bytes32 assetKey = derivedAM.getKeyFromAsset(assetState.asset, assetState.assetId);
         uint256 usdExposureAsset = derivedAM.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 

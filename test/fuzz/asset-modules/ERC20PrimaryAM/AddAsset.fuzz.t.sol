@@ -31,11 +31,11 @@ contract AddAsset_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_addAsset_NonOwner(address unprivilegedAddress_) public {
-        vm.assume(unprivilegedAddress_ != users.creatorAddress);
+        vm.assume(unprivilegedAddress_ != users.owner);
 
         vm.prank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
-        erc20AssetModule.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
+        erc20AM.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
     }
 
     function testFuzz_Revert_addAsset_BadOracleSequence() public {
@@ -45,51 +45,50 @@ contract AddAsset_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
         oracleToken4ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token4ToUsd)));
         bytes32 badSequence = BitPackingLib.pack(badDirection, oracleToken4ToUsdArr);
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         vm.expectRevert(PrimaryAM.BadOracleSequence.selector);
-        erc20AssetModule.addAsset(address(mockERC20.token4), badSequence);
+        erc20AM.addAsset(address(mockERC20.token4), badSequence);
         vm.stopPrank();
     }
 
     function testFuzz_Revert_addAsset_OverwriteExistingAsset() public {
-        vm.startPrank(users.creatorAddress);
-        erc20AssetModule.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
+        vm.startPrank(users.owner);
+        erc20AM.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
         vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
-        erc20AssetModule.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
+        erc20AM.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
         vm.stopPrank();
     }
 
     function testFuzz_Revert_addAsset_MoreThan18Decimals() public {
-        ArcadiaOracle oracle = initMockedOracle(0, "ASSET / USD");
-        vm.prank(users.defaultTransmitter);
-        oracle.transmit(0);
-        vm.startPrank(users.tokenCreatorAddress);
+        ArcadiaOracle oracle = initMockedOracle(uint8(0), "ASSET / USD", int256(0));
+        vm.prank(users.tokenCreator);
         ERC20Mock asset = new ERC20Mock("ASSET", "ASSET", 19);
+        vm.prank(users.owner);
         chainlinkOM.addOracle(address(oracle), "ASSET", "USD", 2 days);
         vm.stopPrank();
 
         uint80[] memory oracleAssetToUsdArr = new uint80[](1);
         oracleAssetToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(oracle)));
 
-        vm.prank(users.creatorAddress);
+        vm.prank(users.owner);
         vm.expectRevert(ERC20PrimaryAM.Max18Decimals.selector);
-        erc20AssetModule.addAsset(address(asset), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
+        erc20AM.addAsset(address(asset), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleAssetToUsdArr));
     }
 
     function testFuzz_Success_addAsset() public {
-        vm.prank(users.creatorAddress);
-        erc20AssetModule.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
+        vm.prank(users.owner);
+        erc20AM.addAsset(address(mockERC20.token4), oraclesToken4ToUsd);
 
-        assertTrue(erc20AssetModule.inAssetModule(address(mockERC20.token4)));
-        assertTrue(erc20AssetModule.isAllowed(address(mockERC20.token4), 0));
+        assertTrue(erc20AM.inAssetModule(address(mockERC20.token4)));
+        assertTrue(erc20AM.isAllowed(address(mockERC20.token4), 0));
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token4)));
-        (uint64 assetUnit, bytes32 oracles) = erc20AssetModule.assetToInformation(assetKey);
+        (uint64 assetUnit, bytes32 oracles) = erc20AM.assetToInformation(assetKey);
         assertEq(assetUnit, 10 ** Constants.tokenDecimals);
         assertEq(oracles, oraclesToken4ToUsd);
 
-        assertTrue(registryExtension.inRegistry(address(mockERC20.token4)));
-        (uint256 assetType, address assetModule) = registryExtension.assetToAssetInformation(address(mockERC20.token4));
+        assertTrue(registry.inRegistry(address(mockERC20.token4)));
+        (uint256 assetType, address assetModule) = registry.assetToAssetInformation(address(mockERC20.token4));
         assertEq(assetType, 1);
-        assertEq(assetModule, address(erc20AssetModule));
+        assertEq(assetModule, address(erc20AM));
     }
 }

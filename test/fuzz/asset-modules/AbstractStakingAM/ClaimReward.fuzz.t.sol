@@ -43,17 +43,17 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
     }
 
     function testFuzz_Success_claimReward_NonZeroReward(
-        address account,
+        address account_,
         uint96 positionId,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
         uint8 assetDecimals
     ) public {
-        // Given : account != zero address
-        vm.assume(account != address(0));
+        // Given : account_ != zero address
+        vm.assume(account_ != address(0));
 
         // Given : owner of ERC721 positionId is Account
-        stakingAM.setOwnerOfPositionId(account, positionId);
+        stakingAM.setOwnerOfPositionId(account_, positionId);
 
         // Given : Add an asset
         address asset = addAsset(assetDecimals);
@@ -69,11 +69,10 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
 
         // And reward is non-zero.
         vm.assume(currentRewardPosition > 0);
-
-        mintERC20TokenTo(address(stakingAM.REWARD_TOKEN()), address(stakingAM), currentRewardPosition);
+        deal(address(stakingAM.REWARD_TOKEN()), address(stakingAM), currentRewardPosition, true);
 
         // When : Account calls claimReward()
-        vm.startPrank(account);
+        vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.RewardPaid(positionId, address(stakingAM.REWARD_TOKEN()), uint128(currentRewardPosition));
         uint256 rewards = stakingAM.claimReward(positionId);
@@ -83,7 +82,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         assertEq(rewards, currentRewardPosition);
 
         // And : Account should have received the reward tokens.
-        assertEq(currentRewardPosition, stakingAM.REWARD_TOKEN().balanceOf(account));
+        assertEq(currentRewardPosition, stakingAM.REWARD_TOKEN().balanceOf(account_));
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
@@ -111,17 +110,17 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
     }
 
     function testFuzz_Success_claimReward_ZeroReward(
-        address account,
+        address account_,
         uint96 positionId,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
         uint8 assetDecimals
     ) public {
-        // Given : account != zero address
-        vm.assume(account != address(0));
+        // Given : account_ != zero address
+        vm.assume(account_ != address(0));
 
         // Given : owner of ERC721 positionId is Account
-        stakingAM.setOwnerOfPositionId(account, positionId);
+        stakingAM.setOwnerOfPositionId(account_, positionId);
 
         // Given : Add an asset
         address asset = addAsset(assetDecimals);
@@ -138,7 +137,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         setStakingAMState(assetState, positionState, asset, positionId);
 
         // When : Account calls claimReward()
-        vm.startPrank(account);
+        vm.startPrank(account_);
         uint256 rewards = stakingAM.claimReward(positionId);
         vm.stopPrank();
 
@@ -146,7 +145,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         assertEq(rewards, 0);
 
         // And : Account should have not received reward tokens.
-        assertEq(stakingAM.REWARD_TOKEN().balanceOf(account), 0);
+        assertEq(stakingAM.REWARD_TOKEN().balanceOf(account_), 0);
 
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;

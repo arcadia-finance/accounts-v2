@@ -31,11 +31,11 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_Registry_Fuzz_Test is 
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
     ) public {
-        vm.assume(!registryExtension.isAssetModule(unprivilegedAddress_));
+        vm.assume(!registry.isAssetModule(unprivilegedAddress_));
 
         vm.prank(unprivilegedAddress_);
         vm.expectRevert(RegistryErrors.OnlyAssetModule.selector);
-        registryExtension.getUsdValueExposureToUnderlyingAssetAfterDeposit(
+        registry.getUsdValueExposureToUnderlyingAssetAfterDeposit(
             address(creditorUsd),
             underlyingAsset,
             underlyingAssetId,
@@ -55,17 +55,16 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_Registry_Fuzz_Test is 
         vm.assume(deltaExposureAssetToUnderlyingAsset <= type(int112).max); // MaxExposure.
         vm.assume(deltaExposureAssetToUnderlyingAsset > type(int256).min); // Overflows on inversion.
 
-        registryExtension.setAssetModule(underlyingAsset, address(primaryAM));
+        registry.setAssetModule(underlyingAsset, address(primaryAM));
         primaryAM.setUsdValue(usdValue);
 
         vm.prank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), underlyingAsset, underlyingAssetId, type(uint112).max, 100, 100
         );
 
-        stdstore.target(address(registryExtension)).sig(registryExtension.isAssetModule.selector).with_key(
-            address(upperAssetModule)
-        ).checked_write(true);
+        stdstore.target(address(registry)).sig(registry.isAssetModule.selector).with_key(address(upperAssetModule))
+            .checked_write(true);
 
         // Prepare expected internal call.
         bytes memory data = abi.encodeCall(
@@ -81,8 +80,7 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_Registry_Fuzz_Test is 
 
         vm.prank(upperAssetModule);
         vm.expectCall(address(primaryAM), data);
-        (, uint256 usdExposureAssetToUnderlyingAsset) = registryExtension
-            .getUsdValueExposureToUnderlyingAssetAfterDeposit(
+        (, uint256 usdExposureAssetToUnderlyingAsset) = registry.getUsdValueExposureToUnderlyingAssetAfterDeposit(
             address(creditorUsd),
             underlyingAsset,
             underlyingAssetId,

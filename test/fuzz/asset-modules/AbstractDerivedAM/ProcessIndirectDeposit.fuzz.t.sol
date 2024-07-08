@@ -29,7 +29,7 @@ contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(unprivilegedAddress_ != address(registryExtension));
+        vm.assume(unprivilegedAddress_ != address(registry));
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert(AssetModule.OnlyRegistry.selector);
@@ -61,7 +61,7 @@ contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // When: "Registry" calls "processDirectDeposit".
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = derivedAM.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
@@ -99,7 +99,7 @@ contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // When: "Registry" calls "processIndirectDeposit".
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = derivedAM.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,
@@ -147,7 +147,7 @@ contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // When: "Registry" calls "processIndirectDeposit".
-        vm.prank(address(registryExtension));
+        vm.prank(address(registry));
         (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = derivedAM.processIndirectDeposit(
             assetState.creditor,
             assetState.asset,

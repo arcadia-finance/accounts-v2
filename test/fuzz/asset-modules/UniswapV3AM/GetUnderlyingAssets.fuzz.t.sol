@@ -25,7 +25,7 @@ contract GetUnderlyingAssets_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
     function setUp() public override {
         UniswapV3AM_Fuzz_Test.setUp();
 
-        id = addLiquidity(poolStable1Stable2, 100, 100, users.liquidityProvider, 0, 1, true);
+        (id,,) = addLiquidityUniV3(poolStable1Stable2, 100, 100, users.liquidityProvider, 0, 1, true);
         (token0, token1) = address(mockERC20.stable1) < address(mockERC20.stable2)
             ? (address(mockERC20.stable1), address(mockERC20.stable2))
             : (address(mockERC20.stable2), address(mockERC20.stable1));
@@ -37,15 +37,15 @@ contract GetUnderlyingAssets_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_getUnderlyingAssets_InAssetModule() public {
-        vm.prank(users.creatorAddress);
-        uniV3AssetModule.addAsset(id);
+        vm.prank(users.owner);
+        uniV3AM.addAsset(id);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(id), address(nonfungiblePositionManagerMock)));
         bytes32[] memory expectedUnderlyingAssetKeys = new bytes32[](2);
         expectedUnderlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), token0));
         expectedUnderlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), token1));
 
-        bytes32[] memory actualUnderlyingAssetKeys = uniV3AssetModule.getUnderlyingAssets(assetKey);
+        bytes32[] memory actualUnderlyingAssetKeys = uniV3AM.getUnderlyingAssets(assetKey);
 
         assertEq(actualUnderlyingAssetKeys[0], expectedUnderlyingAssetKeys[0]);
         assertEq(actualUnderlyingAssetKeys[1], expectedUnderlyingAssetKeys[1]);
@@ -57,7 +57,7 @@ contract GetUnderlyingAssets_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         expectedUnderlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), token0));
         expectedUnderlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), token1));
 
-        bytes32[] memory actualUnderlyingAssetKeys = uniV3AssetModule.getUnderlyingAssets(assetKey);
+        bytes32[] memory actualUnderlyingAssetKeys = uniV3AM.getUnderlyingAssets(assetKey);
 
         assertEq(actualUnderlyingAssetKeys[0], expectedUnderlyingAssetKeys[0]);
         assertEq(actualUnderlyingAssetKeys[1], expectedUnderlyingAssetKeys[1]);

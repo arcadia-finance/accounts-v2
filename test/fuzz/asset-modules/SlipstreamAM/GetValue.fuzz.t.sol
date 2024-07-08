@@ -26,7 +26,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     function setUp() public override {
         SlipstreamAM_Fuzz_Test.setUp();
 
-        deploySlipstreamAM(address(nonfungiblePositionManager));
+        deploySlipstreamAM(address(slipstreamPositionManager));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         vars.decimals0 = bound(vars.decimals0, 6, 18);
         vars.decimals1 = bound(vars.decimals1, 6, 18);
 
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.startPrank(users.tokenCreator);
         ERC20 token0 = new ERC20Mock("TOKEN0", "TOK0", uint8(vars.decimals0));
         ERC20 token1 = new ERC20Mock("TOKEN1", "TOK1", uint8(vars.decimals1));
         if (token0 > token1) {
@@ -67,18 +67,18 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         vm.assume(sqrtPriceX96 <= 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342);
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
-        ICLPoolExtension pool = createPool(token0, token1, sqrtPriceX96, 300);
+        ICLPoolExtension pool = createPoolCL(address(token0), address(token1), 1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
         vm.assume(vars.liquidity <= pool.maxLiquidityPerTick());
         // Mint liquidity position.
-        uint256 tokenId =
-            addLiquidity(pool, vars.liquidity, users.liquidityProvider, vars.tickLower, vars.tickUpper, false);
+        (uint256 tokenId,,) =
+            addLiquidityCL(pool, vars.liquidity, users.liquidityProvider, vars.tickLower, vars.tickUpper, false);
 
         // Calculate amounts of underlying tokens.
         // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
         // This is because there might be some small differences due to rounding errors.
-        (,,,,,,, uint128 liquidity_,,,,) = nonfungiblePositionManager.positions(tokenId);
+        (,,,,,,, uint128 liquidity_,,,,) = slipstreamPositionManager.positions(tokenId);
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96,
             TickMath.getSqrtRatioAtTick(vars.tickLower),
@@ -91,15 +91,15 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         vm.assume(amount1 < type(uint104).max);
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), int256(uint256(vars.priceToken0)));
-        addUnderlyingTokenToArcadia(address(token1), int256(uint256(vars.priceToken1)));
+        addAssetToArcadia(address(token0), int256(uint256(vars.priceToken0)));
+        addAssetToArcadia(address(token1), int256(uint256(vars.priceToken1)));
 
         // Calculate the expected value
         uint256 valueToken0 = uint256(vars.priceToken0) * amount0 / 10 ** vars.decimals0;
         uint256 valueToken1 = uint256(vars.priceToken1) * amount1 / 10 ** vars.decimals1;
 
         (uint256 actualValueInUsd,,) =
-            slipstreamAM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+            slipstreamAM.getValue(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
 
         assertEq(actualValueInUsd, valueToken0 + valueToken1);
     }
@@ -123,7 +123,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         decimals0 = bound(decimals0, 6, 18);
         decimals1 = bound(decimals1, 6, 18);
 
-        vm.startPrank(users.tokenCreatorAddress);
+        vm.startPrank(users.tokenCreator);
         ERC20 token0 = new ERC20Mock("TOKEN0", "TOK0", uint8(decimals0));
         ERC20 token1 = new ERC20Mock("TOKEN1", "TOK1", uint8(decimals1));
         if (token0 > token1) {
@@ -131,21 +131,21 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
             (decimals0, decimals1) = (decimals1, decimals0);
         }
 
-        ICLPoolExtension pool = createPool(token0, token1, TickMath.getSqrtRatioAtTick(0), 300);
-        uint256 tokenId = addLiquidity(pool, 1e5, users.liquidityProvider, 0, 10, true);
+        ICLPoolExtension pool = createPoolCL(address(token0), address(token1), 1, TickMath.getSqrtRatioAtTick(0), 300);
+        (uint256 tokenId,,) = addLiquidityCL(pool, 1e5, users.liquidityProvider, 0, 10, true);
 
         // Add underlying tokens and its oracles to Arcadia.
-        addUnderlyingTokenToArcadia(address(token0), 1);
-        addUnderlyingTokenToArcadia(address(token1), 1);
+        addAssetToArcadia(address(token0), 1);
+        addAssetToArcadia(address(token1), 1);
 
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(token0), 0, type(uint112).max, uint16(collFactor0), uint16(liqFactor0)
         );
-        registryExtension.setRiskParametersOfPrimaryAsset(
+        registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(token1), 0, type(uint112).max, uint16(collFactor1), uint16(liqFactor1)
         );
-        registryExtension.setRiskParametersOfDerivedAM(
+        registry.setRiskParametersOfDerivedAM(
             address(creditorUsd), address(slipstreamAM), type(uint112).max, uint16(riskFactorSlipstream)
         );
         vm.stopPrank();
@@ -159,7 +159,7 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         expectedLiqFactor = expectedLiqFactor * riskFactorSlipstream / AssetValuationLib.ONE_4;
 
         (, uint256 actualCollFactor, uint256 actualLiqFactor) =
-            slipstreamAM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
+            slipstreamAM.getValue(address(creditorUsd), address(slipstreamPositionManager), tokenId, 1);
 
         assertEq(actualCollFactor, expectedCollFactor);
         assertEq(actualLiqFactor, expectedLiqFactor);

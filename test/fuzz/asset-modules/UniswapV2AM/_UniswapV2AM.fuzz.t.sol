@@ -62,9 +62,9 @@ abstract contract UniswapV2AM_Fuzz_Test is Fuzz_Test {
         pairToken1Token3 = UniswapV2PairMock(pairToken1Token3Addr);
         vm.stopPrank();
 
-        vm.startPrank(users.creatorAddress);
-        uniswapV2AM = new UniswapV2AMExtension(address(registryExtension), address(uniswapV2Factory));
-        registryExtension.addAssetModule(address(uniswapV2AM));
+        vm.startPrank(users.owner);
+        uniswapV2AM = new UniswapV2AMExtension(address(registry), address(uniswapV2Factory));
+        registry.addAssetModule(address(uniswapV2AM));
         vm.stopPrank();
     }
 
@@ -92,24 +92,18 @@ abstract contract UniswapV2AM_Fuzz_Test is Fuzz_Test {
             new ERC20Mock(string(abi.encodePacked(label, " Mock")), string(abi.encodePacked("m", label)), tokenDecimals);
         oracleTokenToUsd = initMockedOracle(oracleTokenToUsdDecimals, string(abi.encodePacked(label, " / USD")), rate);
 
-        vm.startPrank(users.creatorAddress);
+        vm.startPrank(users.owner);
         uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracleTokenToUsd), "Mock", "USD", 2 days));
         uint80[] memory oracleTokenToUsdArr = new uint80[](1);
         oracleTokenToUsdArr[0] = oracleId;
 
-        erc20AssetModule.addAsset(address(token), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleTokenToUsdArr));
+        erc20AM.addAsset(address(token), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleTokenToUsdArr));
         vm.stopPrank();
 
         vm.startPrank(users.riskManager);
-        registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorUsd), address(token), 0, type(uint112).max, 0, 0
-        );
-        registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorStable1), address(token), 0, type(uint112).max, 0, 0
-        );
-        registryExtension.setRiskParametersOfPrimaryAsset(
-            address(creditorToken1), address(token), 0, type(uint112).max, 0, 0
-        );
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(token), 0, type(uint112).max, 0, 0);
+        registry.setRiskParametersOfPrimaryAsset(address(creditorStable1), address(token), 0, type(uint112).max, 0, 0);
+        registry.setRiskParametersOfPrimaryAsset(address(creditorToken1), address(token), 0, type(uint112).max, 0, 0);
         vm.stopPrank();
     }
 
