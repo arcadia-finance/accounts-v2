@@ -33,15 +33,16 @@ contract SpotToMarginMigrator {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    mapping(address owner => address account) public accountOwnedBy;
+    mapping(address owner => address account) internal accountOwnedBy;
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
     error CreditorNotValid();
-    error NoAccountToTransfer();
+    error NoOngoingUpgrade();
     error NotOwner();
+    error OngoingUpgrade();
 
     /* //////////////////////////////////////////////////////////////
                               CONSTRUCTOR
@@ -84,6 +85,7 @@ contract SpotToMarginMigrator {
         uint256[] memory assetTypes
     ) external {
         if (msg.sender != IAccountSpot(account).owner()) revert NotOwner();
+        if (accountOwnedBy[msg.sender] != address(0)) revert OngoingUpgrade();
         if (creditor == address(0)) revert CreditorNotValid();
         // Transfer the Account
         FACTORY.safeTransferFrom(msg.sender, address(this), account);
@@ -105,8 +107,8 @@ contract SpotToMarginMigrator {
      * @notice Call this function after the cool-down period of the initial Spot Account has passed (following upgradeAccount()).
      * This will finalize the upgrade and transfer the Margin Account to the caller.
      */
-    function endUpgrade() external {
-        if (accountOwnedBy[msg.sender] == address(0)) revert NoAccountToTransfer();
+    function endUpgrade(address account) external {
+        if (accountOwnedBy[msg.sender] == address(0)) revert NoOngoingUpgrade();
         // Cache Acccount
         address account = accountOwnedBy[msg.sender];
         // Remove claimable account for owner

@@ -11,14 +11,12 @@ import { SpotToMarginMigrator } from "../../../../../src/accounts/helpers/SpotTo
 import { SpotToMarginMigrator_Fuzz_Test } from "./_SpotToMarginMigrator.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "upgradeAccount" of contract "SpotToMarginMigrator".
+ * @notice Fuzz tests for the function "endUpgrade" of contract "SpotToMarginMigrator".
  */
-contract UpgradeAccount_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_Fuzz_Test {
+contract EndUpgrade_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
-                         TEST CONTRACTS
+                              TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
-
-    AccountSpotExtension internal accountSpot2;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -32,46 +30,12 @@ contract UpgradeAccount_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_F
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_revert_upgradeAccount_notOwner(address notOwner) public {
-        // Given : Caller is not the Account owner
-        vm.assume(notOwner != accountSpot.owner());
-
-        bytes32[] memory proofs;
-        address[] memory assets;
-        uint256[] memory assetIds;
-        uint256[] memory assetAmounts;
-        uint256[] memory assetTypes;
-
-        // When : Calling upgradeAccount
-        // Then : It should revert
-        vm.startPrank(notOwner);
-        vm.expectRevert(SpotToMarginMigrator.NotOwner.selector);
-        spotToMarginMigrator.upgradeAccount(
-            address(accountSpot), address(0), 1, proofs, assets, assetIds, assetAmounts, assetTypes
-        );
-        vm.stopPrank();
-    }
-
-    function testFuzz_revert_upgradeAccount_CreditorIsZeroAddress() public {
-        bytes32[] memory proofs;
-        address[] memory assets;
-        uint256[] memory assetIds;
-        uint256[] memory assetAmounts;
-        uint256[] memory assetTypes;
-
-        // When : Calling upgradeAccount
-        // Then : It should revert
-        vm.startPrank(users.accountOwner);
-        vm.expectRevert(SpotToMarginMigrator.CreditorNotValid.selector);
-        spotToMarginMigrator.upgradeAccount(
-            address(accountSpot), address(0), 1, proofs, assets, assetIds, assetAmounts, assetTypes
-        );
-        vm.stopPrank();
-    }
-
-    function testFuzz_revert_endUpgrade_OngoingUpgrade(uint112 erc20Amount, uint8 erc721Id, uint112 erc1155Amount)
-        public
-    {
+    function testFuzz_revert_endUpgrade_NoOngoingUpgrade(
+        address notOwner,
+        uint112 erc20Amount,
+        uint8 erc721Id,
+        uint112 erc1155Amount
+    ) public {
         // Given : An Account owner initiates an upgrade
         // And: "exposure" is strictly smaller than "maxExposure" and amount is bigger than 0.
         erc20Amount = uint112(bound(erc20Amount, 1, type(uint112).max - 1));
@@ -83,30 +47,15 @@ contract UpgradeAccount_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_F
         // And : Account owner initiates an upgrade
         upgradeAccount(erc20Amount, erc721Id, erc1155Amount, address(creditorStable1));
 
-        // And : Deploy a second Spot Account
-        vm.prank(users.accountOwner);
-        address proxyAddress2 = factory.createAccount(1002, 2, address(0));
-        accountSpot2 = AccountSpotExtension(proxyAddress2);
-
-        // When : Account owner initiates an upgrage for a second Account while endUpgrade()
-        // was not triggered for the first one.
+        // When : Calling upgradeAccount() from a user having no ongoing Account upgrade
         // Then : It should revert
-        vm.startPrank(users.accountOwner);
-        vm.expectRevert(SpotToMarginMigrator.OngoingUpgrade.selector);
-
-        bytes32[] memory proofs;
-        address[] memory assets;
-        uint256[] memory assetIds;
-        uint256[] memory assetAmounts;
-        uint256[] memory assetTypes;
-
-        spotToMarginMigrator.upgradeAccount(
-            address(accountSpot2), address(0), 1, proofs, assets, assetIds, assetAmounts, assetTypes
-        );
+        vm.startPrank(notOwner);
+        vm.expectRevert(SpotToMarginMigrator.NoOngoingUpgrade.selector);
+        spotToMarginMigrator.endUpgrade();
         vm.stopPrank();
     }
 
-    function testFuzz_success_upgradeAccount(uint112 erc20Amount, uint8 erc721Id, uint112 erc1155Amount) public {
+    function testFuzz_success_endUpgrade(uint112 erc20Amount, uint8 erc721Id, uint112 erc1155Amount) public {
         // Given: "exposure" is strictly smaller than "maxExposure" and amount is bigger than 0.
         erc20Amount = uint112(bound(erc20Amount, 1, type(uint112).max - 1));
         erc1155Amount = uint112(bound(erc1155Amount, 1, type(uint112).max - 1));
