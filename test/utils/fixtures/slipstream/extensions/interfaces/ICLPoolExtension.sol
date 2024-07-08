@@ -23,4 +23,6 @@ interface ICLPoolExtension is ICLPool {
     function getCurrentTick() external returns (int24 currentTick);
 
     function setSqrtPriceX96(uint160 sqrtPriceX96_) external;
+
+    function fee() external view returns (uint24);
 }
