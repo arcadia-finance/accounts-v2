@@ -17,7 +17,7 @@ import { IPermit2 } from "../interfaces/IPermit2.sol";
 /**
  * @title Arcadia Spot Account
  * @author Pragma Labs
- * @notice  Arcadia Spot Accounts enables individuals, DAOs, and other protocols to deposit and manage a variety of assets easily through Asset Managers.
+ * @notice Arcadia Spot Accounts enables individuals, DAOs, and other protocols to deposit and manage a variety of assets easily through Asset Managers.
  * Asset Managers are selected by Spot Account holders and can facilitate automation for tasks such as Liquidity Management and Compounding, among others.
  */
 contract AccountSpot is AccountStorageV1, IAccount {
