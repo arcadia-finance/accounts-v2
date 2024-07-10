@@ -288,12 +288,6 @@ contract AccountSpot is AccountStorageV1, IAccount {
         owner = newOwner;
     }
 
-    function _transferOwnership(address newOwner) internal {
-        // The Factory will check that the new owner is not address(0).
-        owner = newOwner;
-        IFactory(FACTORY).safeTransferAccount(newOwner);
-    }
-
     /*///////////////////////////////////////////////////////////////
                        ASSET MANAGER ACTIONS
     ///////////////////////////////////////////////////////////////*/
