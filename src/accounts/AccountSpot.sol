@@ -217,7 +217,7 @@ contract AccountSpot is AccountStorageV1, IAccount {
      * @param assets The assets to withdraw.
      * @param assetIds The assetIds to withdraw.
      * @param assetAmounts The amounts to withdraw.
-     * @param assetTypes The asset type to withdraw.
+     * @param assetTypes The asset types to withdraw.
      */
     function withdraw(
         address[] memory assets,
