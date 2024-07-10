@@ -106,7 +106,7 @@ contract SpotToMarginMigrator {
     /**
      * @notice Call this function after the cool-down period of the initial Spot Account has passed (following upgradeAccount()).
      * This will finalize the upgrade and transfer the Margin Account to the caller.
-     * @param account The Account to transfer back to its owner after the cool down period.
+     * @param account The Account to transfer back to its owner after the cool-down period.
      */
     function endUpgrade(address account) external {
         if (accountToOwner[account] != msg.sender) revert NotOwner();
