@@ -443,4 +443,9 @@ contract AccountSpot is AccountStorageV1, IAccount {
     fallback() external {
         revert AccountErrors.NoFallback();
     }
+
+    /*
+    @notice Called on a plain ETH transfer.
+    */
+    receive() external payable { }
 }

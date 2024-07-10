@@ -42,7 +42,7 @@ abstract contract AccountSpot_Fuzz_Test is Fuzz_Test {
         factory.setNewAccountInfo(address(registry), address(accountSpotLogic), Constants.upgradeRoot1To1And2To1, "");
 
         vm.prank(users.accountOwner);
-        address proxyAddress = factory.createAccount(1001, 2, address(0));
+        address payable proxyAddress = payable(factory.createAccount(1001, 2, address(0)));
         accountSpot = AccountSpotExtension(proxyAddress);
     }
 

@@ -63,7 +63,7 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
 
         // Deploy account via factory (proxy)
         vm.startPrank(users.accountOwner);
-        address proxyAddr = factory.createAccount(12_345_678, 0, address(0));
+        address payable proxyAddr = payable(factory.createAccount(12_345_678, 0, address(0)));
         AccountSpotExtension proxy = AccountSpotExtension(proxyAddr);
         vm.stopPrank();
 

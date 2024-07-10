@@ -111,4 +111,34 @@ contract Withdraw_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
         assertEq(mockERC1155.sft1.balanceOf(address(users.accountOwner), 1), erc1155Amount);
         assertEq(accountSpot.lastActionTimestamp(), time);
     }
+
+    function testFuzz_Success_withdraw_ETH(uint112 ethAmount) public {
+        // Given : Initial amount of ETH sent to the Spot Account
+        ethAmount = uint112(bound(ethAmount, 1, 100 ether));
+        vm.prank(users.accountOwner);
+        (bool success,) = payable(address(accountSpot)).call{ value: ethAmount }("");
+        assertEq(success, true);
+        assertEq(address(accountSpot).balance, ethAmount);
+
+        address[] memory assets = new address[](1);
+        assets[0] = address(0);
+
+        uint256[] memory assetIds = new uint256[](1);
+        assetIds[0] = 0;
+
+        uint256[] memory assetAmounts = new uint256[](1);
+        assetAmounts[0] = ethAmount;
+
+        uint256[] memory assetTypes = new uint256[](3);
+        assetTypes[0] = 0;
+
+        uint256 initETHBalance = users.accountOwner.balance;
+
+        // When : Trying to withdraw ETH
+        vm.prank(users.accountOwner);
+        accountSpot.withdraw(assets, assetIds, assetAmounts, assetTypes);
+
+        // Then : ETH should have been received by the accountOwner
+        assertEq(users.accountOwner.balance, initETHBalance + ethAmount);
+    }
 }
