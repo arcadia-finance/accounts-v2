@@ -193,7 +193,7 @@ contract AccountSpot is AccountStorageV1, IAccount {
      */
     function _deposit(ActionData memory depositData, address from) internal {
         for (uint256 i; i < depositData.assets.length; ++i) {
-            // Skip if amount is 0 to prevent storing addresses that have 0 balance.
+            // Skip if amount is 0 to prevent transferring addresses that have 0 balance.
             if (depositData.assetAmounts[i] == 0) continue;
 
             if (depositData.assetTypes[i] == 1) {
