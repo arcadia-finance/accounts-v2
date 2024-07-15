@@ -25,15 +25,15 @@ contract AddDegenAndLstsStep1 is Base_Script {
     constructor() {
         oracleDegenToUsdArr[0] = OracleIds.DEGEN_USD;
         oracleEzethToEthToUsdArr[0] = OracleIds.EZETH_ETH;
-        oracleEzethToEthToUsdArr[0] = OracleIds.ETH_USD;
+        oracleEzethToEthToUsdArr[1] = OracleIds.ETH_USD;
         oracleWeethToEthToUsdArr[0] = OracleIds.WEETH_ETH;
-        oracleWeethToEthToUsdArr[0] = OracleIds.ETH_USD;
+        oracleWeethToEthToUsdArr[1] = OracleIds.ETH_USD;
     }
 
     function run() public {
         // Add Chainlink oracles.
         bytes memory calldata_ =
-            abi.encodeCall(chainlinkOM.addOracle, (Oracles.EZETH_ETH, "DEGEN", "USD", CutOffTimes.DEGEN_USD));
+            abi.encodeCall(chainlinkOM.addOracle, (Oracles.DEGEN_USD, "DEGEN", "USD", CutOffTimes.DEGEN_USD));
         addToBatch(ArcadiaSafes.OWNER, address(chainlinkOM), calldata_);
         calldata_ = abi.encodeCall(chainlinkOM.addOracle, (Oracles.EZETH_ETH, "ezETH", "ETH", CutOffTimes.EZETH_ETH));
         addToBatch(ArcadiaSafes.OWNER, address(chainlinkOM), calldata_);
@@ -44,6 +44,7 @@ contract AddDegenAndLstsStep1 is Base_Script {
         calldata_ = abi.encodeCall(
             erc20PrimaryAM.addAsset, (PrimaryAssets.DEGEN, BitPackingLib.pack(BA_TO_QA_SINGLE, oracleDegenToUsdArr))
         );
+        addToBatch(ArcadiaSafes.OWNER, address(erc20PrimaryAM), calldata_);
         calldata_ = abi.encodeCall(
             erc20PrimaryAM.addAsset,
             (PrimaryAssets.EZETH, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleEzethToEthToUsdArr))

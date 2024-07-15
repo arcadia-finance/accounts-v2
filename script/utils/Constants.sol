@@ -86,7 +86,7 @@ library Oracles {
     address internal constant DAI_USD = 0x591e79239a7d679378eC8c847e5038150364C78F;
     address internal constant DEGEN_USD = 0xE62BcE5D7CB9d16AB8b4D622538bc0A50A5799c2;
     address internal constant ETH_USD = 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70;
-    address internal constant EZETH_ETH = 0xC4300B7CF0646F0Fe4C5B2ACFCCC4dCA1346f5d8;
+    address internal constant EZETH_ETH = 0x960BDD1dFD20d7c98fa482D793C3dedD73A113a3;
     address internal constant RETH_ETH = 0xf397bF97280B488cA19ee3093E81C0a77F02e9a5;
     address internal constant STG_USD = 0x63Af8341b62E683B87bB540896bF283D96B4D385;
     address internal constant USDBC_USD = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
@@ -389,7 +389,7 @@ library AerodromeGauges {
     address internal constant V_AERO_USDBC = address(0x9a202c932453fB3d04003979B121E80e5A14eE7b);
     address internal constant V_AERO_WSTETH = address(0x26D6D4E9e3fAf1C7C19992B1Ca792e4A9ea4F833);
     address internal constant V_CBETH_WETH = address(0xDf9D427711CCE46b52fEB6B2a20e4aEaeA12B2b7);
-    address internal constant V_EZETH_WETH = address(0x0C8bF3cb3E1f951B284EF14aa95444be86a33E2f);
+    address internal constant V_EZETH_WETH = address(0x6318373c5a01224094BF0B1AC88562345B2Fb91E);
     address internal constant V_USDC_AERO = address(0x4F09bAb2f0E15e2A078A227FE1537665F55b8360);
     address internal constant V_WEETH_AERO = address(0x0A5f63A1aC754b4418cc5381eE17E04CCad42F56);
     address internal constant V_WEETH_WETH = address(0xf8d47b641eD9DF1c924C0F7A6deEEA2803b9CfeF);
@@ -406,7 +406,7 @@ library AerodromePools {
     address internal constant V_AERO_USDBC = address(0x2223F9FE624F69Da4D8256A7bCc9104FBA7F8f75);
     address internal constant V_AERO_WSTETH = address(0x82a0c1a0d4EF0c0cA3cFDA3AD1AA78309Cc6139b);
     address internal constant V_CBETH_WETH = address(0x44Ecc644449fC3a9858d2007CaA8CFAa4C561f91);
-    address internal constant V_EZETH_WETH = address(0x6318373c5a01224094BF0B1AC88562345B2Fb91E);
+    address internal constant V_EZETH_WETH = address(0x0C8bF3cb3E1f951B284EF14aa95444be86a33E2f);
     address internal constant V_USDC_AERO = address(0x6cDcb1C4A4D1C3C6d054b27AC5B77e89eAFb971d);
     address internal constant V_WEETH_AERO = address(0xc5aDfb267a95df1233a2b5F7f48041E7Fb384BcA);
     address internal constant V_WEETH_WETH = address(0x91F0f34916Ca4E2cCe120116774b0e4fA0cdcaA8);
