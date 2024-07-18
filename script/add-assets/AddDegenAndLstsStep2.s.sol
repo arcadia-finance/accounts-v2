@@ -39,7 +39,7 @@ contract AddDegenAndLstsStep2 is Base_Script {
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
 
         // ezETH
-        abi.encodeCall(
+        calldata_ = abi.encodeCall(
             registry.setRiskParametersOfPrimaryAsset,
             (
                 address(usdcLendingPool),
@@ -91,7 +91,7 @@ contract AddDegenAndLstsStep2 is Base_Script {
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
 
         // Create and write away batched transaction data to be signed with Safe.
-        bytes memory data = createBatchedData(ArcadiaSafes.OWNER);
+        bytes memory data = createBatchedData(ArcadiaSafes.RISK_MANAGER);
         vm.writeLine(PATH, vm.toString(data));
     }
 
