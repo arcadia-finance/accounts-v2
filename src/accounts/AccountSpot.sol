@@ -187,9 +187,31 @@ contract AccountSpot is AccountStorageV1, IAccount {
     /////////////////////////////////////////////////////////////// */
 
     /**
-     * @notice Internal deposit function called by flashAction(). It will transfer all assets back from actionTarget to Account.
+     * @notice Deposits assets into the Account.
+     * @param assets The address of the assets to deposit.
+     * @param assetIds The assetIds to withdraw.
+     * @param assetAmounts The amounts to withdraw.
+     * @param assetTypes The asset types to withdraw.
+     */
+    function deposit(address[] memory assets, uint256[] memory assetIds, uint256[] memory assetAmounts, uint256[] memory assetTypes)
+        external
+        onlyOwner
+        nonReentrant
+    {
+        ActionData memory depositData = ActionData({
+            assets : assets,
+            assetIds : assetIds,
+            assetAmounts : assetAmounts,
+            assetTypes : assetTypes
+        });
+
+        _deposit(depositData, msg.sender);
+    }
+
+    /**
+     * @notice Internal deposit function. It will transfer all assets from "from" address to the Account.
      * @param depositData A struct containing the info about the assets to deposit to the Account.
-     * @param from The actionTarget.
+     * @param from The address to transfer the assets from.
      */
     function _deposit(ActionData memory depositData, address from) internal {
         for (uint256 i; i < depositData.assets.length; ++i) {
