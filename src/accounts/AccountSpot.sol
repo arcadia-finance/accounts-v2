@@ -193,17 +193,14 @@ contract AccountSpot is AccountStorageV1, IAccount {
      * @param assetAmounts The amounts to withdraw.
      * @param assetTypes The asset types to withdraw.
      */
-    function deposit(address[] memory assets, uint256[] memory assetIds, uint256[] memory assetAmounts, uint256[] memory assetTypes)
-        external
-        onlyOwner
-        nonReentrant
-    {
-        ActionData memory depositData = ActionData({
-            assets : assets,
-            assetIds : assetIds,
-            assetAmounts : assetAmounts,
-            assetTypes : assetTypes
-        });
+    function deposit(
+        address[] memory assets,
+        uint256[] memory assetIds,
+        uint256[] memory assetAmounts,
+        uint256[] memory assetTypes
+    ) external onlyOwner nonReentrant {
+        ActionData memory depositData =
+            ActionData({ assets: assets, assetIds: assetIds, assetAmounts: assetAmounts, assetTypes: assetTypes });
 
         _deposit(depositData, msg.sender);
     }

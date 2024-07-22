@@ -50,11 +50,11 @@ abstract contract AccountSpot_Fuzz_Test is Fuzz_Test {
                             HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
-    function mintDepositAssets(uint256 erc20Amount, uint8 erc721Id, uint256 erc1155Amount) internal {
+    function mintDepositAssets(uint256 erc20Amount, uint8 erc721Id, uint256 erc1155Amount, address to) internal {
         vm.startPrank(users.tokenCreator);
-        mockERC20.token1.mint(address(accountSpot), erc20Amount);
-        mockERC721.nft1.mint(address(accountSpot), erc721Id);
-        mockERC1155.sft1.mint(address(accountSpot), 1, erc1155Amount);
+        mockERC20.token1.mint(to, erc20Amount);
+        mockERC721.nft1.mint(to, erc721Id);
+        mockERC1155.sft1.mint(to, 1, erc1155Amount);
         vm.stopPrank();
     }
 }

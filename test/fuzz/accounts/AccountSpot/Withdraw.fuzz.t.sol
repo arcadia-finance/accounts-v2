@@ -98,7 +98,7 @@ contract Withdraw_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
         assetTypes[1] = 2;
         assetTypes[2] = 3;
 
-        mintDepositAssets(erc20Amount, erc721Id, erc1155Amount);
+        mintDepositAssets(erc20Amount, erc721Id, erc1155Amount, address(accountSpot));
 
         vm.warp(time);
 
