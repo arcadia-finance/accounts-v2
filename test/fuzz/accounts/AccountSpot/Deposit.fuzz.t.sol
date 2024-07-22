@@ -80,7 +80,7 @@ contract Deposit_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
     }
 
     function testFuzz_Revert_deposit_InvalidERC20ID(uint96 assetId) public {
-         // Given : assetId for ERC20 is > 0
+        // Given : assetId for ERC20 is > 0
         assetId = uint96(bound(assetId, 1, type(uint96).max));
 
         address[] memory assetAddresses = new address[](1);
