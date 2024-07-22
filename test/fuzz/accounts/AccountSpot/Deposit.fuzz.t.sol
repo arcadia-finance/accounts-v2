@@ -5,7 +5,6 @@
 pragma solidity 0.8.22;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
-import { AccountSpotExtension } from "../../../utils/extensions/AccountSpotExtension.sol";
 import { AccountSpot_Fuzz_Test } from "./_AccountSpot.fuzz.t.sol";
 
 /**
@@ -30,8 +29,11 @@ contract Deposit_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
         uint256[] calldata assetAmounts,
         uint256[] calldata assetTypes
     ) public {
+        // Given : When caller is not the Account owner
         vm.assume(nonOwner != users.accountOwner);
 
+        // When : Calling deposit
+        // Then : It should revert
         vm.prank(nonOwner);
         vm.expectRevert(AccountErrors.OnlyOwner.selector);
         accountSpot.deposit(assetAddresses, assetIds, assetAmounts, assetTypes);
@@ -54,6 +56,7 @@ contract Deposit_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
     }
 
     function testFuzz_Revert_deposit_UnknownAssetType(uint96 assetType) public {
+        // Given : assetType is > 3
         vm.assume(assetType > 3);
 
         address[] memory assetAddresses = new address[](1);
@@ -68,6 +71,8 @@ contract Deposit_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
         uint256[] memory assetTypes = new uint256[](1);
         assetTypes[0] = assetType;
 
+        // When : Calling deposit
+        // Then : It should revert
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.UnknownAssetType.selector);
         accountSpot.deposit(assetAddresses, assetIds, assetAmounts, assetTypes);
@@ -75,6 +80,7 @@ contract Deposit_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
     }
 
     function testFuzz_Revert_deposit_InvalidERC20ID(uint96 assetId) public {
+         // Given : assetId for ERC20 is > 0
         assetId = uint96(bound(assetId, 1, type(uint96).max));
 
         address[] memory assetAddresses = new address[](1);
@@ -89,6 +95,8 @@ contract Deposit_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
         uint256[] memory assetTypes = new uint256[](1);
         assetTypes[0] = 1;
 
+        // When : Calling deposit
+        // Then : It should revert
         vm.startPrank(users.accountOwner);
         vm.expectRevert(AccountErrors.InvalidERC20Id.selector);
         accountSpot.deposit(assetAddresses, assetIds, assetAmounts, assetTypes);
