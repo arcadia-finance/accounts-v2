@@ -17,7 +17,7 @@ import {
 } from "../utils/Constants.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 
-contract AddDegenAndLstsStep1 is Base_Script {
+contract AddUsdt is Base_Script {
     uint80[] internal oracleUsdtToUsdArr = new uint80[](1);
 
     constructor() {
