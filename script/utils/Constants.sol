@@ -105,7 +105,7 @@ library OracleIds {
     uint80 internal constant DEGEN_USD = 9;
     uint80 internal constant EZETH_ETH = 10;
     uint80 internal constant WEETH_ETH = 11;
-    uint80 internal constant USDC_USD = 12;
+    uint80 internal constant USDT_USD = 12;
 }
 
 library CutOffTimes {
