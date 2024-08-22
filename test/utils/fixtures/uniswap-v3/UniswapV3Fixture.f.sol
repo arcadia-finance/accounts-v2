@@ -27,6 +27,8 @@ contract UniswapV3Fixture is WETH9Fixture {
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
 
+    event Log(uint256);
+
     function setUp() public virtual override {
         WETH9Fixture.setUp();
 
@@ -125,6 +127,7 @@ contract UniswapV3Fixture is WETH9Fixture {
 
         deal(token0, liquidityProvider_, amount0, true);
         deal(token1, liquidityProvider_, amount1, true);
+
         vm.startPrank(liquidityProvider_);
         ERC20(token0).approve(address(nonfungiblePositionManager), type(uint256).max);
         ERC20(token1).approve(address(nonfungiblePositionManager), type(uint256).max);

@@ -19,4 +19,6 @@ interface IUniswapV3PoolExtension is IUniswapV3Pool {
     function getCurrentTick() external view returns (int24 currentTick);
 
     function setSqrtPriceX96(uint160) external;
+
+    function liquidity() external returns (uint128 liquidity);
 }
