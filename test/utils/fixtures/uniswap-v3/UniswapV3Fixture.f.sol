@@ -27,8 +27,6 @@ contract UniswapV3Fixture is WETH9Fixture {
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
 
-    event Log(uint256);
-
     function setUp() public virtual override {
         WETH9Fixture.setUp();
 
