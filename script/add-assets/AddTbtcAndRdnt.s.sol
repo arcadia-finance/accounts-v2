@@ -31,8 +31,7 @@ contract AddTbtcAndRdnt is Base_Script {
         bytes memory calldata_ =
             abi.encodeCall(chainlinkOM.addOracle, (Oracles.RDNT_USD, "RDNT", "USD", CutOffTimes.RDNT_USD));
         addToBatch(ArcadiaSafes.OWNER, address(chainlinkOM), calldata_);
-        calldata_ =
-            abi.encodeCall(chainlinkOM.addOracle, (Oracles.TBTC_USD, "TBTC", "USD", CutOffTimes.TBTC_USD));
+        calldata_ = abi.encodeCall(chainlinkOM.addOracle, (Oracles.TBTC_USD, "TBTC", "USD", CutOffTimes.TBTC_USD));
         addToBatch(ArcadiaSafes.OWNER, address(chainlinkOM), calldata_);
 
         // Add as Primary assets.
