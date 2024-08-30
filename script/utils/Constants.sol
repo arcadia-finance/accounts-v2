@@ -110,8 +110,8 @@ library OracleIds {
     uint80 internal constant EZETH_ETH = 10;
     uint80 internal constant RDNT_USD = 13;
     uint80 internal constant TBTC_USD = 14;
-    uint80 internal constant WEETH_ETH = 11;
     uint80 internal constant USDT_USD = 12;
+    uint80 internal constant WEETH_ETH = 11;
 }
 
 library CutOffTimes {
