@@ -50,6 +50,7 @@ library PrimaryAssets {
     address internal constant TBTC = 0x236aa50979D5f3De3Bd1Eeb40E81137F22ab794b;
     address internal constant USDBC = 0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA;
     address internal constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
+    address internal constant USDT = 0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2;
     address internal constant WEETH = 0x04C0599Ae5A44757c0af6F9eC3b93da8976c150A;
     address internal constant WETH = 0x4200000000000000000000000000000000000006;
     address internal constant WSTETH = 0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452;
@@ -74,6 +75,7 @@ library Decimals {
     uint8 internal constant TBTC = 18;
     uint8 internal constant USDBC = 6;
     uint8 internal constant USDC = 6;
+    uint8 internal constant USDT = 6;
     uint8 internal constant WEETH = 18;
     uint8 internal constant WETH = 18;
     uint8 internal constant WSTETH = 18;
@@ -91,6 +93,7 @@ library Oracles {
     address internal constant STG_USD = 0x63Af8341b62E683B87bB540896bF283D96B4D385;
     address internal constant USDBC_USD = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
     address internal constant USDC_USD = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
+    address internal constant USDT_USD = 0xf19d560eB8d2ADf07BD6D13ed03e1D11215721F9;
     address internal constant WBTC_USD = 0xCCADC697c55bbB68dc5bCdf8d3CBe83CdD4E071E;
     address internal constant WEETH_ETH = 0xFC1415403EbB0c693f9a7844b92aD2Ff24775C65;
     address internal constant WSTETH_ETH = 0xa669E5272E60f78299F4824495cE01a3923f4380;
@@ -102,6 +105,7 @@ library OracleIds {
     uint80 internal constant DEGEN_USD = 9;
     uint80 internal constant EZETH_ETH = 10;
     uint80 internal constant WEETH_ETH = 11;
+    uint80 internal constant USDT_USD = 12;
 }
 
 library CutOffTimes {
@@ -115,6 +119,7 @@ library CutOffTimes {
     uint32 internal constant RETH_ETH = 25 hours;
     uint32 internal constant STG_USD = 25 hours;
     uint32 internal constant USDC_USD = 25 hours;
+    uint32 internal constant USDT_USD = 25 hours;
     uint32 internal constant WEETH_ETH = 25 hours;
     uint32 internal constant WSTETH_ETH = 25 hours;
 }
@@ -248,6 +253,14 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_USDC_WETH = uint112(800_000 * 10 ** Decimals.USDC);
     uint112 internal constant EXPOSURE_USDC_USDC = uint112(1_000_000 * 10 ** Decimals.USDC);
 
+    // USDT
+    uint16 internal constant COL_FAC_USDT_WETH = 8600;
+    uint16 internal constant COL_FAC_USDT_USDC = 9000;
+    uint16 internal constant LIQ_FAC_USDT_WETH = 9200;
+    uint16 internal constant LIQ_FAC_USDT_USDC = 9400;
+    uint112 internal constant EXPOSURE_USDT_WETH = uint112(800_000 * 10 ** Decimals.USDT);
+    uint112 internal constant EXPOSURE_USDT_USDC = uint112(1_000_000 * 10 ** Decimals.USDT);
+
     // STG
     uint16 internal constant COL_FAC_STG_WETH = 6000;
     uint16 internal constant COL_FAC_STG_USDC = 5500;
@@ -378,9 +391,11 @@ library AerodromeGauges {
     address internal constant CL1_CBETH_WETH = address(0xF5550F8F0331B8CAA165046667f4E6628E9E3Aac);
     address internal constant CL1_EZETH_WETH = address(0xC6B4fe83Fb284bDdE1f1d19F0B5beB31011B280A);
     address internal constant CL1_USDC_USDBC = address(0x4a3E1294d7869567B387FC3d5e5Ccf14BE2Bbe0a);
+    address internal constant CL1_USDC_USDT = address(0xBd85D45f1636fCEB2359d9Dcf839f12b3cF5AF3F);
     address internal constant CL1_WEETH_WETH = address(0xfCfEE5f453728BaA5ffDA151f25A0e53B8C5A01C);
     address internal constant CL1_WETH_WSTETH = address(0x2A1f7bf46bd975b5004b61c6040597E1B6117040);
     address internal constant CL100_WETH_USDC = address(0xF33a96b5932D9E9B9A0eDA447AbD8C9d48d2e0c8);
+    address internal constant CL100_WETH_USDT = address(0x2c0CbF25Bb64687d11ea2E4a3dc893D56Ca39c10);
     address internal constant CL200_AERO_WSTETH = address(0x45F8b8eC9c92D09BA8495074436fD97073423041);
     address internal constant CL200_WETH_AERO = address(0xdE8FF0D3e8ab225110B088a250b546015C567E27);
     address internal constant CL200_WETH_DEGEN = address(0x319e23D38d8ee58783Ff5331507b808709bd00b0);
