@@ -277,7 +277,7 @@ library RiskParameters {
     uint16 internal constant COL_FAC_TBTC_CBBTC = 8500;
     uint16 internal constant COL_FAC_TBTC_WETH = 7500;
     uint16 internal constant COL_FAC_TBTC_USDC = 7000;
-    uint16 internal constant LIQ_FAC_TBTC_CBBTC = 9500;
+    uint16 internal constant LIQ_FAC_TBTC_CBBTC = 9400;
     uint16 internal constant LIQ_FAC_TBTC_WETH = 8500;
     uint16 internal constant LIQ_FAC_TBTC_USDC = 8500;
     uint112 internal constant EXPOSURE_TBTC_CBBTC = uint112(5 * 10 ** Decimals.TBTC);
