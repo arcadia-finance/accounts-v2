@@ -9,7 +9,7 @@ library ArcadiaContracts {
     address internal constant CHAINLINK_OM = address(0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31);
     address internal constant ERC20_PRIMARY_AM = address(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
     address internal constant FACTORY = address(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
-    address internal constant LENDINGPOOL_CBBTC = address(0); // ToDo
+    address internal constant LENDINGPOOL_CBBTC = address(0xa37E9b4369dc20940009030BfbC2088F09645e3B);
     address internal constant LENDINGPOOL_USDC = address(0x3ec4a293Fb906DD2Cd440c20dECB250DeF141dF1);
     address internal constant LENDINGPOOL_WETH = address(0x803ea69c7e87D1d6C86adeB40CB636cC0E6B98E2);
     address internal constant REGISTRY = address(0xd0690557600eb8Be8391D1d97346e2aab5300d5f);
@@ -88,7 +88,7 @@ library Decimals {
 
 library Oracles {
     address internal constant AERO_USD = 0x4EC5970fC728C5f65ba413992CD5fF6FD70fcfF0;
-    address internal constant CBBTC_USD = address(0); // TODO: change after oracle is live.
+    address internal constant CBBTC_USD = 0x07DA0E54543a844a80ABE69c8A12F22B3aA59f9D;
     address internal constant CBETH_USD = 0xd7818272B9e248357d13057AAb0B417aF31E817d;
     address internal constant COMP_USD = 0x9DDa783DE64A9d1A60c49ca761EbE528C35BA428;
     address internal constant DAI_USD = 0x591e79239a7d679378eC8c847e5038150364C78F;
@@ -121,7 +121,7 @@ library OracleIds {
 
 library CutOffTimes {
     uint32 internal constant AERO_USD = 25 hours;
-    uint32 internal constant CBBTC_USD = 0 hours; // TODO: change after oracle is live.
+    uint32 internal constant CBBTC_USD = 25 hours;
     uint32 internal constant CBETH_USD = 1 hours;
     uint32 internal constant COMP_USD = 25 hours;
     uint32 internal constant DAI_USD = 25 hours;
