@@ -139,14 +139,14 @@ library CutOffTimes {
 }
 
 library RiskParameters {
-    // AERO ToDo
-    uint16 internal constant COL_FAC_AERO_CBBTC = 0;
+    // AERO
+    uint16 internal constant COL_FAC_AERO_CBBTC = 6000;
     uint16 internal constant COL_FAC_AERO_WETH = 7500;
     uint16 internal constant COL_FAC_AERO_USDC = 6700;
-    uint16 internal constant LIQ_FAC_AERO_CBBTC = 0;
+    uint16 internal constant LIQ_FAC_AERO_CBBTC = 8000;
     uint16 internal constant LIQ_FAC_AERO_WETH = 8700;
     uint16 internal constant LIQ_FAC_AERO_USDC = 8000;
-    uint112 internal constant EXPOSURE_AERO_CBBTC = uint112(0 * 10 ** Decimals.AERO);
+    uint112 internal constant EXPOSURE_AERO_CBBTC = uint112(3e6 * 10 ** Decimals.AERO);
     uint112 internal constant EXPOSURE_AERO_WETH = uint112(3e6 * 10 ** Decimals.AERO);
     uint112 internal constant EXPOSURE_AERO_USDC = uint112(3e6 * 10 ** Decimals.AERO);
 
@@ -182,16 +182,16 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_AXLUSDT_WETH = 0;
     uint112 internal constant EXPOSURE_AXLUSDT_USDC = 0;
 
-    // cbBTC ToDo
-    uint16 internal constant COL_FAC_CBBTC_CBBTC = 0;
-    uint16 internal constant COL_FAC_CBBTC_WETH = 0;
-    uint16 internal constant COL_FAC_CBBTC_USDC = 0;
-    uint16 internal constant LIQ_FAC_CBBTC_CBBTC = 0;
-    uint16 internal constant LIQ_FAC_CBBTC_WETH = 0;
-    uint16 internal constant LIQ_FAC_CBBTC_USDC = 0;
-    uint112 internal constant EXPOSURE_CBBTC_CBBTC = 0;
-    uint112 internal constant EXPOSURE_CBBTC_WETH = 0;
-    uint112 internal constant EXPOSURE_CBBTC_USDC = 0;
+    // cbBTC
+    uint16 internal constant COL_FAC_CBBTC_CBBTC = 9000;
+    uint16 internal constant COL_FAC_CBBTC_WETH = 7500;
+    uint16 internal constant COL_FAC_CBBTC_USDC = 7000;
+    uint16 internal constant LIQ_FAC_CBBTC_CBBTC = 9500;
+    uint16 internal constant LIQ_FAC_CBBTC_WETH = 8500;
+    uint16 internal constant LIQ_FAC_CBBTC_USDC = 8500;
+    uint112 internal constant EXPOSURE_CBBTC_CBBTC = uint112(50 * 10 ** Decimals.CBBTC);
+    uint112 internal constant EXPOSURE_CBBTC_WETH = uint112(20 * 10 ** Decimals.CBBTC);
+    uint112 internal constant EXPOSURE_CBBTC_USDC = uint112(20 * 10 ** Decimals.CBBTC);
 
     // cbETH
     uint16 internal constant COL_FAC_CBETH_WETH = 9100;
@@ -273,14 +273,14 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_SUSHI_WETH = 0;
     uint112 internal constant EXPOSURE_SUSHI_USDC = 0;
 
-    // TBTC ToDo
-    uint16 internal constant COL_FAC_TBTC_CBBTC = 0;
+    // TBTC
+    uint16 internal constant COL_FAC_TBTC_CBBTC = 8500;
     uint16 internal constant COL_FAC_TBTC_WETH = 7500;
     uint16 internal constant COL_FAC_TBTC_USDC = 7000;
-    uint16 internal constant LIQ_FAC_TBTC_CBBTC = 0;
+    uint16 internal constant LIQ_FAC_TBTC_CBBTC = 9500;
     uint16 internal constant LIQ_FAC_TBTC_WETH = 8500;
     uint16 internal constant LIQ_FAC_TBTC_USDC = 8500;
-    uint112 internal constant EXPOSURE_TBTC_CBBTC = uint112(0 * 10 ** Decimals.TBTC);
+    uint112 internal constant EXPOSURE_TBTC_CBBTC = uint112(5 * 10 ** Decimals.TBTC);
     uint112 internal constant EXPOSURE_TBTC_WETH = uint112(10 * 10 ** Decimals.TBTC);
     uint112 internal constant EXPOSURE_TBTC_USDC = uint112(8 * 10 ** Decimals.TBTC);
 
@@ -292,14 +292,14 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_USDBC_WETH = uint112(750_000 * 10 ** Decimals.USDBC);
     uint112 internal constant EXPOSURE_USDBC_USDC = uint112(1_000_000 * 10 ** Decimals.USDBC);
 
-    // USDC ToDo
-    uint16 internal constant COL_FAC_USDC_CBBTC = 0;
+    // USDC
+    uint16 internal constant COL_FAC_USDC_CBBTC = 7000;
     uint16 internal constant COL_FAC_USDC_WETH = 8600;
     uint16 internal constant COL_FAC_USDC_USDC = 9000;
-    uint16 internal constant LIQ_FAC_USDC_CBBTC = 0;
+    uint16 internal constant LIQ_FAC_USDC_CBBTC = 8500;
     uint16 internal constant LIQ_FAC_USDC_WETH = 9200;
     uint16 internal constant LIQ_FAC_USDC_USDC = 9400;
-    uint112 internal constant EXPOSURE_USDC_CBBTC = uint112(0 * 10 ** Decimals.USDC);
+    uint112 internal constant EXPOSURE_USDC_CBBTC = uint112(1_000_000 * 10 ** Decimals.USDC);
     uint112 internal constant EXPOSURE_USDC_WETH = uint112(800_000 * 10 ** Decimals.USDC);
     uint112 internal constant EXPOSURE_USDC_USDC = uint112(1_000_000 * 10 ** Decimals.USDC);
 
@@ -335,14 +335,14 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_WEETH_WETH = uint112(500 * 10 ** Decimals.WEETH);
     uint112 internal constant EXPOSURE_WEETH_USDC = uint112(400 * 10 ** Decimals.WEETH);
 
-    // WETH ToDo
-    uint16 internal constant COL_FAC_WETH_CBBTC = 0;
+    // WETH
+    uint16 internal constant COL_FAC_WETH_CBBTC = 7500;
     uint16 internal constant COL_FAC_WETH_WETH = 9000;
     uint16 internal constant COL_FAC_WETH_USDC = 8100;
-    uint16 internal constant LIQ_FAC_WETH_CBBTC = 0;
+    uint16 internal constant LIQ_FAC_WETH_CBBTC = 8500;
     uint16 internal constant LIQ_FAC_WETH_WETH = 9400;
     uint16 internal constant LIQ_FAC_WETH_USDC = 8500;
-    uint112 internal constant EXPOSURE_WETH_CBBTC = uint112(0 * 10 ** Decimals.WETH);
+    uint112 internal constant EXPOSURE_WETH_CBBTC = uint112(650 * 10 ** Decimals.WETH);
     uint112 internal constant EXPOSURE_WETH_WETH = uint112(1000 * 10 ** Decimals.WETH);
     uint112 internal constant EXPOSURE_WETH_USDC = uint112(500 * 10 ** Decimals.WETH);
 
@@ -384,7 +384,7 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_STARGATE_AM_WETH = uint112(250_000 * 1e18);
     uint112 internal constant EXPOSURE_STARGATE_AM_USDC = uint112(250_000 * 1e18);
 
-    // Uniswap V3 Asset Module ToDo
+    // Uniswap V3 Asset Module
     uint16 internal constant RISK_FAC_UNISWAPV3_AM_CBBTC = 9800;
     uint16 internal constant RISK_FAC_UNISWAPV3_AM_WETH = 9800;
     uint16 internal constant RISK_FAC_UNISWAPV3_AM_USDC = 9800;
@@ -392,7 +392,7 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_UNISWAPV3_AM_WETH = uint112(2_000_000 * 1e18);
     uint112 internal constant EXPOSURE_UNISWAPV3_AM_USDC = uint112(2_000_000 * 1e18);
 
-    // Slipstream Asset Module ToDo
+    // Slipstream Asset Module
     uint16 internal constant RISK_FAC_SLIPSTREAM_CBBTC = 9800;
     uint16 internal constant RISK_FAC_SLIPSTREAM_WETH = 9800;
     uint16 internal constant RISK_FAC_SLIPSTREAM_USDC = 9800;
@@ -400,7 +400,7 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_SLIPSTREAM_WETH = uint112(2_000_000 * 1e18);
     uint112 internal constant EXPOSURE_SLIPSTREAM_USDC = uint112(2_000_000 * 1e18);
 
-    // Staked Slipstream Asset Module ToDo
+    // Staked Slipstream Asset Module
     uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_CBBTC = 9800;
     uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_WETH = 9800;
     uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_USDC = 9800;
@@ -408,7 +408,7 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_WETH = uint112(2_000_000 * 1e18);
     uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_USDC = uint112(2_000_000 * 1e18);
 
-    // cbBTC Lending Pool ToDo
+    // cbBTC Lending Pool
     uint128 internal constant MIN_USD_VALUE_CBBTC = 1 * 1e18;
     uint64 internal constant GRACE_PERIOD_CBBTC = 15 minutes;
     uint64 internal constant MAX_RECURSIVE_CALLS_CBBTC = 6;
