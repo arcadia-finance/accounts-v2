@@ -16,7 +16,6 @@ import { IUniswapV4Pool } from "./interfaces/IUniswapV4Pool.sol";
 import { LiquidityAmounts } from "../UniswapV3/libraries/LiquidityAmounts.sol";
 import { PoolId, PoolIdLibrary } from "../../../lib/v4-periphery/lib/v4-core/src/types/PoolId.sol";
 import { PoolKey } from "../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
-import { Position } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/Position.sol";
 import { PositionInfoLibrary, PositionInfo } from "../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
 import { TickMath } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 
@@ -137,16 +136,15 @@ contract UniswapV4AM is DerivedAM {
         if (asset != address(POSITION_MANAGER)) return false;
 
         try POSITION_MANAGER.getPoolAndPositionInfo(assetId) returns (PoolKey memory poolKey, PositionInfo info) {
-            bytes32 positionId = Position.calculatePositionKey(
-                address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)
+            bytes32 positionId = keccak256(
+                abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId))
             );
             uint128 liquidity = STATE_VIEW.getPositionLiquidity(poolKey.toId(), positionId);
 
             address token0 = Currency.unwrap(poolKey.currency0);
             address token1 = Currency.unwrap(poolKey.currency1);
 
-            return IRegistry(REGISTRY).isAllowed(Currency.unwrap(poolKey.currency0), 0)
-                && IRegistry(REGISTRY).isAllowed(token1, 0) && liquidity > 0;
+            return IRegistry(REGISTRY).isAllowed(token0, 0) && IRegistry(REGISTRY).isAllowed(token1, 0) && liquidity > 0;
         } catch {
             return false;
         }
@@ -257,8 +255,8 @@ contract UniswapV4AM is DerivedAM {
 
         if (liquidity == 0) {
             // Only used as an off-chain view function by getValue() to return the value of a non deposited Liquidity Position.
-            bytes32 positionId = Position.calculatePositionKey(
-                address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)
+            bytes32 positionId = keccak256(
+                abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId))
             );
             liquidity = STATE_VIEW.getPositionLiquidity(poolKey.toId(), positionId);
         }
