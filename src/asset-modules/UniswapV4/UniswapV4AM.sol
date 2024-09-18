@@ -5,9 +5,20 @@
 pragma solidity ^0.8.22;
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
+import { CurrencyLibrary, Currency } from "../../../lib/v4-periphery/lib/v4-core/src/types/Currency.sol";
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
-import { INonfungiblePositionManager } from "./interfaces/INonfungiblePositionManager.sol";
-import { IPoolManager } from "./interfaces/IPoolManager.sol";
+import { FixedPoint96 } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/FixedPoint96.sol";
+import { FixedPoint128 } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/FixedPoint128.sol";
+import { FullMath } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/FullMath.sol";
+import { IPositionManager } from "./interfaces/IPositionManager.sol";
+import { IStateView } from "./interfaces/IStateView.sol";
+import { IUniswapV4Pool } from "./interfaces/IUniswapV4Pool.sol";
+import { LiquidityAmounts } from "../UniswapV3/libraries/LiquidityAmounts.sol";
+import { PoolId, PoolIdLibrary } from "../../../lib/v4-periphery/lib/v4-core/src/types/PoolId.sol";
+import { PoolKey } from "../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
+import { Position } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/Position.sol";
+import { PositionInfoLibrary, PositionInfo } from "../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
+import { TickMath } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 
 /**
  * @title Asset Module for Uniswap V4 Liquidity Positions
@@ -22,16 +33,17 @@ import { IPoolManager } from "./interfaces/IPoolManager.sol";
 contract UniswapV4AM is DerivedAM {
     using FixedPointMathLib for uint256;
     using PositionInfoLibrary for PositionInfo;
+    using PoolIdLibrary for PoolKey;
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
-    // The contract address of the NonfungiblePositionManager.
-    INonfungiblePositionManager internal immutable NON_FUNGIBLE_POSITION_MANAGER;
+    // The contract address of the PositionManager.
+    IPositionManager internal immutable POSITION_MANAGER;
 
-    // The contract address of the UniswapV4 PoolManager
-    IPoolManager internal immutable POOL_MANAGER;
+    // The contract address of the StateView.
+    IStateView internal immutable STATE_VIEW;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -57,12 +69,12 @@ contract UniswapV4AM is DerivedAM {
 
     /**
      * @param registry_ The contract address of the Registry.
-     * @param nonFungiblePositionManager The contract address of the protocols NonFungiblePositionManager.
+     * @param positionManager The contract address of the protocols NonFungiblePositionManager.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Uniswap V4 Liquidity Positions (ERC721).
      */
-    constructor(address registry_, address nonFungiblePositionManager, address poolManager) DerivedAM(registry_, 2) {
-        NON_FUNGIBLE_POSITION_MANAGER = INonfungiblePositionManager(nonFungiblePositionManager);
- 
+    constructor(address registry_, address positionManager, address stateView) DerivedAM(registry_, 2) {
+        POSITION_MANAGER = IPositionManager(positionManager);
+        STATE_VIEW = IStateView(stateView);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -74,10 +86,10 @@ contract UniswapV4AM is DerivedAM {
      * @dev Since all assets will have the same contract address, only the NonfungiblePositionManager has to be added to the Registry.
      */
     function setProtocol() external onlyOwner {
-        inAssetModule[address(NON_FUNGIBLE_POSITION_MANAGER)] = true;
+        inAssetModule[address(POSITION_MANAGER)] = true;
 
         // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), address(NON_FUNGIBLE_POSITION_MANAGER));
+        IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), address(POSITION_MANAGER));
     }
 
     /**
@@ -89,7 +101,10 @@ contract UniswapV4AM is DerivedAM {
     function _addAsset(uint256 assetId) internal {
         if (assetId > type(uint96).max) revert InvalidId();
 
-        PositionInfo positionInfo = NON_FUNGIBLE_POSITION_MANAGER.positionInfo(assetId);
+        (PoolKey memory poolKey, PositionInfo info) = POSITION_MANAGER.getPoolAndPositionInfo(assetId);
+        bytes32 positionId =
+            keccak256(abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)));
+        uint128 liquidity = STATE_VIEW.getPositionLiquidity(poolKey.toId(), positionId);
 
         // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
         // deposit functions and there any deposit of non-allowed Underlying Assets will revert.
@@ -101,10 +116,10 @@ contract UniswapV4AM is DerivedAM {
         // the max exposure checks could otherwise be circumvented.
         assetToLiquidity[assetId] = liquidity;
 
-        bytes32 assetKey = _getKeyFromAsset(address(NON_FUNGIBLE_POSITION_MANAGER), assetId);
+        bytes32 assetKey = _getKeyFromAsset(address(POSITION_MANAGER), assetId);
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
-        underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
-        underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
+        underlyingAssetKeys[0] = _getKeyFromAsset(Currency.unwrap(poolKey.currency0), 0);
+        underlyingAssetKeys[1] = _getKeyFromAsset(Currency.unwrap(poolKey.currency1), 0);
         assetToUnderlyingAssets[assetKey] = underlyingAssetKeys;
     }
 
@@ -119,23 +134,19 @@ contract UniswapV4AM is DerivedAM {
      * @return A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
-        if (asset != address(NON_FUNGIBLE_POSITION_MANAGER)) return false;
+        if (asset != address(POSITION_MANAGER)) return false;
 
-        try NON_FUNGIBLE_POSITION_MANAGER.positions(assetId) returns (
-            uint96,
-            address,
-            address token0,
-            address token1,
-            uint24,
-            int24,
-            int24,
-            uint128 liquidity,
-            uint256,
-            uint256,
-            uint128,
-            uint128
-        ) {
-            return IRegistry(REGISTRY).isAllowed(token0, 0) && IRegistry(REGISTRY).isAllowed(token1, 0) && liquidity > 0;
+        try POSITION_MANAGER.getPoolAndPositionInfo(assetId) returns (PoolKey memory poolKey, PositionInfo info) {
+            bytes32 positionId = Position.calculatePositionKey(
+                address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)
+            );
+            uint128 liquidity = STATE_VIEW.getPositionLiquidity(poolKey.toId(), positionId);
+
+            address token0 = Currency.unwrap(poolKey.currency0);
+            address token1 = Currency.unwrap(poolKey.currency1);
+
+            return IRegistry(REGISTRY).isAllowed(Currency.unwrap(poolKey.currency0), 0)
+                && IRegistry(REGISTRY).isAllowed(token1, 0) && liquidity > 0;
         } catch {
             return false;
         }
@@ -157,7 +168,10 @@ contract UniswapV4AM is DerivedAM {
         if (underlyingAssetKeys.length == 0) {
             // Only used as an off-chain view function by getValue() to return the value of a non deposited Liquidity Position.
             (, uint256 assetId) = _getAssetFromKey(assetKey);
-            (,, address token0, address token1,,,,,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
+
+            (PoolKey memory poolKey,) = POSITION_MANAGER.getPoolAndPositionInfo(assetId);
+            address token0 = Currency.unwrap(poolKey.currency0);
+            address token1 = Currency.unwrap(poolKey.currency1);
 
             underlyingAssetKeys = new bytes32[](2);
             underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
@@ -169,7 +183,7 @@ contract UniswapV4AM is DerivedAM {
      * @notice Calculates for a given asset the corresponding amount(s) of Underlying Asset(s).
      * @param creditor The contract address of the creditor.
      * @param assetKey The unique identifier of the asset.
-     * param assetAmount The amount of the asset, in the decimal precision of the Asset.
+     * @param amount The amount of the asset, in the decimal precision of the Asset.
      * param underlyingAssetKeys The unique identifiers of the Underlying Assets.
      * @return underlyingAssetsAmounts The corresponding amount(s) of Underlying Asset(s), in the decimal precision of the Underlying Asset.
      * @return rateUnderlyingAssetsToUsd The usd rates of 1e18 tokens of Underlying Asset, with 18 decimals precision.
@@ -190,7 +204,9 @@ contract UniswapV4AM is DerivedAM {
 
         (, uint256 assetId) = _getAssetFromKey(assetKey);
 
-        (address token0, address token1, int24 tickLower, int24 tickUpper, uint128 liquidity) = _getPosition(assetId);
+        (PoolKey memory poolKey, PositionInfo info, uint128 liquidity) = _getPosition(assetId);
+        address token0 = Currency.unwrap(poolKey.currency0);
+        address token1 = Currency.unwrap(poolKey.currency1);
 
         // Get the trusted rates to USD of the Underlying Assets.
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
@@ -200,15 +216,11 @@ contract UniswapV4AM is DerivedAM {
 
         // Calculate amount0 and amount1 of the principal (the actual liquidity position).
         (uint256 principal0, uint256 principal1) = _getPrincipalAmounts(
-            tickLower,
-            tickUpper,
-            liquidity,
-            rateUnderlyingAssetsToUsd[0].assetValue,
-            rateUnderlyingAssetsToUsd[1].assetValue
+            info, liquidity, rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue
         );
 
         // Calculate amount0 and amount1 of the accumulated fees.
-        (uint256 fee0, uint256 fee1) = _getFeeAmounts(assetId);
+        (uint256 fee0, uint256 fee1) = _getFeeAmounts(assetId, poolKey.toId(), info, liquidity);
 
         // As the sole liquidity provider in a new pool,
         // a malicious actor could bypass the max exposure by
@@ -227,27 +239,28 @@ contract UniswapV4AM is DerivedAM {
     /**
      * @notice Returns the position information.
      * @param assetId The id of the asset.
-     * @return token0 Token0 of the Liquidity Pool.
-     * @return token1 Token1 of the Liquidity Pool.
-     * @return tickLower The lower tick of the liquidity position.
-     * @return tickUpper The upper tick of the liquidity position.
+     * @return poolKey .
+     * @return info .
      * @return liquidity The liquidity per tick of the liquidity position.
      */
     function _getPosition(uint256 assetId)
         internal
         view
-        returns (address token0, address token1, int24 tickLower, int24 tickUpper, uint128 liquidity)
+        returns (PoolKey memory poolKey, PositionInfo info, uint128 liquidity)
     {
         // For deposited assets, the liquidity of the Liquidity Position is stored in the Asset Module,
         // not fetched from the NonfungiblePositionManager.
         // Since liquidity of a position can be increased by a non-owner, the max exposure checks could otherwise be circumvented.
         liquidity = uint128(assetToLiquidity[assetId]);
 
-        if (liquidity > 0) {
-            (,, token0, token1,, tickLower, tickUpper,,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
-        } else {
+        (poolKey, info) = POSITION_MANAGER.getPoolAndPositionInfo(assetId);
+
+        if (liquidity == 0) {
             // Only used as an off-chain view function by getValue() to return the value of a non deposited Liquidity Position.
-            (,, token0, token1,, tickLower, tickUpper, liquidity,,,,) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
+            bytes32 positionId = Position.calculatePositionKey(
+                address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)
+            );
+            liquidity = STATE_VIEW.getPositionLiquidity(poolKey.toId(), positionId);
         }
     }
 
@@ -273,7 +286,7 @@ contract UniswapV4AM is DerivedAM {
 
         // Calculate amount0 and amount1 of the principal (the liquidity position without accumulated fees).
         (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtPriceX96, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity
+            sqrtPriceX96, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceTick(tickUpper), liquidity
         );
     }
 
@@ -311,24 +324,19 @@ contract UniswapV4AM is DerivedAM {
      * @return amount0 The amount of fees in underlying token0 tokens.
      * @return amount1 The amount of fees in underlying token1 tokens.
      */
-    function _getFeeAmounts(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
-        (
-            ,
-            ,
-            address token0,
-            address token1,
-            uint24 fee,
-            int24 tickLower,
-            int24 tickUpper,
-            uint256 liquidity, // gas: cheaper to use uint256 instead of uint128.
-            uint256 feeGrowthInside0LastX128,
-            uint256 feeGrowthInside1LastX128,
-            uint256 tokensOwed0, // gas: cheaper to use uint256 instead of uint128.
-            uint256 tokensOwed1 // gas: cheaper to use uint256 instead of uint128.
-        ) = NON_FUNGIBLE_POSITION_MANAGER.positions(id);
-
+    function _getFeeAmounts(uint256 id, PoolId poolId, PositionInfo info, uint128 liquidity)
+        internal
+        view
+        returns (uint256 amount0, uint256 amount1)
+    {
         (uint256 feeGrowthInside0CurrentX128, uint256 feeGrowthInside1CurrentX128) =
-            _getFeeGrowthInside(token0, token1, fee, tickLower, tickUpper);
+            STATE_VIEW.getFeeGrowthInside(poolId, info.tickLower(), info.tickUpper());
+
+        bytes32 positionId =
+            keccak256(abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(id)));
+
+        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128) =
+            STATE_VIEW.getPositionInfo(poolId, positionId);
 
         // Calculate the total amount of fees by adding the already realized fees (tokensOwed),
         // to the accumulated fees since the last time the position was updated:
@@ -337,52 +345,10 @@ contract UniswapV4AM is DerivedAM {
         // one or both terms, or their sum, is bigger than a uint128.
         // This is however much bigger than any realistic situation.
         unchecked {
-            amount0 = FullMath.mulDiv(
-                feeGrowthInside0CurrentX128 - feeGrowthInside0LastX128, liquidity, FixedPoint128.Q128
-            ) + tokensOwed0;
-            amount1 = FullMath.mulDiv(
-                feeGrowthInside1CurrentX128 - feeGrowthInside1LastX128, liquidity, FixedPoint128.Q128
-            ) + tokensOwed1;
-        }
-    }
-
-    /**
-     * @notice Calculates the current fee growth inside the Liquidity Range.
-     * @param token0 Token0 of the Liquidity Pool.
-     * @param token1 Token1 of the Liquidity Pool.
-     * @param fee The fee of the Liquidity Pool.
-     * @param tickLower The lower tick of the liquidity position.
-     * @param tickUpper The upper tick of the liquidity position.
-     * @return feeGrowthInside0X128 The amount of fees in underlying token0 tokens.
-     * @return feeGrowthInside1X128 The amount of fees in underlying token1 tokens.
-     */
-    function _getFeeGrowthInside(address token0, address token1, uint24 fee, int24 tickLower, int24 tickUpper)
-        internal
-        view
-        returns (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128)
-    {
-        IUniswapV4Pool pool = IUniswapV4Pool(PoolAddress.computeAddress(UNISWAP_V4_FACTORY, token0, token1, fee));
-
-        // To calculate the pending fees, the current tick has to be used, even if the pool would be unbalanced.
-        (, int24 tickCurrent,,,,,) = pool.slot0();
-        (,, uint256 lowerFeeGrowthOutside0X128, uint256 lowerFeeGrowthOutside1X128,,,,) = pool.ticks(tickLower);
-        (,, uint256 upperFeeGrowthOutside0X128, uint256 upperFeeGrowthOutside1X128,,,,) = pool.ticks(tickUpper);
-
-        // Calculate the fee growth inside of the Liquidity Range since the last time the position was updated.
-        // feeGrowthInside can overflow (without reverting), as is the case in the Uniswap fee calculations.
-        unchecked {
-            if (tickCurrent < tickLower) {
-                feeGrowthInside0X128 = lowerFeeGrowthOutside0X128 - upperFeeGrowthOutside0X128;
-                feeGrowthInside1X128 = lowerFeeGrowthOutside1X128 - upperFeeGrowthOutside1X128;
-            } else if (tickCurrent < tickUpper) {
-                feeGrowthInside0X128 =
-                    pool.feeGrowthGlobal0X128() - lowerFeeGrowthOutside0X128 - upperFeeGrowthOutside0X128;
-                feeGrowthInside1X128 =
-                    pool.feeGrowthGlobal1X128() - lowerFeeGrowthOutside1X128 - upperFeeGrowthOutside1X128;
-            } else {
-                feeGrowthInside0X128 = upperFeeGrowthOutside0X128 - lowerFeeGrowthOutside0X128;
-                feeGrowthInside1X128 = upperFeeGrowthOutside1X128 - lowerFeeGrowthOutside1X128;
-            }
+            amount0 =
+                FullMath.mulDiv(feeGrowthInside0CurrentX128 - feeGrowthInside0LastX128, liquidity, FixedPoint128.Q128);
+            amount1 =
+                FullMath.mulDiv(feeGrowthInside1CurrentX128 - feeGrowthInside1LastX128, liquidity, FixedPoint128.Q128);
         }
     }
 
@@ -582,5 +548,3 @@ contract UniswapV4AM is DerivedAM {
         if (deltaExposureUpperAssetToAsset == -1) delete assetToLiquidity[assetId];
     }
 }
-
-
