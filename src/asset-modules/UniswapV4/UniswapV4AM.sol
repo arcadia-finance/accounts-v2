@@ -10,6 +10,7 @@ import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDe
 import { FixedPoint96 } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/FixedPoint96.sol";
 import { FixedPoint128 } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/FixedPoint128.sol";
 import { FullMath } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/FullMath.sol";
+import { Hooks } from "./libraries/Hooks.sol";
 import { IPositionManager } from "./interfaces/IPositionManager.sol";
 import { IStateView } from "./interfaces/IStateView.sol";
 import { IUniswapV4Pool } from "./interfaces/IUniswapV4Pool.sol";
@@ -58,6 +59,7 @@ contract UniswapV4AM is DerivedAM {
                                 ERRORS
     ////////////////////////////////////////////////////////////// */
 
+    error HooksNotAllowed();
     error InvalidId();
     error ZeroLiquidity();
     error InvalidAmount();
@@ -105,6 +107,13 @@ contract UniswapV4AM is DerivedAM {
             keccak256(abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)));
         uint128 liquidity = STATE_VIEW.getPositionLiquidity(poolKey.toId(), positionId);
 
+        // Hook flags should be valid for this specific AM.
+        uint160 hooks = uint160(address(poolKey.hooks));
+        if (
+            Hooks.hasPermission(hooks, Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
+                || Hooks.hasPermission(hooks, Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
+        ) revert HooksNotAllowed();
+
         // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
         // deposit functions and there any deposit of non-allowed Underlying Assets will revert.
         if (liquidity == 0) revert ZeroLiquidity();
@@ -140,6 +149,13 @@ contract UniswapV4AM is DerivedAM {
                 abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId))
             );
             uint128 liquidity = STATE_VIEW.getPositionLiquidity(poolKey.toId(), positionId);
+
+            // Hook flags should be valid for this specific AM.
+            uint160 hooks = uint160(address(poolKey.hooks));
+            if (
+                Hooks.hasPermission(hooks, Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
+                    || Hooks.hasPermission(hooks, Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
+            ) revert HooksNotAllowed();
 
             address token0 = Currency.unwrap(poolKey.currency0);
             address token1 = Currency.unwrap(poolKey.currency1);
