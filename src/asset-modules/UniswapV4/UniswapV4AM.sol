@@ -300,7 +300,7 @@ contract UniswapV4AM is DerivedAM {
 
         // Calculate amount0 and amount1 of the principal (the liquidity position without accumulated fees).
         (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtPriceX96, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceTick(tickUpper), liquidity
+            sqrtPriceX96, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
         );
     }
 
