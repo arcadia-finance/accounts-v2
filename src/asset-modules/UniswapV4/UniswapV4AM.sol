@@ -45,6 +45,9 @@ contract UniswapV4AM is DerivedAM {
     // The contract address of the StateView.
     IStateView internal immutable STATE_VIEW;
 
+    // The maximum value that can be returned from #getSqrtPriceAtTick. Equivalent to getSqrtPriceAtTick(MAX_TICK)
+    uint160 internal constant MAX_SQRT_PRICE = 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342;
+
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
@@ -280,27 +283,28 @@ contract UniswapV4AM is DerivedAM {
 
     /**
      * @notice Calculates the underlying token amounts of a liquidity position, given external trusted prices.
-     * @param tickLower The lower tick of the liquidity position.
-     * @param tickUpper The upper tick of the liquidity position.
+     * @param info .
+     * @param liquidity .
      * @param priceToken0 The price of 1e18 tokens of token0 in USD, with 18 decimals precision.
      * @param priceToken1 The price of 1e18 tokens of token1 in USD, with 18 decimals precision.
      * @return amount0 The amount of underlying token0 tokens.
      * @return amount1 The amount of underlying token1 tokens.
      */
-    function _getPrincipalAmounts(
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 liquidity,
-        uint256 priceToken0,
-        uint256 priceToken1
-    ) internal pure returns (uint256 amount0, uint256 amount1) {
+    function _getPrincipalAmounts(PositionInfo info, uint128 liquidity, uint256 priceToken0, uint256 priceToken1)
+        internal
+        pure
+        returns (uint256 amount0, uint256 amount1)
+    {
         // Calculate the square root of the relative rate sqrt(token1/token0) from the trusted USD price of both tokens.
         // sqrtPriceX96 is a binary fixed point number with 96 digits precision.
         uint160 sqrtPriceX96 = _getSqrtPriceX96(priceToken0, priceToken1);
 
         // Calculate amount0 and amount1 of the principal (the liquidity position without accumulated fees).
         (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtPriceX96, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
+            sqrtPriceX96,
+            TickMath.getSqrtPriceAtTick(info.tickLower()),
+            TickMath.getSqrtPriceAtTick(info.tickUpper()),
+            liquidity
         );
     }
 
@@ -317,7 +321,7 @@ contract UniswapV4AM is DerivedAM {
      * price = (amountUsd/usdPriceToken1)/(amountUsd/usdPriceToken0) = usdPriceToken0/usdPriceToken1.
      */
     function _getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) internal pure returns (uint160 sqrtPriceX96) {
-        if (priceToken1 == 0) return TickMath.MAX_SQRT_RATIO;
+        if (priceToken1 == 0) return MAX_SQRT_PRICE;
 
         // Both priceTokens have 18 decimals precision and result of division should have 28 decimals precision.
         // -> multiply by 1e28

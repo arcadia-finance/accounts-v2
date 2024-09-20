@@ -8,5 +8,5 @@ import { PositionInfo } from "../../../../lib/v4_periphery/src/libraries/Positio
 /// @notice Wraps Uniswap V4 positions in a non-fungible token interface which allows for them to be transferred
 /// and authorized.
 interface IPositionManager {
-    function getPoolAndPositionInfo(uint256 id) external returns (PoolKey memory poolKey, PositionInfo info);
+    function getPoolAndPositionInfo(uint256 id) external view returns (PoolKey memory poolKey, PositionInfo info);
 }
