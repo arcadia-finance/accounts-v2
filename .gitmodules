@@ -20,7 +20,6 @@
 [submodule "lib/swap-router-contracts"]
 	path = lib/swap-router-contracts
 	url = https://github.com/uniswap/swap-router-contracts
-
-[submodule "lib/v4_periphery"]
-	path = lib/v4_periphery
-	url = https://github.com/Uniswap/v4-periphery.git
+[submodule "lib/v4-periphery-fork"]
+	path = lib/v4-periphery-fork
+	url = git@github.com:arcadia-finance/v4-periphery-fork.git

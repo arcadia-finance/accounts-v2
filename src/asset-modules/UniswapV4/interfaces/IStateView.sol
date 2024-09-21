@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.22;
 
-import { PoolId } from "../../../../lib/v4_periphery/lib/v4-core/src/types/PoolId.sol";
+import { PoolId } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolId.sol";
 
 interface IStateView {
     function getPositionLiquidity(PoolId poolId, bytes32 positionId) external view returns (uint128 liquidity);
