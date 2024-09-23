@@ -11,7 +11,7 @@ no_match_path = "**/{script/,test/fork/}*"
 remappings = ["@uniswap/v3-core/contracts/=lib/v3-core/contracts/","@uniswap/v3-periphery/contracts/=lib/v3-periphery/contracts/","@openzeppelin/=lib/openzeppelin-contracts/", "contracts/=lib/slipstream/contracts", "@uniswap/v2-core/contracts=./test/utils/fixtures/swap-router-02"]
 
 fs_permissions = [{ access = "read", path = "./out"}, { access = "write", path = "./script/out"}]
-evm_version = 'shanghai'
+evm_version = 'cancun'
 
 [fmt]
 bracket_spacing = true
