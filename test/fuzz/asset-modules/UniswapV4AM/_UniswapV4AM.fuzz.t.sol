@@ -32,6 +32,16 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test {
     // -> This true minimum value will overflow and revert.
     uint256 internal constant INT256_MIN = 2 ** 255 - 1;
 
+    /// The minimum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**-128
+    int24 internal constant MIN_TICK = -887_272;
+    /// The maximum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**128
+    int24 internal constant MAX_TICK = 887_272;
+
+    /// The minimum value that can be returned from #getSqrtPriceAtTick. Equivalent to getSqrtPriceAtTick(MIN_TICK)
+    uint160 internal constant MIN_SQRT_PRICE = 4_295_128_739;
+    /// The maximum value that can be returned from #getSqrtPriceAtTick. Equivalent to getSqrtPriceAtTick(MAX_TICK)
+    uint160 internal constant MAX_SQRT_PRICE = 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342;
+
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -76,6 +86,10 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test {
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
 
+    function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
+        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
+    }
+
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)
         internal
         pure
@@ -93,8 +107,8 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test {
         uint256 priceXd28 = priceToken0 * 1e28 / priceToken1;
         uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
         sqrtPriceX96 = sqrtPriceXd14 * 2 ** 96 / 1e14;
-        vm.assume(sqrtPriceX96 >= 4_295_128_739);
-        vm.assume(sqrtPriceX96 <= 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342);
+        vm.assume(sqrtPriceX96 >= MIN_SQRT_PRICE);
+        vm.assume(sqrtPriceX96 <= MAX_SQRT_PRICE);
     }
 
     /*     function givenValidPosition(NonfungiblePositionManagerMock.Position memory position)
