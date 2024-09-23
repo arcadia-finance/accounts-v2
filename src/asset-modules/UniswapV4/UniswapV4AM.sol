@@ -73,7 +73,8 @@ contract UniswapV4AM is DerivedAM {
 
     /**
      * @param registry_ The contract address of the Registry.
-     * @param positionManager The contract address of the protocols NonFungiblePositionManager.
+     * @param positionManager The contract address of the uniswapV4 PositionManager.
+     * @param stateView The contract address of the UniswapV4 StateView contract, for reading storage in v4-core.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Uniswap V4 Liquidity Positions (ERC721).
      */
     constructor(address registry_, address positionManager, address stateView) DerivedAM(registry_, 2) {
@@ -86,8 +87,8 @@ contract UniswapV4AM is DerivedAM {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds the mapping from the NonfungiblePositionManager to this Asset Module in this Registry.
-     * @dev Since all assets will have the same contract address, only the NonfungiblePositionManager has to be added to the Registry.
+     * @notice Adds the mapping from the PositionManager to this Asset Module in this Registry.
+     * @dev Since all assets will have the same contract address, only the PositionManager has to be added to the Registry.
      */
     function setProtocol() external onlyOwner {
         inAssetModule[address(POSITION_MANAGER)] = true;
@@ -99,7 +100,7 @@ contract UniswapV4AM is DerivedAM {
     /**
      * @notice Adds a new asset (Liquidity Position) to the UniswapV4AM.
      * @param assetId The id of the asset.
-     * @dev All assets (Liquidity Positions) will have the same contract address (the NonfungiblePositionManager),
+     * @dev All assets (Liquidity Positions) will have the same contract address (the PositionManager),
      * but a different id.
      */
     function _addAsset(uint256 assetId) internal {
@@ -256,8 +257,8 @@ contract UniswapV4AM is DerivedAM {
     /**
      * @notice Returns the position information.
      * @param assetId The id of the asset.
-     * @return poolKey .
-     * @return info .
+     * @return poolKey The key for identifying a UniswapV4 pool.
+     * @return info A packed struct including the poolId and the ticks of the position.
      * @return liquidity The liquidity per tick of the liquidity position.
      */
     function _getPosition(uint256 assetId)
@@ -266,7 +267,7 @@ contract UniswapV4AM is DerivedAM {
         returns (PoolKey memory poolKey, PositionInfo info, uint128 liquidity)
     {
         // For deposited assets, the liquidity of the Liquidity Position is stored in the Asset Module,
-        // not fetched from the NonfungiblePositionManager.
+        // not fetched from the PositionManager.
         // Since liquidity of a position can be increased by a non-owner, the max exposure checks could otherwise be circumvented.
         liquidity = uint128(assetToLiquidity[assetId]);
 
@@ -283,8 +284,8 @@ contract UniswapV4AM is DerivedAM {
 
     /**
      * @notice Calculates the underlying token amounts of a liquidity position, given external trusted prices.
-     * @param info .
-     * @param liquidity .
+     * @param info A packed struct including the poolId and the ticks of the position.
+     * @param liquidity The liquidity of the specific position.
      * @param priceToken0 The price of 1e18 tokens of token0 in USD, with 18 decimals precision.
      * @param priceToken1 The price of 1e18 tokens of token1 in USD, with 18 decimals precision.
      * @return amount0 The amount of underlying token0 tokens.
@@ -337,8 +338,11 @@ contract UniswapV4AM is DerivedAM {
     }
 
     /**
-     * @notice Calculates the underlying token amounts of accrued fees, both collected and uncollected.
+     * @notice Calculates the underlying token amounts of accrued fees.
      * @param id The id of the Liquidity Position.
+     * @param poolId The id of a UniswapV4 pool computed from the PoolKey.
+     * @param info A packed struct including the poolId and the ticks of the position.
+     * @param liquidity The liquidity of the specific position.
      * @return amount0 The amount of fees in underlying token0 tokens.
      * @return amount1 The amount of fees in underlying token1 tokens.
      */
@@ -356,10 +360,9 @@ contract UniswapV4AM is DerivedAM {
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128) =
             STATE_VIEW.getPositionInfo(poolId, positionId);
 
-        // Calculate the total amount of fees by adding the already realized fees (tokensOwed),
-        // to the accumulated fees since the last time the position was updated:
+        // Calculate accumulated fees since the last time the position was updated:
         // (feeGrowthInsideCurrentX128 - feeGrowthInsideLastX128) * liquidity.
-        // Fee calculations in NonfungiblePositionManager.sol overflow (without reverting) when
+        // Fee calculations in PositionManager.sol overflow (without reverting) when
         // one or both terms, or their sum, is bigger than a uint128.
         // This is however much bigger than any realistic situation.
         unchecked {
