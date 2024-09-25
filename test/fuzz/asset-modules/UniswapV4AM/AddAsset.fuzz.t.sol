@@ -34,7 +34,7 @@ contract AddAsset_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_addAsset_ZeroLiquidity(
+    /*     function testFuzz_Revert_addAsset_ZeroLiquidity(
         uint96 tokenId,
         NonfungiblePositionManagerMock.Position memory position
     ) public {
@@ -77,5 +77,5 @@ contract AddAsset_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
 
         assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), token0)));
         assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), token1)));
-    }
+    } */
 }

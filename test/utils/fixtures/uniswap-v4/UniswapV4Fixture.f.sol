@@ -4,11 +4,19 @@
  */
 pragma solidity ^0.8.22;
 
+import { BaseHook } from "../../../../lib/v4-periphery-fork/src/base/hooks/BaseHook.sol";
+import { Currency } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/Currency.sol";
+import { HookMockValid } from "../..//mocks/UniswapV4/BaseAM/HookMockValid.sol";
+import { HookMockUnvalid } from "../../mocks/UniswapV4/BaseAM/HookMockUnvalid.sol";
+import { Hooks } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/Hooks.sol";
+import { IAllowanceTransfer } from "../../../../lib/v4-periphery-fork/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
+import { PoolKey } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PoolManagerExtension } from "./extensions/PoolManagerExtension.sol";
 import { PositionManagerExtension } from "./extensions/PositionManagerExtension.sol";
 import { StateViewExtension } from "./extensions/StateViewExtension.sol";
+import { Test } from "../../../../lib/forge-std/src/Test.sol";
 
-contract UniswapV4Fixture {
+contract UniswapV4Fixture is Test {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -16,6 +24,8 @@ contract UniswapV4Fixture {
     PoolManagerExtension internal poolManager;
     PositionManagerExtension internal positionManager;
     StateViewExtension internal stateView;
+    BaseHook internal validHook;
+    BaseHook internal unvalidHook;
 
     /// The minimum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**-128
     int24 internal constant MIN_TICK = -887_272;
@@ -31,15 +41,43 @@ contract UniswapV4Fixture {
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
 
-    function setUp() public virtual override {
+    event Log(uint256);
+
+    function setUp() public virtual {
         // Deploy Pool Manager
-        poolManager = new PoolManager();
+        poolManager = new PoolManagerExtension();
 
         // Deploy StateView contract
-        stateView = new StateView(poolManager);
+        stateView = new StateViewExtension(poolManager);
 
         // Deploy Position Manager
-        positionManager = new PositionManager(poolManager, IAllowanceTransfer(address(0)), 0);
+        positionManager = new PositionManagerExtension(poolManager, IAllowanceTransfer(address(0)), 0);
+
+        // Deploy mocked hooks (mainly to get instance)
+        emit Log(1);
+        validHook = new HookMockValid(poolManager);
+        emit Log(1);
+        unvalidHook = new HookMockUnvalid(poolManager);
+        emit Log(1);
+
+        // Deploy valid hook
+        uint160[] memory hooks = new uint160[](8);
+        hooks[0] = Hooks.BEFORE_INITIALIZE_FLAG;
+        hooks[1] = Hooks.AFTER_INITIALIZE_FLAG;
+        hooks[2] = Hooks.BEFORE_ADD_LIQUIDITY_FLAG;
+        hooks[3] = Hooks.AFTER_ADD_LIQUIDITY_FLAG;
+        hooks[4] = Hooks.BEFORE_SWAP_FLAG;
+        hooks[5] = Hooks.AFTER_SWAP_FLAG;
+        hooks[6] = Hooks.BEFORE_DONATE_FLAG;
+        hooks[7] = Hooks.AFTER_DONATE_FLAG;
+
+        validHook = BaseHook(deployHook(hooks, "HookMockValid.sol"));
+
+        // Deploy unvalid hook
+        hooks = new uint160[](2);
+        hooks[0] = Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG;
+        hooks[1] = Hooks.AFTER_REMOVE_LIQUIDITY_FLAG;
+        unvalidHook = BaseHook(deployHook(hooks, "HookMockUnvalid.sol"));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -67,14 +105,21 @@ contract UniswapV4Fixture {
         uint24 fee,
         int24 tickSpacing
     ) public returns (PoolKey memory poolKey) {
-        if (address(token0) > address(token1)) {
-            (token0, token1) = (Currency.wrap(address(token1)), Currency.wrap(address(token0)));
+        Currency currency0;
+        Currency currency1;
+        if (token0 > token1) {
+            (currency0, currency1) = (Currency.wrap(address(token1)), Currency.wrap(address(token0)));
         } else {
-            (token0, token1) = (Currency.wrap(address(token0)), Currency.wrap(address(token1)));
+            (currency0, currency1) = (Currency.wrap(address(token0)), Currency.wrap(address(token1)));
         }
 
-        poolKey =
-            PoolKey({ currency0: token0, currency1: token1, fee: fee, tickSpacing: tickSpacing, hooks: BaseHook(hook) });
+        poolKey = PoolKey({
+            currency0: currency0,
+            currency1: currency1,
+            fee: fee,
+            tickSpacing: tickSpacing,
+            hooks: BaseHook(hook)
+        });
 
         // Initialize pool
         poolManager.initialize(poolKey, sqrtPriceX96, "");

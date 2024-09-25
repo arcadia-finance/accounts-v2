@@ -8,8 +8,7 @@ import { Base_Test } from "../../../Base.t.sol";
 import { BaseHook } from "../../../../lib/v4-periphery-fork/src/base/hooks/BaseHook.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { Hooks } from "../../../../lib/v4-periphery-fork/lib/v4-core/libraries/Hooks.sol";
-import { IAllowanceTransfer } from "../../../../lib/v4-periphery-fork/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
+import { Hooks } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/Hooks.sol";
 import { PoolManager } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/PoolManager.sol";
 import { PoolKey } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PositionManager } from "../../../../lib/v4-periphery-fork/src/PositionManager.sol";
@@ -27,6 +26,7 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
     /////////////////////////////////////////////////////////////// */
 
     UniswapV4AMExtension internal uniswapV4AM;
+    PoolKey internal stablePoolKey;
 
     uint256 internal constant INT256_MAX = 2 ** 255 - 1;
     // While the true minimum value of an int256 is 2 ** 255, Solidity overflows on a negation (since INT256_MAX is one less).
@@ -61,7 +61,19 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
     function setUp() public virtual override(Fuzz_Test, UniswapV4Fixture) {
         Fuzz_Test.setUp();
         // Deploy fixture for UniswapV4
+        vm.startPrank(users.owner);
         UniswapV4Fixture.setUp();
+        vm.stopPrank();
+
+        // Initializes a pool
+        stablePoolKey = initializePool(
+            address(mockERC20.stable1),
+            address(mockERC20.stable2),
+            TickMath.getSqrtPriceAtTick(0),
+            address(validHook),
+            500,
+            10
+        );
 
         // Deploy Asset-Module
         vm.startPrank(users.owner);
@@ -74,40 +86,6 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
-
-    function deployHook(uint160[] memory hooks, string memory hookInstance) public returns (address arbitraryAddress) {
-        // Set flags for hooks to implement
-        uint160 flags;
-        for (uint256 i; i < hooks.length; i++) {
-            flags = flags | hooks[i];
-        }
-
-        // Here we deploy to an arbitrary address to avoid waiting to find the right salt with the HookFinder.
-        arbitraryAddress = address(flags);
-
-        deployCodeTo(hookInstance, abi.encode(poolManager), arbitraryAddress);
-    }
-
-    function initializePool(
-        address token0,
-        address token1,
-        uint160 sqrtPriceX96,
-        address hook,
-        uint24 fee,
-        int24 tickSpacing
-    ) public returns (PoolKey memory poolKey) {
-        if (address(token0) > address(token1)) {
-            (token0, token1) = (Currency.wrap(address(token1)), Currency.wrap(address(token0)));
-        } else {
-            (token0, token1) = (Currency.wrap(address(token0)), Currency.wrap(address(token1)));
-        }
-
-        poolKey =
-            PoolKey({ currency0: token0, currency1: token1, fee: fee, tickSpacing: tickSpacing, hooks: BaseHook(hook) });
-
-        // Initialize pool
-        poolManager.initialize(poolKey, sqrtPriceX96, "");
-    }
 
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)
         internal
