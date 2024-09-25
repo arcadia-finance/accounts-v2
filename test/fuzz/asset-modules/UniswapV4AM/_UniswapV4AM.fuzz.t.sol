@@ -5,42 +5,33 @@
 pragma solidity ^0.8.22;
 
 import { Base_Test } from "../../../Base.t.sol";
+import { BaseHook } from "../../../../lib/v4-periphery-fork/src/base/hooks/BaseHook.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { Hooks } from "../../../../lib/v4-periphery-fork/lib/v4-core/libraries/Hooks.sol";
 import { IAllowanceTransfer } from "../../../../lib/v4-periphery-fork/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
 import { PoolManager } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/PoolManager.sol";
+import { PoolKey } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PositionManager } from "../../../../lib/v4-periphery-fork/src/PositionManager.sol";
 import { StateView } from "../../../../lib/v4-periphery-fork/src/lens/StateView.sol";
 import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
 import { UniswapV4AMExtension } from "../../../../test/utils/extensions/UniswapV4AMExtension.sol";
+import { UniswapV4Fixture } from "../../../utils/fixtures/uniswap-v4/UniswapV4Fixture.f.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV4AM" fuzz tests.
  */
-abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test {
+abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
     /* ///////////////////////////////////////////////////////////////
                               CONSTANTS
     /////////////////////////////////////////////////////////////// */
 
-    PoolManager public poolManager;
-    PositionManager internal positionManager;
-    StateView internal stateView;
     UniswapV4AMExtension internal uniswapV4AM;
 
     uint256 internal constant INT256_MAX = 2 ** 255 - 1;
     // While the true minimum value of an int256 is 2 ** 255, Solidity overflows on a negation (since INT256_MAX is one less).
     // -> This true minimum value will overflow and revert.
     uint256 internal constant INT256_MIN = 2 ** 255 - 1;
-
-    /// The minimum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**-128
-    int24 internal constant MIN_TICK = -887_272;
-    /// The maximum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**128
-    int24 internal constant MAX_TICK = 887_272;
-
-    /// The minimum value that can be returned from #getSqrtPriceAtTick. Equivalent to getSqrtPriceAtTick(MIN_TICK)
-    uint160 internal constant MIN_SQRT_PRICE = 4_295_128_739;
-    /// The maximum value that can be returned from #getSqrtPriceAtTick. Equivalent to getSqrtPriceAtTick(MAX_TICK)
-    uint160 internal constant MAX_SQRT_PRICE = 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342;
 
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES
@@ -67,27 +58,55 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test {
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(Fuzz_Test) {
+    function setUp() public virtual override(Fuzz_Test, UniswapV4Fixture) {
         Fuzz_Test.setUp();
-        // Deploy Pool Manager
-        poolManager = new PoolManager();
-
-        // Deploy StateView contract
-        stateView = new StateView(poolManager);
-
-        // Deploy Position Manager
-        positionManager = new PositionManager(poolManager, IAllowanceTransfer(address(0)), 0);
+        // Deploy fixture for UniswapV4
+        UniswapV4Fixture.setUp();
 
         // Deploy Asset-Module
+        vm.startPrank(users.owner);
         uniswapV4AM = new UniswapV4AMExtension(address(registry), address(positionManager), address(stateView));
+        registry.addAssetModule(address(uniswapV4AM));
+        uniswapV4AM.setProtocol();
+        vm.stopPrank();
     }
 
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
 
-    function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
-        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
+    function deployHook(uint160[] memory hooks, string memory hookInstance) public returns (address arbitraryAddress) {
+        // Set flags for hooks to implement
+        uint160 flags;
+        for (uint256 i; i < hooks.length; i++) {
+            flags = flags | hooks[i];
+        }
+
+        // Here we deploy to an arbitrary address to avoid waiting to find the right salt with the HookFinder.
+        arbitraryAddress = address(flags);
+
+        deployCodeTo(hookInstance, abi.encode(poolManager), arbitraryAddress);
+    }
+
+    function initializePool(
+        address token0,
+        address token1,
+        uint160 sqrtPriceX96,
+        address hook,
+        uint24 fee,
+        int24 tickSpacing
+    ) public returns (PoolKey memory poolKey) {
+        if (address(token0) > address(token1)) {
+            (token0, token1) = (Currency.wrap(address(token1)), Currency.wrap(address(token0)));
+        } else {
+            (token0, token1) = (Currency.wrap(address(token0)), Currency.wrap(address(token1)));
+        }
+
+        poolKey =
+            PoolKey({ currency0: token0, currency1: token1, fee: fee, tickSpacing: tickSpacing, hooks: BaseHook(hook) });
+
+        // Initialize pool
+        poolManager.initialize(poolKey, sqrtPriceX96, "");
     }
 
     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)
