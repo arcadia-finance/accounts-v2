@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.22;
 
-import { BaseHook } from "../../../../lib/v4-periphery-fork/src/base/hooks/BaseHook.sol";
+import { BaseHookExtension } from "./extensions/BaseHookExtension.sol";
 import { Currency } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/Currency.sol";
 import { HookMockValid } from "../..//mocks/UniswapV4/BaseAM/HookMockValid.sol";
 import { HookMockUnvalid } from "../../mocks/UniswapV4/BaseAM/HookMockUnvalid.sol";
@@ -24,8 +24,8 @@ contract UniswapV4Fixture is Test {
     PoolManagerExtension internal poolManager;
     PositionManagerExtension internal positionManager;
     StateViewExtension internal stateView;
-    BaseHook internal validHook;
-    BaseHook internal unvalidHook;
+    BaseHookExtension internal validHook;
+    BaseHookExtension internal unvalidHook;
 
     /// The minimum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**-128
     int24 internal constant MIN_TICK = -887_272;
@@ -41,8 +41,6 @@ contract UniswapV4Fixture is Test {
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
 
-    event Log(uint256);
-
     function setUp() public virtual {
         // Deploy Pool Manager
         poolManager = new PoolManagerExtension();
@@ -53,12 +51,9 @@ contract UniswapV4Fixture is Test {
         // Deploy Position Manager
         positionManager = new PositionManagerExtension(poolManager, IAllowanceTransfer(address(0)), 0);
 
-        // Deploy mocked hooks (mainly to get instance)
-        emit Log(1);
+        // Deploy mocked hooks (to get contrac instance used below)
         validHook = new HookMockValid(poolManager);
-        emit Log(1);
         unvalidHook = new HookMockUnvalid(poolManager);
-        emit Log(1);
 
         // Deploy valid hook
         uint160[] memory hooks = new uint160[](8);
@@ -71,30 +66,37 @@ contract UniswapV4Fixture is Test {
         hooks[6] = Hooks.BEFORE_DONATE_FLAG;
         hooks[7] = Hooks.AFTER_DONATE_FLAG;
 
-        validHook = BaseHook(deployHook(hooks, "HookMockValid.sol"));
+        validHook = BaseHookExtension(deployHook(hooks, "HookMockValid.sol", true));
 
         // Deploy unvalid hook
         hooks = new uint160[](2);
         hooks[0] = Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG;
         hooks[1] = Hooks.AFTER_REMOVE_LIQUIDITY_FLAG;
-        unvalidHook = BaseHook(deployHook(hooks, "HookMockUnvalid.sol"));
+        unvalidHook = BaseHookExtension(deployHook(hooks, "HookMockUnvalid.sol", false));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
                                 HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    function deployHook(uint160[] memory hooks, string memory hookInstance) public returns (address arbitraryAddress) {
+    function deployHook(uint160[] memory hooks, string memory hookInstance, bool validHook_)
+        public
+        returns (address hookAddress)
+    {
         // Set flags for hooks to implement
         uint160 flags;
         for (uint256 i; i < hooks.length; i++) {
             flags = flags | hooks[i];
         }
 
-        // Here we deploy to an arbitrary address to avoid waiting to find the right salt with the HookFinder.
-        arbitraryAddress = address(flags);
+        // Here we deploy to an address ending with valid bits representing active hooks.
+        // We won't use HookMiner for testing to avoid waiting time to find the right salt.
+        hookAddress = address(flags);
 
-        deployCodeTo(hookInstance, abi.encode(poolManager), arbitraryAddress);
+        deployCodeTo(hookInstance, abi.encode(poolManager), hookAddress);
+
+        // Validate hook address
+        BaseHookExtension(hookAddress).validateHookExtensionAddress(BaseHookExtension(hookAddress));
     }
 
     function initializePool(
@@ -118,28 +120,14 @@ contract UniswapV4Fixture is Test {
             currency1: currency1,
             fee: fee,
             tickSpacing: tickSpacing,
-            hooks: BaseHook(hook)
+            hooks: BaseHookExtension(hook)
         });
 
         // Initialize pool
         poolManager.initialize(poolKey, sqrtPriceX96, "");
     }
-
-    /*     function createPoolUniV3(
-        address token0,
-        address token1,
-        uint24 fee,
-        uint160 sqrtPriceX96,
-        uint16 observationCardinality
-    ) internal returns (IUniswapV3PoolExtension uniV3Pool_) {
-        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
-        address poolAddress =
-            nonfungiblePositionManager.createAndInitializePoolIfNecessary(token0, token1, fee, sqrtPriceX96);
-        uniV3Pool_ = IUniswapV3PoolExtension(poolAddress);
-        uniV3Pool_.increaseObservationCardinalityNext(observationCardinality);
-    }
-
-    function addLiquidityUniV3(
+    /* 
+    function addLiquidity(
         IUniswapV3PoolExtension pool,
         uint128 liquidity,
         address liquidityProvider_,
@@ -244,7 +232,7 @@ contract UniswapV4Fixture is Test {
                 deadline: type(uint256).max
             })
         );
-    } */
+    }  */
 
     function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
         return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));

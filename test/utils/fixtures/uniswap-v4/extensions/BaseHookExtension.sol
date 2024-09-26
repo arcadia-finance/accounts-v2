@@ -10,5 +10,9 @@ abstract contract BaseHookExtension is BaseHook {
 
     function validateHookAddress(BaseHook _this) internal pure virtual override { }
 
+    function validateHookExtensionAddress(BaseHookExtension _this) external pure {
+        Hooks.validateHookPermissions(_this, getHookPermissions());
+    }
+
     function getHookPermissions() public pure virtual override returns (Hooks.Permissions memory);
 }
