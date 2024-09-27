@@ -4,12 +4,14 @@
  */
 pragma solidity ^0.8.22;
 
+import { Actions } from "../../../../lib/v4-periphery-fork/src/libraries/Actions.sol";
 import { BaseHookExtension } from "./extensions/BaseHookExtension.sol";
 import { Currency } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/Currency.sol";
 import { HookMockValid } from "../..//mocks/UniswapV4/BaseAM/HookMockValid.sol";
 import { HookMockUnvalid } from "../../mocks/UniswapV4/BaseAM/HookMockUnvalid.sol";
 import { Hooks } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/Hooks.sol";
 import { IAllowanceTransfer } from "../../../../lib/v4-periphery-fork/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
+import { IPoolManager } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/interfaces/IPoolManager.sol";
 import { PoolKey } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PoolManagerExtension } from "./extensions/PoolManagerExtension.sol";
 import { PositionManagerExtension } from "./extensions/PositionManagerExtension.sol";
@@ -66,23 +68,20 @@ contract UniswapV4Fixture is Test {
         hooks[6] = Hooks.BEFORE_DONATE_FLAG;
         hooks[7] = Hooks.AFTER_DONATE_FLAG;
 
-        validHook = BaseHookExtension(deployHook(hooks, "HookMockValid.sol", true));
+        validHook = BaseHookExtension(deployHook(hooks, "HookMockValid.sol"));
 
         // Deploy unvalid hook
         hooks = new uint160[](2);
         hooks[0] = Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG;
         hooks[1] = Hooks.AFTER_REMOVE_LIQUIDITY_FLAG;
-        unvalidHook = BaseHookExtension(deployHook(hooks, "HookMockUnvalid.sol", false));
+        unvalidHook = BaseHookExtension(deployHook(hooks, "HookMockUnvalid.sol"));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
                                 HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    function deployHook(uint160[] memory hooks, string memory hookInstance, bool validHook_)
-        public
-        returns (address hookAddress)
-    {
+    function deployHook(uint160[] memory hooks, string memory hookInstance) public returns (address hookAddress) {
         // Set flags for hooks to implement
         uint160 flags;
         for (uint256 i; i < hooks.length; i++) {
@@ -126,25 +125,29 @@ contract UniswapV4Fixture is Test {
         // Initialize pool
         poolManager.initialize(poolKey, sqrtPriceX96, "");
     }
-    /* 
-    function addLiquidity(
-        IUniswapV3PoolExtension pool,
-        uint128 liquidity,
-        address liquidityProvider_,
+
+    function mintPosition(
+        PoolKey memory poolKey,
+        address owner,
         int24 tickLower,
         int24 tickUpper,
-        bool revertsOnZeroLiquidity
-    ) internal returns (uint256 tokenId, uint256 amount0_, uint256 amount1_) {
-        (uint160 sqrtPrice,,,,,,) = pool.slot0();
+        uint256 liquidity,
+        uint128 amount0Max,
+        uint128 amount1Max,
+        bytes32 salt
+    ) internal returns (uint256 tokenId) {
+        // Prepare the calldata for positionManager
+        bytes memory actions = abi.encodePacked(Actions.MINT_POSITION);
+        bytes[] memory params = new bytes[](1);
+        params[0] = abi.encode(poolKey, tickLower, tickUpper, liquidity, amount0Max, amount1Max, owner, "");
+        bytes memory mintData = abi.encode(actions, params);
 
-        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtPrice, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity
-        );
+        tokenId = positionManager.nextTokenId();
 
-        return
-            addLiquidityUniV3(pool, amount0, amount1, liquidityProvider_, tickLower, tickUpper, revertsOnZeroLiquidity);
+        positionManager.modifyLiquidities(mintData, block.timestamp);
     }
 
+    /* 
     function addLiquidityUniV3(
         IUniswapV3PoolExtension pool,
         uint256 amount0,

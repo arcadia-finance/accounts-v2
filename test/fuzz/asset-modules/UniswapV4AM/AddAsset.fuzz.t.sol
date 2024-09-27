@@ -34,42 +34,41 @@ contract AddAsset_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         vm.stopPrank();
     }
 
-    /*     function testFuzz_Revert_addAsset_ZeroLiquidity(
-        uint96 tokenId,
-        NonfungiblePositionManagerMock.Position memory position
-    ) public {
-        // Given: position is valid.
-        position = givenValidPosition(position);
+    function testFuzz_Revert_addAsset_ZeroLiquidity(uint80 tokenId, int24 tickLower, int24 tickUpper) public {
+        // Given : Valid ticks
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
-        // And: Liquidity is zero (test-case).
-        position.liquidity = 0;
+        // And : Position is set (with 0 liquidity)
+        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
-        nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), tokenId, position);
-
+        // When : Calling addAsset()
+        // Then : It should revert
         vm.startPrank(users.owner);
-        vm.expectRevert(UniswapV3AM.ZeroLiquidity.selector);
-        uniV3AM.addAsset(tokenId);
+        vm.expectRevert(UniswapV4AM.ZeroLiquidity.selector);
+        uniswapV4AM.addAsset(tokenId);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_addAsset(uint96 tokenId, NonfungiblePositionManagerMock.Position memory position)
-        public
-    {
-        // Given: position is valid.
-        position = givenValidPosition(position);
+    function testFuzz_Success_addAsset(uint96 tokenId, int24 tickLower, int24 tickUpper, uint128 liquidity) public {
+        // Given : Valid ticks
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
-        // And: Liquidity is not-zero (see testFuzz_Revert_addAsset_ZeroLiquidity).
-        position.liquidity = uint128(bound(position.liquidity, 1, type(uint128).max));
+        // And : Liquidity is not-zero
+        vm.assume(liquidity > 0);
+        bytes32 positionKey =
+            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+        poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
+        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
-        nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), tokenId, position);
-
+        // When : calling addAsset()
         vm.prank(users.owner);
-        uniV3AM.addAsset(tokenId);
+        uniswapV4AM.addAsset(tokenId);
 
-        assertEq(uniV3AM.getAssetToLiquidity(tokenId), position.liquidity);
+        // Then : It should return correct values
+        assertEq(liquidity, uniswapV4AM.getAssetToLiquidity(tokenId));
 
-        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(nonfungiblePositionManagerMock)));
-        bytes32[] memory underlyingAssetKeys = uniV3AM.getUnderlyingAssets(assetKey);
+        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
+        bytes32[] memory underlyingAssetKeys = uniswapV4AM.getUnderlyingAssets(assetKey);
 
         (address token0, address token1) = address(mockERC20.stable1) < address(mockERC20.stable2)
             ? (address(mockERC20.stable1), address(mockERC20.stable2))
@@ -77,5 +76,5 @@ contract AddAsset_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
 
         assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), token0)));
         assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), token1)));
-    } */
+    }
 }

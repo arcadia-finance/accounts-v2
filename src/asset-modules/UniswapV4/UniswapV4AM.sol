@@ -110,6 +110,10 @@ contract UniswapV4AM is DerivedAM {
             keccak256(abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)));
         uint128 liquidity = STATE_VIEW.getPositionLiquidity(poolKey.toId(), positionId);
 
+        // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
+        // deposit functions and there any deposit of non-allowed Underlying Assets will revert.
+        if (liquidity == 0) revert ZeroLiquidity();
+
         // Hook flags should be valid for this specific AM.
         uint160 hooks = uint160(address(poolKey.hooks));
         // TODO : Double check that if AFTER_REMOVE_LIQUIDITY_FLAG not implemented, not possible to NOOP in AFTER_REMOVE_LIQUIDITY_RETURNS_DELTA_FLAG.
@@ -117,10 +121,6 @@ contract UniswapV4AM is DerivedAM {
             Hooks.hasPermission(hooks, Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
                 || Hooks.hasPermission(hooks, Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
         ) revert HooksNotAllowed();
-
-        // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
-        // deposit functions and there any deposit of non-allowed Underlying Assets will revert.
-        if (liquidity == 0) revert ZeroLiquidity();
 
         // The liquidity of the Liquidity Position is stored in the Asset Module,
         // not fetched from the NonfungiblePositionManager.
@@ -130,6 +130,7 @@ contract UniswapV4AM is DerivedAM {
 
         bytes32 assetKey = _getKeyFromAsset(address(POSITION_MANAGER), assetId);
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
+
         underlyingAssetKeys[0] = _getKeyFromAsset(Currency.unwrap(poolKey.currency0), 0);
         underlyingAssetKeys[1] = _getKeyFromAsset(Currency.unwrap(poolKey.currency1), 0);
         assetToUnderlyingAssets[assetKey] = underlyingAssetKeys;

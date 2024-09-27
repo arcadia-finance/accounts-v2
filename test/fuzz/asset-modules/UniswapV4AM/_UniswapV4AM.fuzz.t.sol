@@ -36,7 +36,7 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
-
+    // Todo: delete ?
     struct TestVariables {
         uint256 decimals0;
         uint256 decimals1;
@@ -49,6 +49,7 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         uint80 liquidity;
     }
 
+    // Todo: delete ?
     struct UnderlyingAssetState {
         uint256 decimals;
         uint256 usdValue;
@@ -106,6 +107,11 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         sqrtPriceX96 = sqrtPriceXd14 * 2 ** 96 / 1e14;
         vm.assume(sqrtPriceX96 >= MIN_SQRT_PRICE);
         vm.assume(sqrtPriceX96 <= MAX_SQRT_PRICE);
+    }
+
+    function givenValidTicks(int24 tickLower, int24 tickUpper) public returns (int24 tickLower_, int24 tickUpper_) {
+        tickLower_ = int24(bound(tickLower, MIN_TICK, MAX_TICK - 2));
+        tickUpper_ = int24(bound(tickUpper, tickLower_, MAX_TICK));
     }
 
     /*     function givenValidPosition(NonfungiblePositionManagerMock.Position memory position)
