@@ -133,8 +133,7 @@ contract UniswapV4Fixture is Test {
         int24 tickUpper,
         uint256 liquidity,
         uint128 amount0Max,
-        uint128 amount1Max,
-        bytes32 salt
+        uint128 amount1Max
     ) internal returns (uint256 tokenId) {
         // Prepare the calldata for positionManager
         bytes memory actions = abi.encodePacked(Actions.MINT_POSITION);

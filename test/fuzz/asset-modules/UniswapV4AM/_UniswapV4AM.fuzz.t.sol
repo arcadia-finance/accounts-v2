@@ -109,23 +109,12 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         vm.assume(sqrtPriceX96 <= MAX_SQRT_PRICE);
     }
 
-    function givenValidTicks(int24 tickLower, int24 tickUpper) public returns (int24 tickLower_, int24 tickUpper_) {
+    function givenValidTicks(int24 tickLower, int24 tickUpper)
+        public
+        view
+        returns (int24 tickLower_, int24 tickUpper_)
+    {
         tickLower_ = int24(bound(tickLower, MIN_TICK, MAX_TICK - 2));
         tickUpper_ = int24(bound(tickUpper, tickLower_, MAX_TICK));
     }
-
-    /*     function givenValidPosition(NonfungiblePositionManagerMock.Position memory position)
-        internal
-        view
-        returns (NonfungiblePositionManagerMock.Position memory)
-    {
-        // Given: poolId is non zero (=position is initialised).
-        position.poolId = uint80(bound(position.poolId, 1, type(uint80).max));
-
-        // And: Ticks are within allowed ranges.
-        vm.assume(isWithinAllowedRange(position.tickLower));
-        vm.assume(isWithinAllowedRange(position.tickUpper));
-
-        return position;
-    } */
 }
