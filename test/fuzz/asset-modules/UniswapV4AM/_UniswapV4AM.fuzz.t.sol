@@ -27,6 +27,7 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
 
     UniswapV4AMExtension internal uniswapV4AM;
     PoolKey internal stablePoolKey;
+    PoolKey internal randomPoolKey;
 
     uint256 internal constant INT256_MAX = 2 ** 255 - 1;
     // While the true minimum value of an int256 is 2 ** 255, Solidity overflows on a negation (since INT256_MAX is one less).
@@ -36,7 +37,7 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
-    // Todo: delete ?
+
     struct TestVariables {
         uint256 decimals0;
         uint256 decimals1;
@@ -47,12 +48,6 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         uint64 priceToken0;
         uint64 priceToken1;
         uint80 liquidity;
-    }
-
-    // Todo: delete ?
-    struct UnderlyingAssetState {
-        uint256 decimals;
-        uint256 usdValue;
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -73,7 +68,7 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
             TickMath.getSqrtPriceAtTick(0),
             address(validHook),
             500,
-            10
+            1
         );
 
         // Deploy Asset-Module
@@ -115,6 +110,6 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         returns (int24 tickLower_, int24 tickUpper_)
     {
         tickLower_ = int24(bound(tickLower, MIN_TICK, MAX_TICK - 2));
-        tickUpper_ = int24(bound(tickUpper, tickLower_, MAX_TICK));
+        tickUpper_ = int24(bound(tickUpper, tickLower_ + 1, MAX_TICK));
     }
 }

@@ -5,20 +5,25 @@
 pragma solidity ^0.8.22;
 
 import { Actions } from "../../../../lib/v4-periphery-fork/src/libraries/Actions.sol";
+import { ActionConstants } from "../../../../lib/v4-periphery-fork/src/libraries/ActionConstants.sol";
 import { BaseHookExtension } from "./extensions/BaseHookExtension.sol";
 import { Currency } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/Currency.sol";
+import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { HookMockValid } from "../..//mocks/UniswapV4/BaseAM/HookMockValid.sol";
 import { HookMockUnvalid } from "../../mocks/UniswapV4/BaseAM/HookMockUnvalid.sol";
 import { Hooks } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/Hooks.sol";
 import { IAllowanceTransfer } from "../../../../lib/v4-periphery-fork/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
 import { IPoolManager } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/interfaces/IPoolManager.sol";
+import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
+import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
 import { PoolKey } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PoolManagerExtension } from "./extensions/PoolManagerExtension.sol";
 import { PositionManagerExtension } from "./extensions/PositionManagerExtension.sol";
 import { StateViewExtension } from "./extensions/StateViewExtension.sol";
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
+import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
 
-contract UniswapV4Fixture is Test {
+contract UniswapV4Fixture is Test, Permit2Fixture {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -28,6 +33,10 @@ contract UniswapV4Fixture is Test {
     StateViewExtension internal stateView;
     BaseHookExtension internal validHook;
     BaseHookExtension internal unvalidHook;
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                   CONSTANTS
+    //////////////////////////////////////////////////////////////////////////*/
 
     /// The minimum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**-128
     int24 internal constant MIN_TICK = -887_272;
@@ -39,19 +48,28 @@ contract UniswapV4Fixture is Test {
     /// The maximum value that can be returned from #getSqrtPriceAtTick. Equivalent to getSqrtPriceAtTick(MAX_TICK)
     uint160 internal constant MAX_SQRT_PRICE = 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342;
 
+    // A struct with the data to encode for position manager actions
+    struct Plan {
+        bytes actions;
+        bytes[] params;
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
 
-    function setUp() public virtual {
+    function setUp() public virtual override(Permit2Fixture) {
         // Deploy Pool Manager
         poolManager = new PoolManagerExtension();
 
         // Deploy StateView contract
         stateView = new StateViewExtension(poolManager);
 
+        // Deploy permit2
+        Permit2Fixture.setUp();
+
         // Deploy Position Manager
-        positionManager = new PositionManagerExtension(poolManager, IAllowanceTransfer(address(0)), 0);
+        positionManager = new PositionManagerExtension(poolManager, IAllowanceTransfer(address(permit2)), 0);
 
         // Deploy mocked hooks (to get contrac instance used below)
         validHook = new HookMockValid(poolManager);
@@ -81,6 +99,9 @@ contract UniswapV4Fixture is Test {
                                 HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /* //////////////////////////////////////////////////////////////
+                            POOL AND HOOK INIT
+    ////////////////////////////////////////////////////////////// */
     function deployHook(uint160[] memory hooks, string memory hookInstance) public returns (address hookAddress) {
         // Set flags for hooks to implement
         uint160 flags;
@@ -126,78 +147,122 @@ contract UniswapV4Fixture is Test {
         poolManager.initialize(poolKey, sqrtPriceX96, "");
     }
 
+    /* //////////////////////////////////////////////////////////////
+                         POSITION MANAGER ACTIONS
+    ////////////////////////////////////////////////////////////// */
+
+    function initPlan() internal pure returns (Plan memory plan) {
+        return Plan({ actions: bytes(""), params: new bytes[](0) });
+    }
+
+    function addAction(Plan memory plan, uint256 action, bytes memory param) internal pure returns (Plan memory) {
+        bytes memory actions = new bytes(plan.params.length + 1);
+        bytes[] memory params = new bytes[](plan.params.length + 1);
+
+        for (uint256 i; i < params.length - 1; i++) {
+            // Copy from plan.
+            params[i] = plan.params[i];
+            actions[i] = plan.actions[i];
+        }
+        params[params.length - 1] = param;
+        actions[params.length - 1] = bytes1(uint8(action));
+
+        plan.actions = actions;
+        plan.params = params;
+
+        return plan;
+    }
+
+    /* //////////////////////////////////////////////////////////////
+                                PERMIT 2
+    ////////////////////////////////////////////////////////////// */
+
+    function approvePositionManagerFor(address addr, address token) public {
+        vm.startPrank(addr);
+        ERC20(token).approve(address(permit2), type(uint256).max);
+        permit2.approve(token, address(positionManager), type(uint160).max, type(uint48).max);
+        vm.stopPrank();
+    }
+
+    /* //////////////////////////////////////////////////////////////
+                              SETTLE DELTAS
+    ////////////////////////////////////////////////////////////// */
+
+    function finalizeModifyLiquidityWithTake(Plan memory plan, PoolKey memory poolKey, address takeRecipient)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        plan = addAction(plan, Actions.TAKE, abi.encode(poolKey.currency0, takeRecipient, ActionConstants.OPEN_DELTA));
+        plan = addAction(plan, Actions.TAKE, abi.encode(poolKey.currency1, takeRecipient, ActionConstants.OPEN_DELTA));
+        return abi.encode(plan.actions, plan.params);
+    }
+
+    function finalizeModifyLiquidityWithClose(Plan memory plan, PoolKey memory poolKey)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        plan = addAction(plan, Actions.CLOSE_CURRENCY, abi.encode(poolKey.currency0));
+        plan = addAction(plan, Actions.CLOSE_CURRENCY, abi.encode(poolKey.currency1));
+        return abi.encode(plan.actions, plan.params);
+    }
+
+    /* //////////////////////////////////////////////////////////////
+                               MODIFY LIQUIDITY
+    ////////////////////////////////////////////////////////////// */
+
     function mintPosition(
         PoolKey memory poolKey,
-        address owner,
         int24 tickLower,
         int24 tickUpper,
         uint256 liquidity,
         uint128 amount0Max,
-        uint128 amount1Max
+        uint128 amount1Max,
+        address liquidityProvider
     ) internal returns (uint256 tokenId) {
         // Prepare the calldata for positionManager
-        bytes memory actions = abi.encodePacked(Actions.MINT_POSITION);
-        bytes[] memory params = new bytes[](1);
-        params[0] = abi.encode(poolKey, tickLower, tickUpper, liquidity, amount0Max, amount1Max, owner, "");
-        bytes memory mintData = abi.encode(actions, params);
+        Plan memory planner = initPlan();
+        bytes memory mintData;
+        {
+            planner = addAction(
+                planner,
+                Actions.MINT_POSITION,
+                abi.encode(poolKey, tickLower, tickUpper, liquidity, amount0Max, amount1Max, liquidityProvider, "")
+            );
+
+            mintData = finalizeModifyLiquidityWithClose(planner, poolKey);
+        }
 
         tokenId = positionManager.nextTokenId();
 
+        (uint160 sqrtPriceX96,,,) = stateView.getSlot0(poolKey.toId());
+
+        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtPriceX96,
+            TickMath.getSqrtPriceAtTick(tickLower),
+            TickMath.getSqrtPriceAtTick(tickUpper),
+            uint128(liquidity)
+        );
+
+        // Deal and approve tokens
+        address token0 = Currency.unwrap(poolKey.currency0);
+        address token1 = Currency.unwrap(poolKey.currency1);
+
+        // We can have some rounding issues between lib calculated amounts and contract, thus increase amount by 1
+        // Todo : further investigate rounding diff
+        deal(token0, liquidityProvider, amount0 + 1);
+        deal(token1, liquidityProvider, amount1 + 1);
+
+        // Approvals via permit2
+        approvePositionManagerFor(liquidityProvider, token0);
+        approvePositionManagerFor(liquidityProvider, token1);
+
+        vm.prank(liquidityProvider);
         positionManager.modifyLiquidities(mintData, block.timestamp);
     }
 
-    /* 
-    function addLiquidityUniV3(
-        IUniswapV3PoolExtension pool,
-        uint256 amount0,
-        uint256 amount1,
-        address liquidityProvider_,
-        int24 tickLower,
-        int24 tickUpper,
-        bool revertsOnZeroLiquidity
-    ) internal returns (uint256 tokenId, uint256 amount0_, uint256 amount1_) {
-        // Check if test should revert or be skipped when liquidity is zero.
-        // This is hard to check with assumes of the fuzzed inputs due to rounding errors.
-        if (!revertsOnZeroLiquidity) {
-            (uint160 sqrtPrice,,,,,,) = pool.slot0();
-            uint256 liquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
-                sqrtPrice,
-                TickMath.getSqrtRatioAtTick(tickLower),
-                TickMath.getSqrtRatioAtTick(tickUpper),
-                amount0,
-                amount1
-            );
-            vm.assume(liquidity > 0);
-        }
-
-        address token0 = pool.token0();
-        address token1 = pool.token1();
-        uint24 fee = pool.fee();
-
-        deal(token0, liquidityProvider_, amount0, true);
-        deal(token1, liquidityProvider_, amount1, true);
-        vm.startPrank(liquidityProvider_);
-        ERC20(token0).approve(address(nonfungiblePositionManager), type(uint256).max);
-        ERC20(token1).approve(address(nonfungiblePositionManager), type(uint256).max);
-        (tokenId,, amount0_, amount1_) = nonfungiblePositionManager.mint(
-            INonfungiblePositionManagerExtension.MintParams({
-                token0: token0,
-                token1: token1,
-                fee: fee,
-                tickLower: tickLower,
-                tickUpper: tickUpper,
-                amount0Desired: amount0,
-                amount1Desired: amount1,
-                amount0Min: 0,
-                amount1Min: 0,
-                recipient: liquidityProvider_,
-                deadline: type(uint256).max
-            })
-        );
-        vm.stopPrank();
-    }
-
-    function increaseLiquidityUniV3(
+    /*     function increaseLiquidityUniV3(
         IUniswapV3PoolExtension pool,
         uint256 tokenId,
         uint256 amount0,

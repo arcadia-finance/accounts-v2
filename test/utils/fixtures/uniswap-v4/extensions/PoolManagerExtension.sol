@@ -15,11 +15,7 @@ contract PoolManagerExtension is PoolManager {
         position.liquidity = liquidity;
     }
 
-    function getCurrentTick() public view returns (int24 currentTick) {
-        //currentTick = slot0.tick;
-    }
-
-    function setSqrtPriceX96(uint160 sqrtPriceX96_) public {
-        //slot0.sqrtPriceX96 = sqrtPriceX96_;
+    function getTickSpacingToMaxLiquidityPerTick(int24 tickSpacing) public pure returns (uint128 result) {
+        result = Pool.tickSpacingToMaxLiquidityPerTick(tickSpacing);
     }
 }
