@@ -50,6 +50,22 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         uint80 liquidity;
     }
 
+    struct UnderlyingAssetState {
+        uint256 decimals;
+        uint256 usdValue;
+    }
+
+    struct FeeGrowth {
+        uint256 desiredFee0;
+        uint256 desiredFee1;
+        uint256 lowerFeeGrowthOutside0X128;
+        uint256 upperFeeGrowthOutside0X128;
+        uint256 lowerFeeGrowthOutside1X128;
+        uint256 upperFeeGrowthOutside1X128;
+        uint256 feeGrowthGlobal0X128;
+        uint256 feeGrowthGlobal1X128;
+    }
+
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -83,7 +99,7 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
 
-    function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)
+    /*     function calculateAndValidateRangeTickCurrent(uint256 priceToken0, uint256 priceToken1)
         internal
         pure
         returns (uint256 sqrtPriceX96)
@@ -102,7 +118,7 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         sqrtPriceX96 = sqrtPriceXd14 * 2 ** 96 / 1e14;
         vm.assume(sqrtPriceX96 >= MIN_SQRT_PRICE);
         vm.assume(sqrtPriceX96 <= MAX_SQRT_PRICE);
-    }
+    } */
 
     function givenValidTicks(int24 tickLower, int24 tickUpper)
         public
