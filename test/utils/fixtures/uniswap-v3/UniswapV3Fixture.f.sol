@@ -41,23 +41,22 @@ contract UniswapV3Fixture is WETH9Fixture {
         // Add fee 100 with tickspacing 1.
         uniswapV3Factory.enableFeeAmount(100, 1);
 
+        // Deploy the NonfungiblePositionManager.
+        args = abi.encode(uniswapV3Factory_, address(weth9), address(0));
+        deployCodeTo("NonfungiblePositionManagerExtension.sol", args, 0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1);
+        nonfungiblePositionManager = INonfungiblePositionManagerExtension(0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1);
+
         // Get the bytecode of the UniswapV3PoolExtension.
         args = abi.encode();
         bytecode = abi.encodePacked(vm.getCode("UniswapV3PoolExtension.sol"), args);
         bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
 
-        // Get the bytecode of NonfungiblePositionManagerExtension, pass zero address for the NonfungibleTokenPositionDescriptor.
-        args = abi.encode(uniswapV3Factory_, address(weth9), address(0));
-        bytecode = abi.encodePacked(vm.getCode("NonfungiblePositionManagerExtension.sol"), args);
-
         // Overwrite constant in bytecode of NonfungiblePositionManager.
         // -> Replace the code hash of UniswapV3Pool.sol with the code hash of UniswapV3PoolExtension.sol
         bytes32 POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+        bytecode = address(nonfungiblePositionManager).code;
         bytecode = Utils.veryBadBytesReplacer(bytecode, POOL_INIT_CODE_HASH, poolExtensionInitCodeHash);
-
-        // Deploy NonfungiblePositionManagerExtension with modified bytecode.
-        address nonfungiblePositionManager_ = Utils.deployBytecode(bytecode);
-        nonfungiblePositionManager = INonfungiblePositionManagerExtension(nonfungiblePositionManager_);
+        vm.etch(address(nonfungiblePositionManager), bytecode);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

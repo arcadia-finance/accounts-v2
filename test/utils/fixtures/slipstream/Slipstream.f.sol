@@ -52,9 +52,8 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
 
         // Deploy the NonfungiblePositionManager, pass zero address for the NonfungibleTokenPositionDescriptor.
         args = abi.encode(cLFactory_, address(weth9), address(0), "", "");
-        bytecode = abi.encodePacked(vm.getCode("periphery/NonfungiblePositionManager.sol"), args);
-        address nonfungiblePositionManager_ = Utils.deployBytecode(bytecode);
-        slipstreamPositionManager = INonfungiblePositionManagerExtension(nonfungiblePositionManager_);
+        deployCodeTo("periphery/NonfungiblePositionManager.sol", args, 0x827922686190790b37229fd06084350E74485b72);
+        slipstreamPositionManager = INonfungiblePositionManagerExtension(0x827922686190790b37229fd06084350E74485b72);
     }
 
     function deployCLGaugeFactory() internal {
