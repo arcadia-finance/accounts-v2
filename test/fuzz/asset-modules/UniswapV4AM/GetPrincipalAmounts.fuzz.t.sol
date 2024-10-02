@@ -4,14 +4,13 @@
  */
 pragma solidity ^0.8.22;
 
-import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
-
-import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
+import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV4/libraries/LiquidityAmountsV4.sol";
 import { PoolKey } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import {
     PositionInfoLibrary, PositionInfo
 } from "../../../../lib/v4-periphery-fork/src/libraries/PositionInfoLibrary.sol";
 import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
+import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "getPrincipalAmounts" of contract "UniswapV4AM".

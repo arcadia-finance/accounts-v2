@@ -4,10 +4,9 @@
  */
 pragma solidity ^0.8.22;
 
-import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
-
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { Utils } from "../../../utils/Utils.sol";
+import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "_calculateValueAndRiskFactors" of contract "UniswapV4AM".

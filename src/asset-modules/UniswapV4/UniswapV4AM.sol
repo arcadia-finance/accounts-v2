@@ -13,7 +13,7 @@ import { FullMath } from "../../../lib/v4-periphery-fork/lib/v4-core/src/librari
 import { Hooks } from "./libraries/Hooks.sol";
 import { IPositionManager } from "./interfaces/IPositionManager.sol";
 import { IStateView } from "./interfaces/IStateView.sol";
-import { LiquidityAmounts } from "../UniswapV3/libraries/LiquidityAmounts.sol";
+import { LiquidityAmounts } from "./libraries/LiquidityAmountsV4.sol";
 import { PoolId, PoolIdLibrary } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolId.sol";
 import { PoolKey } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PositionInfoLibrary, PositionInfo } from "../../../lib/v4-periphery-fork/src/libraries/PositionInfoLibrary.sol";

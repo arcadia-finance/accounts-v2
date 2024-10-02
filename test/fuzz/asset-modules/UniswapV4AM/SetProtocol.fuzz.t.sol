@@ -4,12 +4,11 @@
  */
 pragma solidity ^0.8.22;
 
-import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
-
 import { IAllowanceTransfer } from "../../../../lib/v4-periphery-fork/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
 import { PositionManagerExtension } from
     "../../../../test/utils/fixtures/uniswap-v4/extensions/PositionManagerExtension.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
 import { UniswapV4AMExtension } from "../../../utils/extensions/UniswapV4AMExtension.sol";
 
 /**
