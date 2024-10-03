@@ -177,11 +177,9 @@ contract GetFeeAmounts_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         // As fee amount is calculated based on deducting feeGrowthOutside from feeGrowthGlobal,
         // no need to test with fuzzed feeGrowthOutside values as no risk of potential rounding errors (we're not testing UniV4 contracts).
         uint256 feeGrowthDiff0X128 = feeData.desiredFee0.mulDivDown(FixedPoint128.Q128, liquidity);
-
         feeData.feeGrowthGlobal0X128 = feeGrowthDiff0X128;
 
         uint256 feeGrowthDiff1X128 = feeData.desiredFee1.mulDivDown(FixedPoint128.Q128, liquidity);
-
         feeData.feeGrowthGlobal1X128 = feeGrowthDiff1X128;
 
         {
@@ -199,6 +197,79 @@ contract GetFeeAmounts_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
 
         // And : Valid pool state
         poolManager.setFeeGrowthGlobal(stablePoolKey.toId(), feeData.feeGrowthGlobal0X128, feeData.feeGrowthGlobal1X128);
+
+        PositionInfo info = PositionInfoLibrary.initialize(stablePoolKey, tickLower, tickUpper);
+        // When : calling getFeeAmounts()
+        (uint256 fee0, uint256 fee1) = uniswapV4AM.getFeeAmounts(tokenId, stablePoolKey.toId(), info, liquidity);
+
+        // Then : It should return the correct values, we can have rounding diff of max 1
+        assertApproxEqAbs(feeData.desiredFee0, fee0, 1);
+        assertApproxEqAbs(feeData.desiredFee1, fee1, 1);
+
+        // And : Fees returned should always be lower or equal to expected fee (avoid reverting transactions)
+        assertLe(fee0, feeData.desiredFee0);
+        assertLe(fee1, feeData.desiredFee1);
+    }
+
+    function testFuzz_success_getFeeAmounts_withFeeGrowthInsideLast_positionInRange(
+        FeeGrowth memory feeData,
+        uint96 tokenId,
+        int24 tickLower,
+        int24 tickUpper,
+        uint256 feeGrowthInside0LastX128,
+        uint256 feeGrowthInside1LastX128,
+        uint128 liquidity
+    ) public {
+        // Given : Liquidity is > 0
+        vm.assume(liquidity > 0);
+
+        // And : Positive fee
+        feeData.desiredFee0 = bound(feeData.desiredFee0, 1, type(uint128).max);
+        feeData.desiredFee1 = bound(feeData.desiredFee1, 1, type(uint128).max);
+
+        // And : Positive freeGrowthInsideLast
+        feeGrowthInside0LastX128 = bound(feeGrowthInside0LastX128, 1, type(uint96).max);
+        feeGrowthInside0LastX128 *= FixedPoint128.Q128;
+        feeGrowthInside1LastX128 = bound(feeGrowthInside1LastX128, 1, type(uint96).max);
+        feeGrowthInside1LastX128 *= FixedPoint128.Q128;
+
+        // And : Calculate expected feeGrowth difference in order to obtain desired fee
+        // (fee * Q128) / liquidity = diff in Q128.
+        // As fee amount is calculated based on deducting feeGrowthOutside from feeGrowthGlobal,
+        // no need to test with fuzzed feeGrowthOutside values as no risk of potential rounding errors (we're not testing UniV4 contracts).
+        uint256 feeGrowthDiff0X128 = feeData.desiredFee0.mulDivDown(FixedPoint128.Q128, liquidity);
+        feeData.feeGrowthGlobal0X128 = feeGrowthDiff0X128 + feeGrowthInside0LastX128;
+
+        uint256 feeGrowthDiff1X128 = feeData.desiredFee1.mulDivDown(FixedPoint128.Q128, liquidity);
+        feeData.feeGrowthGlobal1X128 = feeGrowthDiff1X128 + feeGrowthInside1LastX128;
+
+        bytes32 positionKey;
+        {
+            // And : Position should be in range
+            (, int24 currentTick,,) = stateView.getSlot0(stablePoolKey.toId());
+            tickLower = int24(bound(tickLower, MIN_TICK, currentTick - 1));
+            tickUpper = int24(bound(tickUpper, currentTick + 1, MAX_TICK));
+
+            // And : Position is set
+            positionKey =
+                keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
+            positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        }
+
+        // And : Valid pool state
+        poolManager.setFeeGrowthGlobal(stablePoolKey.toId(), feeData.feeGrowthGlobal0X128, feeData.feeGrowthGlobal1X128);
+        poolManager.setFeeGrowthInsideLast(
+            stablePoolKey.toId(), positionKey, feeGrowthInside0LastX128, feeGrowthInside1LastX128
+        );
+
+        {
+            // Validate the call to StateView returns the expected values
+            (, uint256 feeGrowthInside0LastX128_, uint256 feeGrowthInside1LastX128_) =
+                stateView.getPositionInfo(stablePoolKey.toId(), positionKey);
+            assertEq(feeGrowthInside0LastX128, feeGrowthInside0LastX128_);
+            assertEq(feeGrowthInside1LastX128, feeGrowthInside1LastX128_);
+        }
 
         PositionInfo info = PositionInfoLibrary.initialize(stablePoolKey, tickLower, tickUpper);
         // When : calling getFeeAmounts()
