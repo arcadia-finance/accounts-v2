@@ -24,7 +24,7 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
     //////////////////////////////////////////////////////////////////////////*/
 
     address internal poolImplementation = 0xF926b5acC092E396A3b337642Be2E4cAe3f5da8E;
-    ICLFactoryExtension internal cLFactory;
+    ICLFactoryExtension internal cLFactory = ICLFactoryExtension(0x5e7BB104d84c7CB9B682AaC2F3d509f5F406809A);
     ICLGaugeFactory internal cLGaugeFactory;
     INonfungiblePositionManagerExtension internal slipstreamPositionManager =
         INonfungiblePositionManagerExtension(0x827922686190790b37229fd06084350E74485b72);
@@ -47,12 +47,10 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
 
         // Deploy the CLFactory.
         args = abi.encode(address(voter), poolImplementation);
-        bytes memory bytecode = abi.encodePacked(vm.getCode("CLFactory.sol"), args);
-        address cLFactory_ = Utils.deployBytecode(bytecode);
-        cLFactory = ICLFactoryExtension(cLFactory_);
+        deployCodeTo("CLFactory.sol", args, address(cLFactory));
 
         // Deploy the NonfungiblePositionManager, pass zero address for the NonfungibleTokenPositionDescriptor.
-        args = abi.encode(cLFactory_, address(weth9), address(0), "", "");
+        args = abi.encode(address(cLFactory), address(weth9), address(0), "", "");
         deployCodeTo("periphery/NonfungiblePositionManager.sol", args, address(slipstreamPositionManager));
     }
 
