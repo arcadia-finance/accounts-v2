@@ -147,10 +147,8 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
             givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
 
         // Check that exposure to underlying tokens stays below maxExposures.
-        // vm.assume(amount0 + initialExposure0 < maxExposure0);
-        // vm.assume(amount1 + initialExposure1 < maxExposure1);
-        initialExposure0 = uint112(bound(initialExposure0, 0, maxExposure0 + amount0));
-        initialExposure1 = uint112(bound(initialExposure1, 0, maxExposure1 + amount1));
+        vm.assume(amount0 + initialExposure0 < maxExposure0);
+        vm.assume(amount1 + initialExposure1 < maxExposure1);
 
         // And: Usd value of underlying assets does not overflow.
         vm.assume(amount0 + initialExposure0 < type(uint112).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
