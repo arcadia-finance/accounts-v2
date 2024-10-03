@@ -20,7 +20,7 @@ contract UniswapV3Fixture is WETH9Fixture {
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    IUniswapV3Factory internal uniswapV3Factory;
+    IUniswapV3Factory internal uniswapV3Factory = IUniswapV3Factory(0x33128a8fC17869897dcE68Ed026d694621f6FDfD);
     INonfungiblePositionManagerExtension internal nonfungiblePositionManager =
         INonfungiblePositionManagerExtension(0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1);
 
@@ -36,19 +36,17 @@ contract UniswapV3Fixture is WETH9Fixture {
 
         // Deploy the uniswapV3Factory.
         bytes memory args = abi.encode();
-        bytes memory bytecode = abi.encodePacked(vm.getCode("UniswapV3FactoryExtension.sol"), args);
-        address uniswapV3Factory_ = Utils.deployBytecode(bytecode);
-        uniswapV3Factory = IUniswapV3Factory(uniswapV3Factory_);
+        deployCodeTo("UniswapV3FactoryExtension.sol", args, address(uniswapV3Factory));
         // Add fee 100 with tickspacing 1.
         uniswapV3Factory.enableFeeAmount(100, 1);
 
         // Deploy the NonfungiblePositionManager.
-        args = abi.encode(uniswapV3Factory_, address(weth9), address(0));
+        args = abi.encode(address(uniswapV3Factory), address(weth9), address(0));
         deployCodeTo("NonfungiblePositionManagerExtension.sol", args, address(nonfungiblePositionManager));
 
         // Get the bytecode of the UniswapV3PoolExtension.
         args = abi.encode();
-        bytecode = abi.encodePacked(vm.getCode("UniswapV3PoolExtension.sol"), args);
+        bytes memory bytecode = abi.encodePacked(vm.getCode("UniswapV3PoolExtension.sol"), args);
         bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.
