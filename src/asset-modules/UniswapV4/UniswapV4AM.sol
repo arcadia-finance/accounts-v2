@@ -116,14 +116,13 @@ contract UniswapV4AM is DerivedAM {
 
         // Hook flags should be valid for this specific AM.
         uint160 hooks = uint160(address(poolKey.hooks));
-        // TODO : Double check that if AFTER_REMOVE_LIQUIDITY_FLAG not implemented, not possible to NOOP in AFTER_REMOVE_LIQUIDITY_RETURNS_DELTA_FLAG.
         if (
             Hooks.hasPermission(hooks, Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
                 || Hooks.hasPermission(hooks, Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
         ) revert HooksNotAllowed();
 
         // The liquidity of the Liquidity Position is stored in the Asset Module,
-        // not fetched from the NonfungiblePositionManager.
+        // not fetched from the PositionManager.
         // Since liquidity of a position can be increased by a non-owner,
         // the max exposure checks could otherwise be circumvented.
         assetToLiquidity[assetId] = liquidity;
