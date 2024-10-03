@@ -174,7 +174,7 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         uint256 priceToken0,
         uint256 priceToken1,
         uint8 outOfRange
-    ) public returns (uint256 tokenId, uint256 amount0, uint256 amount1) {
+    ) public returns (uint256 tokenId, uint256 amount0, uint256 amount1, bytes32 positionKey) {
         // Given : Calculate and check that tick current is within allowed ranges.
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
         int24 currentTick = TickMath.getTickAtSqrtPrice(sqrtPriceX96);
@@ -221,9 +221,8 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         // Calculate amounts of underlying tokens.
         // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
         // This is because there might be some small differences due to rounding errors.
-        bytes32 positionId =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(tokenId)));
-        uint128 liquidity_ = stateView.getPositionLiquidity(randomPoolKey.toId(), positionId);
+        positionKey = keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(tokenId)));
+        uint128 liquidity_ = stateView.getPositionLiquidity(randomPoolKey.toId(), positionKey);
 
         (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity_

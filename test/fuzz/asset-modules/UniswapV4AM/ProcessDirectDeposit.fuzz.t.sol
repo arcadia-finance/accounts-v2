@@ -42,7 +42,7 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         vm.assume(unprivilegedAddress != address(registry));
 
         // Given : Valid state
-        (uint256 tokenId,,) = givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
+        (uint256 tokenId,,,) = givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
 
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert(AssetModule.OnlyRegistry.selector);
@@ -80,7 +80,7 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         uint112 maxExposure0
     ) public {
         // Given : Valid state, with position fully in token0 (amount0 needed in this test case)
-        (uint256 tokenId, uint256 amount0,) =
+        (uint256 tokenId, uint256 amount0,,) =
             givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 2);
 
         // And : Condition on which the call should revert: exposure to token0 becomes bigger than maxExposure0.
@@ -111,7 +111,7 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         uint112 maxExposure1
     ) public {
         // Given : Valid state, with position fully in token0 (amount0 needed in this test case)
-        (uint256 tokenId,, uint256 amount1) =
+        (uint256 tokenId,, uint256 amount1,) =
             givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 1);
 
         // Condition on which the call should revert: exposure to token1 becomes bigger than maxExposure1.
@@ -143,7 +143,7 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         uint112 maxExposure1
     ) public {
         // Given : Valid state
-        (uint256 tokenId, uint256 amount0, uint256 amount1) =
+        (uint256 tokenId, uint256 amount0, uint256 amount1,) =
             givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
 
         // Check that exposure to underlying tokens stays below maxExposures.
@@ -190,7 +190,7 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         uint112 maxExposure1
     ) public {
         // Given : Valid state
-        (uint256 tokenId, uint256 amount0, uint256 amount1) =
+        (uint256 tokenId, uint256 amount0, uint256 amount1,) =
             givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
 
         // And : Exposure to underlying tokens stays below maxExposures.
@@ -263,7 +263,7 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         uint112 maxExposure1
     ) public {
         // Given : Valid state
-        (uint256 tokenId, uint256 amount0, uint256 amount1) =
+        (uint256 tokenId, uint256 amount0, uint256 amount1,) =
             givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
 
         // Check that exposure to underlying tokens stays below maxExposures.
@@ -338,7 +338,7 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         uint112 maxExposure1
     ) public {
         // Given : Valid state
-        (uint256 tokenId, uint256 amount0, uint256 amount1) =
+        (uint256 tokenId, uint256 amount0, uint256 amount1, bytes32 positionKey) =
             givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
 
         // Check that exposure to underlying tokens stays below maxExposures.
@@ -370,8 +370,6 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
 
         {
             // And: liquidity of the deposited position is increased.
-            bytes32 positionKey =
-                keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(tokenId)));
             uint128 currentLiquidity = stateView.getPositionLiquidity(randomPoolKey.toId(), positionKey);
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, currentLiquidity + 1e18);
 
