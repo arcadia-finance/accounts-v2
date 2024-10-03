@@ -21,7 +21,8 @@ contract UniswapV3Fixture is WETH9Fixture {
     //////////////////////////////////////////////////////////////////////////*/
 
     IUniswapV3Factory internal uniswapV3Factory;
-    INonfungiblePositionManagerExtension internal nonfungiblePositionManager;
+    INonfungiblePositionManagerExtension internal nonfungiblePositionManager =
+        INonfungiblePositionManagerExtension(0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1);
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -43,8 +44,7 @@ contract UniswapV3Fixture is WETH9Fixture {
 
         // Deploy the NonfungiblePositionManager.
         args = abi.encode(uniswapV3Factory_, address(weth9), address(0));
-        deployCodeTo("NonfungiblePositionManagerExtension.sol", args, 0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1);
-        nonfungiblePositionManager = INonfungiblePositionManagerExtension(0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1);
+        deployCodeTo("NonfungiblePositionManagerExtension.sol", args, address(nonfungiblePositionManager));
 
         // Get the bytecode of the UniswapV3PoolExtension.
         args = abi.encode();

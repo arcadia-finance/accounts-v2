@@ -23,9 +23,11 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
+    address internal poolImplementation = 0xF926b5acC092E396A3b337642Be2E4cAe3f5da8E;
     ICLFactoryExtension internal cLFactory;
     ICLGaugeFactory internal cLGaugeFactory;
-    INonfungiblePositionManagerExtension internal slipstreamPositionManager;
+    INonfungiblePositionManagerExtension internal slipstreamPositionManager =
+        INonfungiblePositionManagerExtension(0x827922686190790b37229fd06084350E74485b72);
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -41,19 +43,17 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
 
         // Deploy CLPool.
         bytes memory args = abi.encode();
-        bytes memory bytecode = abi.encodePacked(vm.getCode("CLPoolExtension.sol"), args);
-        address cLPool_ = Utils.deployBytecode(bytecode);
+        deployCodeTo("CLPoolExtension.sol", args, poolImplementation);
 
         // Deploy the CLFactory.
-        args = abi.encode(address(voter), cLPool_);
-        bytecode = abi.encodePacked(vm.getCode("CLFactory.sol"), args);
+        args = abi.encode(address(voter), poolImplementation);
+        bytes memory bytecode = abi.encodePacked(vm.getCode("CLFactory.sol"), args);
         address cLFactory_ = Utils.deployBytecode(bytecode);
         cLFactory = ICLFactoryExtension(cLFactory_);
 
         // Deploy the NonfungiblePositionManager, pass zero address for the NonfungibleTokenPositionDescriptor.
         args = abi.encode(cLFactory_, address(weth9), address(0), "", "");
-        deployCodeTo("periphery/NonfungiblePositionManager.sol", args, 0x827922686190790b37229fd06084350E74485b72);
-        slipstreamPositionManager = INonfungiblePositionManagerExtension(0x827922686190790b37229fd06084350E74485b72);
+        deployCodeTo("periphery/NonfungiblePositionManager.sol", args, address(slipstreamPositionManager));
     }
 
     function deployCLGaugeFactory() internal {
