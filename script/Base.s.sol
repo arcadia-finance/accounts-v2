@@ -27,6 +27,7 @@ abstract contract Base_Script is Test, SafeTransactionBuilder {
     AerodromePoolAM internal aerodromePoolAM = AerodromePoolAM(ArcadiaContracts.AERO_POOL_AM);
     ChainlinkOM internal chainlinkOM = ChainlinkOM(ArcadiaContracts.CHAINLINK_OM);
     ERC20PrimaryAM internal erc20PrimaryAM = ERC20PrimaryAM(ArcadiaContracts.ERC20_PRIMARY_AM);
+    ILendingPool internal cbbtcLendingPool = ILendingPool(ArcadiaContracts.LENDINGPOOL_CBBTC);
     ILendingPool internal usdcLendingPool = ILendingPool(ArcadiaContracts.LENDINGPOOL_USDC);
     ILendingPool internal wethLendingPool = ILendingPool(ArcadiaContracts.LENDINGPOOL_WETH);
     Registry internal registry = Registry(ArcadiaContracts.REGISTRY);
