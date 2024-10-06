@@ -23,7 +23,7 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    address internal poolImplementation = 0xF926b5acC092E396A3b337642Be2E4cAe3f5da8E;
+    address internal poolImplementation = 0xeC8E5342B19977B4eF8892e02D8DAEcfa1315831;
     ICLFactoryExtension internal cLFactory = ICLFactoryExtension(0x5e7BB104d84c7CB9B682AaC2F3d509f5F406809A);
     ICLGaugeFactory internal cLGaugeFactory;
     INonfungiblePositionManagerExtension internal slipstreamPositionManager =
