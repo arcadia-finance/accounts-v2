@@ -24,5 +24,7 @@ interface ICLPoolExtension is ICLPool {
 
     function setSqrtPriceX96(uint160 sqrtPriceX96_) external;
 
+    function liquidity() external returns (uint128 liquidity);
+
     function fee() external view returns (uint24);
 }
