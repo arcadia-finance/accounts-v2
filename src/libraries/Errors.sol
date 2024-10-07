@@ -21,10 +21,11 @@ library AccountErrors {
     error NoReentry();
     error NonZeroOpenPosition();
     error NumeraireNotFound();
-    error OnlyFactory();
     error OnlyCreditor();
+    error OnlyFactory();
     error OnlyLiquidator();
     error OnlyOwner();
+    error OnlySelf();
     error TooManyAssets();
     error UnknownAsset();
     error UnknownAssetType();

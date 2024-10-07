@@ -121,12 +121,17 @@ contract AccountSpot is AccountStorageV1, IAccount {
     /**
      * @notice Initiates the variables of the Account.
      * @param owner_ The sender of the 'createAccount' on the Factory
+     * @param registry_ The 'beacon' contract with the external logic to price assets.
      * @dev A proxy will be used to interact with the Account implementation.
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
      * @dev initialize has implicitly a nonReentrant guard, since the "locked" variable has value zero until the end of the function.
+     * @dev The Registry is not used in spot accounts, but a valid registry must be set to be compatible with V1 Accounts
      */
-    function initialize(address owner_, address, address) external onlyFactory {
+    function initialize(address owner_, address registry_, address) external onlyFactory {
+        if (registry_ == address(0)) revert AccountErrors.InvalidRegistry();
         owner = owner_;
+        registry = registry_;
+
         locked = 1;
     }
 
@@ -171,20 +176,144 @@ contract AccountSpot is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Finalizes the Upgrade to a new Account version on the new implementation Contract.
-     * @param oldImplementation The old contract address of the Account implementation.
-     * @param oldRegistry The Registry of the old version (might be identical to the new registry)
-     * @param oldVersion The old version of the Account implementation.
-     * @param data Arbitrary data, can contain instructions to execute in this function.
+     * @notice Finalizes the Upgrade from a different Account version to this version.
+     * param oldImplementation The old contract address of the Account implementation.
+     * param oldRegistry The Registry of the old version (might be identical to the new registry)
+     * param oldVersion The old version of the Account implementation.
+     * param data Arbitrary data, can contain instructions to execute in this function.
      * @dev If upgradeHook() is implemented, it MUST verify that msg.sender == address(this).
+     * @dev We delete the deprecated AccountStorageV1 variables.
      */
-    function upgradeHook(address oldImplementation, address oldRegistry, uint256 oldVersion, bytes calldata data)
-        external
-    { }
+    function upgradeHook(address, address, uint256, bytes calldata) external {
+        if (msg.sender != address(this)) revert AccountErrors.OnlySelf();
+
+        // Require that no creditor is set.
+        // (This should always be enforced it the old Version we upgrade from, but we do a redundant safety check).
+        if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
+
+        // Delete margin account related storage data (should normally already be empty).
+        delete liquidator;
+        delete minimumMargin;
+        delete numeraire;
+
+        // Delete asset related storage data.
+        uint256 erc20StoredLength = erc20Stored.length;
+        for (uint256 i = 0; i < erc20StoredLength; ++i) {
+            delete erc20Balances[erc20Stored[i]];
+        }
+        delete erc20Stored;
+
+        delete erc721Stored;
+        delete erc721TokenIds;
+
+        uint256 erc1155StoredLength = erc1155Stored.length;
+        for (uint256 j = 0; j < erc1155StoredLength; ++j) {
+            delete erc1155Balances[erc1155Stored[j]][erc1155TokenIds[j]];
+        }
+        delete erc1155Stored;
+        delete erc1155TokenIds;
+    }
 
     /* ///////////////////////////////////////////////////////////////
-                          DEPOSIT / WITHDRAW LOGIC
+                        OWNERSHIP MANAGEMENT
     /////////////////////////////////////////////////////////////// */
+
+    /**
+     * @notice Transfers ownership of the contract to a new Account.
+     * @param newOwner The new owner of the Account.
+     * @dev Can only be called by the current owner via the Factory.
+     * A transfer of ownership of the Account is triggered by a transfer
+     * of ownership of the accompanying ERC721 Account NFT, issued by the Factory.
+     * Owner of Account NFT = owner of Account
+     * @dev Function uses a cool-down period during which ownership cannot be transferred.
+     * Cool-down period is triggered after any account action, that might be disadvantageous for a new Owner.
+     * This prevents the old Owner from frontrunning a transferFrom().
+     */
+    function transferOwnership(address newOwner) external onlyFactory {
+        if (block.timestamp <= lastActionTimestamp + COOL_DOWN_PERIOD) revert AccountErrors.CoolDownPeriodNotPassed();
+
+        // The Factory will check that the new owner is not address(0).
+        owner = newOwner;
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                       ASSET MANAGER ACTIONS
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Add or remove an Asset Manager.
+     * @param assetManager The address of the Asset Manager.
+     * @param value A boolean giving permissions to or taking permissions from an Asset Manager.
+     * @dev Only set trusted addresses as Asset Manager. Asset Managers have full control over assets in the Account.
+     * @dev No need to set the Owner as Asset Manager as they will automatically have all permissions of an Asset Manager.
+     * @dev Potential use-cases of the Asset Manager might be to:
+     * - Liquidity Management.
+     * - Do flash actions (optimistic actions).
+     * - Compounding.
+     * - Chain multiple interactions together.
+     * @dev Anyone can set the Asset Manager for themselves, this will not impact the current owner of the Account
+     * since the combination of "stored owner -> asset manager" is used in authentication checks.
+     * This guarantees that when the ownership of the Account is transferred, the asset managers of the old owner have no
+     * impact on the new owner. But the new owner can still remove any existing asset managers before the transfer.
+     */
+    function setAssetManager(address assetManager, bool value) external {
+        emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = value);
+    }
+
+    /**
+     * @notice Executes a flash action.
+     * @param actionTarget The contract address of the actionTarget to execute external logic.
+     * @param actionData A bytes object containing three structs and two bytes objects.
+     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
+     * The second struct contains the info about the owner's assets that need to be transferred from the owner to the actionTarget.
+     * The third struct contains the permit for the Permit2 transfer.
+     * The first bytes object contains the signature for the Permit2 transfer.
+     * The second bytes object contains the encoded input for the actionTarget.
+     * @dev This function optimistically chains multiple actions together (= do a flash action):
+     * - It can optimistically withdraw assets from the Account to the actionTarget.
+     * - It can transfer assets directly from the owner to the actionTarget.
+     * - It can execute external logic on the actionTarget, and interact with any DeFi protocol to swap, stake, claim...
+     * - It can deposit all recipient tokens from the actionTarget back into the Account.
+     */
+    function flashAction(address actionTarget, bytes calldata actionData)
+        external
+        onlyAssetManager
+        nonReentrant
+        updateActionTimestamp
+    {
+        // Decode flash action data.
+        (
+            ActionData memory withdrawData,
+            ActionData memory transferFromOwnerData,
+            IPermit2.PermitBatchTransferFrom memory permit,
+            bytes memory signature,
+            bytes memory actionTargetData
+        ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes, bytes));
+
+        // Withdraw assets to the actionTarget.
+        _withdraw(withdrawData, actionTarget);
+
+        // Transfer assets from owner (that are not assets in this account) to the actionTarget.
+        if (transferFromOwnerData.assets.length > 0) {
+            _transferFromOwner(transferFromOwnerData, actionTarget);
+        }
+
+        // If the function input includes a signature and non-empty token permissions,
+        // initiate a transfer from the owner to the actionTarget via Permit2.
+        if (signature.length > 0 && permit.permitted.length > 0) {
+            _transferFromOwnerWithPermit(permit, signature, actionTarget);
+        }
+
+        // Execute external logic on the actionTarget.
+        ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
+
+        // Deposit assets from actionTarget into Account.
+        _deposit(depositData, actionTarget);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                          ASSET MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
 
     /**
      * @notice Deposits assets into the Account.
@@ -283,103 +412,6 @@ contract AccountSpot is AccountStorageV1, IAccount {
                 revert AccountErrors.UnknownAssetType();
             }
         }
-    }
-
-    /* ///////////////////////////////////////////////////////////////
-                        OWNERSHIP MANAGEMENT
-    /////////////////////////////////////////////////////////////// */
-
-    /**
-     * @notice Transfers ownership of the contract to a new Account.
-     * @param newOwner The new owner of the Account.
-     * @dev Can only be called by the current owner via the Factory.
-     * A transfer of ownership of the Account is triggered by a transfer
-     * of ownership of the accompanying ERC721 Account NFT, issued by the Factory.
-     * Owner of Account NFT = owner of Account
-     * @dev Function uses a cool-down period during which ownership cannot be transferred.
-     * Cool-down period is triggered after any account action, that might be disadvantageous for a new Owner.
-     * This prevents the old Owner from frontrunning a transferFrom().
-     */
-    function transferOwnership(address newOwner) external onlyFactory {
-        if (block.timestamp <= lastActionTimestamp + COOL_DOWN_PERIOD) revert AccountErrors.CoolDownPeriodNotPassed();
-
-        // The Factory will check that the new owner is not address(0).
-        owner = newOwner;
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                       ASSET MANAGER ACTIONS
-    ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Add or remove an Asset Manager.
-     * @param assetManager The address of the Asset Manager.
-     * @param value A boolean giving permissions to or taking permissions from an Asset Manager.
-     * @dev Only set trusted addresses as Asset Manager. Asset Managers have full control over assets in the Account.
-     * @dev No need to set the Owner as Asset Manager as they will automatically have all permissions of an Asset Manager.
-     * @dev Potential use-cases of the Asset Manager might be to:
-     * - Liquidity Management.
-     * - Do flash actions (optimistic actions).
-     * - Compounding.
-     * - Chain multiple interactions together.
-     * @dev Anyone can set the Asset Manager for themselves, this will not impact the current owner of the Account
-     * since the combination of "stored owner -> asset manager" is used in authentication checks.
-     * This guarantees that when the ownership of the Account is transferred, the asset managers of the old owner have no
-     * impact on the new owner. But the new owner can still remove any existing asset managers before the transfer.
-     */
-    function setAssetManager(address assetManager, bool value) external {
-        emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = value);
-    }
-
-    /**
-     * @notice Executes a flash action.
-     * @param actionTarget The contract address of the actionTarget to execute external logic.
-     * @param actionData A bytes object containing three structs and two bytes objects.
-     * The first struct contains the info about the assets to withdraw from this Account to the actionTarget.
-     * The second struct contains the info about the owner's assets that need to be transferred from the owner to the actionTarget.
-     * The third struct contains the permit for the Permit2 transfer.
-     * The first bytes object contains the signature for the Permit2 transfer.
-     * The second bytes object contains the encoded input for the actionTarget.
-     * @dev This function optimistically chains multiple actions together (= do a flash action):
-     * - It can optimistically withdraw assets from the Account to the actionTarget.
-     * - It can transfer assets directly from the owner to the actionTarget.
-     * - It can execute external logic on the actionTarget, and interact with any DeFi protocol to swap, stake, claim...
-     * - It can deposit all recipient tokens from the actionTarget back into the Account.
-     */
-    function flashAction(address actionTarget, bytes calldata actionData)
-        external
-        onlyAssetManager
-        nonReentrant
-        updateActionTimestamp
-    {
-        // Decode flash action data.
-        (
-            ActionData memory withdrawData,
-            ActionData memory transferFromOwnerData,
-            IPermit2.PermitBatchTransferFrom memory permit,
-            bytes memory signature,
-            bytes memory actionTargetData
-        ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes, bytes));
-
-        // Withdraw assets to the actionTarget.
-        _withdraw(withdrawData, actionTarget);
-
-        // Transfer assets from owner (that are not assets in this account) to the actionTarget.
-        if (transferFromOwnerData.assets.length > 0) {
-            _transferFromOwner(transferFromOwnerData, actionTarget);
-        }
-
-        // If the function input includes a signature and non-empty token permissions,
-        // initiate a transfer from the owner to the actionTarget via Permit2.
-        if (signature.length > 0 && permit.permitted.length > 0) {
-            _transferFromOwnerWithPermit(permit, signature, actionTarget);
-        }
-
-        // Execute external logic on the actionTarget.
-        ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
-
-        // Deposit assets from actionTarget into Account.
-        _deposit(depositData, actionTarget);
     }
 
     /**
