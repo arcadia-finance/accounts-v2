@@ -6,12 +6,11 @@ pragma solidity 0.8.22;
 
 import { AccountErrors } from "../libraries/Errors.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
+import { ActionData, IActionBase } from "../interfaces/IActionBase.sol";
 import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { IAccount } from "../interfaces/IAccount.sol";
-import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
 import { IERC721 } from "../interfaces/IERC721.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
-import { IFactory } from "../interfaces/IFactory.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
 
 /**
