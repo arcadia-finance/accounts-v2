@@ -4,7 +4,6 @@
  */
 pragma solidity ^0.8.22;
 
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
 import { UniswapV4AM } from "../../../../src/asset-modules/UniswapV4/UniswapV4AM.sol";
 import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";

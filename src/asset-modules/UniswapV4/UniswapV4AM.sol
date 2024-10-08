@@ -5,7 +5,7 @@
 pragma solidity ^0.8.22;
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
-import { CurrencyLibrary, Currency } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/Currency.sol";
+import { Currency } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/Currency.sol";
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
 import { FixedPoint96 } from "../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/FixedPoint96.sol";
 import { FixedPoint128 } from "../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/FixedPoint128.sol";
