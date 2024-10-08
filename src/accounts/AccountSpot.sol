@@ -7,8 +7,8 @@ pragma solidity 0.8.22;
 import { AccountErrors } from "../libraries/Errors.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
 import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
-import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
 import { IAccount } from "../interfaces/IAccount.sol";
+import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
 import { IERC721 } from "../interfaces/IERC721.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
 import { IFactory } from "../interfaces/IFactory.sol";
@@ -125,7 +125,7 @@ contract AccountSpot is AccountStorageV1, IAccount {
      * @dev A proxy will be used to interact with the Account implementation.
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
      * @dev initialize has implicitly a nonReentrant guard, since the "locked" variable has value zero until the end of the function.
-     * @dev The Registry is not used in spot accounts, but a valid registry must be set to be compatible with V1 Accounts
+     * @dev The Registry is not used in spot accounts, but a valid registry must be set to be compatible with V1 Accounts.
      */
     function initialize(address owner_, address registry_, address) external onlyFactory {
         if (registry_ == address(0)) revert AccountErrors.InvalidRegistry();
@@ -186,10 +186,11 @@ contract AccountSpot is AccountStorageV1, IAccount {
      */
     function upgradeHook(address, address, uint256, bytes calldata) external {
         if (msg.sender != address(this)) revert AccountErrors.OnlySelf();
+        if (registry == address(0)) revert AccountErrors.InvalidRegistry();
 
-        // Require that no creditor is set.
-        // (This should always be enforced it the old Version we upgrade from, but we do a redundant safety check).
-        if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
+        // Require that no creditor is set and no auctions are ongoing.
+        // (This should always be enforced in the old Version we upgrade from, but we do a redundant safety check).
+        if (creditor != address(0) || inAuction) revert AccountErrors.InvalidUpgrade();
 
         // Delete margin account related storage data (should normally already be empty).
         delete liquidator;
@@ -277,6 +278,7 @@ contract AccountSpot is AccountStorageV1, IAccount {
      */
     function flashAction(address actionTarget, bytes calldata actionData)
         external
+        payable
         onlyAssetManager
         nonReentrant
         updateActionTimestamp
@@ -291,7 +293,9 @@ contract AccountSpot is AccountStorageV1, IAccount {
         ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes, bytes));
 
         // Withdraw assets to the actionTarget.
-        _withdraw(withdrawData, actionTarget);
+        _withdraw(
+            withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, withdrawData.assetTypes, actionTarget
+        );
 
         // Transfer assets from owner (that are not assets in this account) to the actionTarget.
         if (transferFromOwnerData.assets.length > 0) {
@@ -308,7 +312,9 @@ contract AccountSpot is AccountStorageV1, IAccount {
         ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
 
         // Deposit assets from actionTarget into Account.
-        _deposit(depositData, actionTarget);
+        _deposit(
+            depositData.assets, depositData.assetIds, depositData.assetAmounts, depositData.assetTypes, actionTarget
+        );
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -317,43 +323,45 @@ contract AccountSpot is AccountStorageV1, IAccount {
 
     /**
      * @notice Deposits assets into the Account.
-     * @param assets The address of the assets to deposit.
-     * @param assetIds The assetIds to withdraw.
-     * @param assetAmounts The amounts to withdraw.
-     * @param assetTypes The asset types to withdraw.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assetIds Array of the IDs of the assets.
+     * @param assetAmounts Array with the amounts of the assets.
+     * @param assetTypes Array of the asset types.
      */
     function deposit(
-        address[] memory assets,
+        address[] memory assetAddresses,
         uint256[] memory assetIds,
         uint256[] memory assetAmounts,
         uint256[] memory assetTypes
-    ) external onlyOwner nonReentrant {
-        ActionData memory depositData =
-            ActionData({ assets: assets, assetIds: assetIds, assetAmounts: assetAmounts, assetTypes: assetTypes });
-
-        _deposit(depositData, msg.sender);
+    ) external payable onlyOwner nonReentrant {
+        _deposit(assetAddresses, assetIds, assetAmounts, assetTypes, msg.sender);
     }
 
     /**
-     * @notice Internal deposit function. It will transfer all assets from "from" address to the Account.
-     * @param depositData A struct containing the info about the assets to deposit to the Account.
-     * @param from The address to transfer the assets from.
+     * @notice Deposits assets into the Account.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assetIds Array of the IDs of the assets.
+     * @param assetAmounts Array with the amounts of the assets.
+     * @param assetTypes Array of the asset types.
+     * @param from The assets deposited into the Account will come from this address.
      */
-    function _deposit(ActionData memory depositData, address from) internal {
-        for (uint256 i; i < depositData.assets.length; ++i) {
+    function _deposit(
+        address[] memory assetAddresses,
+        uint256[] memory assetIds,
+        uint256[] memory assetAmounts,
+        uint256[] memory assetTypes,
+        address from
+    ) internal {
+        for (uint256 i; i < assetAddresses.length; ++i) {
             // Skip if amount is 0 to prevent transferring addresses that have 0 balance.
-            if (depositData.assetAmounts[i] == 0) continue;
+            if (assetAmounts[i] == 0) continue;
 
-            if (depositData.assetTypes[i] == 1) {
-                if (depositData.assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
-                ERC20(depositData.assets[i]).safeTransferFrom(from, address(this), depositData.assetAmounts[i]);
-            } else if (depositData.assetTypes[i] == 2) {
-                if (depositData.assetAmounts[i] != 1) revert AccountErrors.InvalidERC721Amount();
-                IERC721(depositData.assets[i]).safeTransferFrom(from, address(this), depositData.assetIds[i]);
-            } else if (depositData.assetTypes[i] == 3) {
-                IERC1155(depositData.assets[i]).safeTransferFrom(
-                    from, address(this), depositData.assetIds[i], depositData.assetAmounts[i], ""
-                );
+            if (assetTypes[i] == 1) {
+                ERC20(assetAddresses[i]).safeTransferFrom(from, address(this), assetAmounts[i]);
+            } else if (assetTypes[i] == 2) {
+                IERC721(assetAddresses[i]).safeTransferFrom(from, address(this), assetIds[i]);
+            } else if (assetTypes[i] == 3) {
+                IERC1155(assetAddresses[i]).safeTransferFrom(from, address(this), assetIds[i], assetAmounts[i], "");
             } else {
                 revert AccountErrors.UnknownAssetType();
             }
@@ -361,53 +369,49 @@ contract AccountSpot is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Withdraws assets from the Account.
-     * @param assets The assets to withdraw.
-     * @param assetIds The assetIds to withdraw.
-     * @param assetAmounts The amounts to withdraw.
-     * @param assetTypes The asset types to withdraw.
+     * @notice Withdraws assets from the Account to the owner.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assetIds Array of the IDs of the assets.
+     * @param assetAmounts Array with the amounts of the assets.
+     * @param assetTypes Array of the asset types.
      */
     function withdraw(
-        address[] memory assets,
+        address[] memory assetAddresses,
         uint256[] memory assetIds,
         uint256[] memory assetAmounts,
         uint256[] memory assetTypes
     ) public onlyOwner nonReentrant updateActionTimestamp {
-        for (uint256 i; i < assets.length; ++i) {
-            if (assets[i] == address(0)) {
-                (bool success, bytes memory result) = payable(msg.sender).call{ value: assetAmounts[i] }("");
-                require(success, string(result));
-            } else if (assetTypes[i] == 1) {
-                ERC20(assets[i]).safeTransfer(msg.sender, assetAmounts[i]);
-            } else if (assetTypes[i] == 2) {
-                IERC721(assets[i]).safeTransferFrom(address(this), msg.sender, assetIds[i]);
-            } else if (assetTypes[i] == 3) {
-                IERC1155(assets[i]).safeTransferFrom(address(this), msg.sender, assetIds[i], assetAmounts[i], "");
-            } else {
-                revert AccountErrors.UnknownAssetType();
-            }
-        }
+        _withdraw(assetAddresses, assetIds, assetAmounts, assetTypes, msg.sender);
     }
 
     /**
-     * @notice Internal withdraw function used in flashAction to withdraw assets to the actionTarget.
-     * @param to The contract address of the actionTarget.
+     * @notice Withdraws assets from the Account.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assetIds Array of the IDs of the assets.
+     * @param assetAmounts Array with the amounts of the assets.
+     * @param assetTypes Array of the asset types.
+     * @param to The address to withdraw to.
      */
-    function _withdraw(ActionData memory withdrawData, address to) internal {
-        for (uint256 i; i < withdrawData.assets.length; ++i) {
-            // Skip if amount is 0 to prevent transferring 0 balances.
-            if (withdrawData.assetAmounts[i] == 0) continue;
+    function _withdraw(
+        address[] memory assetAddresses,
+        uint256[] memory assetIds,
+        uint256[] memory assetAmounts,
+        uint256[] memory assetTypes,
+        address to
+    ) internal {
+        for (uint256 i; i < assetAddresses.length; ++i) {
+            // Skip if amount is 0 to prevent transferring addresses that have 0 balance.
+            if (assetAmounts[i] == 0) continue;
 
-            if (withdrawData.assetTypes[i] == 1) {
-                if (withdrawData.assetIds[i] != 0) revert AccountErrors.InvalidERC20Id();
-                ERC20(withdrawData.assets[i]).safeTransfer(to, withdrawData.assetAmounts[i]);
-            } else if (withdrawData.assetTypes[i] == 2) {
-                if (withdrawData.assetAmounts[i] != 1) revert AccountErrors.InvalidERC721Amount();
-                IERC721(withdrawData.assets[i]).safeTransferFrom(address(this), to, withdrawData.assetIds[i]);
-            } else if (withdrawData.assetTypes[i] == 3) {
-                IERC1155(withdrawData.assets[i]).safeTransferFrom(
-                    address(this), to, withdrawData.assetIds[i], withdrawData.assetAmounts[i], ""
-                );
+            if (assetAddresses[i] == address(0)) {
+                (bool success, bytes memory result) = payable(msg.sender).call{ value: assetAmounts[i] }("");
+                require(success, string(result));
+            } else if (assetTypes[i] == 1) {
+                ERC20(assetAddresses[i]).safeTransfer(to, assetAmounts[i]);
+            } else if (assetTypes[i] == 2) {
+                IERC721(assetAddresses[i]).safeTransferFrom(address(this), to, assetIds[i]);
+            } else if (assetTypes[i] == 3) {
+                IERC1155(assetAddresses[i]).safeTransferFrom(address(this), to, assetIds[i], assetAmounts[i], "");
             } else {
                 revert AccountErrors.UnknownAssetType();
             }
@@ -423,10 +427,8 @@ contract AccountSpot is AccountStorageV1, IAccount {
         uint256 assetAddressesLength = transferFromOwnerData.assets.length;
         address owner_ = owner;
         for (uint256 i; i < assetAddressesLength; ++i) {
-            if (transferFromOwnerData.assetAmounts[i] == 0) {
-                // Skip if amount is 0 to prevent transferring 0 balances.
-                continue;
-            }
+            // Skip if amount is 0 to prevent transferring 0 balances.
+            if (transferFromOwnerData.assetAmounts[i] == 0) continue;
 
             if (transferFromOwnerData.assetTypes[i] == 1) {
                 ERC20(transferFromOwnerData.assets[i]).safeTransferFrom(

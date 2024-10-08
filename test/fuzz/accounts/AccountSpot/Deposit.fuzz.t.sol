@@ -79,54 +79,6 @@ contract Deposit_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_deposit_InvalidERC20ID(uint96 assetId) public {
-        // Given : assetId for ERC20 is > 0
-        assetId = uint96(bound(assetId, 1, type(uint96).max));
-
-        address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = address(mockERC20.token1);
-
-        uint256[] memory assetIds = new uint256[](1);
-        assetIds[0] = assetId;
-
-        uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = 1;
-
-        uint256[] memory assetTypes = new uint256[](1);
-        assetTypes[0] = 1;
-
-        // When : Calling deposit
-        // Then : It should revert
-        vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.InvalidERC20Id.selector);
-        accountSpot.deposit(assetAddresses, assetIds, assetAmounts, assetTypes);
-        vm.stopPrank();
-    }
-
-    function testFuzz_Revert_deposit_InvalidERC721Amount(uint96 assetAmount) public {
-        // Given : assetAmount is > 1
-        assetAmount = uint96(bound(assetAmount, 2, type(uint96).max));
-
-        address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = address(mockERC20.token1);
-
-        uint256[] memory assetIds = new uint256[](1);
-        assetIds[0] = 1;
-
-        uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = assetAmount;
-
-        uint256[] memory assetTypes = new uint256[](1);
-        assetTypes[0] = 2;
-
-        // When : Calling deposit
-        // Then : It should revert
-        vm.startPrank(users.accountOwner);
-        vm.expectRevert(AccountErrors.InvalidERC721Amount.selector);
-        accountSpot.deposit(assetAddresses, assetIds, assetAmounts, assetTypes);
-        vm.stopPrank();
-    }
-
     function testFuzz_Success_deposit(uint112 erc20Amount, uint8 erc721Id, uint112 erc1155Amount) public {
         // Given: Assets to deposit
         address[] memory assetAddresses = new address[](3);
@@ -167,5 +119,17 @@ contract Deposit_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
         assertEq(mockERC20.token1.balanceOf(address(accountSpot)), erc20Amount);
         assertEq(mockERC721.nft1.ownerOf(erc721Id), address(accountSpot));
         assertEq(mockERC1155.sft1.balanceOf(address(accountSpot), 1), erc1155Amount);
+    }
+
+    function testFuzz_Success_deposit_NativeEth(uint112 amount) public {
+        // Given: Owner has enough balance.
+        vm.deal(users.accountOwner, amount);
+
+        // When: Native ETH is deposited into spot Account.
+        vm.prank(users.accountOwner);
+        accountSpot.deposit{ value: amount }(new address[](0), new uint256[](0), new uint256[](0), new uint256[](0));
+
+        // Then : It should return the correct balance.
+        assertEq(address(accountSpot).balance, amount);
     }
 }

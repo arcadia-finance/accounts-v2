@@ -53,6 +53,22 @@ contract UpgradeHook_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
         accountSpot.upgradeHook(oldImplementation, oldRegistry, oldVersion, data);
     }
 
+    function testFuzz_Revert_upgradeHook_InvalidRegistry(
+        address oldImplementation,
+        address oldRegistry,
+        uint256 oldVersion,
+        bytes calldata data
+    ) public {
+        // Given: Registry is zero address.
+        stdstore.target(address(accountSpotLogic)).sig(accountSpotLogic.registry.selector).checked_write(address(0));
+
+        // When: Account calls upgradeHook.
+        // Then: It should revert.
+        vm.prank(address(accountSpotLogic));
+        vm.expectRevert(AccountErrors.InvalidRegistry.selector);
+        accountSpotLogic.upgradeHook(oldImplementation, oldRegistry, oldVersion, data);
+    }
+
     function testFuzz_Revert_upgradeHook_CreditorSet(
         address creditor,
         address oldImplementation,
@@ -64,10 +80,36 @@ contract UpgradeHook_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
         vm.assume(creditor != address(0));
         stdstore.target(address(accountSpotLogic)).sig(accountSpotLogic.creditor.selector).checked_write(creditor);
 
+        // And: Registry is not zero address.
+        stdstore.target(address(accountSpotLogic)).sig(accountSpotLogic.registry.selector).checked_write(
+            address(registry)
+        );
+
         // When: Account calls upgradeHook.
         // Then: It should revert.
         vm.prank(address(accountSpotLogic));
-        vm.expectRevert(AccountErrors.CreditorAlreadySet.selector);
+        vm.expectRevert(AccountErrors.InvalidUpgrade.selector);
+        accountSpotLogic.upgradeHook(oldImplementation, oldRegistry, oldVersion, data);
+    }
+
+    function testFuzz_Revert_upgradeHook_AuctionOngoing(
+        address oldImplementation,
+        address oldRegistry,
+        uint256 oldVersion,
+        bytes calldata data
+    ) public {
+        // Given: Auction is ongoing.
+        stdstore.target(address(accountSpotLogic)).sig(accountSpotLogic.inAuction.selector).checked_write(true);
+
+        // And: Registry is not zero address.
+        stdstore.target(address(accountSpotLogic)).sig(accountSpotLogic.registry.selector).checked_write(
+            address(registry)
+        );
+
+        // When: Account calls upgradeHook.
+        // Then: It should revert.
+        vm.prank(address(accountSpotLogic));
+        vm.expectRevert(AccountErrors.InvalidUpgrade.selector);
         accountSpotLogic.upgradeHook(oldImplementation, oldRegistry, oldVersion, data);
     }
 

@@ -17,6 +17,7 @@ library AccountErrors {
     error InvalidERC721Amount();
     error InvalidRecipient();
     error InvalidRegistry();
+    error InvalidUpgrade();
     error NoFallback();
     error NoReentry();
     error NonZeroOpenPosition();
