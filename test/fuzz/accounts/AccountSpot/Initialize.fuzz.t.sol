@@ -16,7 +16,7 @@ contract Initialize_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AccountSpotExtension internal accountNotInitialised;
+    AccountSpotExtension internal account_;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -25,27 +25,40 @@ contract Initialize_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test {
     function setUp() public override {
         AccountSpot_Fuzz_Test.setUp();
 
-        accountNotInitialised = new AccountSpotExtension(address(factory));
+        account_ = new AccountSpotExtension(address(factory));
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_initialize_NotFactory(address notFactory) public {
+    function testFuzz_Revert_initialize_NotFactory(
+        address notFactory,
+        address owner_,
+        address registry_,
+        address creditor_
+    ) public {
         vm.assume(notFactory != address(factory));
 
         vm.startPrank(notFactory);
         vm.expectRevert(AccountErrors.OnlyFactory.selector);
-        accountNotInitialised.initialize(users.accountOwner, address(0), address(0));
+        account_.initialize(owner_, registry_, creditor_);
         vm.stopPrank();
     }
 
-    function testFuzz_Success_initialize(address owner_) public {
+    function testFuzz_Success_initialize(address owner_, address creditor_) public {
         vm.prank(address(factory));
-        accountNotInitialised.initialize(owner_, address(0), address(0));
+        vm.expectRevert(AccountErrors.InvalidRegistry.selector);
+        account_.initialize(owner_, address(0), creditor_);
+    }
 
-        assertEq(accountNotInitialised.owner(), owner_);
-        assertEq(accountNotInitialised.getLocked(), 1);
+    function testFuzz_Success_initialize(address owner_, address registry_, address creditor_) public {
+        vm.prank(address(factory));
+        account_.initialize(owner_, registry_, creditor_);
+
+        assertEq(account_.owner(), owner_);
+        assertEq(account_.registry(), registry_);
+        assertEq(account_.creditor(), address(0));
+        assertEq(account_.getLocked(), 1);
     }
 }

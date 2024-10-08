@@ -111,14 +111,6 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
         // Set owner for Account
         accountSpot.setOwner(from);
 
-        uint256[] memory amounts = new uint256[](2);
-        amounts[0] = token1Amount;
-        amounts[1] = stable1Amount;
-
-        address[] memory tokens = new address[](2);
-        tokens[0] = address(mockERC20.token1);
-        tokens[1] = address(mockERC20.stable1);
-
         // Mint tokens and give unlimited approval on the Permit2 contract
         vm.startPrank(users.tokenCreator);
         mockERC20.token1.mint(from, token1Amount);
@@ -130,37 +122,35 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
         mockERC20.stable1.approve(address(permit2), type(uint256).max);
         vm.stopPrank();
 
-        uint256 deadline = block.timestamp;
-
-        bytes32 DOMAIN_SEPARATOR = permit2.DOMAIN_SEPARATOR();
-
-        // Bring back variables to the stack to avoid stack too deep
-        uint256 nonceStack = nonce;
-        uint256 fromPrivateKeyStack = fromPrivateKey;
-        uint256 token1AmountStack = token1Amount;
-        uint256 stable1AmountStack = stable1Amount;
-        address maliciousStack = maliciousActor;
-        address fromStack = from;
-
         // Generate struct PermitBatchTransferFrom
-        IPermit2.PermitBatchTransferFrom memory permit =
-            Utils.defaultERC20PermitMultiple(tokens, amounts, nonceStack, deadline);
+        IPermit2.PermitBatchTransferFrom memory permit;
+        {
+            uint256[] memory amounts = new uint256[](2);
+            amounts[0] = token1Amount;
+            amounts[1] = stable1Amount;
+
+            address[] memory tokens = new address[](2);
+            tokens[0] = address(mockERC20.token1);
+            tokens[1] = address(mockERC20.stable1);
+
+            uint256 deadline = block.timestamp;
+            permit = Utils.defaultERC20PermitMultiple(tokens, amounts, nonce, deadline);
+        }
 
         // Get signature
-        vm.prank(fromStack);
-        bytes memory signature =
-            Utils.getPermitBatchTransferSignature(permit, fromPrivateKeyStack, DOMAIN_SEPARATOR, address(accountSpot));
+        vm.prank(from);
+        bytes memory signature = Utils.getPermitBatchTransferSignature(
+            permit, fromPrivateKey, permit2.DOMAIN_SEPARATOR(), address(accountSpot)
+        );
 
         IPermit2.SignatureTransferDetails[] memory transferDetails = new IPermit2.SignatureTransferDetails[](2);
-        transferDetails[0] =
-            IPermit2.SignatureTransferDetails({ to: address(action), requestedAmount: token1AmountStack });
-        transferDetails[1] =
-            IPermit2.SignatureTransferDetails({ to: address(action), requestedAmount: stable1AmountStack });
+        transferDetails[0] = IPermit2.SignatureTransferDetails({ to: address(action), requestedAmount: token1Amount });
+        transferDetails[1] = IPermit2.SignatureTransferDetails({ to: address(action), requestedAmount: stable1Amount });
 
-        vm.startPrank(maliciousStack);
+        vm.prank(maliciousActor);
         // The following call should revert as the caller is not the spender.
         vm.expectRevert();
-        permit2.permitTransferFrom(permit, transferDetails, fromStack, signature);
+        permit2.permitTransferFrom(permit, transferDetails, from, signature);
     }
 
     function testFuzz_Success_flashAction_Owner(uint32 time, bytes calldata signature) public {
@@ -268,10 +258,10 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
         vm.stopPrank();
 
         // Assert the Account has no TOKEN2 and STABLE1 balance initially
-        assert(mockERC20.token2.balanceOf(address(accountSpot)) == 0);
-        assert(mockERC20.stable1.balanceOf(address(accountSpot)) == 0);
+        assertEq(mockERC20.token2.balanceOf(address(accountSpot)), 0);
+        assertEq(mockERC20.stable1.balanceOf(address(accountSpot)), 0);
         // Assert the owner of token id 1 of mockERC721.nft1 contract is accountOwner
-        assert(mockERC721.nft1.ownerOf(1) == users.accountOwner);
+        assertEq(mockERC721.nft1.ownerOf(1), users.accountOwner);
 
         vm.warp(time);
 
@@ -280,10 +270,10 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
         accountSpot.flashAction(address(action), callData);
 
         // Assert that the Account now has a balance of TOKEN2 and STABLE1
-        assert(mockERC20.token2.balanceOf(address(accountSpot)) > 0);
-        assert(mockERC20.stable1.balanceOf(address(accountSpot)) == stable1AmountForAction);
+        assertGt(mockERC20.token2.balanceOf(address(accountSpot)), 0);
+        assertEq(mockERC20.stable1.balanceOf(address(accountSpot)), stable1AmountForAction);
         // Assert that token id 1 of mockERC721.nft1 contract was transferred to the Account
-        assert(mockERC721.nft1.ownerOf(1) == address(accountSpot));
+        assertEq(mockERC721.nft1.ownerOf(1), address(accountSpot));
 
         // And: lastActionTimestamp is updated.
         assertEq(accountSpot.lastActionTimestamp(), time);
@@ -367,13 +357,13 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
         vm.startPrank(assetManager);
 
         // Assert the account has no TOKEN2 balance initially
-        assert(mockERC20.token2.balanceOf(address(accountSpot)) == 0);
+        assertEq(mockERC20.token2.balanceOf(address(accountSpot)), 0);
 
         // Call flashAction() on Account
         accountSpot.flashAction(address(action), callData);
 
         // Assert that the Account now has a balance of TOKEN2
-        assert(mockERC20.token2.balanceOf(address(accountSpot)) > 0);
+        assertGt(mockERC20.token2.balanceOf(address(accountSpot)), 0);
 
         vm.stopPrank();
 
@@ -457,5 +447,29 @@ contract FlashAction_AccountSpot_Fuzz_Test is AccountSpot_Fuzz_Test, Permit2Fixt
         assertEq(mockERC20.stable1.balanceOf(from), 0);
         assertEq(mockERC20.token1.balanceOf(address(action)), token1Amount);
         assertEq(mockERC20.stable1.balanceOf(address(action)), stable1Amount);
+    }
+
+    function testFuzz_Success_flashAction_NativeEth(uint112 amount) public {
+        // Given: Owner has enough balance.
+        vm.deal(users.accountOwner, amount);
+
+        bytes memory callData;
+        {
+            bytes[] memory data = new bytes[](0);
+            address[] memory to = new address[](0);
+
+            ActionData memory actionData;
+            IPermit2.TokenPermissions[] memory tokenPermissions;
+            bytes memory signature;
+
+            callData = abi.encode(actionData, actionData, tokenPermissions, signature, abi.encode(actionData, to, data));
+        }
+
+        // When: Native ETH is deposited into spot Account.
+        vm.prank(users.accountOwner);
+        accountSpot.flashAction{ value: amount }(address(action), callData);
+
+        // Then : It should return the correct balance.
+        assertEq(address(accountSpot).balance, amount);
     }
 }
