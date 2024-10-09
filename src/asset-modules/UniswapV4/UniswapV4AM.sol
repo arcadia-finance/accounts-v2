@@ -111,7 +111,7 @@ contract UniswapV4AM is DerivedAM {
         uint128 liquidity = STATE_VIEW.getPositionLiquidity(poolKey.toId(), positionId);
 
         // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
-        // deposit functions and there any deposit of non-allowed Underlying Assets will revert.
+        // deposit functions, and deposits of non-allowed Underlying Assets will revert.
         if (liquidity == 0) revert ZeroLiquidity();
 
         // Hook flags should be valid for this specific AM.
