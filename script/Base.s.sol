@@ -10,6 +10,7 @@ import { AerodromePoolAM } from "../src/asset-modules/Aerodrome-Finance/Aerodrom
 import { ArcadiaContracts } from "./utils/Constants.sol";
 import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
 import { ERC20PrimaryAM } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
+import { Factory } from "../src/Factory.sol";
 import { ILendingPool } from "./interfaces/ILendingPool.sol";
 import { Registry } from "../src/Registry.sol";
 import { SafeTransactionBuilder } from "./utils/SafeTransactionBuilder.sol";
@@ -27,6 +28,7 @@ abstract contract Base_Script is Test, SafeTransactionBuilder {
     AerodromePoolAM internal aerodromePoolAM = AerodromePoolAM(ArcadiaContracts.AERO_POOL_AM);
     ChainlinkOM internal chainlinkOM = ChainlinkOM(ArcadiaContracts.CHAINLINK_OM);
     ERC20PrimaryAM internal erc20PrimaryAM = ERC20PrimaryAM(ArcadiaContracts.ERC20_PRIMARY_AM);
+    Factory internal factory = Factory(ArcadiaContracts.FACTORY);
     ILendingPool internal cbbtcLendingPool = ILendingPool(ArcadiaContracts.LENDINGPOOL_CBBTC);
     ILendingPool internal usdcLendingPool = ILendingPool(ArcadiaContracts.LENDINGPOOL_USDC);
     ILendingPool internal wethLendingPool = ILendingPool(ArcadiaContracts.LENDINGPOOL_WETH);
