@@ -4,11 +4,11 @@
  */
 pragma solidity ^0.8.22;
 
-import { BalanceDelta } from "../../../../../../lib/v4-periphery-fork/lib/v4-core/src/types/BalanceDelta.sol";
+import { BalanceDelta } from "../../../../../lib/v4-periphery-fork/lib/v4-core/src/types/BalanceDelta.sol";
 import { BaseHookExtension } from "../../../fixtures/uniswap-v4/extensions/BaseHookExtension.sol";
-import { Hooks } from "../../../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/Hooks.sol";
-import { IPoolManager } from "../../../../../../lib/v4-periphery-fork/lib/v4-core/src/interfaces/IPoolManager.sol";
-import { PoolKey } from "../../../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
+import { Hooks } from "../../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/Hooks.sol";
+import { IPoolManager } from "../../../../../lib/v4-periphery-fork/lib/v4-core/src/interfaces/IPoolManager.sol";
+import { PoolKey } from "../../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PoolManagerExtension } from "../../../fixtures/uniswap-v4/extensions/PoolManagerExtension.sol";
 
 contract HookMockUnvalid is BaseHookExtension {
