@@ -264,7 +264,7 @@ contract GetFeeAmounts_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         );
 
         {
-            // Validate the call to StateView returns the expected values
+            // Validate the call to PoolManager returns the expected values
             (, uint256 feeGrowthInside0LastX128_, uint256 feeGrowthInside1LastX128_) =
                 stateView.getPositionInfo(stablePoolKey.toId(), positionKey);
             assertEq(feeGrowthInside0LastX128, feeGrowthInside0LastX128_);

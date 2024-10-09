@@ -12,11 +12,12 @@ import { FixedPoint128 } from "../../../lib/v4-periphery-fork/lib/v4-core/src/li
 import { FullMath } from "../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/FullMath.sol";
 import { Hooks } from "./libraries/Hooks.sol";
 import { IPositionManager } from "./interfaces/IPositionManager.sol";
-import { IStateView } from "./interfaces/IStateView.sol";
+import { IPoolManager } from "../../../lib/v4-periphery-fork/lib/v4-core/src/interfaces/IPoolManager.sol";
 import { LiquidityAmounts } from "./libraries/LiquidityAmountsV4.sol";
 import { PoolId, PoolIdLibrary } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolId.sol";
 import { PoolKey } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PositionInfoLibrary, PositionInfo } from "../../../lib/v4-periphery-fork/src/libraries/PositionInfoLibrary.sol";
+import { StateLibrary } from "../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/StateLibrary.sol";
 import { TickMath } from "../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
 
 /**
@@ -33,6 +34,7 @@ contract UniswapV4AM is DerivedAM {
     using FixedPointMathLib for uint256;
     using PositionInfoLibrary for PositionInfo;
     using PoolIdLibrary for PoolKey;
+    using StateLibrary for IPoolManager;
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
@@ -41,8 +43,8 @@ contract UniswapV4AM is DerivedAM {
     // The contract address of the PositionManager.
     IPositionManager internal immutable POSITION_MANAGER;
 
-    // The contract address of the StateView.
-    IStateView internal immutable STATE_VIEW;
+    // The contract address of the PoolManager.
+    IPoolManager internal immutable POOL_MANAGER;
 
     // The maximum value that can be returned from #getSqrtPriceAtTick. Equivalent to getSqrtPriceAtTick(MAX_TICK)
     uint160 internal constant MAX_SQRT_PRICE = 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342;
@@ -73,12 +75,12 @@ contract UniswapV4AM is DerivedAM {
     /**
      * @param registry_ The contract address of the Registry.
      * @param positionManager The contract address of the uniswapV4 PositionManager.
-     * @param stateView The contract address of the UniswapV4 StateView contract, for reading storage in v4-core.
+     * @param poolManager The contract address of the UniswapV4 PoolManager contract, for reading storage in v4-core.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Uniswap V4 Liquidity Positions (ERC721).
      */
-    constructor(address registry_, address positionManager, address stateView) DerivedAM(registry_, 2) {
+    constructor(address registry_, address positionManager, address poolManager) DerivedAM(registry_, 2) {
         POSITION_MANAGER = IPositionManager(positionManager);
-        STATE_VIEW = IStateView(stateView);
+        POOL_MANAGER = IPoolManager(poolManager);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -108,7 +110,7 @@ contract UniswapV4AM is DerivedAM {
         (PoolKey memory poolKey, PositionInfo info) = POSITION_MANAGER.getPoolAndPositionInfo(assetId);
         bytes32 positionId =
             keccak256(abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)));
-        uint128 liquidity = STATE_VIEW.getPositionLiquidity(poolKey.toId(), positionId);
+        uint128 liquidity = POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId);
 
         // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
         // deposit functions, and deposits of non-allowed Underlying Assets will revert.
@@ -152,7 +154,7 @@ contract UniswapV4AM is DerivedAM {
             bytes32 positionId = keccak256(
                 abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId))
             );
-            uint128 liquidity = STATE_VIEW.getPositionLiquidity(poolKey.toId(), positionId);
+            uint128 liquidity = POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId);
 
             // Hook flags should be valid for this specific AM.
             uint160 hooks = uint160(address(poolKey.hooks));
@@ -278,7 +280,7 @@ contract UniswapV4AM is DerivedAM {
             bytes32 positionId = keccak256(
                 abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId))
             );
-            liquidity = STATE_VIEW.getPositionLiquidity(poolKey.toId(), positionId);
+            liquidity = POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId);
         }
     }
 
@@ -352,13 +354,13 @@ contract UniswapV4AM is DerivedAM {
         returns (uint256 amount0, uint256 amount1)
     {
         (uint256 feeGrowthInside0CurrentX128, uint256 feeGrowthInside1CurrentX128) =
-            STATE_VIEW.getFeeGrowthInside(poolId, info.tickLower(), info.tickUpper());
+            POOL_MANAGER.getFeeGrowthInside(poolId, info.tickLower(), info.tickUpper());
 
         bytes32 positionId =
             keccak256(abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(id)));
 
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128) =
-            STATE_VIEW.getPositionInfo(poolId, positionId);
+            POOL_MANAGER.getPositionInfo(poolId, positionId);
 
         // Calculate accumulated fees since the last time the position was updated:
         // (feeGrowthInsideCurrentX128 - feeGrowthInsideLastX128) * liquidity.

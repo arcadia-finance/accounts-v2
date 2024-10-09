@@ -19,7 +19,7 @@ import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f
 import { PoolKey } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PoolManagerExtension } from "./extensions/PoolManagerExtension.sol";
 import { PositionManagerExtension } from "./extensions/PositionManagerExtension.sol";
-import { StateViewExtension } from "./extensions/StateViewExtension.sol";
+import { StateView } from "../../../../lib/v4-periphery-fork/src/lens/StateView.sol";
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
 import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
 
@@ -28,11 +28,11 @@ contract UniswapV4Fixture is Test, Permit2Fixture {
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    PoolManagerExtension internal poolManager;
-    PositionManagerExtension internal positionManager;
-    StateViewExtension internal stateView;
     BaseHookExtension internal validHook;
     BaseHookExtension internal unvalidHook;
+    PoolManagerExtension internal poolManager;
+    PositionManagerExtension internal positionManager;
+    StateView internal stateView;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    CONSTANTS
@@ -62,8 +62,8 @@ contract UniswapV4Fixture is Test, Permit2Fixture {
         // Deploy Pool Manager
         poolManager = new PoolManagerExtension();
 
-        // Deploy StateView contract
-        stateView = new StateViewExtension(poolManager);
+        // Deploy StateView
+        stateView = new StateView(poolManager);
 
         // Deploy permit2
         Permit2Fixture.setUp();
