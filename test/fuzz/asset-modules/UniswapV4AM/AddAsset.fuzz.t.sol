@@ -98,8 +98,6 @@ contract AddAsset_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         uniswapV4AM.addAsset(tokenId);
 
         // Then : It should return correct values
-        assertEq(liquidity, uniswapV4AM.getAssetToLiquidity(tokenId));
-
         bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
         bytes32[] memory underlyingAssetKeys = uniswapV4AM.getUnderlyingAssets(assetKey);
 

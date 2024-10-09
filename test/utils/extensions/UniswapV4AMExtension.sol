@@ -41,10 +41,6 @@ contract UniswapV4AMExtension is UniswapV4AM {
         poolManager = address(POOL_MANAGER);
     }
 
-    function getAssetToLiquidity(uint256 assetId) external view returns (uint256 liquidity) {
-        liquidity = assetToLiquidity[assetId];
-    }
-
     function addAsset(uint256 assetId) public {
         _addAsset(assetId);
     }

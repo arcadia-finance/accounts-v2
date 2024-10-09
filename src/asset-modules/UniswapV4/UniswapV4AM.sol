@@ -53,9 +53,6 @@ contract UniswapV4AM is DerivedAM {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // The liquidity of the Liquidity Position when it was deposited.
-    mapping(uint256 assetId => uint256 liquidity) internal assetToLiquidity;
-
     // The unique identifiers of the Underlying Assets of a Liquidity Position.
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) public assetToUnderlyingAssets;
 
@@ -122,12 +119,6 @@ contract UniswapV4AM is DerivedAM {
             Hooks.hasPermission(hooks, Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
                 || Hooks.hasPermission(hooks, Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
         ) revert HooksNotAllowed();
-
-        // The liquidity of the Liquidity Position is stored in the Asset Module,
-        // not fetched from the PositionManager.
-        // Since liquidity of a position can be increased by a non-owner,
-        // the max exposure checks could otherwise be circumvented.
-        assetToLiquidity[assetId] = liquidity;
 
         bytes32 assetKey = _getKeyFromAsset(address(POSITION_MANAGER), assetId);
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
@@ -268,20 +259,10 @@ contract UniswapV4AM is DerivedAM {
         view
         returns (PoolKey memory poolKey, PositionInfo info, uint128 liquidity)
     {
-        // For deposited assets, the liquidity of the Liquidity Position is stored in the Asset Module,
-        // not fetched from the PositionManager.
-        // Since liquidity of a position can be increased by a non-owner, the max exposure checks could otherwise be circumvented.
-        liquidity = uint128(assetToLiquidity[assetId]);
-
         (poolKey, info) = POSITION_MANAGER.getPoolAndPositionInfo(assetId);
-
-        if (liquidity == 0) {
-            // Only used as an off-chain view function by getValue() to return the value of a non deposited Liquidity Position.
-            bytes32 positionId = keccak256(
-                abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId))
-            );
-            liquidity = POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId);
-        }
+        bytes32 positionId =
+            keccak256(abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)));
+        liquidity = POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId);
     }
 
     /**
@@ -533,9 +514,6 @@ contract UniswapV4AM is DerivedAM {
     {
         // Also checks that msg.sender == Registry.
         super.processDirectWithdrawal(creditor, asset, assetId, amount);
-
-        // Amount withdrawn of a Uniswap V4 LP can be either 0 or 1 (checked in the Account).
-        if (amount == 1) delete assetToLiquidity[assetId];
     }
 
     /**
@@ -566,8 +544,5 @@ contract UniswapV4AM is DerivedAM {
         usdExposureUpperAssetToAsset = super.processIndirectWithdrawal(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
-
-        // deltaExposureUpperAssetToAsset of a Uniswap V4 LP can be either 0 or -1.
-        if (deltaExposureUpperAssetToAsset == -1) delete assetToLiquidity[assetId];
     }
 }

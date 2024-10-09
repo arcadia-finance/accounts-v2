@@ -72,8 +72,6 @@ contract ProcessDirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test 
         vm.prank(address(registry));
         uniswapV4AM.processDirectWithdrawal(address(creditorUsd), address(positionManager), tokenId, 1);
 
-        assertEq(uniswapV4AM.getAssetToLiquidity(tokenId), 0);
-
         {
             // And: Exposure of the asset is zero.
             bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManager)));
@@ -141,8 +139,6 @@ contract ProcessDirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test 
 
         vm.prank(address(registry));
         uniswapV4AM.processDirectWithdrawal(address(creditorUsd), address(positionManager), tokenId, 0);
-
-        assertEq(uniswapV4AM.getAssetToLiquidity(tokenId), 0);
 
         {
             // And: Exposure of the asset is zero.
@@ -220,10 +216,6 @@ contract ProcessDirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test 
             bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManager)));
             (uint256 lastExposureAsset,) = uniswapV4AM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 1);
-
-            // And: Liquidity is unchanged
-            uint128 liquidity_ = stateView.getPositionLiquidity(randomPoolKey.toId(), positionKey);
-            assertEq(uniswapV4AM.getAssetToLiquidity(tokenId), liquidity_);
 
             // And : Exposures are unchanged
             // Token0:
