@@ -1,0 +1,315 @@
+/**
+ * Created by Pragma Labs
+ * SPDX-License-Identifier: BUSL-1.1
+ */
+pragma solidity ^0.8.22;
+
+import { AssetModule, IAssetModule, Owned } from "../abstracts/AbstractAM.sol";
+import { Hooks } from "./libraries/Hooks.sol";
+import { ICreditor } from "../../interfaces/ICreditor.sol";
+import { IDerivedAM } from "../../interfaces/IDerivedAM.sol";
+import { IPositionManager } from "./interfaces/IPositionManager.sol";
+import { IRegistry } from "../interfaces/IRegistry.sol";
+import { PoolIdLibrary } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolId.sol";
+import { PoolKey } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
+import { RegistryErrors } from "../../libraries/Errors.sol";
+
+/**
+ * @title Registry for Uniswap V4 Hooks.
+ * @author Pragma Labs
+ * @notice The Uniswap V4 Hook Registry stores the mapping between Uniswap V4 Hook contracts and their respective Asset Modules.
+ */
+contract UniswapV4HooksRegistry is AssetModule {
+    using PoolIdLibrary for PoolKey;
+
+    /* //////////////////////////////////////////////////////////////
+                                CONSTANTS
+    ////////////////////////////////////////////////////////////// */
+
+    // The contract address of the PositionManager.
+    IPositionManager internal immutable POSITION_MANAGER;
+
+    /* //////////////////////////////////////////////////////////////
+                                STORAGE
+    ////////////////////////////////////////////////////////////// */
+
+    // The contract address of the default Asset Module for Uniswap V4 hooks.
+    address public immutable DEFAULT_UNISWAP_V4_AM;
+
+    // Map registry => flag.
+    mapping(address => bool) public inRegistry;
+    // Map assetModule => flag.
+    mapping(address => bool) public isAssetModule;
+    // Map hook => Hook Asset Module.
+    mapping(address hook => address assetModule) public hookToAssetModule;
+
+    /* //////////////////////////////////////////////////////////////
+                                EVENTS
+    ////////////////////////////////////////////////////////////// */
+
+    event AssetAdded(address indexed assetAddress, address indexed assetModule);
+    event AssetModuleAdded(address assetModule);
+
+    /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    error HooksNotAllowed();
+
+    /* //////////////////////////////////////////////////////////////
+                                MODIFIERS
+    ////////////////////////////////////////////////////////////// */
+
+    /**
+     * @dev Only Asset Modules can call functions with this modifier.
+     */
+    modifier onlyAssetModule() {
+        if (!isAssetModule[msg.sender]) revert RegistryErrors.OnlyAssetModule();
+        _;
+    }
+
+    /**
+     * @param creditor The contract address of the Creditor.
+     * @dev Only the Risk Manager of a Creditor can call functions with this modifier.
+     */
+    modifier onlyRiskManager(address creditor) {
+        if (msg.sender != ICreditor(creditor).riskManager()) revert RegistryErrors.Unauthorized();
+        _;
+    }
+
+    /* //////////////////////////////////////////////////////////////
+                                CONSTRUCTOR
+    ////////////////////////////////////////////////////////////// */
+
+    /**
+     * @param registry_ The contract address of the Registry.
+     * @param positionManager The contract address of the uniswapV4 PositionManager.
+     * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Uniswap V4 Liquidity Positions (ERC721).
+     */
+    constructor(address registry_, address positionManager) AssetModule(registry_, 2) {
+        POSITION_MANAGER = IPositionManager(positionManager);
+    }
+
+    /* ///////////////////////////////////////////////////////////////
+                        MODULE MANAGEMENT
+    /////////////////////////////////////////////////////////////// */
+
+    /**
+     * @notice Adds a new Asset Module to the Hooks Registry.
+     * @param assetModule The contract address of the Asset Module.
+     */
+    function addAssetModule(address assetModule) external onlyOwner {
+        if (isAssetModule[assetModule]) revert RegistryErrors.AssetModNotUnique();
+        isAssetModule[assetModule] = true;
+
+        emit AssetModuleAdded(assetModule);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        ASSET MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Adds the mapping from the PositionManager to this intermediate Hooks Registry in the "Main" Registry.
+     */
+    function setProtocol() external onlyOwner {
+        inAssetModule[address(POSITION_MANAGER)] = true;
+
+        // Will revert in Registry if asset was already added.
+        IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), address(POSITION_MANAGER));
+    }
+
+    /**
+     * @notice Adds a new hook to the Hook Registry.
+     * @param assetType Identifier for the type of the asset.
+     * @param hook The contract address of the hook.
+     * @dev Hooks that are already in the registry cannot be overwritten,
+     * as that would make it possible for devs to change the asset pricing.
+     * ToDo: What with the default DEFAULT_UNISWAP_V4_AM?
+     */
+    function addAsset(uint96 assetType, address hook) external onlyAssetModule {
+        if (assetType != 2) revert RegistryErrors.InvalidAssetType();
+        if (inRegistry[hook]) revert RegistryErrors.AssetAlreadyInRegistry();
+
+        inRegistry[hook] = true;
+        hookToAssetModule[hook] = msg.sender;
+
+        emit AssetAdded(hook, msg.sender);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        ASSET INFORMATION
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Checks for a token address and the corresponding id if it is allowed.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @return A boolean, indicating if the asset is allowed.
+     */
+    function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
+        return IAssetModule(getAssetModule(assetId)).isAllowed(asset, assetId);
+    }
+
+    /**
+     * @notice Returns the Asset Manager for a given position Id.
+     * @param assetId The id of the asset.
+     * @return assetModule The contract address of the Asset Module.
+     */
+    function getAssetModule(uint256 assetId) public view returns (address assetModule) {
+        (PoolKey memory poolKey,) = POSITION_MANAGER.getPoolAndPositionInfo(assetId);
+
+        // ToDo: We probably have to enforce to use the DEFAULT_UNISWAP_V4_AM if usable,
+        // otherwise when a hookAM is added it can be that we add new pricing logic for assets used as collateral.
+        assetModule = hookToAssetModule[address(poolKey.hooks)];
+
+        // If no Asset Manager is set for the hook, check if we can use the default one.
+        if (assetModule == address(0)) {
+            if (
+                Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
+                    || Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
+            ) revert HooksNotAllowed();
+            assetModule = DEFAULT_UNISWAP_V4_AM;
+        }
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                          PRICING LOGIC
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Returns the usd value of an asset.
+     * @param creditor The contract address of the Creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @param assetAmount The amount of assets.
+     * @return valueInUsd The value of the asset denominated in USD, with 18 Decimals precision.
+     * @return collateralFactor The collateral factor of the asset for a given Creditor, with 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for a given Creditor, with 4 decimals precision.
+     */
+    function getValue(address creditor, address asset, uint256 assetId, uint256 assetAmount)
+        public
+        view
+        override
+        returns (uint256, uint256, uint256)
+    {
+        return IAssetModule(getAssetModule(assetId)).getValue(creditor, asset, assetId, assetAmount);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                    RISK VARIABLES MANAGEMENT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Sets the risk parameters for the protocol of the Derived Asset Module for a given Creditor.
+     * @param creditor The contract address of the Creditor.
+     * @param assetModule The contract address of the Derived Asset Module.
+     * @param maxUsdExposureProtocol The maximum USD exposure of the protocol for each Creditor,
+     * denominated in USD with 18 decimals precision.
+     * @param riskFactor The risk factor of the asset for the Creditor, 4 decimals precision.
+     */
+    function setRiskParametersOfDerivedAM(
+        address creditor,
+        address assetModule,
+        uint112 maxUsdExposureProtocol,
+        uint16 riskFactor
+    ) external onlyRiskManager(creditor) {
+        IDerivedAM(assetModule).setRiskParameters(creditor, maxUsdExposureProtocol, riskFactor);
+    }
+
+    /**
+     * @notice Returns the risk factors of an asset for a Creditor.
+     * @param creditor The contract address of the Creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @return collateralFactor The collateral factor of the asset for the Creditor, 4 decimals precision.
+     * @return liquidationFactor The liquidation factor of the asset for the Creditor, 4 decimals precision.
+     */
+    function getRiskFactors(address creditor, address asset, uint256 assetId)
+        external
+        view
+        override
+        returns (uint16 collateralFactor, uint16 liquidationFactor)
+    {
+        return IAssetModule(getAssetModule(assetId)).getRiskFactors(creditor, asset, assetId);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                    WITHDRAWALS AND DEPOSITS
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Increases the exposure to an asset on a direct deposit.
+     * @param creditor The contract address of the Creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @param amount The amount of tokens.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
+     */
+    function processDirectDeposit(address creditor, address asset, uint256 assetId, uint256 amount)
+        public
+        override
+        onlyRegistry
+        returns (uint256 recursiveCalls)
+    {
+        return IAssetModule(getAssetModule(assetId)).processDirectDeposit(creditor, asset, assetId, amount);
+    }
+
+    /**
+     * @notice Increases the exposure to an asset on an indirect deposit.
+     * @param creditor The contract address of the Creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
+     * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     */
+    function processIndirectDeposit(
+        address creditor,
+        address asset,
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public override onlyRegistry returns (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) {
+        return IAssetModule(getAssetModule(assetId)).processIndirectDeposit(
+            creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
+    }
+
+    /**
+     * @notice Decreases the exposure to an asset on a direct withdrawal.
+     * @param creditor The contract address of the Creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @param amount The amount of tokens.
+     */
+    function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
+        public
+        override
+        onlyRegistry
+    {
+        return IAssetModule(getAssetModule(assetId)).processDirectWithdrawal(creditor, asset, assetId, amount);
+    }
+
+    /**
+     * @notice Decreases the exposure to an asset on an indirect withdrawal.
+     * @param creditor The contract address of the creditor.
+     * @param asset The contract address of the asset.
+     * @param assetId The id of the asset.
+     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
+     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
+     * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
+     */
+    function processIndirectWithdrawal(
+        address creditor,
+        address asset,
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public override onlyRegistry returns (uint256 usdExposureUpperAssetToAsset) {
+        return IAssetModule(getAssetModule(assetId)).processIndirectWithdrawal(
+            creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
+    }
+}
