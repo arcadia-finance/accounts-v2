@@ -35,6 +35,7 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
 
     function testFuzz_Revert_addAsset_InvalidPool(address asset) public {
         // Given : The asset is not a aeroPool in the the Aerodrome Factory.
+        vm.assume(asset != address(aeroPool));
 
         // When : An asset is added to the AM.
         // Then : It should revert.
