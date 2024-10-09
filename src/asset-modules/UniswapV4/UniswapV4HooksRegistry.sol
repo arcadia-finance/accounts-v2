@@ -17,7 +17,7 @@ import { RegistryErrors } from "../../libraries/Errors.sol";
 /**
  * @title Registry for Uniswap V4 Hooks.
  * @author Pragma Labs
- * @notice The Uniswap V4 Hook Registry stores the mapping between Uniswap V4 Hook contracts and their respective Asset Modules.
+ * @notice The Uniswap V4 Hooks Registry stores the mapping between Uniswap V4 Hooks contracts and their respective Asset Modules.
  */
 contract UniswapV4HooksRegistry is AssetModule {
     using PoolIdLibrary for PoolKey;
@@ -37,18 +37,18 @@ contract UniswapV4HooksRegistry is AssetModule {
     address public immutable DEFAULT_UNISWAP_V4_AM;
 
     // Map registry => flag.
-    mapping(address => bool) public inRegistry;
+    mapping(address => bool) internal _inRegistry;
     // Map assetModule => flag.
     mapping(address => bool) public isAssetModule;
-    // Map hook => Hook Asset Module.
-    mapping(address hook => address assetModule) public hookToAssetModule;
+    // Map hooks => Specific Uniswap V4 Asset Module.
+    mapping(address hooks => address assetModule) public hooksToAssetModule;
 
     /* //////////////////////////////////////////////////////////////
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event AssetAdded(address indexed assetAddress, address indexed assetModule);
     event AssetModuleAdded(address assetModule);
+    event HooksAdded(address indexed hooks, address indexed assetModule);
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -84,10 +84,16 @@ contract UniswapV4HooksRegistry is AssetModule {
     /**
      * @param registry_ The contract address of the Registry.
      * @param positionManager The contract address of the uniswapV4 PositionManager.
+     * @param defaultUniswapV4AM The contract address of the default Uniswap V4 AM.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Uniswap V4 Liquidity Positions (ERC721).
      */
-    constructor(address registry_, address positionManager) AssetModule(registry_, 2) {
+    constructor(address registry_, address positionManager, address defaultUniswapV4AM) AssetModule(registry_, 2) {
         POSITION_MANAGER = IPositionManager(positionManager);
+
+        DEFAULT_UNISWAP_V4_AM = defaultUniswapV4AM;
+        isAssetModule[defaultUniswapV4AM] = true;
+
+        emit AssetModuleAdded(defaultUniswapV4AM);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -120,21 +126,23 @@ contract UniswapV4HooksRegistry is AssetModule {
     }
 
     /**
-     * @notice Adds a new hook to the Hook Registry.
+     * @notice Adds a new hooks contract to the Hooks Registry.
      * @param assetType Identifier for the type of the asset.
-     * @param hook The contract address of the hook.
+     * @param hooks The contract address of the hooks.
      * @dev Hooks that are already in the registry cannot be overwritten,
      * as that would make it possible for devs to change the asset pricing.
-     * ToDo: What with the default DEFAULT_UNISWAP_V4_AM?
+     * @dev All hooks contracts that can be priced by the Default Uniswap V4 AM
+     * (no hook implemented on before or after removing liquidity) are automatically added to the Hooks Registry.
+     * Hence they cannot be added by specific Uniswap V4 AMs.
      */
-    function addAsset(uint96 assetType, address hook) external onlyAssetModule {
+    function addHooks(uint96 assetType, address hooks) external onlyAssetModule {
         if (assetType != 2) revert RegistryErrors.InvalidAssetType();
-        if (inRegistry[hook]) revert RegistryErrors.AssetAlreadyInRegistry();
+        if (inRegistry(hooks)) revert RegistryErrors.AssetAlreadyInRegistry();
 
-        inRegistry[hook] = true;
-        hookToAssetModule[hook] = msg.sender;
+        _inRegistry[hooks] = true;
+        hooksToAssetModule[hooks] = msg.sender;
 
-        emit AssetAdded(hook, msg.sender);
+        emit HooksAdded(hooks, msg.sender);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -152,6 +160,25 @@ contract UniswapV4HooksRegistry is AssetModule {
     }
 
     /**
+     * @notice Checks if a hooks contract is in the Hooks Registry.
+     * @param hooks The contract address of the hooks.
+     * @return bool indicating if the hook is in the Hooks Registry.
+     */
+    function inRegistry(address hooks) public view returns (bool) {
+        // Specific Uniswap V4 AM can only be set if the default Uniswap V4 AM cannot be used.
+        if (
+            Hooks.hasPermission(uint160(hooks), Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
+                || Hooks.hasPermission(uint160(hooks), Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
+        ) {
+            // Check if hook is added by a specific Uniswap V4 AM.
+            return _inRegistry[hooks];
+        } else {
+            // Hooks that can be priced by the Default Uniswap V4 AM are automatically added to the Hooks Registry.
+            return true;
+        }
+    }
+
+    /**
      * @notice Returns the Asset Manager for a given position Id.
      * @param assetId The id of the asset.
      * @return assetModule The contract address of the Asset Module.
@@ -159,16 +186,15 @@ contract UniswapV4HooksRegistry is AssetModule {
     function getAssetModule(uint256 assetId) public view returns (address assetModule) {
         (PoolKey memory poolKey,) = POSITION_MANAGER.getPoolAndPositionInfo(assetId);
 
-        // ToDo: We probably have to enforce to use the DEFAULT_UNISWAP_V4_AM if usable,
-        // otherwise when a hookAM is added it can be that we add new pricing logic for assets used as collateral.
-        assetModule = hookToAssetModule[address(poolKey.hooks)];
-
-        // If no Asset Manager is set for the hook, check if we can use the default one.
-        if (assetModule == address(0)) {
-            if (
-                Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
-                    || Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
-            ) revert HooksNotAllowed();
+        // Check if we can use the default Uniswap V4 AM.
+        if (
+            Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
+                || Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
+        ) {
+            // If not a specific Uniswap V4 AM must have been set.
+            assetModule = hooksToAssetModule[address(poolKey.hooks)];
+            if (assetModule == address(0)) revert HooksNotAllowed();
+        } else {
             assetModule = DEFAULT_UNISWAP_V4_AM;
         }
     }
