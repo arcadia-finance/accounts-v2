@@ -13,7 +13,7 @@ import { FullMath } from "../../../lib/v4-periphery-fork/lib/v4-core/src/librari
 import { Hooks } from "./libraries/Hooks.sol";
 import { IPoolManager } from "../../../lib/v4-periphery-fork/lib/v4-core/src/interfaces/IPoolManager.sol";
 import { IPositionManager } from "./interfaces/IPositionManager.sol";
-import { LiquidityAmounts } from "./libraries/LiquidityAmountsV4.sol";
+import { LiquidityAmounts } from "../UniswapV3/libraries/LiquidityAmounts.sol";
 import { PoolId, PoolIdLibrary } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolId.sol";
 import { PoolKey } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PositionInfoLibrary, PositionInfo } from "../../../lib/v4-periphery-fork/src/libraries/PositionInfoLibrary.sol";
@@ -45,9 +45,6 @@ contract UniswapV4AM is DerivedAM {
 
     // The contract address of the PoolManager.
     IPoolManager internal immutable POOL_MANAGER;
-
-    // The maximum value that can be returned from #getSqrtPriceAtTick. Equivalent to getSqrtPriceAtTick(MAX_TICK)
-    uint160 internal constant MAX_SQRT_PRICE = 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -239,7 +236,7 @@ contract UniswapV4AM is DerivedAM {
 
         // As the sole liquidity provider in a new pool,
         // a malicious actor could bypass the max exposure by
-        // continiously swapping large amounts and increasing the fee portion
+        // continuously swapping large amounts and increasing the fee portion
         // of the liquidity position.
         fee0 = fee0
             < principal0
@@ -301,7 +298,7 @@ contract UniswapV4AM is DerivedAM {
      * price = (amountUsd/usdPriceToken1)/(amountUsd/usdPriceToken0) = usdPriceToken0/usdPriceToken1.
      */
     function _getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) internal pure returns (uint160 sqrtPriceX96) {
-        if (priceToken1 == 0) return MAX_SQRT_PRICE;
+        if (priceToken1 == 0) return TickMath.MAX_SQRT_PRICE;
 
         // Both priceTokens have 18 decimals precision and result of division should have 28 decimals precision.
         // -> multiply by 1e28

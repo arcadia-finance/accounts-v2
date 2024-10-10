@@ -10,7 +10,9 @@ import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { Hooks } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/Hooks.sol";
-import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV4/libraries/LiquidityAmountsV4.sol";
+import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
+import { LiquidityAmountsExtension } from
+    "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { PoolKey } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PositionManager } from "../../../../lib/v4-periphery-fork/src/PositionManager.sol";
 import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
@@ -155,7 +157,7 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         maxAmount0 = maxAmount0 > amount0 ? amount0 : maxAmount0;
         maxAmount1 = maxAmount1 > amount1 ? amount1 : maxAmount1;
 
-        liquidityMaxByAmount = LiquidityAmounts.getLiquidityForAmounts(
+        liquidityMaxByAmount = LiquidityAmountsExtension.getLiquidityForAmounts(
             sqrtPriceX96,
             TickMath.getSqrtPriceAtTick(tickLower),
             TickMath.getSqrtPriceAtTick(tickUpper),
@@ -224,5 +226,9 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity_
         );
+
+        // Value principal should not overflow.
+        vm.assume(amount0 < type(uint256).max / priceToken0);
+        vm.assume(amount1 < type(uint256).max / priceToken1);
     }
 }
