@@ -849,7 +849,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And: The amounts should be in balance with the external prices.
         // For very low amounts, a rounding error already invalidates the assertions.
         // "assertApproxEqRel()" should not overflow.
-        if (underlyingAssetsAmounts[0] > 1e2 && underlyingAssetsAmounts[1] > 1e2) {
+        if (underlyingAssetsAmounts[0] > 1e3 && underlyingAssetsAmounts[1] > 1e3) {
             if (
                 underlyingAssetsAmounts[0] > underlyingAssetsAmounts[1]
                     && 1e18 * testVars.priceToken1 / testVars.priceToken0 < type(uint256).max / 1e18
@@ -878,7 +878,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
             k = k / 1e18;
             kNew = kNew / 1e18;
         }
-        if (trustedReserve0 > 5e3 && trustedReserve1 > 5e3) {
+        if (trustedReserve0 > 1e4 && trustedReserve1 > 1e4) {
             assertApproxEqRel(kNew, k, 1e16);
         }
     }

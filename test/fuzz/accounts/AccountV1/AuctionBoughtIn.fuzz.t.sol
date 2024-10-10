@@ -45,6 +45,9 @@ contract AuctionBoughtIn_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         // Given: An Account.
         uint256 id = factory.accountIndex(address(accountExtension));
 
+        // And: recipient is not the account itself.
+        vm.assume(recipient != address(accountExtension));
+
         // When: The Liquidator calls auctionBoughtIn.
         vm.prank(accountExtension.liquidator());
         accountExtension.auctionBoughtIn(recipient);

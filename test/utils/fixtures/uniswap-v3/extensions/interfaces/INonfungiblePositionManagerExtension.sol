@@ -51,4 +51,6 @@ interface INonfungiblePositionManagerExtension is INonfungiblePositionManager {
     function decreaseLiquidity(DecreaseLiquidityParams calldata params)
         external
         returns (uint256 amount0, uint256 amount1);
+
+    function approve(address spender, uint256 tokenId) external;
 }
