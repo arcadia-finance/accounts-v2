@@ -263,10 +263,6 @@ contract ProcessIndirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 1);
 
         {
-            // And: liquidity of the deposited position is increased.
-            uint128 currentLiquidity = stateView.getPositionLiquidity(randomPoolKey.toId(), positionKey);
-            poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, currentLiquidity + 1e18);
-
             // When: processDirectDeposit is called with amount 0.
             vm.prank(address(registry));
             uniswapV4AM.processIndirectDeposit(address(creditorUsd), address(positionManager), tokenId, 0, 0);

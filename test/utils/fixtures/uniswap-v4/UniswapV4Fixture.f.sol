@@ -262,45 +262,6 @@ contract UniswapV4Fixture is Test, Permit2Fixture {
         positionManager.modifyLiquidities(mintData, block.timestamp);
     }
 
-    /*     function increaseLiquidityUniV3(
-        IUniswapV3PoolExtension pool,
-        uint256 tokenId,
-        uint256 amount0,
-        uint256 amount1,
-        bool revertsOnZeroLiquidity
-    ) internal {
-        // Check if test should revert or be skipped when liquidity is zero.
-        // This is hard to check with assumes of the fuzzed inputs due to rounding errors.
-        (,, address token0, address token1,, int24 tickLower, int24 tickUpper,,,,,) =
-            nonfungiblePositionManager.positions(tokenId);
-        if (!revertsOnZeroLiquidity) {
-            (uint160 sqrtPrice,,,,,,) = pool.slot0();
-            uint256 liquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
-                sqrtPrice,
-                TickMath.getSqrtRatioAtTick(tickLower),
-                TickMath.getSqrtRatioAtTick(tickUpper),
-                amount0,
-                amount1
-            );
-            vm.assume(liquidity > 0);
-        }
-
-        deal(token0, address(this), amount0, true);
-        deal(token1, address(this), amount1, true);
-        ERC20(token0).approve(address(nonfungiblePositionManager), type(uint256).max);
-        ERC20(token1).approve(address(nonfungiblePositionManager), type(uint256).max);
-        nonfungiblePositionManager.increaseLiquidity(
-            INonfungiblePositionManagerExtension.IncreaseLiquidityParams({
-                tokenId: tokenId,
-                amount0Desired: amount0,
-                amount1Desired: amount1,
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: type(uint256).max
-            })
-        );
-    }  */
-
     function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
         return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
     }

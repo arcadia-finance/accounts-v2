@@ -236,13 +236,6 @@ contract UniswapV4AM is DerivedAM {
         // Calculate amount0 and amount1 of the accumulated fees.
         (uint256 fee0, uint256 fee1) = _getFeeAmounts(assetId, poolKey.toId(), info, liquidity);
 
-        // As the sole liquidity provider in a new pool,
-        // a malicious actor could bypass the max exposure by
-        // continiously swapping large amounts and increasing the fee portion
-        // of the liquidity position.
-        fee0 = fee0 > principal0 ? principal0 : fee0;
-        fee1 = fee1 > principal1 ? principal1 : fee1;
-
         underlyingAssetsAmounts = new uint256[](2);
         unchecked {
             underlyingAssetsAmounts[0] = principal0 + fee0;
