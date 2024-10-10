@@ -115,6 +115,7 @@ contract UniswapV4AM is DerivedAM {
 
         // Hook flags should be valid for this specific AM.
         uint160 hooks = uint160(address(poolKey.hooks));
+
         if (
             Hooks.hasPermission(hooks, Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
                 || Hooks.hasPermission(hooks, Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
@@ -148,6 +149,8 @@ contract UniswapV4AM is DerivedAM {
             uint128 liquidity = POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId);
 
             // Hook flags should be valid for this specific AM.
+            // The NoOP hook "AFTER_REMOVE_LIQUIDITY_RETURNS_DELTA_FLAG" is by default not allowed,
+            // as it can only be accessed if "AFTER_REMOVE_LIQUIDITY_FLAG" is implemented.
             uint160 hooks = uint160(address(poolKey.hooks));
             if (
                 Hooks.hasPermission(hooks, Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
