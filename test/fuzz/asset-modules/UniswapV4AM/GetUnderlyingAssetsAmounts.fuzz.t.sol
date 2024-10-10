@@ -146,7 +146,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Te
         asset0.usdValue = bound(asset0.usdValue, 0, type(uint256).max / 10 ** (46 - asset0.decimals));
 
         // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
-        asset1.usdValue = bound(asset1.usdValue, 0, type(uint112).max);
+        asset1.usdValue = bound(asset1.usdValue, 0, type(uint256).max / 10 ** (46 - asset1.decimals));
 
         // And: Cast to uint160 in _getSqrtPriceX96 does not overflow.
         if (asset1.usdValue > 0) {
@@ -169,8 +169,8 @@ contract GetUnderlyingAssetsAmounts_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Te
             (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96_, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
             );
-            vm.assume(amount0 < type(uint112).max);
-            vm.assume(amount1 < type(uint112).max);
+            vm.assume(amount0 < type(uint96).max);
+            vm.assume(amount1 < type(uint96).max);
 
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
             positionManager.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);

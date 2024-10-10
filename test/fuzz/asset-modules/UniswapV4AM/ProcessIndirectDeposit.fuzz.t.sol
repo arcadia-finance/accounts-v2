@@ -234,7 +234,7 @@ contract ProcessIndirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         uint112 maxExposure1
     ) public {
         // Given : Valid state
-        (uint256 tokenId, uint256 amount0, uint256 amount1, bytes32 positionKey) =
+        (uint256 tokenId, uint256 amount0, uint256 amount1,) =
             givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
 
         // Check that exposure to underlying tokens stays below maxExposures.
