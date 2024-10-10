@@ -236,6 +236,23 @@ contract UniswapV4AM is DerivedAM {
         // Calculate amount0 and amount1 of the accumulated fees.
         (uint256 fee0, uint256 fee1) = _getFeeAmounts(assetId, poolKey.toId(), info, liquidity);
 
+        // As the sole liquidity provider in a new pool,
+        // a malicious actor could bypass the max exposure by
+        // continiously swapping large amounts and increasing the fee portion
+        // of the liquidity position.
+        fee0 = fee0
+            < principal0
+                + principal1.mulDivDown(rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd[0].assetValue)
+            ? fee0
+            : principal0
+                + principal1.mulDivDown(rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd[0].assetValue);
+        fee1 = fee1
+            < principal0.mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue)
+                + principal1
+            ? fee1
+            : principal0.mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue)
+                + principal1;
+
         underlyingAssetsAmounts = new uint256[](2);
         unchecked {
             underlyingAssetsAmounts[0] = principal0 + fee0;
@@ -500,9 +517,6 @@ contract UniswapV4AM is DerivedAM {
      * @param amount The amount of tokens.
      * @dev super.processDirectWithdrawal checks that msg.sender is the Registry.
      * @dev If the asset is withdrawn, remove its liquidity from the mapping.
-     * If we would keep the liquidity of the asset in storage,
-     * _getUnderlyingAssets() would keep using the liquidity of the asset at the time of deposit.
-     * This might result in a wrongly calculated getValue() of the non-deposited asset (for off-chain purposes).
      */
     function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
         public
@@ -522,9 +536,6 @@ contract UniswapV4AM is DerivedAM {
      * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
      * @dev super.processIndirectWithdrawal checks that msg.sender is the Registry.
      * @dev If the asset is withdrawn, remove its liquidity from the mapping.
-     * If we would keep the liquidity of the asset in storage,
-     * _getUnderlyingAssets() would keep using the liquidity of the asset at the time of deposit.
-     * This might result in a wrongly calculated getValue() of the non-deposited asset (for off-chain purposes).
      * @dev deltaExposureUpperAssetToAsset of a Uniswap V4 LP must be either 0 or -1 for processIndirectWithdrawal().
      * But we do NOT revert if the value is different from 0 or -1, since this would block withdrawals and hence liquidations,
      * which is worse as having wrongly calculated exposures.

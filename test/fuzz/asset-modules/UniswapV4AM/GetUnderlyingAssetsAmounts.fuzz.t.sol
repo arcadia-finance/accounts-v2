@@ -131,9 +131,9 @@ contract GetUnderlyingAssetsAmounts_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Te
         int24 tickUpper,
         uint128 liquidity
     ) public {
-        // Given: underlying asset decimals are equal or less than 18.
-        asset0.decimals = bound(asset0.decimals, 0, 18);
-        asset1.decimals = bound(asset1.decimals, 0, 18);
+        // Given: underlying asset decimals are between 6 and 18 decimals.
+        asset0.decimals = bound(asset0.decimals, 6, 18);
+        asset1.decimals = bound(asset1.decimals, 6, 18);
 
         ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
@@ -145,21 +145,33 @@ contract GetUnderlyingAssetsAmounts_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Te
         // And: "priceXd18" does not overflow in "_getSqrtPriceX96".
         asset0.usdValue = bound(asset0.usdValue, 0, type(uint256).max / 10 ** (46 - asset0.decimals));
 
-        // And: "rateUnderlyingAssetsToUsd" for token1 does not overflows in "_getRateUnderlyingAssetsToUsd".
-        asset1.usdValue = bound(asset1.usdValue, 0, type(uint256).max / 10 ** 18);
+        // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
+        asset1.usdValue = bound(asset1.usdValue, 0, type(uint112).max);
 
         // And: Cast to uint160 in _getSqrtPriceX96 does not overflow.
         if (asset1.usdValue > 0) {
             vm.assume(asset0.usdValue / asset1.usdValue / 10 ** asset0.decimals < 2 ** 128 / 10 ** asset1.decimals);
         }
 
+        // Calculate and check that tick current is within allowed ranges.
+        uint160 sqrtPriceX96_ = uint160(calculateAndValidateRangeTickCurrent(asset0.usdValue, asset1.usdValue));
+        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
+
         // And: State is valid for pool and position.
         {
-            randomPoolKey = initializePool(address(token0), address(token1), 1e18, address(validHook), 500, 1);
+            randomPoolKey = initializePool(address(token0), address(token1), sqrtPriceX96_, address(validHook), 500, 1);
             (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
-            vm.assume(liquidity > 0);
             bytes32 positionKey =
                 keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+
+            vm.assume(liquidity > 0);
+            // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
+            (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
+                sqrtPriceX96_, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
+            );
+            vm.assume(amount0 < type(uint112).max);
+            vm.assume(amount1 < type(uint112).max);
+
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
             positionManager.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
         }
