@@ -491,31 +491,4 @@ contract UniswapV4AM is DerivedAM {
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
     }
-
-    /**
-     * @notice Decreases the exposure to an asset on an indirect withdrawal.
-     * @param creditor The contract address of the creditor.
-     * @param asset The contract address of the asset.
-     * @param assetId The id of the asset.
-     * @param exposureUpperAssetToAsset The amount of exposure of the upper asset to the asset of this Asset Module.
-     * @param deltaExposureUpperAssetToAsset The increase or decrease in exposure of the upper asset to the asset of this Asset Module since last interaction.
-     * @return usdExposureUpperAssetToAsset The USD value of the exposure of the upper asset to the asset of this Asset Module, 18 decimals precision.
-     * @dev super.processIndirectWithdrawal checks that msg.sender is the Registry.
-     * @dev If the asset is withdrawn, remove its liquidity from the mapping.
-     * @dev deltaExposureUpperAssetToAsset of a Uniswap V4 LP must be either 0 or -1 for processIndirectWithdrawal().
-     * But we do NOT revert if the value is different from 0 or -1, since this would block withdrawals and hence liquidations,
-     * which is worse as having wrongly calculated exposures.
-     */
-    function processIndirectWithdrawal(
-        address creditor,
-        address asset,
-        uint256 assetId,
-        uint256 exposureUpperAssetToAsset,
-        int256 deltaExposureUpperAssetToAsset
-    ) public override returns (uint256 usdExposureUpperAssetToAsset) {
-        // Also checks that msg.sender == Registry.
-        usdExposureUpperAssetToAsset = super.processIndirectWithdrawal(
-            creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
-        );
-    }
 }
