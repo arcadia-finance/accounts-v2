@@ -92,7 +92,7 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
 
         // Deploy Asset-Module
         vm.startPrank(users.owner);
-        uniswapV4AM = new UniswapV4AMExtension(address(registry), address(positionManager), address(stateView));
+        uniswapV4AM = new UniswapV4AMExtension(address(registry), address(positionManager), address(poolManager));
         registry.addAssetModule(address(uniswapV4AM));
         uniswapV4AM.setProtocol();
         vm.stopPrank();
@@ -149,7 +149,6 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         // Compare the max amounts (defined by the range of the position) to the max amount constrained by the type container.
         // The true maximum should be the minimum of the two.
         // (ie If the position range allows a deposit of more then int128.max in any token, then here we cap it at int128.max.)
-
         uint256 amount0 = uint256(type(uint128).max / 2);
         uint256 amount1 = uint256(type(uint128).max / 2);
 

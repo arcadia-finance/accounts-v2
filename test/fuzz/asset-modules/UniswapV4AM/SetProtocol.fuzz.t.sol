@@ -37,7 +37,7 @@ contract SetProtocol_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
 
     function testFuzz_Revert_setProtocol_ProtocolNotAddedToReg() public {
         vm.startPrank(users.owner);
-        uniswapV4AM = new UniswapV4AMExtension(address(registry), address(positionManager), address(stateView));
+        uniswapV4AM = new UniswapV4AMExtension(address(registry), address(positionManager), address(poolManager));
 
         vm.expectRevert(RegistryErrors.OnlyAssetModule.selector);
         uniswapV4AM.setProtocol();
@@ -58,7 +58,7 @@ contract SetProtocol_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         positionManager = new PositionManagerExtension(poolManager, IAllowanceTransfer(address(1)), 0);
 
         UniswapV4AMExtension uniswapV4AM_ =
-            new UniswapV4AMExtension(address(registry), address(positionManager), address(stateView));
+            new UniswapV4AMExtension(address(registry), address(positionManager), address(poolManager));
         registry.addAssetModule(address(uniswapV4AM_));
         vm.stopPrank();
 

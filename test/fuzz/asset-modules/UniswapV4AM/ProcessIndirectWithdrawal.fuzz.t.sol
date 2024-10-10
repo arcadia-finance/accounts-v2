@@ -71,7 +71,6 @@ contract ProcessIndirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Tes
         // When : Calling processIndirectWithdrawal()
         vm.prank(address(registry));
         uniswapV4AM.processIndirectWithdrawal(address(creditorUsd), address(positionManager), tokenId, 0, -1);
-        assertEq(uniswapV4AM.getAssetToLiquidity(tokenId), 0);
 
         {
             // Then: Exposure of the asset is zero.
@@ -141,8 +140,6 @@ contract ProcessIndirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Tes
         vm.prank(address(registry));
         uniswapV4AM.processIndirectWithdrawal(address(creditorUsd), address(positionManager), tokenId, 0, 0);
 
-        assertEq(uniswapV4AM.getAssetToLiquidity(tokenId), 0);
-
         {
             // And: Exposure of the asset is zero.
             bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManager)));
@@ -182,7 +179,7 @@ contract ProcessIndirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Tes
         uint112 maxExposure1
     ) public {
         // Given : Valid state
-        (uint256 tokenId, uint256 amount0, uint256 amount1, bytes32 positionKey) =
+        (uint256 tokenId, uint256 amount0, uint256 amount1,) =
             givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
 
         // Check that exposure to underlying tokens stays below maxExposures.
@@ -219,10 +216,6 @@ contract ProcessIndirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Tes
             bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManager)));
             (uint256 lastExposureAsset,) = uniswapV4AM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 1);
-
-            // And: Exposure and liquidity to the underlying assets are updated
-            uint128 liquidity_ = stateView.getPositionLiquidity(randomPoolKey.toId(), positionKey);
-            assertEq(uniswapV4AM.getAssetToLiquidity(tokenId), liquidity_);
 
             // Token0:
             bytes32 underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));

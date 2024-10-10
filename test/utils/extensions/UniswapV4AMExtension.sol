@@ -11,8 +11,8 @@ import { PositionInfo } from "../../../lib/v4-periphery-fork/src/libraries/Posit
 import { UniswapV4AM } from "../../../src/asset-modules/UniswapV4/UniswapV4AM.sol";
 
 contract UniswapV4AMExtension is UniswapV4AM {
-    constructor(address registry_, address positionManager, address stateView)
-        UniswapV4AM(registry_, positionManager, stateView)
+    constructor(address registry_, address positionManager, address poolManager)
+        UniswapV4AM(registry_, positionManager, poolManager)
     { }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)
@@ -37,12 +37,8 @@ contract UniswapV4AMExtension is UniswapV4AM {
         positionManager = address(POSITION_MANAGER);
     }
 
-    function getUniswapV4StateView() public view returns (address uniswapV4StateView) {
-        uniswapV4StateView = address(STATE_VIEW);
-    }
-
-    function getAssetToLiquidity(uint256 assetId) external view returns (uint256 liquidity) {
-        liquidity = assetToLiquidity[assetId];
+    function getUniswapV4PoolManager() public view returns (address poolManager) {
+        poolManager = address(POOL_MANAGER);
     }
 
     function addAsset(uint256 assetId) public {
@@ -68,14 +64,6 @@ contract UniswapV4AMExtension is UniswapV4AM {
     {
         (exposureAssetToUnderlyingAssets, rateUnderlyingAssetsToUsd) =
             _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
-    }
-
-    function getPosition(uint256 assetId)
-        public
-        view
-        returns (PoolKey memory poolKey, PositionInfo info, uint128 liquidity)
-    {
-        return _getPosition(assetId);
     }
 
     function getPrincipalAmounts(PositionInfo info, uint128 liquidity, uint256 usdPriceToken0, uint256 usdPriceToken1)
