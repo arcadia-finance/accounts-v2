@@ -32,19 +32,19 @@ import { TickMath } from "../../../lib/v4-periphery-fork/lib/v4-core/src/librari
  */
 contract UniswapV4AM is DerivedAM {
     using FixedPointMathLib for uint256;
-    using PositionInfoLibrary for PositionInfo;
     using PoolIdLibrary for PoolKey;
+    using PositionInfoLibrary for PositionInfo;
     using StateLibrary for IPoolManager;
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
-    // The contract address of the PositionManager.
-    IPositionManager internal immutable POSITION_MANAGER;
-
     // The contract address of the PoolManager.
     IPoolManager internal immutable POOL_MANAGER;
+
+    // The contract address of the PositionManager.
+    IPositionManager internal immutable POSITION_MANAGER;
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -58,9 +58,9 @@ contract UniswapV4AM is DerivedAM {
     ////////////////////////////////////////////////////////////// */
 
     error HooksNotAllowed();
+    error InvalidAmount();
     error InvalidId();
     error ZeroLiquidity();
-    error InvalidAmount();
 
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
