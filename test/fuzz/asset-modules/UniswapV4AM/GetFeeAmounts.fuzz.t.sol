@@ -224,8 +224,8 @@ contract GetFeeAmounts_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         vm.assume(liquidity > 0);
 
         // And : Positive fee
-        feeData.desiredFee0 = bound(feeData.desiredFee0, 1, type(uint128).max);
-        feeData.desiredFee1 = bound(feeData.desiredFee1, 1, type(uint128).max);
+        feeData.desiredFee0 = bound(feeData.desiredFee0, 1, type(uint128).max - 1);
+        feeData.desiredFee1 = bound(feeData.desiredFee1, 1, type(uint128).max - 1);
 
         // And : Positive freeGrowthInsideLast
         feeGrowthInside0LastX128 = bound(feeGrowthInside0LastX128, 1, type(uint96).max);
@@ -238,9 +238,13 @@ contract GetFeeAmounts_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         // As fee amount is calculated based on deducting feeGrowthOutside from feeGrowthGlobal,
         // no need to test with fuzzed feeGrowthOutside values as no risk of potential rounding errors (we're not testing UniV4 contracts).
         uint256 feeGrowthDiff0X128 = feeData.desiredFee0.mulDivDown(FixedPoint128.Q128, liquidity);
+        vm.assume(feeGrowthDiff0X128 < type(uint256).max - feeGrowthInside0LastX128);
+
         feeData.feeGrowthGlobal0X128 = feeGrowthDiff0X128 + feeGrowthInside0LastX128;
 
         uint256 feeGrowthDiff1X128 = feeData.desiredFee1.mulDivDown(FixedPoint128.Q128, liquidity);
+        vm.assume(feeGrowthDiff1X128 < type(uint256).max - feeGrowthInside1LastX128);
+
         feeData.feeGrowthGlobal1X128 = feeGrowthDiff1X128 + feeGrowthInside1LastX128;
 
         bytes32 positionKey;

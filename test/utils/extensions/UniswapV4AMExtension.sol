@@ -66,14 +66,6 @@ contract UniswapV4AMExtension is UniswapV4AM {
             _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
     }
 
-    function getPosition(uint256 assetId)
-        public
-        view
-        returns (PoolKey memory poolKey, PositionInfo info, uint128 liquidity)
-    {
-        return _getPosition(assetId);
-    }
-
     function getPrincipalAmounts(PositionInfo info, uint128 liquidity, uint256 usdPriceToken0, uint256 usdPriceToken1)
         public
         pure

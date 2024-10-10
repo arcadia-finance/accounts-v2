@@ -11,8 +11,8 @@ import { FixedPoint96 } from "../../../lib/v4-periphery-fork/lib/v4-core/src/lib
 import { FixedPoint128 } from "../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/FixedPoint128.sol";
 import { FullMath } from "../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/FullMath.sol";
 import { Hooks } from "./libraries/Hooks.sol";
-import { IPositionManager } from "./interfaces/IPositionManager.sol";
 import { IPoolManager } from "../../../lib/v4-periphery-fork/lib/v4-core/src/interfaces/IPoolManager.sol";
+import { IPositionManager } from "./interfaces/IPositionManager.sol";
 import { LiquidityAmounts } from "./libraries/LiquidityAmountsV4.sol";
 import { PoolId, PoolIdLibrary } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolId.sol";
 import { PoolKey } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
@@ -218,17 +218,18 @@ contract UniswapV4AM is DerivedAM {
 
         (, uint256 assetId) = _getAssetFromKey(assetKey);
 
-        (PoolKey memory poolKey, PositionInfo info, uint128 liquidity) = _getPosition(assetId);
-        address token0 = Currency.unwrap(poolKey.currency0);
-        address token1 = Currency.unwrap(poolKey.currency1);
+        (PoolKey memory poolKey, PositionInfo info) = POSITION_MANAGER.getPoolAndPositionInfo(assetId);
 
         // Get the trusted rates to USD of the Underlying Assets.
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
-        underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
-        underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
+        underlyingAssetKeys[0] = _getKeyFromAsset(Currency.unwrap(poolKey.currency0), 0);
+        underlyingAssetKeys[1] = _getKeyFromAsset(Currency.unwrap(poolKey.currency1), 0);
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
 
         // Calculate amount0 and amount1 of the principal (the actual liquidity position).
+        bytes32 positionId =
+            keccak256(abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)));
+        uint128 liquidity = POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId);
         (uint256 principal0, uint256 principal1) = _getPrincipalAmounts(
             info, liquidity, rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue
         );
@@ -258,24 +259,6 @@ contract UniswapV4AM is DerivedAM {
             underlyingAssetsAmounts[0] = principal0 + fee0;
             underlyingAssetsAmounts[1] = principal1 + fee1;
         }
-    }
-
-    /**
-     * @notice Returns the position information.
-     * @param assetId The id of the asset.
-     * @return poolKey The key for identifying a UniswapV4 pool.
-     * @return info A packed struct including the poolId and the ticks of the position.
-     * @return liquidity The liquidity per tick of the liquidity position.
-     */
-    function _getPosition(uint256 assetId)
-        internal
-        view
-        returns (PoolKey memory poolKey, PositionInfo info, uint128 liquidity)
-    {
-        (poolKey, info) = POSITION_MANAGER.getPoolAndPositionInfo(assetId);
-        bytes32 positionId =
-            keccak256(abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)));
-        liquidity = POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId);
     }
 
     /**
@@ -507,23 +490,6 @@ contract UniswapV4AM is DerivedAM {
         (recursiveCalls, usdExposureUpperAssetToAsset) = super.processIndirectDeposit(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
-    }
-
-    /**
-     * @notice Decreases the exposure to an asset on a direct withdrawal.
-     * @param creditor The contract address of the Creditor.
-     * @param asset The contract address of the asset.
-     * @param assetId The id of the asset.
-     * @param amount The amount of tokens.
-     * @dev super.processDirectWithdrawal checks that msg.sender is the Registry.
-     * @dev If the asset is withdrawn, remove its liquidity from the mapping.
-     */
-    function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
-        public
-        override
-    {
-        // Also checks that msg.sender == Registry.
-        super.processDirectWithdrawal(creditor, asset, assetId, amount);
     }
 
     /**
