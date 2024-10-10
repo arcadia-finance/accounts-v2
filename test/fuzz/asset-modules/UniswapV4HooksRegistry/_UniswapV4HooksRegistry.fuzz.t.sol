@@ -27,11 +27,6 @@ abstract contract UniswapV4HooksRegistry_Fuzz_Test is Fuzz_Test, UniswapV4Fixtur
     ERC20 token0;
     ERC20 token1;
 
-    uint256 internal constant INT256_MAX = 2 ** 255 - 1;
-    // While the true minimum value of an int256 is 2 ** 255, Solidity overflows on a negation (since INT256_MAX is one less).
-    // -> This true minimum value will overflow and revert.
-    uint256 internal constant INT256_MIN = 2 ** 255 - 1;
-
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -57,12 +52,13 @@ abstract contract UniswapV4HooksRegistry_Fuzz_Test is Fuzz_Test, UniswapV4Fixtur
             1
         );
 
-        // Deploy Asset-Module
+        // Deploy V4 default AM and HooksRegistry
         vm.startPrank(users.owner);
-        uniswapV4AM = new UniswapV4AMExtension(address(registry), address(positionManager), address(stateView));
-        //v4HooksRegistry
-        registry.addAssetModule(address(uniswapV4AM));
-        uniswapV4AM.setProtocol();
+        uniswapV4AM = new UniswapV4AMExtension(address(registry), address(positionManager), address(poolManager));
+        v4HooksRegistry =
+            new UniswapV4HooksRegistryExtension(address(registry), address(positionManager), address(uniswapV4AM));
+        registry.addAssetModule(address(v4HooksRegistry));
+        v4HooksRegistry.setProtocol();
         vm.stopPrank();
     }
 
