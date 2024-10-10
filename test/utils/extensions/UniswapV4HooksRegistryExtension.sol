@@ -11,7 +11,7 @@ contract UniswapV4HooksRegistryExtension is UniswapV4HooksRegistry {
         UniswapV4HooksRegistry(registry_, positionManager, defaultUniswapV4AM)
     { }
 
-    function getPositionManager() public returns (address positionManager) {
+    function getPositionManager() public view returns (address positionManager) {
         return address(POSITION_MANAGER);
     }
 
