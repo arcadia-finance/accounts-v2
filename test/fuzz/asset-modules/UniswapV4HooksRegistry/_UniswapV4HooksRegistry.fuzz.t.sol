@@ -4,12 +4,13 @@
  */
 pragma solidity ^0.8.22;
 
-import { BaseHook } from "../../../../lib/v4-periphery-fork/src/base/hooks/BaseHook.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
+import { PoolKey } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
+import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
 import { UniswapV4AMExtension } from "../../../../test/utils/extensions/UniswapV4AMExtension.sol";
 import { UniswapV4Fixture } from "../../../utils/fixtures/uniswap-v4/UniswapV4Fixture.f.sol";
-import { UniswapV4HooksRegistry } from "../../../../src/asset-modules/UniswapV4/UniswapV4HooksRegistry.sol";
+import { UniswapV4HooksRegistryExtension } from "../../../../test/utils/extensions/UniswapV4HooksRegistryExtension.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV4AM" fuzz tests.
@@ -20,7 +21,7 @@ abstract contract UniswapV4HooksRegistry_Fuzz_Test is Fuzz_Test, UniswapV4Fixtur
     /////////////////////////////////////////////////////////////// */
 
     UniswapV4AMExtension internal uniswapV4AM;
-    UniswapV4HooksRegistry internal v4HooksRegistry;
+    UniswapV4HooksRegistryExtension internal v4HooksRegistry;
     PoolKey internal stablePoolKey;
     PoolKey internal randomPoolKey;
 

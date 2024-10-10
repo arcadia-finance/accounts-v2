@@ -10,4 +10,12 @@ contract UniswapV4HooksRegistryExtension is UniswapV4HooksRegistry {
     constructor(address registry_, address positionManager, address defaultUniswapV4AM)
         UniswapV4HooksRegistry(registry_, positionManager, defaultUniswapV4AM)
     { }
+
+    function getPositionManager() public returns (address positionManager) {
+        return address(POSITION_MANAGER);
+    }
+
+    function setAssetModule(address assetModule) public {
+        isAssetModule[assetModule] = true;
+    }
 }
