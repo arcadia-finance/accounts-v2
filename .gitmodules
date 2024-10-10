@@ -22,4 +22,4 @@
 	url = https://github.com/uniswap/swap-router-contracts
 [submodule "lib/v4-periphery-fork"]
 	path = lib/v4-periphery-fork
-	url = git@github.com:arcadia-finance/v4-periphery-fork.git
+	url = https://github.com/arcadia-finance/v4-periphery-fork
