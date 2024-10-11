@@ -37,8 +37,7 @@ contract SetProtocol_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_
 
     function testFuzz_Revert_setProtocol_ProtocolNotAddedToReg() public {
         vm.startPrank(users.owner);
-        v4HooksRegistry =
-            new UniswapV4HooksRegistryExtension(address(registry), address(positionManager), address(uniswapV4AM));
+        v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), address(positionManager));
 
         vm.expectRevert(RegistryErrors.OnlyAssetModule.selector);
         v4HooksRegistry.setProtocol();
@@ -58,8 +57,7 @@ contract SetProtocol_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_
         // Redeploy Position Manager
         positionManager = new PositionManagerExtension(poolManager, IAllowanceTransfer(address(1)), 0);
 
-        v4HooksRegistry =
-            new UniswapV4HooksRegistryExtension(address(registry), address(positionManager), address(uniswapV4AM));
+        v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), address(positionManager));
 
         registry.addAssetModule(address(v4HooksRegistry));
         vm.stopPrank();

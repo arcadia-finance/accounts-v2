@@ -158,7 +158,7 @@ contract GetValue_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), address(token1), 0, type(uint112).max, uint16(collFactor1), uint16(liqFactor1)
         );
-        registry.setRiskParametersOfDerivedAM(
+        v4HooksRegistry.setRiskParametersOfDerivedAM(
             address(creditorUsd), address(uniswapV4AM), type(uint112).max, uint16(riskFactorUniV4)
         );
         vm.stopPrank();

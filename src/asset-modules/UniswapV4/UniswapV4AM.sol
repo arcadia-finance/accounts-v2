@@ -69,28 +69,16 @@ contract UniswapV4AM is DerivedAM {
     /**
      * @param registry_ The contract address of the Registry.
      * @param positionManager The contract address of the uniswapV4 PositionManager.
-     * @param poolManager The contract address of the UniswapV4 PoolManager contract, for reading storage in v4-core.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Uniswap V4 Liquidity Positions (ERC721).
      */
-    constructor(address registry_, address positionManager, address poolManager) DerivedAM(registry_, 2) {
+    constructor(address registry_, address positionManager) DerivedAM(registry_, 2) {
         POSITION_MANAGER = IPositionManager(positionManager);
-        POOL_MANAGER = IPoolManager(poolManager);
+        POOL_MANAGER = IPoolManager(POSITION_MANAGER.poolManager());
     }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
     ///////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Adds the mapping from the PositionManager to this Asset Module in this Registry.
-     * @dev Since all assets will have the same contract address, only the PositionManager has to be added to the Registry.
-     */
-    function setProtocol() external onlyOwner {
-        inAssetModule[address(POSITION_MANAGER)] = true;
-
-        // Will revert in Registry if asset was already added.
-        IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), address(POSITION_MANAGER));
-    }
 
     /**
      * @notice Adds a new asset (Liquidity Position) to the UniswapV4AM.
@@ -104,23 +92,22 @@ contract UniswapV4AM is DerivedAM {
         (PoolKey memory poolKey, PositionInfo info) = POSITION_MANAGER.getPoolAndPositionInfo(assetId);
         bytes32 positionId =
             keccak256(abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)));
-        uint128 liquidity = POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId);
+
+        // Liquidity should be greater than zero.
+        if (POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId) == 0) revert ZeroLiquidity();
+
+        // Hook flags should be valid for this specific AM.
+        // The NoOP hook "AFTER_REMOVE_LIQUIDITY_RETURNS_DELTA_FLAG" is by default not allowed,
+        // as it can only be accessed if "AFTER_REMOVE_LIQUIDITY_FLAG" is implemented.
+        if (
+            Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
+                || Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
+        ) revert HooksNotAllowed();
 
         // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
         // deposit functions, and deposits of non-allowed Underlying Assets will revert.
-        if (liquidity == 0) revert ZeroLiquidity();
-
-        // Hook flags should be valid for this specific AM.
-        uint160 hooks = uint160(address(poolKey.hooks));
-
-        if (
-            Hooks.hasPermission(hooks, Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
-                || Hooks.hasPermission(hooks, Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
-        ) revert HooksNotAllowed();
-
         bytes32 assetKey = _getKeyFromAsset(address(POSITION_MANAGER), assetId);
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
-
         underlyingAssetKeys[0] = _getKeyFromAsset(Currency.unwrap(poolKey.currency0), 0);
         underlyingAssetKeys[1] = _getKeyFromAsset(Currency.unwrap(poolKey.currency1), 0);
         assetToUnderlyingAssets[assetKey] = underlyingAssetKeys;
@@ -143,21 +130,19 @@ contract UniswapV4AM is DerivedAM {
             bytes32 positionId = keccak256(
                 abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId))
             );
-            uint128 liquidity = POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId);
 
             // Hook flags should be valid for this specific AM.
             // The NoOP hook "AFTER_REMOVE_LIQUIDITY_RETURNS_DELTA_FLAG" is by default not allowed,
             // as it can only be accessed if "AFTER_REMOVE_LIQUIDITY_FLAG" is implemented.
-            uint160 hooks = uint160(address(poolKey.hooks));
             if (
-                Hooks.hasPermission(hooks, Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
-                    || Hooks.hasPermission(hooks, Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
+                Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
+                    || Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
             ) revert HooksNotAllowed();
 
-            address token0 = Currency.unwrap(poolKey.currency0);
-            address token1 = Currency.unwrap(poolKey.currency1);
-
-            return IRegistry(REGISTRY).isAllowed(token0, 0) && IRegistry(REGISTRY).isAllowed(token1, 0) && liquidity > 0;
+            // Underlying assets should be allowed and liquidity should be greater than zero.
+            return IRegistry(REGISTRY).isAllowed(Currency.unwrap(poolKey.currency0), 0)
+                && IRegistry(REGISTRY).isAllowed(Currency.unwrap(poolKey.currency1), 0)
+                && POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId) > 0;
         } catch {
             return false;
         }
@@ -181,12 +166,10 @@ contract UniswapV4AM is DerivedAM {
             (, uint256 assetId) = _getAssetFromKey(assetKey);
 
             (PoolKey memory poolKey,) = POSITION_MANAGER.getPoolAndPositionInfo(assetId);
-            address token0 = Currency.unwrap(poolKey.currency0);
-            address token1 = Currency.unwrap(poolKey.currency1);
 
             underlyingAssetKeys = new bytes32[](2);
-            underlyingAssetKeys[0] = _getKeyFromAsset(token0, 0);
-            underlyingAssetKeys[1] = _getKeyFromAsset(token1, 0);
+            underlyingAssetKeys[0] = _getKeyFromAsset(Currency.unwrap(poolKey.currency0), 0);
+            underlyingAssetKeys[1] = _getKeyFromAsset(Currency.unwrap(poolKey.currency1), 0);
         }
     }
 

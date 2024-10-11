@@ -24,8 +24,7 @@ contract Constructor_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.owner);
-        UniswapV4AMExtension uniV4AssetModule_ =
-            new UniswapV4AMExtension(registry_, address(positionManager), address(poolManager));
+        UniswapV4AMExtension uniV4AssetModule_ = new UniswapV4AMExtension(registry_, address(positionManager));
         vm.stopPrank();
 
         assertEq(uniV4AssetModule_.REGISTRY(), registry_);

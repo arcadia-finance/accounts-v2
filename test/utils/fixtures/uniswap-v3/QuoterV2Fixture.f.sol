@@ -21,6 +21,7 @@ contract QuoterV2Fixture is Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function deployQuoterV2(address factoryV3_, address weth9_) public {
+        // Get the byte
         // Get the bytecode of the UniswapV3PoolExtension.
         bytes memory args = abi.encode();
         bytes memory bytecode = abi.encodePacked(vm.getCode("UniswapV3PoolExtension.sol"), args);

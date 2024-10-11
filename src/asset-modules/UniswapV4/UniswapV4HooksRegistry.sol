@@ -5,6 +5,7 @@
 pragma solidity ^0.8.22;
 
 import { AssetModule, IAssetModule, Owned } from "../abstracts/AbstractAM.sol";
+import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { Hooks } from "./libraries/Hooks.sol";
 import { ICreditor } from "../../interfaces/ICreditor.sol";
 import { IDerivedAM } from "../../interfaces/IDerivedAM.sol";
@@ -13,6 +14,7 @@ import { IRegistry } from "../interfaces/IRegistry.sol";
 import { PoolIdLibrary } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolId.sol";
 import { PoolKey } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { RegistryErrors } from "../../libraries/Errors.sol";
+import { UniswapV4AM } from "./UniswapV4AM.sol";
 
 /**
  * @title Registry for Uniswap V4 Hooks.
@@ -84,16 +86,15 @@ contract UniswapV4HooksRegistry is AssetModule {
     /**
      * @param registry_ The contract address of the Registry.
      * @param positionManager The contract address of the uniswapV4 PositionManager.
-     * @param defaultUniswapV4AM The contract address of the default Uniswap V4 AM.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Uniswap V4 Liquidity Positions (ERC721).
      */
-    constructor(address registry_, address positionManager, address defaultUniswapV4AM) AssetModule(registry_, 2) {
+    constructor(address registry_, address positionManager) AssetModule(registry_, 2) {
         POSITION_MANAGER = IPositionManager(positionManager);
 
-        DEFAULT_UNISWAP_V4_AM = defaultUniswapV4AM;
-        isAssetModule[defaultUniswapV4AM] = true;
+        DEFAULT_UNISWAP_V4_AM = address(new UniswapV4AM(address(this), positionManager));
+        isAssetModule[DEFAULT_UNISWAP_V4_AM] = true;
 
-        emit AssetModuleAdded(defaultUniswapV4AM);
+        emit AssetModuleAdded(DEFAULT_UNISWAP_V4_AM);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -156,7 +157,8 @@ contract UniswapV4HooksRegistry is AssetModule {
      * @return A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
-        return IAssetModule(getAssetModule(assetId)).isAllowed(asset, assetId);
+        if (isAssetModule[msg.sender]) return IRegistry(REGISTRY).isAllowed(asset, assetId);
+        else return IAssetModule(getAssetModule(assetId)).isAllowed(asset, assetId);
     }
 
     /**
@@ -337,5 +339,83 @@ contract UniswapV4HooksRegistry is AssetModule {
         return IAssetModule(getAssetModule(assetId)).processIndirectWithdrawal(
             creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
+    }
+
+    /**
+     * @notice This function is called by Asset Modules of non-primary assets
+     * in order to update the exposure of an underlying asset after a deposit.
+     * @param creditor The contract address of the Creditor.
+     * @param underlyingAsset The underlying asset.
+     * @param underlyingAssetId The underlying asset id.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the asset to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the asset to the underlying asset
+     * since the last interaction.
+     * @return recursiveCalls The number of calls done to different asset modules to process the deposit/withdrawal of the asset.
+     * @return usdExposureAssetToUnderlyingAsset The USD-value of the exposure of the asset to its underlying asset,
+     * 18 decimals precision.
+     */
+    function getUsdValueExposureToUnderlyingAssetAfterDeposit(
+        address creditor,
+        address underlyingAsset,
+        uint256 underlyingAssetId,
+        uint256 exposureAssetToUnderlyingAsset,
+        int256 deltaExposureAssetToUnderlyingAsset
+    ) external onlyAssetModule returns (uint256 recursiveCalls, uint256 usdExposureAssetToUnderlyingAsset) {
+        return IRegistry(REGISTRY).getUsdValueExposureToUnderlyingAssetAfterDeposit(
+            creditor,
+            underlyingAsset,
+            underlyingAssetId,
+            exposureAssetToUnderlyingAsset,
+            deltaExposureAssetToUnderlyingAsset
+        );
+    }
+
+    /**
+     * @notice This function is called by Asset Modules of non-primary assets
+     * in order to update the exposure of an underlying asset after a withdrawal.
+     * @param creditor The contract address of the Creditor.
+     * @param underlyingAsset The underlying asset.
+     * @param underlyingAssetId The underlying asset id.
+     * @param exposureAssetToUnderlyingAsset The amount of exposure of the asset to the underlying asset.
+     * @param deltaExposureAssetToUnderlyingAsset The increase or decrease in exposure of the asset to the underlying asset
+     * since the last interaction.
+     * @return usdExposureAssetToUnderlyingAsset The Usd value of the exposure of the asset to its underlying asset,
+     * 18 decimals precision.
+     */
+    function getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
+        address creditor,
+        address underlyingAsset,
+        uint256 underlyingAssetId,
+        uint256 exposureAssetToUnderlyingAsset,
+        int256 deltaExposureAssetToUnderlyingAsset
+    ) external onlyAssetModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
+        return IRegistry(REGISTRY).getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
+            creditor,
+            underlyingAsset,
+            underlyingAssetId,
+            exposureAssetToUnderlyingAsset,
+            deltaExposureAssetToUnderlyingAsset
+        );
+    }
+
+    /* ///////////////////////////////////////////////////////////////
+                          PRICING LOGIC
+    /////////////////////////////////////////////////////////////// */
+
+    /**
+     * @notice Calculates the USD values of underlying assets.
+     * @param creditor The contract address of the Creditor.
+     * @param assets Array of the contract addresses of the assets.
+     * @param assetIds Array of the ids of the assets.
+     * @param assetAmounts Array with the amounts of the assets.
+     * @return valuesAndRiskFactors The values of the assets, denominated in USD with 18 Decimals precision
+     */
+    function getValuesInUsdRecursive(
+        address creditor,
+        address[] calldata assets,
+        uint256[] calldata assetIds,
+        uint256[] calldata assetAmounts
+    ) external view returns (AssetValueAndRiskFactors[] memory valuesAndRiskFactors) {
+        return IRegistry(REGISTRY).getValuesInUsdRecursive(creditor, assets, assetIds, assetAmounts);
     }
 }

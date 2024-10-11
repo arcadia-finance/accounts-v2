@@ -64,12 +64,14 @@ contract ProcessDirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test 
         }
 
         vm.prank(users.riskManager);
-        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100);
+        v4HooksRegistry.setRiskParametersOfDerivedAM(
+            address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100
+        );
 
-        vm.prank(address(registry));
+        vm.prank(address(v4HooksRegistry));
         uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 1);
 
-        vm.prank(address(registry));
+        vm.prank(address(v4HooksRegistry));
         uniswapV4AM.processDirectWithdrawal(address(creditorUsd), address(positionManager), tokenId, 1);
 
         {
@@ -135,9 +137,11 @@ contract ProcessDirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test 
         }
 
         vm.prank(users.riskManager);
-        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100);
+        v4HooksRegistry.setRiskParametersOfDerivedAM(
+            address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100
+        );
 
-        vm.prank(address(registry));
+        vm.prank(address(v4HooksRegistry));
         uniswapV4AM.processDirectWithdrawal(address(creditorUsd), address(positionManager), tokenId, 0);
 
         {
@@ -203,12 +207,14 @@ contract ProcessDirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test 
         }
 
         vm.prank(users.riskManager);
-        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100);
+        v4HooksRegistry.setRiskParametersOfDerivedAM(
+            address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100
+        );
 
-        vm.prank(address(registry));
+        vm.prank(address(v4HooksRegistry));
         uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 1);
 
-        vm.prank(address(registry));
+        vm.prank(address(v4HooksRegistry));
         uniswapV4AM.processDirectWithdrawal(address(creditorUsd), address(positionManager), tokenId, 0);
 
         {
