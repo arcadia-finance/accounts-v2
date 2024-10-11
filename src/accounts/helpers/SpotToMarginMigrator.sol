@@ -43,7 +43,7 @@ contract SpotToMarginMigrator {
 
     error CreditorNotValid();
     error NotOwner();
-    error OngoingUpgrade();
+    error NoUpgradeOngoing();
 
     /* //////////////////////////////////////////////////////////////
                               CONSTRUCTOR
@@ -105,15 +105,18 @@ contract SpotToMarginMigrator {
 
     /**
      * @notice Call this function after the cool-down period of the initial Spot Account has passed (following upgradeAccount()).
-     * This will finalize the upgrade and transfer the Margin Account to the caller.
+     * This will finalize the upgrade and transfer the Margin Account to its owner.
      * @param account The Account to transfer back to its owner after the cool-down period.
      */
     function endUpgrade(address account) external {
-        if (accountToOwner[account] != msg.sender) revert NotOwner();
+        // Cache owner of account.
+        address accountOwner = accountToOwner[account];
+        // Check if account is being upgraded.
+        if (accountOwner == address(0)) revert NoUpgradeOngoing();
         // Remove owner from Account in storage
         accountToOwner[account] = address(0);
         // Transfer Account back to owner
-        FACTORY.safeTransferFrom(address(this), msg.sender, account);
+        FACTORY.safeTransferFrom(address(this), accountOwner, account);
     }
 
     /* ///////////////////////////////////////////////////////////////

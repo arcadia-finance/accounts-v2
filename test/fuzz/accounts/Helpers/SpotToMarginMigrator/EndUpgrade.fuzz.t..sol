@@ -4,6 +4,7 @@
  */
 pragma solidity 0.8.22;
 
+import { AccountErrors } from "../../../../../src/libraries/Errors.sol";
 import { AccountV1Extension } from "../../../../utils/extensions/AccountV1Extension.sol";
 import { AccountSpotExtension } from "../../../../utils/extensions/AccountSpotExtension.sol";
 import { Constants } from "../../../Fuzz.t.sol";
@@ -29,32 +30,47 @@ contract EndUpgrade_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_Fuzz_
     /* ///////////////////////////////////////////////////////////////
                               TESTS
     /////////////////////////////////////////////////////////////// */
-    function testFuzz_revert_endUpgrade_NotOwner(
-        address notOwner,
+    function testFuzz_revert_endUpgrade_NoUpgradeOngoing(address caller) public {
+        // Given : An Account not being upgraded.
+        assertEq(spotToMarginMigrator.getOwnerOfAccount(address(accountSpot)), address(0));
+
+        // When : Calling upgradeAccount() from a user having no ongoing Account upgrade
+        // Then : It should revert
+        vm.prank(caller);
+        vm.expectRevert(SpotToMarginMigrator.NoUpgradeOngoing.selector);
+        spotToMarginMigrator.endUpgrade(address(accountSpot));
+    }
+
+    function testFuzz_revert_endUpgrade_BeforeCoolDown(
+        address caller,
         uint112 erc20Amount,
         uint8 erc721Id,
-        uint112 erc1155Amount
+        uint112 erc1155Amount,
+        uint32 time
     ) public {
-        // Given : An Account owner initiates an upgrade
-        // And: "exposure" is strictly smaller than "maxExposure" and amount is bigger than 0.
+        // Given: "exposure" is strictly smaller than "maxExposure" and amount is bigger than 0.
         erc20Amount = uint112(bound(erc20Amount, 1, type(uint112).max - 1));
         erc1155Amount = uint112(bound(erc1155Amount, 1, type(uint112).max - 1));
 
         // And : Spot Account has assets
         mintDepositAssets(erc20Amount, erc721Id, erc1155Amount);
 
-        // And : Account owner initiates an upgrade
+        // And : upgradeAccount()
         upgradeAccount(erc20Amount, erc721Id, erc1155Amount, address(creditorStable1));
 
-        // When : Calling upgradeAccount() from a user having no ongoing Account upgrade
-        // Then : It should revert
-        vm.startPrank(notOwner);
-        vm.expectRevert(SpotToMarginMigrator.NotOwner.selector);
+        // And : cool down period has not passed.
+        time = uint32(bound(time, 0, accountSpot.getCoolDownPeriod()));
+        vm.warp(block.timestamp + time);
+
+        // When : calling endUpgrade()
+        vm.prank(caller);
+        vm.expectRevert(AccountErrors.CoolDownPeriodNotPassed.selector);
         spotToMarginMigrator.endUpgrade(address(accountSpot));
-        vm.stopPrank();
     }
 
-    function testFuzz_success_endUpgrade(uint112 erc20Amount, uint8 erc721Id, uint112 erc1155Amount) public {
+    function testFuzz_success_endUpgrade(address caller, uint112 erc20Amount, uint8 erc721Id, uint112 erc1155Amount)
+        public
+    {
         // Given: "exposure" is strictly smaller than "maxExposure" and amount is bigger than 0.
         erc20Amount = uint112(bound(erc20Amount, 1, type(uint112).max - 1));
         erc1155Amount = uint112(bound(erc1155Amount, 1, type(uint112).max - 1));
@@ -69,7 +85,7 @@ contract EndUpgrade_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_Fuzz_
         vm.warp(block.timestamp + accountSpot.getCoolDownPeriod() + 1);
 
         // When : calling endUpgrade()
-        vm.prank(users.accountOwner);
+        vm.prank(caller);
         spotToMarginMigrator.endUpgrade(address(accountSpot));
 
         // Then : It should return the correct values
