@@ -13,7 +13,6 @@ remappings = [
     "@uniswap/v3-core/contracts/=lib/v3-core/contracts/",
     "@uniswap/v3-periphery/contracts/=lib/v3-periphery/contracts/",
     "contracts/=lib/slipstream/contracts",
-    "@openzeppelin=lib/openzeppelin-contracts",
     "solmate/=lib/solmate/",
 ]
 
