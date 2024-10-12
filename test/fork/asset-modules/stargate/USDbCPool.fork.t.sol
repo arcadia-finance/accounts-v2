@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { StargateBase_Fork_Test } from "./StargateBase.fork.t.sol";
 

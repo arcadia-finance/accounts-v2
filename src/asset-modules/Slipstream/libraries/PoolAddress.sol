@@ -1,6 +1,6 @@
 // https://github.com/velodrome-finance/slipstream/blob/main/contracts/periphery/libraries/PoolAddress.sol
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { ICLFactory } from "../interfaces/ICLFactory.sol";
 
