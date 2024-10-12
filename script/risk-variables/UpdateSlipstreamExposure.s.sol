@@ -17,19 +17,17 @@ import {
     RiskParameters
 } from "../utils/Constants.sol";
 
-contract UpdateUSDCExposure is Base_Script {
+contract UpdateSlipstreamExposure is Base_Script {
     constructor() { }
 
     function run() public {
         bytes memory calldata_ = abi.encodeCall(
-            registry.setRiskParametersOfPrimaryAsset,
+            registry.setRiskParametersOfDerivedAM,
             (
                 address(usdcLendingPool),
-                PrimaryAssets.USDC,
-                0,
-                RiskParameters.EXPOSURE_USDC_USDC,
-                RiskParameters.COL_FAC_USDC_USDC,
-                RiskParameters.LIQ_FAC_USDC_USDC
+                ArcadiaContracts.STAKED_SLIPSTREAM_AM,
+                RiskParameters.EXPOSURE_STAKED_SLIPSTREAM_AM_USDC,
+                RiskParameters.RISK_FAC_STAKED_SLIPSTREAM_AM_USDC
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
