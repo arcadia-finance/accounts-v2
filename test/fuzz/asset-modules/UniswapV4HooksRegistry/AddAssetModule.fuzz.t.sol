@@ -23,6 +23,17 @@ contract AddAssetModule_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegist
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_addAssetModule_OnlyOwner(address unprivilegedAddress_, address assetModule) public {
+        // Given: unprivilegedAddress_ is not the owner.
+        vm.assume(unprivilegedAddress_ != users.owner);
+
+        // When: unprivilegedAddress_ calls addAssetModule.
+        // Then: It should revert.
+        vm.prank(unprivilegedAddress_);
+        vm.expectRevert("UNAUTHORIZED");
+        v4HooksRegistry.addAssetModule(assetModule);
+    }
+
     function testFuzz_Revert_addAssetModule_NotUnique(address assetModule) public {
         // Given: Asset Module is already set
         v4HooksRegistry.setAssetModule(assetModule);

@@ -23,25 +23,34 @@ contract AddHooks_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuz
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_addHooks_OnlyAssetModule(address caller, uint96 assetType, address hooks) public {
+        // Given: caller is not an Asset Module.
+        vm.assume(!v4HooksRegistry.isAssetModule(caller));
+
+        // When: Calling addHooks
+        // Then: It should revert
+        vm.prank(caller);
+        vm.expectRevert(RegistryErrors.OnlyAssetModule.selector);
+        v4HooksRegistry.addHooks(assetType, hooks);
+    }
+
     function testFuzz_Revert_addHooks_InvalidAssetType(uint96 assetType, address hooks) public {
         // Given: Asset type != 2
         vm.assume(assetType != 2);
 
         // When: Calling addHooks
         // Then: It should revert
-        vm.startPrank(address(uniswapV4AM));
+        vm.prank(address(uniswapV4AM));
         vm.expectRevert(RegistryErrors.InvalidAssetType.selector);
         v4HooksRegistry.addHooks(assetType, hooks);
-        vm.stopPrank();
     }
 
     function testFuzz_revert_addHooks_AssetAlreadyInRegistry() public {
         // When: Calling addHooks
         // Then: It should revert
-        vm.startPrank(address(uniswapV4AM));
+        vm.prank(address(uniswapV4AM));
         vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
         v4HooksRegistry.addHooks(2, address(validHook));
-        vm.stopPrank();
     }
 
     function testFuzz_success_addHooks() public {
@@ -50,14 +59,13 @@ contract AddHooks_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuz
 
         // When: Calling addHooks
         // Then: It should revert
-        vm.startPrank(address(uniswapV4AM));
+        vm.prank(address(uniswapV4AM));
         vm.expectEmit();
         emit UniswapV4HooksRegistry.HooksAdded(newHook, address(uniswapV4AM));
         v4HooksRegistry.addHooks(2, address(newHook));
-        vm.stopPrank();
 
         // And: Values should be set
-        assertEq(v4HooksRegistry.inRegistry(newHook), true);
+        assertTrue(v4HooksRegistry.inRegistry(newHook));
         assertEq(v4HooksRegistry.hooksToAssetModule(newHook), address(uniswapV4AM));
     }
 }

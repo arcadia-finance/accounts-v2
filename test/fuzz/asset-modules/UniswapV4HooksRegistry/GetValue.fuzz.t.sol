@@ -9,18 +9,18 @@ import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
-import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
+import { UniswapV4HooksRegistry_Fuzz_Test } from "./_UniswapV4HooksRegistry.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "getValue" of contract "UniswapV4AM".
+ * @notice Fuzz tests for the function "getValue" of contract "UniswapV4HooksRegistry".
  */
-contract GetValue_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
+contract GetValue_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        UniswapV4AM_Fuzz_Test.setUp();
+        UniswapV4HooksRegistry_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -104,7 +104,8 @@ contract GetValue_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         uint256 valueToken1 = uint256(vars.priceToken1) * amount1 / 10 ** vars.decimals1;
 
         // When : calling getValue()
-        (uint256 actualValueInUsd,,) = uniswapV4AM.getValue(address(creditorUsd), address(positionManager), tokenId, 1);
+        (uint256 actualValueInUsd,,) =
+            v4HooksRegistry.getValue(address(creditorUsd), address(positionManager), tokenId, 1);
 
         // Then : It should return the correct value
         assertEq(actualValueInUsd, valueToken0 + valueToken1);
@@ -172,7 +173,7 @@ contract GetValue_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         expectedLiqFactor = expectedLiqFactor * riskFactorUniV4 / AssetValuationLib.ONE_4;
 
         (, uint256 actualCollFactor, uint256 actualLiqFactor) =
-            uniswapV4AM.getValue(address(creditorUsd), address(positionManager), tokenId, 1);
+            v4HooksRegistry.getValue(address(creditorUsd), address(positionManager), tokenId, 1);
 
         assertEq(actualCollFactor, expectedCollFactor);
         assertEq(actualLiqFactor, expectedLiqFactor);

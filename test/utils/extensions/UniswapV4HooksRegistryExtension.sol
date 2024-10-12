@@ -16,4 +16,8 @@ contract UniswapV4HooksRegistryExtension is UniswapV4HooksRegistry {
     function setAssetModule(address assetModule) public {
         isAssetModule[assetModule] = true;
     }
+
+    function setHooksToAssetModule(address hooks, address assetModule) public {
+        hooksToAssetModule[hooks] = assetModule;
+    }
 }

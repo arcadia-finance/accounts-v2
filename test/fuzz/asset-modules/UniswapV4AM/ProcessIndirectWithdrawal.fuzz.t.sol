@@ -4,6 +4,7 @@
  */
 pragma solidity ^0.8.22;
 
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
 
@@ -26,6 +27,24 @@ contract ProcessIndirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Tes
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_processIndirectWithdrawal_NonRegistry(
+        address unprivilegedAddress,
+        address creditor,
+        address asset,
+        uint256 assetId,
+        uint256 exposureUpperAssetToAsset,
+        int256 deltaExposureUpperAssetToAsset
+    ) public {
+        vm.assume(unprivilegedAddress != address(v4HooksRegistry));
+
+        vm.startPrank(unprivilegedAddress);
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
+        uniswapV4AM.processIndirectWithdrawal(
+            creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+        );
+        vm.stopPrank();
+    }
+
     function testFuzz_Success_processIndirectWithdrawal_WithdrawAmountOne(
         uint128 liquidity,
         int24 tickLower,

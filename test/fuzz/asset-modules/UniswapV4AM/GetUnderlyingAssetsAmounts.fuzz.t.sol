@@ -195,6 +195,10 @@ contract GetUnderlyingAssetsAmounts_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Te
             vm.assume(amount0 < type(uint96).max);
             vm.assume(amount1 < type(uint96).max);
 
+            // And: principals do not overflow.
+            vm.assume(amount0 < type(uint256).max / (asset0.usdValue * 10 ** (18 - asset0.decimals)));
+            vm.assume(amount1 < type(uint256).max / (asset1.usdValue * 10 ** (18 - asset1.decimals)));
+
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
             positionManager.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
         }

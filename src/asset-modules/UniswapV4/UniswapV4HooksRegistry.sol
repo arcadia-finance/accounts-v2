@@ -53,12 +53,6 @@ contract UniswapV4HooksRegistry is AssetModule {
     event HooksAdded(address indexed hooks, address indexed assetModule);
 
     /* //////////////////////////////////////////////////////////////
-                                ERRORS
-    ////////////////////////////////////////////////////////////// */
-
-    error HooksNotAllowed();
-
-    /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
     ////////////////////////////////////////////////////////////// */
 
@@ -159,8 +153,13 @@ contract UniswapV4HooksRegistry is AssetModule {
      * @return A boolean, indicating if the asset is allowed.
      */
     function isAllowed(address asset, uint256 assetId) public view override returns (bool) {
+        // If the caller is an Asset Module, check if the asset is allowed in the Registry.
         if (isAssetModule[msg.sender]) return IRegistry(REGISTRY).isAllowed(asset, assetId);
-        else return IAssetModule(getAssetModule(assetId)).isAllowed(asset, assetId);
+
+        // Else pass the call to its Asset Module.
+        address assetModule = getAssetModule(assetId);
+        if (assetModule == address(0)) return false;
+        return IAssetModule(assetModule).isAllowed(asset, assetId);
     }
 
     /**
@@ -196,8 +195,8 @@ contract UniswapV4HooksRegistry is AssetModule {
                 || Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
         ) {
             // If not a specific Uniswap V4 AM must have been set.
+            // Returns the zero address if no Asset Module is set.
             assetModule = hooksToAssetModule[address(poolKey.hooks)];
-            if (assetModule == address(0)) revert HooksNotAllowed();
         } else {
             // If BEFORE_REMOVE_LIQUIDITY_FLAG and AFTER_REMOVE_LIQUIDITY_FLAG are not set,
             // then we use the default Uniswap V4 AM.
