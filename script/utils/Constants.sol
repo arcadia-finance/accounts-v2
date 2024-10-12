@@ -317,7 +317,7 @@ library RiskParameters {
     uint16 internal constant LIQ_FAC_USDC_USDC = 9400;
     uint112 internal constant EXPOSURE_USDC_CBBTC = uint112(1_000_000 * 10 ** Decimals.USDC);
     uint112 internal constant EXPOSURE_USDC_WETH = uint112(800_000 * 10 ** Decimals.USDC);
-    uint112 internal constant EXPOSURE_USDC_USDC = uint112(1_000_000 * 10 ** Decimals.USDC);
+    uint112 internal constant EXPOSURE_USDC_USDC = uint112(3_500_000 * 10 ** Decimals.USDC);
 
     // USDT
     uint16 internal constant COL_FAC_USDT_WETH = 8600;
@@ -422,7 +422,7 @@ library RiskParameters {
     uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_USDC = 9800;
     uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_CBBTC = uint112(2_000_000 * 1e18);
     uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_WETH = uint112(2_000_000 * 1e18);
-    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_USDC = uint112(2_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_USDC = uint112(4_000_000 * 1e18);
 
     // cbBTC Lending Pool
     uint128 internal constant MIN_USD_VALUE_CBBTC = 1 * 1e18;
