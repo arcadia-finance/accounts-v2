@@ -443,6 +443,8 @@ contract GetUnderlyingAssetsAmounts_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Te
             }
 
             // And : Fee is not capped.
+            vm.assume(principleInAmount0 < type(uint112).max);
+            vm.assume(principleInAmount1 < type(uint112).max);
             feeData.desiredFee0 = bound(feeData.desiredFee0, principleInAmount0, type(uint112).max);
             feeData.desiredFee1 = bound(feeData.desiredFee1, principleInAmount1, type(uint112).max);
 
