@@ -7,18 +7,19 @@ pragma solidity ^0.8.22;
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { UniswapV4AM } from "../../../../src/asset-modules/UniswapV4/UniswapV4AM.sol";
-import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
+import { UniswapV4HooksRegistry } from "../../../../src/asset-modules/UniswapV4/UniswapV4HooksRegistry.sol";
+import { UniswapV4HooksRegistry_Fuzz_Test } from "./_UniswapV4HooksRegistry.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "processIndirectDeposit" of contract "UniswapV4AM".
+ * @notice Fuzz tests for the function "processIndirectDeposit" of contract "UniswapV4HooksRegistry".
  */
-contract ProcessIndirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
+contract ProcessIndirectDeposit_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        UniswapV4AM_Fuzz_Test.setUp();
+        UniswapV4HooksRegistry_Fuzz_Test.setUp();
 
         token0 = new ERC20Mock("Token 0", "TOK0", 18);
         token1 = new ERC20Mock("Token 1", "TOK1", 18);
@@ -37,14 +38,14 @@ contract ProcessIndirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         uint256 priceToken1,
         uint256 exposureUpperAssetToAsset
     ) public {
-        vm.assume(unprivilegedAddress != address(v4HooksRegistry));
+        vm.assume(unprivilegedAddress != address(registry));
 
         // Given : Valid state
         (uint256 tokenId,,,) = givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
 
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert(AssetModule.OnlyRegistry.selector);
-        uniswapV4AM.processIndirectDeposit(
+        v4HooksRegistry.processIndirectDeposit(
             address(creditorUsd), address(positionManager), tokenId, exposureUpperAssetToAsset, 1
         );
         vm.stopPrank();
@@ -68,9 +69,9 @@ contract ProcessIndirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
 
         // When : Calling processIndirectDeposit()
         // Then : It should revert
-        vm.prank(address(v4HooksRegistry));
+        vm.prank(address(registry));
         vm.expectRevert(UniswapV4AM.InvalidAmount.selector);
-        uniswapV4AM.processIndirectDeposit(
+        v4HooksRegistry.processIndirectDeposit(
             address(creditorUsd), address(positionManager), tokenId, exposureUpperAssetToAsset, amount
         );
     }
@@ -118,9 +119,9 @@ contract ProcessIndirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
 
         {
             // When: Calling processIndirectDeposit()
-            vm.prank(address(v4HooksRegistry));
+            vm.prank(address(registry));
             (uint256 recursiveCalls,) =
-                uniswapV4AM.processIndirectDeposit(address(creditorUsd), address(positionManager), tokenId, 0, 1);
+                v4HooksRegistry.processIndirectDeposit(address(creditorUsd), address(positionManager), tokenId, 0, 1);
             assertEq(recursiveCalls, 3);
         }
 
@@ -193,9 +194,9 @@ contract ProcessIndirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
 
         {
             // When: processDirectDeposit is called with amount 0.
-            vm.prank(address(v4HooksRegistry));
+            vm.prank(address(registry));
             (uint256 recursiveCalls,) =
-                uniswapV4AM.processIndirectDeposit(address(creditorUsd), address(positionManager), tokenId, 0, 0);
+                v4HooksRegistry.processIndirectDeposit(address(creditorUsd), address(positionManager), tokenId, 0, 0);
 
             // Then: Correct variables are returned.
             assertEq(recursiveCalls, 3);
@@ -272,8 +273,8 @@ contract ProcessIndirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
 
         {
             // When: processDirectDeposit is called with amount 0.
-            vm.prank(address(v4HooksRegistry));
-            uniswapV4AM.processIndirectDeposit(address(creditorUsd), address(positionManager), tokenId, 0, 0);
+            vm.prank(address(registry));
+            v4HooksRegistry.processIndirectDeposit(address(creditorUsd), address(positionManager), tokenId, 0, 0);
 
             // Then: Exposure of the asset is still one.
             bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManager)));

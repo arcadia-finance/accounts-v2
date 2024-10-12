@@ -4,6 +4,7 @@
  */
 pragma solidity ^0.8.22;
 
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
 
@@ -26,6 +27,20 @@ contract ProcessDirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+    function testFuzz_Revert_processDirectWithdrawal_NonRegistry(
+        address unprivilegedAddress,
+        address creditor,
+        address asset,
+        uint256 assetId,
+        uint256 amount
+    ) public {
+        vm.assume(unprivilegedAddress != address(v4HooksRegistry));
+
+        vm.startPrank(unprivilegedAddress);
+        vm.expectRevert(AssetModule.OnlyRegistry.selector);
+        uniswapV4AM.processDirectWithdrawal(creditor, asset, assetId, amount);
+        vm.stopPrank();
+    }
 
     function testFuzz_Success_processDirectWithdrawal_WithdrawAmountOne(
         uint128 liquidity,
@@ -64,12 +79,14 @@ contract ProcessDirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test 
         }
 
         vm.prank(users.riskManager);
-        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100);
+        v4HooksRegistry.setRiskParametersOfDerivedAM(
+            address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100
+        );
 
-        vm.prank(address(registry));
+        vm.prank(address(v4HooksRegistry));
         uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 1);
 
-        vm.prank(address(registry));
+        vm.prank(address(v4HooksRegistry));
         uniswapV4AM.processDirectWithdrawal(address(creditorUsd), address(positionManager), tokenId, 1);
 
         {
@@ -135,9 +152,11 @@ contract ProcessDirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test 
         }
 
         vm.prank(users.riskManager);
-        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100);
+        v4HooksRegistry.setRiskParametersOfDerivedAM(
+            address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100
+        );
 
-        vm.prank(address(registry));
+        vm.prank(address(v4HooksRegistry));
         uniswapV4AM.processDirectWithdrawal(address(creditorUsd), address(positionManager), tokenId, 0);
 
         {
@@ -203,12 +222,14 @@ contract ProcessDirectWithdrawal_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test 
         }
 
         vm.prank(users.riskManager);
-        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100);
+        v4HooksRegistry.setRiskParametersOfDerivedAM(
+            address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100
+        );
 
-        vm.prank(address(registry));
+        vm.prank(address(v4HooksRegistry));
         uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 1);
 
-        vm.prank(address(registry));
+        vm.prank(address(v4HooksRegistry));
         uniswapV4AM.processDirectWithdrawal(address(creditorUsd), address(positionManager), tokenId, 0);
 
         {

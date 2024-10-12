@@ -48,7 +48,7 @@ contract AddAsset_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Revert_addAsset_HooksNotAllowed(
+    function testFuzz_Success_addAsset_HooksNotAllowed(
         uint80 tokenId,
         int24 tickLower,
         int24 tickUpper,
@@ -75,11 +75,9 @@ contract AddAsset_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // When : Calling addAsset() for a pool that has unallowed hooks
-        // Then : It should revert
-        vm.startPrank(users.owner);
-        vm.expectRevert(UniswapV4AM.HooksNotAllowed.selector);
+        // Then : It should not revert.
+        vm.prank(users.owner);
         uniswapV4AM.addAsset(tokenId);
-        vm.stopPrank();
     }
 
     function testFuzz_Success_addAsset(uint96 tokenId, int24 tickLower, int24 tickUpper, uint128 liquidity) public {
@@ -101,11 +99,11 @@ contract AddAsset_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
         bytes32[] memory underlyingAssetKeys = uniswapV4AM.getUnderlyingAssets(assetKey);
 
-        (address token0, address token1) = address(mockERC20.stable1) < address(mockERC20.stable2)
+        (address token0_, address token1_) = address(mockERC20.stable1) < address(mockERC20.stable2)
             ? (address(mockERC20.stable1), address(mockERC20.stable2))
             : (address(mockERC20.stable2), address(mockERC20.stable1));
 
-        assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), token0)));
-        assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), token1)));
+        assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), token0_)));
+        assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), token1_)));
     }
 }

@@ -50,7 +50,7 @@ contract CalculateValueAndRiskFactors_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], AssetValuationLib.ONE_4));
 
         // And riskFactor is set.
-        vm.prank(address(registry));
+        vm.prank(address(v4HooksRegistry));
         uniswapV4AM.setRiskParameters(creditor, 0, riskFactor);
 
         uint256 expectedCollateralFactor =

@@ -37,7 +37,7 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         uint256 priceToken0,
         uint256 priceToken1
     ) public {
-        vm.assume(unprivilegedAddress != address(registry));
+        vm.assume(unprivilegedAddress != address(v4HooksRegistry));
 
         // Given : Valid state
         (uint256 tokenId,,,) = givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
@@ -62,7 +62,7 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
 
         // When : Calling processDirectDeposit()
         // Then : It should revert
-        vm.startPrank(address(registry));
+        vm.startPrank(address(v4HooksRegistry));
         vm.expectRevert(UniswapV4AM.ZeroLiquidity.selector);
         uniswapV4AM.processDirectDeposit(creditor, address(positionManager), tokenId, 1);
         vm.stopPrank();
@@ -93,7 +93,7 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
 
         // When : Calling processDirectDeposit()
         // Then : It should revert
-        vm.startPrank(address(registry));
+        vm.startPrank(address(v4HooksRegistry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 1);
         vm.stopPrank();
@@ -122,7 +122,7 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         addAssetToArcadia(address(token0), int256(priceToken0), 0, type(uint112).max);
         addAssetToArcadia(address(token1), int256(priceToken1), initialExposure1, maxExposure1);
 
-        vm.startPrank(address(registry));
+        vm.startPrank(address(v4HooksRegistry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 1);
         vm.stopPrank();
@@ -165,9 +165,11 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         }
 
         vm.prank(users.riskManager);
-        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100);
+        v4HooksRegistry.setRiskParametersOfDerivedAM(
+            address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100
+        );
 
-        vm.startPrank(address(registry));
+        vm.startPrank(address(v4HooksRegistry));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
         uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 1);
         vm.stopPrank();
@@ -210,11 +212,13 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         }
 
         vm.prank(users.riskManager);
-        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100);
+        v4HooksRegistry.setRiskParametersOfDerivedAM(
+            address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100
+        );
 
         {
             // When: processDirectDeposit is called with amount 1.
-            vm.prank(address(registry));
+            vm.prank(address(v4HooksRegistry));
             uint256 recursiveCalls =
                 uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 1);
 
@@ -283,11 +287,13 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         }
 
         vm.prank(users.riskManager);
-        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100);
+        v4HooksRegistry.setRiskParametersOfDerivedAM(
+            address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100
+        );
 
         {
             // When: processDirectDeposit is called with amount 0.
-            vm.prank(address(registry));
+            vm.prank(address(v4HooksRegistry));
             uint256 recursiveCalls =
                 uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 0);
 
@@ -358,15 +364,17 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         }
 
         vm.prank(users.riskManager);
-        registry.setRiskParametersOfDerivedAM(address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100);
+        v4HooksRegistry.setRiskParametersOfDerivedAM(
+            address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100
+        );
 
         // Given: uniV4 position is deposited.
-        vm.prank(address(registry));
+        vm.prank(address(v4HooksRegistry));
         uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 1);
 
         {
             // When: processDirectDeposit is called with amount 0.
-            vm.prank(address(registry));
+            vm.prank(address(v4HooksRegistry));
             uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 0);
 
             // Then: Exposure of the asset is still one.

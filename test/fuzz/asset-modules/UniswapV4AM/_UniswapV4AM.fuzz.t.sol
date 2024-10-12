@@ -10,12 +10,15 @@ import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { Hooks } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/Hooks.sol";
-import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV4/libraries/LiquidityAmountsV4.sol";
+import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
+import { LiquidityAmountsExtension } from
+    "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { PoolKey } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PositionManager } from "../../../../lib/v4-periphery-fork/src/PositionManager.sol";
 import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
 import { UniswapV4AMExtension } from "../../../../test/utils/extensions/UniswapV4AMExtension.sol";
 import { UniswapV4Fixture } from "../../../utils/fixtures/uniswap-v4/UniswapV4Fixture.f.sol";
+import { UniswapV4HooksRegistryExtension } from "../../../../test/utils/extensions/UniswapV4HooksRegistryExtension.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV4AM" fuzz tests.
@@ -26,6 +29,7 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
     /////////////////////////////////////////////////////////////// */
 
     UniswapV4AMExtension internal uniswapV4AM;
+    UniswapV4HooksRegistryExtension internal v4HooksRegistry;
     PoolKey internal stablePoolKey;
     PoolKey internal randomPoolKey;
 
@@ -90,11 +94,19 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
             1
         );
 
-        // Deploy Asset-Module
+        // Deploy Asset-Module and HooksRegistry
         vm.startPrank(users.owner);
-        uniswapV4AM = new UniswapV4AMExtension(address(registry), address(positionManager), address(poolManager));
-        registry.addAssetModule(address(uniswapV4AM));
-        uniswapV4AM.setProtocol();
+        v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), address(positionManager));
+        registry.addAssetModule(address(v4HooksRegistry));
+        v4HooksRegistry.setProtocol();
+        vm.stopPrank();
+
+        uniswapV4AM = UniswapV4AMExtension(v4HooksRegistry.DEFAULT_UNISWAP_V4_AM());
+
+        // Set Extension contract for uniswapV4AM.
+        bytes memory args = abi.encode(address(v4HooksRegistry), address(positionManager));
+        vm.startPrank(address(v4HooksRegistry));
+        deployCodeTo("UniswapV4AMExtension.sol", args, address(uniswapV4AM));
         vm.stopPrank();
     }
 
@@ -155,7 +167,7 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         maxAmount0 = maxAmount0 > amount0 ? amount0 : maxAmount0;
         maxAmount1 = maxAmount1 > amount1 ? amount1 : maxAmount1;
 
-        liquidityMaxByAmount = LiquidityAmounts.getLiquidityForAmounts(
+        liquidityMaxByAmount = LiquidityAmountsExtension.getLiquidityForAmounts(
             sqrtPriceX96,
             TickMath.getSqrtPriceAtTick(tickLower),
             TickMath.getSqrtPriceAtTick(tickUpper),
@@ -224,5 +236,9 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity_
         );
+
+        // Value principal should not overflow.
+        vm.assume(amount0 < type(uint256).max / priceToken0);
+        vm.assume(amount1 < type(uint256).max / priceToken1);
     }
 }

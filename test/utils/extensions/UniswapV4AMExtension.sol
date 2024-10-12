@@ -11,9 +11,7 @@ import { PositionInfo } from "../../../lib/v4-periphery-fork/src/libraries/Posit
 import { UniswapV4AM } from "../../../src/asset-modules/UniswapV4/UniswapV4AM.sol";
 
 contract UniswapV4AMExtension is UniswapV4AM {
-    constructor(address registry_, address positionManager, address poolManager)
-        UniswapV4AM(registry_, positionManager, poolManager)
-    { }
+    constructor(address registry_, address positionManager) UniswapV4AM(registry_, positionManager) { }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)
         external
