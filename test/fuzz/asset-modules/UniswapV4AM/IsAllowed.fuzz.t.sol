@@ -32,6 +32,37 @@ contract IsAllowed_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         assertFalse(uniswapV4AM.isAllowed(address(positionManager), assetId));
     }
 
+    function testFuzz_Success_isAllowListed_Negative_NonAllowedHook(
+        uint80 tokenId,
+        int24 tickLower,
+        int24 tickUpper,
+        uint128 liquidity
+    ) public {
+        // Given: Valid ticks.
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
+
+        // Initializes a pool with hooks that are not allowed.
+        stablePoolKey = initializePool(
+            address(mockERC20.stable1),
+            address(mockERC20.stable2),
+            TickMath.getSqrtPriceAtTick(0),
+            address(unvalidHook),
+            500,
+            10
+        );
+
+        // And: Liquidity is not-zero
+        vm.assume(liquidity > 0);
+        bytes32 positionKey =
+            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+        poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
+        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+
+        // When: Calling isAllowed().
+        // Then: It should return false.
+        assertFalse(uniswapV4AM.isAllowed(address(positionManager), tokenId));
+    }
+
     function testFuzz_Success_isAllowListed_Negative_NonAllowedUnderlyingAsset(
         uint96 tokenId,
         int24 tickLower,
@@ -77,7 +108,9 @@ contract IsAllowed_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         assertFalse(uniswapV4AM.isAllowed(address(positionManager), tokenId));
     }
 
-    function testFuzz_Success_isAllowed(uint96 tokenId, int24 tickLower, int24 tickUpper, uint128 liquidity) public {
+    function testFuzz_Success_isAllowed_positive(uint96 tokenId, int24 tickLower, int24 tickUpper, uint128 liquidity)
+        public
+    {
         // Given : Valid ticks
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 

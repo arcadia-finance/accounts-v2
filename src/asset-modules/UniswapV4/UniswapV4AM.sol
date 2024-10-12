@@ -85,6 +85,8 @@ contract UniswapV4AM is DerivedAM {
      * @param assetId The id of the asset.
      * @dev All assets (Liquidity Positions) will have the same contract address (the PositionManager),
      * but a different id.
+     * @dev No need to check if hooks are allowed, since for deposits this implicitly imposed
+     * by the UniswapV4HooksRegistry, in getAssetModule().
      */
     function _addAsset(uint256 assetId) internal {
         if (assetId > type(uint96).max) revert InvalidId();
@@ -95,14 +97,6 @@ contract UniswapV4AM is DerivedAM {
 
         // Liquidity should be greater than zero.
         if (POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId) == 0) revert ZeroLiquidity();
-
-        // Hook flags should be valid for this specific AM.
-        // The NoOP hook "AFTER_REMOVE_LIQUIDITY_RETURNS_DELTA_FLAG" is by default not allowed,
-        // as it can only be accessed if "AFTER_REMOVE_LIQUIDITY_FLAG" is implemented.
-        if (
-            Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
-                || Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
-        ) revert HooksNotAllowed();
 
         // No need to explicitly check if token0 and token1 are allowed, _addAsset() is only called in the
         // deposit functions, and deposits of non-allowed Underlying Assets will revert.
@@ -137,7 +131,7 @@ contract UniswapV4AM is DerivedAM {
             if (
                 Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
                     || Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.AFTER_REMOVE_LIQUIDITY_FLAG)
-            ) revert HooksNotAllowed();
+            ) return false;
 
             // Underlying assets should be allowed and liquidity should be greater than zero.
             return IRegistry(REGISTRY).isAllowed(Currency.unwrap(poolKey.currency0), 0)
@@ -221,21 +215,22 @@ contract UniswapV4AM is DerivedAM {
         // a malicious actor could bypass the max exposure by
         // continuously swapping large amounts and increasing the fee portion
         // of the liquidity position.
-        fee0 = fee0
-            < principal0
-                + principal1.mulDivDown(rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd[0].assetValue)
-            ? fee0
-            : principal0
-                + principal1.mulDivDown(rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd[0].assetValue);
-        fee1 = fee1
-            < principal0.mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue)
-                + principal1
-            ? fee1
-            : principal0.mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue)
-                + principal1;
-
-        underlyingAssetsAmounts = new uint256[](2);
+        // Therefore we cap the fee amounts so that this cannot be abused to far exceed the max exposures.
         unchecked {
+            fee0 = fee0
+                < principal0
+                    + principal1.mulDivDown(rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd[0].assetValue)
+                ? fee0
+                : principal0
+                    + principal1.mulDivDown(rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd[0].assetValue);
+            fee1 = fee1
+                < principal0.mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue)
+                    + principal1
+                ? fee1
+                : principal0.mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue)
+                    + principal1;
+
+            underlyingAssetsAmounts = new uint256[](2);
             underlyingAssetsAmounts[0] = principal0 + fee0;
             underlyingAssetsAmounts[1] = principal1 + fee1;
         }

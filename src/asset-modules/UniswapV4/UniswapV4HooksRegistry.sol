@@ -91,7 +91,9 @@ contract UniswapV4HooksRegistry is AssetModule {
     constructor(address registry_, address positionManager) AssetModule(registry_, 2) {
         POSITION_MANAGER = IPositionManager(positionManager);
 
+        // Deploy the Default Uniswap V4 AM.
         DEFAULT_UNISWAP_V4_AM = address(new UniswapV4AM(address(this), positionManager));
+        UniswapV4AM(DEFAULT_UNISWAP_V4_AM).transferOwnership(msg.sender);
         isAssetModule[DEFAULT_UNISWAP_V4_AM] = true;
 
         emit AssetModuleAdded(DEFAULT_UNISWAP_V4_AM);
@@ -197,6 +199,10 @@ contract UniswapV4HooksRegistry is AssetModule {
             assetModule = hooksToAssetModule[address(poolKey.hooks)];
             if (assetModule == address(0)) revert HooksNotAllowed();
         } else {
+            // If BEFORE_REMOVE_LIQUIDITY_FLAG and AFTER_REMOVE_LIQUIDITY_FLAG are not set,
+            // then we use the default Uniswap V4 AM.
+            // The NoOP hook "AFTER_REMOVE_LIQUIDITY_RETURNS_DELTA_FLAG" is by default not allowed,
+            // as it can only be accessed if "AFTER_REMOVE_LIQUIDITY_FLAG" is implemented.
             assetModule = DEFAULT_UNISWAP_V4_AM;
         }
     }
