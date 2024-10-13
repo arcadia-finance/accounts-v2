@@ -4,19 +4,19 @@
  */
 pragma solidity ^0.8.22;
 
+import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
-import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "isAllowed" of contract "UniswapV4AM".
+ * @notice Fuzz tests for the function "isAllowed" of contract "DefaultUniswapV4AM".
  */
-contract IsAllowed_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
+contract IsAllowed_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        UniswapV4AM_Fuzz_Test.setUp();
+        DefaultUniswapV4AM_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////

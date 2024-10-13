@@ -6,6 +6,7 @@ pragma solidity ^0.8.22;
 
 import { AssetModule, IAssetModule, Owned } from "../abstracts/AbstractAM.sol";
 import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
+import { DefaultUniswapV4AM } from "./DefaultUniswapV4AM.sol";
 import { Hooks } from "./libraries/Hooks.sol";
 import { ICreditor } from "../../interfaces/ICreditor.sol";
 import { IDerivedAM } from "../../interfaces/IDerivedAM.sol";
@@ -14,7 +15,6 @@ import { IRegistry } from "../interfaces/IRegistry.sol";
 import { PoolIdLibrary } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolId.sol";
 import { PoolKey } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { RegistryErrors } from "../../libraries/Errors.sol";
-import { UniswapV4AM } from "./UniswapV4AM.sol";
 
 /**
  * @title Registry for Uniswap V4 Hooks.
@@ -86,8 +86,8 @@ contract UniswapV4HooksRegistry is AssetModule {
         POSITION_MANAGER = IPositionManager(positionManager);
 
         // Deploy the Default Uniswap V4 AM.
-        DEFAULT_UNISWAP_V4_AM = address(new UniswapV4AM(address(this), positionManager));
-        UniswapV4AM(DEFAULT_UNISWAP_V4_AM).transferOwnership(msg.sender);
+        DEFAULT_UNISWAP_V4_AM = address(new DefaultUniswapV4AM(address(this), positionManager));
+        DefaultUniswapV4AM(DEFAULT_UNISWAP_V4_AM).transferOwnership(msg.sender);
         isAssetModule[DEFAULT_UNISWAP_V4_AM] = true;
 
         emit AssetModuleAdded(DEFAULT_UNISWAP_V4_AM);

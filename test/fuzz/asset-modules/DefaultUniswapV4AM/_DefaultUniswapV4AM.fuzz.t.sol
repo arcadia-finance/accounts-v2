@@ -6,6 +6,7 @@ pragma solidity ^0.8.22;
 
 import { Base_Test } from "../../../Base.t.sol";
 import { BaseHook } from "../../../../lib/v4-periphery-fork/src/base/hooks/BaseHook.sol";
+import { DefaultUniswapV4AMExtension } from "../../../../test/utils/extensions/DefaultUniswapV4AMExtension.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -16,19 +17,18 @@ import { LiquidityAmountsExtension } from
 import { PoolKey } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PositionManager } from "../../../../lib/v4-periphery-fork/src/PositionManager.sol";
 import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
-import { UniswapV4AMExtension } from "../../../../test/utils/extensions/UniswapV4AMExtension.sol";
 import { UniswapV4Fixture } from "../../../utils/fixtures/uniswap-v4/UniswapV4Fixture.f.sol";
 import { UniswapV4HooksRegistryExtension } from "../../../../test/utils/extensions/UniswapV4HooksRegistryExtension.sol";
 
 /**
- * @notice Common logic needed by all "UniswapV4AM" fuzz tests.
+ * @notice Common logic needed by all "DefaultUniswapV4AM" fuzz tests.
  */
-abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
+abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
     /* ///////////////////////////////////////////////////////////////
                               CONSTANTS
     /////////////////////////////////////////////////////////////// */
 
-    UniswapV4AMExtension internal uniswapV4AM;
+    DefaultUniswapV4AMExtension internal uniswapV4AM;
     UniswapV4HooksRegistryExtension internal v4HooksRegistry;
     PoolKey internal stablePoolKey;
     PoolKey internal randomPoolKey;
@@ -101,12 +101,12 @@ abstract contract UniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         v4HooksRegistry.setProtocol();
         vm.stopPrank();
 
-        uniswapV4AM = UniswapV4AMExtension(v4HooksRegistry.DEFAULT_UNISWAP_V4_AM());
+        uniswapV4AM = DefaultUniswapV4AMExtension(v4HooksRegistry.DEFAULT_UNISWAP_V4_AM());
 
         // Set Extension contract for uniswapV4AM.
         bytes memory args = abi.encode(address(v4HooksRegistry), address(positionManager));
         vm.startPrank(address(v4HooksRegistry));
-        deployCodeTo("UniswapV4AMExtension.sol", args, address(uniswapV4AM));
+        deployCodeTo("DefaultUniswapV4AMExtension.sol", args, address(uniswapV4AM));
         vm.stopPrank();
     }
 

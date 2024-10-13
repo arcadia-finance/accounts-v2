@@ -5,18 +5,18 @@
 pragma solidity ^0.8.22;
 
 import { Currency } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/Currency.sol";
-import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
+import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "UniswapV4AM".
+ * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "DefaultUniswapV4AM".
  */
-contract GetUnderlyingAssets_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
+contract GetUnderlyingAssets_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        UniswapV4AM_Fuzz_Test.setUp();
+        DefaultUniswapV4AM_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////

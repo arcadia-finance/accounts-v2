@@ -4,20 +4,20 @@
  */
 pragma solidity ^0.8.22;
 
+import { DefaultUniswapV4AM } from "../../../../src/asset-modules/UniswapV4/DefaultUniswapV4AM.sol";
+import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
-import { UniswapV4AM } from "../../../../src/asset-modules/UniswapV4/UniswapV4AM.sol";
-import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "addAsset" of contract "UniswapV4AM".
+ * @notice Fuzz tests for the function "addAsset" of contract "DefaultUniswapV4AM".
  */
-contract AddAsset_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
+contract AddAsset_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        UniswapV4AM_Fuzz_Test.setUp();
+        DefaultUniswapV4AM_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ contract AddAsset_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         tokenId = bound(tokenId, uint256(type(uint96).max) + 1, type(uint256).max);
 
         vm.startPrank(users.owner);
-        vm.expectRevert(UniswapV4AM.InvalidId.selector);
+        vm.expectRevert(DefaultUniswapV4AM.InvalidId.selector);
         uniswapV4AM.addAsset(tokenId);
         vm.stopPrank();
     }
@@ -43,7 +43,7 @@ contract AddAsset_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         // When : Calling addAsset()
         // Then : It should revert
         vm.startPrank(users.owner);
-        vm.expectRevert(UniswapV4AM.ZeroLiquidity.selector);
+        vm.expectRevert(DefaultUniswapV4AM.ZeroLiquidity.selector);
         uniswapV4AM.addAsset(tokenId);
         vm.stopPrank();
     }

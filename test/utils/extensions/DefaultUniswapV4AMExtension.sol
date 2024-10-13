@@ -5,13 +5,13 @@
 pragma solidity ^0.8.22;
 
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
+import { DefaultUniswapV4AM } from "../../../src/asset-modules/UniswapV4/DefaultUniswapV4AM.sol";
 import { PoolId } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolId.sol";
 import { PoolKey } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import { PositionInfo } from "../../../lib/v4-periphery-fork/src/libraries/PositionInfoLibrary.sol";
-import { UniswapV4AM } from "../../../src/asset-modules/UniswapV4/UniswapV4AM.sol";
 
-contract UniswapV4AMExtension is UniswapV4AM {
-    constructor(address registry_, address positionManager) UniswapV4AM(registry_, positionManager) { }
+contract DefaultUniswapV4AMExtension is DefaultUniswapV4AM {
+    constructor(address registry_, address positionManager) DefaultUniswapV4AM(registry_, positionManager) { }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)
         external

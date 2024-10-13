@@ -5,8 +5,8 @@
 pragma solidity ^0.8.22;
 
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
+import { DefaultUniswapV4AM } from "../../../../src/asset-modules/UniswapV4/DefaultUniswapV4AM.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
-import { UniswapV4AM } from "../../../../src/asset-modules/UniswapV4/UniswapV4AM.sol";
 import { UniswapV4HooksRegistry } from "../../../../src/asset-modules/UniswapV4/UniswapV4HooksRegistry.sol";
 import { UniswapV4HooksRegistry_Fuzz_Test } from "./_UniswapV4HooksRegistry.fuzz.t.sol";
 
@@ -70,7 +70,7 @@ contract ProcessIndirectDeposit_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Hoo
         // When : Calling processIndirectDeposit()
         // Then : It should revert
         vm.prank(address(registry));
-        vm.expectRevert(UniswapV4AM.InvalidAmount.selector);
+        vm.expectRevert(DefaultUniswapV4AM.InvalidAmount.selector);
         v4HooksRegistry.processIndirectDeposit(
             address(creditorUsd), address(positionManager), tokenId, exposureUpperAssetToAsset, amount
         );

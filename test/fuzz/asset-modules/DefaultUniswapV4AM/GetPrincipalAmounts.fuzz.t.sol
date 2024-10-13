@@ -4,24 +4,24 @@
  */
 pragma solidity ^0.8.22;
 
+import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { PoolKey } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
 import {
     PositionInfoLibrary, PositionInfo
 } from "../../../../lib/v4-periphery-fork/src/libraries/PositionInfoLibrary.sol";
 import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
-import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "getPrincipalAmounts" of contract "UniswapV4AM".
+ * @notice Fuzz tests for the function "getPrincipalAmounts" of contract "DefaultUniswapV4AM".
  */
-contract GetPrincipalAmounts_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
+contract GetPrincipalAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        UniswapV4AM_Fuzz_Test.setUp();
+        DefaultUniswapV4AM_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////

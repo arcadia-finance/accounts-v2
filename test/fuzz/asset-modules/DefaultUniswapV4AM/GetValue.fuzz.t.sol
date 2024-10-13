@@ -5,22 +5,22 @@
 pragma solidity ^0.8.22;
 
 import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.sol";
+import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
-import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "getValue" of contract "UniswapV4AM".
+ * @notice Fuzz tests for the function "getValue" of contract "DefaultUniswapV4AM".
  */
-contract GetValue_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
+contract GetValue_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        UniswapV4AM_Fuzz_Test.setUp();
+        DefaultUniswapV4AM_Fuzz_Test.setUp();
     }
 
     /*//////////////////////////////////////////////////////////////

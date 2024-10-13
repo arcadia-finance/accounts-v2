@@ -5,19 +5,19 @@
 pragma solidity ^0.8.22;
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 import { Utils } from "../../../utils/Utils.sol";
-import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "_calculateValueAndRiskFactors" of contract "UniswapV4AM".
+ * @notice Fuzz tests for the function "_calculateValueAndRiskFactors" of contract "DefaultUniswapV4AM".
  */
-contract CalculateValueAndRiskFactors_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
+contract CalculateValueAndRiskFactors_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public virtual override {
-        UniswapV4AM_Fuzz_Test.setUp();
+        DefaultUniswapV4AM_Fuzz_Test.setUp();
     }
 
     /* ///////////////////////////////////////////////////////////////

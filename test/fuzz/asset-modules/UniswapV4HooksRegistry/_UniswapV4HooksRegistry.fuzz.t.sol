@@ -4,12 +4,12 @@
  */
 pragma solidity ^0.8.22;
 
-import { UniswapV4AM_Fuzz_Test } from "../UniswapV4AM/_UniswapV4AM.fuzz.t.sol";
+import { DefaultUniswapV4AM_Fuzz_Test } from "../DefaultUniswapV4AM/_DefaultUniswapV4AM.fuzz.t.sol";
 
 /**
- * @notice Common logic needed by all "UniswapV4AM" fuzz tests.
+ * @notice Common logic needed by all "DefaultUniswapV4AM" fuzz tests.
  */
-abstract contract UniswapV4HooksRegistry_Fuzz_Test is UniswapV4AM_Fuzz_Test {
+abstract contract UniswapV4HooksRegistry_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               CONSTANTS
     /////////////////////////////////////////////////////////////// */
@@ -22,8 +22,8 @@ abstract contract UniswapV4HooksRegistry_Fuzz_Test is UniswapV4AM_Fuzz_Test {
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
-    function setUp() public virtual override(UniswapV4AM_Fuzz_Test) {
-        UniswapV4AM_Fuzz_Test.setUp();
+    function setUp() public virtual override(DefaultUniswapV4AM_Fuzz_Test) {
+        DefaultUniswapV4AM_Fuzz_Test.setUp();
     }
 
     /*////////////////////////////////////////////////////////////////

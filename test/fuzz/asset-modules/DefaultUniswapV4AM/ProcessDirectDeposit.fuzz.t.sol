@@ -5,20 +5,20 @@
 pragma solidity ^0.8.22;
 
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
+import { DefaultUniswapV4AM } from "../../../../src/asset-modules/UniswapV4/DefaultUniswapV4AM.sol";
+import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
-import { UniswapV4AM } from "../../../../src/asset-modules/UniswapV4/UniswapV4AM.sol";
-import { UniswapV4AM_Fuzz_Test } from "./_UniswapV4AM.fuzz.t.sol";
 
 /**
- * @notice Fuzz tests for the function "processDirectDeposit" of contract "UniswapV4AM".
+ * @notice Fuzz tests for the function "processDirectDeposit" of contract "DefaultUniswapV4AM".
  */
-contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
+contract ProcessDirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
-        UniswapV4AM_Fuzz_Test.setUp();
+        DefaultUniswapV4AM_Fuzz_Test.setUp();
 
         token0 = new ERC20Mock("Token 0", "TOK0", 18);
         token1 = new ERC20Mock("Token 1", "TOK1", 18);
@@ -63,7 +63,7 @@ contract ProcessDirectDeposit_UniswapV4AM_Fuzz_Test is UniswapV4AM_Fuzz_Test {
         // When : Calling processDirectDeposit()
         // Then : It should revert
         vm.startPrank(address(v4HooksRegistry));
-        vm.expectRevert(UniswapV4AM.ZeroLiquidity.selector);
+        vm.expectRevert(DefaultUniswapV4AM.ZeroLiquidity.selector);
         uniswapV4AM.processDirectDeposit(creditor, address(positionManager), tokenId, 1);
         vm.stopPrank();
     }

@@ -23,14 +23,15 @@ import { TickMath } from "../../../lib/v4-periphery-fork/lib/v4-core/src/librari
 /**
  * @title Asset Module for Uniswap V4 Liquidity Positions
  * @author Pragma Labs
- * @notice The pricing logic and basic information for Uniswap V4 Liquidity Positions.
- * @dev The UniswapV4AM will not price the LP tokens via direct price oracles,
+ * @notice The pricing logic and basic information for Uniswap V4 Liquidity Positions,
+ * that have no permissions for the BEFORE_REMOVE_LIQUIDITY_FLAG and AFTER_REMOVE_LIQUIDITY_RETURNS_DELTA_FLAG hooks.
+ * @dev The DefaultUniswapV4AM will not price the LP tokens via direct price oracles,
  * it will break down liquidity positions in the underlying tokens (ERC20s).
  * Only LP tokens for which the underlying tokens are allowed as collateral can be priced.
- * @dev No end-user should directly interact with the UniswapV4AM, only the Registry,
+ * @dev No end-user should directly interact with the DefaultUniswapV4AM, only the Registry,
  * or the contract owner.
  */
-contract UniswapV4AM is DerivedAM {
+contract DefaultUniswapV4AM is DerivedAM {
     using FixedPointMathLib for uint256;
     using PoolIdLibrary for PoolKey;
     using PositionInfoLibrary for PositionInfo;
@@ -81,7 +82,7 @@ contract UniswapV4AM is DerivedAM {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a new asset (Liquidity Position) to the UniswapV4AM.
+     * @notice Adds a new asset (Liquidity Position) to the DefaultUniswapV4AM.
      * @param assetId The id of the asset.
      * @dev All assets (Liquidity Positions) will have the same contract address (the PositionManager),
      * but a different id.
