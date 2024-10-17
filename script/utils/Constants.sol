@@ -266,12 +266,12 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_EZETH_USDC = uint112(175 * 10 ** Decimals.EZETH);
 
     // RDNT
-    uint16 internal constant COL_FAC_RDNT_WETH = 5500;
-    uint16 internal constant COL_FAC_RDNT_USDC = 5500;
+    uint16 internal constant COL_FAC_RDNT_WETH = 0;
+    uint16 internal constant COL_FAC_RDNT_USDC = 0;
     uint16 internal constant LIQ_FAC_RDNT_WETH = 7500;
     uint16 internal constant LIQ_FAC_RDNT_USDC = 7500;
-    uint112 internal constant EXPOSURE_RDNT_WETH = uint112(1_000_000 * 10 ** Decimals.RDNT);
-    uint112 internal constant EXPOSURE_RDNT_USDC = uint112(900_000 * 10 ** Decimals.RDNT);
+    uint112 internal constant EXPOSURE_RDNT_WETH = uint112(0 * 10 ** Decimals.RDNT);
+    uint112 internal constant EXPOSURE_RDNT_USDC = uint112(0 * 10 ** Decimals.RDNT);
 
     // RETH
     uint16 internal constant COL_FAC_RETH_WETH = 8500;
