@@ -462,6 +462,7 @@ library StargatePids {
 library AerodromeGauges {
     address internal constant CL1_CBETH_WETH = address(0xF5550F8F0331B8CAA165046667f4E6628E9E3Aac);
     address internal constant CL1_EZETH_WETH = address(0xC6B4fe83Fb284bDdE1f1d19F0B5beB31011B280A);
+    address internal constant CL1_TBTC_CBBTC = address(0xB57eC27f68Bd356e300D57079B6cdbe57d50830d);
     address internal constant CL1_USDC_USDBC = address(0x4a3E1294d7869567B387FC3d5e5Ccf14BE2Bbe0a);
     address internal constant CL1_USDC_USDT = address(0xBd85D45f1636fCEB2359d9Dcf839f12b3cF5AF3F);
     address internal constant CL1_WEETH_WETH = address(0xfCfEE5f453728BaA5ffDA151f25A0e53B8C5A01C);
