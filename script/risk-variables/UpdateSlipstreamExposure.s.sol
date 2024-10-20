@@ -23,6 +23,17 @@ contract UpdateSlipstreamExposure is Base_Script {
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
 
+        calldata_ = abi.encodeCall(
+            registry.setRiskParametersOfDerivedAM,
+            (
+                address(cbbtcLendingPool),
+                ArcadiaContracts.STAKED_SLIPSTREAM_AM,
+                RiskParameters.EXPOSURE_STAKED_SLIPSTREAM_AM_CBBTC,
+                RiskParameters.RISK_FAC_STAKED_SLIPSTREAM_AM_CBBTC
+            )
+        );
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
+
         // Create and write away batched transaction data to be signed with Safe.
         bytes memory data = createBatchedData(ArcadiaSafes.RISK_MANAGER);
         vm.writeLine(PATH, vm.toString(data));
