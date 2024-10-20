@@ -420,8 +420,8 @@ library RiskParameters {
     uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_CBBTC = 9800;
     uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_WETH = 9800;
     uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_USDC = 9800;
-    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_CBBTC = uint112(2_000_000 * 1e18);
-    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_WETH = uint112(2_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_CBBTC = uint112(4_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_WETH = uint112(4_000_000 * 1e18);
     uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_USDC = uint112(4_000_000 * 1e18);
 
     // cbBTC Lending Pool

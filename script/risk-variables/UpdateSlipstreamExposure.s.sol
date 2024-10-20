@@ -6,16 +6,7 @@ pragma solidity 0.8.22;
 
 import { Base_Script } from "../Base.s.sol";
 
-import {
-    AerodromeGauges,
-    ArcadiaContracts,
-    ArcadiaSafes,
-    CutOffTimes,
-    OracleIds,
-    Oracles,
-    PrimaryAssets,
-    RiskParameters
-} from "../utils/Constants.sol";
+import { ArcadiaContracts, ArcadiaSafes, RiskParameters } from "../utils/Constants.sol";
 
 contract UpdateSlipstreamExposure is Base_Script {
     constructor() { }
@@ -24,10 +15,21 @@ contract UpdateSlipstreamExposure is Base_Script {
         bytes memory calldata_ = abi.encodeCall(
             registry.setRiskParametersOfDerivedAM,
             (
-                address(usdcLendingPool),
+                address(wethLendingPool),
                 ArcadiaContracts.STAKED_SLIPSTREAM_AM,
-                RiskParameters.EXPOSURE_STAKED_SLIPSTREAM_AM_USDC,
-                RiskParameters.RISK_FAC_STAKED_SLIPSTREAM_AM_USDC
+                RiskParameters.EXPOSURE_STAKED_SLIPSTREAM_AM_WETH,
+                RiskParameters.RISK_FAC_STAKED_SLIPSTREAM_AM_WETH
+            )
+        );
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
+
+        calldata_ = abi.encodeCall(
+            registry.setRiskParametersOfDerivedAM,
+            (
+                address(cbbtcLendingPool),
+                ArcadiaContracts.STAKED_SLIPSTREAM_AM,
+                RiskParameters.EXPOSURE_STAKED_SLIPSTREAM_AM_CBBTC,
+                RiskParameters.RISK_FAC_STAKED_SLIPSTREAM_AM_CBBTC
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
