@@ -24,7 +24,7 @@ import { TickMath } from "../../../lib/v4-periphery-fork/lib/v4-core/src/librari
  * @title Asset Module for Uniswap V4 Liquidity Positions
  * @author Pragma Labs
  * @notice The pricing logic and basic information for Uniswap V4 Liquidity Positions,
- * that have no permissions for the BEFORE_REMOVE_LIQUIDITY_FLAG and AFTER_REMOVE_LIQUIDITY_RETURNS_DELTA_FLAG hooks.
+ * that have no permissions for the BEFORE_REMOVE_LIQUIDITY_FLAG and AFTER_REMOVE_LIQUIDITY_FLAG hooks.
  * @dev The DefaultUniswapV4AM will not price the LP tokens via direct price oracles,
  * it will break down liquidity positions in the underlying tokens (ERC20s).
  * Only LP tokens for which the underlying tokens are allowed as collateral can be priced.
