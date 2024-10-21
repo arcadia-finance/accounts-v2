@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
 
@@ -21,6 +21,7 @@ contract QuoterV2Fixture is Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function deployQuoterV2(address factoryV3_, address weth9_) public {
+        // Get the byte
         // Get the bytecode of the UniswapV3PoolExtension.
         bytes memory args = abi.encode();
         bytes memory bytecode = abi.encodePacked(vm.getCode("UniswapV3PoolExtension.sol"), args);
