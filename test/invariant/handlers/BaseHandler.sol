@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { CommonBase } from "../../../lib/forge-std/src/Base.sol";
 import { StdCheats } from "../../../lib/forge-std/src/StdCheats.sol";
