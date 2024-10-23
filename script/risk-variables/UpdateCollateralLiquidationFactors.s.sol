@@ -350,7 +350,7 @@ contract UpdateRdntExposure is Base_Script {
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfPrimaryAsset,
             (
-                address(usdcLendingPool),
+                address(cbbtcLendingPool),
                 PrimaryAssets.USDC,
                 0,
                 RiskParameters.EXPOSURE_USDC_CBBTC,
@@ -437,7 +437,7 @@ contract UpdateRdntExposure is Base_Script {
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfPrimaryAsset,
             (
-                address(wethLendingPool),
+                address(cbbtcLendingPool),
                 PrimaryAssets.WETH,
                 0,
                 RiskParameters.EXPOSURE_WETH_CBBTC,
