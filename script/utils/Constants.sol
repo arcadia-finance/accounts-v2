@@ -168,9 +168,9 @@ library RiskParameters {
 
     // cbETH
     uint16 internal constant COL_FAC_CBETH_WETH = 9325;
-    uint16 internal constant COL_FAC_CBETH_USDC = 8325;
+    uint16 internal constant COL_FAC_CBETH_USDC = 8500;
     uint16 internal constant LIQ_FAC_CBETH_WETH = 9750;
-    uint16 internal constant LIQ_FAC_CBETH_USDC = 9675;
+    uint16 internal constant LIQ_FAC_CBETH_USDC = 9300;
     uint112 internal constant EXPOSURE_CBETH_WETH = uint112(400 * 10 ** Decimals.CBETH);
     uint112 internal constant EXPOSURE_CBETH_USDC = uint112(300 * 10 ** Decimals.CBETH);
 
@@ -202,10 +202,10 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_EURC_WETH = uint112(2_000_000 * 10 ** Decimals.EURC);
 
     // ezETH
-    uint16 internal constant COL_FAC_EZETH_WETH = 8925;
-    uint16 internal constant COL_FAC_EZETH_USDC = 7925;
-    uint16 internal constant LIQ_FAC_EZETH_WETH = 9750;
-    uint16 internal constant LIQ_FAC_EZETH_USDC = 8750;
+    uint16 internal constant COL_FAC_EZETH_WETH = 8800;
+    uint16 internal constant COL_FAC_EZETH_USDC = 7800;
+    uint16 internal constant LIQ_FAC_EZETH_WETH = 9600;
+    uint16 internal constant LIQ_FAC_EZETH_USDC = 8700;
     uint112 internal constant EXPOSURE_EZETH_WETH = uint112(250 * 10 ** Decimals.EZETH);
     uint112 internal constant EXPOSURE_EZETH_USDC = uint112(175 * 10 ** Decimals.EZETH);
 
@@ -218,10 +218,10 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_RDNT_USDC = uint112(0 * 10 ** Decimals.RDNT);
 
     // RETH
-    uint16 internal constant COL_FAC_RETH_WETH = 8750;
-    uint16 internal constant COL_FAC_RETH_USDC = 8325;
-    uint16 internal constant LIQ_FAC_RETH_WETH = 9475;
-    uint16 internal constant LIQ_FAC_RETH_USDC = 9675;
+    uint16 internal constant COL_FAC_RETH_WETH = 8900;
+    uint16 internal constant COL_FAC_RETH_USDC = 8350;
+    uint16 internal constant LIQ_FAC_RETH_WETH = 9650;
+    uint16 internal constant LIQ_FAC_RETH_USDC = 9200;
     uint112 internal constant EXPOSURE_RETH_WETH = uint112(210 * 10 ** Decimals.RETH);
     uint112 internal constant EXPOSURE_RETH_USDC = uint112(200 * 10 ** Decimals.RETH);
 
@@ -273,28 +273,28 @@ library RiskParameters {
 
     // WEETH
     uint16 internal constant COL_FAC_WEETH_WETH = 9125;
-    uint16 internal constant COL_FAC_WEETH_USDC = 8025;
+    uint16 internal constant COL_FAC_WEETH_USDC = 8000;
     uint16 internal constant LIQ_FAC_WEETH_WETH = 9750;
-    uint16 internal constant LIQ_FAC_WEETH_USDC = 8625;
+    uint16 internal constant LIQ_FAC_WEETH_USDC = 8800;
     uint112 internal constant EXPOSURE_WEETH_WETH = uint112(500 * 10 ** Decimals.WEETH);
     uint112 internal constant EXPOSURE_WEETH_USDC = uint112(400 * 10 ** Decimals.WEETH);
 
     // WETH
     uint16 internal constant COL_FAC_WETH_CBBTC = 7700;
-    uint16 internal constant COL_FAC_WETH_WETH = 9325;
-    uint16 internal constant COL_FAC_WETH_USDC = 8325;
+    uint16 internal constant COL_FAC_WETH_WETH = 9225;
+    uint16 internal constant COL_FAC_WETH_USDC = 8850;
     uint16 internal constant LIQ_FAC_WETH_CBBTC = 8750;
-    uint16 internal constant LIQ_FAC_WETH_WETH = 9750;
-    uint16 internal constant LIQ_FAC_WETH_USDC = 8750;
+    uint16 internal constant LIQ_FAC_WETH_WETH = 9650;
+    uint16 internal constant LIQ_FAC_WETH_USDC = 9475;
     uint112 internal constant EXPOSURE_WETH_CBBTC = uint112(650 * 10 ** Decimals.WETH);
     uint112 internal constant EXPOSURE_WETH_WETH = uint112(1000 * 10 ** Decimals.WETH);
     uint112 internal constant EXPOSURE_WETH_USDC = uint112(500 * 10 ** Decimals.WETH);
 
     // wstETH
     uint16 internal constant COL_FAC_WSTETH_WETH = 9325;
-    uint16 internal constant COL_FAC_WSTETH_USDC = 8325;
+    uint16 internal constant COL_FAC_WSTETH_USDC = 8500;
     uint16 internal constant LIQ_FAC_WSTETH_WETH = 9750;
-    uint16 internal constant LIQ_FAC_WSTETH_USDC = 9675;
+    uint16 internal constant LIQ_FAC_WSTETH_USDC = 9300;
     uint112 internal constant EXPOSURE_WSTETH_WETH = uint112(400 * 10 ** Decimals.WSTETH);
     uint112 internal constant EXPOSURE_WSTETH_USDC = uint112(300 * 10 ** Decimals.WSTETH);
 
