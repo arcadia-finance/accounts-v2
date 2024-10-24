@@ -174,6 +174,14 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_CBETH_WETH = uint112(400 * 10 ** Decimals.CBETH);
     uint112 internal constant EXPOSURE_CBETH_USDC = uint112(300 * 10 ** Decimals.CBETH);
 
+    // COMP
+    uint16 internal constant COL_FAC_COMP_WETH = 7000;
+    uint16 internal constant COL_FAC_COMP_USDC = 6500;
+    uint16 internal constant LIQ_FAC_COMP_WETH = 7700;
+    uint16 internal constant LIQ_FAC_COMP_USDC = 7200;
+    uint112 internal constant EXPOSURE_COMP_WETH = 0;
+    uint112 internal constant EXPOSURE_COMP_USDC = 0;
+
     // DAI
     uint16 internal constant COL_FAC_DAI_WETH = 8100;
     uint16 internal constant COL_FAC_DAI_USDC = 8300;

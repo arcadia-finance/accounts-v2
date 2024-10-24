@@ -146,6 +146,14 @@ contract ArcadiaAccountDeploymentStep2 is Test {
 
         registry.setRiskParametersOfPrimaryAsset(
             address(usdcLendingPool),
+            PrimaryAssets.COMP,
+            0,
+            RiskParameters.EXPOSURE_COMP_USDC,
+            RiskParameters.COL_FAC_COMP_USDC,
+            RiskParameters.LIQ_FAC_COMP_USDC
+        );
+        registry.setRiskParametersOfPrimaryAsset(
+            address(usdcLendingPool),
             PrimaryAssets.DAI,
             0,
             RiskParameters.EXPOSURE_DAI_USDC,
