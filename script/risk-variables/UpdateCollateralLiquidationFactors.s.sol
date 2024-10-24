@@ -8,7 +8,7 @@ import { Base_Script } from "../Base.s.sol";
 
 import { ArcadiaSafes, PrimaryAssets, RiskParameters } from "../utils/Constants.sol";
 
-contract UpdateRdntExposure is Base_Script {
+contract UpdateColLiqFactors is Base_Script {
     constructor() { }
 
     function run() public {
