@@ -155,38 +155,6 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_AERO_WETH = uint112(3e6 * 10 ** Decimals.AERO);
     uint112 internal constant EXPOSURE_AERO_USDC = uint112(3e6 * 10 ** Decimals.AERO);
 
-    // AXL
-    uint16 internal constant COL_FAC_AXL_WETH = 7600;
-    uint16 internal constant COL_FAC_AXL_USDC = 8600;
-    uint16 internal constant LIQ_FAC_AXL_WETH = 8400;
-    uint16 internal constant LIQ_FAC_AXL_USDC = 9400;
-    uint112 internal constant EXPOSURE_AXL_WETH = 0;
-    uint112 internal constant EXPOSURE_AXL_USDC = 0;
-
-    // axlDAI
-    uint16 internal constant COL_FAC_AXLDAI_WETH = 7600;
-    uint16 internal constant COL_FAC_AXLDAI_USDC = 8600;
-    uint16 internal constant LIQ_FAC_AXLDAI_WETH = 8400;
-    uint16 internal constant LIQ_FAC_AXLDAI_USDC = 9400;
-    uint112 internal constant EXPOSURE_AXLDAI_WETH = 0;
-    uint112 internal constant EXPOSURE_AXLDAI_USDC = 0;
-
-    // axlUSDC
-    uint16 internal constant COL_FAC_AXLUSDC_WETH = 7600;
-    uint16 internal constant COL_FAC_AXLUSDC_USDC = 8600;
-    uint16 internal constant LIQ_FAC_AXLUSDC_WETH = 8400;
-    uint16 internal constant LIQ_FAC_AXLUSDC_USDC = 9400;
-    uint112 internal constant EXPOSURE_AXLUSDC_WETH = 0;
-    uint112 internal constant EXPOSURE_AXLUSDC_USDC = 0;
-
-    // axlUSDT
-    uint16 internal constant COL_FAC_AXLUSDT_WETH = 7600;
-    uint16 internal constant COL_FAC_AXLUSDT_USDC = 8600;
-    uint16 internal constant LIQ_FAC_AXLUSDT_WETH = 8400;
-    uint16 internal constant LIQ_FAC_AXLUSDT_USDC = 9400;
-    uint112 internal constant EXPOSURE_AXLUSDT_WETH = 0;
-    uint112 internal constant EXPOSURE_AXLUSDT_USDC = 0;
-
     // cbBTC
     uint16 internal constant COL_FAC_CBBTC_CBBTC = 9225;
     uint16 internal constant COL_FAC_CBBTC_WETH = 7700;
@@ -205,30 +173,6 @@ library RiskParameters {
     uint16 internal constant LIQ_FAC_CBETH_USDC = 9675;
     uint112 internal constant EXPOSURE_CBETH_WETH = uint112(400 * 10 ** Decimals.CBETH);
     uint112 internal constant EXPOSURE_CBETH_USDC = uint112(300 * 10 ** Decimals.CBETH);
-
-    // COMP
-    uint16 internal constant COL_FAC_COMP_WETH = 7000;
-    uint16 internal constant COL_FAC_COMP_USDC = 6500;
-    uint16 internal constant LIQ_FAC_COMP_WETH = 7700;
-    uint16 internal constant LIQ_FAC_COMP_USDC = 7200;
-    uint112 internal constant EXPOSURE_COMP_WETH = 0;
-    uint112 internal constant EXPOSURE_COMP_USDC = 0;
-
-    // CRV
-    uint16 internal constant COL_FAC_CRV_WETH = 5500;
-    uint16 internal constant COL_FAC_CRV_USDC = 5000;
-    uint16 internal constant LIQ_FAC_CRV_WETH = 7000;
-    uint16 internal constant LIQ_FAC_CRV_USDC = 6500;
-    uint112 internal constant EXPOSURE_CRV_WETH = 0;
-    uint112 internal constant EXPOSURE_CRV_USDC = 0;
-
-    // crvUSD
-    uint16 internal constant COL_FAC_CRVUSD_WETH = 7600;
-    uint16 internal constant COL_FAC_CRVUSD_USDC = 8600;
-    uint16 internal constant LIQ_FAC_CRVUSD_WETH = 8400;
-    uint16 internal constant LIQ_FAC_CRVUSD_USDC = 9400;
-    uint112 internal constant EXPOSURE_CRVUSD_WETH = 0;
-    uint112 internal constant EXPOSURE_CRVUSD_USDC = 0;
 
     // DAI
     uint16 internal constant COL_FAC_DAI_WETH = 8325;
@@ -281,14 +225,6 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_RETH_WETH = uint112(210 * 10 ** Decimals.RETH);
     uint112 internal constant EXPOSURE_RETH_USDC = uint112(200 * 10 ** Decimals.RETH);
 
-    // SUSHI
-    uint16 internal constant COL_FAC_SUSHI_WETH = 7600;
-    uint16 internal constant COL_FAC_SUSHI_USDC = 8600;
-    uint16 internal constant LIQ_FAC_SUSHI_WETH = 8400;
-    uint16 internal constant LIQ_FAC_SUSHI_USDC = 9400;
-    uint112 internal constant EXPOSURE_SUSHI_WETH = 0;
-    uint112 internal constant EXPOSURE_SUSHI_USDC = 0;
-
     // TBTC
     uint16 internal constant COL_FAC_TBTC_CBBTC = 8625;
     uint16 internal constant COL_FAC_TBTC_WETH = 7700;
@@ -334,14 +270,6 @@ library RiskParameters {
     uint16 internal constant LIQ_FAC_STG_USDC = 7000;
     uint112 internal constant EXPOSURE_STG_WETH = 1;
     uint112 internal constant EXPOSURE_STG_USDC = 1;
-
-    // WBTC
-    uint16 internal constant COL_FAC_WBTC_WETH = 7600;
-    uint16 internal constant COL_FAC_WBTC_USDC = 8600;
-    uint16 internal constant LIQ_FAC_WBTC_WETH = 8400;
-    uint16 internal constant LIQ_FAC_WBTC_USDC = 9400;
-    uint112 internal constant EXPOSURE_WBTC_WETH = 0;
-    uint112 internal constant EXPOSURE_WBTC_USDC = 0;
 
     // WEETH
     uint16 internal constant COL_FAC_WEETH_WETH = 9125;
