@@ -189,6 +189,10 @@ contract UniswapV4HooksRegistry is AssetModule {
     function getAssetModule(uint256 assetId) public view returns (address assetModule) {
         (PoolKey memory poolKey,) = POSITION_MANAGER.getPoolAndPositionInfo(assetId);
 
+        // If the assetId does not exist, the poolKey will have zero-values,
+        // and for an existing pool tickSpacing can't be zero.
+        if (poolKey.tickSpacing == 0) return address(0);
+
         // Check if we can use the default Uniswap V4 AM.
         if (
             Hooks.hasPermission(uint160(address(poolKey.hooks)), Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG)
