@@ -403,7 +403,7 @@ contract AccountSpot is AccountStorageV1, IAccount {
             if (assetAmounts[i] == 0) continue;
 
             if (assetAddresses[i] == address(0)) {
-                (bool success, bytes memory result) = payable(msg.sender).call{ value: assetAmounts[i] }("");
+                (bool success, bytes memory result) = payable(to).call{ value: assetAmounts[i] }("");
                 require(success, string(result));
             } else if (assetTypes[i] == 1) {
                 ERC20(assetAddresses[i]).safeTransfer(to, assetAmounts[i]);
