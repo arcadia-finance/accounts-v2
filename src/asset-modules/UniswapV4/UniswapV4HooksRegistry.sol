@@ -267,6 +267,22 @@ contract UniswapV4HooksRegistry is AssetModule {
         return IAssetModule(getAssetModule(assetId)).getRiskFactors(creditor, asset, assetId);
     }
 
+    /**
+     * @notice Returns the risk factors per asset for a given Creditor.
+     * @param creditor The contract address of the Creditor.
+     * @param assetAddresses Array of the contract addresses of the assets.
+     * @param assetIds Array of the ids of the assets.
+     * @return collateralFactors Array of the collateral factors of the assets for the Creditor, 4 decimals precision.
+     * @return liquidationFactors Array of the liquidation factors of the assets for the Creditor, 4 decimals precision.
+     */
+    function getRiskFactors(address creditor, address[] calldata assetAddresses, uint256[] calldata assetIds)
+        external
+        view
+        returns (uint16[] memory collateralFactors, uint16[] memory liquidationFactors)
+    {
+        (collateralFactors, liquidationFactors) = IRegistry(REGISTRY).getRiskFactors(creditor, assetAddresses, assetIds);
+    }
+
     /*///////////////////////////////////////////////////////////////
                     WITHDRAWALS AND DEPOSITS
     ///////////////////////////////////////////////////////////////*/
