@@ -1,0 +1,32 @@
+/**
+ * Created by Pragma Labs
+ * SPDX-License-Identifier: BUSL-1.1
+ */
+pragma solidity ^0.8.22;
+
+import { DefaultUniswapV4AM_Fuzz_Test } from "../DefaultUniswapV4AM/_DefaultUniswapV4AM.fuzz.t.sol";
+
+/**
+ * @notice Common logic needed by all "DefaultUniswapV4AM" fuzz tests.
+ */
+abstract contract UniswapV4HooksRegistry_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
+    /* ///////////////////////////////////////////////////////////////
+                              CONSTANTS
+    /////////////////////////////////////////////////////////////// */
+
+    /* ///////////////////////////////////////////////////////////////
+                              VARIABLES
+    /////////////////////////////////////////////////////////////// */
+
+    /* ///////////////////////////////////////////////////////////////
+                              SETUP
+    /////////////////////////////////////////////////////////////// */
+
+    function setUp() public virtual override(DefaultUniswapV4AM_Fuzz_Test) {
+        DefaultUniswapV4AM_Fuzz_Test.setUp();
+    }
+
+    /*////////////////////////////////////////////////////////////////
+                        HELPER FUNCTIONS
+    ////////////////////////////////////////////////////////////////*/
+}
