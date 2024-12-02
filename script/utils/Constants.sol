@@ -6,6 +6,7 @@ pragma solidity ^0.8.22;
 
 library ArcadiaContracts {
     address internal constant AERO_POOL_AM = address(0xfe0FA1FD8F8E889062F03e2f126Fc7B9DE6091A5);
+    address internal constant ALIEN_BASE_AM = address(0);
     address internal constant CHAINLINK_OM = address(0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31);
     address internal constant ERC20_PRIMARY_AM = address(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
     address internal constant FACTORY = address(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
@@ -312,6 +313,14 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_AERO_POOL_AM_WETH = uint112(2_000_000 * 1e18);
     uint112 internal constant EXPOSURE_AERO_POOL_AM_USDC = uint112(2_000_000 * 1e18);
 
+    // Alien Base Asset Module
+    uint16 internal constant RISK_FAC_ALIEN_BASE_AM_CBBTC = 9800;
+    uint16 internal constant RISK_FAC_ALIEN_BASE_AM_WETH = 9800;
+    uint16 internal constant RISK_FAC_ALIEN_BASE_AM_USDC = 9800;
+    uint112 internal constant EXPOSURE_ALIEN_BASE_AM_CBBTC = uint112(2_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_ALIEN_BASE_AM_WETH = uint112(2_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_ALIEN_BASE_AM_USDC = uint112(2_000_000 * 1e18);
+
     // Staked Aerodrome Pool Asset Module
     uint16 internal constant RISK_FAC_STAKED_AERO_AM_WETH = 9800;
     uint16 internal constant RISK_FAC_STAKED_AERO_AM_USDC = 9800;
@@ -379,6 +388,7 @@ library RiskParameters {
 library ExternalContracts {
     address internal constant AERO_FACTORY = 0x420DD381b31aEf6683db6B902084cB0FFECe40Da;
     address internal constant AERO_VOTER = 0x16613524e02ad97eDfeF371bC883F2F5d6C480A5;
+    address internal constant ALIEN_BASE_POS_MNGR = 0xB7996D1ECD07fB227e8DcA8CD5214bDfb04534E5;
     address internal constant SEQUENCER_UPTIME_ORACLE = 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433;
     address internal constant SLIPSTREAM_POS_MNGR = 0x827922686190790b37229fd06084350E74485b72;
     address internal constant STARGATE_FACTORY = 0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6;
