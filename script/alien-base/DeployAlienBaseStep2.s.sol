@@ -18,6 +18,10 @@ contract DeployAlienBaseStep2 is Base_Script {
         calldata_ = abi.encodeCall(alienBaseAM.setProtocol, ());
         addToBatch(ArcadiaSafes.OWNER, address(alienBaseAM), calldata_);
 
+        // Create and write away batched transaction data to be signed with Safe.
+        bytes memory data = createBatchedData(ArcadiaSafes.OWNER);
+        vm.writeLine(PATH, vm.toString(data));
+
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfDerivedAM,
             (
@@ -48,6 +52,10 @@ contract DeployAlienBaseStep2 is Base_Script {
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
+
+        // Create and write away batched transaction data to be signed with Safe.
+        data = createBatchedData(ArcadiaSafes.RISK_MANAGER);
+        vm.writeLine(PATH, vm.toString(data));
     }
 
     function test_deploy() public {
