@@ -6,7 +6,7 @@ pragma solidity ^0.8.22;
 
 library ArcadiaContracts {
     address internal constant AERO_POOL_AM = address(0xfe0FA1FD8F8E889062F03e2f126Fc7B9DE6091A5);
-    address internal constant ALIEN_BASE_AM = address(0x79dD8b8d4abB5dEEA986DB1BF0a02E4CA42ae416); // TODO: verify after AlienBase AM is deployed.
+    address internal constant ALIEN_BASE_AM = address(0x79dD8b8d4abB5dEEA986DB1BF0a02E4CA42ae416);
     address internal constant CHAINLINK_OM = address(0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31);
     address internal constant ERC20_PRIMARY_AM = address(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
     address internal constant FACTORY = address(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
