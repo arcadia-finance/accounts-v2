@@ -8,7 +8,7 @@ import { Base_Script } from "../Base.s.sol";
 
 import { ArcadiaSafes, PrimaryAssets, RiskParameters } from "../utils/Constants.sol";
 
-contract UpdateUSDCExposure is Base_Script {
+contract UpdateDaiExposure is Base_Script {
     constructor() { }
 
     function run() public {
@@ -16,11 +16,11 @@ contract UpdateUSDCExposure is Base_Script {
             registry.setRiskParametersOfPrimaryAsset,
             (
                 address(usdcLendingPool),
-                PrimaryAssets.USDC,
+                PrimaryAssets.DAI,
                 0,
-                RiskParameters.EXPOSURE_USDC_USDC,
-                RiskParameters.COL_FAC_USDC_USDC,
-                RiskParameters.LIQ_FAC_USDC_USDC
+                RiskParameters.EXPOSURE_DAI_USDC,
+                RiskParameters.COL_FAC_DAI_USDC,
+                RiskParameters.LIQ_FAC_DAI_USDC
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);

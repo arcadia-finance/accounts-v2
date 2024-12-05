@@ -206,7 +206,7 @@ library RiskParameters {
     uint16 internal constant LIQ_FAC_DAI_WETH = 8600;
     uint16 internal constant LIQ_FAC_DAI_USDC = 8700;
     uint112 internal constant EXPOSURE_DAI_WETH = 1;
-    uint112 internal constant EXPOSURE_DAI_USDC = 1;
+    uint112 internal constant EXPOSURE_DAI_USDC = 2_504_435_018_558_771_456_919;
 
     // DEGEN
     uint16 internal constant COL_FAC_DEGEN_WETH = 5650;
