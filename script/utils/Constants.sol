@@ -325,7 +325,7 @@ library RiskParameters {
     uint16 internal constant LIQ_FAC_WETH_USDC = 9475;
     uint112 internal constant EXPOSURE_WETH_CBBTC = uint112(650 * 10 ** Decimals.WETH);
     uint112 internal constant EXPOSURE_WETH_WETH = uint112(1500 * 10 ** Decimals.WETH);
-    uint112 internal constant EXPOSURE_WETH_USDC = uint112(500 * 10 ** Decimals.WETH);
+    uint112 internal constant EXPOSURE_WETH_USDC = uint112(1200 * 10 ** Decimals.WETH);
 
     // wrsETH
     uint16 internal constant COL_FAC_WRSETH_WETH = 8875;
@@ -401,9 +401,9 @@ library RiskParameters {
     uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_CBBTC = 9800;
     uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_WETH = 9800;
     uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_USDC = 9800;
-    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_CBBTC = uint112(4_000_000 * 1e18);
-    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_WETH = uint112(4_000_000 * 1e18);
-    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_USDC = uint112(4_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_CBBTC = uint112(10_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_WETH = uint112(10_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_USDC = uint112(10_000_000 * 1e18);
 
     // cbBTC Lending Pool
     uint128 internal constant MIN_USD_VALUE_CBBTC = 1 * 1e18;
