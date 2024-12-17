@@ -8,19 +8,32 @@ import { Base_Script } from "../Base.s.sol";
 
 import { ArcadiaSafes, PrimaryAssets, RiskParameters } from "../utils/Constants.sol";
 
-contract UpdateRdntExposure is Base_Script {
+contract UpdateExposure is Base_Script {
     constructor() { }
 
     function run() public {
         bytes memory calldata_ = abi.encodeCall(
             registry.setRiskParametersOfPrimaryAsset,
             (
-                address(usdcLendingPool),
-                PrimaryAssets.RDNT,
+                address(cbbtcLendingPoolLendingPool),
+                PrimaryAssets.USDZ,
                 0,
-                RiskParameters.EXPOSURE_RDNT_USDC,
-                RiskParameters.COL_FAC_RDNT_USDC,
-                RiskParameters.LIQ_FAC_RDNT_USDC
+                RiskParameters.EXPOSURE_USDZ_CBBTC,
+                RiskParameters.COL_FAC_USDZ_CBBTC,
+                RiskParameters.LIQ_FAC_USDZ_CBBTC
+            )
+        );
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
+        
+        calldata_ = abi.encodeCall(
+            registry.setRiskParametersOfPrimaryAsset,
+            (
+                address(usdcLendingPool),
+                PrimaryAssets.USDZ,
+                0,
+                RiskParameters.EXPOSURE_USDZ_USDC,
+                RiskParameters.COL_FAC_USDZ_USDC,
+                RiskParameters.LIQ_FAC_USDZ_USDC
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
@@ -29,11 +42,11 @@ contract UpdateRdntExposure is Base_Script {
             registry.setRiskParametersOfPrimaryAsset,
             (
                 address(wethLendingPool),
-                PrimaryAssets.RDNT,
+                PrimaryAssets.USDZ,
                 0,
-                RiskParameters.EXPOSURE_RDNT_WETH,
-                RiskParameters.COL_FAC_RDNT_WETH,
-                RiskParameters.LIQ_FAC_RDNT_WETH
+                RiskParameters.EXPOSURE_USDZ_WETH,
+                RiskParameters.COL_FAC_USDZ_WETH,
+                RiskParameters.LIQ_FAC_USDZ_WETH
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
