@@ -15,7 +15,7 @@ contract UpdateExposure is Base_Script {
         bytes memory calldata_ = abi.encodeCall(
             registry.setRiskParametersOfPrimaryAsset,
             (
-                address(cbbtcLendingPoolLendingPool),
+                address(cbbtcLendingPool),
                 PrimaryAssets.USDZ,
                 0,
                 RiskParameters.EXPOSURE_USDZ_CBBTC,
@@ -24,7 +24,7 @@ contract UpdateExposure is Base_Script {
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
-        
+
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfPrimaryAsset,
             (
