@@ -304,9 +304,9 @@ library RiskParameters {
     uint16 internal constant LIQ_FAC_USDZ_CBBTC = 8525;
     uint16 internal constant LIQ_FAC_USDZ_WETH = 9225;
     uint16 internal constant LIQ_FAC_USDZ_USDC = 9500;
-    uint112 internal constant EXPOSURE_USDZ_CBBTC = uint112(2_600_000 * 10 ** Decimals.USDZ);
-    uint112 internal constant EXPOSURE_USDZ_WETH = uint112(5_000_000 * 10 ** Decimals.USDZ);
-    uint112 internal constant EXPOSURE_USDZ_USDC = uint112(10_000_000 * 10 ** Decimals.USDZ);
+    uint112 internal constant EXPOSURE_USDZ_CBBTC = uint112(0 * 10 ** Decimals.USDZ);
+    uint112 internal constant EXPOSURE_USDZ_WETH = uint112(0 * 10 ** Decimals.USDZ);
+    uint112 internal constant EXPOSURE_USDZ_USDC = uint112(0 * 10 ** Decimals.USDZ);
 
     // WEETH
     uint16 internal constant COL_FAC_WEETH_WETH = 9125;
