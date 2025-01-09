@@ -166,7 +166,7 @@ contract ArcadiaAccountDeploymentStep1 is Test {
         stakedStargateAM.initialize();
         stakedStargateAM.addAsset(StargatePids.USDBC);
 
-        factory.setNewAccountInfo(address(registry), address(account), MerkleRoots.UPGRADE_ROOT_1_TO_1, "");
+        factory.setNewAccountInfo(address(registry), address(account), MerkleRoots.V1, "");
         factory.changeGuardian(protocolOwnerAddress);
 
         registry.changeGuardian(protocolOwnerAddress);

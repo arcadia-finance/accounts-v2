@@ -4,6 +4,11 @@
  */
 pragma solidity ^0.8.22;
 
+library AccountLogic {
+    address internal constant V1 = address(0xbea2B6d45ACaF62385877D835970a0788719cAe1);
+    address internal constant V2 = address(0xd8AF1F1dEe6EA38f9c08b5cfa31e01ad2Bfbef28); // Spot account.
+}
+
 library ArcadiaContracts {
     address internal constant AERO_POOL_AM = address(0xfe0FA1FD8F8E889062F03e2f126Fc7B9DE6091A5);
     address internal constant ALIEN_BASE_AM = address(0x79dD8b8d4abB5dEEA986DB1BF0a02E4CA42ae416);
@@ -30,7 +35,8 @@ library ArcadiaSafes {
 }
 
 library MerkleRoots {
-    bytes32 internal constant UPGRADE_ROOT_1_TO_1 = 0xcc69885fda6bcc1a4ace058b4a62bf5e179ea78fd58a1ccd71c22cc9b688792f;
+    bytes32 internal constant V1 = 0xcc69885fda6bcc1a4ace058b4a62bf5e179ea78fd58a1ccd71c22cc9b688792f;
+    bytes32 internal constant V2 = 0xad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5;
 }
 
 library PrimaryAssets {
