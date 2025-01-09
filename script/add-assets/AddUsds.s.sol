@@ -6,7 +6,15 @@ pragma solidity 0.8.22;
 
 import { Base_Script } from "../Base.s.sol";
 
-import { ArcadiaSafes, CutOffTimes, OracleIds, Oracles, PrimaryAssets, RiskParameters } from "../utils/Constants.sol";
+import {
+    AerodromeGauges,
+    ArcadiaSafes,
+    CutOffTimes,
+    OracleIds,
+    Oracles,
+    PrimaryAssets,
+    RiskParameters
+} from "../utils/Constants.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 
 contract AddUsds is Base_Script {
