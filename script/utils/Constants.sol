@@ -295,15 +295,15 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_USDC_USDC = uint112(3_500_000 * 10 ** Decimals.USDC);
 
     // USDS
-    uint16 internal constant COL_FAC_USDS_CBBTC = 0;
-    uint16 internal constant COL_FAC_USDS_USDC = 0;
-    uint16 internal constant COL_FAC_USDS_WETH = 0;
-    uint16 internal constant LIQ_FAC_USDS_CBBTC = 0;
-    uint16 internal constant LIQ_FAC_USDS_USDC = 0;
-    uint16 internal constant LIQ_FAC_USDS_WETH = 0;
+    uint16 internal constant COL_FAC_USDS_CBBTC = 7200;
+    uint16 internal constant COL_FAC_USDS_USDC = 9200;
+    uint16 internal constant COL_FAC_USDS_WETH = 8800;
+    uint16 internal constant LIQ_FAC_USDS_CBBTC = 8750;
+    uint16 internal constant LIQ_FAC_USDS_USDC = 9659;
+    uint16 internal constant LIQ_FAC_USDS_WETH = 9450;
     uint112 internal constant EXPOSURE_USDS_CBBTC = uint112(0 * 10 ** Decimals.USDS);
-    uint112 internal constant EXPOSURE_USDS_USDC = uint112(0 * 10 ** Decimals.USDS);
-    uint112 internal constant EXPOSURE_USDS_WETH = uint112(0 * 10 ** Decimals.USDS);
+    uint112 internal constant EXPOSURE_USDS_USDC = uint112(150_000 * 10 ** Decimals.USDS);
+    uint112 internal constant EXPOSURE_USDS_WETH = uint112(100_000 * 10 ** Decimals.USDS);
 
     // USDT
     uint16 internal constant COL_FAC_USDT_WETH = 8850;
@@ -463,6 +463,7 @@ library AerodromeGauges {
     address internal constant CL1_TBTC_CBBTC = address(0xB57eC27f68Bd356e300D57079B6cdbe57d50830d);
     address internal constant CL1_USDC_USDBC = address(0x4a3E1294d7869567B387FC3d5e5Ccf14BE2Bbe0a);
     address internal constant CL1_USDC_USDT = address(0xBd85D45f1636fCEB2359d9Dcf839f12b3cF5AF3F);
+    address internal constant CL1_USDS_USDC = address(0xe2a2B1D8AA4bD8A05e517Ccf61E96A727831B63e);
     address internal constant CL1_USDZ_USDC = address(0xE2F3C8c699A1bf30A12118B287B5208e7C6ddFEF);
     address internal constant CL1_WEETH_WETH = address(0xfCfEE5f453728BaA5ffDA151f25A0e53B8C5A01C);
     address internal constant CL1_WETH_WRSETH = address(0xEc33F9cbE64c7Bc9b262Efaaa56b7872e8889AaE);

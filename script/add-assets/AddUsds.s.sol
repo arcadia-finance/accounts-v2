@@ -28,13 +28,9 @@ contract AddUsds is Base_Script {
         );
         addToBatch(ArcadiaSafes.OWNER, address(erc20PrimaryAM), calldata_);
 
-        // Add Aerodrome pools to Aerodrome AM.
-
-        // Add Aerodrome gauges to Staked Aerodrome AM.
-
-        // Add Aerodrome pools to Wrapped Aerodrome AM.
-
         // Add Aerodrome gauges to Staked Slipstream AM.
+        calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL1_USDS_USDC));
+        addToBatch(ArcadiaSafes.OWNER, address(stakedSlipstreamAM), calldata_);
 
         // Create and write away batched transaction data to be signed with Safe.
         bytes memory data = createBatchedData(ArcadiaSafes.OWNER);
