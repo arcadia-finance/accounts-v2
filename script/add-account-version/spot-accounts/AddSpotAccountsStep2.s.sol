@@ -12,7 +12,7 @@ contract AddSpotAccountsStep2 is Base_Script {
     constructor() { }
 
     function run() public {
-        // Add Chainlink oracles.
+        // Add Spot account.
         bytes memory calldata_ =
             abi.encodeCall(factory.setNewAccountInfo, (address(registry), AccountLogic.V2, MerkleRoots.V2, ""));
         addToBatch(ArcadiaSafes.OWNER, address(factory), calldata_);

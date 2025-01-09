@@ -6,7 +6,7 @@ pragma solidity ^0.8.22;
 
 library AccountLogic {
     address internal constant V1 = address(0xbea2B6d45ACaF62385877D835970a0788719cAe1);
-    address internal constant V2 = address(0); // Spot account.
+    address internal constant V2 = address(0xd8AF1F1dEe6EA38f9c08b5cfa31e01ad2Bfbef28); // Spot account.
 }
 
 library ArcadiaContracts {
