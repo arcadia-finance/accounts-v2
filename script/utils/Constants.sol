@@ -61,6 +61,7 @@ library PrimaryAssets {
     address internal constant TBTC = 0x236aa50979D5f3De3Bd1Eeb40E81137F22ab794b;
     address internal constant USDBC = 0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA;
     address internal constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
+    address internal constant USDS = 0x820C137fa70C8691f0e44Dc420a5e53c168921Dc;
     address internal constant USDT = 0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2;
     address internal constant USDZ = 0x04D5ddf5f3a8939889F11E97f8c4BB48317F1938;
     address internal constant WEETH = 0x04C0599Ae5A44757c0af6F9eC3b93da8976c150A;
@@ -91,6 +92,7 @@ library Decimals {
     uint8 internal constant TBTC = 18;
     uint8 internal constant USDBC = 6;
     uint8 internal constant USDC = 6;
+    uint8 internal constant USDS = 18;
     uint8 internal constant USDT = 6;
     uint8 internal constant USDZ = 18;
     uint8 internal constant WEETH = 18;
@@ -115,6 +117,7 @@ library Oracles {
     address internal constant TBTC_USD = 0x6D75BFB5A5885f841b132198C9f0bE8c872057BF;
     address internal constant USDBC_USD = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
     address internal constant USDC_USD = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
+    address internal constant USDS_USD = 0x2330aaE3bca5F05169d5f4597964D44522F62930;
     address internal constant USDT_USD = 0xf19d560eB8d2ADf07BD6D13ed03e1D11215721F9;
     address internal constant USDZ_USD = 0xe25969e2Fa633a0C027fAB8F30Fc9C6A90D60B48;
     address internal constant WBTC_USD = 0xCCADC697c55bbB68dc5bCdf8d3CBe83CdD4E071E;
@@ -138,6 +141,7 @@ library OracleIds {
     uint80 internal constant STG_USD = 6;
     uint80 internal constant TBTC_USD = 14;
     uint80 internal constant USDC_USD = 3;
+    uint80 internal constant USDS_USD = 19;
     uint80 internal constant USDT_USD = 12;
     uint80 internal constant USDZ_USD = 17;
     uint80 internal constant WEETH_ETH = 11;
@@ -160,6 +164,7 @@ library CutOffTimes {
     uint32 internal constant STG_USD = 25 hours;
     uint32 internal constant TBTC_USD = 25 hours;
     uint32 internal constant USDC_USD = 25 hours;
+    uint32 internal constant USDS_USD = 25 hours;
     uint32 internal constant USDT_USD = 25 hours;
     uint32 internal constant USDZ_USD = 25 hours;
     uint32 internal constant WEETH_ETH = 25 hours;
@@ -294,6 +299,17 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_USDC_CBBTC = uint112(1_000_000 * 10 ** Decimals.USDC);
     uint112 internal constant EXPOSURE_USDC_WETH = uint112(1_500_000 * 10 ** Decimals.USDC);
     uint112 internal constant EXPOSURE_USDC_USDC = uint112(3_500_000 * 10 ** Decimals.USDC);
+
+    // USDS
+    uint16 internal constant COL_FAC_USDS_CBBTC = 7200;
+    uint16 internal constant COL_FAC_USDS_USDC = 9200;
+    uint16 internal constant COL_FAC_USDS_WETH = 8800;
+    uint16 internal constant LIQ_FAC_USDS_CBBTC = 8750;
+    uint16 internal constant LIQ_FAC_USDS_USDC = 9659;
+    uint16 internal constant LIQ_FAC_USDS_WETH = 9450;
+    uint112 internal constant EXPOSURE_USDS_CBBTC = uint112(0 * 10 ** Decimals.USDS);
+    uint112 internal constant EXPOSURE_USDS_USDC = uint112(150_000 * 10 ** Decimals.USDS);
+    uint112 internal constant EXPOSURE_USDS_WETH = uint112(100_000 * 10 ** Decimals.USDS);
 
     // USDT
     uint16 internal constant COL_FAC_USDT_WETH = 8850;
@@ -453,6 +469,7 @@ library AerodromeGauges {
     address internal constant CL1_TBTC_CBBTC = address(0xB57eC27f68Bd356e300D57079B6cdbe57d50830d);
     address internal constant CL1_USDC_USDBC = address(0x4a3E1294d7869567B387FC3d5e5Ccf14BE2Bbe0a);
     address internal constant CL1_USDC_USDT = address(0xBd85D45f1636fCEB2359d9Dcf839f12b3cF5AF3F);
+    address internal constant CL1_USDS_USDC = address(0xe2a2B1D8AA4bD8A05e517Ccf61E96A727831B63e);
     address internal constant CL1_USDZ_USDC = address(0xE2F3C8c699A1bf30A12118B287B5208e7C6ddFEF);
     address internal constant CL1_WEETH_WETH = address(0xfCfEE5f453728BaA5ffDA151f25A0e53B8C5A01C);
     address internal constant CL1_WETH_WRSETH = address(0xEc33F9cbE64c7Bc9b262Efaaa56b7872e8889AaE);
