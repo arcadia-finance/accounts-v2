@@ -59,6 +59,7 @@ library PrimaryAssets {
     address internal constant STG = 0xE3B53AF74a4BF62Ae5511055290838050bf764Df;
     address internal constant SUSHI = 0x7D49a065D17d6d4a55dc13649901fdBB98B2AFBA;
     address internal constant TBTC = 0x236aa50979D5f3De3Bd1Eeb40E81137F22ab794b;
+    address internal constant TRUMP = 0xc27468b12ffA6d714B1b5fBC87eF403F38b82AD4;
     address internal constant USDBC = 0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA;
     address internal constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
     address internal constant USDS = 0x820C137fa70C8691f0e44Dc420a5e53c168921Dc;
@@ -90,6 +91,7 @@ library Decimals {
     uint8 internal constant STG = 18;
     uint8 internal constant SUSHI = 18;
     uint8 internal constant TBTC = 18;
+    uint8 internal constant TRUMP = 18;
     uint8 internal constant USDBC = 6;
     uint8 internal constant USDC = 6;
     uint8 internal constant USDS = 18;
@@ -115,6 +117,7 @@ library Oracles {
     address internal constant RETH_ETH = 0xf397bF97280B488cA19ee3093E81C0a77F02e9a5;
     address internal constant STG_USD = 0x63Af8341b62E683B87bB540896bF283D96B4D385;
     address internal constant TBTC_USD = 0x6D75BFB5A5885f841b132198C9f0bE8c872057BF;
+    address internal constant TRUMP_USD = 0x7bAfa1Af54f17cC0775a1Cf813B9fF5dED2C51E5;
     address internal constant USDBC_USD = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
     address internal constant USDC_USD = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
     address internal constant USDS_USD = 0x2330aaE3bca5F05169d5f4597964D44522F62930;
@@ -140,6 +143,7 @@ library OracleIds {
     uint80 internal constant RETH_USD = 5;
     uint80 internal constant STG_USD = 6;
     uint80 internal constant TBTC_USD = 14;
+    uint80 internal constant TRUMP_USD = 20;
     uint80 internal constant USDC_USD = 3;
     uint80 internal constant USDS_USD = 19;
     uint80 internal constant USDT_USD = 12;
@@ -163,6 +167,7 @@ library CutOffTimes {
     uint32 internal constant RETH_ETH = 25 hours;
     uint32 internal constant STG_USD = 25 hours;
     uint32 internal constant TBTC_USD = 25 hours;
+    uint32 internal constant TRUMP_USD = 25 hours;
     uint32 internal constant USDC_USD = 25 hours;
     uint32 internal constant USDS_USD = 25 hours;
     uint32 internal constant USDT_USD = 25 hours;
@@ -280,6 +285,14 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_TBTC_CBBTC = uint112(5 * 10 ** Decimals.TBTC);
     uint112 internal constant EXPOSURE_TBTC_WETH = uint112(10 * 10 ** Decimals.TBTC);
     uint112 internal constant EXPOSURE_TBTC_USDC = uint112(8 * 10 ** Decimals.TBTC);
+
+    // TRUMP
+    uint16 internal constant COL_FAC_TRUMP_WETH = 5650;
+    uint16 internal constant COL_FAC_TRUMP_USDC = 5150;
+    uint16 internal constant LIQ_FAC_TRUMP_WETH = 7200;
+    uint16 internal constant LIQ_FAC_TRUMP_USDC = 6700;
+    uint112 internal constant EXPOSURE_TRUMP_WETH = uint112(3500 * 10 ** Decimals.TRUMP);
+    uint112 internal constant EXPOSURE_TRUMP_USDC = uint112(1000 * 10 ** Decimals.TRUMP);
 
     // USDBC
     uint16 internal constant COL_FAC_USDBC_WETH = 8850;
@@ -465,6 +478,7 @@ library StargatePids {
 
 library AerodromeGauges {
     address internal constant CL1_CBETH_WETH = address(0xF5550F8F0331B8CAA165046667f4E6628E9E3Aac);
+    address internal constant CL1_EURC_USDC = address(0x85af8D930cB738954d307D6E62F04dd05D839C37);
     address internal constant CL1_EZETH_WETH = address(0xC6B4fe83Fb284bDdE1f1d19F0B5beB31011B280A);
     address internal constant CL1_TBTC_CBBTC = address(0xB57eC27f68Bd356e300D57079B6cdbe57d50830d);
     address internal constant CL1_USDC_USDBC = address(0x4a3E1294d7869567B387FC3d5e5Ccf14BE2Bbe0a);
@@ -478,6 +492,7 @@ library AerodromeGauges {
     address internal constant CL50_EURC_USDC = address(0x1f6c9d116CE22b51b0BC666f86B038a6c19900B8);
     address internal constant CL100_EURC_CBBTC = address(0x017a82B26d612cAD89d240206F652E76ae8C4B31);
     address internal constant CL100_USDC_CBBTC = address(0x6399ed6725cC163D019aA64FF55b22149D7179A8);
+    address internal constant CL100_USDC_TRUMP = address(0x0c1D14b66e74FBB35d53A0c97Dbe93fa8a97BbE7);
     address internal constant CL100_USDZ_CBBTC = address(0x384Ce87727323eDeDdc95D3206399806A3da7F02);
     address internal constant CL100_USDZ_WETH = address(0x549690894f61bf0D3a5799D03fDED6e775A424aA);
     address internal constant CL100_WETH_CBBTC = address(0x41b2126661C673C2beDd208cC72E85DC51a5320a);
