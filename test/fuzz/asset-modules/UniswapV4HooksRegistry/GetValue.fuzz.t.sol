@@ -8,7 +8,7 @@ import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.s
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
-import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
+import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 import { UniswapV4HooksRegistry_Fuzz_Test } from "./_UniswapV4HooksRegistry.fuzz.t.sol";
 
 /**

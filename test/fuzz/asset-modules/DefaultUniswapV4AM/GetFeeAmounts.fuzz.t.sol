@@ -5,11 +5,9 @@
 pragma solidity ^0.8.22;
 
 import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
-import { FixedPoint128 } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/FixedPoint128.sol";
+import { FixedPoint128 } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/FixedPoint128.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import {
-    PositionInfo, PositionInfoLibrary
-} from "../../../../lib/v4-periphery-fork/src/libraries/PositionInfoLibrary.sol";
+import { PositionInfo, PositionInfoLibrary } from "../../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
 
 /**
  * @notice Fuzz tests for the function "_getFeeAmounts" of contract "DefaultUniswapV4AM".

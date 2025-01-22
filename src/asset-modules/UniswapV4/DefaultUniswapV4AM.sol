@@ -5,20 +5,20 @@
 pragma solidity ^0.8.22;
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
-import { Currency } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/Currency.sol";
+import { Currency } from "../../../lib/v4-periphery/lib/v4-core/src/types/Currency.sol";
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
-import { FixedPoint96 } from "../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/FixedPoint96.sol";
-import { FixedPoint128 } from "../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/FixedPoint128.sol";
-import { FullMath } from "../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/FullMath.sol";
+import { FixedPoint96 } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/FixedPoint96.sol";
+import { FixedPoint128 } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/FixedPoint128.sol";
+import { FullMath } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/FullMath.sol";
 import { Hooks } from "./libraries/Hooks.sol";
-import { IPoolManager } from "../../../lib/v4-periphery-fork/lib/v4-core/src/interfaces/IPoolManager.sol";
+import { IPoolManager } from "../../../lib/v4-periphery/lib/v4-core/src/interfaces/IPoolManager.sol";
 import { IPositionManager } from "./interfaces/IPositionManager.sol";
 import { LiquidityAmounts } from "../UniswapV3/libraries/LiquidityAmounts.sol";
-import { PoolId, PoolIdLibrary } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolId.sol";
-import { PoolKey } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
-import { PositionInfoLibrary, PositionInfo } from "../../../lib/v4-periphery-fork/src/libraries/PositionInfoLibrary.sol";
-import { StateLibrary } from "../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/StateLibrary.sol";
-import { TickMath } from "../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
+import { PoolId, PoolIdLibrary } from "../../../lib/v4-periphery/lib/v4-core/src/types/PoolId.sol";
+import { PoolKey } from "../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
+import { PositionInfoLibrary, PositionInfo } from "../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
+import { StateLibrary } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/StateLibrary.sol";
+import { TickMath } from "../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 
 /**
  * @title Asset Module for Uniswap V4 Liquidity Positions

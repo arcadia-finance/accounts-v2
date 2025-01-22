@@ -6,7 +6,7 @@ pragma solidity ^0.8.22;
 
 import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
+import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 
 /**
  * @notice Fuzz tests for the function "getSqrtPriceX96" of contract "DefaultUniswapV4AM".
