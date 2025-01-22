@@ -7,13 +7,11 @@ pragma solidity ^0.8.22;
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
-import { FixedPoint128 } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/FixedPoint128.sol";
+import { FixedPoint128 } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/FixedPoint128.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
-import {
-    PositionInfo, PositionInfoLibrary
-} from "../../../../lib/v4-periphery-fork/src/libraries/PositionInfoLibrary.sol";
-import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
+import { PositionInfo, PositionInfoLibrary } from "../../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
+import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts" of contract "DefaultUniswapV4AM".

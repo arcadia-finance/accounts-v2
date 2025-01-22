@@ -4,8 +4,6 @@
  */
 pragma solidity ^0.8.22;
 
-import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
-
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { LiquidityAmountsExtension } from "./extensions/libraries/LiquidityAmountsExtension.sol";
@@ -14,6 +12,7 @@ import { IUniswapV3Factory } from "./extensions/interfaces/IUniswapV3Factory.sol
 import { IUniswapV3PoolExtension } from "./extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 import { Utils } from "../../../utils/Utils.sol";
+import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
 
 contract UniswapV3Fixture is WETH9Fixture {
     /*//////////////////////////////////////////////////////////////////////////

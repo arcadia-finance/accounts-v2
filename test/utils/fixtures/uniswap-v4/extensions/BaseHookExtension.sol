@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.22;
 
-import { BaseHook } from "../../../../../lib/v4-periphery-fork/src/base/hooks/BaseHook.sol";
-import { Hooks } from "../../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/Hooks.sol";
+import { BaseHook } from "../../../../../lib/v4-periphery/src/base/hooks/BaseHook.sol";
+import { Hooks } from "../../../../../lib/v4-periphery/lib/v4-core/src/libraries/Hooks.sol";
 import { PoolManagerExtension } from "./PoolManagerExtension.sol";
 
 abstract contract BaseHookExtension is BaseHook {

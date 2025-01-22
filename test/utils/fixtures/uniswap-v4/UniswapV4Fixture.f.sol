@@ -4,26 +4,29 @@
  */
 pragma solidity ^0.8.22;
 
-import { Actions } from "../../../../lib/v4-periphery-fork/src/libraries/Actions.sol";
-import { ActionConstants } from "../../../../lib/v4-periphery-fork/src/libraries/ActionConstants.sol";
+import { Actions } from "../../../../lib/v4-periphery/src/libraries/Actions.sol";
+import { ActionConstants } from "../../../../lib/v4-periphery/src/libraries/ActionConstants.sol";
 import { BaseHookExtension } from "./extensions/BaseHookExtension.sol";
-import { Currency } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/Currency.sol";
+import { Currency } from "../../../../lib/v4-periphery/lib/v4-core/src/types/Currency.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { HookMockValid } from "../..//mocks/UniswapV4/BaseAM/HookMockValid.sol";
 import { HookMockUnvalid } from "../../mocks/UniswapV4/BaseAM/HookMockUnvalid.sol";
-import { Hooks } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/Hooks.sol";
-import { IAllowanceTransfer } from "../../../../lib/v4-periphery-fork/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
-import { IPoolManager } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/interfaces/IPoolManager.sol";
+import { Hooks } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/Hooks.sol";
+import { IAllowanceTransfer } from "../../../../lib/v4-periphery/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
+import { IPoolManager } from "../../../../lib/v4-periphery/lib/v4-core/src/interfaces/IPoolManager.sol";
+import { IPositionDescriptor } from "../../../../lib/v4-periphery/src/interfaces/IPositionDescriptor.sol";
+import { IWETH9 } from "../../../../lib/v4-periphery/src/interfaces/external/IWETH9.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
-import { PoolKey } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
+import { PoolKey } from "../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
 import { PoolManagerExtension } from "./extensions/PoolManagerExtension.sol";
 import { PositionManagerExtension } from "./extensions/PositionManagerExtension.sol";
-import { StateView } from "../../../../lib/v4-periphery-fork/src/lens/StateView.sol";
+import { StateView } from "../../../../lib/v4-periphery/src/lens/StateView.sol";
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
-import { TickMath } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/TickMath.sol";
+import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
+import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
 
-contract UniswapV4Fixture is Test, Permit2Fixture {
+contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -58,7 +61,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture {
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
 
-    function setUp() public virtual override(Permit2Fixture) {
+    function setUp() public virtual override(Permit2Fixture, WETH9Fixture) {
         // Deploy Pool Manager
         poolManager = new PoolManagerExtension();
 
@@ -68,8 +71,17 @@ contract UniswapV4Fixture is Test, Permit2Fixture {
         // Deploy permit2
         Permit2Fixture.setUp();
 
+        // Deploy WETH.
+        WETH9Fixture.setUp();
+
         // Deploy Position Manager
-        positionManager = new PositionManagerExtension(poolManager, IAllowanceTransfer(address(permit2)), 0);
+        positionManager = new PositionManagerExtension(
+            poolManager,
+            IAllowanceTransfer(address(permit2)),
+            0,
+            IPositionDescriptor(address(0)),
+            IWETH9(address(weth9))
+        );
 
         // Deploy mocked hooks (to get contrac instance used below)
         validHook = new HookMockValid(poolManager);
@@ -144,7 +156,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture {
         });
 
         // Initialize pool
-        poolManager.initialize(poolKey, sqrtPriceX96, "");
+        poolManager.initialize(poolKey, sqrtPriceX96);
     }
 
     /* //////////////////////////////////////////////////////////////

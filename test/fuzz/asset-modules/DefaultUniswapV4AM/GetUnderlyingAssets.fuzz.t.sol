@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.22;
 
-import { Currency } from "../../../../lib/v4-periphery-fork/lib/v4-core/src/types/Currency.sol";
+import { Currency } from "../../../../lib/v4-periphery/lib/v4-core/src/types/Currency.sol";
 import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 
 /**
