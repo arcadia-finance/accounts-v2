@@ -500,6 +500,7 @@ library AerodromeGauges {
     address internal constant CL100_WETH_USDC = address(0xF33a96b5932D9E9B9A0eDA447AbD8C9d48d2e0c8);
     address internal constant CL100_WETH_USDT = address(0x2c0CbF25Bb64687d11ea2E4a3dc893D56Ca39c10);
     address internal constant CL200_AERO_WSTETH = address(0x45F8b8eC9c92D09BA8495074436fD97073423041);
+    address internal constant CL200_AERO_CBBTC = address(0x2B74B62c564456C48055bd515A62594742b3f545);
     address internal constant CL200_TBTC_WETH = address(0x996802075582Af2eE133fb30Cc5A9E8A671d3c3a);
     address internal constant CL200_TBTC_USDC = address(0x37E1a626b09faDE99E94752942a88f17EA2170fd);
     address internal constant CL200_USDZ_DEGEN = address(0x9918C85E4e5937DA606d65C9935Ea3ffe4DE06A4);
