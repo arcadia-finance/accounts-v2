@@ -4,7 +4,9 @@
  */
 pragma solidity ^0.8.22;
 
-import { IAllowanceTransfer } from "../../../../lib/v4-periphery-fork/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
+import { IAllowanceTransfer } from "../../../../lib/v4-periphery/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
+import { IPositionDescriptor } from "../../../../lib/v4-periphery/src/interfaces/IPositionDescriptor.sol";
+import { IWETH9 } from "../../../../lib/v4-periphery/src/interfaces/external/IWETH9.sol";
 import { PositionManagerExtension } from
     "../../../../test/utils/fixtures/uniswap-v4/extensions/PositionManagerExtension.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
@@ -55,7 +57,9 @@ contract SetProtocol_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_
         vm.startPrank(users.owner);
 
         // Redeploy Position Manager
-        positionManager = new PositionManagerExtension(poolManager, IAllowanceTransfer(address(1)), 0);
+        positionManager = new PositionManagerExtension(
+            poolManager, IAllowanceTransfer(address(1)), 0, IPositionDescriptor(address(0)), IWETH9(address(weth9))
+        );
 
         v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), address(positionManager));
 

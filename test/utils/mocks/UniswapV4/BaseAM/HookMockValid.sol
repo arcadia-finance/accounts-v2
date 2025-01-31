@@ -4,12 +4,12 @@
  */
 pragma solidity ^0.8.22;
 
-import { BalanceDelta } from "../../../../../lib/v4-periphery-fork/lib/v4-core/src/types/BalanceDelta.sol";
+import { BalanceDelta } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/BalanceDelta.sol";
 import { BaseHookExtension } from "../../../fixtures/uniswap-v4/extensions/BaseHookExtension.sol";
-import { BeforeSwapDelta } from "../../../../../lib/v4-periphery-fork/lib/v4-core/src/types/BeforeSwapDelta.sol";
-import { Hooks } from "../../../../../lib/v4-periphery-fork/lib/v4-core/src/libraries/Hooks.sol";
-import { IPoolManager } from "../../../../../lib/v4-periphery-fork/lib/v4-core/src/interfaces/IPoolManager.sol";
-import { PoolKey } from "../../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
+import { BeforeSwapDelta } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/BeforeSwapDelta.sol";
+import { Hooks } from "../../../../../lib/v4-periphery/lib/v4-core/src/libraries/Hooks.sol";
+import { IPoolManager } from "../../../../../lib/v4-periphery/lib/v4-core/src/interfaces/IPoolManager.sol";
+import { PoolKey } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
 import { PoolManagerExtension } from "../../../fixtures/uniswap-v4/extensions/PoolManagerExtension.sol";
 
 contract HookMockValid is BaseHookExtension {
@@ -44,21 +44,11 @@ contract HookMockValid is BaseHookExtension {
         });
     }
 
-    function beforeInitialize(address, PoolKey calldata, uint160, bytes calldata)
-        external
-        virtual
-        override
-        returns (bytes4)
-    {
+    function beforeInitialize(address, PoolKey calldata, uint160) external virtual override returns (bytes4) {
         return this.beforeInitialize.selector;
     }
 
-    function afterInitialize(address, PoolKey calldata, uint160, int24, bytes calldata)
-        external
-        virtual
-        override
-        returns (bytes4)
-    {
+    function afterInitialize(address, PoolKey calldata, uint160, int24) external virtual override returns (bytes4) {
         return this.afterInitialize.selector;
     }
 

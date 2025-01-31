@@ -1,22 +1,26 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.22;
 
-import { IAllowanceTransfer } from
-    "../../../../../lib/v4-periphery-fork/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
-import { PoolKey } from "../../../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
+import { IAllowanceTransfer } from "../../../../../lib/v4-periphery/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
+import { IPositionDescriptor } from "../../../../../lib/v4-periphery/src/interfaces/IPositionDescriptor.sol";
+import { IWETH9 } from "../../../../../lib/v4-periphery/src/interfaces/external/IWETH9.sol";
+import { PoolKey } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
 import { PoolManagerExtension } from "./PoolManagerExtension.sol";
 import {
-    PositionInfo,
-    PositionInfoLibrary
-} from "../../../../../lib/v4-periphery-fork/src/libraries/PositionInfoLibrary.sol";
-import { PositionManager } from "../../../../../lib/v4-periphery-fork/src/PositionManager.sol";
+    PositionInfo, PositionInfoLibrary
+} from "../../../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
+import { PositionManager } from "../../../../../lib/v4-periphery/src/PositionManager.sol";
 
 contract PositionManagerExtension is PositionManager {
     using PositionInfoLibrary for PositionInfo;
 
-    constructor(PoolManagerExtension poolManager_, IAllowanceTransfer permit2_, uint256 unsubscribeGasLimit_)
-        PositionManager(poolManager_, permit2_, unsubscribeGasLimit_)
-    { }
+    constructor(
+        PoolManagerExtension poolManager_,
+        IAllowanceTransfer permit2_,
+        uint256 unsubscribeGasLimit_,
+        IPositionDescriptor tokenDescriptor_,
+        IWETH9 weth9_
+    ) PositionManager(poolManager_, permit2_, unsubscribeGasLimit_, tokenDescriptor_, weth9_) { }
 
     function setPosition(address receiver, PoolKey memory poolKey, int24 tickLower, int24 tickUpper, uint256 tokenId)
         external

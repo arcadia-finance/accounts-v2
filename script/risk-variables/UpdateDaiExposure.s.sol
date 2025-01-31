@@ -6,30 +6,21 @@ pragma solidity 0.8.22;
 
 import { Base_Script } from "../Base.s.sol";
 
-import {
-    AerodromeGauges,
-    ArcadiaContracts,
-    ArcadiaSafes,
-    CutOffTimes,
-    OracleIds,
-    Oracles,
-    PrimaryAssets,
-    RiskParameters
-} from "../utils/Constants.sol";
+import { ArcadiaSafes, PrimaryAssets, RiskParameters } from "../utils/Constants.sol";
 
-contract UpdateWETHExposure is Base_Script {
+contract UpdateDaiExposure is Base_Script {
     constructor() { }
 
     function run() public {
         bytes memory calldata_ = abi.encodeCall(
             registry.setRiskParametersOfPrimaryAsset,
             (
-                address(wethLendingPool),
-                PrimaryAssets.WETH,
+                address(usdcLendingPool),
+                PrimaryAssets.DAI,
                 0,
-                RiskParameters.EXPOSURE_WETH_WETH,
-                RiskParameters.COL_FAC_WETH_WETH,
-                RiskParameters.LIQ_FAC_WETH_WETH
+                RiskParameters.EXPOSURE_DAI_USDC,
+                RiskParameters.COL_FAC_DAI_USDC,
+                RiskParameters.LIQ_FAC_DAI_USDC
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);

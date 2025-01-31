@@ -12,8 +12,8 @@ import { ICreditor } from "../../interfaces/ICreditor.sol";
 import { IDerivedAM } from "../../interfaces/IDerivedAM.sol";
 import { IPositionManager } from "./interfaces/IPositionManager.sol";
 import { IRegistry } from "../interfaces/IRegistry.sol";
-import { PoolIdLibrary } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolId.sol";
-import { PoolKey } from "../../../lib/v4-periphery-fork/lib/v4-core/src/types/PoolKey.sol";
+import { PoolIdLibrary } from "../../../lib/v4-periphery/lib/v4-core/src/types/PoolId.sol";
+import { PoolKey } from "../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
 import { RegistryErrors } from "../../libraries/Errors.sol";
 
 /**

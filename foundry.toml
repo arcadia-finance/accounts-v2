@@ -14,10 +14,14 @@ remappings = [
     "@uniswap/v3-periphery/contracts/=lib/v3-periphery/contracts/",
     "contracts/=lib/slipstream/contracts",
     "solmate/=lib/solmate/",
+    "lib/slipstream:@openzeppelin/=lib/slipstream/lib/openzeppelin-contracts/",
+    "lib/v3-periphery:@openzeppelin/=lib/openzeppelin-contracts/",
+    "lib/v4-periphery:@openzeppelin/=lib/v4-periphery/lib/v4-core/lib/openzeppelin-contracts/",
+    "lib/v4-periphery/lib/v4-core:@openzeppelin/=lib/v4-periphery/lib/v4-core/lib/openzeppelin-contracts/",
 ]
-
 fs_permissions = [{ access = "read", path = "./out"}, { access = "write", path = "./script/out"}]
 evm_version = 'cancun'
+unchecked_cheatcode_artifacts = true
 
 [fmt]
 bracket_spacing = true
