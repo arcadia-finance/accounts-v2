@@ -14,6 +14,9 @@ contract DeployUniswapV4Step1 is Base_Script {
     constructor() { }
 
     function run() public {
+        // Sanity check that we use the correct priv key.
+        require(vm.addr(deployer) == 0x0f518becFC14125F23b8422849f6393D59627ddB, "Wrong Deployer.");
+
         // Deploy Asset Module.
         vm.startBroadcast(deployer);
         UniswapV4HooksRegistry uniswapV4HooksRegistry =

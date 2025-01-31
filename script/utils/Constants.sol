@@ -13,7 +13,7 @@ library ArcadiaContracts {
     address internal constant AERO_POOL_AM = address(0xfe0FA1FD8F8E889062F03e2f126Fc7B9DE6091A5);
     address internal constant ALIEN_BASE_AM = address(0x79dD8b8d4abB5dEEA986DB1BF0a02E4CA42ae416);
     address internal constant CHAINLINK_OM = address(0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31);
-    address internal constant DEFAULT_UNISWAPV4_AM = address(0);
+    address internal constant DEFAULT_UNISWAPV4_AM = address(0xDBBe429C7eA1fa80254B8A7bD0fd0fe0a5ca0414);
     address internal constant ERC20_PRIMARY_AM = address(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
     address internal constant FACTORY = address(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
     address internal constant LENDINGPOOL_CBBTC = address(0xa37E9b4369dc20940009030BfbC2088F09645e3B);
@@ -26,7 +26,7 @@ library ArcadiaContracts {
     address internal constant STAKED_SLIPSTREAM_AM = address(0x1Dc7A0f5336F52724B650E39174cfcbbEdD67bF1);
     address internal constant STARGATE_AM = address(0x20f7903290bF98716B62Dc1c9DA634291b8cfeD4);
     address internal constant UNISWAPV3_AM = address(0x21bd524cC54CA78A7c48254d4676184f781667dC);
-    address internal constant UNISWAPV4_HOOKS_REGISTRY = address(0);
+    address internal constant UNISWAPV4_HOOKS_REGISTRY = address(0x8CC3A263284d4fC05E0BD4F8b7Be55252287db5D);
     address internal constant WRAPPED_AERO_AM = address(0x17B5826382e3a5257b829cF0546A08Bd77409270);
 }
 
@@ -475,7 +475,7 @@ library ExternalContracts {
     address internal constant STARGATE_FACTORY = 0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6;
     address internal constant STARGATE_LP_STAKING = 0x06Eb48763f117c7Be887296CDcdfad2E4092739C;
     address internal constant UNISWAPV3_POS_MNGR = 0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1;
-    address internal constant UNISWAPV4_POS_MNGR = address(0);
+    address internal constant UNISWAPV4_POS_MNGR = 0x7C5f5A4bBd8fD63184577525326123B519429bDc;
 }
 
 library StargatePoolIds {
