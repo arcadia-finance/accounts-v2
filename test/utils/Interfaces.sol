@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { IUniswapV3Pool } from "../../src/asset-modules/UniswapV3/interfaces/IUniswapV3Pool.sol";
 import { INonfungiblePositionManager } from
@@ -89,6 +89,15 @@ interface IPermit2 {
         // spender requested amount
         uint256 requestedAmount;
     }
+
+    /// @notice Approves the spender to use up to amount of the specified token up until the expiration
+    /// @param token The token to approve
+    /// @param spender The spender address to approve
+    /// @param amount The approved amount of the token
+    /// @param expiration The timestamp at which the approval is no longer valid
+    /// @dev The packed allowance also holds a nonce, which will stay unchanged in approve
+    /// @dev Setting amount to type(uint160).max sets an unlimited approval
+    function approve(address token, address spender, uint160 amount, uint48 expiration) external;
 
     /**
      * @notice Transfers multiple tokens using a signed permit message

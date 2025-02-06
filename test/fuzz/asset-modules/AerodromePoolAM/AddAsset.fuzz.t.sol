@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { AerodromePoolAM_Fuzz_Test } from "./_AerodromePoolAM.fuzz.t.sol";
 import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
@@ -35,6 +35,7 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
 
     function testFuzz_Revert_addAsset_InvalidPool(address asset) public {
         // Given : The asset is not a aeroPool in the the Aerodrome Factory.
+        vm.assume(asset != address(aeroPool));
 
         // When : An asset is added to the AM.
         // Then : It should revert.

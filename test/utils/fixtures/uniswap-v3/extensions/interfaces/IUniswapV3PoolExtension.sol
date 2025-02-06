@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { IUniswapV3Pool } from "../../../../../../src/asset-modules/UniswapV3/interfaces/IUniswapV3Pool.sol";
 
@@ -19,4 +19,8 @@ interface IUniswapV3PoolExtension is IUniswapV3Pool {
     function getCurrentTick() external view returns (int24 currentTick);
 
     function setSqrtPriceX96(uint160) external;
+
+    function liquidity() external returns (uint128 liquidity);
+
+    function tickSpacing() external view returns (int24 tickSpacing);
 }

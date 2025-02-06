@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { INonfungiblePositionManager } from
     "../../../../../../src/asset-modules/UniswapV3/interfaces/INonfungiblePositionManager.sol";
@@ -51,4 +51,6 @@ interface INonfungiblePositionManagerExtension is INonfungiblePositionManager {
     function decreaseLiquidity(DecreaseLiquidityParams calldata params)
         external
         returns (uint256 amount0, uint256 amount1);
+
+    function approve(address spender, uint256 tokenId) external;
 }

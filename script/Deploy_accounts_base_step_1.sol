@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { Test } from "../lib/forge-std/src/Test.sol";
 
@@ -166,7 +166,7 @@ contract ArcadiaAccountDeploymentStep1 is Test {
         stakedStargateAM.initialize();
         stakedStargateAM.addAsset(StargatePids.USDBC);
 
-        factory.setNewAccountInfo(address(registry), address(account), MerkleRoots.UPGRADE_ROOT_1_TO_1, "");
+        factory.setNewAccountInfo(address(registry), address(account), MerkleRoots.V1, "");
         factory.changeGuardian(protocolOwnerAddress);
 
         registry.changeGuardian(protocolOwnerAddress);

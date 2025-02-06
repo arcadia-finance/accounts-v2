@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 library AccountErrors {
     error AccountInAuction();
@@ -17,14 +17,16 @@ library AccountErrors {
     error InvalidERC721Amount();
     error InvalidRecipient();
     error InvalidRegistry();
+    error InvalidUpgrade();
     error NoFallback();
     error NoReentry();
     error NonZeroOpenPosition();
     error NumeraireNotFound();
-    error OnlyFactory();
     error OnlyCreditor();
+    error OnlyFactory();
     error OnlyLiquidator();
     error OnlyOwner();
+    error OnlySelf();
     error TooManyAssets();
     error UnknownAsset();
     error UnknownAssetType();
