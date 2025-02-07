@@ -274,7 +274,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
         positionManager.modifyLiquidities(mintData, block.timestamp);
     }
 
-    function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
+    function isWithinAllowedRangeV4(int24 tick) internal pure returns (bool) {
         return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
     }
 }

@@ -175,7 +175,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         // Calculate and check that tick current is within allowed ranges.
         uint160 sqrtPriceX96_ = uint160(calculateAndValidateRangeTickCurrent(asset0.usdValue, asset1.usdValue));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
+        vm.assume(isWithinAllowedRangeV4(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
 
         // And: State is valid for pool and position.
         {
@@ -265,7 +265,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         // Calculate and check that tick current is within allowed ranges.
         {
             uint160 sqrtPriceX96_ = uint160(calculateAndValidateRangeTickCurrent(asset0.usdValue, asset1.usdValue));
-            vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
+            vm.assume(isWithinAllowedRangeV4(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
 
             // And: State is valid for pool and position.
             randomPoolKey = initializePool(address(token0), address(token1), sqrtPriceX96_, address(validHook), 500, 1);
@@ -396,7 +396,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         // Calculate and check that tick current is within allowed ranges.
         {
             uint160 sqrtPriceX96_ = uint160(calculateAndValidateRangeTickCurrent(asset0.usdValue, asset1.usdValue));
-            vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
+            vm.assume(isWithinAllowedRangeV4(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
 
             // And: State is valid for pool and position.
             randomPoolKey = initializePool(address(token0), address(token1), sqrtPriceX96_, address(validHook), 500, 1);

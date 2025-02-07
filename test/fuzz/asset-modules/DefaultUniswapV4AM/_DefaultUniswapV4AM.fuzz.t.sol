@@ -188,7 +188,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
         int24 currentTick = TickMath.getTickAtSqrtPrice(sqrtPriceX96);
 
-        vm.assume(isWithinAllowedRange(currentTick));
+        vm.assume(isWithinAllowedRangeV4(currentTick));
 
         // And : Valid ticks
         if (outOfRange == 1) {
