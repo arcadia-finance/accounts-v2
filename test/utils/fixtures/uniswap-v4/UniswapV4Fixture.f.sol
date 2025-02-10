@@ -34,7 +34,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
     BaseHookExtension internal validHook;
     BaseHookExtension internal unvalidHook;
     PoolManagerExtension internal poolManager;
-    PositionManagerExtension internal positionManager;
+    PositionManagerExtension internal positionManagerV4;
     StateView internal stateView;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -75,7 +75,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
         WETH9Fixture.setUp();
 
         // Deploy Position Manager
-        positionManager = new PositionManagerExtension(
+        positionManagerV4 = new PositionManagerExtension(
             poolManager,
             IAllowanceTransfer(address(permit2)),
             0,
@@ -131,7 +131,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
         BaseHookExtension(hookAddress).validateHookExtensionAddress(BaseHookExtension(hookAddress));
     }
 
-    function initializePool(
+    function initializePoolV4(
         address token0,
         address token1,
         uint160 sqrtPriceX96,
@@ -189,10 +189,10 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
                                 PERMIT 2
     ////////////////////////////////////////////////////////////// */
 
-    function approvePositionManagerFor(address addr, address token) public {
+    function approveV4PositionManagerFor(address addr, address token) public {
         vm.startPrank(addr);
         ERC20(token).approve(address(permit2), type(uint256).max);
-        permit2.approve(token, address(positionManager), type(uint160).max, type(uint48).max);
+        permit2.approve(token, address(positionManagerV4), type(uint160).max, type(uint48).max);
         vm.stopPrank();
     }
 
@@ -224,7 +224,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
                                MODIFY LIQUIDITY
     ////////////////////////////////////////////////////////////// */
 
-    function mintPosition(
+    function mintPositionV4(
         PoolKey memory poolKey,
         int24 tickLower,
         int24 tickUpper,
@@ -246,7 +246,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
             mintData = finalizeModifyLiquidityWithClose(planner, poolKey);
         }
 
-        tokenId = positionManager.nextTokenId();
+        tokenId = positionManagerV4.nextTokenId();
 
         (uint160 sqrtPriceX96,,,) = stateView.getSlot0(poolKey.toId());
 
@@ -267,14 +267,14 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
         deal(token1, liquidityProvider, amount1 + 1);
 
         // Approvals via permit2
-        approvePositionManagerFor(liquidityProvider, token0);
-        approvePositionManagerFor(liquidityProvider, token1);
+        approveV4PositionManagerFor(liquidityProvider, token0);
+        approveV4PositionManagerFor(liquidityProvider, token1);
 
         vm.prank(liquidityProvider);
-        positionManager.modifyLiquidities(mintData, block.timestamp);
+        positionManagerV4.modifyLiquidities(mintData, block.timestamp);
     }
 
-    function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
+    function isWithinAllowedRangeV4(int24 tick) internal pure returns (bool) {
         return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
     }
 }

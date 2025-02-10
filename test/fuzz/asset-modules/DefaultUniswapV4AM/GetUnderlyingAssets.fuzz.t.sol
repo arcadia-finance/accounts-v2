@@ -34,15 +34,15 @@ contract GetUnderlyingAssets_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_
         // And : Liquidity is not-zero.
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // And : tokenId is added to AM.
         vm.prank(users.owner);
         uniswapV4AM.addAsset(tokenId);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
+        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManagerV4)));
         bytes32[] memory expectedUnderlyingAssetKeys = new bytes32[](2);
         expectedUnderlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), Currency.unwrap(stablePoolKey.currency0)));
         expectedUnderlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), Currency.unwrap(stablePoolKey.currency1)));
@@ -67,12 +67,12 @@ contract GetUnderlyingAssets_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_
         // And : Liquidity is not-zero.
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // And : Position is not added to the AM.
-        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
+        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManagerV4)));
         bytes32[] memory expectedUnderlyingAssetKeys = new bytes32[](2);
         expectedUnderlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), Currency.unwrap(stablePoolKey.currency0)));
         expectedUnderlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), Currency.unwrap(stablePoolKey.currency1)));

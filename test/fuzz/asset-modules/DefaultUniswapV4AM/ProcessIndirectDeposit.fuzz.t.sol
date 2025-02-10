@@ -45,7 +45,7 @@ contract ProcessIndirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4
         vm.startPrank(unprivilegedAddress);
         vm.expectRevert(AssetModule.OnlyRegistry.selector);
         uniswapV4AM.processIndirectDeposit(
-            address(creditorUsd), address(positionManager), tokenId, exposureUpperAssetToAsset, 1
+            address(creditorUsd), address(positionManagerV4), tokenId, exposureUpperAssetToAsset, 1
         );
         vm.stopPrank();
     }
@@ -71,7 +71,7 @@ contract ProcessIndirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4
         vm.prank(address(v4HooksRegistry));
         vm.expectRevert(DefaultUniswapV4AM.InvalidAmount.selector);
         uniswapV4AM.processIndirectDeposit(
-            address(creditorUsd), address(positionManager), tokenId, exposureUpperAssetToAsset, amount
+            address(creditorUsd), address(positionManagerV4), tokenId, exposureUpperAssetToAsset, amount
         );
     }
 
@@ -106,7 +106,7 @@ contract ProcessIndirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4
         {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
-                uniswapV4AM.getValue(address(creditorUsd), address(positionManager), tokenId, 1);
+                uniswapV4AM.getValue(address(creditorUsd), address(positionManagerV4), tokenId, 1);
             vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
@@ -120,13 +120,13 @@ contract ProcessIndirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4
             // When: Calling processIndirectDeposit()
             vm.prank(address(v4HooksRegistry));
             (uint256 recursiveCalls,) =
-                uniswapV4AM.processIndirectDeposit(address(creditorUsd), address(positionManager), tokenId, 0, 1);
+                uniswapV4AM.processIndirectDeposit(address(creditorUsd), address(positionManagerV4), tokenId, 0, 1);
             assertEq(recursiveCalls, 3);
         }
 
         {
             // Then: Exposure of the asset is one.
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManagerV4)));
             (uint256 lastExposureAsset,) = uniswapV4AM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 1);
 
@@ -181,7 +181,7 @@ contract ProcessIndirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4
         {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
-                uniswapV4AM.getValue(address(creditorUsd), address(positionManager), tokenId, 1);
+                uniswapV4AM.getValue(address(creditorUsd), address(positionManagerV4), tokenId, 1);
             vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
@@ -195,7 +195,7 @@ contract ProcessIndirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4
             // When: processDirectDeposit is called with amount 0.
             vm.prank(address(v4HooksRegistry));
             (uint256 recursiveCalls,) =
-                uniswapV4AM.processIndirectDeposit(address(creditorUsd), address(positionManager), tokenId, 0, 0);
+                uniswapV4AM.processIndirectDeposit(address(creditorUsd), address(positionManagerV4), tokenId, 0, 0);
 
             // Then: Correct variables are returned.
             assertEq(recursiveCalls, 3);
@@ -203,7 +203,7 @@ contract ProcessIndirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4
 
         {
             // And: Exposure of the asset is one.
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManagerV4)));
             (uint256 lastExposureAsset,) = uniswapV4AM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 0);
 
@@ -257,7 +257,7 @@ contract ProcessIndirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4
 
         // And: usd exposure to protocol below max usd exposure.
         (uint256 usdExposureProtocol,,) =
-            uniswapV4AM.getValue(address(creditorUsd), address(positionManager), tokenId, 1);
+            uniswapV4AM.getValue(address(creditorUsd), address(positionManagerV4), tokenId, 1);
         vm.assume(usdExposureProtocol < type(uint112).max);
         maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
 
@@ -268,15 +268,15 @@ contract ProcessIndirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4
 
         // Given: uniV4 position is deposited.
         vm.prank(address(v4HooksRegistry));
-        uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 1);
+        uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManagerV4), tokenId, 1);
 
         {
             // When: processDirectDeposit is called with amount 0.
             vm.prank(address(v4HooksRegistry));
-            uniswapV4AM.processIndirectDeposit(address(creditorUsd), address(positionManager), tokenId, 0, 0);
+            uniswapV4AM.processIndirectDeposit(address(creditorUsd), address(positionManagerV4), tokenId, 0, 0);
 
             // Then: Exposure of the asset is still one.
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManagerV4)));
             (uint256 lastExposureAsset,) = uniswapV4AM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 1);
 

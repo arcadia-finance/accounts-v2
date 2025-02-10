@@ -73,7 +73,7 @@ contract ProcessDirectWithdrawal_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Ho
         {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
-                uniswapV4AM.getValue(address(creditorUsd), address(positionManager), tokenId, 1);
+                uniswapV4AM.getValue(address(creditorUsd), address(positionManagerV4), tokenId, 1);
             vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
@@ -84,14 +84,14 @@ contract ProcessDirectWithdrawal_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Ho
         );
 
         vm.prank(address(v4HooksRegistry));
-        uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 1);
+        uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManagerV4), tokenId, 1);
 
         vm.prank(address(registry));
-        v4HooksRegistry.processDirectWithdrawal(address(creditorUsd), address(positionManager), tokenId, 1);
+        v4HooksRegistry.processDirectWithdrawal(address(creditorUsd), address(positionManagerV4), tokenId, 1);
 
         {
             // And: Exposure of the asset is zero.
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManagerV4)));
             (uint256 lastExposureAsset,) = uniswapV4AM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 0);
 
@@ -146,7 +146,7 @@ contract ProcessDirectWithdrawal_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Ho
         {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
-                uniswapV4AM.getValue(address(creditorUsd), address(positionManager), tokenId, 1);
+                uniswapV4AM.getValue(address(creditorUsd), address(positionManagerV4), tokenId, 1);
             vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
@@ -157,11 +157,11 @@ contract ProcessDirectWithdrawal_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Ho
         );
 
         vm.prank(address(registry));
-        v4HooksRegistry.processDirectWithdrawal(address(creditorUsd), address(positionManager), tokenId, 0);
+        v4HooksRegistry.processDirectWithdrawal(address(creditorUsd), address(positionManagerV4), tokenId, 0);
 
         {
             // And: Exposure of the asset is zero.
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManagerV4)));
             (uint256 lastExposureAsset,) = uniswapV4AM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 0);
 
@@ -216,7 +216,7 @@ contract ProcessDirectWithdrawal_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Ho
         {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
-                uniswapV4AM.getValue(address(creditorUsd), address(positionManager), tokenId, 1);
+                uniswapV4AM.getValue(address(creditorUsd), address(positionManagerV4), tokenId, 1);
             vm.assume(usdExposureProtocol < type(uint112).max);
             maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
         }
@@ -227,14 +227,14 @@ contract ProcessDirectWithdrawal_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Ho
         );
 
         vm.prank(address(v4HooksRegistry));
-        uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManager), tokenId, 1);
+        uniswapV4AM.processDirectDeposit(address(creditorUsd), address(positionManagerV4), tokenId, 1);
 
         vm.prank(address(registry));
-        v4HooksRegistry.processDirectWithdrawal(address(creditorUsd), address(positionManager), tokenId, 0);
+        v4HooksRegistry.processDirectWithdrawal(address(creditorUsd), address(positionManagerV4), tokenId, 0);
 
         {
             // And: Exposure of the asset is one.
-            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManagerV4)));
             (uint256 lastExposureAsset,) = uniswapV4AM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 1);
 

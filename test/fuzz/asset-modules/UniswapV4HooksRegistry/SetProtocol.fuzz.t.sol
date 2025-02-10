@@ -39,7 +39,7 @@ contract SetProtocol_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_
 
     function testFuzz_Revert_setProtocol_ProtocolNotAddedToReg() public {
         vm.startPrank(users.owner);
-        v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), address(positionManager));
+        v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), address(positionManagerV4));
 
         vm.expectRevert(RegistryErrors.OnlyAssetModule.selector);
         v4HooksRegistry.setProtocol();
@@ -57,11 +57,11 @@ contract SetProtocol_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_
         vm.startPrank(users.owner);
 
         // Redeploy Position Manager
-        positionManager = new PositionManagerExtension(
+        positionManagerV4 = new PositionManagerExtension(
             poolManager, IAllowanceTransfer(address(1)), 0, IPositionDescriptor(address(0)), IWETH9(address(weth9))
         );
 
-        v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), address(positionManager));
+        v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), address(positionManagerV4));
 
         registry.addAssetModule(address(v4HooksRegistry));
         vm.stopPrank();
@@ -69,7 +69,7 @@ contract SetProtocol_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_
         vm.prank(users.owner);
         v4HooksRegistry.setProtocol();
 
-        assertTrue(v4HooksRegistry.inAssetModule(address(positionManager)));
-        assertTrue(registry.inRegistry(address(positionManager)));
+        assertTrue(v4HooksRegistry.inAssetModule(address(positionManagerV4)));
+        assertTrue(registry.inRegistry(address(positionManagerV4)));
     }
 }

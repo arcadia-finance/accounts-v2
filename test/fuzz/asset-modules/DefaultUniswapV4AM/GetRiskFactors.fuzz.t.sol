@@ -33,7 +33,7 @@ contract GetRiskFactors_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_
 
         // And : Initialize Uniswap V4 pool (initial tick set to zero, no impact on testing here).
         int24 tickSpacing = 1;
-        PoolKey memory stable1ToToken1PoolKey = initializePool(
+        PoolKey memory stable1ToToken1PoolKey = initializePoolV4(
             address(mockERC20.stable1),
             address(mockERC20.token1),
             TickMath.getSqrtPriceAtTick(0),
@@ -47,7 +47,7 @@ contract GetRiskFactors_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_
             uint80(bound(vars.liquidity, 1e18 + 1, poolManager.getTickSpacingToMaxLiquidityPerTick(tickSpacing)));
 
         // And : Liquidity position is minted.
-        uint256 tokenId = mintPosition(
+        uint256 tokenId = mintPositionV4(
             stable1ToToken1PoolKey,
             vars.tickLower,
             vars.tickUpper,
@@ -89,7 +89,7 @@ contract GetRiskFactors_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_
 
         // When : Calling getRiskfactors()
         (uint16 collateralFactor, uint16 liquidationFactor) =
-            uniswapV4AM.getRiskFactors(address(creditorUsd), address(positionManager), tokenId);
+            uniswapV4AM.getRiskFactors(address(creditorUsd), address(positionManagerV4), tokenId);
 
         // Then : It should return the correct values
         assertEq(collateralFactor, expectedCollateralFactor);

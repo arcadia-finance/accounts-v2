@@ -62,13 +62,13 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         asset1.usdValue = bound(asset1.usdValue, 0, type(uint256).max / 10 ** 18);
 
         // And: State is valid for pool and position.
-        randomPoolKey = initializePool(address(token0_), address(token1_), 1e18, address(validHook), 500, 1);
+        randomPoolKey = initializePoolV4(address(token0_), address(token1_), 1e18, address(validHook), 500, 1);
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
 
         // And: Both tokens are added to the Registry.
         addAssetToArcadia(address(token0_), int256(asset0.usdValue));
@@ -76,7 +76,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         // When: "getUnderlyingAssetsAmounts" is called.
         // Then: The transaction overflows.
-        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
+        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManagerV4)));
         vm.expectRevert(bytes(""));
         uniswapV4AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
     }
@@ -108,13 +108,13 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         asset1.usdValue = bound(asset1.usdValue, type(uint256).max / 10 ** 18 + 1, INT256_MAX);
 
         // And: State is valid for pool and position.
-        randomPoolKey = initializePool(address(token0_), address(token1_), 1e18, address(validHook), 500, 1);
+        randomPoolKey = initializePoolV4(address(token0_), address(token1_), 1e18, address(validHook), 500, 1);
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
 
         // And: Both tokens are added to the Registry.
         addAssetToArcadia(address(token0_), int256(asset0.usdValue));
@@ -122,7 +122,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         // When: "getUnderlyingAssetsAmounts" is called.
         // Then: The transaction overflows.
-        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
+        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManagerV4)));
         vm.expectRevert(bytes(""));
         uniswapV4AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
     }
@@ -131,7 +131,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         // Given : Zero amount
         uint256 amount = 0;
 
-        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
+        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManagerV4)));
 
         // When: "getUnderlyingAssetsAmounts" is called.
         (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
@@ -175,15 +175,15 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         // Calculate and check that tick current is within allowed ranges.
         uint160 sqrtPriceX96_ = uint160(calculateAndValidateRangeTickCurrent(asset0.usdValue, asset1.usdValue));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
+        vm.assume(isWithinAllowedRangeV4(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
 
         // And: State is valid for pool and position.
         {
             randomPoolKey =
-                initializePool(address(token0_), address(token1_), sqrtPriceX96_, address(validHook), 500, 1);
+                initializePoolV4(address(token0_), address(token1_), sqrtPriceX96_, address(validHook), 500, 1);
             (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
             bytes32 positionKey =
-                keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+                keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
 
             vm.assume(liquidity > 0);
             // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
@@ -198,7 +198,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
             vm.assume(amount1 < type(uint256).max / (asset1.usdValue * 10 ** (18 - asset1.decimals)));
 
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
-            positionManager.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
+            positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
         }
 
         // And: Both tokens are added to the Registry.
@@ -209,7 +209,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         uint256[] memory underlyingAssetsAmounts;
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
         {
-            bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManagerV4)));
             (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
                 uniswapV4AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
         }
@@ -265,13 +265,14 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         // Calculate and check that tick current is within allowed ranges.
         {
             uint160 sqrtPriceX96_ = uint160(calculateAndValidateRangeTickCurrent(asset0.usdValue, asset1.usdValue));
-            vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
+            vm.assume(isWithinAllowedRangeV4(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
 
             // And: State is valid for pool and position.
-            randomPoolKey = initializePool(address(token0), address(token1), sqrtPriceX96_, address(validHook), 500, 1);
+            randomPoolKey =
+                initializePoolV4(address(token0), address(token1), sqrtPriceX96_, address(validHook), 500, 1);
             (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
             bytes32 positionKey =
-                keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+                keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
 
             vm.assume(liquidity > 0);
             // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
@@ -282,7 +283,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
             vm.assume(amount1 < type(uint96).max);
 
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
-            positionManager.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
+            positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
         }
 
         // And: Both tokens are added to the Registry.
@@ -296,7 +297,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
             {
                 AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
                 {
-                    bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
+                    bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManagerV4)));
                     (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
                         uniswapV4AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
                 }
@@ -352,7 +353,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         // When: "getUnderlyingAssetsAmounts" is called.
         uint256[] memory underlyingAssetsAmounts_;
         {
-            bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManagerV4)));
             (underlyingAssetsAmounts_,) =
                 uniswapV4AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
         }
@@ -396,13 +397,14 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         // Calculate and check that tick current is within allowed ranges.
         {
             uint160 sqrtPriceX96_ = uint160(calculateAndValidateRangeTickCurrent(asset0.usdValue, asset1.usdValue));
-            vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
+            vm.assume(isWithinAllowedRangeV4(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
 
             // And: State is valid for pool and position.
-            randomPoolKey = initializePool(address(token0), address(token1), sqrtPriceX96_, address(validHook), 500, 1);
+            randomPoolKey =
+                initializePoolV4(address(token0), address(token1), sqrtPriceX96_, address(validHook), 500, 1);
             (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
             bytes32 positionKey =
-                keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+                keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
 
             vm.assume(liquidity > 0);
             // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
@@ -413,7 +415,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
             vm.assume(amount1 < type(uint96).max);
 
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
-            positionManager.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
+            positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
         }
 
         // And: Both tokens are added to the Registry.
@@ -427,7 +429,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
             {
                 AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
                 {
-                    bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
+                    bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManagerV4)));
                     (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
                         uniswapV4AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
                 }
@@ -485,7 +487,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         // When: "getUnderlyingAssetsAmounts" is called.
         uint256[] memory underlyingAssetsAmounts_;
         {
-            bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
+            bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManagerV4)));
             (underlyingAssetsAmounts_,) =
                 uniswapV4AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
         }

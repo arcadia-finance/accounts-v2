@@ -30,7 +30,7 @@ contract GetAssetModule_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegist
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // And: A pool with hooks that are not allowed.
-        randomPoolKey = initializePool(
+        randomPoolKey = initializePoolV4(
             address(mockERC20.stable1),
             address(mockERC20.stable2),
             TickMath.getSqrtPriceAtTick(0),
@@ -42,9 +42,9 @@ contract GetAssetModule_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegist
         // And : Liquidity is not-zero
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
 
         // When: Calling getAssetModule()
         address assetModule = v4HooksRegistry.getAssetModule(tokenId);
@@ -73,7 +73,7 @@ contract GetAssetModule_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegist
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // And: A pool with hooks that are not allowed.
-        randomPoolKey = initializePool(
+        randomPoolKey = initializePoolV4(
             address(mockERC20.stable1),
             address(mockERC20.stable2),
             TickMath.getSqrtPriceAtTick(0),
@@ -85,9 +85,9 @@ contract GetAssetModule_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegist
         // And : Liquidity is not-zero
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
 
         // And: Hooks is added to the Registry.
         v4HooksRegistry.setHooksToAssetModule(address(unvalidHook), assetModule);
@@ -111,9 +111,9 @@ contract GetAssetModule_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegist
         // And : Liquidity is not-zero
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // When: Calling getAssetModule()
         address assetModule = v4HooksRegistry.getAssetModule(tokenId);

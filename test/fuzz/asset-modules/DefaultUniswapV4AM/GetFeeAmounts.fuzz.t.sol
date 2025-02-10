@@ -62,9 +62,9 @@ contract GetFeeAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_T
 
             // And : Position is set
             bytes32 positionKey =
-                keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+                keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
             poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-            positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+            positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
         }
 
         // And : Valid pool state
@@ -127,9 +127,9 @@ contract GetFeeAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_T
 
             // And : Position is set
             bytes32 positionKey =
-                keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+                keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
             poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-            positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+            positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
         }
 
         // And : Valid pool state
@@ -188,9 +188,9 @@ contract GetFeeAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_T
 
             // And : Position is set
             bytes32 positionKey =
-                keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+                keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
             poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-            positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+            positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
         }
 
         // And : Valid pool state
@@ -254,9 +254,9 @@ contract GetFeeAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_T
 
             // And : Position is set
             positionKey =
-                keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+                keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
             poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-            positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+            positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
         }
 
         // And : Valid pool state
