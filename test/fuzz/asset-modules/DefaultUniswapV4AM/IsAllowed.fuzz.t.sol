@@ -23,13 +23,13 @@ contract IsAllowed_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test 
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_isAllowed_Negative_UnknownAsset(address asset, uint256 assetId) public {
-        vm.assume(asset != address(positionManager));
+        vm.assume(asset != address(positionManagerV4));
 
         assertFalse(uniswapV4AM.isAllowed(asset, assetId));
     }
 
     function testFuzz_Success_isAllowed_Negative_UnknownId(uint256 assetId) public {
-        assertFalse(uniswapV4AM.isAllowed(address(positionManager), assetId));
+        assertFalse(uniswapV4AM.isAllowed(address(positionManagerV4), assetId));
     }
 
     function testFuzz_Success_isAllowListed_Negative_NonAllowedHook(
@@ -42,7 +42,7 @@ contract IsAllowed_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test 
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Initializes a pool with hooks that are not allowed.
-        stablePoolKey = initializePool(
+        stablePoolKey = initializePoolV4(
             address(mockERC20.stable1),
             address(mockERC20.stable2),
             TickMath.getSqrtPriceAtTick(0),
@@ -54,13 +54,13 @@ contract IsAllowed_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test 
         // And: Liquidity is not-zero
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // When: Calling isAllowed().
         // Then: It should return false.
-        assertFalse(uniswapV4AM.isAllowed(address(positionManager), tokenId));
+        assertFalse(uniswapV4AM.isAllowed(address(positionManagerV4), tokenId));
     }
 
     function testFuzz_Success_isAllowListed_Negative_NonAllowedUnderlyingAsset(
@@ -74,7 +74,7 @@ contract IsAllowed_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test 
 
         // And : Creating a LP-position of two underlying assets: token1 and token4.
         // And : Token 4 is not added yet to Primary AM.
-        stablePoolKey = initializePool(
+        stablePoolKey = initializePoolV4(
             address(mockERC20.token1),
             address(mockERC20.token4),
             TickMath.getSqrtPriceAtTick(0),
@@ -86,13 +86,13 @@ contract IsAllowed_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test 
         // And : Liquidity is not-zero
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // When : Calling isAllowed()
         // Then : It should return false (as Token4 not added to the Registry)
-        assertFalse(uniswapV4AM.isAllowed(address(positionManager), tokenId));
+        assertFalse(uniswapV4AM.isAllowed(address(positionManagerV4), tokenId));
     }
 
     function testFuzz_Success_isAllowed_Negative_ZeroLiquidity(uint96 tokenId, int24 tickLower, int24 tickUpper)
@@ -102,10 +102,10 @@ contract IsAllowed_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test 
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // And : Position is set (with 0 liquidity)
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // Test that UniV4 lp with 0 liquidity is not allowed.
-        assertFalse(uniswapV4AM.isAllowed(address(positionManager), tokenId));
+        assertFalse(uniswapV4AM.isAllowed(address(positionManagerV4), tokenId));
     }
 
     function testFuzz_Success_isAllowed_positive(uint96 tokenId, int24 tickLower, int24 tickUpper, uint128 liquidity)
@@ -117,11 +117,11 @@ contract IsAllowed_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test 
         // And : Liquidity is not-zero
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // Test that UniV4 LP with valid underlying tokens is allowed.
-        assertTrue(uniswapV4AM.isAllowed(address(positionManager), tokenId));
+        assertTrue(uniswapV4AM.isAllowed(address(positionManagerV4), tokenId));
     }
 }

@@ -52,7 +52,7 @@ contract IsAllowed_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fu
         // Given: caller is not an Asset Module.
         vm.assume(!v4HooksRegistry.isAssetModule(caller));
 
-        vm.assume(asset != address(positionManager));
+        vm.assume(asset != address(positionManagerV4));
 
         vm.prank(caller);
         assertFalse(v4HooksRegistry.isAllowed(asset, assetId));
@@ -63,7 +63,7 @@ contract IsAllowed_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fu
         vm.assume(!v4HooksRegistry.isAssetModule(caller));
 
         vm.prank(caller);
-        assertFalse(v4HooksRegistry.isAllowed(address(positionManager), assetId));
+        assertFalse(v4HooksRegistry.isAllowed(address(positionManagerV4), assetId));
     }
 
     function testFuzz_Success_isAllowListed_NonAMCaller_Negative_NonAllowedHook(
@@ -80,7 +80,7 @@ contract IsAllowed_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fu
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Initializes a pool with hooks that are not allowed.
-        stablePoolKey = initializePool(
+        stablePoolKey = initializePoolV4(
             address(mockERC20.stable1),
             address(mockERC20.stable2),
             TickMath.getSqrtPriceAtTick(0),
@@ -92,14 +92,14 @@ contract IsAllowed_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fu
         // And: Liquidity is not-zero
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // When: Calling isAllowed().
         // Then: It should return false.
         vm.prank(caller);
-        assertFalse(v4HooksRegistry.isAllowed(address(positionManager), tokenId));
+        assertFalse(v4HooksRegistry.isAllowed(address(positionManagerV4), tokenId));
     }
 
     function testFuzz_Success_isAllowListed_NonAMCaller_Negative_NonAllowedUnderlyingAsset(
@@ -117,7 +117,7 @@ contract IsAllowed_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fu
 
         // And : Creating a LP-position of two underlying assets: token1 and token4.
         // And : Token 4 is not added yet to Primary AM.
-        stablePoolKey = initializePool(
+        stablePoolKey = initializePoolV4(
             address(mockERC20.token1),
             address(mockERC20.token4),
             TickMath.getSqrtPriceAtTick(0),
@@ -129,14 +129,14 @@ contract IsAllowed_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fu
         // And : Liquidity is not-zero
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // When : Calling isAllowed()
         // Then : It should return false (as Token4 not added to the Registry)
         vm.prank(caller);
-        assertFalse(v4HooksRegistry.isAllowed(address(positionManager), tokenId));
+        assertFalse(v4HooksRegistry.isAllowed(address(positionManagerV4), tokenId));
     }
 
     function testFuzz_Success_isAllowed_NonAMCaller_Negative_ZeroLiquidity(
@@ -152,11 +152,11 @@ contract IsAllowed_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fu
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // And : Position is set (with 0 liquidity)
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // Test that UniV4 lp with 0 liquidity is not allowed.
         vm.prank(caller);
-        assertFalse(v4HooksRegistry.isAllowed(address(positionManager), tokenId));
+        assertFalse(v4HooksRegistry.isAllowed(address(positionManagerV4), tokenId));
     }
 
     function testFuzz_Success_isAllowed_NonAMCaller_positive(
@@ -175,12 +175,12 @@ contract IsAllowed_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fu
         // And : Liquidity is not-zero
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // Test that UniV4 LP with valid underlying tokens is allowed.
         vm.prank(caller);
-        assertTrue(v4HooksRegistry.isAllowed(address(positionManager), tokenId));
+        assertTrue(v4HooksRegistry.isAllowed(address(positionManagerV4), tokenId));
     }
 }

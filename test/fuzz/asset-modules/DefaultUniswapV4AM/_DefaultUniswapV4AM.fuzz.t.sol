@@ -85,7 +85,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         vm.stopPrank();
 
         // Initializes a pool
-        stablePoolKey = initializePool(
+        stablePoolKey = initializePoolV4(
             address(mockERC20.stable1),
             address(mockERC20.stable2),
             TickMath.getSqrtPriceAtTick(0),
@@ -96,7 +96,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
 
         // Deploy Asset-Module and HooksRegistry
         vm.startPrank(users.owner);
-        v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), address(positionManager));
+        v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), address(positionManagerV4));
         registry.addAssetModule(address(v4HooksRegistry));
         v4HooksRegistry.setProtocol();
         vm.stopPrank();
@@ -104,7 +104,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         uniswapV4AM = DefaultUniswapV4AMExtension(v4HooksRegistry.DEFAULT_UNISWAP_V4_AM());
 
         // Set Extension contract for uniswapV4AM.
-        bytes memory args = abi.encode(address(v4HooksRegistry), address(positionManager));
+        bytes memory args = abi.encode(address(v4HooksRegistry), address(positionManagerV4));
         vm.startPrank(address(v4HooksRegistry));
         deployCodeTo("DefaultUniswapV4AMExtension.sol", args, address(uniswapV4AM));
         vm.stopPrank();
@@ -214,10 +214,10 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         }
 
         // Create Uniswap V4 pool initiated at tickCurrent with fee 500 and tickSpacing 1.
-        randomPoolKey = initializePool(address(token0), address(token1), sqrtPriceX96, address(validHook), 500, 1);
+        randomPoolKey = initializePoolV4(address(token0), address(token1), sqrtPriceX96, address(validHook), 500, 1);
 
         // And : Liquidity position is minted.
-        tokenId = mintPosition(
+        tokenId = mintPositionV4(
             randomPoolKey,
             tickLower,
             tickUpper,
@@ -230,7 +230,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         // Calculate amounts of underlying tokens.
         // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
         // This is because there might be some small differences due to rounding errors.
-        positionKey = keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(tokenId)));
+        positionKey = keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(tokenId)));
         uint128 liquidity_ = stateView.getPositionLiquidity(randomPoolKey.toId(), positionKey);
 
         (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(

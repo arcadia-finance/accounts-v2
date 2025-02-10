@@ -60,14 +60,14 @@ contract GetValue_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuz
         // And : Initialize Uniswap V4 pool initiated at tickCurrent with tickSpacing = 1.
         int24 tickSpacing = 1;
         randomPoolKey =
-            initializePool(address(token0_), address(token1_), sqrtPriceX96, address(validHook), 500, tickSpacing);
+            initializePoolV4(address(token0_), address(token1_), sqrtPriceX96, address(validHook), 500, tickSpacing);
 
         // And : Liquidity is within allowed ranges.
         vars.liquidity =
             uint80(bound(vars.liquidity, 1e18 + 1, poolManager.getTickSpacingToMaxLiquidityPerTick(tickSpacing)));
 
         // And : Liquidity position is minted.
-        uint256 tokenId = mintPosition(
+        uint256 tokenId = mintPositionV4(
             randomPoolKey,
             vars.tickLower,
             vars.tickUpper,
@@ -81,7 +81,7 @@ contract GetValue_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuz
         // We do not use the fuzzed liquidity, but fetch liquidity from the contract.
         // This is because there might be some small differences due to rounding errors.
         bytes32 positionKey = keccak256(
-            abi.encodePacked(address(positionManager), vars.tickLower, vars.tickUpper, bytes32(uint256(tokenId)))
+            abi.encodePacked(address(positionManagerV4), vars.tickLower, vars.tickUpper, bytes32(uint256(tokenId)))
         );
         uint128 liquidity = stateView.getPositionLiquidity(randomPoolKey.toId(), positionKey);
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
@@ -105,7 +105,7 @@ contract GetValue_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuz
 
         // When : calling getValue()
         (uint256 actualValueInUsd,,) =
-            v4HooksRegistry.getValue(address(creditorUsd), address(positionManager), tokenId, 1);
+            v4HooksRegistry.getValue(address(creditorUsd), address(positionManagerV4), tokenId, 1);
 
         // Then : It should return the correct value
         assertEq(actualValueInUsd, valueToken0 + valueToken1);
@@ -141,12 +141,12 @@ contract GetValue_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuz
 
         // And : Initialize Uniswap V4 pool initiated at tickCurrent with tickSpacing = 1.
         int24 tickSpacing = 1;
-        randomPoolKey = initializePool(
+        randomPoolKey = initializePoolV4(
             address(token0_), address(token1_), TickMath.getSqrtPriceAtTick(0), address(validHook), 500, tickSpacing
         );
 
         // And : Liquidity position is minted.
-        uint256 tokenId = mintPosition(randomPoolKey, 0, 10, 1e19, type(uint128).max, type(uint128).max, users.owner);
+        uint256 tokenId = mintPositionV4(randomPoolKey, 0, 10, 1e19, type(uint128).max, type(uint128).max, users.owner);
 
         // Add underlying tokens and its oracles to Arcadia.
         addAssetToArcadia(address(token0_), 1);
@@ -173,7 +173,7 @@ contract GetValue_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuz
         expectedLiqFactor = expectedLiqFactor * riskFactorUniV4 / AssetValuationLib.ONE_4;
 
         (, uint256 actualCollFactor, uint256 actualLiqFactor) =
-            v4HooksRegistry.getValue(address(creditorUsd), address(positionManager), tokenId, 1);
+            v4HooksRegistry.getValue(address(creditorUsd), address(positionManagerV4), tokenId, 1);
 
         assertEq(actualCollFactor, expectedCollFactor);
         assertEq(actualLiqFactor, expectedLiqFactor);

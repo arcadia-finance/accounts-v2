@@ -38,7 +38,7 @@ contract AddAsset_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // And : Position is set (with 0 liquidity)
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // When : Calling addAsset()
         // Then : It should revert
@@ -58,7 +58,7 @@ contract AddAsset_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Initializes a pool with hooks that are not allowed
-        stablePoolKey = initializePool(
+        stablePoolKey = initializePoolV4(
             address(mockERC20.stable1),
             address(mockERC20.stable2),
             TickMath.getSqrtPriceAtTick(0),
@@ -70,9 +70,9 @@ contract AddAsset_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
         // And : Liquidity is not-zero
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // When : Calling addAsset() for a pool that has unallowed hooks
         // Then : It should not revert.
@@ -87,16 +87,16 @@ contract AddAsset_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
         // And : Liquidity is not-zero
         vm.assume(liquidity > 0);
         bytes32 positionKey =
-            keccak256(abi.encodePacked(address(positionManager), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
-        positionManager.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+        positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
 
         // When : calling addAsset()
         vm.prank(users.owner);
         uniswapV4AM.addAsset(tokenId);
 
         // Then : It should return correct values
-        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManager)));
+        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManagerV4)));
         bytes32[] memory underlyingAssetKeys = uniswapV4AM.getUnderlyingAssets(assetKey);
 
         (address token0_, address token1_) = address(mockERC20.stable1) < address(mockERC20.stable2)
