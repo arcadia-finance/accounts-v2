@@ -30,6 +30,8 @@ contract AddAsset_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
         vm.assume(asset != address(mockERC20.stable2));
         vm.assume(asset != address(mockERC20.token1));
         vm.assume(asset != address(mockERC20.token2));
+        vm.assume(asset != address(mockERC721.nft1));
+        vm.assume(asset != address(mockERC1155.sft1));
 
         vm.prank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
@@ -41,6 +43,8 @@ contract AddAsset_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
         vm.assume(asset != address(mockERC20.stable2));
         vm.assume(asset != address(mockERC20.token1));
         vm.assume(asset != address(mockERC20.token2));
+        vm.assume(asset != address(mockERC721.nft1));
+        vm.assume(asset != address(mockERC1155.sft1));
 
         bool[] memory badDirection = new bool[](1);
         badDirection[0] = false;
@@ -59,6 +63,8 @@ contract AddAsset_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
         vm.assume(asset != address(mockERC20.stable2));
         vm.assume(asset != address(mockERC20.token1));
         vm.assume(asset != address(mockERC20.token2));
+        vm.assume(asset != address(mockERC721.nft1));
+        vm.assume(asset != address(mockERC1155.sft1));
 
         vm.startPrank(users.owner);
         nativeTokenAM.addAsset(asset, oraclesNativeTokenToUsd);
@@ -72,6 +78,8 @@ contract AddAsset_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
         vm.assume(asset != address(mockERC20.stable2));
         vm.assume(asset != address(mockERC20.token1));
         vm.assume(asset != address(mockERC20.token2));
+        vm.assume(asset != address(mockERC721.nft1));
+        vm.assume(asset != address(mockERC1155.sft1));
 
         vm.prank(users.owner);
         nativeTokenAM.addAsset(asset, oraclesNativeTokenToUsd);

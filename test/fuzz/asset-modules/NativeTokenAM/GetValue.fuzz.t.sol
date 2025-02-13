@@ -23,6 +23,13 @@ contract GetValue_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_getValue_Overflow(address asset, uint256 rateToken1ToUsdNew, uint256 amount) public {
+        vm.assume(asset != address(mockERC20.stable1));
+        vm.assume(asset != address(mockERC20.stable2));
+        vm.assume(asset != address(mockERC20.token1));
+        vm.assume(asset != address(mockERC20.token2));
+        vm.assume(asset != address(mockERC721.nft1));
+        vm.assume(asset != address(mockERC1155.sft1));
+
         vm.prank(users.owner);
         nativeTokenAM.addAsset(asset, oraclesNativeTokenToUsd);
 
@@ -45,6 +52,13 @@ contract GetValue_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
     }
 
     function testFuzz_Success_getValue(address asset, uint256 rateToken1ToUsdNew, uint256 amount) public {
+        vm.assume(asset != address(mockERC20.stable1));
+        vm.assume(asset != address(mockERC20.stable2));
+        vm.assume(asset != address(mockERC20.token1));
+        vm.assume(asset != address(mockERC20.token2));
+        vm.assume(asset != address(mockERC721.nft1));
+        vm.assume(asset != address(mockERC1155.sft1));
+
         vm.prank(users.owner);
         nativeTokenAM.addAsset(asset, oraclesNativeTokenToUsd);
 
