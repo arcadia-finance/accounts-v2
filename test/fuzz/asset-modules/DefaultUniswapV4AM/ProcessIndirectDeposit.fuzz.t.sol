@@ -299,4 +299,82 @@ contract ProcessIndirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4
             assertEq(exposure, amount1 + initialExposure1);
         }
     }
+
+    function testFuzz_Success_processIndirectDeposit_NativeToken(
+        uint128 liquidity,
+        int24 tickLower,
+        int24 tickUpper,
+        uint112 maxUsdExposureProtocol,
+        uint256 priceToken0,
+        uint256 priceToken1,
+        uint112 initialExposure0,
+        uint112 initialExposure1,
+        uint112 maxExposure0,
+        uint112 maxExposure1
+    ) public {
+        // Given : Token0 is a native token.
+        token0 = ERC20Mock(address(0));
+
+        // And : Valid state
+        (uint256 tokenId, uint256 amount0, uint256 amount1,) =
+            givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
+
+        // And:  exposure to underlying tokens stays below maxExposures.
+        vm.assume(amount0 + initialExposure0 < maxExposure0);
+        vm.assume(amount1 + initialExposure1 < maxExposure1);
+
+        // And: Usd value of underlying assets does not overflow.
+        vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+        vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+
+        // And: Add underlying tokens and its oracles to Arcadia.
+        addNativeTokenToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
+        addAssetToArcadia(address(token1), int256(uint256(priceToken1)), initialExposure1, maxExposure1);
+
+        {
+            // And: usd exposure to protocol below max usd exposure.
+            (uint256 usdExposureProtocol,,) =
+                uniswapV4AM.getValue(address(creditorUsd), address(positionManagerV4), tokenId, 1);
+            vm.assume(usdExposureProtocol < type(uint112).max);
+            maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, usdExposureProtocol + 1, type(uint112).max));
+        }
+
+        vm.prank(users.riskManager);
+        v4HooksRegistry.setRiskParametersOfDerivedAM(
+            address(creditorUsd), address(uniswapV4AM), maxUsdExposureProtocol, 100
+        );
+
+        {
+            // When: Calling processIndirectDeposit()
+            vm.prank(address(v4HooksRegistry));
+            (uint256 recursiveCalls,) =
+                uniswapV4AM.processIndirectDeposit(address(creditorUsd), address(positionManagerV4), tokenId, 0, 1);
+            assertEq(recursiveCalls, 3);
+        }
+
+        {
+            // Then: Exposure of the asset is one.
+            bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(positionManagerV4)));
+            (uint256 lastExposureAsset,) = uniswapV4AM.getAssetExposureLast(address(creditorUsd), assetKey);
+            assertEq(lastExposureAsset, 1);
+
+            // And: Exposures to the underlying assets are updated.
+            // Token0:
+            bytes32 underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
+            assertEq(
+                uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey),
+                amount0
+            );
+            (uint128 exposure,,,) = nativeTokenAM.riskParams(address(creditorUsd), underlyingAssetKey);
+            assertEq(exposure, amount0 + initialExposure0);
+            // Token1:
+            underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
+            assertEq(
+                uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey),
+                amount1
+            );
+            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
+            assertEq(exposure, amount1 + initialExposure1);
+        }
+    }
 }

@@ -32,6 +32,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
     UniswapV4HooksRegistryExtension internal v4HooksRegistry;
     PoolKey internal stablePoolKey;
     PoolKey internal randomPoolKey;
+    PoolKey internal nativeTokenPoolKey;
 
     ERC20 token0;
     ERC20 token1;
@@ -92,6 +93,10 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
             address(validHook),
             500,
             1
+        );
+
+        nativeTokenPoolKey = initializePoolV4(
+            address(0), address(mockERC20.stable2), TickMath.getSqrtPriceAtTick(0), address(validHook), 500, 1
         );
 
         // Deploy Asset-Module and HooksRegistry
