@@ -263,15 +263,15 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
 
         // We can have some rounding issues between lib calculated amounts and contract, thus increase amount by 1
         // Todo : further investigate rounding diff
-        deal(token0, liquidityProvider, amount0 + 1);
+        token0 == address(0) ? vm.deal(liquidityProvider, amount0 + 1) : deal(token0, liquidityProvider, amount0 + 1);
         deal(token1, liquidityProvider, amount1 + 1);
 
         // Approvals via permit2
-        approveV4PositionManagerFor(liquidityProvider, token0);
+        if (token0 != address(0)) approveV4PositionManagerFor(liquidityProvider, token0);
         approveV4PositionManagerFor(liquidityProvider, token1);
 
         vm.prank(liquidityProvider);
-        positionManagerV4.modifyLiquidities(mintData, block.timestamp);
+        positionManagerV4.modifyLiquidities{ value: token0 == address(0) ? amount0 + 1 : 0 }(mintData, block.timestamp);
     }
 
     function isWithinAllowedRangeV4(int24 tick) internal pure returns (bool) {
