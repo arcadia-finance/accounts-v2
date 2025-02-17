@@ -44,16 +44,16 @@ contract HookMockValid is BaseHookExtension {
         });
     }
 
-    function beforeInitialize(address, PoolKey calldata, uint160) external virtual override returns (bytes4) {
+    function _beforeInitialize(address, PoolKey calldata, uint160) internal virtual override returns (bytes4) {
         return this.beforeInitialize.selector;
     }
 
-    function afterInitialize(address, PoolKey calldata, uint160, int24) external virtual override returns (bytes4) {
+    function _afterInitialize(address, PoolKey calldata, uint160, int24) internal virtual override returns (bytes4) {
         return this.afterInitialize.selector;
     }
 
-    function beforeAddLiquidity(address, PoolKey calldata, IPoolManager.ModifyLiquidityParams calldata, bytes calldata)
-        external
+    function _beforeAddLiquidity(address, PoolKey calldata, IPoolManager.ModifyLiquidityParams calldata, bytes calldata)
+        internal
         virtual
         override
         returns (bytes4)
@@ -61,20 +61,20 @@ contract HookMockValid is BaseHookExtension {
         return this.beforeAddLiquidity.selector;
     }
 
-    function afterAddLiquidity(
+    function _afterAddLiquidity(
         address,
         PoolKey calldata,
         IPoolManager.ModifyLiquidityParams calldata,
         BalanceDelta,
         BalanceDelta,
         bytes calldata
-    ) external virtual override returns (bytes4, BalanceDelta) {
+    ) internal virtual override returns (bytes4, BalanceDelta) {
         BalanceDelta delta;
         return (this.afterAddLiquidity.selector, delta);
     }
 
-    function beforeSwap(address, PoolKey calldata, IPoolManager.SwapParams calldata, bytes calldata)
-        external
+    function _beforeSwap(address, PoolKey calldata, IPoolManager.SwapParams calldata, bytes calldata)
+        internal
         virtual
         override
         returns (bytes4, BeforeSwapDelta, uint24)
@@ -83,8 +83,8 @@ contract HookMockValid is BaseHookExtension {
         return (this.beforeSwap.selector, delta, 0);
     }
 
-    function afterSwap(address, PoolKey calldata, IPoolManager.SwapParams calldata, BalanceDelta, bytes calldata)
-        external
+    function _afterSwap(address, PoolKey calldata, IPoolManager.SwapParams calldata, BalanceDelta, bytes calldata)
+        internal
         virtual
         override
         returns (bytes4, int128)
@@ -92,8 +92,8 @@ contract HookMockValid is BaseHookExtension {
         return (this.afterSwap.selector, 0);
     }
 
-    function beforeDonate(address, PoolKey calldata, uint256, uint256, bytes calldata)
-        external
+    function _beforeDonate(address, PoolKey calldata, uint256, uint256, bytes calldata)
+        internal
         virtual
         override
         returns (bytes4)
@@ -101,8 +101,8 @@ contract HookMockValid is BaseHookExtension {
         return this.beforeDonate.selector;
     }
 
-    function afterDonate(address, PoolKey calldata, uint256, uint256, bytes calldata)
-        external
+    function _afterDonate(address, PoolKey calldata, uint256, uint256, bytes calldata)
+        internal
         virtual
         override
         returns (bytes4)
