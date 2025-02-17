@@ -43,23 +43,23 @@ contract HookMockUnvalid is BaseHookExtension {
         });
     }
 
-    function beforeRemoveLiquidity(
+    function _beforeRemoveLiquidity(
         address,
         PoolKey calldata,
         IPoolManager.ModifyLiquidityParams calldata,
         bytes calldata
-    ) external virtual override returns (bytes4 selector) {
+    ) internal virtual override returns (bytes4 selector) {
         return this.beforeRemoveLiquidity.selector;
     }
 
-    function afterRemoveLiquidity(
+    function _afterRemoveLiquidity(
         address,
         PoolKey calldata,
         IPoolManager.ModifyLiquidityParams calldata,
         BalanceDelta,
         BalanceDelta,
         bytes calldata
-    ) external virtual override returns (bytes4, BalanceDelta) {
+    ) internal virtual override returns (bytes4, BalanceDelta) {
         BalanceDelta delta;
         return (this.afterRemoveLiquidity.selector, delta);
     }
