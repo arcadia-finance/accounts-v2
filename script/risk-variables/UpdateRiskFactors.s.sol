@@ -126,7 +126,6 @@ contract UpdateRiskFactors is Base_Script {
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
 
-        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfPrimaryAsset,
             (
