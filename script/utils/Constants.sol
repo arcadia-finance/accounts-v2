@@ -67,6 +67,7 @@ library PrimaryAssets {
     address internal constant USDS = 0x820C137fa70C8691f0e44Dc420a5e53c168921Dc;
     address internal constant USDT = 0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2;
     address internal constant USDZ = 0x04D5ddf5f3a8939889F11E97f8c4BB48317F1938;
+    address internal constant VIRTUAL = 0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b;
     address internal constant WEETH = 0x04C0599Ae5A44757c0af6F9eC3b93da8976c150A;
     address internal constant WETH = 0x4200000000000000000000000000000000000006;
     address internal constant WRSETH = 0xEDfa23602D0EC14714057867A78d01e94176BEA0;
@@ -99,6 +100,7 @@ library Decimals {
     uint8 internal constant USDS = 18;
     uint8 internal constant USDT = 6;
     uint8 internal constant USDZ = 18;
+    uint8 internal constant VIRTUAL = 18;
     uint8 internal constant WEETH = 18;
     uint8 internal constant WETH = 18;
     uint8 internal constant WRSETH = 18;
@@ -125,6 +127,7 @@ library Oracles {
     address internal constant USDS_USD = 0x2330aaE3bca5F05169d5f4597964D44522F62930;
     address internal constant USDT_USD = 0xf19d560eB8d2ADf07BD6D13ed03e1D11215721F9;
     address internal constant USDZ_USD = 0xe25969e2Fa633a0C027fAB8F30Fc9C6A90D60B48;
+    address internal constant VIRTUAL_USD = 0xEaf310161c9eF7c813A14f8FEF6Fb271434019F7;
     address internal constant WBTC_USD = 0xCCADC697c55bbB68dc5bCdf8d3CBe83CdD4E071E;
     address internal constant WEETH_ETH = 0xFC1415403EbB0c693f9a7844b92aD2Ff24775C65;
     address internal constant WRSETH_ETH = 0xe8dD07CCf5BC4922424140E44Eb970F5950725ef;
@@ -150,6 +153,7 @@ library OracleIds {
     uint80 internal constant USDS_USD = 19;
     uint80 internal constant USDT_USD = 12;
     uint80 internal constant USDZ_USD = 17;
+    uint80 internal constant VIRTUAL_USD = 21;
     uint80 internal constant WEETH_ETH = 11;
     uint80 internal constant WRSETH_ETH = 18;
     uint80 internal constant WSTETH_ETH = 7;
@@ -170,6 +174,7 @@ library CutOffTimes {
     uint32 internal constant STG_USD = 25 hours;
     uint32 internal constant TBTC_USD = 25 hours;
     uint32 internal constant TRUMP_USD = 25 hours;
+    uint32 internal constant VIRTUAL_USD = 25 hours;
     uint32 internal constant USDC_USD = 25 hours;
     uint32 internal constant USDS_USD = 25 hours;
     uint32 internal constant USDT_USD = 25 hours;
@@ -345,6 +350,17 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_USDZ_WETH = uint112(0 * 10 ** Decimals.USDZ);
     uint112 internal constant EXPOSURE_USDZ_USDC = uint112(0 * 10 ** Decimals.USDZ);
 
+    // VIRTUAL
+    uint16 internal constant COL_FAC_VIRTUAL_CBBTC = 6900;
+    uint16 internal constant COL_FAC_VIRTUAL_USDC = 6600;
+    uint16 internal constant COL_FAC_VIRTUAL_WETH = 7200;
+    uint16 internal constant LIQ_FAC_VIRTUAL_CBBTC = 8000;
+    uint16 internal constant LIQ_FAC_VIRTUAL_USDC = 7800;
+    uint16 internal constant LIQ_FAC_VIRTUAL_WETH = 8000;
+    uint112 internal constant EXPOSURE_VIRTUAL_CBBTC = uint112(250_000 * 10 ** Decimals.VIRTUAL);
+    uint112 internal constant EXPOSURE_VIRTUAL_WETH = uint112(350_000 * 10 ** Decimals.VIRTUAL);
+    uint112 internal constant EXPOSURE_VIRTUAL_USDC = uint112(350_000 * 10 ** Decimals.VIRTUAL);
+
     // WEETH
     uint16 internal constant COL_FAC_WEETH_WETH = 9125;
     uint16 internal constant COL_FAC_WEETH_USDC = 8000;
@@ -506,6 +522,7 @@ library AerodromeGauges {
     address internal constant CL100_USDC_TRUMP = address(0x0c1D14b66e74FBB35d53A0c97Dbe93fa8a97BbE7);
     address internal constant CL100_USDZ_CBBTC = address(0x384Ce87727323eDeDdc95D3206399806A3da7F02);
     address internal constant CL100_USDZ_WETH = address(0x549690894f61bf0D3a5799D03fDED6e775A424aA);
+    address internal constant CL100_VIRTUAL_WETH = address(0x5013Ea8783Bfeaa8c4850a54eacd54D7A3B7f889);
     address internal constant CL100_WETH_CBBTC = address(0x41b2126661C673C2beDd208cC72E85DC51a5320a);
     address internal constant CL100_WETH_EURC = address(0xb0C500d53720ff63F000de6D26f7Fe5c66571e3d);
     address internal constant CL100_WETH_USDC = address(0xF33a96b5932D9E9B9A0eDA447AbD8C9d48d2e0c8);
@@ -515,6 +532,7 @@ library AerodromeGauges {
     address internal constant CL200_TBTC_WETH = address(0x996802075582Af2eE133fb30Cc5A9E8A671d3c3a);
     address internal constant CL200_TBTC_USDC = address(0x37E1a626b09faDE99E94752942a88f17EA2170fd);
     address internal constant CL200_USDZ_DEGEN = address(0x9918C85E4e5937DA606d65C9935Ea3ffe4DE06A4);
+    address internal constant CL200_VIRTUAL_WETH = address(0xBDA319Bc7Cc8F0829df39eC0FFF5D1E061FFadf7);
     address internal constant CL200_WETH_AERO = address(0xdE8FF0D3e8ab225110B088a250b546015C567E27);
     address internal constant CL200_WETH_DEGEN = address(0x319e23D38d8ee58783Ff5331507b808709bd00b0);
     address internal constant CL200_WETH_RDNT = address(0x8D88C541f22de965536bD1849013caEE6ce90e11);
@@ -528,6 +546,9 @@ library AerodromeGauges {
     address internal constant V_EZETH_WETH = address(0x6318373c5a01224094BF0B1AC88562345B2Fb91E);
     address internal constant V_USDC_AERO = address(0x4F09bAb2f0E15e2A078A227FE1537665F55b8360);
     address internal constant V_USDZ_WETH = address(0xc15B32d92E265832c87EC4b36B7e598ae2daad42);
+    address internal constant V_VIRTUAL_AERO = address(0x57538a02972c01440113cC7A7Ff8F1d954d01239);
+    address internal constant V_VIRTUAL_CBBTC = address(0x8c44e7F913D0893Cd5A3CBBb2fCd59785a7801ab);
+    address internal constant V_VIRTUAL_WETH = address(0xBD62Cad65b49b4Ad9C7aa9b8bDB89d63221F7af5);
     address internal constant V_WEETH_AERO = address(0x0A5f63A1aC754b4418cc5381eE17E04CCad42F56);
     address internal constant V_WEETH_WETH = address(0xf8d47b641eD9DF1c924C0F7A6deEEA2803b9CfeF);
     address internal constant V_WETH_AERO = address(0x96a24aB830D4ec8b1F6f04Ceac104F1A3b211a01);
@@ -550,6 +571,9 @@ library AerodromePools {
     address internal constant V_EZETH_WETH = address(0x0C8bF3cb3E1f951B284EF14aa95444be86a33E2f);
     address internal constant V_USDC_AERO = address(0x6cDcb1C4A4D1C3C6d054b27AC5B77e89eAFb971d);
     address internal constant V_USDZ_WETH = address(0x2ce63497999F520CC2afaaadbCFC37Afd9deF4b0);
+    address internal constant V_VIRTUAL_AERO = address(0x8B49c7eC53Cb4CA3666bB16727FC5C5F6d12226f);
+    address internal constant V_VIRTUAL_CBBTC = address(0xb909F567c5c2Bb1A4271349708CC4637D7318b4A);
+    address internal constant V_VIRTUAL_WETH = address(0x21594b992F68495dD28d605834b58889d0a727c7);
     address internal constant V_WEETH_AERO = address(0xc5aDfb267a95df1233a2b5F7f48041E7Fb384BcA);
     address internal constant V_WEETH_WETH = address(0x91F0f34916Ca4E2cCe120116774b0e4fA0cdcaA8);
     address internal constant V_WETH_AERO = address(0x7f670f78B17dEC44d5Ef68a48740b6f8849cc2e6);
