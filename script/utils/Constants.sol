@@ -351,15 +351,15 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_USDZ_USDC = uint112(0 * 10 ** Decimals.USDZ);
 
     // VIRTUAL
-    uint16 internal constant COL_FAC_VIRTUAL_CBBTC = 0;
-    uint16 internal constant COL_FAC_VIRTUAL_USDC = 0;
-    uint16 internal constant COL_FAC_VIRTUAL_WETH = 0;
-    uint16 internal constant LIQ_FAC_VIRTUAL_CBBTC = 0;
-    uint16 internal constant LIQ_FAC_VIRTUAL_USDC = 0;
-    uint16 internal constant LIQ_FAC_VIRTUAL_WETH = 0;
-    uint112 internal constant EXPOSURE_VIRTUAL_CBBTC = uint112(0 * 10 ** Decimals.VIRTUAL);
-    uint112 internal constant EXPOSURE_VIRTUAL_WETH = uint112(0 * 10 ** Decimals.VIRTUAL);
-    uint112 internal constant EXPOSURE_VIRTUAL_USDC = uint112(0 * 10 ** Decimals.VIRTUAL);
+    uint16 internal constant COL_FAC_VIRTUAL_CBBTC = 6900;
+    uint16 internal constant COL_FAC_VIRTUAL_USDC = 6600;
+    uint16 internal constant COL_FAC_VIRTUAL_WETH = 7200;
+    uint16 internal constant LIQ_FAC_VIRTUAL_CBBTC = 8000;
+    uint16 internal constant LIQ_FAC_VIRTUAL_USDC = 7800;
+    uint16 internal constant LIQ_FAC_VIRTUAL_WETH = 8000;
+    uint112 internal constant EXPOSURE_VIRTUAL_CBBTC = uint112(250_00 * 10 ** Decimals.VIRTUAL);
+    uint112 internal constant EXPOSURE_VIRTUAL_WETH = uint112(350_000 * 10 ** Decimals.VIRTUAL);
+    uint112 internal constant EXPOSURE_VIRTUAL_USDC = uint112(350_000 * 10 ** Decimals.VIRTUAL);
 
     // WEETH
     uint16 internal constant COL_FAC_WEETH_WETH = 9125;
