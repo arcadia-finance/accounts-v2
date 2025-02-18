@@ -357,7 +357,7 @@ library RiskParameters {
     uint16 internal constant LIQ_FAC_VIRTUAL_CBBTC = 8000;
     uint16 internal constant LIQ_FAC_VIRTUAL_USDC = 7800;
     uint16 internal constant LIQ_FAC_VIRTUAL_WETH = 8000;
-    uint112 internal constant EXPOSURE_VIRTUAL_CBBTC = uint112(250_00 * 10 ** Decimals.VIRTUAL);
+    uint112 internal constant EXPOSURE_VIRTUAL_CBBTC = uint112(25_000 * 10 ** Decimals.VIRTUAL);
     uint112 internal constant EXPOSURE_VIRTUAL_WETH = uint112(350_000 * 10 ** Decimals.VIRTUAL);
     uint112 internal constant EXPOSURE_VIRTUAL_USDC = uint112(350_000 * 10 ** Decimals.VIRTUAL);
 
