@@ -231,6 +231,88 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         assertEq(underlyingAssetsAmounts[1], expectedUnderlyingAssetsAmount1);
     }
 
+    function testFuzz_Success_GetUnderlyingAssetsAmounts_NativeToken(
+        UnderlyingAssetState memory asset0,
+        UnderlyingAssetState memory asset1,
+        uint96 tokenId,
+        int24 tickLower,
+        int24 tickUpper,
+        uint128 liquidity
+    ) public {
+        // Given: underlying asset decimals are between 6 and 18 decimals.
+        asset0.decimals = 18;
+        asset1.decimals = bound(asset1.decimals, 6, 18);
+
+        ERC20Mock token1_ = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
+
+        // And: "priceXd18" does not overflow in "_getSqrtPriceX96".
+        asset0.usdValue = bound(asset0.usdValue, 0, type(uint256).max / 10 ** (46 - asset0.decimals));
+
+        // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
+        asset1.usdValue = bound(asset1.usdValue, 0, type(uint256).max / 10 ** (46 - asset1.decimals));
+
+        // And: Cast to uint160 in _getSqrtPriceX96 does not overflow.
+        if (asset1.usdValue > 0) {
+            vm.assume(asset0.usdValue / asset1.usdValue / 10 ** asset0.decimals < 2 ** 128 / 10 ** asset1.decimals);
+        }
+
+        // Calculate and check that tick current is within allowed ranges.
+        uint160 sqrtPriceX96_ = uint160(calculateAndValidateRangeTickCurrent(asset0.usdValue, asset1.usdValue));
+        vm.assume(isWithinAllowedRangeV4(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
+
+        // And: State is valid for pool and position.
+        {
+            randomPoolKey = initializePoolV4(address(0), address(token1_), sqrtPriceX96_, address(validHook), 500, 1);
+            (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
+            bytes32 positionKey =
+                keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
+
+            vm.assume(liquidity > 0);
+            // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
+            (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
+                sqrtPriceX96_, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
+            );
+            vm.assume(amount0 < type(uint96).max);
+            vm.assume(amount1 < type(uint96).max);
+
+            // And: principals do not overflow.
+            vm.assume(amount0 < type(uint256).max / (asset0.usdValue * 10 ** (18 - asset0.decimals)));
+            vm.assume(amount1 < type(uint256).max / (asset1.usdValue * 10 ** (18 - asset1.decimals)));
+
+            poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
+            positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
+        }
+
+        // And: Both tokens are added to the Registry.
+        addNativeTokenToArcadia(address(0), int256(asset0.usdValue));
+        addAssetToArcadia(address(token1_), int256(asset1.usdValue));
+
+        // When: "getUnderlyingAssetsAmounts" is called.
+        uint256[] memory underlyingAssetsAmounts;
+        AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
+        {
+            bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManagerV4)));
+            (underlyingAssetsAmounts, rateUnderlyingAssetsToUsd) =
+                uniswapV4AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
+        }
+
+        // Then: The correct "rateUnderlyingAssetsToUsd" are returned.
+        uint256 expectedRateUnderlyingAssetsToUsd0 = asset0.usdValue * 10 ** (18 - asset0.decimals);
+        uint256 expectedRateUnderlyingAssetsToUsd1 = asset1.usdValue * 10 ** (18 - asset1.decimals);
+        assertEq(rateUnderlyingAssetsToUsd[0].assetValue, expectedRateUnderlyingAssetsToUsd0);
+        assertEq(rateUnderlyingAssetsToUsd[1].assetValue, expectedRateUnderlyingAssetsToUsd1);
+
+        // And: The correct "underlyingAssetsAmounts" rates are returned.
+        uint160 sqrtPriceX96 =
+            uniswapV4AM.getSqrtPriceX96(expectedRateUnderlyingAssetsToUsd0, expectedRateUnderlyingAssetsToUsd1);
+        (uint256 expectedUnderlyingAssetsAmount0, uint256 expectedUnderlyingAssetsAmount1) = LiquidityAmounts
+            .getAmountsForLiquidity(
+            sqrtPriceX96, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
+        );
+        assertEq(underlyingAssetsAmounts[0], expectedUnderlyingAssetsAmount0);
+        assertEq(underlyingAssetsAmounts[1], expectedUnderlyingAssetsAmount1);
+    }
+
     function testFuzz_Success_GetUnderlyingAssetsAmounts_getFeeAmounts_NotCapped(
         UnderlyingAssetState memory asset0,
         UnderlyingAssetState memory asset1,
