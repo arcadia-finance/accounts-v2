@@ -5,7 +5,7 @@
 pragma solidity ^0.8.22;
 
 import { Base_Test } from "../../../Base.t.sol";
-import { BaseHook } from "../../../../lib/v4-periphery/src/utils/BaseHook.sol";
+import { BaseHook } from "../../../../lib/v4-periphery/src/base/hooks/BaseHook.sol";
 import { DefaultUniswapV4AMExtension } from "../../../../test/utils/extensions/DefaultUniswapV4AMExtension.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";

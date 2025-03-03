@@ -5,6 +5,7 @@ import { Pool } from "../../../../../lib/v4-periphery/lib/v4-core/src/libraries/
 import { PoolId } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/PoolId.sol";
 import { PoolManager } from "../../../../../lib/v4-periphery/lib/v4-core/src/PoolManager.sol";
 import { Position } from "../../../../../lib/v4-periphery/lib/v4-core/src/libraries/Position.sol";
+import { Slot0 } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/Slot0.sol";
 
 contract PoolManagerExtension is PoolManager {
     constructor() PoolManager(msg.sender) { }
@@ -13,6 +14,12 @@ contract PoolManagerExtension is PoolManager {
         Pool.State storage poolState = _getPool(poolId);
         Position.State storage position = poolState.positions[positionKey];
         position.liquidity = liquidity;
+    }
+
+    function setCurrentPrice(PoolId poolId, int24 tick, uint160 sqrtPriceX96) public {
+        Pool.State storage poolState = _getPool(poolId);
+        poolState.slot0.setTick(tick);
+        poolState.slot0.setSqrtPriceX96(sqrtPriceX96);
     }
 
     function setFeeGrowthInsideLast(
