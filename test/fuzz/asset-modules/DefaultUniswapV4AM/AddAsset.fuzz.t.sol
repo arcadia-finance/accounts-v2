@@ -106,4 +106,28 @@ contract AddAsset_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
         assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), token0_)));
         assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), token1_)));
     }
+
+    function testFuzz_Success_addAsset_NativeToken(uint96 tokenId, int24 tickLower, int24 tickUpper, uint128 liquidity)
+        public
+    {
+        // Given : Valid ticks
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
+
+        // And : Liquidity is not-zero
+        vm.assume(liquidity > 0);
+        bytes32 positionKey =
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
+        poolManager.setPositionLiquidity(nativeTokenPoolKey.toId(), positionKey, liquidity);
+        positionManagerV4.setPosition(users.owner, nativeTokenPoolKey, tickLower, tickUpper, tokenId);
+
+        // When : calling addAsset()
+        vm.prank(users.owner);
+        uniswapV4AM.addAsset(tokenId);
+
+        // Then : It should return correct values
+        bytes32 assetKey = bytes32(abi.encodePacked(tokenId, address(positionManagerV4)));
+        bytes32[] memory underlyingAssetKeys = uniswapV4AM.getUnderlyingAssets(assetKey);
+        assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), address(0))));
+        assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable2))));
+    }
 }
