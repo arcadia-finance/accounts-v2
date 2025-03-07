@@ -108,7 +108,7 @@ contract IsAllowed_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test 
         assertFalse(uniswapV4AM.isAllowed(address(positionManagerV4), tokenId));
     }
 
-    function testFuzz_Success_isAllowed_positive(uint96 tokenId, int24 tickLower, int24 tickUpper, uint128 liquidity)
+    function testFuzz_Success_isAllowed_Positive(uint96 tokenId, int24 tickLower, int24 tickUpper, uint128 liquidity)
         public
     {
         // Given : Valid ticks
@@ -120,6 +120,26 @@ contract IsAllowed_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test 
             keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
         positionManagerV4.setPosition(users.owner, stablePoolKey, tickLower, tickUpper, tokenId);
+
+        // Test that UniV4 LP with valid underlying tokens is allowed.
+        assertTrue(uniswapV4AM.isAllowed(address(positionManagerV4), tokenId));
+    }
+
+    function testFuzz_Success_isAllowed_NativeToken(uint96 tokenId, int24 tickLower, int24 tickUpper, uint128 liquidity)
+        public
+    {
+        // Given : Valid ticks
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
+
+        // And : Liquidity is not-zero
+        vm.assume(liquidity > 0);
+        bytes32 positionKey =
+            keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
+        poolManager.setPositionLiquidity(nativeTokenPoolKey.toId(), positionKey, liquidity);
+        positionManagerV4.setPosition(users.owner, nativeTokenPoolKey, tickLower, tickUpper, tokenId);
+
+        // And : Native token is allowed.
+        addNativeTokenToArcadia(address(0), 1e18);
 
         // Test that UniV4 LP with valid underlying tokens is allowed.
         assertTrue(uniswapV4AM.isAllowed(address(positionManagerV4), tokenId));
