@@ -13,7 +13,7 @@ library ArcadiaContracts {
     address internal constant AERO_POOL_AM = address(0xfe0FA1FD8F8E889062F03e2f126Fc7B9DE6091A5);
     address internal constant ALIEN_BASE_AM = address(0x79dD8b8d4abB5dEEA986DB1BF0a02E4CA42ae416);
     address internal constant CHAINLINK_OM = address(0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31);
-    address internal constant DEFAULT_UNISWAPV4_AM = address(0xDBBe429C7eA1fa80254B8A7bD0fd0fe0a5ca0414);
+    address internal constant DEFAULT_UNISWAPV4_AM = address(0xb808971ea73341b0d7286B3D67F08De321f80465);
     address internal constant ERC20_PRIMARY_AM = address(0xfBecEaFC96ed6fc800753d3eE6782b6F9a60Eed7);
     address internal constant FACTORY = address(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
     address internal constant LENDINGPOOL_CBBTC = address(0xa37E9b4369dc20940009030BfbC2088F09645e3B);
@@ -26,7 +26,7 @@ library ArcadiaContracts {
     address internal constant STAKED_SLIPSTREAM_AM = address(0x1Dc7A0f5336F52724B650E39174cfcbbEdD67bF1);
     address internal constant STARGATE_AM = address(0x20f7903290bF98716B62Dc1c9DA634291b8cfeD4);
     address internal constant UNISWAPV3_AM = address(0x21bd524cC54CA78A7c48254d4676184f781667dC);
-    address internal constant UNISWAPV4_HOOKS_REGISTRY = address(0x8CC3A263284d4fC05E0BD4F8b7Be55252287db5D);
+    address internal constant UNISWAPV4_HOOKS_REGISTRY = address(0x8B0fd5352caE4E7c86632CA791229d132Fef5D3C);
     address internal constant WRAPPED_AERO_AM = address(0x17B5826382e3a5257b829cF0546A08Bd77409270);
 }
 
@@ -67,6 +67,7 @@ library PrimaryAssets {
     address internal constant USDS = 0x820C137fa70C8691f0e44Dc420a5e53c168921Dc;
     address internal constant USDT = 0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2;
     address internal constant USDZ = 0x04D5ddf5f3a8939889F11E97f8c4BB48317F1938;
+    address internal constant VIRTUAL = 0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b;
     address internal constant WEETH = 0x04C0599Ae5A44757c0af6F9eC3b93da8976c150A;
     address internal constant WETH = 0x4200000000000000000000000000000000000006;
     address internal constant WRSETH = 0xEDfa23602D0EC14714057867A78d01e94176BEA0;
@@ -99,6 +100,7 @@ library Decimals {
     uint8 internal constant USDS = 18;
     uint8 internal constant USDT = 6;
     uint8 internal constant USDZ = 18;
+    uint8 internal constant VIRTUAL = 18;
     uint8 internal constant WEETH = 18;
     uint8 internal constant WETH = 18;
     uint8 internal constant WRSETH = 18;
@@ -125,6 +127,7 @@ library Oracles {
     address internal constant USDS_USD = 0x2330aaE3bca5F05169d5f4597964D44522F62930;
     address internal constant USDT_USD = 0xf19d560eB8d2ADf07BD6D13ed03e1D11215721F9;
     address internal constant USDZ_USD = 0xe25969e2Fa633a0C027fAB8F30Fc9C6A90D60B48;
+    address internal constant VIRTUAL_USD = 0xEaf310161c9eF7c813A14f8FEF6Fb271434019F7;
     address internal constant WBTC_USD = 0xCCADC697c55bbB68dc5bCdf8d3CBe83CdD4E071E;
     address internal constant WEETH_ETH = 0xFC1415403EbB0c693f9a7844b92aD2Ff24775C65;
     address internal constant WRSETH_ETH = 0xe8dD07CCf5BC4922424140E44Eb970F5950725ef;
@@ -150,6 +153,7 @@ library OracleIds {
     uint80 internal constant USDS_USD = 19;
     uint80 internal constant USDT_USD = 12;
     uint80 internal constant USDZ_USD = 17;
+    uint80 internal constant VIRTUAL_USD = 21;
     uint80 internal constant WEETH_ETH = 11;
     uint80 internal constant WRSETH_ETH = 18;
     uint80 internal constant WSTETH_ETH = 7;
@@ -170,6 +174,7 @@ library CutOffTimes {
     uint32 internal constant STG_USD = 25 hours;
     uint32 internal constant TBTC_USD = 25 hours;
     uint32 internal constant TRUMP_USD = 25 hours;
+    uint32 internal constant VIRTUAL_USD = 25 hours;
     uint32 internal constant USDC_USD = 25 hours;
     uint32 internal constant USDS_USD = 25 hours;
     uint32 internal constant USDT_USD = 25 hours;
@@ -181,22 +186,22 @@ library CutOffTimes {
 
 library RiskParameters {
     // AERO
-    uint16 internal constant COL_FAC_AERO_CBBTC = 6150;
+    uint16 internal constant COL_FAC_AERO_CBBTC = 7200;
     uint16 internal constant COL_FAC_AERO_WETH = 7700;
-    uint16 internal constant COL_FAC_AERO_USDC = 6875;
-    uint16 internal constant LIQ_FAC_AERO_CBBTC = 8225;
+    uint16 internal constant COL_FAC_AERO_USDC = 7100;
+    uint16 internal constant LIQ_FAC_AERO_CBBTC = 8625;
     uint16 internal constant LIQ_FAC_AERO_WETH = 8950;
-    uint16 internal constant LIQ_FAC_AERO_USDC = 8225;
+    uint16 internal constant LIQ_FAC_AERO_USDC = 8500;
     uint112 internal constant EXPOSURE_AERO_CBBTC = uint112(3e6 * 10 ** Decimals.AERO);
     uint112 internal constant EXPOSURE_AERO_WETH = uint112(3e6 * 10 ** Decimals.AERO);
     uint112 internal constant EXPOSURE_AERO_USDC = uint112(3e6 * 10 ** Decimals.AERO);
 
     // cbBTC
     uint16 internal constant COL_FAC_CBBTC_CBBTC = 9225;
-    uint16 internal constant COL_FAC_CBBTC_WETH = 7700;
+    uint16 internal constant COL_FAC_CBBTC_WETH = 8500;
     uint16 internal constant COL_FAC_CBBTC_USDC = 7200;
     uint16 internal constant LIQ_FAC_CBBTC_CBBTC = 9750;
-    uint16 internal constant LIQ_FAC_CBBTC_WETH = 8750;
+    uint16 internal constant LIQ_FAC_CBBTC_WETH = 9600;
     uint16 internal constant LIQ_FAC_CBBTC_USDC = 8750;
     uint112 internal constant EXPOSURE_CBBTC_CBBTC = uint112(50 * 10 ** Decimals.CBBTC);
     uint112 internal constant EXPOSURE_CBBTC_WETH = uint112(20 * 10 ** Decimals.CBBTC);
@@ -219,18 +224,18 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_COMP_USDC = 0;
 
     // DAI
-    uint16 internal constant COL_FAC_DAI_WETH = 8100;
+    uint16 internal constant COL_FAC_DAI_WETH = 0;
     uint16 internal constant COL_FAC_DAI_USDC = 8300;
-    uint16 internal constant LIQ_FAC_DAI_WETH = 8600;
+    uint16 internal constant LIQ_FAC_DAI_WETH = 0;
     uint16 internal constant LIQ_FAC_DAI_USDC = 8700;
-    uint112 internal constant EXPOSURE_DAI_WETH = 1;
-    uint112 internal constant EXPOSURE_DAI_USDC = 2_504_435_018_558_771_456_919;
+    uint112 internal constant EXPOSURE_DAI_WETH = 0;
+    uint112 internal constant EXPOSURE_DAI_USDC = uint112(200 * 10 ** Decimals.DAI);
 
     // DEGEN
-    uint16 internal constant COL_FAC_DEGEN_WETH = 5650;
-    uint16 internal constant COL_FAC_DEGEN_USDC = 5150;
-    uint16 internal constant LIQ_FAC_DEGEN_WETH = 7200;
-    uint16 internal constant LIQ_FAC_DEGEN_USDC = 6700;
+    uint16 internal constant COL_FAC_DEGEN_WETH = 6400;
+    uint16 internal constant COL_FAC_DEGEN_USDC = 6000;
+    uint16 internal constant LIQ_FAC_DEGEN_WETH = 8000;
+    uint16 internal constant LIQ_FAC_DEGEN_USDC = 7800;
     uint112 internal constant EXPOSURE_DEGEN_WETH = uint112(75_000_000 * 10 ** Decimals.DEGEN);
     uint112 internal constant EXPOSURE_DEGEN_USDC = uint112(75_000_000 * 10 ** Decimals.DEGEN);
 
@@ -279,10 +284,10 @@ library RiskParameters {
 
     // TBTC
     uint16 internal constant COL_FAC_TBTC_CBBTC = 8625;
-    uint16 internal constant COL_FAC_TBTC_WETH = 7700;
+    uint16 internal constant COL_FAC_TBTC_WETH = 8500;
     uint16 internal constant COL_FAC_TBTC_USDC = 7200;
     uint16 internal constant LIQ_FAC_TBTC_CBBTC = 9675;
-    uint16 internal constant LIQ_FAC_TBTC_WETH = 8750;
+    uint16 internal constant LIQ_FAC_TBTC_WETH = 9600;
     uint16 internal constant LIQ_FAC_TBTC_USDC = 8750;
     uint112 internal constant EXPOSURE_TBTC_CBBTC = uint112(5 * 10 ** Decimals.TBTC);
     uint112 internal constant EXPOSURE_TBTC_WETH = uint112(10 * 10 ** Decimals.TBTC);
@@ -290,11 +295,11 @@ library RiskParameters {
 
     // TRUMP
     uint16 internal constant COL_FAC_TRUMP_WETH = 5650;
-    uint16 internal constant COL_FAC_TRUMP_USDC = 5150;
+    uint16 internal constant COL_FAC_TRUMP_USDC = 5650;
     uint16 internal constant LIQ_FAC_TRUMP_WETH = 7200;
-    uint16 internal constant LIQ_FAC_TRUMP_USDC = 6700;
+    uint16 internal constant LIQ_FAC_TRUMP_USDC = 7200;
     uint112 internal constant EXPOSURE_TRUMP_WETH = uint112(3500 * 10 ** Decimals.TRUMP);
-    uint112 internal constant EXPOSURE_TRUMP_USDC = uint112(1000 * 10 ** Decimals.TRUMP);
+    uint112 internal constant EXPOSURE_TRUMP_USDC = uint112(4000 * 10 ** Decimals.TRUMP);
 
     // USDBC
     uint16 internal constant COL_FAC_USDBC_WETH = 8850;
@@ -345,6 +350,17 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_USDZ_WETH = uint112(0 * 10 ** Decimals.USDZ);
     uint112 internal constant EXPOSURE_USDZ_USDC = uint112(0 * 10 ** Decimals.USDZ);
 
+    // VIRTUAL
+    uint16 internal constant COL_FAC_VIRTUAL_CBBTC = 6900;
+    uint16 internal constant COL_FAC_VIRTUAL_USDC = 6600;
+    uint16 internal constant COL_FAC_VIRTUAL_WETH = 7200;
+    uint16 internal constant LIQ_FAC_VIRTUAL_CBBTC = 8000;
+    uint16 internal constant LIQ_FAC_VIRTUAL_USDC = 7800;
+    uint16 internal constant LIQ_FAC_VIRTUAL_WETH = 8000;
+    uint112 internal constant EXPOSURE_VIRTUAL_CBBTC = uint112(250_000 * 10 ** Decimals.VIRTUAL);
+    uint112 internal constant EXPOSURE_VIRTUAL_WETH = uint112(350_000 * 10 ** Decimals.VIRTUAL);
+    uint112 internal constant EXPOSURE_VIRTUAL_USDC = uint112(350_000 * 10 ** Decimals.VIRTUAL);
+
     // WEETH
     uint16 internal constant COL_FAC_WEETH_WETH = 9125;
     uint16 internal constant COL_FAC_WEETH_USDC = 8000;
@@ -354,10 +370,10 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_WEETH_USDC = uint112(400 * 10 ** Decimals.WEETH);
 
     // WETH
-    uint16 internal constant COL_FAC_WETH_CBBTC = 7700;
+    uint16 internal constant COL_FAC_WETH_CBBTC = 8500;
     uint16 internal constant COL_FAC_WETH_WETH = 9325;
     uint16 internal constant COL_FAC_WETH_USDC = 8850;
-    uint16 internal constant LIQ_FAC_WETH_CBBTC = 8750;
+    uint16 internal constant LIQ_FAC_WETH_CBBTC = 9600;
     uint16 internal constant LIQ_FAC_WETH_WETH = 9750;
     uint16 internal constant LIQ_FAC_WETH_USDC = 9475;
     uint112 internal constant EXPOSURE_WETH_CBBTC = uint112(650 * 10 ** Decimals.WETH);
@@ -506,6 +522,7 @@ library AerodromeGauges {
     address internal constant CL100_USDC_TRUMP = address(0x0c1D14b66e74FBB35d53A0c97Dbe93fa8a97BbE7);
     address internal constant CL100_USDZ_CBBTC = address(0x384Ce87727323eDeDdc95D3206399806A3da7F02);
     address internal constant CL100_USDZ_WETH = address(0x549690894f61bf0D3a5799D03fDED6e775A424aA);
+    address internal constant CL100_VIRTUAL_WETH = address(0x5013Ea8783Bfeaa8c4850a54eacd54D7A3B7f889);
     address internal constant CL100_WETH_CBBTC = address(0x41b2126661C673C2beDd208cC72E85DC51a5320a);
     address internal constant CL100_WETH_EURC = address(0xb0C500d53720ff63F000de6D26f7Fe5c66571e3d);
     address internal constant CL100_WETH_USDC = address(0xF33a96b5932D9E9B9A0eDA447AbD8C9d48d2e0c8);
@@ -515,6 +532,7 @@ library AerodromeGauges {
     address internal constant CL200_TBTC_WETH = address(0x996802075582Af2eE133fb30Cc5A9E8A671d3c3a);
     address internal constant CL200_TBTC_USDC = address(0x37E1a626b09faDE99E94752942a88f17EA2170fd);
     address internal constant CL200_USDZ_DEGEN = address(0x9918C85E4e5937DA606d65C9935Ea3ffe4DE06A4);
+    address internal constant CL200_VIRTUAL_WETH = address(0xBDA319Bc7Cc8F0829df39eC0FFF5D1E061FFadf7);
     address internal constant CL200_WETH_AERO = address(0xdE8FF0D3e8ab225110B088a250b546015C567E27);
     address internal constant CL200_WETH_DEGEN = address(0x319e23D38d8ee58783Ff5331507b808709bd00b0);
     address internal constant CL200_WETH_RDNT = address(0x8D88C541f22de965536bD1849013caEE6ce90e11);
@@ -528,6 +546,9 @@ library AerodromeGauges {
     address internal constant V_EZETH_WETH = address(0x6318373c5a01224094BF0B1AC88562345B2Fb91E);
     address internal constant V_USDC_AERO = address(0x4F09bAb2f0E15e2A078A227FE1537665F55b8360);
     address internal constant V_USDZ_WETH = address(0xc15B32d92E265832c87EC4b36B7e598ae2daad42);
+    address internal constant V_VIRTUAL_AERO = address(0x57538a02972c01440113cC7A7Ff8F1d954d01239);
+    address internal constant V_VIRTUAL_CBBTC = address(0x8c44e7F913D0893Cd5A3CBBb2fCd59785a7801ab);
+    address internal constant V_VIRTUAL_WETH = address(0xBD62Cad65b49b4Ad9C7aa9b8bDB89d63221F7af5);
     address internal constant V_WEETH_AERO = address(0x0A5f63A1aC754b4418cc5381eE17E04CCad42F56);
     address internal constant V_WEETH_WETH = address(0xf8d47b641eD9DF1c924C0F7A6deEEA2803b9CfeF);
     address internal constant V_WETH_AERO = address(0x96a24aB830D4ec8b1F6f04Ceac104F1A3b211a01);
@@ -550,6 +571,9 @@ library AerodromePools {
     address internal constant V_EZETH_WETH = address(0x0C8bF3cb3E1f951B284EF14aa95444be86a33E2f);
     address internal constant V_USDC_AERO = address(0x6cDcb1C4A4D1C3C6d054b27AC5B77e89eAFb971d);
     address internal constant V_USDZ_WETH = address(0x2ce63497999F520CC2afaaadbCFC37Afd9deF4b0);
+    address internal constant V_VIRTUAL_AERO = address(0x8B49c7eC53Cb4CA3666bB16727FC5C5F6d12226f);
+    address internal constant V_VIRTUAL_CBBTC = address(0xb909F567c5c2Bb1A4271349708CC4637D7318b4A);
+    address internal constant V_VIRTUAL_WETH = address(0x21594b992F68495dD28d605834b58889d0a727c7);
     address internal constant V_WEETH_AERO = address(0xc5aDfb267a95df1233a2b5F7f48041E7Fb384BcA);
     address internal constant V_WEETH_WETH = address(0x91F0f34916Ca4E2cCe120116774b0e4fA0cdcaA8);
     address internal constant V_WETH_AERO = address(0x7f670f78B17dEC44d5Ef68a48740b6f8849cc2e6);

@@ -59,7 +59,7 @@ contract AerodromeFixture is Test {
     function createGaugeAerodrome(Pool pool, address rewardToken) internal returns (Gauge gauge) {
         gauge = new Gauge(msg.sender, address(pool), msg.sender, rewardToken, address(voter), false);
 
-        voter.setGauge(address(gauge));
+        voter.setGauge(address(pool), address(gauge));
         voter.setAlive(address(gauge), true);
     }
 
