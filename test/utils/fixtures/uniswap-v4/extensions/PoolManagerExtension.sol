@@ -64,7 +64,4 @@ contract PoolManagerExtension is PoolManager {
     function getTickSpacingToMaxLiquidityPerTick(int24 tickSpacing) public pure returns (uint128 result) {
         result = Pool.tickSpacingToMaxLiquidityPerTick(tickSpacing);
     }
-
-    // Function to receive native ETH.
-    receive() external payable { }
 }
