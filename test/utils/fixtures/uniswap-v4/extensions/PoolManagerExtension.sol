@@ -18,8 +18,9 @@ contract PoolManagerExtension is PoolManager {
 
     function setCurrentPrice(PoolId poolId, int24 tick, uint160 sqrtPriceX96) public {
         Pool.State storage poolState = _getPool(poolId);
-        poolState.slot0.setTick(tick);
-        poolState.slot0.setSqrtPriceX96(sqrtPriceX96);
+        Slot0 currentSlot0 = poolState.slot0;
+        Slot0 updatedSlot0 = currentSlot0.setTick(tick).setSqrtPriceX96(sqrtPriceX96);
+        poolState.slot0 = updatedSlot0;
     }
 
     function setFeeGrowthInsideLast(
@@ -63,4 +64,7 @@ contract PoolManagerExtension is PoolManager {
     function getTickSpacingToMaxLiquidityPerTick(int24 tickSpacing) public pure returns (uint128 result) {
         result = Pool.tickSpacingToMaxLiquidityPerTick(tickSpacing);
     }
+
+    // Function to receive native ETH.
+    receive() external payable { }
 }
