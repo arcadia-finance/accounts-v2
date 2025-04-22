@@ -344,7 +344,7 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
                                       HELPERS
     //////////////////////////////////////////////////////////////////////////*/
 
-    function addAssetToArcadia(address asset, int256 price) internal override {
+    function addAssetToArcadia(address asset, int256 price) internal virtual override {
         super.addAssetToArcadia(asset, price);
 
         vm.prank(users.riskManager);
