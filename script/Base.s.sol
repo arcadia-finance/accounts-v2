@@ -7,7 +7,7 @@ pragma solidity ^0.8.22;
 import { Test } from "../lib/forge-std/src/Test.sol";
 
 import { AerodromePoolAM } from "../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
-import { ArcadiaContracts } from "./utils/Constants.sol";
+import { ArcadiaContracts } from "./utils/ConstantsBase.sol";
 import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
 import { ERC20PrimaryAM } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
 import { Factory } from "../src/Factory.sol";
@@ -21,7 +21,7 @@ import { UniswapV3AM } from "../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 import { WrappedAerodromeAM } from "../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 abstract contract Base_Script is Test, SafeTransactionBuilder {
-    uint256 internal deployer = vm.envUint("PRIVATE_KEY_DEPLOYER_BASE");
+    uint256 internal deployer = vm.envUint("PRIVATE_KEY_DEPLOYER");
 
     bool[] internal BA_TO_QA_SINGLE = new bool[](1);
     bool[] internal BA_TO_QA_DOUBLE = new bool[](2);

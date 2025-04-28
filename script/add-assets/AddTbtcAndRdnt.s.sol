@@ -14,7 +14,7 @@ import {
     Oracles,
     PrimaryAssets,
     RiskParameters
-} from "../utils/Constants.sol";
+} from "../utils/ConstantsBase.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 
 contract AddTbtcAndRdnt is Base_Script {
