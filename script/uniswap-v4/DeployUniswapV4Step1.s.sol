@@ -6,7 +6,7 @@ pragma solidity ^0.8.22;
 
 import { Base_Script } from "../Base.s.sol";
 
-import { ArcadiaSafes, ExternalContracts } from "../utils/Constants.sol";
+import { ArcadiaSafes, ExternalContracts } from "../utils/ConstantsBase.sol";
 import { DefaultUniswapV4AM } from "../../src/asset-modules/UniswapV4/DefaultUniswapV4AM.sol";
 import { UniswapV4HooksRegistry } from "../../src/asset-modules/UniswapV4/UniswapV4HooksRegistry.sol";
 

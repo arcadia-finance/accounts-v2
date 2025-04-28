@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Base_Script } from "../Base.s.sol";
 
-import { ArcadiaContracts, ArcadiaSafes, RiskParameters } from "../utils/Constants.sol";
+import { ArcadiaContracts, ArcadiaSafes, RiskParameters } from "../utils/ConstantsBase.sol";
 
 contract UpdateSlipstreamExposure is Base_Script {
     constructor() { }

@@ -7,7 +7,7 @@ pragma solidity ^0.8.22;
 import { Test } from "../lib/forge-std/src/Test.sol";
 
 import { ActionMultiCall } from "../src/actions/MultiCall.sol";
-import { ArcadiaSafes, PrimaryAssets, RiskParameters } from "./utils/Constants.sol";
+import { ArcadiaSafes, PrimaryAssets, RiskParameters } from "./utils/ConstantsBase.sol";
 import { AccountV1 } from "../src/accounts/AccountV1.sol";
 import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";

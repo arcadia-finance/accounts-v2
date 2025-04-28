@@ -9,7 +9,7 @@ import { Test } from "../../lib/forge-std/src/Test.sol";
 import { ActionMultiCallV2 } from "./../../src/actions/MultiCallV2.sol";
 
 contract MultiCallV2Deployment is Test {
-    uint256 internal deployer = vm.envUint("PRIVATE_KEY_DEPLOYER_BASE");
+    uint256 internal deployer = vm.envUint("PRIVATE_KEY_DEPLOYER");
 
     ActionMultiCallV2 internal multicallV2;
 

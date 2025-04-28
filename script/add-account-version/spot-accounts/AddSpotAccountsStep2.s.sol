@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Base_Script } from "../../Base.s.sol";
 
-import { AccountLogic, ArcadiaSafes, MerkleRoots } from "../../utils/Constants.sol";
+import { AccountLogic, ArcadiaSafes, MerkleRoots } from "../../utils/ConstantsBase.sol";
 
 contract AddSpotAccountsStep2 is Base_Script {
     constructor() { }
