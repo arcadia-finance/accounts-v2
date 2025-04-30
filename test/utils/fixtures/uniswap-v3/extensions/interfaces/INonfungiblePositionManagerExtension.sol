@@ -44,8 +44,7 @@ interface INonfungiblePositionManagerExtension is INonfungiblePositionManager {
         external
         returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
 
-    function mint(address to, uint256 tokenId)
-        external;
+    function mint(address to, uint256 tokenId) external;
 
     function increaseLiquidity(IncreaseLiquidityParams calldata params)
         external
