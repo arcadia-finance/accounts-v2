@@ -438,7 +438,7 @@ library RiskParameters {
     uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_USDC = 9800;
     uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_CBBTC = uint112(10_000_000 * 1e18);
     uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_WETH = uint112(10_000_000 * 1e18);
-    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_USDC = uint112(10_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_USDC = uint112(15_000_000 * 1e18);
 
     // Staked Stargate Asset Module
     uint16 internal constant RISK_FAC_STAKED_STARGATE_AM_WETH = 9800;
