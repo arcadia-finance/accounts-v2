@@ -15,25 +15,12 @@ contract UpdateExposure is Base_Script {
         bytes memory calldata_ = abi.encodeCall(
             registry.setRiskParametersOfPrimaryAsset,
             (
-                address(cbbtcLendingPool),
-                PrimaryAssets.USDZ,
-                0,
-                RiskParameters.EXPOSURE_USDZ_CBBTC,
-                RiskParameters.COL_FAC_USDZ_CBBTC,
-                RiskParameters.LIQ_FAC_USDZ_CBBTC
-            )
-        );
-        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
-
-        calldata_ = abi.encodeCall(
-            registry.setRiskParametersOfPrimaryAsset,
-            (
                 address(usdcLendingPool),
-                PrimaryAssets.USDZ,
+                PrimaryAssets.USDS,
                 0,
-                RiskParameters.EXPOSURE_USDZ_USDC,
-                RiskParameters.COL_FAC_USDZ_USDC,
-                RiskParameters.LIQ_FAC_USDZ_USDC
+                RiskParameters.EXPOSURE_USDS_USDC,
+                RiskParameters.COL_FAC_USDS_USDC,
+                RiskParameters.LIQ_FAC_USDS_USDC
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
@@ -42,11 +29,11 @@ contract UpdateExposure is Base_Script {
             registry.setRiskParametersOfPrimaryAsset,
             (
                 address(wethLendingPool),
-                PrimaryAssets.USDZ,
+                PrimaryAssets.USDS,
                 0,
-                RiskParameters.EXPOSURE_USDZ_WETH,
-                RiskParameters.COL_FAC_USDZ_WETH,
-                RiskParameters.LIQ_FAC_USDZ_WETH
+                RiskParameters.EXPOSURE_USDS_WETH,
+                RiskParameters.COL_FAC_USDS_WETH,
+                RiskParameters.LIQ_FAC_USDS_WETH
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
