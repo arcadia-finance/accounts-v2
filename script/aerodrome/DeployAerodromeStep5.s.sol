@@ -66,8 +66,8 @@ contract DeployAerodromeStep5 is Base_Script {
             (
                 address(usdcLendingPool),
                 address(slipstreamAM),
-                RiskParameters.EXPOSURE_SLIPSTREAM_USDC,
-                RiskParameters.RISK_FAC_SLIPSTREAM_USDC
+                RiskParameters.EXPOSURE_SLIPSTREAM_AM_USDC,
+                RiskParameters.RISK_FAC_SLIPSTREAM_AM_USDC
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
@@ -76,8 +76,8 @@ contract DeployAerodromeStep5 is Base_Script {
             (
                 address(wethLendingPool),
                 address(slipstreamAM),
-                RiskParameters.EXPOSURE_SLIPSTREAM_WETH,
-                RiskParameters.RISK_FAC_SLIPSTREAM_WETH
+                RiskParameters.EXPOSURE_SLIPSTREAM_AM_WETH,
+                RiskParameters.RISK_FAC_SLIPSTREAM_AM_WETH
             )
         );
 

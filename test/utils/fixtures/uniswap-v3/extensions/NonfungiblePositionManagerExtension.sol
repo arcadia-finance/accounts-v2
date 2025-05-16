@@ -34,4 +34,8 @@ contract NonfungiblePositionManagerExtension is NonfungiblePositionManager {
             }
         }
     }
+
+    function mint(address to, uint256 tokenId) external {
+        _mint(to, tokenId);
+    }
 }

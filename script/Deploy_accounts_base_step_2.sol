@@ -61,7 +61,7 @@ contract ArcadiaAccountDeploymentStep2 is Test {
     }
 
     function run() public {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_DEPLOYER_BASE");
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_DEPLOYER");
         address deployerAddress = vm.addr(deployerPrivateKey);
         address protocolOwnerAddress = ArcadiaSafes.OWNER;
         assertEq(deployerAddress, protocolOwnerAddress);

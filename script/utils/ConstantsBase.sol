@@ -317,8 +317,8 @@ library RiskParameters {
     uint16 internal constant LIQ_FAC_USDC_WETH = 9475;
     uint16 internal constant LIQ_FAC_USDC_USDC = 9750;
     uint112 internal constant EXPOSURE_USDC_CBBTC = uint112(1_000_000 * 10 ** Decimals.USDC);
-    uint112 internal constant EXPOSURE_USDC_WETH = uint112(1_500_000 * 10 ** Decimals.USDC);
-    uint112 internal constant EXPOSURE_USDC_USDC = uint112(3_500_000 * 10 ** Decimals.USDC);
+    uint112 internal constant EXPOSURE_USDC_WETH = uint112(5_000_000 * 10 ** Decimals.USDC);
+    uint112 internal constant EXPOSURE_USDC_USDC = uint112(5_000_000 * 10 ** Decimals.USDC);
 
     // USDS
     uint16 internal constant COL_FAC_USDS_CBBTC = 7200;
@@ -328,8 +328,8 @@ library RiskParameters {
     uint16 internal constant LIQ_FAC_USDS_USDC = 9659;
     uint16 internal constant LIQ_FAC_USDS_WETH = 9450;
     uint112 internal constant EXPOSURE_USDS_CBBTC = uint112(0 * 10 ** Decimals.USDS);
-    uint112 internal constant EXPOSURE_USDS_USDC = uint112(150_000 * 10 ** Decimals.USDS);
-    uint112 internal constant EXPOSURE_USDS_WETH = uint112(100_000 * 10 ** Decimals.USDS);
+    uint112 internal constant EXPOSURE_USDS_USDC = uint112(3_000_000 * 10 ** Decimals.USDS);
+    uint112 internal constant EXPOSURE_USDS_WETH = uint112(3_000_000 * 10 ** Decimals.USDS);
 
     // USDT
     uint16 internal constant COL_FAC_USDT_WETH = 8850;
@@ -377,8 +377,8 @@ library RiskParameters {
     uint16 internal constant LIQ_FAC_WETH_WETH = 9750;
     uint16 internal constant LIQ_FAC_WETH_USDC = 9475;
     uint112 internal constant EXPOSURE_WETH_CBBTC = uint112(650 * 10 ** Decimals.WETH);
-    uint112 internal constant EXPOSURE_WETH_WETH = uint112(1500 * 10 ** Decimals.WETH);
-    uint112 internal constant EXPOSURE_WETH_USDC = uint112(1200 * 10 ** Decimals.WETH);
+    uint112 internal constant EXPOSURE_WETH_WETH = uint112(2850 * 10 ** Decimals.WETH);
+    uint112 internal constant EXPOSURE_WETH_USDC = uint112(2850 * 10 ** Decimals.WETH);
 
     // wrsETH
     uint16 internal constant COL_FAC_WRSETH_WETH = 8875;
@@ -419,12 +419,12 @@ library RiskParameters {
     uint112 internal constant EXPOSURE_DEFAULT_UNISWAPV4_AM_USDC = uint112(5_000_000 * 1e18);
 
     // Slipstream Asset Module
-    uint16 internal constant RISK_FAC_SLIPSTREAM_CBBTC = 9800;
-    uint16 internal constant RISK_FAC_SLIPSTREAM_WETH = 9800;
-    uint16 internal constant RISK_FAC_SLIPSTREAM_USDC = 9800;
-    uint112 internal constant EXPOSURE_SLIPSTREAM_CBBTC = uint112(2_000_000 * 1e18);
-    uint112 internal constant EXPOSURE_SLIPSTREAM_WETH = uint112(2_000_000 * 1e18);
-    uint112 internal constant EXPOSURE_SLIPSTREAM_USDC = uint112(2_000_000 * 1e18);
+    uint16 internal constant RISK_FAC_SLIPSTREAM_AM_CBBTC = 9800;
+    uint16 internal constant RISK_FAC_SLIPSTREAM_AM_WETH = 9800;
+    uint16 internal constant RISK_FAC_SLIPSTREAM_AM_USDC = 9800;
+    uint112 internal constant EXPOSURE_SLIPSTREAM_AM_CBBTC = uint112(10_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_SLIPSTREAM_AM_WETH = uint112(10_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_SLIPSTREAM_AM_USDC = uint112(10_000_000 * 1e18);
 
     // Staked Aerodrome Pool Asset Module
     uint16 internal constant RISK_FAC_STAKED_AERO_AM_WETH = 9800;
@@ -438,7 +438,7 @@ library RiskParameters {
     uint16 internal constant RISK_FAC_STAKED_SLIPSTREAM_AM_USDC = 9800;
     uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_CBBTC = uint112(10_000_000 * 1e18);
     uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_WETH = uint112(10_000_000 * 1e18);
-    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_USDC = uint112(10_000_000 * 1e18);
+    uint112 internal constant EXPOSURE_STAKED_SLIPSTREAM_AM_USDC = uint112(15_000_000 * 1e18);
 
     // Staked Stargate Asset Module
     uint16 internal constant RISK_FAC_STAKED_STARGATE_AM_WETH = 9800;

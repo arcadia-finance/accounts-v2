@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Base_Script } from "../Base.s.sol";
 
-import { ArcadiaSafes, PrimaryAssets, RiskParameters } from "../utils/ConstantsBase.sol";
+import { ArcadiaContracts, ArcadiaSafes, PrimaryAssets, RiskParameters } from "../utils/ConstantsBase.sol";
 
 contract UpdateRiskFactors is Base_Script {
     constructor() { }
@@ -16,125 +16,79 @@ contract UpdateRiskFactors is Base_Script {
             registry.setRiskParametersOfPrimaryAsset,
             (
                 address(usdcLendingPool),
-                PrimaryAssets.AERO,
+                PrimaryAssets.USDC,
                 0,
-                RiskParameters.EXPOSURE_AERO_USDC,
-                RiskParameters.COL_FAC_AERO_USDC,
-                RiskParameters.LIQ_FAC_AERO_USDC
+                RiskParameters.EXPOSURE_USDC_USDC,
+                RiskParameters.COL_FAC_USDC_USDC,
+                RiskParameters.LIQ_FAC_USDC_USDC
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
-        calldata_ = abi.encodeCall(
-            registry.setRiskParametersOfPrimaryAsset,
-            (
-                address(cbbtcLendingPool),
-                PrimaryAssets.AERO,
-                0,
-                RiskParameters.EXPOSURE_AERO_CBBTC,
-                RiskParameters.COL_FAC_AERO_CBBTC,
-                RiskParameters.LIQ_FAC_AERO_CBBTC
-            )
-        );
-        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
-
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfPrimaryAsset,
             (
                 address(wethLendingPool),
-                PrimaryAssets.CBBTC,
+                PrimaryAssets.USDC,
                 0,
-                RiskParameters.EXPOSURE_CBBTC_WETH,
-                RiskParameters.COL_FAC_CBBTC_WETH,
-                RiskParameters.LIQ_FAC_CBBTC_WETH
+                RiskParameters.EXPOSURE_USDC_WETH,
+                RiskParameters.COL_FAC_USDC_WETH,
+                RiskParameters.LIQ_FAC_USDC_WETH
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
-
         calldata_ = abi.encodeCall(
             registry.setRiskParametersOfPrimaryAsset,
             (
                 address(usdcLendingPool),
-                PrimaryAssets.DAI,
-                0,
-                RiskParameters.EXPOSURE_DAI_USDC,
-                RiskParameters.COL_FAC_DAI_USDC,
-                RiskParameters.LIQ_FAC_DAI_USDC
-            )
-        );
-        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
-        calldata_ = abi.encodeCall(
-            registry.setRiskParametersOfPrimaryAsset,
-            (
-                address(wethLendingPool),
-                PrimaryAssets.DAI,
-                0,
-                RiskParameters.EXPOSURE_DAI_WETH,
-                RiskParameters.COL_FAC_DAI_WETH,
-                RiskParameters.LIQ_FAC_DAI_WETH
-            )
-        );
-        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
-
-        calldata_ = abi.encodeCall(
-            registry.setRiskParametersOfPrimaryAsset,
-            (
-                address(usdcLendingPool),
-                PrimaryAssets.DEGEN,
-                0,
-                RiskParameters.EXPOSURE_DEGEN_USDC,
-                RiskParameters.COL_FAC_DEGEN_USDC,
-                RiskParameters.LIQ_FAC_DEGEN_USDC
-            )
-        );
-        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
-        calldata_ = abi.encodeCall(
-            registry.setRiskParametersOfPrimaryAsset,
-            (
-                address(wethLendingPool),
-                PrimaryAssets.DEGEN,
-                0,
-                RiskParameters.EXPOSURE_DEGEN_WETH,
-                RiskParameters.COL_FAC_DEGEN_WETH,
-                RiskParameters.LIQ_FAC_DEGEN_WETH
-            )
-        );
-        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
-
-        calldata_ = abi.encodeCall(
-            registry.setRiskParametersOfPrimaryAsset,
-            (
-                address(wethLendingPool),
-                PrimaryAssets.TBTC,
-                0,
-                RiskParameters.EXPOSURE_TBTC_WETH,
-                RiskParameters.COL_FAC_TBTC_WETH,
-                RiskParameters.LIQ_FAC_TBTC_WETH
-            )
-        );
-        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
-
-        calldata_ = abi.encodeCall(
-            registry.setRiskParametersOfPrimaryAsset,
-            (
-                address(usdcLendingPool),
-                PrimaryAssets.TRUMP,
-                0,
-                RiskParameters.EXPOSURE_TRUMP_USDC,
-                RiskParameters.COL_FAC_TRUMP_USDC,
-                RiskParameters.LIQ_FAC_TRUMP_USDC
-            )
-        );
-        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
-
-        calldata_ = abi.encodeCall(
-            registry.setRiskParametersOfPrimaryAsset,
-            (
-                address(cbbtcLendingPool),
                 PrimaryAssets.WETH,
                 0,
-                RiskParameters.EXPOSURE_WETH_CBBTC,
-                RiskParameters.COL_FAC_WETH_CBBTC,
-                RiskParameters.LIQ_FAC_WETH_CBBTC
+                RiskParameters.EXPOSURE_WETH_USDC,
+                RiskParameters.COL_FAC_WETH_USDC,
+                RiskParameters.LIQ_FAC_WETH_USDC
+            )
+        );
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
+        calldata_ = abi.encodeCall(
+            registry.setRiskParametersOfPrimaryAsset,
+            (
+                address(wethLendingPool),
+                PrimaryAssets.WETH,
+                0,
+                RiskParameters.EXPOSURE_WETH_WETH,
+                RiskParameters.COL_FAC_WETH_WETH,
+                RiskParameters.LIQ_FAC_WETH_WETH
+            )
+        );
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
+
+        calldata_ = abi.encodeCall(
+            registry.setRiskParametersOfDerivedAM,
+            (
+                address(usdcLendingPool),
+                ArcadiaContracts.SLIPSTREAM_AM,
+                RiskParameters.EXPOSURE_SLIPSTREAM_AM_USDC,
+                RiskParameters.RISK_FAC_SLIPSTREAM_AM_USDC
+            )
+        );
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
+        calldata_ = abi.encodeCall(
+            registry.setRiskParametersOfDerivedAM,
+            (
+                address(wethLendingPool),
+                ArcadiaContracts.SLIPSTREAM_AM,
+                RiskParameters.EXPOSURE_SLIPSTREAM_AM_WETH,
+                RiskParameters.RISK_FAC_SLIPSTREAM_AM_WETH
+            )
+        );
+        addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
+
+        calldata_ = abi.encodeCall(
+            registry.setRiskParametersOfDerivedAM,
+            (
+                address(usdcLendingPool),
+                ArcadiaContracts.STAKED_SLIPSTREAM_AM,
+                RiskParameters.EXPOSURE_STAKED_SLIPSTREAM_AM_USDC,
+                RiskParameters.RISK_FAC_STAKED_SLIPSTREAM_AM_USDC
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);

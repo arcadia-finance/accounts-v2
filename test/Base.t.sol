@@ -83,6 +83,7 @@ abstract contract Base_Test is Test {
 
     modifier canReceiveERC721(address to) {
         vm.assume(to != address(0));
+        vm.assume(to != 0x4200000000000000000000000000000000000006);
         if (to.code.length != 0) {
             try ERC721TokenReceiver(to).onERC721Received(to, address(0), 0, "") returns (bytes4 response) {
                 vm.assume(response == ERC721TokenReceiver.onERC721Received.selector);

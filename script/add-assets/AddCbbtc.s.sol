@@ -104,8 +104,8 @@ contract AddCbbtc is Base_Script {
             (
                 address(cbbtcLendingPool),
                 address(slipstreamAM),
-                RiskParameters.EXPOSURE_SLIPSTREAM_CBBTC,
-                RiskParameters.RISK_FAC_SLIPSTREAM_CBBTC
+                RiskParameters.EXPOSURE_SLIPSTREAM_AM_CBBTC,
+                RiskParameters.RISK_FAC_SLIPSTREAM_AM_CBBTC
             )
         );
         addToBatch(ArcadiaSafes.RISK_MANAGER, address(registry), calldata_);
