@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Base_Script } from "../Base.s.sol";
 
-import { AerodromeGauges, ArcadiaSafes } from "../utils/Constants.sol";
+import { AerodromeGauges, ArcadiaSafes } from "../utils/ConstantsBase.sol";
 
 contract AddSlipstreamGauge is Base_Script {
     constructor() { }

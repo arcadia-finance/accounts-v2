@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Base_Script } from "../Base.s.sol";
 
-import { ArcadiaSafes, ExternalContracts } from "../utils/Constants.sol";
+import { ArcadiaSafes, ExternalContracts } from "../utils/ConstantsBase.sol";
 import { UniswapV3AM } from "../../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 
 contract DeployAlienBaseStep1 is Base_Script {

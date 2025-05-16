@@ -17,7 +17,7 @@ import {
     PrimaryAssets,
     StargatePids,
     StargatePoolIds
-} from "./utils/Constants.sol";
+} from "./utils/ConstantsBase.sol";
 import { AssetModule } from "../src/asset-modules/abstracts/AbstractAM.sol";
 import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
 import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
@@ -97,7 +97,7 @@ contract ArcadiaAccountDeploymentStep1 is Test {
     }
 
     function run() public {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_DEPLOYER_BASE");
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_DEPLOYER");
         address deployerAddress = vm.addr(deployerPrivateKey);
         address protocolOwnerAddress = ArcadiaSafes.OWNER;
 

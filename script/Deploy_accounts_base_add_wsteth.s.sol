@@ -6,7 +6,7 @@ pragma solidity ^0.8.22;
 
 import { Test } from "../lib/forge-std/src/Test.sol";
 
-import { ArcadiaSafes, CutOffTimes, OracleIds, Oracles, PrimaryAssets, RiskParameters } from "./utils/Constants.sol";
+import { ArcadiaSafes, CutOffTimes, OracleIds, Oracles, PrimaryAssets, RiskParameters } from "./utils/ConstantsBase.sol";
 import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
 import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
 import { ERC20 } from "../lib/solmate/src/tokens/ERC20.sol";

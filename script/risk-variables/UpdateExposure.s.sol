@@ -6,7 +6,7 @@ pragma solidity 0.8.22;
 
 import { Base_Script } from "../Base.s.sol";
 
-import { ArcadiaSafes, PrimaryAssets, RiskParameters } from "../utils/Constants.sol";
+import { ArcadiaSafes, PrimaryAssets, RiskParameters } from "../utils/ConstantsBase.sol";
 
 contract UpdateExposure is Base_Script {
     constructor() { }
