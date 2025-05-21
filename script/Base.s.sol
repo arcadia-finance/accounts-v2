@@ -8,10 +8,12 @@ import { Test } from "../lib/forge-std/src/Test.sol";
 
 import { AerodromePoolAM } from "../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
 import { ArcadiaContracts } from "./utils/ConstantsBase.sol";
+import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
 import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
 import { ERC20PrimaryAM } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
 import { Factory } from "../src/Factory.sol";
 import { ILendingPool } from "./interfaces/ILendingPool.sol";
+import { Asset, Oracle } from "./utils/constants/Shared.sol";
 import { Registry } from "../src/Registry.sol";
 import { SafeTransactionBuilder } from "./utils/SafeTransactionBuilder.sol";
 import { SlipstreamAM } from "../src/asset-modules/Slipstream/SlipstreamAM.sol";
@@ -44,5 +46,28 @@ abstract contract Base_Script is Test, SafeTransactionBuilder {
         BA_TO_QA_SINGLE[0] = true;
         BA_TO_QA_DOUBLE[0] = true;
         BA_TO_QA_DOUBLE[1] = true;
+    }
+
+    function addOracle(Oracle memory oracle) internal pure returns (bytes memory calldata_) {
+        calldata_ = abi.encodeCall(
+            ChainlinkOM.addOracle, (oracle.oracle, oracle.baseAsset, oracle.quoteAsset, oracle.cutOffTime)
+        );
+    }
+
+    function addAsset(Asset memory asset, Oracle memory oracle) internal view returns (bytes memory calldata_) {
+        uint80[] memory oracles = new uint80[](1);
+        oracles[0] = oracle.id;
+        calldata_ = abi.encodeCall(ERC20PrimaryAM.addAsset, (asset.asset, BitPackingLib.pack(BA_TO_QA_SINGLE, oracles)));
+    }
+
+    function addAsset(Asset memory asset, Oracle memory oracle1, Oracle memory oracle2)
+        internal
+        view
+        returns (bytes memory calldata_)
+    {
+        uint80[] memory oracles = new uint80[](2);
+        oracles[0] = oracle1.id;
+        oracles[1] = oracle2.id;
+        calldata_ = abi.encodeCall(ERC20PrimaryAM.addAsset, (asset.asset, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracles)));
     }
 }
