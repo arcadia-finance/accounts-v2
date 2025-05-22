@@ -9,7 +9,7 @@ library AccountLogic {
     address internal constant V2 = 0xd8AF1F1dEe6EA38f9c08b5cfa31e01ad2Bfbef28; // Spot account.
 }
 
-library Accounts {
+library ArcadiaAccounts {
     address internal constant FACTORY = 0xDa14Fdd72345c4d2511357214c5B89A919768e59;
     address internal constant REGISTRY = 0xd0690557600eb8Be8391D1d97346e2aab5300d5f;
     address internal constant UNISWAPV4_HOOKS_REGISTRY = 0x8B0fd5352caE4E7c86632CA791229d132Fef5D3C;

@@ -31,11 +31,11 @@ contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test 
         // When: An asset is added to the AM.
         // Then: It reverts.
         vm.expectRevert(StakedAerodromeAM.RewardTokenNotAllowed.selector);
-        new StakedAerodromeAM(address(registry), address(voter));
+        new StakedAerodromeAM(address(registry), address(voter), AERO);
     }
 
     function testFuzz_success_constructor() public {
-        StakedAerodromeAM assetModule = new StakedAerodromeAM(address(registry), address(voter));
+        StakedAerodromeAM assetModule = new StakedAerodromeAM(address(registry), address(voter), AERO);
 
         assertEq(address(assetModule.REWARD_TOKEN()), AERO);
         assertEq(assetModule.ASSET_TYPE(), 2);
