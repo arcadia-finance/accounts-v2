@@ -4,9 +4,9 @@
  */
 pragma solidity ^0.8.22;
 
-import { Base_Script } from "../Base.s.sol";
 import { AerodromeGauges, Assets, Oracles, Safes } from "../utils/constants/Base.sol";
 import { Asset, Oracle } from "../utils/constants/Base.sol";
+import { Base_Script } from "../Base.s.sol";
 
 contract AddAsset is Base_Script {
     Asset internal ASSET = Assets.LBTC();

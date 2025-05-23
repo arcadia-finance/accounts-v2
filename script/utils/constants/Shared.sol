@@ -29,6 +29,10 @@ library AssetModules {
     address internal constant WRAPPED_AERO = 0x17B5826382e3a5257b829cF0546A08Bd77409270;
 }
 
+library Deployers {
+    address constant ARCADIA = 0x0f518becFC14125F23b8422849f6393D59627ddB;
+}
+
 library OracleModules {
     address internal constant CHAINLINK = 0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31;
 }
