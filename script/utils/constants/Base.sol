@@ -7,6 +7,7 @@ pragma solidity ^0.8.22;
 import { Asset, Oracle } from "./Shared.sol";
 
 library AerodromeGauges {
+    address internal constant CL1_CBETH_LBTC = 0xc3f97660D0b47F0E05C3c513f73eeff7c1bd6c7a; // 0xF5550F8F0331B8CAA165046667f4E6628E9E3Aac
     address internal constant CL1_CBETH_WETH = 0xF5550F8F0331B8CAA165046667f4E6628E9E3Aac;
     address internal constant CL1_EURC_USDC = 0x85af8D930cB738954d307D6E62F04dd05D839C37;
     address internal constant CL1_EZETH_WETH = 0xC6B4fe83Fb284bDdE1f1d19F0B5beB31011B280A;
@@ -119,6 +120,10 @@ library Assets {
 
     function EZETH() internal pure returns (Asset memory) {
         return Asset({ asset: 0x2416092f143378750bb29b79eD961ab195CcEea5, decimals: 18 });
+    }
+
+    function LBTC() internal pure returns (Asset memory) {
+        return Asset({ asset: 0xecAc9C5F704e954931349Da37F60E39f515c11c1, decimals: 8 });
     }
 
     function RDNT() internal pure returns (Asset memory) {
@@ -287,6 +292,16 @@ library Oracles {
             quoteAsset: "ETH",
             cutOffTime: 25 hours,
             id: 10
+        });
+    }
+
+    function LBTC_USD() internal pure returns (Oracle memory) {
+        return Oracle({
+            oracle: 0x9e07546c9Fe8868855CD04B26051a26D1599E270,
+            baseAsset: "LBTC",
+            quoteAsset: "USD",
+            cutOffTime: 25 hours,
+            id: 22
         });
     }
 
