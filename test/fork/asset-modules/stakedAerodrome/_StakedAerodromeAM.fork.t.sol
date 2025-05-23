@@ -74,7 +74,7 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
         registry.addAssetModule(address(aerodromePoolAM));
 
         // Deploy StakedAerodromeAM.
-        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registry), aeroVoter);
+        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registry), aeroVoter, AERO);
         registry.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
 
