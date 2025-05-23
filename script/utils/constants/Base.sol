@@ -7,7 +7,7 @@ pragma solidity ^0.8.22;
 import { Asset, Oracle } from "./Shared.sol";
 
 library AerodromeGauges {
-    address internal constant CL1_CBETH_LBTC = 0xc3f97660D0b47F0E05C3c513f73eeff7c1bd6c7a; // 0xF5550F8F0331B8CAA165046667f4E6628E9E3Aac
+    address internal constant CL1_CBBTC_LBTC = 0xc3f97660D0b47F0E05C3c513f73eeff7c1bd6c7a;
     address internal constant CL1_CBETH_WETH = 0xF5550F8F0331B8CAA165046667f4E6628E9E3Aac;
     address internal constant CL1_EURC_USDC = 0x85af8D930cB738954d307D6E62F04dd05D839C37;
     address internal constant CL1_EZETH_WETH = 0xC6B4fe83Fb284bDdE1f1d19F0B5beB31011B280A;
@@ -91,7 +91,7 @@ library AerodromePools {
 
 library Assets {
     function AERO() internal pure returns (Asset memory) {
-        return Asset({ asset: 0x4EC5970fC728C5f65ba413992CD5fF6FD70fcfF0, decimals: 18 });
+        return Asset({ asset: 0x940181a94A35A4569E4529A3CDfB74e38FD98631, decimals: 18 });
     }
 
     function CBBTC() internal pure returns (Asset memory) {
@@ -352,16 +352,6 @@ library Oracles {
             quoteAsset: "USD",
             cutOffTime: 25 hours,
             id: 20
-        });
-    }
-
-    function USDBC_USD() internal pure returns (Oracle memory) {
-        return Oracle({
-            oracle: 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B,
-            baseAsset: "USDBC",
-            quoteAsset: "USD",
-            cutOffTime: 25 hours,
-            id: 3
         });
     }
 
