@@ -37,13 +37,17 @@ library AerodromeGauges {
     address internal constant CL200_TBTC_USDC = 0x37E1a626b09faDE99E94752942a88f17EA2170fd;
     address internal constant CL200_USDZ_DEGEN = 0x9918C85E4e5937DA606d65C9935Ea3ffe4DE06A4;
     address internal constant CL200_VIRTUAL_WETH = 0xBDA319Bc7Cc8F0829df39eC0FFF5D1E061FFadf7;
+    address internal constant CL200_WETH_AAVE = 0x28047b764D603A25146A0b8a8D414740dC1E650E;
     address internal constant CL200_WETH_AERO = 0xdE8FF0D3e8ab225110B088a250b546015C567E27;
     address internal constant CL200_WETH_DEGEN = 0x319e23D38d8ee58783Ff5331507b808709bd00b0;
+    address internal constant CL200_WETH_MORPHO = 0xf008577BfbB3B8EAAaC22C1933C9a8cd876fCFd2;
+    address internal constant CL200_WETH_WELL = 0xe871A267A418C200F8b92Ae21397221122B79808;
     address internal constant CL200_WETH_RDNT = 0x8D88C541f22de965536bD1849013caEE6ce90e11;
     address internal constant S_EZETH_WETH = 0x4Fa58b3Bec8cE12014c7775a0B3da7e6AdC3c7eA;
     address internal constant S_USDC_USDBC = 0x1Cfc45C5221A07DA0DE958098A319a29FbBD66fE;
     address internal constant S_USDZ_USDC = 0xb7E4bBee04285F4B55d0A93b34E5dA95C3a7faf9;
     address internal constant V_AERO_USDBC = 0x9a202c932453fB3d04003979B121E80e5A14eE7b;
+    address internal constant V_AERO_WELL = 0x57c198edE5e375a273935f5ED8B4D22fE836f080;
     address internal constant V_AERO_WSTETH = 0x26D6D4E9e3fAf1C7C19992B1Ca792e4A9ea4F833;
     address internal constant V_CBETH_WETH = 0xDf9D427711CCE46b52fEB6B2a20e4aEaeA12B2b7;
     address internal constant V_EURC_USDC = 0x1f077baf21b95314bD251b21aD1f0Cc8D5D86781;
@@ -60,6 +64,7 @@ library AerodromeGauges {
     address internal constant V_WETH_EURC = 0x21D4eF9D2b66069f3307765A0349526f8E988294;
     address internal constant V_WETH_USDBC = 0xeca7Ff920E7162334634c721133F3183B83B0323;
     address internal constant V_WETH_USDC = 0x519BBD1Dd8C6A94C46080E24f316c14Ee758C025;
+    address internal constant V_WETH_WELL = 0x7b6964440b615aC1d31bc95681B133E112fB2684;
     address internal constant V_WETH_WRSETH = 0x2da7789a6371F550caF9054694F5A5A6682903f9;
     address internal constant V_WETH_WSTETH = 0xDf7c8F17Ab7D47702A4a4b6D951d2A4c90F99bf4;
 }
@@ -69,6 +74,7 @@ library AerodromePools {
     address internal constant S_USDC_USDBC = 0x27a8Afa3Bd49406e48a074350fB7b2020c43B2bD;
     address internal constant S_USDZ_USDC = 0x6d0b9C9E92a3De30081563c3657B5258b3fFa38B;
     address internal constant V_AERO_USDBC = 0x2223F9FE624F69Da4D8256A7bCc9104FBA7F8f75;
+    address internal constant V_AERO_WELL = 0xCd401DE1cBAa0d770eE5FB70ff622c752C92B8c5;
     address internal constant V_AERO_WSTETH = 0x82a0c1a0d4EF0c0cA3cFDA3AD1AA78309Cc6139b;
     address internal constant V_CBETH_WETH = 0x44Ecc644449fC3a9858d2007CaA8CFAa4C561f91;
     address internal constant V_EURC_USDC = 0xFDF5139b38525627B47538536042A7c8d2686BD9;
@@ -85,11 +91,16 @@ library AerodromePools {
     address internal constant V_WETH_EURC = 0x9DFf4b5AE4fD673213502Ab8fbf6d36015efb3E1;
     address internal constant V_WETH_USDBC = 0xB4885Bc63399BF5518b994c1d0C153334Ee579D0;
     address internal constant V_WETH_USDC = 0xcDAC0d6c6C59727a65F871236188350531885C43;
+    address internal constant V_WETH_WELL = 0x89D0F320ac73dd7d9513FFC5bc58D1161452a657;
     address internal constant V_WETH_WRSETH = 0xA24382874A6FD59de45BbccFa160488647514c28;
     address internal constant V_WETH_WSTETH = 0xA6385c73961dd9C58db2EF0c4EB98cE4B60651e8;
 }
 
 library Assets {
+    function AAVE() internal pure returns (Asset memory) {
+        return Asset({ asset: 0x63706e401c06ac8513145b7687A14804d17f814b, decimals: 18 });
+    }
+
     function AERO() internal pure returns (Asset memory) {
         return Asset({ asset: 0x940181a94A35A4569E4529A3CDfB74e38FD98631, decimals: 18 });
     }
@@ -122,8 +133,16 @@ library Assets {
         return Asset({ asset: 0x2416092f143378750bb29b79eD961ab195CcEea5, decimals: 18 });
     }
 
+    function GHO() internal pure returns (Asset memory) {
+        return Asset({ asset: 0x6Bb7a212910682DCFdbd5BCBb3e28FB4E8da10Ee, decimals: 18 });
+    }
+
     function LBTC() internal pure returns (Asset memory) {
         return Asset({ asset: 0xecAc9C5F704e954931349Da37F60E39f515c11c1, decimals: 8 });
+    }
+
+    function MORPHO() internal pure returns (Asset memory) {
+        return Asset({ asset: 0xBAa5CC21fd487B8Fcc2F632f3F4E8D37262a0842, decimals: 18 });
     }
 
     function RDNT() internal pure returns (Asset memory) {
@@ -174,6 +193,10 @@ library Assets {
         return Asset({ asset: 0x04C0599Ae5A44757c0af6F9eC3b93da8976c150A, decimals: 18 });
     }
 
+    function WELL() internal pure returns (Asset memory) {
+        return Asset({ asset: 0xA88594D404727625A9437C3f886C7643872296AE, decimals: 18 });
+    }
+
     function WETH() internal pure returns (Asset memory) {
         return Asset({ asset: 0x4200000000000000000000000000000000000006, decimals: 18 });
     }
@@ -205,6 +228,16 @@ library MerkleRoots {
 }
 
 library Oracles {
+    function AAVE_USD() internal pure returns (Oracle memory) {
+        return Oracle({
+            oracle: 0x3d6774EF702A10b20FCa8Ed40FC022f7E4938e07,
+            baseAsset: "AAVE",
+            quoteAsset: "USD",
+            cutOffTime: 25 hours,
+            id: 22
+        });
+    }
+
     function AERO_USD() internal pure returns (Oracle memory) {
         return Oracle({
             oracle: 0x4EC5970fC728C5f65ba413992CD5fF6FD70fcfF0,
@@ -295,13 +328,33 @@ library Oracles {
         });
     }
 
+    function GHO_USD() internal pure returns (Oracle memory) {
+        return Oracle({
+            oracle: 0x42868EFcee13C0E71af89c04fF7d96f5bec479b0,
+            baseAsset: "GHO",
+            quoteAsset: "USD",
+            cutOffTime: 25 hours,
+            id: 23
+        });
+    }
+
     function LBTC_USD() internal pure returns (Oracle memory) {
         return Oracle({
             oracle: 0x9e07546c9Fe8868855CD04B26051a26D1599E270,
             baseAsset: "LBTC",
             quoteAsset: "USD",
             cutOffTime: 25 hours,
-            id: 22
+            id: 24
+        });
+    }
+
+    function MORPHO_USD() internal pure returns (Oracle memory) {
+        return Oracle({
+            oracle: 0xe95e258bb6615d47515Fc849f8542dA651f12bF6,
+            baseAsset: "MORPHO",
+            quoteAsset: "USD",
+            cutOffTime: 25 hours,
+            id: 25
         });
     }
 
@@ -412,6 +465,16 @@ library Oracles {
             quoteAsset: "ETH",
             id: 11,
             cutOffTime: 25 hours
+        });
+    }
+
+    function WELL_USD() internal pure returns (Oracle memory) {
+        return Oracle({
+            oracle: 0xc15d9944dAefE2dB03e53bef8DDA25a56832C5fe,
+            baseAsset: "WELL",
+            quoteAsset: "USD",
+            cutOffTime: 25 hours,
+            id: 26
         });
     }
 
