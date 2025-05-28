@@ -29,15 +29,15 @@ contract AddAssets is Base_Script {
         addToBatch(SAFE, address(erc20PrimaryAM), addAsset(Assets.WELL(), Oracles.WELL_USD()));
 
         // Add Aerodrome pools to aerodrome AM.
-        bytes memory calldata_ = abi.encodeCall(aerodromePoolAM.addPool, (AerodromePools.V_AERO_WELL));
+        bytes memory calldata_ = abi.encodeCall(aerodromePoolAM.addAsset, (AerodromePools.V_AERO_WELL));
         addToBatch(SAFE, address(aerodromePoolAM), calldata_);
-        calldata_ = abi.encodeCall(aerodromePoolAM.addPool, (AerodromePools.V_WETH_WELL));
+        calldata_ = abi.encodeCall(aerodromePoolAM.addAsset, (AerodromePools.V_WETH_WELL));
         addToBatch(SAFE, address(aerodromePoolAM), calldata_);
 
         // Add Aerodrome gauge to staked Aerodrome AM.
-        calldata_ = abi.encodeCall(stakedAerodromeAM.addGauge, (AerodromeGauges.V_AERO_WELL));
+        calldata_ = abi.encodeCall(stakedAerodromeAM.addAsset, (AerodromeGauges.V_AERO_WELL));
         addToBatch(SAFE, address(stakedAerodromeAM), calldata_);
-        calldata_ = abi.encodeCall(stakedAerodromeAM.addGauge, (AerodromeGauges.V_WETH_WELL));
+        calldata_ = abi.encodeCall(stakedAerodromeAM.addAsset, (AerodromeGauges.V_WETH_WELL));
         addToBatch(SAFE, address(stakedAerodromeAM), calldata_);
 
         // Add Aerodrome gauge to Staked Slipstream AM.
