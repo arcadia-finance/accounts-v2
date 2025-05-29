@@ -17,14 +17,12 @@ contract AddAssets is Base_Script {
         // Add Chainlink oracles.
         addToBatch(SAFE, address(chainlinkOM), addOracle(Oracles.AAVE_USD()));
         addToBatch(SAFE, address(chainlinkOM), addOracle(Oracles.GHO_USD()));
-        addToBatch(SAFE, address(chainlinkOM), addOracle(Oracles.LBTC_USD()));
         addToBatch(SAFE, address(chainlinkOM), addOracle(Oracles.MORPHO_USD()));
         addToBatch(SAFE, address(chainlinkOM), addOracle(Oracles.WELL_USD()));
 
         // Add Primary assets.
         addToBatch(SAFE, address(erc20PrimaryAM), addAsset(Assets.AAVE(), Oracles.AAVE_USD()));
         addToBatch(SAFE, address(erc20PrimaryAM), addAsset(Assets.GHO(), Oracles.GHO_USD()));
-        addToBatch(SAFE, address(erc20PrimaryAM), addAsset(Assets.LBTC(), Oracles.LBTC_USD()));
         addToBatch(SAFE, address(erc20PrimaryAM), addAsset(Assets.MORPHO(), Oracles.MORPHO_USD()));
         addToBatch(SAFE, address(erc20PrimaryAM), addAsset(Assets.WELL(), Oracles.WELL_USD()));
 
@@ -41,8 +39,6 @@ contract AddAssets is Base_Script {
         addToBatch(SAFE, address(stakedAerodromeAM), calldata_);
 
         // Add Aerodrome gauge to Staked Slipstream AM.
-        calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL1_CBBTC_LBTC));
-        addToBatch(SAFE, address(stakedSlipstreamAM), calldata_);
         calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL200_WETH_AAVE));
         addToBatch(SAFE, address(stakedSlipstreamAM), calldata_);
         calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL200_WETH_MORPHO));
