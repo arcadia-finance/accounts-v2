@@ -234,7 +234,7 @@ library Oracles {
             baseAsset: "AAVE",
             quoteAsset: "USD",
             cutOffTime: 25 hours,
-            id: 22
+            id: 23
         });
     }
 
@@ -334,7 +334,7 @@ library Oracles {
             baseAsset: "GHO",
             quoteAsset: "USD",
             cutOffTime: 25 hours,
-            id: 23
+            id: 24
         });
     }
 
@@ -344,7 +344,7 @@ library Oracles {
             baseAsset: "LBTC",
             quoteAsset: "USD",
             cutOffTime: 25 hours,
-            id: 24
+            id: 22
         });
     }
 
