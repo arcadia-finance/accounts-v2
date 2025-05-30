@@ -10,7 +10,7 @@ import { AccountV2 } from "../../../utils/mocks/accounts/AccountV2.sol";
 import { AccountVariableVersion } from "../../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { Factory } from "../../../../src/Factory.sol";
-import { RegistryExtension } from "../../../utils/extensions/RegistryExtension.sol";
+import { RegistryL2Extension } from "../../../utils/extensions/RegistryL2Extension.sol";
 
 /**
  * @notice Fuzz tests for the function "upgradeAccount" of contract "AccountV1".
@@ -156,7 +156,7 @@ contract UpgradeAccount_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
         AccountVariableVersion(newImplementation).setFactory(address(factory));
 
         vm.startPrank(users.owner);
-        RegistryExtension registry2 = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
+        RegistryL2Extension registry2 = new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
         vm.assume(newImplementation != address(registry2));
         factory.setNewAccountInfo(address(registry2), newImplementation, Constants.upgradeRoot1To2, data);
         vm.stopPrank();

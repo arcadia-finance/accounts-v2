@@ -15,7 +15,7 @@ import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../mocks/tokens/ERC20Mock.sol";
 import { ERC20PrimaryAMExtension } from "../../extensions/ERC20PrimaryAMExtension.sol";
 import { Factory } from "../../../../src/Factory.sol";
-import { RegistryExtension } from "../../extensions/RegistryExtension.sol";
+import { RegistryL2Extension } from "../../extensions/RegistryL2Extension.sol";
 import { SequencerUptimeOracle } from "../../mocks/oracles/SequencerUptimeOracle.sol";
 import { Utils } from "../../Utils.sol";
 
@@ -28,7 +28,7 @@ contract ArcadiaAccountsFixture is Base_Test {
         // Deploy the base test contracts.
         vm.startPrank(users.owner);
         factory = new Factory();
-        registry = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
+        registry = new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
         chainlinkOM = new ChainlinkOMExtension(address(registry));
         erc20AM = new ERC20PrimaryAMExtension(address(registry));
 

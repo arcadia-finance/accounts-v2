@@ -156,7 +156,7 @@ contract AccountSpot is AccountStorageV1, IAccount {
         registry = newRegistry;
 
         // Hook on the new logic to finalize upgrade.
-        // Used to eg. Remove exposure from old Registry and add exposure to the new Registry.
+        // Used to eg. Remove exposure from old Registry and add exposure to the new RegistryL2.
         // Extra data can be added by the Factory for complex instructions.
         this.upgradeHook(oldImplementation, address(0), oldVersion, data);
 

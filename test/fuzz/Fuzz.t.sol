@@ -20,7 +20,7 @@ import { FloorERC721AMExtension } from "../utils/extensions/FloorERC721AMExtensi
 import { FloorERC1155AMExtension } from "../utils/extensions/FloorERC1155AMExtension.sol";
 import { MockERC20, MockERC721, MockERC1155, MockOracles, Rates } from "../utils/Types.sol";
 import { NativeTokenAMExtension } from "../utils/extensions/NativeTokenAMExtension.sol";
-import { Registry } from "../../src/Registry.sol";
+import { RegistryL2 } from "../../src/registries/RegistryL2.sol";
 
 /**
  * @notice Common logic needed by all fuzz tests.

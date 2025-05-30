@@ -10,7 +10,7 @@ import { AccountV2 } from "../../utils/mocks/accounts/AccountV2.sol";
 import { AccountVariableVersion } from "../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { Factory } from "../../../src/Factory.sol";
-import { Registry, RegistryExtension } from "../../utils/extensions/RegistryExtension.sol";
+import { RegistryL2, RegistryL2Extension } from "../../utils/extensions/RegistryL2Extension.sol";
 
 /**
  * @notice Fuzz tests for the function "setNewAccountInfo" of contract "Factory".
@@ -21,7 +21,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     AccountVariableVersion internal accountVarVersion;
-    RegistryExtension internal registry2;
+    RegistryL2Extension internal registry2;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -76,7 +76,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(newAssetAddress != address(0));
 
         vm.startPrank(users.owner);
-        registry2 = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
+        registry2 = new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
         vm.expectRevert(bytes(""));
         factory.setNewAccountInfo(address(registry2), logic, Constants.upgradeProof1To2, "");
         vm.stopPrank();
@@ -109,7 +109,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(nonFactory != address(factory));
 
         AccountV2 account_ = new AccountV2(nonFactory);
-        Registry badRegistry = new Registry(nonFactory, address(sequencerUptimeOracle));
+        RegistryL2 badRegistry = new RegistryL2(nonFactory, address(sequencerUptimeOracle));
 
         vm.prank(users.owner);
         vm.expectRevert(FactoryErrors.FactoryMismatch.selector);
@@ -133,7 +133,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         AccountVariableVersion(logic).setFactory(address(factory));
 
         vm.prank(users.owner);
-        registry2 = new RegistryExtension(address(factory), address(sequencerUptimeOracle));
+        registry2 = new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
         vm.assume(logic != address(registry2));
 
         vm.startPrank(users.owner);
