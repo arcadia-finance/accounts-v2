@@ -11,7 +11,7 @@ import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
 import { AccountVariableVersion } from "../../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { Factory } from "../../../../src/Factory.sol";
-import { RegistryExtension } from "../../../utils/extensions/RegistryExtension.sol";
+import { RegistryL2Extension } from "../../../utils/extensions/RegistryL2Extension.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 /**

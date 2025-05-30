@@ -8,7 +8,7 @@ import { BaseHandler } from "./BaseHandler.sol";
 import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
 import { AccountV2 } from "../../utils/mocks/accounts/AccountV2.sol";
 import { Factory } from "../../../src/Factory.sol";
-import { RegistryExtension } from "../../utils/extensions/RegistryExtension.sol";
+import { RegistryL2Extension } from "../../utils/extensions/RegistryL2Extension.sol";
 import { CreditorMock } from "../../utils/mocks/creditors/CreditorMock.sol";
 import { Constants } from "../../utils/Constants.sol";
 
@@ -27,14 +27,14 @@ contract FactoryHandler is BaseHandler {
     //////////////////////////////////////////////////////////////////////////*/
 
     Factory internal factory;
-    RegistryExtension internal registry;
+    RegistryL2Extension internal registry;
     AccountV1 internal account;
     AccountV2 internal accountV2;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTRUCTOR
     //////////////////////////////////////////////////////////////////////////*/
-    constructor(Factory factory_, RegistryExtension registryExtension_, AccountV1 account_, AccountV2 accountV2_) {
+    constructor(Factory factory_, RegistryL2Extension registryExtension_, AccountV1 account_, AccountV2 accountV2_) {
         factory = factory_;
         registry = registryExtension_;
         account = account_;

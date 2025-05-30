@@ -184,7 +184,7 @@ contract AccountV2 is AccountStorageV2 {
         registry = newRegistry;
 
         // Hook on the new logic to finalize upgrade.
-        // Used to eg. Remove exposure from old Registry and Add exposure to the new Registry.
+        // Used to eg. Remove exposure from old Registry and Add exposure to the new RegistryL2.
         // Extra data can be added by the factory for complex instructions.
         this.upgradeHook(oldImplementation, oldRegistry, oldVersion, data);
 

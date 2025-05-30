@@ -11,7 +11,7 @@ import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
 import { ERC20PrimaryAM } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
 import { Factory } from "../src/Factory.sol";
 import { Asset, Oracle } from "./utils/constants/Shared.sol";
-import { Registry } from "../src/Registry.sol";
+import { RegistryL2 } from "../src/registries/RegistryL2.sol";
 import { SafeTransactionBuilder } from "./utils/SafeTransactionBuilder.sol";
 import { SlipstreamAM } from "../src/asset-modules/Slipstream/SlipstreamAM.sol";
 import { StakedAerodromeAM } from "../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
@@ -30,7 +30,7 @@ abstract contract Base_Script is Test, SafeTransactionBuilder {
     ChainlinkOM internal chainlinkOM = ChainlinkOM(OracleModules.CHAINLINK);
     ERC20PrimaryAM internal erc20PrimaryAM = ERC20PrimaryAM(AssetModules.ERC20_PRIMARY);
     Factory internal factory = Factory(ArcadiaAccounts.FACTORY);
-    Registry internal registry = Registry(ArcadiaAccounts.REGISTRY);
+    RegistryL2 internal registry = RegistryL2(ArcadiaAccounts.REGISTRY);
     SlipstreamAM internal slipstreamAM = SlipstreamAM(AssetModules.SLIPSTREAM);
     StakedAerodromeAM internal stakedAerodromeAM = StakedAerodromeAM(AssetModules.STAKED_AERO);
     StakedSlipstreamAM internal stakedSlipstreamAM = StakedSlipstreamAM(AssetModules.STAKED_SLIPSTREAM);

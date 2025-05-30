@@ -10,7 +10,7 @@ import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountVariableVersion } from "../../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { Factory } from "../../../../src/Factory.sol";
-import { RegistryExtension } from "../../../utils/extensions/RegistryExtension.sol";
+import { RegistryL2Extension } from "../../../utils/extensions/RegistryL2Extension.sol";
 
 /**
  * @notice Fuzz tests for the function "upgradeAccount" of contract "AccountSpot".

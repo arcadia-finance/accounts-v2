@@ -11,7 +11,7 @@ import { ChainlinkOMExtension } from "./utils/extensions/ChainlinkOMExtension.so
 import { ERC20PrimaryAMExtension } from "./utils/extensions/ERC20PrimaryAMExtension.sol";
 import { ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";
 import { Factory } from "../src/Factory.sol";
-import { RegistryExtension } from "./utils/extensions/RegistryExtension.sol";
+import { RegistryL2Extension } from "./utils/extensions/RegistryL2Extension.sol";
 import { SequencerUptimeOracle } from "./utils/mocks/oracles/SequencerUptimeOracle.sol";
 import { Users } from "./utils/Types.sol";
 
@@ -40,7 +40,7 @@ abstract contract Base_Test is Test {
     ChainlinkOMExtension internal chainlinkOM;
     ERC20PrimaryAMExtension internal erc20AM;
     Factory internal factory;
-    RegistryExtension internal registry;
+    RegistryL2Extension internal registry;
     SequencerUptimeOracle internal sequencerUptimeOracle;
 
     /*//////////////////////////////////////////////////////////////////////////
