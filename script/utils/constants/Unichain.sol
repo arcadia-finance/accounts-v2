@@ -18,6 +18,10 @@ library Assets {
     function WETH() internal pure returns (Asset memory) {
         return Asset({ asset: 0x4200000000000000000000000000000000000006, decimals: 18 });
     }
+
+    function XVELO() internal pure returns (Asset memory) {
+        return Asset({ asset: 0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81, decimals: 18 });
+    }
 }
 
 library ExternalContracts {

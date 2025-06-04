@@ -34,4 +34,8 @@ contract StakedStargateAMExtension is StakedStargateAM {
         (valueInUsd, collateralFactor, liquidationFactor) =
             _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
     }
+
+    function isInitialized() public view returns (bool) {
+        return initialized;
+    }
 }

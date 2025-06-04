@@ -78,6 +78,24 @@ contract AddAsset_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
         stakedAerodromeAM.addAsset(address(aeroGauge));
     }
 
+    function testFuzz_Revert_AddAsset_RewardTokenNotAllowed() public {
+        // Given : the aeroPool is allowed in the Registry
+        aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
+        vm.prank(users.owner);
+        aerodromePoolAM.addAsset(address(aeroPool));
+
+        // And : Valid aeroGauge
+        aeroGauge = createGaugeAerodrome(aeroPool, AERO);
+
+        // And: No asset module is set for the rewardToken
+        registry.setAssetModule(AERO, address(0));
+
+        // When :  Calling addAsset()
+        // Then : It should revert
+        vm.expectRevert(StakedAerodromeAM.RewardTokenNotAllowed.selector);
+        stakedAerodromeAM.addAsset(address(aeroGauge));
+    }
+
     function testFuzz_Success_AddAsset() public {
         // Given : the aeroPool is allowed in the Registry
         aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
@@ -94,5 +112,8 @@ contract AddAsset_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
         assertEq(stakedAerodromeAM.assetToGauge(address(aeroPool)), address(aeroGauge));
         (,, bool allowed) = stakedAerodromeAM.assetState(address(aeroPool));
         assertEq(allowed, true);
+
+        // And: Asset module is initiated.
+        assertTrue(stakedAerodromeAM.isInitialized());
     }
 }

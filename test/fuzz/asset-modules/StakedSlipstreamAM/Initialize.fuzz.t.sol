@@ -41,6 +41,22 @@ contract Initialize_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test
         assetModule.initialize();
     }
 
+    function testFuzz_Revert_initialize_RewardTokenNotAllowed() public {
+        // Given: No asset module is set for the rewardToken
+        registry.setAssetModule(AERO, address(0));
+
+        // And : Asset Module is deployed.
+        vm.prank(users.owner);
+        StakedSlipstreamAM assetModule =
+            new StakedSlipstreamAM(address(registry), address(slipstreamPositionManager), address(voter), address(AERO));
+
+        // When : Calling initialize().
+        // Then : It should revert.
+        vm.prank(users.owner);
+        vm.expectRevert(StakedSlipstreamAM.RewardTokenNotAllowed.selector);
+        assetModule.initialize();
+    }
+
     function testFuzz_Revert_initialize_AlreadyInitialized() public {
         // Given : Asset Module is deployed.
         vm.prank(users.owner);
