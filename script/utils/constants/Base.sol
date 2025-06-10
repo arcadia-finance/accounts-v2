@@ -31,6 +31,7 @@ library AerodromeGauges {
     address internal constant CL100_WETH_EURC = 0xb0C500d53720ff63F000de6D26f7Fe5c66571e3d;
     address internal constant CL100_WETH_USDC = 0xF33a96b5932D9E9B9A0eDA447AbD8C9d48d2e0c8;
     address internal constant CL100_WETH_USDT = 0x2c0CbF25Bb64687d11ea2E4a3dc893D56Ca39c10;
+    address internal constant CL100_WETH_VVV = 0x5d05eF25a5f933271E1f0FDc02dC3EaB6a4eA687;
     address internal constant CL200_AERO_WSTETH = 0x45F8b8eC9c92D09BA8495074436fD97073423041;
     address internal constant CL200_AERO_CBBTC = 0x2B74B62c564456C48055bd515A62594742b3f545;
     address internal constant CL200_TBTC_WETH = 0x996802075582Af2eE133fb30Cc5A9E8A671d3c3a;
@@ -41,6 +42,7 @@ library AerodromeGauges {
     address internal constant CL200_WETH_AERO = 0xdE8FF0D3e8ab225110B088a250b546015C567E27;
     address internal constant CL200_WETH_DEGEN = 0x319e23D38d8ee58783Ff5331507b808709bd00b0;
     address internal constant CL200_WETH_MORPHO = 0xf008577BfbB3B8EAAaC22C1933C9a8cd876fCFd2;
+    address internal constant CL200_WETH_VVV = 0x6831125a82Af7417e0cde3A214c03fE248Ff6AA8;
     address internal constant CL200_WETH_WELL = 0xe871A267A418C200F8b92Ae21397221122B79808;
     address internal constant CL200_WETH_RDNT = 0x8D88C541f22de965536bD1849013caEE6ce90e11;
     address internal constant S_EZETH_WETH = 0x4Fa58b3Bec8cE12014c7775a0B3da7e6AdC3c7eA;
@@ -64,6 +66,7 @@ library AerodromeGauges {
     address internal constant V_WETH_EURC = 0x21D4eF9D2b66069f3307765A0349526f8E988294;
     address internal constant V_WETH_USDBC = 0xeca7Ff920E7162334634c721133F3183B83B0323;
     address internal constant V_WETH_USDC = 0x519BBD1Dd8C6A94C46080E24f316c14Ee758C025;
+    address internal constant V_WETH_VVV = 0x37a70295FCefebBB0a29735A53E2e6786A02F930;
     address internal constant V_WETH_WELL = 0x7b6964440b615aC1d31bc95681B133E112fB2684;
     address internal constant V_WETH_WRSETH = 0x2da7789a6371F550caF9054694F5A5A6682903f9;
     address internal constant V_WETH_WSTETH = 0xDf7c8F17Ab7D47702A4a4b6D951d2A4c90F99bf4;
@@ -91,6 +94,7 @@ library AerodromePools {
     address internal constant V_WETH_EURC = 0x9DFf4b5AE4fD673213502Ab8fbf6d36015efb3E1;
     address internal constant V_WETH_USDBC = 0xB4885Bc63399BF5518b994c1d0C153334Ee579D0;
     address internal constant V_WETH_USDC = 0xcDAC0d6c6C59727a65F871236188350531885C43;
+    address internal constant V_WETH_VVV = 0x01784ef301D79e4B2DF3a21ad9a536d4cF09A5Ce;
     address internal constant V_WETH_WELL = 0x89D0F320ac73dd7d9513FFC5bc58D1161452a657;
     address internal constant V_WETH_WRSETH = 0xA24382874A6FD59de45BbccFa160488647514c28;
     address internal constant V_WETH_WSTETH = 0xA6385c73961dd9C58db2EF0c4EB98cE4B60651e8;
@@ -187,6 +191,10 @@ library Assets {
 
     function VIRTUAL() internal pure returns (Asset memory) {
         return Asset({ asset: 0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b, decimals: 18 });
+    }
+
+    function VVV() internal pure returns (Asset memory) {
+        return Asset({ asset: 0xacfE6019Ed1A7Dc6f7B508C02d1b04ec88cC21bf, decimals: 18 });
     }
 
     function WEETH() internal pure returns (Asset memory) {
@@ -455,6 +463,16 @@ library Oracles {
             quoteAsset: "USD",
             cutOffTime: 25 hours,
             id: 21
+        });
+    }
+
+    function VVV_USD() internal pure returns (Oracle memory) {
+        return Oracle({
+            oracle: 0x8eC6a128a430f7A850165bcF18facc9520a9873F,
+            baseAsset: "VVV",
+            quoteAsset: "USD",
+            cutOffTime: 25 hours,
+            id: 27
         });
     }
 
