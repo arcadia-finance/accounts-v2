@@ -106,4 +106,8 @@ contract StakedAerodromeAMExtension is StakedAerodromeAM {
     {
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
     }
+
+    function isInitialized() public view returns (bool) {
+        return initialized;
+    }
 }

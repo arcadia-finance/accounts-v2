@@ -40,7 +40,7 @@ contract AddAsset_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test {
         poolMock.setToken(address(mockERC20.token1));
         stargateAssetModule.addAsset(poolId);
 
-        // Given : An Asset is already set.
+        // And : An Asset is already set.
         poolMock.setToken(address(mockERC20.token1));
         lpStakingTimeMock.setInfoForPoolId(pid, 0, address(poolMock));
         vm.prank(users.owner);
@@ -50,6 +50,26 @@ contract AddAsset_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test {
         // Then : It should revert.
         vm.startPrank(users.owner);
         vm.expectRevert(StakedStargateAM.AssetAlreadySet.selector);
+        stakedStargateAM.addAsset(pid);
+        vm.stopPrank();
+    }
+
+    function testFuzz_Revert_addAsset_RewardTokenNotAllowed(uint256 poolId, uint256 pid) public {
+        // Given: Pool is added to the StargateAssetModule.
+        sgFactoryMock.setPool(poolId, address(poolMock));
+        poolMock.setToken(address(mockERC20.token1));
+        stargateAssetModule.addAsset(poolId);
+
+        // And : poolInfo is correct
+        lpStakingTimeMock.setInfoForPoolId(pid, 0, address(poolMock));
+
+        // And: No asset module is set for the rewardToken
+        registry.setAssetModule(address(lpStakingTimeMock.eToken()), address(0));
+
+        // When : An asset is added to the AM.
+        // Then : It should revert.
+        vm.startPrank(users.owner);
+        vm.expectRevert(StakedStargateAM.RewardTokenNotAllowed.selector);
         stakedStargateAM.addAsset(pid);
         vm.stopPrank();
     }
@@ -72,5 +92,8 @@ contract AddAsset_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test {
 
         (,, bool allowed) = stakedStargateAM.assetState(address(poolMock));
         assertTrue(allowed);
+
+        // And: Asset module is initiated.
+        assertTrue(stakedStargateAM.isInitialized());
     }
 }
