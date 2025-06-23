@@ -25,6 +25,9 @@ contract StakedAerodromeAM is StakingAM {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
+    // Bool indicating if the AssetModule has been initialized and rewardtoken is allowed.
+    bool internal initialized;
+
     // Maps an Aerodrome Finance Pool to its gauge.
     mapping(address asset => address gauge) public assetToGauge;
 
@@ -52,7 +55,6 @@ contract StakedAerodromeAM is StakingAM {
         StakingAM(registry, "Arcadia Staked Aerodrome Positions", "aSAEROP")
     {
         REWARD_TOKEN = ERC20(rewardToken);
-        if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
         AERO_VOTER = IAeroVoter(aerodromeVoter);
     }
 
@@ -72,6 +74,10 @@ contract StakedAerodromeAM is StakingAM {
         if (assetState[pool].allowed) revert AssetAlreadySet();
 
         if (IAeroGauge(gauge).rewardToken() != address(REWARD_TOKEN)) revert RewardTokenNotValid();
+        if (!initialized) {
+            if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
+            initialized = true;
+        }
 
         assetToGauge[pool] = gauge;
         _addAsset(pool);

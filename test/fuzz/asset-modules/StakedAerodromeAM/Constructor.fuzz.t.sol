@@ -23,17 +23,6 @@ contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test 
     /*///////////////////////////////////////////////////////////////
                             FUZZ TESTS
     ///////////////////////////////////////////////////////////////*/
-
-    function testFuzz_Revert_constructor_RewardTokenNotAllowed() public {
-        // Given: No asset module is set for the rewardToken
-        registry.setAssetModule(AERO, address(0));
-
-        // When: An asset is added to the AM.
-        // Then: It reverts.
-        vm.expectRevert(StakedAerodromeAM.RewardTokenNotAllowed.selector);
-        new StakedAerodromeAM(address(registry), address(voter), AERO);
-    }
-
     function testFuzz_success_constructor() public {
         StakedAerodromeAM assetModule = new StakedAerodromeAM(address(registry), address(voter), AERO);
 
