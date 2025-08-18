@@ -2,16 +2,16 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.22;
 
 import { IFactory } from "../../interfaces/IFactory.sol";
 import { Owned } from "../../../lib/solmate/src/auth/Owned.sol";
 
 /**
- * @title .
+ * @title Guard for preventing multi Account reentrancy and corss account pausing.
  * @author Pragma Labs
  */
-contract CrossAccountsGuard is Owned {
+contract AccountsGuard is Owned {
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
@@ -51,7 +51,7 @@ contract CrossAccountsGuard is Owned {
     ////////////////////////////////////////////////////////////// */
 
     event GuardianChanged(address indexed user, address indexed newGuardian);
-    event Lock(address indexed account);
+    event Lock(address indexed account, bytes4 indexed selector);
     event PauseFlagsUpdated(bool pauseUpdate);
 
     /* //////////////////////////////////////////////////////////////
@@ -92,7 +92,8 @@ contract CrossAccountsGuard is Owned {
 
     /**
      * @notice Locks the cross accounts guard.
-     * @notice pauseCheck Bool indicating if a pause check should be done.
+     * @param pauseCheck Bool indicating if a pause check should be done.
+     * @param selector The selector of the Account function that is being called.
      * @dev Serves as a cross account reentrancy and pause guard.
      * @dev lock() and unlock() should always be called atomically at the beginning and end of any Account-function
      * that should be protected by the cross accounts guard.
@@ -101,7 +102,7 @@ contract CrossAccountsGuard is Owned {
      * where the Guard was locked but not unlocked (should never happen in practice),
      * then only transactions within the same block as the faulty trasaction will revert.
      */
-    function lock(bool pauseCheck) external {
+    function lock(bool pauseCheck, bytes4 selector) external {
         if (pauseCheck && paused) revert Paused();
         if (account != address(0) && blockNumber == block.number) revert Reentered();
         if (!ARCADIA_FACTORY.isAccount(msg.sender)) revert NotAnAccount();
@@ -109,7 +110,7 @@ contract CrossAccountsGuard is Owned {
         account = msg.sender;
         blockNumber = uint32(block.number);
 
-        emit Lock(msg.sender);
+        emit Lock(msg.sender, selector);
     }
 
     /**

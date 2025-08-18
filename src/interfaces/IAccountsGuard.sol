@@ -4,8 +4,8 @@
  */
 pragma solidity ^0.8.22;
 
-interface ICrossAccountsGuard {
-    function lock(bool pauseCheck) external;
+interface IAccountsGuard {
+    function lock(bool pauseCheck, bytes4 selector) external;
 
     function unLock() external;
 }

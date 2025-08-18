@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.22;
 
-import { AccountStorageV1 } from "../AccountStorageV1.sol";
+import { AccountStorageV1 } from "./AccountStorageV1.sol";
 
 /**
  * @title Arcadia Accounts Storage
@@ -16,4 +16,4 @@ import { AccountStorageV1 } from "../AccountStorageV1.sol";
  * @dev Since Accounts are proxies and can be upgraded by the user, all storage variables should be declared in this contract.
  * New account versions must create a new account storage contract and inherit this storage contract.
  */
-contract AccountStorageV2 is AccountStorageV1 { }
+contract AccountStorageV3 is AccountStorageV1 { }

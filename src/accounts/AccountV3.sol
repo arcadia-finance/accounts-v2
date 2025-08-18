@@ -4,19 +4,19 @@
  */
 pragma solidity ^0.8.22;
 
-import { AccountErrors } from "../../libraries/Errors.sol";
-import { AccountStorageV2 } from "./AccountStorageV2.sol";
-import { ERC20, SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
-import { IERC721 } from "../../interfaces/IERC721.sol";
-import { IERC1155 } from "../../interfaces/IERC1155.sol";
-import { IRegistry } from "../../interfaces/IRegistry.sol";
-import { ICreditor } from "../../interfaces/ICreditor.sol";
-import { IActionBase, ActionData } from "../../interfaces/IActionBase.sol";
-import { IAccount } from "../../interfaces/IAccount.sol";
-import { ICrossAccountsGuard } from "../../interfaces/ICrossAccountsGuard.sol";
-import { IFactory } from "../../interfaces/IFactory.sol";
-import { IPermit2 } from "../../interfaces/IPermit2.sol";
+import { AccountErrors } from "../libraries/Errors.sol";
+import { AccountStorageV3 } from "./AccountStorageV3.sol";
+import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
+import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
+import { IERC721 } from "../interfaces/IERC721.sol";
+import { IERC1155 } from "../interfaces/IERC1155.sol";
+import { IRegistry } from "../interfaces/IRegistry.sol";
+import { ICreditor } from "../interfaces/ICreditor.sol";
+import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
+import { IAccount } from "../interfaces/IAccount.sol";
+import { IAccountsGuard } from "../interfaces/IAccountsGuard.sol";
+import { IFactory } from "../interfaces/IFactory.sol";
+import { IPermit2 } from "../interfaces/IPermit2.sol";
 
 /**
  * @title Arcadia Accounts
@@ -33,7 +33,7 @@ import { IPermit2 } from "../../interfaces/IPermit2.sol";
  * Arcadia's Account functions will guarantee you a certain value of the Account.
  * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
  */
-contract AccountV2 is AccountStorageV2, IAccount {
+contract AccountV3 is AccountStorageV3, IAccount {
     using AssetValuationLib for AssetValueAndRiskFactors[];
     using SafeTransferLib for ERC20;
 
@@ -56,8 +56,8 @@ contract AccountV2 is AccountStorageV2, IAccount {
     bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
     // The contract address of the Arcadia Accounts Factory.
     address public immutable FACTORY;
-    // The contract address of the Cross Accounts Guard.
-    ICrossAccountsGuard public immutable CROSS_ACCOUNTS_GUARD;
+    // The contract address of the Accounts Guard.
+    IAccountsGuard public immutable ACCOUNTS_GUARD;
     // Uniswap Permit2 contract
     IPermit2 internal immutable PERMIT2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
@@ -79,13 +79,15 @@ contract AccountV2 is AccountStorageV2, IAccount {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param pauseCheck Bool indicating if a pause check should be done.
+     * @param selector The selector of the Account function that is being called.
      * @dev Throws if cross accounts guard is reentered or paused.
      * @dev Locks/unlocks the cross accounts guard before/after the function is executed.
      */
-    modifier nonReentrant(bool pauseCheck) {
-        CROSS_ACCOUNTS_GUARD.lock(pauseCheck);
+    modifier nonReentrant(bool pauseCheck, bytes4 selector) {
+        ACCOUNTS_GUARD.lock(pauseCheck, selector);
         _;
-        CROSS_ACCOUNTS_GUARD.unLock();
+        ACCOUNTS_GUARD.unLock();
     }
 
     /**
@@ -152,15 +154,15 @@ contract AccountV2 is AccountStorageV2, IAccount {
 
     /**
      * @param factory The contract address of the Arcadia Accounts Factory.
-     * @param crossAccountsGuard The contract address of the Cross Accounts Guard.
+     * @param accountsGuard The contract address of the Accounts Guard.
      */
-    constructor(address factory, address crossAccountsGuard) {
+    constructor(address factory, address accountsGuard) {
         // This will only be the owner of the Account implementation.
         // and will not affect any subsequent proxy implementation using this Account implementation.
         owner = msg.sender;
 
         FACTORY = factory;
-        CROSS_ACCOUNTS_GUARD = ICrossAccountsGuard(crossAccountsGuard);
+        ACCOUNTS_GUARD = IAccountsGuard(accountsGuard);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -177,7 +179,10 @@ contract AccountV2 is AccountStorageV2, IAccount {
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
      * @dev The Creditor will only be set if it's a non-zero address, in this case the numeraire_ passed as input will be ignored.
      */
-    function initialize(address owner_, address registry_, address creditor_) external nonReentrant(WITH_PAUSE_CHECK) {
+    function initialize(address owner_, address registry_, address creditor_)
+        external
+        nonReentrant(WITH_PAUSE_CHECK, this.initialize.selector)
+    {
         if (registry != address(0)) revert AccountErrors.AlreadyInitialized();
         if (registry_ == address(0)) revert AccountErrors.InvalidRegistry();
         owner = owner_;
@@ -197,7 +202,7 @@ contract AccountV2 is AccountStorageV2, IAccount {
     function upgradeAccount(address newImplementation, address newRegistry, uint256 newVersion, bytes calldata data)
         external
         onlyFactory
-        nonReentrant(WITH_PAUSE_CHECK)
+        nonReentrant(WITHOUT_PAUSE_CHECK, this.upgradeAccount.selector)
         notDuringAuction
         updateActionTimestamp
     {
@@ -288,7 +293,11 @@ contract AccountV2 is AccountStorageV2, IAccount {
      * @notice Sets the Numeraire of the Account.
      * @param numeraire_ The new Numeraire for the Account.
      */
-    function setNumeraire(address numeraire_) external onlyOwner nonReentrant(WITH_PAUSE_CHECK) {
+    function setNumeraire(address numeraire_)
+        external
+        onlyOwner
+        nonReentrant(WITH_PAUSE_CHECK, this.setNumeraire.selector)
+    {
         if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
         _setNumeraire(numeraire_);
     }
@@ -318,7 +327,7 @@ contract AccountV2 is AccountStorageV2, IAccount {
     function openMarginAccount(address newCreditor)
         external
         onlyOwner
-        nonReentrant(WITH_PAUSE_CHECK)
+        nonReentrant(WITH_PAUSE_CHECK, this.openMarginAccount.selector)
         notDuringAuction
         updateActionTimestamp
     {
@@ -369,7 +378,12 @@ contract AccountV2 is AccountStorageV2, IAccount {
      * @notice Closes the margin account of the Creditor.
      * @dev Currently only one Creditor can be set.
      */
-    function closeMarginAccount() external onlyOwner nonReentrant(WITHOUT_PAUSE_CHECK) notDuringAuction {
+    function closeMarginAccount()
+        external
+        onlyOwner
+        nonReentrant(WITHOUT_PAUSE_CHECK, this.closeMarginAccount.selector)
+        notDuringAuction
+    {
         // Cache creditor.
         address creditor_ = creditor;
         if (creditor_ == address(0)) revert AccountErrors.CreditorNotSet();
@@ -521,7 +535,7 @@ contract AccountV2 is AccountStorageV2, IAccount {
     function startLiquidation(address initiator)
         external
         onlyLiquidator
-        nonReentrant(WITHOUT_PAUSE_CHECK)
+        nonReentrant(WITHOUT_PAUSE_CHECK, this.startLiquidation.selector)
         updateActionTimestamp
         returns (
             address[] memory assetAddresses,
@@ -563,7 +577,12 @@ contract AccountV2 is AccountStorageV2, IAccount {
         uint256[] memory assetIds,
         uint256[] memory assetAmounts,
         address bidder
-    ) external onlyLiquidator nonReentrant(WITHOUT_PAUSE_CHECK) returns (uint256[] memory assetAmounts_) {
+    )
+        external
+        onlyLiquidator
+        nonReentrant(WITHOUT_PAUSE_CHECK, this.auctionBid.selector)
+        returns (uint256[] memory assetAmounts_)
+    {
         uint256[] memory assetTypes = IRegistry(registry).batchGetAssetTypes(assetAddresses);
         uint256 balance;
         for (uint256 i; i < assetAddresses.length; ++i) {
@@ -594,14 +613,18 @@ contract AccountV2 is AccountStorageV2, IAccount {
      * @dev When an auction is not successful, the Account is considered "Bought In":
      * The whole Account including any remaining assets are transferred to a certain recipient address, set by the Creditor.
      */
-    function auctionBoughtIn(address recipient) external onlyLiquidator nonReentrant(WITHOUT_PAUSE_CHECK) {
+    function auctionBoughtIn(address recipient)
+        external
+        onlyLiquidator
+        nonReentrant(WITHOUT_PAUSE_CHECK, this.auctionBoughtIn.selector)
+    {
         _transferOwnership(recipient);
     }
 
     /**
      * @notice Sets the "inAuction" flag to false when an auction ends.
      */
-    function endAuction() external onlyLiquidator nonReentrant(WITHOUT_PAUSE_CHECK) {
+    function endAuction() external onlyLiquidator nonReentrant(WITHOUT_PAUSE_CHECK, this.endAuction.selector) {
         inAuction = false;
     }
 
@@ -650,7 +673,7 @@ contract AccountV2 is AccountStorageV2, IAccount {
     function flashAction(address actionTarget, bytes calldata actionData)
         external
         onlyAssetManager
-        nonReentrant(WITH_PAUSE_CHECK)
+        nonReentrant(WITH_PAUSE_CHECK, this.flashAction.selector)
         notDuringAuction
         updateActionTimestamp
     {
@@ -702,7 +725,7 @@ contract AccountV2 is AccountStorageV2, IAccount {
     function increaseOpenPosition(uint256 openPosition)
         external
         onlyCreditor
-        nonReentrant(WITH_PAUSE_CHECK)
+        nonReentrant(WITH_PAUSE_CHECK, this.increaseOpenPosition.selector)
         notDuringAuction
         updateActionTimestamp
         returns (uint256 accountVersion)
@@ -744,7 +767,7 @@ contract AccountV2 is AccountStorageV2, IAccount {
      */
     function flashActionByCreditor(bytes calldata callbackData, address actionTarget, bytes calldata actionData)
         external
-        nonReentrant(WITH_PAUSE_CHECK)
+        nonReentrant(WITH_PAUSE_CHECK, this.flashActionByCreditor.selector)
         notDuringAuction
         updateActionTimestamp
         returns (uint256 accountVersion)
@@ -756,19 +779,21 @@ contract AccountV2 is AccountStorageV2, IAccount {
         if (msg.sender != currentCreditor && msg.sender != approvedCreditor[owner]) revert AccountErrors.OnlyCreditor();
 
         // Decode flash action data.
-        (
-            ActionData memory withdrawData,
-            ActionData memory transferFromOwnerData,
-            IPermit2.PermitBatchTransferFrom memory permit,
-            bytes memory signature,
-            bytes memory actionTargetData
-        ) = abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes, bytes));
+        ActionData memory transferFromOwnerData;
+        IPermit2.PermitBatchTransferFrom memory permit;
+        bytes memory signature;
+        bytes memory actionTargetData;
+        {
+            ActionData memory withdrawData;
+            (withdrawData, transferFromOwnerData, permit, signature, actionTargetData) =
+                abi.decode(actionData, (ActionData, ActionData, IPermit2.PermitBatchTransferFrom, bytes, bytes));
 
-        // Callback to execute external logic on the Creditor.
-        ICreditor(msg.sender).flashActionCallback(callbackData);
+            // Callback to execute external logic on the Creditor.
+            ICreditor(msg.sender).flashActionCallback(callbackData);
 
-        // Withdraw assets to the actionTarget.
-        _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);
+            // Withdraw assets to the actionTarget.
+            _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);
+        }
 
         if (msg.sender != currentCreditor) {
             // If the caller is the approved Creditor, a margin Account must be opened for the approved Creditor.
@@ -843,7 +868,7 @@ contract AccountV2 is AccountStorageV2, IAccount {
     function deposit(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
         onlyOwner
-        nonReentrant(WITH_PAUSE_CHECK)
+        nonReentrant(WITHOUT_PAUSE_CHECK, this.deposit.selector)
         notDuringAuction
     {
         // No need to check that all arrays have equal length, this check will be done in the Registry.
@@ -911,7 +936,7 @@ contract AccountV2 is AccountStorageV2, IAccount {
     function withdraw(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
         onlyOwner
-        nonReentrant(WITHOUT_PAUSE_CHECK)
+        nonReentrant(WITHOUT_PAUSE_CHECK, this.withdraw.selector)
         notDuringAuction
         updateActionTimestamp
     {
@@ -1203,7 +1228,7 @@ contract AccountV2 is AccountStorageV2, IAccount {
     function skim(address token, uint256 id, uint256 type_)
         public
         onlyOwner
-        nonReentrant(WITHOUT_PAUSE_CHECK)
+        nonReentrant(WITHOUT_PAUSE_CHECK, this.skim.selector)
         updateActionTimestamp
     {
         if (token == address(0)) {
