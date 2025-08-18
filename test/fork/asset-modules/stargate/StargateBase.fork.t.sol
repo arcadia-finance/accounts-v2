@@ -6,7 +6,7 @@ pragma solidity ^0.8.22;
 
 import { Fork_Test } from "../../Fork.t.sol";
 
-import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
+import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ILpStakingTime } from "../../../../src/asset-modules/Stargate-Finance/interfaces/ILpStakingTime.sol";
@@ -105,7 +105,7 @@ contract StargateBase_Fork_Test is Fork_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = 1;
 
-        AccountV1(account).deposit(assetAddresses, assetIds, assetAmounts);
+        AccountV3(account).deposit(assetAddresses, assetIds, assetAmounts);
 
         vm.stopPrank();
     }

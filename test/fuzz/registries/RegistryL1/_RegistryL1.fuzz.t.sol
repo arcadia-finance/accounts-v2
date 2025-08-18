@@ -4,14 +4,15 @@
  */
 pragma solidity ^0.8.22;
 
-import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
+import { AccountsGuardExtension } from "../../../utils/extensions/AccountsGuardExtension.sol";
+import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ChainlinkOMExtension } from "../../../utils/extensions/ChainlinkOMExtension.sol";
 import { Constants, Fuzz_Test } from "../../Fuzz.t.sol";
 import { DerivedAMMock } from "../../../utils/mocks/asset-modules/DerivedAMMock.sol";
 import { ERC20PrimaryAMExtension } from "../../../utils/extensions/ERC20PrimaryAMExtension.sol";
-import { Factory } from "../../../../src/Factory.sol";
+import { FactoryExtension } from "../../../utils/extensions/FactoryExtension.sol";
 import { FloorERC721AMExtension } from "../../../utils/extensions/FloorERC721AMExtension.sol";
 import { FloorERC1155AMExtension } from "../../../utils/extensions/FloorERC1155AMExtension.sol";
 import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
@@ -46,15 +47,17 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.owner);
-        factory = new Factory();
+        factory = new FactoryExtension();
         registry_ = new RegistryL1Extension(address(factory));
         chainlinkOM = new ChainlinkOMExtension(address(registry_));
         erc20AM = new ERC20PrimaryAMExtension(address(registry_));
         floorERC721AM = new FloorERC721AMExtension(address(registry_));
         floorERC1155AM = new FloorERC1155AMExtension(address(registry_));
 
-        accountV1Logic = new AccountV1(address(factory));
-        factory.setNewAccountInfo(address(registry_), address(accountV1Logic), Constants.upgradeProof1To2, "");
+        accountsGuard = new AccountsGuardExtension(users.owner, address(factory));
+        accountLogic = new AccountV3(address(factory), address(accountsGuard));
+        factory.setLatestAccountVersion(2);
+        factory.setNewAccountInfo(address(registry_), address(accountLogic), Constants.upgradeRoot3To4And4To3, "");
 
         // Set the Guardians.
         factory.changeGuardian(users.guardian);
@@ -96,7 +99,7 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
         // Deploy an initial Account with all inputs to zero
         vm.prank(users.accountOwner);
         address proxyAddress = factory.createAccount(0, 0, address(0));
-        account = AccountV1(proxyAddress);
+        account = AccountV3(proxyAddress);
 
         // Set Risk Variables.
         vm.startPrank(users.riskManager);

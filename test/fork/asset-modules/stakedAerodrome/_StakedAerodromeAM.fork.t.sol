@@ -6,7 +6,7 @@ pragma solidity ^0.8.22;
 
 import { Fork_Test } from "../../Fork.t.sol";
 
-import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
+import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { IAeroPool } from "../../../../src/asset-modules/Aerodrome-Finance/interfaces/IAeroPool.sol";

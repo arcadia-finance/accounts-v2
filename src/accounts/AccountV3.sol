@@ -5,7 +5,7 @@
 pragma solidity ^0.8.22;
 
 import { AccountErrors } from "../libraries/Errors.sol";
-import { AccountStorageV3 } from "./AccountStorageV3.sol";
+import { AccountStorageV1 } from "./AccountStorageV1.sol";
 import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
 import { IERC721 } from "../interfaces/IERC721.sol";
@@ -33,7 +33,7 @@ import { IPermit2 } from "../interfaces/IPermit2.sol";
  * Arcadia's Account functions will guarantee you a certain value of the Account.
  * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
  */
-contract AccountV3 is AccountStorageV3, IAccount {
+contract AccountV3 is AccountStorageV1, IAccount {
     using AssetValuationLib for AssetValueAndRiskFactors[];
     using SafeTransferLib for ERC20;
 
@@ -41,6 +41,7 @@ contract AccountV3 is AccountStorageV3, IAccount {
                                 CONSTANTS
     ////////////////////////////////////////////////////////////// */
 
+    // Bools indicating if the function being called can be paused by the AccountsGuard.
     bool internal constant WITH_PAUSE_CHECK = true;
     bool internal constant WITHOUT_PAUSE_CHECK = false;
 

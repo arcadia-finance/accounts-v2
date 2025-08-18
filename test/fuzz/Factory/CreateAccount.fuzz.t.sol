@@ -6,7 +6,7 @@ pragma solidity ^0.8.22;
 
 import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
-import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
+import { AccountV3 } from "../../../src/accounts/AccountV3.sol";
 import { AccountVariableVersion } from "../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
@@ -62,11 +62,11 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(accountVersion <= versionsToMake + 1);
         for (uint256 i; i < versionsToMake; ++i) {
             //create account logic with the right version
-            //the first account version to add is 2, so we add 2 to the index
-            account_.setAccountVersion(uint16(i + 2));
+            //the first account version to add is 4, so we add 4 to the index
+            account_.setAccountVersion(uint16(i + 4));
 
             vm.prank(users.owner);
-            factory.setNewAccountInfo(address(registry), address(account_), Constants.upgradeRoot1To2, "");
+            factory.setNewAccountInfo(address(registry), address(account_), Constants.upgradeRoot3To4And4To3, "");
         }
 
         for (uint256 y; y < versionsToBlock.length; ++y) {
@@ -98,7 +98,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.expectEmit();
         emit ERC721.Transfer(address(0), address(this), amountBefore + 1);
         vm.expectEmit(false, true, true, true);
-        emit Factory.AccountUpgraded(address(0), 1);
+        emit Factory.AccountUpgraded(address(0), 3);
 
         // Here we create an Account with no specific creditor
         address actualDeployed = factory.createAccount(salt, 0, address(0));
@@ -106,8 +106,8 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         assertEq(amountBefore + 1, factory.allAccountsLength());
         assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
         assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
-        assertEq(AccountV1(actualDeployed).creditor(), address(0));
-        assertEq(AccountV1(actualDeployed).owner(), address(this));
+        assertEq(AccountV3(actualDeployed).creditor(), address(0));
+        assertEq(AccountV3(actualDeployed).owner(), address(this));
     }
 
     function testFuzz_Success_createAccount_DeployAccountWithCreditor(uint32 salt) public {
@@ -118,9 +118,9 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.expectEmit();
         emit ERC721.Transfer(address(0), address(this), amountBefore + 1);
         vm.expectEmit();
-        emit AccountV1.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
+        emit AccountV3.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
         vm.expectEmit(false, true, true, true);
-        emit Factory.AccountUpgraded(address(0), 1);
+        emit Factory.AccountUpgraded(address(0), 3);
 
         // Here we create an Account by specifying the creditor address
         address actualDeployed = factory.createAccount(salt, 0, address(creditorStable1));
@@ -128,7 +128,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         assertEq(amountBefore + 1, factory.allAccountsLength());
         assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
         assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
-        assertEq(AccountV1(actualDeployed).creditor(), address(creditorStable1));
+        assertEq(AccountV3(actualDeployed).creditor(), address(creditorStable1));
     }
 
     function testFuzz_Success_createAccount_DeployNewProxyWithLogicOwner(uint32 salt, address sender) public {
@@ -139,7 +139,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.prank(sender);
         address actualDeployed = factory.createAccount(salt, 0, address(0));
         assertEq(amountBefore + 1, factory.allAccountsLength());
-        assertEq(AccountV1(actualDeployed).owner(), address(sender));
+        assertEq(AccountV3(actualDeployed).owner(), address(sender));
     }
 
     function testFuzz_Success_createAccount_CreationCannotBeFrontRunnedWithIdenticalSalt(

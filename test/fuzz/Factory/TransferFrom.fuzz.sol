@@ -6,8 +6,8 @@ pragma solidity ^0.8.22;
 
 import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
-import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
-import { AccountV1Extension } from "../../utils/extensions/AccountV1Extension.sol";
+import { AccountV3 } from "../../../src/accounts/AccountV3.sol";
+import { AccountV3Extension } from "../../utils/extensions/AccountV3Extension.sol";
 
 /**
  * @notice Fuzz tests for the functions "(safe)TransferFrom" of contract "Factory".
@@ -26,7 +26,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function setUp() public override {
         Factory_Fuzz_Test.setUp();
 
-        AccountV1Extension account_ = new AccountV1Extension(address(factory));
+        AccountV3Extension account_ = new AccountV3Extension(address(factory), address(accountsGuard));
         coolDownPeriod = account_.getCoolDownPeriod();
     }
 
@@ -35,7 +35,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
 
     function coolDownPeriodPassed(address account_, uint32 lastActionTimestamp, uint32 timePassed) public {
-        AccountV1 account__ = AccountV1(account_);
+        AccountV3 account__ = AccountV3(account_);
         timePassed = uint32(bound(timePassed, coolDownPeriod + 1, type(uint32).max));
 
         vm.warp(lastActionTimestamp);

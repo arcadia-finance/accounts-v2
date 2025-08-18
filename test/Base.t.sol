@@ -4,15 +4,15 @@
  */
 pragma solidity ^0.8.22;
 
-import { Test } from "../lib/forge-std/src/Test.sol";
-
-import { AccountV1 } from "../src/accounts/AccountV1.sol";
+import { AccountsGuardExtension } from "./utils/extensions/AccountsGuardExtension.sol";
+import { AccountV3 } from "../src/accounts/AccountV3.sol";
 import { ChainlinkOMExtension } from "./utils/extensions/ChainlinkOMExtension.sol";
 import { ERC20PrimaryAMExtension } from "./utils/extensions/ERC20PrimaryAMExtension.sol";
 import { ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";
-import { Factory } from "../src/Factory.sol";
+import { FactoryExtension } from "./utils/extensions/FactoryExtension.sol";
 import { RegistryL2Extension } from "./utils/extensions/RegistryL2Extension.sol";
 import { SequencerUptimeOracle } from "./utils/mocks/oracles/SequencerUptimeOracle.sol";
+import { Test } from "../lib/forge-std/src/Test.sol";
 import { Users } from "./utils/Types.sol";
 
 /// @notice Base test contract with common logic needed by all tests.
@@ -35,11 +35,12 @@ abstract contract Base_Test is Test {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    AccountV1 internal account;
-    AccountV1 internal accountV1Logic;
+    AccountsGuardExtension internal accountsGuard;
+    AccountV3 internal account;
+    AccountV3 internal accountLogic;
     ChainlinkOMExtension internal chainlinkOM;
     ERC20PrimaryAMExtension internal erc20AM;
-    Factory internal factory;
+    FactoryExtension internal factory;
     RegistryL2Extension internal registry;
     SequencerUptimeOracle internal sequencerUptimeOracle;
 

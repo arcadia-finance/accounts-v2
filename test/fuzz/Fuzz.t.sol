@@ -7,7 +7,7 @@ pragma solidity ^0.8.22;
 import { Base_Test } from "../Base.t.sol";
 import { ArcadiaAccountsFixture } from "../utils/fixtures/arcadia-accounts/ArcadiaAccountsFixture.f.sol";
 
-import { AccountV1 } from "../../src/accounts/AccountV1.sol";
+import { AccountV3 } from "../../src/accounts/AccountV3.sol";
 import { ArcadiaOracle } from "../utils/mocks/oracles/ArcadiaOracle.sol";
 import { AssetModule } from "../../src/asset-modules/abstracts/AbstractAM.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";

@@ -5,7 +5,7 @@
 pragma solidity ^0.8.22;
 
 import { Fuzz_Test } from "../fuzz/Fuzz.t.sol";
-import { AccountV1 } from "../../src/accounts/AccountV1.sol";
+import { AccountV3 } from "../../src/accounts/AccountV3.sol";
 
 /// @notice Common logic needed by all gas tests.
 abstract contract Gas_Test is Fuzz_Test {
@@ -19,10 +19,10 @@ abstract contract Gas_Test is Fuzz_Test {
 
     function prepare_deposit_single_erc20(address newAccount)
         public
-        returns (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account)
+        returns (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account)
     {
         vm.pauseGasMetering();
-        account = AccountV1(newAccount);
+        account = AccountV3(newAccount);
 
         vm.prank(users.tokenCreator);
         mockERC20.stable1.mint(users.accountOwner, 1000 * 10 ** 18);
@@ -43,10 +43,10 @@ abstract contract Gas_Test is Fuzz_Test {
 
     function prepare_deposit_double_erc20(address newAccount)
         public
-        returns (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account)
+        returns (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account)
     {
         vm.pauseGasMetering();
-        account = AccountV1(newAccount);
+        account = AccountV3(newAccount);
 
         vm.prank(users.tokenCreator);
         mockERC20.stable1.mint(users.accountOwner, 1000 * 10 ** 18);
@@ -71,10 +71,10 @@ abstract contract Gas_Test is Fuzz_Test {
 
     function prepare_deposit_tripple_erc20(address newAccount)
         public
-        returns (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account)
+        returns (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account)
     {
         vm.pauseGasMetering();
-        account = AccountV1(newAccount);
+        account = AccountV3(newAccount);
 
         vm.prank(users.tokenCreator);
         mockERC20.stable1.mint(users.accountOwner, 1000 * 10 ** 18);

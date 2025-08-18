@@ -4,8 +4,8 @@
  */
 pragma solidity 0.8.22;
 
-import { AccountSpotExtension } from "../../../../utils/extensions/AccountSpotExtension.sol";
-import { AccountV1Extension } from "../../../../utils/extensions/AccountV1Extension.sol";
+import { AccountV4Extension } from "../../../../utils/extensions/AccountV4Extension.sol";
+import { AccountV3Extension } from "../../../../utils/extensions/AccountV3Extension.sol";
 import { Constants } from "../../../Fuzz.t.sol";
 import { Fuzz_Test } from "../../../Fuzz.t.sol";
 import { SpotToMarginMigratorExtension } from "../../../../utils/extensions/SpotToMarginMigratorExtension.sol";
@@ -22,9 +22,9 @@ abstract contract SpotToMarginMigrator_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AccountV1Extension internal accountV1ExtensionLogic;
-    AccountSpotExtension internal accountSpot;
-    AccountSpotExtension internal accountSpotLogic;
+    AccountV3Extension internal accountV3ExtensionLogic;
+    AccountV4Extension internal accountSpot;
+    AccountV4Extension internal accountSpotLogic;
     SpotToMarginMigratorExtension internal spotToMarginMigrator;
 
     /* ///////////////////////////////////////////////////////////////
@@ -34,22 +34,22 @@ abstract contract SpotToMarginMigrator_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        // Deploy AccountV1Extension logic contract to replace with AccountV1 logic for tests
-        accountV1ExtensionLogic = new AccountV1Extension(address(factory));
-        bytes memory code = address(accountV1ExtensionLogic).code;
-        vm.etch(address(accountV1Logic), code);
+        // Deploy AccountV3Extension logic contract to replace with AccountV3 logic for tests
+        accountV3ExtensionLogic = new AccountV3Extension(address(factory), address(accountsGuard));
+        bytes memory code = address(accountV3ExtensionLogic).code;
+        vm.etch(address(accountLogic), code);
 
         // Deploy Migrator contract
         spotToMarginMigrator = new SpotToMarginMigratorExtension(address(factory));
 
         // Deploy a new Spot Account
-        accountSpotLogic = new AccountSpotExtension(address(factory));
+        accountSpotLogic = new AccountV4Extension(address(factory), address(accountsGuard));
         vm.prank(users.owner);
-        factory.setNewAccountInfo(address(registry), address(accountSpotLogic), Constants.upgradeRoot1To1And2To1, "");
+        factory.setNewAccountInfo(address(registry), address(accountSpotLogic), Constants.upgradeRoot3To4And4To3, "");
 
         vm.prank(users.accountOwner);
-        address payable proxyAddress = payable(factory.createAccount(1001, 2, address(0)));
-        accountSpot = AccountSpotExtension(proxyAddress);
+        address payable proxyAddress = payable(factory.createAccount(1001, 4, address(0)));
+        accountSpot = AccountV4Extension(proxyAddress);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ abstract contract SpotToMarginMigrator_Fuzz_Test is Fuzz_Test {
 
     function upgradeAccount(uint112 erc20Amount, uint8 erc721Id, uint112 erc1155Amount, address creditor) public {
         bytes32[] memory proofs = new bytes32[](1);
-        proofs[0] = Constants.upgradeProof2To1;
+        proofs[0] = Constants.upgradeProof3To4;
 
         address[] memory assets = new address[](3);
         assets[0] = address(mockERC20.token1);
@@ -92,7 +92,7 @@ abstract contract SpotToMarginMigrator_Fuzz_Test is Fuzz_Test {
         vm.startPrank(users.accountOwner);
         factory.approve(address(spotToMarginMigrator), factory.accountIndex(address(accountSpot)));
         spotToMarginMigrator.upgradeAccount(
-            address(accountSpot), creditor, 1, proofs, assets, assetIds, assetAmounts, assetTypes
+            address(accountSpot), creditor, 3, proofs, assets, assetIds, assetAmounts, assetTypes
         );
         vm.stopPrank();
     }
