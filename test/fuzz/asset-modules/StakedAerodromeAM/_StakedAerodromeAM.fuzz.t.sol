@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { AbstractStakingAM_Fuzz_Test } from "../AbstractStakingAM/_AbstractStakingAM.fuzz.t.sol";
 import { AerodromeFixture } from "../../../utils/fixtures/aerodrome/AerodromeFixture.f.sol";
@@ -52,7 +52,7 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
         registry.addAssetModule(address(aerodromePoolAM));
 
         // Deploy StakedAerodromeAM.
-        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registry), address(voter));
+        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registry), address(voter), AERO);
         registry.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
         vm.stopPrank();

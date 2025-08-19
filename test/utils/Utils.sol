@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { Vm } from "../../lib/forge-std/src/Vm.sol";
 import { IPermit2 } from "./Interfaces.sol";

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
@@ -110,8 +110,6 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         DerivedAM(registry, 2)
         ERC721("Arcadia Staked Slipstream Positions", "aSSLIPP")
     {
-        if (!IRegistry(registry).isAllowed(rewardToken, 0)) revert RewardTokenNotAllowed();
-
         AERO_VOTER = IAeroVoter(aerodromeVoter);
         REWARD_TOKEN = ERC20(rewardToken);
         NON_FUNGIBLE_POSITION_MANAGER = INonfungiblePositionManager(nonFungiblePositionManager);
@@ -127,6 +125,8 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @dev Will revert if called more than once.
      */
     function initialize() external onlyOwner {
+        if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
+
         inAssetModule[address(this)] = true;
 
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), address(this));

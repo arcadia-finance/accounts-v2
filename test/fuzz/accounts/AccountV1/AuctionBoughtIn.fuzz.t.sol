@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { AccountV1_Fuzz_Test, AccountErrors } from "./_AccountV1.fuzz.t.sol";
 
@@ -44,6 +44,9 @@ contract AuctionBoughtIn_AccountV1_Fuzz_Test is AccountV1_Fuzz_Test {
     function testFuzz_Success_auctionBoughtIn(address recipient) public canReceiveERC721(recipient) {
         // Given: An Account.
         uint256 id = factory.accountIndex(address(accountExtension));
+
+        // And: recipient is not the account itself.
+        vm.assume(recipient != address(accountExtension));
 
         // When: The Liquidator calls auctionBoughtIn.
         vm.prank(accountExtension.liquidator());

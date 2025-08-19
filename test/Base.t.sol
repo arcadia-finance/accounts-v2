@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { Test } from "../lib/forge-std/src/Test.sol";
 
@@ -11,7 +11,7 @@ import { ChainlinkOMExtension } from "./utils/extensions/ChainlinkOMExtension.so
 import { ERC20PrimaryAMExtension } from "./utils/extensions/ERC20PrimaryAMExtension.sol";
 import { ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";
 import { Factory } from "../src/Factory.sol";
-import { RegistryExtension } from "./utils/extensions/RegistryExtension.sol";
+import { RegistryL2Extension } from "./utils/extensions/RegistryL2Extension.sol";
 import { SequencerUptimeOracle } from "./utils/mocks/oracles/SequencerUptimeOracle.sol";
 import { Users } from "./utils/Types.sol";
 
@@ -40,7 +40,7 @@ abstract contract Base_Test is Test {
     ChainlinkOMExtension internal chainlinkOM;
     ERC20PrimaryAMExtension internal erc20AM;
     Factory internal factory;
-    RegistryExtension internal registry;
+    RegistryL2Extension internal registry;
     SequencerUptimeOracle internal sequencerUptimeOracle;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -83,6 +83,7 @@ abstract contract Base_Test is Test {
 
     modifier canReceiveERC721(address to) {
         vm.assume(to != address(0));
+        vm.assume(to != 0x4200000000000000000000000000000000000006);
         if (to.code.length != 0) {
             try ERC721TokenReceiver(to).onERC721Received(to, address(0), 0, "") returns (bytes4 response) {
                 vm.assume(response == ERC721TokenReceiver.onERC721Received.selector);
@@ -91,5 +92,34 @@ abstract contract Base_Test is Test {
             }
         }
         _;
+    }
+
+    function isPrecompile(address addr) internal pure returns (bool) {
+        return isPrecompile(addr, 1);
+    }
+
+    function isPrecompile(address addr, uint256 chainId) internal pure returns (bool) {
+        // Note: For some chains like Optimism these are technically predeploys (i.e. bytecode placed at a specific
+        // address), but the same rationale for excluding them applies so we include those too.
+
+        // These should be present on all EVM-compatible chains.
+        if (addr >= address(0x1) && addr <= address(0x9)) return true;
+
+        // forgefmt: disable-start
+        if (chainId == 10 || chainId == 420) {
+            // https://github.com/ethereum-optimism/optimism/blob/eaa371a0184b56b7ca6d9eb9cb0a2b78b2ccd864/op-bindings/predeploys/addresses.go#L6-L21
+            return (addr >= address(0x4200000000000000000000000000000000000000) && addr <= address(0x4200000000000000000000000000000000000800));
+        } else if (chainId == 42161 || chainId == 421613) {
+            // https://developer.arbitrum.io/useful-addresses#arbitrum-precompiles-l2-same-on-all-arb-chains
+            return (addr >= address(0x0000000000000000000000000000000000000064) && addr <= address(0x0000000000000000000000000000000000000068));
+        } else if (chainId == 43114 || chainId == 43113) {
+            // https://github.com/ava-labs/subnet-evm/blob/47c03fd007ecaa6de2c52ea081596e0a88401f58/precompile/params.go#L18-L59
+            return ((addr >= address(0x0100000000000000000000000000000000000000) && addr <= address(0x01000000000000000000000000000000000000ff))
+            || (addr >= address(0x0200000000000000000000000000000000000000) && addr <= address(0x02000000000000000000000000000000000000FF))
+            || (addr >= address(0x0300000000000000000000000000000000000000) && addr <= address(0x03000000000000000000000000000000000000Ff)));
+        }
+        // forgefmt: disable-end
+
+        return false;
     }
 }

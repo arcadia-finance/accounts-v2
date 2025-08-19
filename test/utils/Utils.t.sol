@@ -2,13 +2,27 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { Utils } from "./Utils.sol";
 import { Test } from "../../lib/forge-std/src/Test.sol";
 
+contract UtilsMock {
+    function veryBadBytesReplacer(bytes memory bytecode, bytes32 target, bytes32 replacement)
+        public
+        pure
+        returns (bytes memory result)
+    {
+        return Utils.veryBadBytesReplacer(bytecode, target, replacement);
+    }
+}
+
 contract Utils_Test is Test {
-    function setUp() public { }
+    UtilsMock internal utils;
+
+    function setUp() public {
+        utils = new UtilsMock();
+    }
 
     function test_Revert_veryBadBytesReplacer_Short() public {
         bytes memory bytecode = hex"4fe34f199b19b2b4f47f68442619d555527d244f78a3297ea8";
@@ -16,7 +30,7 @@ contract Utils_Test is Test {
         bytes32 replacement = 0x100000000000000000000000000000000000000000000000000000000000000f;
 
         vm.expectRevert();
-        Utils.veryBadBytesReplacer(bytecode, target, replacement);
+        utils.veryBadBytesReplacer(bytecode, target, replacement);
     }
 
     function test_Revert_veryBadBytesReplacer_NoMatch() public {
@@ -25,7 +39,7 @@ contract Utils_Test is Test {
         bytes32 replacement = 0x100000000000000000000000000000000000000000000000000000000000000f;
 
         vm.expectRevert();
-        Utils.veryBadBytesReplacer(bytecode, target, replacement);
+        utils.veryBadBytesReplacer(bytecode, target, replacement);
     }
 
     function test_Success_veryBadBytesReplacer_FirstByte() public {
@@ -35,7 +49,7 @@ contract Utils_Test is Test {
 
         bytes memory expectedResult = hex"100000000000000000000000000000000000000000000000000000000000000f4f4f";
 
-        bytes memory actualResult = Utils.veryBadBytesReplacer(bytecode, target, replacement);
+        bytes memory actualResult = utils.veryBadBytesReplacer(bytecode, target, replacement);
         assertEq(actualResult, expectedResult);
     }
 
@@ -46,7 +60,7 @@ contract Utils_Test is Test {
 
         bytes memory expectedResult = hex"4f4f100000000000000000000000000000000000000000000000000000000000000f";
 
-        bytes memory actualResult = Utils.veryBadBytesReplacer(bytecode, target, replacement);
+        bytes memory actualResult = utils.veryBadBytesReplacer(bytecode, target, replacement);
         assertEq(actualResult, expectedResult);
     }
 
@@ -57,7 +71,7 @@ contract Utils_Test is Test {
 
         bytes memory expectedResult = hex"4f100000000000000000000000000000000000000000000000000000000000000f4f";
 
-        bytes memory actualResult = Utils.veryBadBytesReplacer(bytecode, target, replacement);
+        bytes memory actualResult = utils.veryBadBytesReplacer(bytecode, target, replacement);
         assertEq(actualResult, expectedResult);
     }
 }

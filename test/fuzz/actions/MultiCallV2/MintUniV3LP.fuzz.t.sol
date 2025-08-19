@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { Base_Test } from "../../../Base.t.sol";
 import { MultiCallV2_Fuzz_Test } from "./_MultiCallV2.fuzz.t.sol";
@@ -55,7 +55,11 @@ contract MintUniV3LP_MultiCallV2_Fuzz_Test is MultiCallV2_Fuzz_Test, UniswapV3AM
         vm.assume(notV3Contract != address(vm));
 
         vm.prank(address(action));
-        vm.expectRevert(bytes(""));
+        if (notV3Contract.code.length == 0 && !isPrecompile(notV3Contract)) {
+            vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(notV3Contract)));
+        } else {
+            vm.expectRevert(bytes(""));
+        }
         action.mintUniV3LP(notV3Contract, abi.encodeWithSelector(randomSelector, randomBytes));
     }
 

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
 
@@ -59,7 +59,7 @@ contract AerodromeFixture is Test {
     function createGaugeAerodrome(Pool pool, address rewardToken) internal returns (Gauge gauge) {
         gauge = new Gauge(msg.sender, address(pool), msg.sender, rewardToken, address(voter), false);
 
-        voter.setGauge(address(gauge));
+        voter.setGauge(address(pool), address(gauge));
         voter.setAlive(address(gauge), true);
     }
 

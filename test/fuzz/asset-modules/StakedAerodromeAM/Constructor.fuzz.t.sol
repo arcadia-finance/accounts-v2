@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { StakedAerodromeAM_Fuzz_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fuzz.t.sol";
 
@@ -23,19 +23,8 @@ contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test 
     /*///////////////////////////////////////////////////////////////
                             FUZZ TESTS
     ///////////////////////////////////////////////////////////////*/
-
-    function testFuzz_Revert_constructor_RewardTokenNotAllowed() public {
-        // Given: No asset module is set for the rewardToken
-        registry.setAssetModule(AERO, address(0));
-
-        // When: An asset is added to the AM.
-        // Then: It reverts.
-        vm.expectRevert(StakedAerodromeAM.RewardTokenNotAllowed.selector);
-        new StakedAerodromeAM(address(registry), address(voter));
-    }
-
     function testFuzz_success_constructor() public {
-        StakedAerodromeAM assetModule = new StakedAerodromeAM(address(registry), address(voter));
+        StakedAerodromeAM assetModule = new StakedAerodromeAM(address(registry), address(voter), AERO);
 
         assertEq(address(assetModule.REWARD_TOKEN()), AERO);
         assertEq(assetModule.ASSET_TYPE(), 2);

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { ERC20, IRegistry, StakingAM } from "../abstracts/AbstractStakingAM.sol";
 import { IAeroGauge } from "./interfaces/IAeroGauge.sol";
@@ -25,6 +25,9 @@ contract StakedAerodromeAM is StakingAM {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
+    // Bool indicating if the AssetModule has been initialized and rewardtoken is allowed.
+    bool internal initialized;
+
     // Maps an Aerodrome Finance Pool to its gauge.
     mapping(address asset => address gauge) public assetToGauge;
 
@@ -45,13 +48,13 @@ contract StakedAerodromeAM is StakingAM {
     /**
      * @param registry The address of the Registry.
      * @param aerodromeVoter The address of the Aerodrome Finance Voter contract.
+     * @param rewardToken The contract address of the Reward Token.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
-    constructor(address registry, address aerodromeVoter)
+    constructor(address registry, address aerodromeVoter, address rewardToken)
         StakingAM(registry, "Arcadia Staked Aerodrome Positions", "aSAEROP")
     {
-        REWARD_TOKEN = ERC20(0x940181a94A35A4569E4529A3CDfB74e38FD98631);
-        if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
+        REWARD_TOKEN = ERC20(rewardToken);
         AERO_VOTER = IAeroVoter(aerodromeVoter);
     }
 
@@ -71,6 +74,10 @@ contract StakedAerodromeAM is StakingAM {
         if (assetState[pool].allowed) revert AssetAlreadySet();
 
         if (IAeroGauge(gauge).rewardToken() != address(REWARD_TOKEN)) revert RewardTokenNotValid();
+        if (!initialized) {
+            if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
+            initialized = true;
+        }
 
         assetToGauge[pool] = gauge;
         _addAsset(pool);

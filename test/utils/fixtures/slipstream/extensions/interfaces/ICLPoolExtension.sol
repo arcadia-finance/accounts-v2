@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { ICLPool } from "../../../../../../src/asset-modules/Slipstream/interfaces/ICLPool.sol";
 
@@ -23,6 +23,8 @@ interface ICLPoolExtension is ICLPool {
     function getCurrentTick() external returns (int24 currentTick);
 
     function setSqrtPriceX96(uint160 sqrtPriceX96_) external;
+
+    function liquidity() external returns (uint128 liquidity);
 
     function fee() external view returns (uint24);
 }

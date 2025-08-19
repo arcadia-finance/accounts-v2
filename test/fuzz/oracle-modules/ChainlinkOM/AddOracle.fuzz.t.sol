@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { ChainlinkOM_Fuzz_Test } from "./_ChainlinkOM.fuzz.t.sol";
 
@@ -57,8 +57,15 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         bytes16 quoteAsset,
         uint32 cutOffTime
     ) public canReceiveERC721(oracle) {
+        vm.assume(oracle != address(account));
+        vm.assume(oracle != address(accountV1Logic));
+
         vm.prank(users.owner);
-        vm.expectRevert(bytes(""));
+        if (oracle.code.length == 0 && !isPrecompile(oracle)) {
+            vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(oracle)));
+        } else {
+            vm.expectRevert(bytes(""));
+        }
         chainlinkOM.addOracle(oracle, baseAsset, quoteAsset, cutOffTime);
     }
 

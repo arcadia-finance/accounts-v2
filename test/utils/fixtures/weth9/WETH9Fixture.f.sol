@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { Utils } from "../../../utils/Utils.sol";
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
@@ -13,7 +13,7 @@ contract WETH9Fixture is Test {
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    IERC20 internal weth9;
+    IERC20 internal weth9 = IERC20(0x4200000000000000000000000000000000000006);
 
     /*//////////////////////////////////////////////////////////////////////////
                                      CONSTANTS
@@ -28,7 +28,9 @@ contract WETH9Fixture is Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function setUp() public virtual {
-        address weth9_ = Utils.deployBytecode(BYTECODE_WETH9);
-        weth9 = IERC20(weth9_);
+        vm.etch(address(weth9), BYTECODE_WETH9);
+        (bool success, bytes memory runtimeBytecode) = address(weth9).call{ value: 0 }("");
+        require(success, "Failed to create runtime bytecode.");
+        vm.etch(address(weth9), runtimeBytecode);
     }
 }

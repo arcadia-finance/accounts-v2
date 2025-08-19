@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { StakedSlipstreamAM_Fuzz_Test } from "./_StakedSlipstreamAM.fuzz.t.sol";
 
@@ -38,6 +38,22 @@ contract Initialize_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test
         // Then : It should revert.
         vm.prank(unprivilegedAddress);
         vm.expectRevert("UNAUTHORIZED");
+        assetModule.initialize();
+    }
+
+    function testFuzz_Revert_initialize_RewardTokenNotAllowed() public {
+        // Given: No asset module is set for the rewardToken
+        registry.setAssetModule(AERO, address(0));
+
+        // And : Asset Module is deployed.
+        vm.prank(users.owner);
+        StakedSlipstreamAM assetModule =
+            new StakedSlipstreamAM(address(registry), address(slipstreamPositionManager), address(voter), address(AERO));
+
+        // When : Calling initialize().
+        // Then : It should revert.
+        vm.prank(users.owner);
+        vm.expectRevert(StakedSlipstreamAM.RewardTokenNotAllowed.selector);
         assetModule.initialize();
     }
 

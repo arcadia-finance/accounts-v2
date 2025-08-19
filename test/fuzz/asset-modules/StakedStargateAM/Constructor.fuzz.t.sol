@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
 
@@ -23,18 +23,6 @@ contract Constructor_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               TESTS
     /////////////////////////////////////////////////////////////// */
-
-    function testFuzz_Revert_constructor_RewardTokenNotAllowed() public {
-        // Given: No asset module is set for the rewardToken
-        registry.setAssetModule(address(lpStakingTimeMock.eToken()), address(0));
-
-        // When: An asset is added to the AM.
-        // Then: It reverts.
-        vm.prank(users.owner);
-        vm.expectRevert(StakedStargateAM.RewardTokenNotAllowed.selector);
-        new StakedStargateAM(address(registry), address(lpStakingTimeMock));
-    }
-
     function testFuzz_success_constructor() public {
         StakedStargateAM assetModule = new StakedStargateAM(address(registry), address(lpStakingTimeMock));
 

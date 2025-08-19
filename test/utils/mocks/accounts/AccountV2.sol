@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountStorageV2 } from "./AccountStorageV2.sol";
@@ -184,7 +184,7 @@ contract AccountV2 is AccountStorageV2 {
         registry = newRegistry;
 
         // Hook on the new logic to finalize upgrade.
-        // Used to eg. Remove exposure from old Registry and Add exposure to the new Registry.
+        // Used to eg. Remove exposure from old Registry and Add exposure to the new RegistryL2.
         // Extra data can be added by the factory for complex instructions.
         this.upgradeHook(oldImplementation, oldRegistry, oldVersion, data);
 

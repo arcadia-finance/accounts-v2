@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { ERC20, IRegistry, StakingAM } from "../abstracts/AbstractStakingAM.sol";
 import { ILpStakingTime } from "./interfaces/ILpStakingTime.sol";
@@ -24,6 +24,9 @@ contract StakedStargateAM is StakingAM {
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
+
+    // Bool indicating if the AssetModule has been initialized and rewardtoken is allowed.
+    bool internal initialized;
 
     // Maps a Stargate Pool to its pool specific id.
     mapping(address asset => uint256 pid) public assetToPid;
@@ -48,7 +51,6 @@ contract StakedStargateAM is StakingAM {
     constructor(address registry, address lpStakingTime) StakingAM(registry, "Arcadia Stargate Positions", "aSGP") {
         LP_STAKING_TIME = ILpStakingTime(lpStakingTime);
         REWARD_TOKEN = ERC20(address(LP_STAKING_TIME.eToken()));
-        if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -65,6 +67,11 @@ contract StakedStargateAM is StakingAM {
 
         if (!IRegistry(REGISTRY).isAllowed(stargatePool, 0)) revert PoolNotAllowed();
         if (assetState[stargatePool].allowed) revert AssetAlreadySet();
+
+        if (!initialized) {
+            if (!IRegistry(REGISTRY).isAllowed(address(REWARD_TOKEN), 0)) revert RewardTokenNotAllowed();
+            initialized = true;
+        }
 
         assetToPid[stargatePool] = pid;
         _addAsset(stargatePool);

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { AerodromeFixture } from "../aerodrome/AerodromeFixture.f.sol";
 import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
@@ -23,9 +23,11 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    ICLFactoryExtension internal cLFactory;
+    address internal poolImplementation = 0xeC8E5342B19977B4eF8892e02D8DAEcfa1315831;
+    ICLFactoryExtension internal cLFactory = ICLFactoryExtension(0x5e7BB104d84c7CB9B682AaC2F3d509f5F406809A);
     ICLGaugeFactory internal cLGaugeFactory;
-    INonfungiblePositionManagerExtension internal slipstreamPositionManager;
+    INonfungiblePositionManagerExtension internal slipstreamPositionManager =
+        INonfungiblePositionManagerExtension(0x827922686190790b37229fd06084350E74485b72);
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -41,20 +43,19 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
 
         // Deploy CLPool.
         bytes memory args = abi.encode();
-        bytes memory bytecode = abi.encodePacked(vm.getCode("CLPoolExtension.sol"), args);
-        address cLPool_ = Utils.deployBytecode(bytecode);
+        deployCodeTo("CLPoolExtension.sol", args, poolImplementation);
 
         // Deploy the CLFactory.
-        args = abi.encode(address(voter), cLPool_);
-        bytecode = abi.encodePacked(vm.getCode("CLFactory.sol"), args);
-        address cLFactory_ = Utils.deployBytecode(bytecode);
-        cLFactory = ICLFactoryExtension(cLFactory_);
+        args = abi.encode(address(voter), poolImplementation);
+        deployCodeTo("CLFactory.sol", args, address(cLFactory));
 
         // Deploy the NonfungiblePositionManager, pass zero address for the NonfungibleTokenPositionDescriptor.
-        args = abi.encode(cLFactory_, address(weth9), address(0), "", "");
-        bytecode = abi.encodePacked(vm.getCode("periphery/NonfungiblePositionManager.sol"), args);
-        address nonfungiblePositionManager_ = Utils.deployBytecode(bytecode);
-        slipstreamPositionManager = INonfungiblePositionManagerExtension(nonfungiblePositionManager_);
+        args = abi.encode(address(cLFactory), address(weth9), address(0), "", "");
+        deployCodeTo(
+            "periphery/NonfungiblePositionManager.sol:NonfungiblePositionManager",
+            args,
+            address(slipstreamPositionManager)
+        );
     }
 
     function deployCLGaugeFactory() internal {
@@ -94,7 +95,7 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
         vm.prank(address(voter));
         gauge = ICLGauge(cLGaugeFactory.createGauge(address(0), address(pool), address(0), AERO, true));
 
-        voter.setGauge(address(gauge));
+        voter.setGauge(address(pool), address(gauge));
         voter.setAlive(address(gauge), true);
     }
 

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { Base_Test } from "../Base.t.sol";
 import { ArcadiaAccountsFixture } from "../utils/fixtures/arcadia-accounts/ArcadiaAccountsFixture.f.sol";
@@ -19,7 +19,8 @@ import { ERC1155Mock } from "../utils/mocks/tokens/ERC1155Mock.sol";
 import { FloorERC721AMExtension } from "../utils/extensions/FloorERC721AMExtension.sol";
 import { FloorERC1155AMExtension } from "../utils/extensions/FloorERC1155AMExtension.sol";
 import { MockERC20, MockERC721, MockERC1155, MockOracles, Rates } from "../utils/Types.sol";
-import { Registry } from "../../src/Registry.sol";
+import { NativeTokenAMExtension } from "../utils/extensions/NativeTokenAMExtension.sol";
+import { RegistryL2 } from "../../src/registries/RegistryL2.sol";
 
 /**
  * @notice Common logic needed by all fuzz tests.
@@ -37,6 +38,7 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
 
     FloorERC721AMExtension internal floorERC721AM;
     FloorERC1155AMExtension internal floorERC1155AM;
+    NativeTokenAMExtension internal nativeTokenAM;
     MockOracles internal mockOracles;
     MockERC20 internal mockERC20;
     MockERC721 internal mockERC721;
@@ -342,7 +344,7 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
                                       HELPERS
     //////////////////////////////////////////////////////////////////////////*/
 
-    function addAssetToArcadia(address asset, int256 price) internal override {
+    function addAssetToArcadia(address asset, int256 price) internal virtual override {
         super.addAssetToArcadia(asset, price);
 
         vm.prank(users.riskManager);
@@ -352,5 +354,35 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
     function addAssetToArcadia(address asset, int256 price, uint112 initialExposure, uint112 maxExposure) internal {
         addAssetToArcadia(asset, price);
         erc20AM.setExposure(address(creditorUsd), asset, initialExposure, maxExposure);
+    }
+
+    function addNativeTokenToArcadia(address asset, int256 price) internal {
+        deployNativeTokenAM();
+
+        ArcadiaOracle oracle = initMockedOracle("NT / USD", price);
+
+        vm.startPrank(users.owner);
+        chainlinkOM.addOracle(address(oracle), "NT", "USD", 2 days);
+        uint80[] memory oracles = new uint80[](1);
+        oracles[0] = uint80(chainlinkOM.oracleToOracleId(address(oracle)));
+        nativeTokenAM.addAsset(asset, BitPackingLib.pack(BA_TO_QA_SINGLE, oracles));
+        vm.stopPrank();
+
+        vm.prank(users.riskManager);
+        registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), asset, 0, type(uint112).max, 80, 90);
+    }
+
+    function addNativeTokenToArcadia(address asset, int256 price, uint112 initialExposure, uint112 maxExposure)
+        internal
+    {
+        addNativeTokenToArcadia(asset, price);
+        nativeTokenAM.setExposure(address(creditorUsd), asset, initialExposure, maxExposure);
+    }
+
+    function deployNativeTokenAM() internal {
+        vm.startPrank(users.owner);
+        nativeTokenAM = new NativeTokenAMExtension(address(registry));
+        registry.addAssetModule(address(nativeTokenAM));
+        vm.stopPrank();
     }
 }

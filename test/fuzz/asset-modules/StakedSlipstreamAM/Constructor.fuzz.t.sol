@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { StakedSlipstreamAM_Fuzz_Test } from "./_StakedSlipstreamAM.fuzz.t.sol";
 
@@ -24,18 +24,6 @@ contract Constructor_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
     /*///////////////////////////////////////////////////////////////
                             FUZZ TESTS
     ///////////////////////////////////////////////////////////////*/
-
-    function testFuzz_Revert_constructor_RewardTokenNotAllowed() public {
-        // Given: No asset module is set for the rewardToken
-        registry.setAssetModule(AERO, address(0));
-
-        // When: An asset is added to the AM.
-        // Then: It reverts.
-        vm.expectRevert(StakedSlipstreamAM.RewardTokenNotAllowed.selector);
-        new StakedSlipstreamAMExtension(
-            address(registry), address(slipstreamPositionManager), address(voter), address(AERO)
-        );
-    }
 
     function testFuzz_success_constructor() public {
         stakedSlipstreamAM = new StakedSlipstreamAMExtension(

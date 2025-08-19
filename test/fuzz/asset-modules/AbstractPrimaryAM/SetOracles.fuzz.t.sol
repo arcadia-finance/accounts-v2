@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { AbstractPrimaryAM_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAM.fuzz.t.sol";
 
@@ -141,7 +141,7 @@ contract CheckOracleSequence_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fu
         bytes32 oracleSequenceNew = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
         vm.prank(users.owner);
-        vm.expectRevert(bytes(""));
+        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
         assetModule.setOracles(asset, assetId, oracleSequenceNew);
     }
 
