@@ -6,11 +6,9 @@ pragma solidity 0.8.22;
 
 import { AccountV3Extension } from "../../../../utils/extensions/AccountV3Extension.sol";
 import { AccountV4Extension } from "../../../../utils/extensions/AccountV4Extension.sol";
-import { Constants } from "../../../Fuzz.t.sol";
+import { Constants } from "../../../../utils/Constants.sol";
 import { SpotToMarginMigrator } from "../../../../../src/accounts/helpers/SpotToMarginMigrator.sol";
 import { SpotToMarginMigrator_Fuzz_Test } from "./_SpotToMarginMigrator.fuzz.t.sol";
-
-import { Utils } from "../../../../utils/Utils.sol";
 
 /**
  * @notice Fuzz tests for the function "upgradeAccount" of contract "SpotToMarginMigrator".
@@ -78,13 +76,6 @@ contract UpgradeAccount_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_F
 
         // And : Spot Account has assets
         mintDepositAssets(erc20Amount, erc721Id, erc1155Amount);
-        emit log_bytes32(keccak256(abi.encodePacked(uint256(1), uint256(1))));
-        emit log_bytes32(keccak256(abi.encodePacked(uint256(2), uint256(1))));
-        emit log_bytes32(
-            Utils.commutativeKeccak256(
-                keccak256(abi.encodePacked(uint256(3), uint256(4))), keccak256(abi.encodePacked(uint256(4), uint256(3)))
-            )
-        );
 
         // When : Calling upgradeAccount()
         upgradeAccount(erc20Amount, erc721Id, erc1155Amount, address(creditorStable1));

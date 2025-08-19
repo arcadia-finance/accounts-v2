@@ -4,9 +4,8 @@
  */
 pragma solidity 0.8.22;
 
-import { AccountV4_Fuzz_Test } from "./_AccountV4.fuzz.t.sol";
-
 import { AccountV4 } from "../../../../src/accounts/AccountV4.sol";
+import { AccountV4_Fuzz_Test } from "./_AccountV4.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "constructor" of contract "AccountV4".

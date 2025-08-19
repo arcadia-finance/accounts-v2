@@ -4,9 +4,9 @@
  */
 pragma solidity ^0.8.22;
 
-import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
+import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "endAuction" of contract "AccountV3".

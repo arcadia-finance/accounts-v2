@@ -4,9 +4,9 @@
  */
 pragma solidity 0.8.22;
 
-import { AccountV4Extension } from "../../../../utils/extensions/AccountV4Extension.sol";
 import { AccountV3Extension } from "../../../../utils/extensions/AccountV3Extension.sol";
-import { Constants } from "../../../Fuzz.t.sol";
+import { AccountV4Extension } from "../../../../utils/extensions/AccountV4Extension.sol";
+import { Constants } from "../../../../utils/Constants.sol";
 import { Fuzz_Test } from "../../../Fuzz.t.sol";
 import { SpotToMarginMigratorExtension } from "../../../../utils/extensions/SpotToMarginMigratorExtension.sol";
 

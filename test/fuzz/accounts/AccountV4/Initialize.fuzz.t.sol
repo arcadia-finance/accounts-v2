@@ -5,8 +5,8 @@
 pragma solidity 0.8.22;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
-import { AccountV4Extension } from "../../../utils/extensions/AccountV4Extension.sol";
 import { AccountV4_Fuzz_Test } from "./_AccountV4.fuzz.t.sol";
+import { AccountV4Extension } from "../../../utils/extensions/AccountV4Extension.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 /**
