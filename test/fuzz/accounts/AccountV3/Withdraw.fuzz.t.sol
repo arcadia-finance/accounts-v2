@@ -217,7 +217,7 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.startPrank(users.accountOwner);
-        vm.expectRevert(bytes(""));
+        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }

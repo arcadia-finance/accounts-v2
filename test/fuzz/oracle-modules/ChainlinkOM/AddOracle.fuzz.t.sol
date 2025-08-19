@@ -61,7 +61,11 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         vm.assume(oracle != address(accountLogic));
 
         vm.prank(users.owner);
-        vm.expectRevert(bytes(""));
+        if (oracle.code.length == 0 && !isPrecompile(oracle)) {
+            vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(oracle)));
+        } else {
+            vm.expectRevert(bytes(""));
+        }
         chainlinkOM.addOracle(oracle, baseAsset, quoteAsset, cutOffTime);
     }
 

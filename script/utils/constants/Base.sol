@@ -45,6 +45,7 @@ library AerodromeGauges {
     address internal constant CL200_WETH_VVV = 0x6831125a82Af7417e0cde3A214c03fE248Ff6AA8;
     address internal constant CL200_WETH_WELL = 0xe871A267A418C200F8b92Ae21397221122B79808;
     address internal constant CL200_WETH_RDNT = 0x8D88C541f22de965536bD1849013caEE6ce90e11;
+    address internal constant CL2000_USDC_AERO = 0x430C09546ae9249AB75B9A4ef7B5FD9a4006D6f3;
     address internal constant S_EZETH_WETH = 0x4Fa58b3Bec8cE12014c7775a0B3da7e6AdC3c7eA;
     address internal constant S_USDC_USDBC = 0x1Cfc45C5221A07DA0DE958098A319a29FbBD66fE;
     address internal constant S_USDZ_USDC = 0xb7E4bBee04285F4B55d0A93b34E5dA95C3a7faf9;

@@ -170,7 +170,7 @@ contract BatchProcessWithdrawal_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         assetAmounts[0] = amountWithdrawn;
 
         vm.prank(address(account));
-        vm.expectRevert(bytes(""));
+        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
         registry.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
