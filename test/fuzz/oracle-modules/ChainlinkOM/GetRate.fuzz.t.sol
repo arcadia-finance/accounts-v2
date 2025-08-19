@@ -28,7 +28,7 @@ contract GetRate_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         // Given: An oracle not added to the "Registry".
         oracleId = uint80(bound(oracleId, registry.getOracleCounter(), type(uint80).max));
 
-        vm.expectRevert(bytes(""));
+        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
         chainlinkOM.getRate(oracleId);
     }
 

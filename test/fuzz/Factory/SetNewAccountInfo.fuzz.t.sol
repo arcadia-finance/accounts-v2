@@ -65,7 +65,6 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     function testFuzz_Revert_setNewAccountInfo_InvalidAccountContract(address newAssetAddress, address logic) public {
-        vm.assume(logic > address(10));
         vm.assume(logic != address(factory));
         vm.assume(logic != address(registry));
         vm.assume(logic != address(vm));
@@ -77,7 +76,12 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.startPrank(users.owner);
         registry2 = new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
-        vm.expectRevert(bytes(""));
+        vm.assume(logic.code.length > 0);
+        if (logic.code.length == 0 && !isPrecompile(logic)) {
+            vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(logic)));
+        } else {
+            vm.expectRevert(bytes(""));
+        }
         factory.setNewAccountInfo(address(registry2), logic, Constants.upgradeProof1To2, "");
         vm.stopPrank();
     }

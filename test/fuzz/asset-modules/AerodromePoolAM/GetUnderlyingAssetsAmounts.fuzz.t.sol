@@ -64,6 +64,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
+        // And : Underlying tokens are added to registry.
+        initAndSetValidStateInPoolFixture(testVars);
+
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
@@ -112,6 +115,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         testVars.assetAmount = bound(testVars.assetAmount, type(uint256).max / trustedReserve0 + 1, type(uint256).max);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
+
+        // And : Underlying tokens are added to registry.
+        initAndSetValidStateInPoolFixture(testVars);
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
@@ -162,6 +168,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         testVars.assetAmount = bound(testVars.assetAmount, type(uint256).max / trustedReserve1 + 1, type(uint256).max);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
+
+        // And : Underlying tokens are added to registry.
+        initAndSetValidStateInPoolFixture(testVars);
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
