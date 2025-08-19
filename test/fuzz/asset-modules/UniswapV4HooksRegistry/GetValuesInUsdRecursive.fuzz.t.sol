@@ -54,7 +54,7 @@ contract GetValuesInUsdRecursive_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Ho
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = assetAmount;
 
-        vm.expectRevert(bytes(""));
+        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
         v4HooksRegistry.getValuesInUsdRecursive(creditor, assetAddresses, assetIds, assetAmounts);
     }
 

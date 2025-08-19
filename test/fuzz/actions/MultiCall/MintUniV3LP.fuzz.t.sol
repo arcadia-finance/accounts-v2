@@ -55,7 +55,11 @@ contract MintUniV3LP_MultiCall_Fuzz_Test is MultiCall_Fuzz_Test, UniswapV3AMFixt
         vm.assume(notV3Contract != address(vm));
 
         vm.prank(address(action));
-        vm.expectRevert(bytes(""));
+        if (notV3Contract.code.length == 0) {
+            vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(notV3Contract)));
+        } else {
+            bytes("");
+        }
         action.mintUniV3LP(notV3Contract, abi.encodeWithSelector(randomSelector, randomBytes));
     }
 

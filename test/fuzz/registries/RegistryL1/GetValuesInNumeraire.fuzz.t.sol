@@ -41,7 +41,7 @@ contract GetValuesInNumeraire_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         assetAmounts[0] = 10;
         assetAmounts[1] = 10;
 
-        vm.expectRevert(bytes(""));
+        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
         registry_.getValuesInNumeraire(address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 
@@ -61,7 +61,7 @@ contract GetValuesInNumeraire_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         assetAmounts[0] = 10;
         assetAmounts[1] = 10;
 
-        vm.expectRevert(bytes(""));
+        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
         registry_.getValuesInNumeraire(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 

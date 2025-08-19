@@ -104,7 +104,7 @@ contract GetLiquidationValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         assetAmounts[0] = 10;
         assetAmounts[1] = 1;
 
-        vm.expectRevert(bytes(""));
+        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
         registry.getLiquidationValue(numeraire, address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 

@@ -43,7 +43,7 @@ contract GetValuesInUsdRecursive_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = assetAmount;
 
-        vm.expectRevert(bytes(""));
+        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
         registry_.getValuesInUsdRecursive(creditor, assetAddresses, assetIds, assetAmounts);
     }
 

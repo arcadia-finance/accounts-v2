@@ -28,7 +28,7 @@ contract IsActive_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         oracleId = uint80(bound(oracleId, registry.getOracleCounter(), type(uint80).max));
 
         vm.startPrank(sender);
-        vm.expectRevert(bytes(""));
+        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
         chainlinkOM.isActive(oracleId);
         vm.stopPrank();
     }

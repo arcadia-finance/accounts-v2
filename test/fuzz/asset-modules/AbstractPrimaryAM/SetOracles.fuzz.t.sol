@@ -141,7 +141,7 @@ contract CheckOracleSequence_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fu
         bytes32 oracleSequenceNew = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
         vm.prank(users.owner);
-        vm.expectRevert(bytes(""));
+        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
         assetModule.setOracles(asset, assetId, oracleSequenceNew);
     }
 

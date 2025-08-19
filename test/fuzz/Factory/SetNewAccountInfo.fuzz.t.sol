@@ -77,7 +77,12 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.startPrank(users.owner);
         registry2 = new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
-        vm.expectRevert(bytes(""));
+        vm.assume(logic.code.length > 0);
+        if (logic.code.length == 0) {
+            vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(logic)));
+        } else {
+            vm.expectRevert(bytes(""));
+        }
         factory.setNewAccountInfo(address(registry2), logic, Constants.upgradeProof1To2, "");
         vm.stopPrank();
     }

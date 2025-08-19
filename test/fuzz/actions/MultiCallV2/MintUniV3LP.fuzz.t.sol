@@ -46,16 +46,21 @@ contract MintUniV3LP_MultiCallV2_Fuzz_Test is MultiCallV2_Fuzz_Test, UniswapV3AM
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_Revert_mintUniV3LP_NotV3(address notV3Contract, bytes4 randomSelector, bytes memory randomBytes)
+    function testFuzz_Revert_mintUniV3LP_NotV3_2(address notV3Contract, bytes4 randomSelector, bytes memory randomBytes)
         public
     {
         vm.assume(notV3Contract != address(univ3PosMgr));
         vm.assume(notV3Contract != address(account));
         vm.assume(notV3Contract != address(accountV1Logic));
         vm.assume(notV3Contract != address(vm));
+        assumeNotPrecompile(notV3Contract);
 
         vm.prank(address(action));
-        vm.expectRevert(bytes(""));
+        if (notV3Contract.code.length == 0) {
+            vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(notV3Contract)));
+        } else {
+            vm.expectRevert(bytes(""));
+        }
         action.mintUniV3LP(notV3Contract, abi.encodeWithSelector(randomSelector, randomBytes));
     }
 
