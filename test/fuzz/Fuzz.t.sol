@@ -381,7 +381,7 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
 
     function deployNativeTokenAM() internal {
         vm.startPrank(users.owner);
-        nativeTokenAM = new NativeTokenAMExtension(address(registry));
+        nativeTokenAM = new NativeTokenAMExtension(address(registry), 18);
         registry.addAssetModule(address(nativeTokenAM));
         vm.stopPrank();
     }
