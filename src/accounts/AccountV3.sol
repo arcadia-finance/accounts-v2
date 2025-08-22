@@ -6,17 +6,18 @@ pragma solidity ^0.8.22;
 
 import { AccountErrors } from "../libraries/Errors.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
-import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
+import { ActionData, IActionBase } from "../interfaces/IActionBase.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
-import { IERC721 } from "../interfaces/IERC721.sol";
-import { IERC1155 } from "../interfaces/IERC1155.sol";
-import { IRegistry } from "../interfaces/IRegistry.sol";
-import { ICreditor } from "../interfaces/ICreditor.sol";
-import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
+import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { IAccount } from "../interfaces/IAccount.sol";
 import { IAccountsGuard } from "../interfaces/IAccountsGuard.sol";
+import { ICreditor } from "../interfaces/ICreditor.sol";
+import { IDistributor } from "../interfaces/IDistributor.sol";
+import { IERC721 } from "../interfaces/IERC721.sol";
+import { IERC1155 } from "../interfaces/IERC1155.sol";
 import { IFactory } from "../interfaces/IFactory.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
+import { IRegistry } from "../interfaces/IRegistry.sol";
 
 /**
  * @title Arcadia Accounts
@@ -59,6 +60,8 @@ contract AccountV3 is AccountStorageV1, IAccount {
     address public immutable FACTORY;
     // The contract address of the Accounts Guard.
     IAccountsGuard public immutable ACCOUNTS_GUARD;
+    // The contract address of the Merkl Distributor.
+    IDistributor public immutable MERKL_DISTRIBUTOR;
     // Uniswap Permit2 contract
     IPermit2 internal immutable PERMIT2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
@@ -156,14 +159,16 @@ contract AccountV3 is AccountStorageV1, IAccount {
     /**
      * @param factory The contract address of the Arcadia Accounts Factory.
      * @param accountsGuard The contract address of the Accounts Guard.
+     * @param distributor The contract address of the Merkl Distributor.
      */
-    constructor(address factory, address accountsGuard) {
+    constructor(address factory, address accountsGuard, address distributor) {
         // This will only be the owner of the Account implementation.
         // and will not affect any subsequent proxy implementation using this Account implementation.
         owner = msg.sender;
 
         FACTORY = factory;
         ACCOUNTS_GUARD = IAccountsGuard(accountsGuard);
+        MERKL_DISTRIBUTOR = IDistributor(distributor);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -709,6 +714,43 @@ contract AccountV3 is AccountStorageV1, IAccount {
 
         // Account must be healthy after actions are executed.
         if (isAccountUnhealthy()) revert AccountErrors.AccountUnhealthy();
+    }
+
+    /**
+     * @notice Toggles a Merkl Operator.
+     * @param operator The merkl operator.
+     * @dev The merkl operator can claim any pending merkl rewards on behalf of the Account.
+     */
+    function toggleMerklOperator(
+        address operator,
+        bytes calldata operatorData,
+        address recipient,
+        address[] calldata tokens
+    ) external onlyOwner nonReentrant(WITHOUT_PAUSE_CHECK, this.toggleMerklOperator.selector) updateActionTimestamp {
+        MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
+
+        if (operatorData.length > 0) {
+            IMerklOperator(operator).onToggleMerklOperator(operatorData);
+        }
+
+        if (tokens.length > 0) {
+            _setMerklClaimRecipient(recipient, tokens);
+        }
+    }
+
+    function setMerklClaimRecipient(address recipient, address[] calldata tokens)
+        external
+        onlyOwner
+        nonReentrant(WITHOUT_PAUSE_CHECK, this.setMerklClaimRecipient.selector)
+        updateActionTimestamp
+    {
+        _setMerklClaimRecipient(recipient, tokens);
+    }
+
+    function _setMerklClaimRecipient(address recipient, address[] calldata tokens) internal {
+        for (uint256 i; i < tokens.length; ++i) {
+            MERKL_DISTRIBUTOR.setClaimRecipient(recipient, tokens[i]);
+        }
     }
 
     /*///////////////////////////////////////////////////////////////
