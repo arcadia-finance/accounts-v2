@@ -5,5 +5,5 @@
 pragma solidity ^0.8.22;
 
 interface IMerklOperator {
-    function onToggleMerklOperator(bytes calldata operatorData) external view returns (uint256);
+    function onSetMerklOperator(bool operatorStatus, bytes calldata operatorData) external;
 }

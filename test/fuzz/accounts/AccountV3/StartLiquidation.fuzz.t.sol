@@ -33,7 +33,7 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         AccountV3_Fuzz_Test.setUp();
 
         vm.prank(users.accountOwner);
-        accountExtension2 = new AccountV3Extension(address(factory), address(accountsGuard));
+        accountExtension2 = new AccountV3Extension(address(factory), address(accountsGuard), address(0));
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
             .checked_write(true);
 

@@ -16,6 +16,7 @@ import { IDistributor } from "../interfaces/IDistributor.sol";
 import { IERC721 } from "../interfaces/IERC721.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
 import { IFactory } from "../interfaces/IFactory.sol";
+import { IMerklOperator } from "../interfaces/IMerklOperator.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
 import { IRegistry } from "../interfaces/IRegistry.sol";
 
@@ -159,16 +160,16 @@ contract AccountV3 is AccountStorageV1, IAccount {
     /**
      * @param factory The contract address of the Arcadia Accounts Factory.
      * @param accountsGuard The contract address of the Accounts Guard.
-     * @param distributor The contract address of the Merkl Distributor.
+     * @param merklDistributor The contract address of the Merkl Distributor.
      */
-    constructor(address factory, address accountsGuard, address distributor) {
+    constructor(address factory, address accountsGuard, address merklDistributor) {
         // This will only be the owner of the Account implementation.
         // and will not affect any subsequent proxy implementation using this Account implementation.
         owner = msg.sender;
 
         FACTORY = factory;
         ACCOUNTS_GUARD = IAccountsGuard(accountsGuard);
-        MERKL_DISTRIBUTOR = IDistributor(distributor);
+        MERKL_DISTRIBUTOR = IDistributor(merklDistributor);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -717,39 +718,45 @@ contract AccountV3 is AccountStorageV1, IAccount {
     }
 
     /**
-     * @notice Toggles a Merkl Operator.
-     * @param operator The merkl operator.
-     * @dev The merkl operator can claim any pending merkl rewards on behalf of the Account.
+     * @notice Manages Merkl Operators.
+     * @param operators Array of merkl operators.
+     * @param operatorStatuses Array of Bools indicating if the operator should be enabled or disabled.
+     * @param operatorDatas Array of calldata to be passed to the merkl operator.
+     * @param recipient The address of the recipient of the merkl rewards.
+     * @param tokens Array of tokens for which the recipient will be set.
+     * @dev A Merkl Operator can claim any pending merkl rewards on behalf of the Account.
+     * @dev The recipient will receive the Merkl rewards and only one recipient can be set per token.
+     * The Recipient can be the operator itself, the Account itself, the Account owner or any other address.
+     * It is up to the Account owner to add/remove/change recipient for some/all tokens when adding/removing/changing operators.
      */
-    function toggleMerklOperator(
-        address operator,
-        bytes calldata operatorData,
+    function setMerklOperators(
+        address[] calldata operators,
+        bool[] calldata operatorStatuses,
+        bytes[] calldata operatorDatas,
         address recipient,
         address[] calldata tokens
-    ) external onlyOwner nonReentrant(WITHOUT_PAUSE_CHECK, this.toggleMerklOperator.selector) updateActionTimestamp {
-        MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
-
-        if (operatorData.length > 0) {
-            IMerklOperator(operator).onToggleMerklOperator(operatorData);
+    ) external onlyOwner nonReentrant(WITHOUT_PAUSE_CHECK, this.setMerklOperators.selector) updateActionTimestamp {
+        if (operators.length != operatorStatuses.length || operators.length != operatorDatas.length) {
+            revert AccountErrors.LengthMismatch();
         }
 
-        if (tokens.length > 0) {
-            _setMerklClaimRecipient(recipient, tokens);
+        address operator;
+        bool currentStatus;
+        for (uint256 i; i < operators.length; ++i) {
+            operator = operators[i];
+            // If the current status is different from the desired status, set the new status.
+            currentStatus = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
+            if (operatorStatuses[i] != currentStatus) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
+
+            // Call Hook on the Operator.
+            if (operatorDatas[i].length > 0) {
+                IMerklOperator(operator).onSetMerklOperator(operatorStatuses[i], operatorDatas[i]);
+            }
         }
-    }
 
-    function setMerklClaimRecipient(address recipient, address[] calldata tokens)
-        external
-        onlyOwner
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.setMerklClaimRecipient.selector)
-        updateActionTimestamp
-    {
-        _setMerklClaimRecipient(recipient, tokens);
-    }
-
-    function _setMerklClaimRecipient(address recipient, address[] calldata tokens) internal {
-        for (uint256 i; i < tokens.length; ++i) {
-            MERKL_DISTRIBUTOR.setClaimRecipient(recipient, tokens[i]);
+        // If provided, set recipient for tokens.
+        for (uint256 j; j < tokens.length; ++j) {
+            MERKL_DISTRIBUTOR.setClaimRecipient(recipient, tokens[j]);
         }
     }
 

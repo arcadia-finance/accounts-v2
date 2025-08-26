@@ -7,7 +7,9 @@ pragma solidity 0.8.22;
 import { AccountV4 } from "../../../src/accounts/AccountV4.sol";
 
 contract AccountV4Extension is AccountV4 {
-    constructor(address factory, address accountsGuard) AccountV4(factory, accountsGuard) { }
+    constructor(address factory, address accountsGuard, address merklDistributor)
+        AccountV4(factory, accountsGuard, merklDistributor)
+    { }
 
     function getLocked() external view returns (uint256 locked_) {
         locked_ = locked;

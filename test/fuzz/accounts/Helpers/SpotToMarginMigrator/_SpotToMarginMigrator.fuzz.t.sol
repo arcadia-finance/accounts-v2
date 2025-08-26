@@ -35,7 +35,7 @@ abstract contract SpotToMarginMigrator_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         // Deploy AccountV3Extension logic contract to replace with AccountV3 logic for tests
-        accountV3ExtensionLogic = new AccountV3Extension(address(factory), address(accountsGuard));
+        accountV3ExtensionLogic = new AccountV3Extension(address(factory), address(accountsGuard), address(0));
         bytes memory code = address(accountV3ExtensionLogic).code;
         vm.etch(address(accountLogic), code);
 
@@ -43,7 +43,7 @@ abstract contract SpotToMarginMigrator_Fuzz_Test is Fuzz_Test {
         spotToMarginMigrator = new SpotToMarginMigratorExtension(address(factory));
 
         // Deploy a new Spot Account
-        accountSpotLogic = new AccountV4Extension(address(factory), address(accountsGuard));
+        accountSpotLogic = new AccountV4Extension(address(factory), address(accountsGuard), address(0));
         vm.prank(users.owner);
         factory.setNewAccountInfo(address(registry), address(accountSpotLogic), Constants.upgradeRoot3To4And4To3, "");
 

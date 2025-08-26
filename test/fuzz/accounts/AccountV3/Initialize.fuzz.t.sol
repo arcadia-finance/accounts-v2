@@ -28,7 +28,7 @@ contract Initialize_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     function setUp() public override {
         AccountV3_Fuzz_Test.setUp();
 
-        accountNotInitialised = new AccountV3Extension(address(factory), address(accountsGuard));
+        accountNotInitialised = new AccountV3Extension(address(factory), address(accountsGuard), address(0));
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
             .checked_write(true);
     }

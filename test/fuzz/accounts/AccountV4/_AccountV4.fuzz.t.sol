@@ -37,7 +37,7 @@ abstract contract AccountV4_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         // Deploy Account.
-        accountSpotLogic = new AccountV4Extension(address(factory), address(accountsGuard));
+        accountSpotLogic = new AccountV4Extension(address(factory), address(accountsGuard), address(0));
         vm.prank(users.owner);
         factory.setNewAccountInfo(address(registry), address(accountSpotLogic), Constants.upgradeRoot3To4And4To3, "");
 
