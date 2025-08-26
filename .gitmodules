@@ -4,8 +4,8 @@
 [submodule "lib/forge-std"]
 	path = lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
-[submodule "lib/openzeppelin-contracts"]
-	path = lib/openzeppelin-contracts
+[submodule "lib/openzeppelin-contracts-v3.4"]
+	path = lib/openzeppelin-contracts-v3.4
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts/
 	branch = release-v3.4-solc-0.7
 [submodule "lib/v3-core"]

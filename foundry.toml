@@ -15,7 +15,7 @@ remappings = [
     "contracts/=lib/slipstream/contracts",
     "solmate/=lib/solmate/",
     "lib/slipstream:@openzeppelin/=lib/slipstream/lib/openzeppelin-contracts/",
-    "lib/v3-periphery:@openzeppelin/=lib/openzeppelin-contracts/",
+    "lib/v3-periphery:@openzeppelin/=lib/openzeppelin-contracts-v3.4/",
     "lib/v4-periphery:@openzeppelin/=lib/v4-periphery/lib/v4-core/lib/openzeppelin-contracts/",
     "lib/v4-periphery/lib/v4-core:@openzeppelin/=lib/v4-periphery/lib/v4-core/lib/openzeppelin-contracts/",
 ]
