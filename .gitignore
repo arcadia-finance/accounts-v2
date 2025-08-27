@@ -4,6 +4,7 @@ out/
 build/*
 node_modules
 broadcast/
+foundry.lock
 
 # JetBrains
 .idea
