@@ -9,7 +9,7 @@
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
 	branch = release-v3.4-solc-0.7
 [submodule "lib/openzeppelin-contracts-upgradeable-v4.9"]
-	path = lib/openzeppelin-contract-upgradeables-v4.9
+	path = lib/openzeppelin-contract-upgradeable-v4.9
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable
 	branch = v4.9.0
 [submodule "lib/v3-core"]
