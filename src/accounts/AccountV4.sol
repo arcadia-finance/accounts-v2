@@ -345,6 +345,8 @@ contract AccountV4 is AccountStorageV1, IAccount {
      * @dev The recipient will receive the Merkl rewards and only one recipient can be set per token.
      * The Recipient can be the operator itself, the Account itself, the Account owner or any other address.
      * It is up to the Account owner to add/remove/change recipient for some/all tokens when adding/removing/changing operators.
+     * @dev The Operator and recipients are NOT reset when transferring ownership of the Account.
+     * Since the Account is not involved in the claiming flow, a check on owner must be implemented in the Operator.
      */
     function setMerklOperators(
         address[] calldata operators,
