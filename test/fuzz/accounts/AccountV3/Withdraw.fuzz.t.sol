@@ -266,6 +266,7 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(account2)).checked_write(
             true
         );
+        vm.prank(address(factory));
         account2.initialize(users.accountOwner, address(registry), address(creditorStable1));
 
         address[] memory assetAddresses = new address[](1);

@@ -188,9 +188,9 @@ contract AccountV3 is AccountStorageV1, IAccount {
      */
     function initialize(address owner_, address registry_, address creditor_)
         external
+        onlyFactory
         nonReentrant(WITH_PAUSE_CHECK, this.initialize.selector)
     {
-        if (registry != address(0)) revert AccountErrors.AlreadyInitialized();
         if (registry_ == address(0)) revert AccountErrors.InvalidRegistry();
         owner = owner_;
         registry = registry_;
@@ -720,9 +720,9 @@ contract AccountV3 is AccountStorageV1, IAccount {
     /**
      * @notice Manages Merkl Operators.
      * @param operators Array of merkl operators.
-     * @param operatorStatuses Array of Bools indicating if the operator should be enabled or disabled.
-     * @param operatorDatas Array of calldata to be passed to the merkl operator.
-     * @param recipient The address of the recipient of the merkl rewards.
+     * @param operatorStatuses Array of Bools indicating if the corresponding operator should be enabled or disabled.
+     * @param operatorDatas Array of calldata to be passed to the corresponding merkl operator.
+     * @param recipient The address of the recipient of the merkl rewards for each of the tokens.
      * @param tokens Array of tokens for which the recipient will be set.
      * @dev A Merkl Operator can claim any pending merkl rewards on behalf of the Account.
      * @dev The recipient will receive the Merkl rewards and only one recipient can be set per token.

@@ -36,19 +36,28 @@ contract Initialize_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_initialize_InvalidReg() public {
-        vm.expectRevert(AccountErrors.InvalidRegistry.selector);
-        accountNotInitialised.initialize(users.accountOwner, address(0), address(0));
+    function testFuzz_Revert_initialize_NotFactory(
+        address notFactory,
+        address owner_,
+        address registry_,
+        address creditor_
+    ) public {
+        vm.assume(notFactory != address(factory));
+
+        vm.startPrank(notFactory);
+        vm.expectRevert(AccountErrors.OnlyFactory.selector);
+        accountNotInitialised.initialize(owner_, registry_, creditor_);
+        vm.stopPrank();
     }
 
-    function testFuzz_Revert_initialize_AlreadyInitialized() public {
-        accountNotInitialised.initialize(users.accountOwner, address(registry), address(0));
-
-        vm.expectRevert(AccountErrors.AlreadyInitialized.selector);
-        accountNotInitialised.initialize(users.accountOwner, address(registry), address(0));
+    function testFuzz_Revert_initialize_Invalidregistry(address owner_, address creditor_) public {
+        vm.prank(address(factory));
+        vm.expectRevert(AccountErrors.InvalidRegistry.selector);
+        accountNotInitialised.initialize(owner_, address(0), creditor_);
     }
 
     function testFuzz_Success_initialize_WithoutCreditor(address owner_) public {
+        vm.prank(address(factory));
         accountNotInitialised.initialize(owner_, address(registry), address(0));
 
         assertEq(accountNotInitialised.owner(), owner_);
@@ -58,6 +67,7 @@ contract Initialize_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     }
 
     function testFuzz_Success_initialize_WithCreditor(address owner_) public {
+        vm.prank(address(factory));
         vm.expectEmit(true, true, true, true);
         emit AccountV3.NumeraireSet(address(mockERC20.stable1));
         accountNotInitialised.initialize(owner_, address(registry), address(creditorStable1));

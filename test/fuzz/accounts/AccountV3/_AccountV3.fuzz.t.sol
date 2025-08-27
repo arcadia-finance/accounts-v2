@@ -43,10 +43,8 @@ abstract contract AccountV3_Fuzz_Test is Fuzz_Test {
             .checked_write(true);
 
         // Initiate Account (set owner and numeraire).
+        vm.prank(address(factory));
         accountExtension.initialize(users.accountOwner, address(registry), address(creditorStable1));
-
-        // Initiate Reentrancy guard.
-        accountExtension.setLocked(1);
     }
 
     /* ///////////////////////////////////////////////////////////////

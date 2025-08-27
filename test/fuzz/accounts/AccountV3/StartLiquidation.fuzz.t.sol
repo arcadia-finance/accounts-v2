@@ -77,6 +77,7 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         assetAmounts[0] = depositAmountToken1;
 
         // Initialize Account and set open position on creditor
+        vm.prank(address(factory));
         accountExtension2.initialize(users.accountOwner, address(registry), address(creditorToken1));
         accountExtension2.setMinimumMargin(minimumMargin);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
@@ -114,6 +115,7 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         uint256 openDebt = 0;
 
         // Initialize Account and set open position on creditor
+        vm.prank(address(factory));
         accountExtension2.initialize(users.accountOwner, address(registry), address(creditorToken1));
         accountExtension2.setMinimumMargin(minimumMargin);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
@@ -155,6 +157,7 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
             assetAmounts[0] = depositAmountToken1;
 
             // Given: Account is initialized and an open position is set on creditor
+            vm.prank(address(factory));
             accountExtension2.initialize(users.accountOwner, address(registry), address(creditorToken1));
             accountExtension2.setMinimumMargin(minimumMargin);
             creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
