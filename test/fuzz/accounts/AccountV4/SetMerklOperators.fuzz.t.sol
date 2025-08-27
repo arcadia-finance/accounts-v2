@@ -204,7 +204,10 @@ contract SetMerklOperators_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, MerklFixt
             vm.expectCall(
                 address(operator1),
                 abi.encodeWithSelector(
-                    operator1.onSetMerklOperator.selector, params.operatorStatuses[0], params.operatorDatas[0]
+                    operator1.onSetMerklOperator.selector,
+                    users.accountOwner,
+                    params.operatorStatuses[0],
+                    params.operatorDatas[0]
                 )
             );
         }
@@ -212,7 +215,10 @@ contract SetMerklOperators_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, MerklFixt
             vm.expectCall(
                 address(operator2),
                 abi.encodeWithSelector(
-                    operator2.onSetMerklOperator.selector, params.operatorStatuses[1], params.operatorDatas[1]
+                    operator2.onSetMerklOperator.selector,
+                    users.accountOwner,
+                    params.operatorStatuses[1],
+                    params.operatorDatas[1]
                 )
             );
         }

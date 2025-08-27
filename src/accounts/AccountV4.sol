@@ -335,11 +335,20 @@ contract AccountV4 is AccountStorageV1, IAccount {
     }
 
     /**
+     * @notice Removes a Merkl Operator.
+     * @param operator The merkl operator.
+     */
+    function removeMerklOperator(address operator) external onlyOwner {
+        bool currentStatus = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
+        if (currentStatus) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
+    }
+
+    /**
      * @notice Manages Merkl Operators.
      * @param operators Array of merkl operators.
-     * @param operatorStatuses Array of Bools indicating if the operator should be enabled or disabled.
-     * @param operatorDatas Array of calldata to be passed to the merkl operator.
-     * @param recipient The address of the recipient of the merkl rewards.
+     * @param operatorStatuses Array of Bools indicating if the corresponding operator should be enabled or disabled.
+     * @param operatorDatas Array of calldata to be passed to the corresponding merkl operator.
+     * @param recipient The address of the recipient of the merkl rewards for each of the tokens.
      * @param tokens Array of tokens for which the recipient will be set.
      * @dev A Merkl Operator can claim any pending merkl rewards on behalf of the Account.
      * @dev The recipient will receive the Merkl rewards and only one recipient can be set per token.
@@ -354,7 +363,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
         bytes[] calldata operatorDatas,
         address recipient,
         address[] calldata tokens
-    ) external onlyOwner nonReentrant(WITHOUT_PAUSE_CHECK, this.setMerklOperators.selector) updateActionTimestamp {
+    ) external onlyOwner nonReentrant(WITH_PAUSE_CHECK, this.setMerklOperators.selector) updateActionTimestamp {
         if (operators.length != operatorStatuses.length || operators.length != operatorDatas.length) {
             revert AccountErrors.LengthMismatch();
         }
@@ -369,7 +378,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
 
             // Call Hook on the Operator.
             if (operatorDatas[i].length > 0) {
-                IMerklOperator(operator).onSetMerklOperator(operatorStatuses[i], operatorDatas[i]);
+                IMerklOperator(operator).onSetMerklOperator(msg.sender, operatorStatuses[i], operatorDatas[i]);
             }
         }
 

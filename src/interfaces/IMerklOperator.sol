@@ -5,5 +5,5 @@
 pragma solidity ^0.8.22;
 
 interface IMerklOperator {
-    function onSetMerklOperator(bool operatorStatus, bytes calldata operatorData) external;
+    function onSetMerklOperator(address accountOwner, bool status, bytes calldata data) external;
 }
