@@ -280,6 +280,18 @@ contract AccountV4 is AccountStorageV1, IAccount {
     }
 
     /**
+     * @notice Add or remove an Asset Manager.
+     * @param assetManager The address of the Asset Manager.
+     * @dev Anyone can remove an Asset Manager for themselves, this will not impact the current owner of the Account
+     * since the combination of "stored owner -> asset manager" is used in authentication checks.
+     * This guarantees that when the ownership of the Account is transferred, the asset managers of the old owner have no
+     * impact on the new owner. But the new owner can still remove any existing asset managers before the transfer.
+     */
+    function removeAssetManager(address assetManager) external {
+        emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = false);
+    }
+
+    /**
      * @notice Adds, removes or modifies Asset Managers.
      * @param assetManagers Array of Asset Managers.
      * @param statuses Array of Bools indicating if the corresponding Asset Manager should be enabled or disabled.
@@ -305,9 +317,9 @@ contract AccountV4 is AccountStorageV1, IAccount {
         address assetManager;
         for (uint256 i; i < assetManagers.length; ++i) {
             assetManager = assetManagers[i];
-            isAssetManager[msg.sender][assetManager] = statuses[i];
+            emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = statuses[i]);
 
-            // Call Hook on the Asset Manager.
+            // Optionally call Hook on the Asset Manager to initialize/update it.
             if (datas[i].length > 0) {
                 IAssetManager(assetManager).onSetAssetManager(msg.sender, statuses[i], datas[i]);
             }
@@ -412,7 +424,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
             currentStatus = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
             if (operatorStatuses[i] != currentStatus) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
 
-            // Call Hook on the Operator.
+            // Optionally call Hook on the Operator to initialize/update it.
             if (operatorDatas[i].length > 0) {
                 IMerklOperator(operator).onSetMerklOperator(msg.sender, operatorStatuses[i], operatorDatas[i]);
             }

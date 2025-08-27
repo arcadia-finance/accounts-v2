@@ -110,6 +110,11 @@ contract SetAssetManagers_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
                 )
             );
         }
+        // And: Correct events are emitted.
+        vm.expectEmit(address(accountSpot));
+        emit AccountV4.AssetManagerSet(users.accountOwner, address(assetManager1), params.statuses[0]);
+        vm.expectEmit(address(accountSpot));
+        emit AccountV4.AssetManagerSet(users.accountOwner, address(assetManager2), params.statuses[1]);
         vm.prank(users.accountOwner);
         setAssetManagers(params);
 
