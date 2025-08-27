@@ -4,6 +4,8 @@
  */
 pragma solidity ^0.8.22;
 
-contract OperatorMock {
-    function onSetMerklOperator(bool operatorStatus, bytes calldata operatorData) external { }
+import { IMerklOperator } from "../../../../src/interfaces/IMerklOperator.sol";
+
+contract OperatorMock is IMerklOperator {
+    function onSetMerklOperator(address accountOwner, bool status, bytes calldata data) external { }
 }
