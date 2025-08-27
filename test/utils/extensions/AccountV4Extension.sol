@@ -85,4 +85,8 @@ contract AccountV4Extension is AccountV4 {
             }
         }
     }
+
+    function setAssetManager(address assetManager, bool value) external {
+        isAssetManager[msg.sender][assetManager] = value;
+    }
 }

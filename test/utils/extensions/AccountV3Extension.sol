@@ -78,4 +78,8 @@ contract AccountV3Extension is AccountV3 {
     function getCoolDownPeriod() public pure returns (uint256 coolDownPeriod) {
         coolDownPeriod = COOL_DOWN_PERIOD;
     }
+
+    function setAssetManager(address assetManager, bool value) external {
+        isAssetManager[msg.sender][assetManager] = value;
+    }
 }

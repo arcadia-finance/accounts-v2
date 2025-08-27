@@ -70,17 +70,21 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         address newOwner = address(60); //Annoying to fuzz since it often fuzzes to existing contracts without an onERC721Received
         vm.assume(assetManager != newOwner);
 
-        // Warp time to avoid CoolDownPeriodNotPassed error on transfer ownership.
-        vm.warp(1 days);
-
         // Deploy account via factory (proxy)
         vm.startPrank(users.accountOwner);
         address proxyAddr = factory.createAccount(12_345_678, 0, address(0));
         AccountV3Extension proxy = AccountV3Extension(proxyAddr);
         vm.stopPrank();
 
+        address[] memory assetManagers = new address[](1);
+        assetManagers[0] = address(assetManager);
+        bool[] memory statuses = new bool[](1);
+        statuses[0] = true;
         vm.prank(users.accountOwner);
-        proxy.setAssetManager(assetManager, true);
+        proxy.setAssetManagers(assetManagers, statuses, new bytes[](1));
+
+        // Warp time to avoid CoolDownPeriodNotPassed error on transfer ownership.
+        vm.warp(block.timestamp + 1 days);
 
         vm.prank(users.accountOwner);
         factory.safeTransferFrom(users.accountOwner, newOwner, address(proxy));

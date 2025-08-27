@@ -262,26 +262,6 @@ contract AccountV4 is AccountStorageV1, IAccount {
     /**
      * @notice Add or remove an Asset Manager.
      * @param assetManager The address of the Asset Manager.
-     * @param value A boolean giving permissions to or taking permissions from an Asset Manager.
-     * @dev Only set trusted addresses as Asset Manager. Asset Managers have full control over assets in the Account.
-     * @dev No need to set the Owner as Asset Manager as they will automatically have all permissions of an Asset Manager.
-     * @dev Potential use-cases of the Asset Manager might be to:
-     * - Liquidity Management.
-     * - Do flash actions (optimistic actions).
-     * - Compounding.
-     * - Chain multiple interactions together.
-     * @dev Anyone can set the Asset Manager for themselves, this will not impact the current owner of the Account
-     * since the combination of "stored owner -> asset manager" is used in authentication checks.
-     * This guarantees that when the ownership of the Account is transferred, the asset managers of the old owner have no
-     * impact on the new owner. But the new owner can still remove any existing asset managers before the transfer.
-     */
-    function setAssetManager(address assetManager, bool value) external {
-        emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = value);
-    }
-
-    /**
-     * @notice Add or remove an Asset Manager.
-     * @param assetManager The address of the Asset Manager.
      * @dev Anyone can remove an Asset Manager for themselves, this will not impact the current owner of the Account
      * since the combination of "stored owner -> asset manager" is used in authentication checks.
      * This guarantees that when the ownership of the Account is transferred, the asset managers of the old owner have no
