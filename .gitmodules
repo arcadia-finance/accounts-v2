@@ -8,6 +8,10 @@
 	path = lib/openzeppelin-contracts-v3.4
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
 	branch = release-v3.4-solc-0.7
+[submodule "lib/openzeppelin-contracts-v4.9"]
+	path = lib/openzeppelin-contracts-v4.9
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+	branch = release-v4.9
 [submodule "lib/openzeppelin-contracts-upgradeable-v4.9"]
 	path = lib/openzeppelin-contracts-upgradeable-v4.9
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable
@@ -30,7 +34,3 @@
 [submodule "lib/merkl-contracts"]
 	path = lib/merkl-contracts
 	url = https://github.com/AngleProtocol/merkl-contracts
-[submodule "lib/openzeppelin-contracts"]
-	path = lib/openzeppelin-contracts
-	url = https://github.com/OpenZeppelin/openzeppelin-contracts
-	branch = release-v4.9
