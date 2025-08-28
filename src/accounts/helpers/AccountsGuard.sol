@@ -98,7 +98,7 @@ contract AccountsGuard is Owned {
      * @dev lock() and unlock() should always be called atomically at the beginning and end of any Account-function
      * that should be protected by the cross accounts guard.
      * The guard gives NO reentrancy protection for non atomic flows.
-     * @dev If the CrossAccountsGuard gets in an invalid state due to a faulty implementation in an Account
+     * @dev If the AccountsGuard gets in an invalid state due to a faulty implementation in an Account
      * where the Guard was locked but not unlocked (should never happen in practice),
      * then only transactions within the same block as the faulty trasaction will revert.
      */
