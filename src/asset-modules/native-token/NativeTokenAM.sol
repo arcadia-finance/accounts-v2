@@ -16,14 +16,31 @@ import { PrimaryAM } from "../abstracts/AbstractPrimaryAM.sol";
  */
 contract NativeTokenAM is PrimaryAM {
     /* //////////////////////////////////////////////////////////////
+                               CONSTANTS
+    ////////////////////////////////////////////////////////////// */
+
+    // The unit of the native asset, equal to 10^decimals.
+    uint64 public immutable ASSET_UNIT;
+
+    /* //////////////////////////////////////////////////////////////
+                                ERRORS
+    ////////////////////////////////////////////////////////////// */
+
+    error Max18Decimals();
+
+    /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
     /**
      * @param registry_ The contract address of the Registry.
+     * @param decimals The number of decimals of the native asset.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "4" for the native token.
      */
-    constructor(address registry_) PrimaryAM(registry_, 4) { }
+    constructor(address registry_, uint256 decimals) PrimaryAM(registry_, 4) {
+        if (decimals > 18) revert Max18Decimals();
+        ASSET_UNIT = uint64(10 ** decimals);
+    }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
@@ -44,9 +61,8 @@ contract NativeTokenAM is PrimaryAM {
 
         inAssetModule[asset] = true;
 
-        // Native Token has 18 decimals.
         assetToInformation[_getKeyFromAsset(asset, 0)] =
-            AssetInformation({ assetUnit: uint64(1e18), oracleSequence: oracleSequence });
+            AssetInformation({ assetUnit: ASSET_UNIT, oracleSequence: oracleSequence });
     }
 
     /*///////////////////////////////////////////////////////////////
