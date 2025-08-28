@@ -40,7 +40,6 @@ contract AccountsGuard is Owned {
     ////////////////////////////////////////////////////////////// */
 
     error Locked();
-    error NotAnAccount();
     error OnlyAccount();
     error OnlyGuardian();
     error Paused();
@@ -105,7 +104,7 @@ contract AccountsGuard is Owned {
     function lock(bool pauseCheck, bytes4 selector) external {
         if (pauseCheck && paused) revert Paused();
         if (account != address(0) && blockNumber == block.number) revert Reentered();
-        if (!ARCADIA_FACTORY.isAccount(msg.sender)) revert NotAnAccount();
+        if (!ARCADIA_FACTORY.isAccount(msg.sender)) revert OnlyAccount();
 
         account = msg.sender;
         blockNumber = uint32(block.number);

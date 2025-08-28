@@ -74,7 +74,7 @@ contract Lock_AccountsGuard_Fuzz_Test is AccountsGuard_Fuzz_Test {
         // When: lock is called.
         // Then: It should revert.
         vm.prank(caller);
-        vm.expectRevert(AccountsGuard.NotAnAccount.selector);
+        vm.expectRevert(AccountsGuard.OnlyAccount.selector);
         accountsGuard.lock(pauseCheck, selector);
     }
 
