@@ -10,8 +10,10 @@ import { ActionData, IActionBase } from "../interfaces/IActionBase.sol";
 import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { IAccount } from "../interfaces/IAccount.sol";
 import { IAccountsGuard } from "../interfaces/IAccountsGuard.sol";
+import { IDistributor } from "../interfaces/IDistributor.sol";
 import { IERC721 } from "../interfaces/IERC721.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
+import { IMerklOperator } from "../interfaces/IMerklOperator.sol";
 import { IPermit2 } from "../interfaces/IPermit2.sol";
 
 /**
@@ -43,6 +45,8 @@ contract AccountV4 is AccountStorageV1, IAccount {
     address public immutable FACTORY;
     // The contract address of the Accounts Guard.
     IAccountsGuard public immutable ACCOUNTS_GUARD;
+    // The contract address of the Merkl Distributor.
+    IDistributor public immutable MERKL_DISTRIBUTOR;
     // Uniswap Permit2 contract
     IPermit2 internal immutable PERMIT2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
@@ -114,14 +118,16 @@ contract AccountV4 is AccountStorageV1, IAccount {
     /**
      * @param factory The contract address of the Arcadia Accounts Factory.
      * @param accountsGuard The contract address of the Accounts Guard.
+     * @param merklDistributor The contract address of the Merkl Distributor.
      */
-    constructor(address factory, address accountsGuard) {
+    constructor(address factory, address accountsGuard, address merklDistributor) {
         // This will only be the owner of the Account implementation.
         // and will not affect any subsequent proxy implementation using this Account implementation.
         owner = msg.sender;
 
         FACTORY = factory;
         ACCOUNTS_GUARD = IAccountsGuard(accountsGuard);
+        MERKL_DISTRIBUTOR = IDistributor(merklDistributor);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -326,6 +332,60 @@ contract AccountV4 is AccountStorageV1, IAccount {
         _deposit(
             depositData.assets, depositData.assetIds, depositData.assetAmounts, depositData.assetTypes, actionTarget
         );
+    }
+
+    /**
+     * @notice Removes a Merkl Operator.
+     * @param operator The merkl operator.
+     */
+    function removeMerklOperator(address operator) external onlyOwner {
+        bool currentStatus = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
+        if (currentStatus) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
+    }
+
+    /**
+     * @notice Manages Merkl Operators.
+     * @param operators Array of merkl operators.
+     * @param operatorStatuses Array of Bools indicating if the corresponding operator should be enabled or disabled.
+     * @param operatorDatas Array of calldata to be passed to the corresponding merkl operator.
+     * @param recipient The address of the recipient of the merkl rewards for each of the tokens.
+     * @param tokens Array of tokens for which the recipient will be set.
+     * @dev A Merkl Operator can claim any pending merkl rewards on behalf of the Account.
+     * @dev The recipient will receive the Merkl rewards and only one recipient can be set per token.
+     * The Recipient can be the operator itself, the Account itself, the Account owner or any other address.
+     * It is up to the Account owner to add/remove/change recipient for some/all tokens when adding/removing/changing operators.
+     * @dev The Operator and recipients are NOT reset when transferring ownership of the Account.
+     * Since the Account is not involved in the claiming flow, a check on owner must be implemented in the Operator.
+     */
+    function setMerklOperators(
+        address[] calldata operators,
+        bool[] calldata operatorStatuses,
+        bytes[] calldata operatorDatas,
+        address recipient,
+        address[] calldata tokens
+    ) external onlyOwner nonReentrant(WITH_PAUSE_CHECK, this.setMerklOperators.selector) updateActionTimestamp {
+        if (operators.length != operatorStatuses.length || operators.length != operatorDatas.length) {
+            revert AccountErrors.LengthMismatch();
+        }
+
+        address operator;
+        bool currentStatus;
+        for (uint256 i; i < operators.length; ++i) {
+            operator = operators[i];
+            // If the current status is different from the desired status, set the new status.
+            currentStatus = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
+            if (operatorStatuses[i] != currentStatus) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
+
+            // Call Hook on the Operator.
+            if (operatorDatas[i].length > 0) {
+                IMerklOperator(operator).onSetMerklOperator(msg.sender, operatorStatuses[i], operatorDatas[i]);
+            }
+        }
+
+        // If provided, set recipient for tokens.
+        for (uint256 j; j < tokens.length; ++j) {
+            MERKL_DISTRIBUTOR.setClaimRecipient(recipient, tokens[j]);
+        }
     }
 
     /*///////////////////////////////////////////////////////////////

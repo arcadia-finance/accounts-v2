@@ -34,7 +34,7 @@ contract ArcadiaAccountsFixture is Base_Test {
         erc20AM = new ERC20PrimaryAMExtension(address(registry));
 
         accountsGuard = new AccountsGuardExtension(users.owner, address(factory));
-        accountLogic = new AccountV3(address(factory), address(accountsGuard));
+        accountLogic = new AccountV3(address(factory), address(accountsGuard), address(0));
         factory.setLatestAccountVersion(2);
         factory.setNewAccountInfo(address(registry), address(accountLogic), Constants.upgradeRoot3To4And4To3, "");
 

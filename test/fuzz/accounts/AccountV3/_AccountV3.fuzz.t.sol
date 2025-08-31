@@ -36,17 +36,15 @@ abstract contract AccountV3_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         // Deploy Account.
-        accountExtension = new AccountV3Extension(address(factory), address(accountsGuard));
+        accountExtension = new AccountV3Extension(address(factory), address(accountsGuard), address(0));
 
         // Set account in factory.
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension))
             .checked_write(true);
 
         // Initiate Account (set owner and numeraire).
+        vm.prank(address(factory));
         accountExtension.initialize(users.accountOwner, address(registry), address(creditorStable1));
-
-        // Initiate Reentrancy guard.
-        accountExtension.setLocked(1);
     }
 
     /* ///////////////////////////////////////////////////////////////

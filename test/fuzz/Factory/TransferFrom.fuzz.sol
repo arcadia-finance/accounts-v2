@@ -26,7 +26,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function setUp() public override {
         Factory_Fuzz_Test.setUp();
 
-        AccountV3Extension account_ = new AccountV3Extension(address(factory), address(accountsGuard));
+        AccountV3Extension account_ = new AccountV3Extension(address(factory), address(accountsGuard), address(0));
         coolDownPeriod = account_.getCoolDownPeriod();
     }
 

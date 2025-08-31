@@ -18,6 +18,7 @@ library AccountErrors {
     error InvalidRecipient();
     error InvalidRegistry();
     error InvalidUpgrade();
+    error LengthMismatch();
     error NoFallback();
     error NoReentry();
     error NonZeroOpenPosition();

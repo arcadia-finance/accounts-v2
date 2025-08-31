@@ -262,10 +262,11 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
 
         // Given: At least one nft of same collection is deposited in other account.
         // (otherwise processWithdrawal underflows when arrLength is 0: account didn't deposit any nfts yet).
-        AccountV3Extension account2 = new AccountV3Extension(address(factory), address(accountsGuard));
+        AccountV3Extension account2 = new AccountV3Extension(address(factory), address(accountsGuard), address(0));
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(account2)).checked_write(
             true
         );
+        vm.prank(address(factory));
         account2.initialize(users.accountOwner, address(registry), address(creditorStable1));
 
         address[] memory assetAddresses = new address[](1);

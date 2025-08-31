@@ -20,10 +20,11 @@ contract Constructor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address factory_) public {
+    function testFuzz_Success_deployment(address factory_, address merklDistributor) public {
         vm.prank(users.owner);
-        AccountV3 account_ = new AccountV3(factory_, address(accountsGuard));
+        AccountV3 account_ = new AccountV3(factory_, address(accountsGuard), merklDistributor);
 
         assertEq(account_.FACTORY(), factory_);
+        assertEq(address(account_.MERKL_DISTRIBUTOR()), merklDistributor);
     }
 }
