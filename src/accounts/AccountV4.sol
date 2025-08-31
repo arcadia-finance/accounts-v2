@@ -10,6 +10,7 @@ import { ActionData, IActionBase } from "../interfaces/IActionBase.sol";
 import { ERC20, SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
 import { IAccount } from "../interfaces/IAccount.sol";
 import { IAccountsGuard } from "../interfaces/IAccountsGuard.sol";
+import { IAssetManager } from "../interfaces/IAssetManager.sol";
 import { IDistributor } from "../interfaces/IDistributor.sol";
 import { IERC721 } from "../interfaces/IERC721.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
@@ -261,7 +262,20 @@ contract AccountV4 is AccountStorageV1, IAccount {
     /**
      * @notice Add or remove an Asset Manager.
      * @param assetManager The address of the Asset Manager.
-     * @param value A boolean giving permissions to or taking permissions from an Asset Manager.
+     * @dev Anyone can remove an Asset Manager for themselves, this will not impact the current owner of the Account
+     * since the combination of "stored owner -> asset manager" is used in authentication checks.
+     * This guarantees that when the ownership of the Account is transferred, the asset managers of the old owner have no
+     * impact on the new owner. But the new owner can still remove any existing asset managers before the transfer.
+     */
+    function removeAssetManager(address assetManager) external {
+        emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = false);
+    }
+
+    /**
+     * @notice Adds, removes or modifies Asset Managers.
+     * @param assetManagers Array of Asset Managers.
+     * @param statuses Array of Bools indicating if the corresponding Asset Manager should be enabled or disabled.
+     * @param datas Array of calldata to be passed to the corresponding Asset Manager.
      * @dev Only set trusted addresses as Asset Manager. Asset Managers have full control over assets in the Account.
      * @dev No need to set the Owner as Asset Manager as they will automatically have all permissions of an Asset Manager.
      * @dev Potential use-cases of the Asset Manager might be to:
@@ -269,13 +283,27 @@ contract AccountV4 is AccountStorageV1, IAccount {
      * - Do flash actions (optimistic actions).
      * - Compounding.
      * - Chain multiple interactions together.
-     * @dev Anyone can set the Asset Manager for themselves, this will not impact the current owner of the Account
-     * since the combination of "stored owner -> asset manager" is used in authentication checks.
-     * This guarantees that when the ownership of the Account is transferred, the asset managers of the old owner have no
-     * impact on the new owner. But the new owner can still remove any existing asset managers before the transfer.
      */
-    function setAssetManager(address assetManager, bool value) external {
-        emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = value);
+    function setAssetManagers(address[] calldata assetManagers, bool[] calldata statuses, bytes[] calldata datas)
+        external
+        onlyOwner
+        nonReentrant(WITH_PAUSE_CHECK, this.setAssetManagers.selector)
+        updateActionTimestamp
+    {
+        if (assetManagers.length != statuses.length || assetManagers.length != datas.length) {
+            revert AccountErrors.LengthMismatch();
+        }
+
+        address assetManager;
+        for (uint256 i; i < assetManagers.length; ++i) {
+            assetManager = assetManagers[i];
+            emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = statuses[i]);
+
+            // Optionally call Hook on the Asset Manager to initialize/update it.
+            if (datas[i].length > 0) {
+                IAssetManager(assetManager).onSetAssetManager(msg.sender, statuses[i], datas[i]);
+            }
+        }
     }
 
     /**
@@ -376,7 +404,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
             currentStatus = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
             if (operatorStatuses[i] != currentStatus) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
 
-            // Call Hook on the Operator.
+            // Optionally call Hook on the Operator to initialize/update it.
             if (operatorDatas[i].length > 0) {
                 IMerklOperator(operator).onSetMerklOperator(msg.sender, operatorStatuses[i], operatorDatas[i]);
             }
