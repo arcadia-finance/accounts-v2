@@ -21,7 +21,7 @@ import { SequencerUptimeOracle } from "../../mocks/oracles/SequencerUptimeOracle
 import { Utils } from "../../Utils.sol";
 
 contract ArcadiaAccountsFixture is Base_Test {
-    function deployArcadiaAccounts() public {
+    function deployArcadiaAccounts(address merklDistributor) public {
         // Deploy the sequencer uptime oracle.
         vm.prank(users.oracleOwner);
         sequencerUptimeOracle = new SequencerUptimeOracle();
@@ -34,7 +34,7 @@ contract ArcadiaAccountsFixture is Base_Test {
         erc20AM = new ERC20PrimaryAMExtension(address(registry));
 
         accountsGuard = new AccountsGuardExtension(users.owner, address(factory));
-        accountLogic = new AccountV3(address(factory), address(accountsGuard), address(0));
+        accountLogic = new AccountV3(address(factory), address(accountsGuard), merklDistributor);
         factory.setLatestAccountVersion(2);
         factory.setNewAccountInfo(address(registry), address(accountLogic), Constants.upgradeRoot3To4And4To3, "");
 
