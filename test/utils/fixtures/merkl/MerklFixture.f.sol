@@ -6,7 +6,7 @@ pragma solidity ^0.8.22;
 
 import { AccessControlManager } from "../../../../lib/merkl-contracts/contracts/AccessControlManager.sol";
 import { DistributionCreator } from "../../../../lib/merkl-contracts/contracts/DistributionCreator.sol";
-import { Distributor } from "../../../../lib/merkl-contracts/contracts/Distributor.sol";
+import { DistributorExtension } from "./extensions/DistributorExtension.sol";
 import { ERC1967Proxy } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import { IAccessControlManager } from "../../../../lib/merkl-contracts/contracts/interfaces/IAccessControlManager.sol";
 import { ProxyAdmin } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -25,7 +25,7 @@ contract MerklFixture is Test {
 
     AccessControlManager internal accessControlManager;
     DistributionCreator internal distributionCreator;
-    Distributor internal distributor;
+    DistributorExtension internal distributor;
     ProxyAdmin internal proxyAdmin;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -46,9 +46,9 @@ contract MerklFixture is Test {
         accessControlManager.addGovernor(owner);
 
         // Deploy Distributor.
-        Distributor implementation_ = new Distributor();
+        DistributorExtension implementation_ = new DistributorExtension();
         ERC1967Proxy proxy_ = new ERC1967Proxy(address(implementation_), "");
-        distributor = Distributor(address(proxy_));
+        distributor = DistributorExtension(address(proxy_));
         distributor.initialize(IAccessControlManager(address(accessControlManager)));
 
         // Deploy DistributionCreator.
