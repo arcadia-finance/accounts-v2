@@ -71,7 +71,7 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
 
     function setUp() public virtual override {
         Base_Test.setUp();
-        deployArcadiaAccounts();
+        deployArcadiaAccounts(address(0));
 
         // Warp to have a timestamp of at least two days old.
         vm.warp(2 days);

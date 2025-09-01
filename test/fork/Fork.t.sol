@@ -49,7 +49,7 @@ abstract contract Fork_Test is Base_Test, ArcadiaAccountsFixture {
         vm.selectFork(fork);
 
         Base_Test.setUp();
-        deployArcadiaAccounts();
+        deployArcadiaAccounts(address(0));
 
         vm.startPrank(users.owner);
         // Add USDC to the protocol (same oracle will be used for USDBC).

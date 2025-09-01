@@ -22,6 +22,6 @@ abstract contract Invariant_Test is Base_Test, ArcadiaAccountsFixture {
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
         Base_Test.setUp();
-        deployArcadiaAccounts();
+        deployArcadiaAccounts(address(0));
     }
 }
