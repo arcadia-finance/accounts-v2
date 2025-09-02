@@ -27,7 +27,7 @@ import { IRegistry } from "../interfaces/IRegistry.sol";
  * @notice Arcadia Accounts are smart contracts that act as onchain, decentralized and composable margin accounts.
  * They provide individuals, DAOs, and other protocols with a simple and flexible way to deposit and manage multiple assets as collateral.
  * The total combination of assets can be used as margin to back liabilities issued by any financial protocol (lending, leverage, futures...).
- * @dev Users can use this Account to deposit assets (fungible, non-fungible, LP positions, yiel bearing assets...).
+ * @dev Users can use this Account to deposit assets (fungible, non-fungible, LP positions, yield bearing assets...).
  * The Account will denominate all the deposited assets into one Numeraire (one unit of account, like USD or ETH).
  * Users can use the single denominated value of all their assets to take margin (take credit line, financing for leverage...).
  * An increase of value of one asset will offset a decrease in value of another asset.
@@ -183,7 +183,6 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @param registry_ The 'beacon' contract with the external logic to price assets.
      * @param creditor_ The contract address of the Creditor.
      * @dev A proxy will be used to interact with the Account implementation.
-     * Therefore everything is initialised through an init function.
      * This function will only be called (once) in the same transaction as the proxy Account creation through the Factory.
      * @dev The Creditor will only be set if it's a non-zero address, in this case the numeraire_ passed as input will be ignored.
      */
@@ -424,7 +423,10 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * This guarantees that when the ownership of the Account is transferred, the approved Creditor of the old owner has no
      * impact on the new owner. But the new owner can still remove any existing approved Creditors before the transfer.
      */
-    function setApprovedCreditor(address creditor_) external {
+    function setApprovedCreditor(address creditor_)
+        external
+        nonReentrant(WITH_PAUSE_CHECK, this.setApprovedCreditor.selector)
+    {
         approvedCreditor[msg.sender] = creditor_;
     }
 
@@ -641,7 +643,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Add or remove an Asset Manager.
+     * @notice Removes an Asset Manager.
      * @param assetManager The address of the Asset Manager.
      * @dev Anyone can remove an Asset Manager for themselves, this will not impact the current owner of the Account
      * since the combination of "stored owner -> asset manager" is used in authentication checks.
@@ -656,7 +658,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @notice Adds, removes or modifies Asset Managers.
      * @param assetManagers Array of Asset Managers.
      * @param statuses Array of Bools indicating if the corresponding Asset Manager should be enabled or disabled.
-     * @param datas Array of calldata to be passed to the corresponding Asset Manager.
+     * @param datas Array of calldata optionally passed to the corresponding Asset Manager via hook.
      * @dev Only set trusted addresses as Asset Manager. Asset Managers have full control over assets in the Account.
      * @dev No need to set the Owner as Asset Manager as they will automatically have all permissions of an Asset Manager.
      * @dev Potential use-cases of the Asset Manager might be to:
@@ -750,15 +752,15 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @param operator The merkl operator.
      */
     function removeMerklOperator(address operator) external onlyOwner {
-        bool currentStatus = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
-        if (currentStatus) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
+        bool enabled = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
+        if (enabled) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
     }
 
     /**
      * @notice Manages Merkl Operators.
      * @param operators Array of merkl operators.
      * @param operatorStatuses Array of Bools indicating if the corresponding operator should be enabled or disabled.
-     * @param operatorDatas Array of calldata to be passed to the corresponding merkl operator.
+     * @param operatorDatas Array of calldata optionally passed to the corresponding merkl operator via hook.
      * @param recipient The address of the recipient of the merkl rewards for each of the tokens.
      * @param tokens Array of tokens for which the recipient will be set.
      * @dev A Merkl Operator can claim any pending merkl rewards on behalf of the Account.
@@ -783,7 +785,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
         bool currentStatus;
         for (uint256 i; i < operators.length; ++i) {
             operator = operators[i];
-            // If the current status is different from the desired status, set the new status.
+            // If the current status is different from the desired status, toggle the status of the operator.
             currentStatus = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
             if (operatorStatuses[i] != currentStatus) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
 
@@ -957,7 +959,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
     function deposit(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
         onlyOwner
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.deposit.selector)
+        nonReentrant(WITH_PAUSE_CHECK, this.deposit.selector)
         notDuringAuction
     {
         // No need to check that all arrays have equal length, this check will be done in the Registry.

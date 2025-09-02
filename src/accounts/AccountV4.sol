@@ -260,7 +260,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Add or remove an Asset Manager.
+     * @notice Removes an Asset Manager.
      * @param assetManager The address of the Asset Manager.
      * @dev Anyone can remove an Asset Manager for themselves, this will not impact the current owner of the Account
      * since the combination of "stored owner -> asset manager" is used in authentication checks.
@@ -275,7 +275,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
      * @notice Adds, removes or modifies Asset Managers.
      * @param assetManagers Array of Asset Managers.
      * @param statuses Array of Bools indicating if the corresponding Asset Manager should be enabled or disabled.
-     * @param datas Array of calldata to be passed to the corresponding Asset Manager.
+     * @param datas Array of calldata optionally passed to the corresponding Asset Manager via hook.
      * @dev Only set trusted addresses as Asset Manager. Asset Managers have full control over assets in the Account.
      * @dev No need to set the Owner as Asset Manager as they will automatically have all permissions of an Asset Manager.
      * @dev Potential use-cases of the Asset Manager might be to:
@@ -367,15 +367,15 @@ contract AccountV4 is AccountStorageV1, IAccount {
      * @param operator The merkl operator.
      */
     function removeMerklOperator(address operator) external onlyOwner {
-        bool currentStatus = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
-        if (currentStatus) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
+        bool enabled = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
+        if (enabled) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
     }
 
     /**
      * @notice Manages Merkl Operators.
      * @param operators Array of merkl operators.
      * @param operatorStatuses Array of Bools indicating if the corresponding operator should be enabled or disabled.
-     * @param operatorDatas Array of calldata to be passed to the corresponding merkl operator.
+     * @param operatorDatas Array of calldata optionally passed to the corresponding merkl operator via hook.
      * @param recipient The address of the recipient of the merkl rewards for each of the tokens.
      * @param tokens Array of tokens for which the recipient will be set.
      * @dev A Merkl Operator can claim any pending merkl rewards on behalf of the Account.
@@ -400,7 +400,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
         bool currentStatus;
         for (uint256 i; i < operators.length; ++i) {
             operator = operators[i];
-            // If the current status is different from the desired status, set the new status.
+            // If the current status is different from the desired status, toggle the status of the operator.
             currentStatus = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
             if (operatorStatuses[i] != currentStatus) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
 
@@ -432,7 +432,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
         uint256[] memory assetIds,
         uint256[] memory assetAmounts,
         uint256[] memory assetTypes
-    ) external payable onlyOwner nonReentrant(WITHOUT_PAUSE_CHECK, this.deposit.selector) {
+    ) external payable onlyOwner nonReentrant(WITH_PAUSE_CHECK, this.deposit.selector) {
         _deposit(assetAddresses, assetIds, assetAmounts, assetTypes, msg.sender);
     }
 
