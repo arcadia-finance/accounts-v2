@@ -72,7 +72,7 @@ contract SetMerklOperators_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, MerklFixt
         accountsGuard.setAccount(address(1));
 
         // When: accountOwner calls "setMerklOperators" on the Account.
-        // Then: Transaction should revert with AccountsGuard.OnlyReentrant.selector.
+        // Then: Transaction should revert with AccountsGuard.Reentered.selector.
         vm.prank(users.accountOwner);
         vm.expectRevert(AccountsGuard.Reentered.selector);
         setMerklOperators(params);

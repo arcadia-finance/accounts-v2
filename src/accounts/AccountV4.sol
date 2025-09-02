@@ -267,7 +267,10 @@ contract AccountV4 is AccountStorageV1, IAccount {
      * This guarantees that when the ownership of the Account is transferred, the asset managers of the old owner have no
      * impact on the new owner. But the new owner can still remove any existing asset managers before the transfer.
      */
-    function removeAssetManager(address assetManager) external {
+    function removeAssetManager(address assetManager)
+        external
+        nonReentrant(WITHOUT_PAUSE_CHECK, this.removeAssetManager.selector)
+    {
         emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = false);
     }
 
@@ -366,7 +369,11 @@ contract AccountV4 is AccountStorageV1, IAccount {
      * @notice Removes a Merkl Operator.
      * @param operator The merkl operator.
      */
-    function removeMerklOperator(address operator) external onlyOwner {
+    function removeMerklOperator(address operator)
+        external
+        onlyOwner
+        nonReentrant(WITHOUT_PAUSE_CHECK, this.removeMerklOperator.selector)
+    {
         bool enabled = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
         if (enabled) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
     }

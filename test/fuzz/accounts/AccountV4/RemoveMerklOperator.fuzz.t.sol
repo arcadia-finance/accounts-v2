@@ -5,6 +5,7 @@
 pragma solidity ^0.8.22;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
+import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
 import { AccountV4_Fuzz_Test } from "./_AccountV4.fuzz.t.sol";
 import { AccountV4Extension } from "../../../utils/extensions/AccountV4Extension.sol";
 import { MerklFixture } from "../../../utils/fixtures/merkl/MerklFixture.f.sol";
@@ -61,6 +62,17 @@ contract RemoveMerklOperator_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, MerklFi
         // Then: Transaction should revert with AccountErrors.OnlyOwner.selector.
         vm.prank(nonOwner);
         vm.expectRevert(AccountErrors.OnlyOwner.selector);
+        account_.removeMerklOperator(operator_);
+    }
+
+    function testFuzz_Revert_removeMerklOperator_Reentered(address operator_) public {
+        // Given: Reentrancy guard is in locked state.
+        accountsGuard.setAccount(address(1));
+
+        // When: accountOwner calls "removeMerklOperator" on the Account.
+        // Then: Transaction should revert with AccountsGuard.Reentered.selector.
+        vm.prank(users.accountOwner);
+        vm.expectRevert(AccountsGuard.Reentered.selector);
         account_.removeMerklOperator(operator_);
     }
 

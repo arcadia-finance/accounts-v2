@@ -53,7 +53,7 @@ contract SetAssetManagers_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         accountsGuard.setAccount(address(1));
 
         // When: accountOwner calls "setAssetManagers" on the Account.
-        // Then: Transaction should revert with AccountsGuard.OnlyReentrant.selector.
+        // Then: Transaction should revert with AccountsGuard.Reentered.selector.
         vm.prank(users.accountOwner);
         vm.expectRevert(AccountsGuard.Reentered.selector);
         setAssetManagers(params);

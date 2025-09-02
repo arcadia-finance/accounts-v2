@@ -35,6 +35,17 @@ contract RemoveAssetManager_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
+    function testFuzz_Revert_removeAssetManager_Reentered(address msgSender, address assetManager_) public {
+        // Given: Reentrancy guard is in locked state.
+        accountsGuard.setAccount(address(1));
+
+        // When: msgSender calls "removeAssetManager" on the Account.
+        // Then: Transaction should revert with AccountsGuard.Reentered.selector.
+        vm.prank(msgSender);
+        vm.expectRevert(AccountsGuard.Reentered.selector);
+        accountExtension.removeAssetManager(assetManager_);
+    }
+
     function testFuzz_Success_removeAssetManager(address msgSender, bool currentStatus) public {
         // Given : Initial state.
         address[] memory assetManagers = new address[](1);
