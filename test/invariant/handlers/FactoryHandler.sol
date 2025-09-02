@@ -5,8 +5,8 @@
 pragma solidity ^0.8.22;
 
 import { BaseHandler } from "./BaseHandler.sol";
-import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
-import { AccountV2 } from "../../utils/mocks/accounts/AccountV2.sol";
+import { AccountV3 } from "../../../src/accounts/AccountV3.sol";
+import { AccountLogicMock } from "../../utils/mocks/accounts/AccountLogicMock.sol";
 import { Factory } from "../../../src/Factory.sol";
 import { RegistryL2Extension } from "../../utils/extensions/RegistryL2Extension.sol";
 import { CreditorMock } from "../../utils/mocks/creditors/CreditorMock.sol";
@@ -28,13 +28,18 @@ contract FactoryHandler is BaseHandler {
 
     Factory internal factory;
     RegistryL2Extension internal registry;
-    AccountV1 internal account;
-    AccountV2 internal accountV2;
+    AccountV3 internal account;
+    AccountLogicMock internal accountV2;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTRUCTOR
     //////////////////////////////////////////////////////////////////////////*/
-    constructor(Factory factory_, RegistryL2Extension registryExtension_, AccountV1 account_, AccountV2 accountV2_) {
+    constructor(
+        Factory factory_,
+        RegistryL2Extension registryExtension_,
+        AccountV3 account_,
+        AccountLogicMock accountV2_
+    ) {
         factory = factory_;
         registry = registryExtension_;
         account = account_;
@@ -56,7 +61,7 @@ contract FactoryHandler is BaseHandler {
         // Objective is to only activate a V2 once
         if (callsToSetNewAccountInfo == 3) {
             vm.prank(factory.owner());
-            factory.setNewAccountInfo(address(registry), address(accountV2), Constants.upgradeProof1To2, "");
+            factory.setNewAccountInfo(address(registry), address(accountV2), Constants.upgradeRoot3To4And4To3, "");
         }
     }
 }

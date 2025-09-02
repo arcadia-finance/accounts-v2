@@ -4,9 +4,9 @@
  */
 pragma solidity 0.8.22;
 
-import { AccountV1Extension } from "../../../../utils/extensions/AccountV1Extension.sol";
-import { AccountSpotExtension } from "../../../../utils/extensions/AccountSpotExtension.sol";
-import { Constants } from "../../../Fuzz.t.sol";
+import { AccountV3Extension } from "../../../../utils/extensions/AccountV3Extension.sol";
+import { AccountV4Extension } from "../../../../utils/extensions/AccountV4Extension.sol";
+import { Constants } from "../../../../utils/Constants.sol";
 import { SpotToMarginMigrator } from "../../../../../src/accounts/helpers/SpotToMarginMigrator.sol";
 import { SpotToMarginMigrator_Fuzz_Test } from "./_SpotToMarginMigrator.fuzz.t.sol";
 
@@ -18,7 +18,7 @@ contract UpgradeAccount_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_F
                          TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AccountSpotExtension internal accountSpot2;
+    AccountV4Extension internal accountSpot2;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -47,7 +47,7 @@ contract UpgradeAccount_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_F
         vm.startPrank(notOwner);
         vm.expectRevert(SpotToMarginMigrator.NotOwner.selector);
         spotToMarginMigrator.upgradeAccount(
-            address(accountSpot), address(0), 1, proofs, assets, assetIds, assetAmounts, assetTypes
+            address(accountSpot), address(0), 3, proofs, assets, assetIds, assetAmounts, assetTypes
         );
         vm.stopPrank();
     }
@@ -64,7 +64,7 @@ contract UpgradeAccount_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_F
         vm.startPrank(users.accountOwner);
         vm.expectRevert(SpotToMarginMigrator.CreditorNotValid.selector);
         spotToMarginMigrator.upgradeAccount(
-            address(accountSpot), address(0), 1, proofs, assets, assetIds, assetAmounts, assetTypes
+            address(accountSpot), address(0), 3, proofs, assets, assetIds, assetAmounts, assetTypes
         );
         vm.stopPrank();
     }
@@ -83,7 +83,7 @@ contract UpgradeAccount_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_F
         // Then : It should return the correct values
         assertEq(spotToMarginMigrator.getOwnerOfAccount(address(accountSpot)), users.accountOwner);
         assertEq(factory.ownerOfAccount(address(accountSpot)), address(spotToMarginMigrator));
-        assertEq(accountSpot.ACCOUNT_VERSION(), 1);
+        assertEq(accountSpot.ACCOUNT_VERSION(), 3);
         assertEq(accountSpot.creditor(), address(creditorStable1));
         assertEq(accountSpot.registry(), address(registry));
         assertEq(accountSpot.numeraire(), address(mockERC20.stable1));
@@ -91,8 +91,8 @@ contract UpgradeAccount_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_F
         assertEq(accountSpot.liquidator(), Constants.initLiquidator);
         assertEq(accountSpot.erc20Balances(address(mockERC20.token1)), erc20Amount);
         assertEq(accountSpot.erc1155Balances(address(mockERC1155.sft1), 1), erc1155Amount);
-        assertEq(AccountV1Extension(address(accountSpot)).isAccountUnhealthy(), false);
-        assertEq(AccountV1Extension(address(accountSpot)).getERC721Stored(0), address(mockERC721.nft1));
-        assertEq(AccountV1Extension(address(accountSpot)).getERC721TokenIds(0), erc721Id);
+        assertEq(AccountV3Extension(address(accountSpot)).isAccountUnhealthy(), false);
+        assertEq(AccountV3Extension(address(accountSpot)).getERC721Stored(0), address(mockERC721.nft1));
+        assertEq(AccountV3Extension(address(accountSpot)).getERC721TokenIds(0), erc721Id);
     }
 }

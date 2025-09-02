@@ -6,7 +6,7 @@ pragma solidity ^0.8.22;
 
 import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
-import { AccountV2 } from "../../utils/mocks/accounts/AccountV2.sol";
+import { AccountLogicMock } from "../../utils/mocks/accounts/AccountLogicMock.sol";
 import { AccountVariableVersion } from "../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { Factory } from "../../../src/Factory.sol";
@@ -42,7 +42,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
-        factory.setNewAccountInfo(address(registry), logic, Constants.upgradeRoot1To2, "");
+        factory.setNewAccountInfo(address(registry), logic, Constants.upgradeRoot3To4And4To3, "");
         vm.stopPrank();
     }
 
@@ -68,7 +68,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(factory));
         vm.assume(logic != address(registry));
         vm.assume(logic != address(vm));
-        vm.assume(logic != address(accountV1Logic));
+        vm.assume(logic != address(accountLogic));
         vm.assume(logic != address(account));
         vm.assume(logic != address(sequencerUptimeOracle));
         vm.assume(logic != address(accountVarVersion));
@@ -82,42 +82,44 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         } else {
             vm.expectRevert(bytes(""));
         }
-        factory.setNewAccountInfo(address(registry2), logic, Constants.upgradeProof1To2, "");
+        factory.setNewAccountInfo(address(registry2), logic, Constants.upgradeRoot3To4And4To3, "");
         vm.stopPrank();
     }
 
     function testFuzz_Revert_setNewAccountInfo_InvalidAccountVersion() public {
-        AccountV2 newAccountV2 = new AccountV2(address(factory));
-        AccountV2 newAccountV2_2 = new AccountV2(address(factory));
+        AccountLogicMock newAccountLogicMock = new AccountLogicMock(address(factory));
+        AccountLogicMock newAccountLogicMock_2 = new AccountLogicMock(address(factory));
 
         vm.startPrank(users.owner);
         //first set an actual version 2
-        factory.setNewAccountInfo(address(registry), address(newAccountV2), Constants.upgradeRoot1To2, "");
+        factory.setNewAccountInfo(address(registry), address(newAccountLogicMock), Constants.upgradeRoot3To4And4To3, "");
         //then try to register another account logic address which has version 2 in its bytecode
         vm.expectRevert(FactoryErrors.VersionMismatch.selector);
-        factory.setNewAccountInfo(address(registry), address(newAccountV2_2), Constants.upgradeRoot1To2, "");
+        factory.setNewAccountInfo(
+            address(registry), address(newAccountLogicMock_2), Constants.upgradeRoot3To4And4To3, ""
+        );
         vm.stopPrank();
     }
 
     function testFuzz_Revert_setNewAccountInfo_InvalidAccountFactory(address nonFactory) public {
         vm.assume(nonFactory != address(factory));
 
-        AccountV2 badAccount = new AccountV2(nonFactory);
+        AccountLogicMock badAccount = new AccountLogicMock(nonFactory);
 
         vm.prank(users.owner);
         vm.expectRevert(FactoryErrors.FactoryMismatch.selector);
-        factory.setNewAccountInfo(address(registry), address(badAccount), Constants.upgradeRoot1To2, "");
+        factory.setNewAccountInfo(address(registry), address(badAccount), Constants.upgradeRoot3To4And4To3, "");
     }
 
     function testFuzz_Revert_setNewAccountInfo_InvalidRegistryFactory(address nonFactory) public {
         vm.assume(nonFactory != address(factory));
 
-        AccountV2 account_ = new AccountV2(nonFactory);
+        AccountLogicMock account_ = new AccountLogicMock(nonFactory);
         RegistryL2 badRegistry = new RegistryL2(nonFactory, address(sequencerUptimeOracle));
 
         vm.prank(users.owner);
         vm.expectRevert(FactoryErrors.FactoryMismatch.selector);
-        factory.setNewAccountInfo(address(badRegistry), address(account_), Constants.upgradeRoot1To2, "");
+        factory.setNewAccountInfo(address(badRegistry), address(account_), Constants.upgradeRoot3To4And4To3, "");
     }
 
     function testFuzz_Success_setNewAccountInfo(address logic, bytes calldata data) public {
@@ -125,7 +127,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(factory));
         vm.assume(logic != address(registry));
         vm.assume(logic != address(vm));
-        vm.assume(logic != address(accountV1Logic));
+        vm.assume(logic != address(accountLogic));
         vm.assume(logic != address(account));
         vm.assume(logic != address(sequencerUptimeOracle));
         vm.assume(logic != address(accountVarVersion));
@@ -143,10 +145,10 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.startPrank(users.owner);
         vm.expectEmit(true, true, true, true);
         emit Factory.AccountVersionAdded(uint16(latestAccountVersionPre + 1), address(registry2), logic);
-        factory.setNewAccountInfo(address(registry2), logic, Constants.upgradeRoot1To2, data);
+        factory.setNewAccountInfo(address(registry2), logic, Constants.upgradeRoot3To4And4To3, data);
         vm.stopPrank();
 
-        assertEq(factory.versionRoot(), Constants.upgradeRoot1To2);
+        assertEq(factory.versionRoot(), Constants.upgradeRoot3To4And4To3);
         (address registry_, address addresslogic_, bytes memory data_) =
             factory.versionInformation(latestAccountVersionPre + 1);
         assertEq(registry_, address(registry2));

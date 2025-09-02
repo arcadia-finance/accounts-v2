@@ -1,0 +1,15 @@
+/**
+ * Created by Pragma Labs
+ * SPDX-License-Identifier: BUSL-1.1
+ */
+pragma solidity ^0.8.22;
+
+import { Factory } from "../../../src/Factory.sol";
+
+contract FactoryExtension is Factory {
+    constructor() Factory() { }
+
+    function setLatestAccountVersion(uint88 latestAccountVersion_) external {
+        latestAccountVersion = latestAccountVersion_;
+    }
+}

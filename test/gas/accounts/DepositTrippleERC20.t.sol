@@ -5,10 +5,10 @@
 pragma solidity ^0.8.22;
 
 import { Gas_Test } from "../Gas.t.sol";
-import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
+import { AccountV3 } from "../../../src/accounts/AccountV3.sol";
 
 /**
- * @notice Fuzz tests for the function "closeMarginAccount" of contract "AccountV1".
+ * @notice Fuzz tests for the function "closeMarginAccount" of contract "AccountV3".
  */
 contract Deposits_TrippleERC20_Gas_Test is Gas_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ contract Deposits_TrippleERC20_Gas_Test is Gas_Test {
 
     function testGas_Deposit_ERC20_Tripple() public {
         vm.pauseGasMetering();
-        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account) =
+        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account) =
             prepare_deposit_tripple_erc20(newAccount);
         vm.resumeGasMetering();
         vm.prank(users.accountOwner);
@@ -40,7 +40,7 @@ contract Deposits_TrippleERC20_Gas_Test is Gas_Test {
 
     function testGas_Value_ERC20_Tripple() public {
         vm.pauseGasMetering();
-        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account) =
+        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account) =
             prepare_deposit_tripple_erc20(newAccount);
         vm.prank(users.accountOwner);
         account.deposit(assets, ids, amounts);
@@ -51,7 +51,7 @@ contract Deposits_TrippleERC20_Gas_Test is Gas_Test {
 
     function testGas_GenerateAssetData_ERC20_Tripple() public {
         vm.pauseGasMetering();
-        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account) =
+        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account) =
             prepare_deposit_tripple_erc20(newAccount);
         vm.prank(users.accountOwner);
         account.deposit(assets, ids, amounts);
@@ -62,7 +62,7 @@ contract Deposits_TrippleERC20_Gas_Test is Gas_Test {
 
     function testGas_Withdraw_ERC20_Tripple() public {
         vm.pauseGasMetering();
-        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account) =
+        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account) =
             prepare_deposit_tripple_erc20(newAccount);
         vm.prank(users.accountOwner);
         account.deposit(assets, ids, amounts);

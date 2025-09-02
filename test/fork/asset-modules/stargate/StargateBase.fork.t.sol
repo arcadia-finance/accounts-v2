@@ -6,7 +6,7 @@ pragma solidity ^0.8.22;
 
 import { Fork_Test } from "../../Fork.t.sol";
 
-import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
+import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ILpStakingTime } from "../../../../src/asset-modules/Stargate-Finance/interfaces/ILpStakingTime.sol";
@@ -74,7 +74,7 @@ contract StargateBase_Fork_Test is Fork_Test {
 
     function stakeInAssetModuleAndDepositInAccount(
         address user,
-        address account,
+        address account_,
         ERC20 underlyingAsset,
         uint256 amount,
         uint256 poolId,
@@ -94,7 +94,7 @@ contract StargateBase_Fork_Test is Fork_Test {
         uint256 tokenId = stakedStargateAM.mint(address(pool), uint128(lpBalance));
 
         // The user deposits the ERC1155 in it's Account.
-        stakedStargateAM.approve(account, tokenId);
+        stakedStargateAM.approve(account_, tokenId);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(stakedStargateAM);
@@ -105,7 +105,7 @@ contract StargateBase_Fork_Test is Fork_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = 1;
 
-        AccountV1(account).deposit(assetAddresses, assetIds, assetAmounts);
+        AccountV3(account_).deposit(assetAddresses, assetIds, assetAmounts);
 
         vm.stopPrank();
     }

@@ -7,7 +7,7 @@ pragma solidity ^0.8.22;
 import { Gas_Test } from "../Gas.t.sol";
 
 /**
- * @notice Fuzz tests for the function "closeMarginAccount" of contract "AccountV1".
+ * @notice Fuzz tests for the function "closeMarginAccount" of contract "AccountV3".
  */
 contract CreateAccount_Factory_Gas_Test is Gas_Test {
     /* ///////////////////////////////////////////////////////////////

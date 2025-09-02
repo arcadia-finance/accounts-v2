@@ -14,8 +14,11 @@ remappings = [
     "@uniswap/v3-periphery/contracts/=lib/v3-periphery/contracts/",
     "contracts/=lib/slipstream/contracts",
     "solmate/=lib/solmate/",
+    "lib/openzeppelin-contracts-upgradeable-v4.9:@openzeppelin/=lib/openzeppelin-contracts-v4.9/",
+    "lib/merkl-contracts:@openzeppelin/contracts/=lib/openzeppelin-contracts-v4.9/contracts/",
+    "lib/merkl-contracts:@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable-v4.9/contracts/",
     "lib/slipstream:@openzeppelin/=lib/slipstream/lib/openzeppelin-contracts/",
-    "lib/v3-periphery:@openzeppelin/=lib/openzeppelin-contracts/",
+    "lib/v3-periphery:@openzeppelin/=lib/openzeppelin-contracts-v3.4/",
     "lib/v4-periphery:@openzeppelin/=lib/v4-periphery/lib/v4-core/lib/openzeppelin-contracts/",
     "lib/v4-periphery/lib/v4-core:@openzeppelin/=lib/v4-periphery/lib/v4-core/lib/openzeppelin-contracts/",
 ]

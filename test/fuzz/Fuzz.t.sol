@@ -7,7 +7,7 @@ pragma solidity ^0.8.22;
 import { Base_Test } from "../Base.t.sol";
 import { ArcadiaAccountsFixture } from "../utils/fixtures/arcadia-accounts/ArcadiaAccountsFixture.f.sol";
 
-import { AccountV1 } from "../../src/accounts/AccountV1.sol";
+import { AccountV3 } from "../../src/accounts/AccountV3.sol";
 import { ArcadiaOracle } from "../utils/mocks/oracles/ArcadiaOracle.sol";
 import { AssetModule } from "../../src/asset-modules/abstracts/AbstractAM.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
@@ -71,7 +71,7 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
 
     function setUp() public virtual override {
         Base_Test.setUp();
-        deployArcadiaAccounts();
+        deployArcadiaAccounts(address(0));
 
         // Warp to have a timestamp of at least two days old.
         vm.warp(2 days);
@@ -381,7 +381,7 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
 
     function deployNativeTokenAM() internal {
         vm.startPrank(users.owner);
-        nativeTokenAM = new NativeTokenAMExtension(address(registry));
+        nativeTokenAM = new NativeTokenAMExtension(address(registry), 18);
         registry.addAssetModule(address(nativeTokenAM));
         vm.stopPrank();
     }

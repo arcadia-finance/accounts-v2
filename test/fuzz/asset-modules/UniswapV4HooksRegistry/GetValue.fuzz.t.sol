@@ -64,7 +64,7 @@ contract GetValue_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuz
 
         // And : Liquidity is within allowed ranges.
         vars.liquidity =
-            uint80(bound(vars.liquidity, 1e18 + 1, poolManager.getTickSpacingToMaxLiquidityPerTick(tickSpacing)));
+            uint80(bound(vars.liquidity, 1e18 + 1, poolManager.getTickSpacingToMaxLiquidityPerTick(tickSpacing)) / 10);
 
         // And : Liquidity position is minted.
         uint256 tokenId = mintPositionV4(

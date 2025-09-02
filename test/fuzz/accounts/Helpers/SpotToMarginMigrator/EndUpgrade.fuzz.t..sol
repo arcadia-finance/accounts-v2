@@ -5,9 +5,9 @@
 pragma solidity 0.8.22;
 
 import { AccountErrors } from "../../../../../src/libraries/Errors.sol";
-import { AccountV1Extension } from "../../../../utils/extensions/AccountV1Extension.sol";
-import { AccountSpotExtension } from "../../../../utils/extensions/AccountSpotExtension.sol";
-import { Constants } from "../../../Fuzz.t.sol";
+import { AccountV3Extension } from "../../../../utils/extensions/AccountV3Extension.sol";
+import { AccountV4Extension } from "../../../../utils/extensions/AccountV4Extension.sol";
+import { Constants } from "../../../../utils/Constants.sol";
 import { SpotToMarginMigrator } from "../../../../../src/accounts/helpers/SpotToMarginMigrator.sol";
 import { SpotToMarginMigrator_Fuzz_Test } from "./_SpotToMarginMigrator.fuzz.t.sol";
 
