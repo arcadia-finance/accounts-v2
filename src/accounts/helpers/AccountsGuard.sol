@@ -8,7 +8,7 @@ import { IFactory } from "../../interfaces/IFactory.sol";
 import { Owned } from "../../../lib/solmate/src/auth/Owned.sol";
 
 /**
- * @title Guard for preventing multi Account reentrancy and corss account pausing.
+ * @title Guard for preventing multi Account reentrancy and cross account pausing.
  * @author Pragma Labs
  */
 contract AccountsGuard is Owned {
@@ -99,7 +99,7 @@ contract AccountsGuard is Owned {
      * The guard gives NO reentrancy protection for non atomic flows.
      * @dev If the AccountsGuard gets in an invalid state due to a faulty implementation in an Account
      * where the Guard was locked but not unlocked (should never happen in practice),
-     * then only transactions within the same block as the faulty trasaction will revert.
+     * then only transactions within the same block as the faulty transaction will revert.
      */
     function lock(bool pauseCheck, bytes4 selector) external {
         if (pauseCheck && paused) revert Paused();

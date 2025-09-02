@@ -63,6 +63,17 @@ contract RemoveMerklOperator_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, MerklFi
         accountExtension.removeMerklOperator(operator_);
     }
 
+    function testFuzz_Revert_removeMerklOperator_Reentered(address operator_) public {
+        // Given: Reentrancy guard is in locked state.
+        accountsGuard.setAccount(address(1));
+
+        // When: accountOwner calls "removeMerklOperator" on the Account.
+        // Then: Transaction should revert with AccountsGuard.Reentered.selector.
+        vm.prank(users.accountOwner);
+        vm.expectRevert(AccountsGuard.Reentered.selector);
+        accountExtension.removeMerklOperator(operator_);
+    }
+
     function testFuzz_Success_removeMerklOperator_StatusOffToOff() public {
         // Given : Operator is set to status "off".
 
